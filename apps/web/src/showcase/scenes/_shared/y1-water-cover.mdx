@@ -1,0 +1,28 @@
+---
+id: y1-water-cover
+title: Year 1 — Slow it, spread it, sink it
+tiers: [dreaming, transitioning, stewarding]
+mapState:
+  activeLayers: [watershed]
+  features: []
+  view: { center: [-79.91, 43.56], zoom: 14 }
+---
+
+import { MapThumbnail } from '../../components/MapThumbnail';
+
+## Year 1 — Slow it, spread it, sink it
+
+Year 1 was water and cover. Three keyline swales were cut along the contours of the three creek catchments. The first winter rye + crimson clover mix went into the cropped half. The hedgerow whips — hawthorn, dogwood, elderberry, serviceberry — were started in the nursery.
+
+By the end of Year 1, infiltration adjacent to the new swales measured **20.6 mm/hr** (up from 11.8). Worm counts on the swale-adjacent zones reached **3.8 per square metre**. Bird species observed climbed to 13 — three new arrivals included a kingfisher working the now-pooling water.
+
+<MapThumbnail
+  sceneId="y1-water-cover"
+  alt="Three Streams Farm at Year 1 — watershed and keyline swales"
+  mapProps={{
+    boundary: props.snapshot.project.parcel_boundary,
+    layers: props.snapshot.layers,
+    features: props.snapshot.designFeatures,
+    activeLayerIds: ['watershed'],
+  }}
+/>

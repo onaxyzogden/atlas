@@ -63,6 +63,14 @@ const REGENERATIVE_FARM: GoalTree = {
           target: 90,
           deadlineYear: 3,
         },
+        {
+          id: 'living-roots-coverage-pct',
+          description:
+            'Projected % of cropped area carrying living roots year-round (12-month coverage)',
+          unit: 'pct',
+          target: 70,
+          deadlineYear: 3,
+        },
       ],
     },
     {
@@ -93,6 +101,14 @@ const REGENERATIVE_FARM: GoalTree = {
           unit: 'pct',
           target: 10,
           deadlineYear: 1,
+        },
+        {
+          id: 'beneficial-organism-habitat-pct',
+          description:
+            'Composite beneficial-organism habitat coverage from guilds + structural elements (%)',
+          unit: 'pct',
+          target: 60,
+          deadlineYear: 3,
         },
       ],
     },
@@ -173,6 +189,30 @@ const REGENERATIVE_FARM: GoalTree = {
           unit: 'pct',
           target: 90,
           deadlineYear: 3,
+        },
+        {
+          id: 'livestock-rotation-spine-presence-pct',
+          description:
+            'Projected rotation moves present on the work-item spine (%)',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 2,
+        },
+        {
+          id: 'livestock-rotation-moves-completed-pct',
+          description:
+            'Past-due rotation moves marked completed on the spine (%)',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 2,
+        },
+        {
+          id: 'silvopasture-integration-pct',
+          description:
+            'Mean per-host silvopasture integration (fodder + canopy − toxicity) across the parcel (%)',
+          unit: 'pct',
+          target: 70,
+          deadlineYear: 5,
         },
       ],
     },

@@ -28,6 +28,7 @@ import {
   type ZoneCategory,
 } from '../../../../store/zoneStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
+import { PERMACULTURE_ZONE_LABEL } from '../../../../lib/zones/permacultureLabels.js';
 import { ZONE_RING_BANDS, ringCircle } from '../../layers/zoneRingConstants.js';
 import {
   diff,
@@ -175,7 +176,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
         zLevel,
         geom.geometry,
         defaultCategoryForZ(zLevel),
-        `Z${zLevel} (seeded)`,
+        PERMACULTURE_ZONE_LABEL[zLevel],
         false,
       ),
     );

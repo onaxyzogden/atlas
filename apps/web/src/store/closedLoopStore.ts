@@ -19,6 +19,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 const FLOW_CONNECTOR_LEGACY_KEY = 'ogden-flow-connectors';
@@ -65,9 +67,87 @@ export interface MaterialFlow {
   notes?: string;
   phase?: string;
   enterprise?: string;
+  /** Optional monthly throughput quantities. All optional so legacy flows
+   *  (and flows authored without opening the Quantities sub-section) round-
+   *  trip unchanged; dashboard derivations fold over `?? 0`. */
+  massKgPerMonth?: number;
+  volumeLPerMonth?: number;
+  energyKwhPerMonth?: number;
+  nutrientNKgPerMonth?: number;
+  nutrientPKgPerMonth?: number;
+  nutrientKKgPerMonth?: number;
+  /**
+   * Plan->Act closed-loop design intent. All optional + back-compat (legacy
+   * flows round-trip with these undefined). The ACT half consumes these
+   * READ-ONLY (see FLOW_OPERATIONAL_STATUS_CONFIG / FLOW_CADENCE_CONFIG and
+   * resolveOperationalStatus) and writes runtime reality into WasteVectorRun,
+   * never back onto these planned fields. Added 2026-06-03 for the
+   * waste-vector workflow (plan: olos-new-steady-pudding, Phase A slice A0).
+   */
+  /** Lifecycle status of the planned flow. undefined === "active". */
+  operationalStatus?: FlowOperationalStatus;
+  /** Planned recurrence of the flow. */
+  cadence?: FlowCadence;
+  /** Ordered feature ids (usually fertilityInfra) the flow passes THROUGH —
+   *  the "via" / transformation waypoints. Centroids resolve via
+   *  useClosedLoopValidation.nodes. */
+  transformationNodeIds?: string[];
+  /** Months (1..12) the flow is active; absent === all year. */
+  activeMonths?: number[];
   createdAt: string;
   updatedAt?: string;
 }
+
+/**
+ * Lifecycle status of a planned material flow. Drives the flow-map dash style
+ * (FLOW_OPERATIONAL_STATUS_CONFIG.dash -> SVG strokeDasharray) and the Loop
+ * Design Score "at-risk" count. `undefined` on a flow resolves to "active".
+ */
+export type FlowOperationalStatus =
+  | 'active'
+  | 'seasonally-dormant'
+  | 'at-risk'
+  | 'suspended';
+
+/** Planned recurrence of a material flow (Loop Integrity "cadence set" check;
+ *  Act routine generation maps this to a stewardship frequency). */
+export type FlowCadence =
+  | 'continuous'
+  | 'daily'
+  | 'weekly'
+  | 'fortnightly'
+  | 'monthly'
+  | 'seasonal'
+  | 'rotation-based'
+  | 'as-needed';
+
+/**
+ * PUBLIC contract (Plan defines, Act consumes). `dash` is an SVG
+ * `strokeDasharray` value (undefined === solid line); `tone` is a semantic
+ * cue the UI maps to a colour. Do NOT redefine this enum in the Act half —
+ * import it from here.
+ */
+export const FLOW_OPERATIONAL_STATUS_CONFIG: Record<
+  FlowOperationalStatus,
+  { label: string; dash: string | undefined; tone: 'positive' | 'neutral' | 'warning' | 'muted' }
+> = {
+  'active':             { label: 'Active',             dash: undefined, tone: 'positive' },
+  'seasonally-dormant': { label: 'Seasonally dormant', dash: '6 4',     tone: 'neutral' },
+  'at-risk':            { label: 'At risk',            dash: '2 3',     tone: 'warning' },
+  'suspended':          { label: 'Suspended',          dash: '1 5',     tone: 'muted' },
+};
+
+/** PUBLIC contract (Plan defines, Act consumes). Display labels for cadence. */
+export const FLOW_CADENCE_CONFIG: Record<FlowCadence, { label: string }> = {
+  'continuous':     { label: 'Continuous' },
+  'daily':          { label: 'Daily' },
+  'weekly':         { label: 'Weekly' },
+  'fortnightly':    { label: 'Fortnightly' },
+  'monthly':        { label: 'Monthly' },
+  'seasonal':       { label: 'Seasonal' },
+  'rotation-based': { label: 'Rotation-based' },
+  'as-needed':      { label: 'As needed' },
+};
 
 export const MATERIAL_KIND_CONFIG: Record<
   MaterialKind,
@@ -280,8 +360,17 @@ export const useClosedLoopStore = create<ClosedLoopState>()(
     ),
     {
       name: 'ogden-closed-loop',
-      version: 2,
-      // Same-key v1→v2: WasteVector[] → MaterialFlow[] (list origin).
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
+      version: 3,
+      // v2->v3 (2026-06-03): added optional Plan->Act design-intent fields
+      // (operationalStatus / cadence / transformationNodeIds / activeMonths).
+      // All optional, so no backfill is required — flows read back with the new
+      // fields undefined and consumers default them (operationalStatus ->
+      // "active" via resolveOperationalStatus). This branch is a defensive
+      // pass-through forward-marker so a future field that DOES need backfill
+      // has a hook.
+      // Same-key v1->v2: WasteVector[] -> MaterialFlow[] (list origin).
       migrate: (persisted, version) => {
         if (version >= 2) return persisted as ClosedLoopState;
         const p = (persisted ?? {}) as PersistedV1;
@@ -327,4 +416,4 @@ export const useClosedLoopStore = create<ClosedLoopState>()(
   ),
 );
 
-useClosedLoopStore.persist.rehydrate();
+rehydrateWithLogging(useClosedLoopStore);

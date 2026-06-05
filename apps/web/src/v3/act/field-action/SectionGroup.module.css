@@ -1,0 +1,46 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(20, 25, 31, 0.4);
+  border: 1px solid rgba(242, 237, 227, 0.08);
+  border-radius: 10px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(242, 237, 227, 0.06);
+}
+
+.objTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.tierTitle {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(242, 237, 227, 0.55);
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  padding: 14px;
+  background: rgba(20, 25, 31, 0.4);
+  border: 1px dashed rgba(242, 237, 227, 0.16);
+  border-radius: 10px;
+  color: rgba(242, 237, 227, 0.6);
+  font-size: 12px;
+}

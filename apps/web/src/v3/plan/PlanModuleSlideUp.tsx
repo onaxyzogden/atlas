@@ -24,10 +24,10 @@ import type { PlanModule } from './types.js';
 import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
 import PlanViewBadge from './PlanViewBadge.js';
 
-// All 18 plan cards lazy-loaded.
-const GoalTreeTab             = lazy(() => import('./cards/goal-compass/GoalTreeTab.js'));
-const SiteProfileTab          = lazy(() => import('./cards/goal-compass/SiteProfileTab.js'));
+// Plan cards lazy-loaded. Goal-tree + site-profile capture moved to Stage 0
+// (True North); their tab components remain on disk but are no longer mounted here.
 const GeneratedPlanTab        = lazy(() => import('./cards/goal-compass/GeneratedPlanTab.js'));
+const GoalCompassSequenceCard = lazy(() => import('./cards/goal-compass/GoalCompassSequenceCard.js'));
 const DevelopPlanTab          = lazy(() => import('./cards/goal-compass/DevelopPlanTab.js'));
 const CriteriaForecastTab     = lazy(() => import('./cards/goal-compass/CriteriaForecastTab.js'));
 const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
@@ -57,6 +57,12 @@ const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/
 const RegenerationPlanCard        = lazy(() => import('../../features/livestock/RegenerationPlanCard.js'));
 const RotationSequenceCard        = lazy(() => import('../../features/livestock/RotationSequenceCard.js'));
 const RotationPlanCard            = lazy(() => import('../../features/livestock/RotationPlanCard.js'));
+const RotationAdherenceCard       = lazy(() => import('../../features/livestock/RotationAdherenceCard.js'));
+const RotationAdherenceActionsCard = lazy(() => import('../../features/livestock/RotationAdherenceActionsCard.js'));
+const SilvopastureIntegrationCard = lazy(() => import('../../features/agroforestry/SilvopastureIntegrationCard.js'));
+const BeneficialHabitatCard       = lazy(() => import('../../features/biodiversity/BeneficialHabitatCard.js'));
+const LivingRootsCard             = lazy(() => import('../../features/coverCrops/LivingRootsCard.js'));
+const CoverCropPlannerCard        = lazy(() => import('../../features/coverCrops/CoverCropPlannerCard.js'));
 const SlaughterThroughputCard = lazy(() => import('../../features/agribusiness/SlaughterThroughputCard.js'));
 const ColdChainCoverageCard   = lazy(() => import('../../features/agribusiness/ColdChainCoverageCard.js'));
 const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/MarketDistributionCard.js'));
@@ -83,6 +89,8 @@ const SectionAnnotationsCard  = lazy(() => import('./cards/cross-section/Section
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
+// B5.2.x.b — per-phase cover-crop seed-cost + seeding-labor rollup.
+const CoverCropEconomicsCard  = lazy(() => import('../../features/coverCrops/CoverCropEconomicsCard.js'));
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const CumulativeInvestmentCard = lazy(() => import('./cards/phasing-budgeting/CumulativeInvestmentCard.js'));
 const MaintenanceScheduleCard = lazy(() => import('./cards/phasing-budgeting/MaintenanceScheduleCard.js'));
@@ -97,6 +105,7 @@ const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsyst
 const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
 const HabitatAllocationCard      = lazy(() => import('../../features/plan/HabitatAllocationCard.js'));
 const BiodiversityMonitorCard    = lazy(() => import('../../features/plan/BiodiversityMonitorCard.js'));
+const NurseryLedgerDashboard     = lazy(() => import('../../features/dashboard/pages/NurseryLedgerDashboard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -107,9 +116,8 @@ function renderPlanCard(
   const noop = () => {};
   const closeSlideUp = onClose ?? noop;
   switch (sectionId) {
-    case 'plan-goal-tree':           return <GoalTreeTab project={project} onSwitchToMap={noop} />;
-    case 'plan-site-profile':        return <SiteProfileTab project={project} onSwitchToMap={noop} />;
     case 'plan-proposal':            return <GeneratedPlanTab project={project} onSwitchToMap={noop} />;
+    case 'plan-goal-compass-sequence': return <GoalCompassSequenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-develop-plan':        return <DevelopPlanTab project={project} onSwitchModule={onSwitchModule ?? noop} />;
     case 'plan-criteria-forecast':   return <CriteriaForecastTab project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
@@ -121,7 +129,7 @@ function renderPlanCard(
     case 'plan-water-router':        return <WaterRouterCard project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
-    case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
+    case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={closeSlideUp} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
     case 'plan-social-nodes':        return <SocialNodesCard project={project} onSwitchToMap={noop} />;
     case 'plan-machinery-inventory':        return <MachineryInventoryCard projectId={project.id} />;
@@ -137,6 +145,12 @@ function renderPlanCard(
     case 'plan-livestock-regeneration':     return <RegenerationPlanCard projectId={project.id} />;
     case 'plan-livestock-rotation-sequence': return <RotationSequenceCard projectId={project.id} />;
     case 'plan-livestock-rotation-plan':    return <RotationPlanCard projectId={project.id} />;
+    case 'plan-livestock-rotation-adherence': return <RotationAdherenceCard projectId={project.id} />;
+    case 'plan-livestock-rotation-adherence-actions': return <RotationAdherenceActionsCard projectId={project.id} />;
+    case 'plan-silvopasture-integration':     return <SilvopastureIntegrationCard projectId={project.id} />;
+    case 'plan-beneficial-habitat':           return <BeneficialHabitatCard projectId={project.id} />;
+    case 'plan-living-roots':                 return <LivingRootsCard projectId={project.id} />;
+    case 'plan-cover-crop-planner':           return <CoverCropPlannerCard projectId={project.id} />;
     case 'plan-product-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
     case 'plan-product-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
     case 'plan-product-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
@@ -164,6 +178,7 @@ function renderPlanCard(
     case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
+    case 'plan-cover-crop-economics': return <CoverCropEconomicsCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
     case 'plan-maintenance-schedule': return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;
@@ -182,6 +197,7 @@ function renderPlanCard(
     case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
     case 'plan-habitat-allocation': return <HabitatAllocationCard project={project} onSwitchToMap={noop} />;
     case 'plan-biodiversity-monitor': return <BiodiversityMonitorCard project={project} onSwitchToMap={noop} />;
+    case 'nursery-ledger':           return <NurseryLedgerDashboard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }
@@ -233,7 +249,7 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
     [project, onSwitchModule, handleClose],
   );
 
-  const shouldProbe = open && module === 'principle-verification' && !allowOrphans;
+  const shouldProbe = open && module === 'risk-compliance' && !allowOrphans;
   return (
     <>
       {shouldProbe ? (

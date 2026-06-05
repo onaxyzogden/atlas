@@ -147,12 +147,19 @@ migration to per-component CSS Modules.
 
 ## Legacy components — preserved on purpose
 
-The 7-stage components (`DiscoverPage`, `DiagnosePage`, `DesignPage`,
-`ProvePage`, `BuildPage`, `OperatePage`, `ReportPage`, their rails, and
-`LifecycleProgressRing`) **remain in the repo**. They are candidates for reuse
-inside Plan and Act surfaces in Phase C. Do not delete them.
+The remaining 7-stage components (`DesignPage`, `ProvePage`, `BuildPage`,
+`OperatePage`, `ReportPage`, their rails, and `LifecycleProgressRing`)
+**remain in the repo**. They are candidates for reuse inside Plan and Act
+surfaces in Phase C. Do not delete them.
 
-The legacy `design`/`prove`/`build`/`operate`/`report` routes are also
-preserved and continue to mount their existing components. Only the
-`discover` and `diagnose` routes were converted to redirects (since their
-content is reshaped into Observe modules).
+`DiscoverPage` and `DiagnosePage` were retired on 2026-05-21 — their
+content had already been reshaped into Observe modules and the routes
+had been redirecting to `observe/human-context` for some time; the dead
+page components plus their unique siblings (`DiagnosePage.module.css`,
+`WindSectorsOverlay`, `SectorsOverlay`) were removed in the same session
+that consolidated the `wind` / `hazards` / `views` matrix-toggle keys
+into the unified `sectors` key. See ADR
+[`wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md`](../../../../wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md).
+
+The legacy `design`/`prove`/`build`/`operate`/`report` routes are still
+preserved and continue to mount their existing components.

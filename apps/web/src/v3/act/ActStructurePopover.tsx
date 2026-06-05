@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useActStructurePopoverStore } from '../../store/actStructurePopoverStore.js';
+import { useActAsBuiltPopoverStore } from './asBuilt/actAsBuiltPopoverStore.js';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../../features/structures/footprints.js';
 import { getActionsForType, ACTION_LABELS } from './data/structureActions.js';
@@ -144,6 +145,25 @@ export default function ActStructurePopover({ map, projectId }: Props) {
       <div className={css.note}>
         Read-only — edit in Plan stage.
       </div>
+
+      {projectId ? (
+        <div className={css.btnRow}>
+          <button
+            type="button"
+            className={css.primaryBtn}
+            onClick={() => {
+              useActAsBuiltPopoverStore.getState().open({
+                kind: 'structure',
+                id: active.structureId,
+                anchor: active.anchor,
+              });
+              close();
+            }}
+          >
+            Record as-built change
+          </button>
+        </div>
+      ) : null}
 
       <div className={css.btnRow}>
         {projectId

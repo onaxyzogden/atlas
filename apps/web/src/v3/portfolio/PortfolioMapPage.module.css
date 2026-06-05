@@ -1,0 +1,173 @@
+/*
+ * Four-zone Portfolio Home grid (§2). Modelled on ActMapFirstLayout's grid +
+ * scroll discipline: the map fills the centre 1fr, the list + rail are fixed
+ * side columns, and the stage rail spans the full width along the bottom.
+ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  gap: 8px;
+}
+
+.zones {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 320px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "list map   rail"
+    "list stage rail";
+  gap: 8px;
+  min-height: 0;
+}
+
+.listZone,
+.railZone {
+  min-height: 0;
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.listZone {
+  grid-area: list;
+}
+
+.railZone {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapZone {
+  grid-area: map;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ---- Stage rail (bottom-centre, between the side columns) ---------------- */
+
+.stageZone {
+  grid-area: stage;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* ---- Mobile sheet affordances (hidden on desktop, shown by media queries) - */
+
+/* "Projects" trigger for the slide-up list (§2.1). Off-flow until mobile. */
+.mobileListToggle {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+/* Close affordance inside the right-rail bottom sheet. Hidden on desktop. */
+.sheetClose {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+
+@media (max-width: 1200px) {
+  .zones {
+    grid-template-columns: 300px minmax(0, 1fr) 300px;
+  }
+}
+
+/* Tablet: drop the rail column; surface the briefing as a bottom sheet that
+   slides up only while a project is selected. */
+@media (max-width: 1000px) {
+  .zones {
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-areas:
+      "list map"
+      "list stage";
+  }
+  .railZone {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 76px;
+    z-index: 20;
+    max-height: 60vh;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+    transform: translateY(calc(100% + 88px));
+    transition: transform 0.22s ease;
+  }
+  .railZoneOpen {
+    transform: translateY(0);
+  }
+  .sheetClose {
+    display: flex;
+  }
+}
+
+/* Mobile: map fills the canvas; the project list becomes a slide-up sheet
+   behind the "Projects" button; the bottom stage rail stays fixed. */
+@media (max-width: 760px) {
+  .mobileListToggle {
+    display: flex;
+  }
+  .zones {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "map"
+      "stage";
+  }
+  .listZone {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 76px;
+    z-index: 21;
+    max-height: 60vh;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+    transform: translateY(calc(100% + 88px));
+    transition: transform 0.22s ease;
+  }
+  .listZoneOpen {
+    transform: translateY(0);
+  }
+}

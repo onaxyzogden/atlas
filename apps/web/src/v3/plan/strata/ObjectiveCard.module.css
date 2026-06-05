@@ -1,0 +1,321 @@
+/*
+ * ObjectiveCard — compact stratum-objective row used inside ObjectiveColumn.
+ * Surface treatment mirrors StratumRow but at a smaller scale to keep the
+ * objective list visually subordinate to the spine.
+ */
+
+.card {
+  --status-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  --status-bg: var(--color-bg, #14191f);
+  --status-border: var(--color-border, rgba(242, 237, 227, 0.12));
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--status-color) 45%, var(--status-border));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.card[data-status='complete'] {
+  --status-color: #5dd39e;
+}
+
+.card[data-status='active'] {
+  --status-color: var(--color-gold-brand, #c4a265);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--status-border)
+  );
+}
+
+.card[data-status='available'] {
+  --status-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 70%,
+    var(--color-text, #f2ede3)
+  );
+}
+
+.card[data-status='locked'] {
+  opacity: 0.6;
+}
+
+/* Plan Nav v1.1 §8.3 — a `deferred` objective is shelved by the steward as the
+   "mark as Deferred instead" alternative to a blocked secondary removal. It is
+   greyed and visually subordinate (like locked), but distinct: it carries a
+   muted sage status color + a Restore control rather than a lock. */
+.card[data-status='deferred'] {
+  --status-color: color-mix(
+    in srgb,
+    var(--color-sage, #8aa399) 70%,
+    var(--color-text-muted, rgba(242, 237, 227, 0.65))
+  );
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.card[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--status-bg)
+  );
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--status-color);
+  color: var(--status-color);
+  background: var(--color-bg, #14191f);
+}
+
+.card[data-status='complete'] .icon {
+  background: var(--status-color);
+  color: #18221b;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-color);
+  opacity: 0.85;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-text, #f2ede3);
+  /* Card display clamps the title to 2 lines. The card is a flex COLUMN — the
+     title spans the full card width and wraps normally, with the meta badges
+     (.trail) stacked on their own row BELOW it. break-word (never `anywhere`)
+     so a long word breaks but the title never collapses one-char-per-line.
+     The FULL, unclamped title is shown in the detail-panel header
+     (ObjectiveHeader <h1>), the canonical place to read the whole thing. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--status-color) 18%, transparent);
+  color: var(--status-color);
+  white-space: nowrap;
+}
+
+/* Plan Nav v1.1 §5 — source-tag pill (Universal / Primary / Secondary).
+   Same pill recipe as .pill; color keyed off data-source. Secondary labels
+   ("Secondary - <Type>") may be long, so the pill is allowed to truncate. */
+.sourceTag {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  --source-color: var(--color-info, #5aa9c9);
+  background: color-mix(in srgb, var(--source-color) 16%, transparent);
+  color: var(--source-color);
+}
+
+.sourceTag[data-source='primary'] {
+  --source-color: var(--color-success, #5dd39e);
+}
+
+.sourceTag[data-source='secondary'] {
+  --source-color: #e8a958;
+}
+
+/* Plan Nav v1.1 §8.3 — "Restore" control on a deferred card. Muted sage pill
+   (matches the deferred status color), distinct from the amber divergence pill.
+   Nested real <button> inside the role="button" card, so it stops propagation. */
+.restoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--color-sage, #8aa399) 16%, transparent);
+  color: color-mix(in srgb, var(--color-sage, #8aa399) 92%, var(--color-text, #f2ede3));
+  border: 1px solid color-mix(in srgb, var(--color-sage, #8aa399) 45%, transparent);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.restoreBtn:hover {
+  background: color-mix(in srgb, var(--color-sage, #8aa399) 26%, transparent);
+  border-color: color-mix(in srgb, var(--color-sage, #8aa399) 70%, transparent);
+}
+
+.restoreBtn:focus-visible {
+  outline: 2px solid var(--color-sage, #8aa399);
+  outline-offset: 2px;
+}
+
+/* Slice 3.5 — divergence flag from Act (spec §6.4). Amber, not red:
+   divergence is field-truth, not failure. */
+.trail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.divergencePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(232, 169, 88, 0.16);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.45);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.divergencePill:hover:not(:disabled) {
+  background: rgba(232, 169, 88, 0.26);
+  border-color: rgba(232, 169, 88, 0.7);
+}
+
+.divergencePill:disabled {
+  cursor: default;
+}
+
+.divergencePill:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: 2px;
+}
+
+/* T1.7 -- downstream review flags (amber, static span -- not interactive;
+   resolution happens in ObjectiveDetailPanel). Distinct from the blue
+   .reviewBadge (cyclical review cadence cue) and the interactive
+   .divergencePill (Act field-truth divergence). */
+.reviewFlagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(232, 169, 88, 0.16);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.45);
+  white-space: nowrap;
+}
+
+.card[data-has-divergence='true'] {
+  border-color: rgba(232, 169, 88, 0.55);
+}
+
+/* Plan Nav v1.1 §7 — "review suggested" badge. Blue (info), distinct from
+   the amber divergence pill: a due review is a cadence cue, not field-truth.
+   Complete-only by predicate, so it only ever appears on a complete card. */
+.reviewBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--color-info, #5aa9c9) 16%, transparent);
+  color: var(--color-info, #5aa9c9);
+}
+
+/* --- Slice 2.4 highlight flash ------------------------------------------ */
+/* See StratumRow.module.css for the rationale + the matching animation on the
+   spine row; the card-level flash points the steward at the specific
+   incomplete objectives once T0 is opened. */
+@keyframes objective-card-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 40%, transparent);
+  }
+}
+
+.card[data-highlighting='true'] {
+  animation: objective-card-highlight-pulse 1s ease-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-highlighting='true'] {
+    animation: none;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 50%, transparent);
+  }
+}

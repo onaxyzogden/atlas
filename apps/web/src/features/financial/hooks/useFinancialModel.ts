@@ -25,6 +25,7 @@ import { computeRevenueStreams, sumRevenue, applyRevenueOverrides } from '../eng
 import { computeCashflow } from '../engine/cashflowEngine.js';
 import { computeBreakEven } from '../engine/breakEvenEngine.js';
 import { computeMissionScore } from '../engine/missionScoring.js';
+import { sumEcoUplift } from '../../../v3/plan/cards/phasing-budgeting/materialSubstitutionMath.js';
 
 /**
  * Extract SiteContext from site data layers.
@@ -101,6 +102,7 @@ export function useFinancialModel(projectId: string): FinancialModel | null {
   const missionWeights = useFinancialStore((s) => s.missionWeights);
   const costOverrides = useFinancialStore((s) => s.costOverrides);
   const revenueOverrides = useFinancialStore((s) => s.revenueOverrides);
+  const substitutionMeta = useFinancialStore((s) => s.substitutionMeta);
 
   return useMemo(() => {
     // Filter to current project
@@ -139,8 +141,11 @@ export function useFinancialModel(projectId: string): FinancialModel | null {
     const cashflow = computeCashflow(costItems, revenueStreams, phases, 10);
     const breakEven = computeBreakEven(cashflow);
 
-    // Mission scoring
-    const missionScore = computeMissionScore(input, breakEven, missionWeights);
+    // Mission scoring. Applied material substitutions (Rec #5 v2) contribute
+    // an ecological uplift — COVENANT: ecological component only, never
+    // financial (scoreFinancial never sees this value).
+    const ecoUplift = sumEcoUplift(substitutionMeta);
+    const missionScore = computeMissionScore(input, breakEven, missionWeights, ecoUplift);
 
     return {
       projectId,
@@ -159,5 +164,6 @@ export function useFinancialModel(projectId: string): FinancialModel | null {
   }, [
     projectId, allZones, allStructures, allPaddocks, allCrops, allPaths, allUtilities,
     getProjectPhases, siteDataByProject, region, missionWeights, costOverrides, revenueOverrides,
+    substitutionMeta,
   ]);
 }

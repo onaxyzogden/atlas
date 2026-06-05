@@ -4,7 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, semantic } from '../../../lib/tokens.js';
+import { neutral, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -34,7 +34,7 @@ export default function HeroSection({ config, project }: Props) {
         fontSize: 'clamp(32px, 5vw, 56px)',
         fontWeight: 300,
         letterSpacing: '0.08em',
-        color: earth[100],
+        color: neutral[100],
         marginBottom: 12,
         lineHeight: 1.2,
       }}>
@@ -52,7 +52,7 @@ export default function HeroSection({ config, project }: Props) {
       </p>
 
       {project.address && (
-        <p style={{ fontSize: 12, color: earth[800], letterSpacing: '0.05em', marginTop: 8 }}>
+        <p style={{ fontSize: 12, color: neutral[800], letterSpacing: '0.05em', marginTop: 8 }}>
           {project.address}
           {project.provinceState && `, ${project.provinceState}`}
           {project.acreage && ` \u00B7 ${project.acreage} ${project.units === 'metric' ? 'ha' : 'ac'}`}
@@ -88,7 +88,7 @@ export default function HeroSection({ config, project }: Props) {
       <div style={{
         position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        color: earth[800], fontSize: 10, letterSpacing: '0.1em',
+        color: neutral[800], fontSize: 10, letterSpacing: '0.1em',
         animation: 'portalBounce 2s infinite',
       }}>
         <span style={{ fontSize: 18 }}>{'\u2193'}</span>

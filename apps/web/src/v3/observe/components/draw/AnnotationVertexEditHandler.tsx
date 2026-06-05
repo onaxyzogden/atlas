@@ -62,7 +62,14 @@ export default function AnnotationVertexEditHandler({ map }: Props) {
         return null;
       },
       readLine: (kind, id) => readLineString(kind as AnnotationKind, id),
-      readPolygon: (kind, id) => readPolygon(kind as AnnotationKind, id),
+      // MapboxDraw direct_select only handles single Polygons. Vegetation
+      // and pasture may now hold MultiPolygons (from Fill-remainder) —
+      // return null in that case so vertex-edit is gracefully disabled
+      // for those features; drag-reposition still works.
+      readPolygon: (kind, id) => {
+        const g = readPolygon(kind as AnnotationKind, id);
+        return g && g.type === 'Polygon' ? g : null;
+      },
       writeLine: (kind, id, geom) => writeLineString(kind as AnnotationKind, id, geom),
       writePolygon: (kind, id, geom) => writePolygon(kind as AnnotationKind, id, geom),
     }),

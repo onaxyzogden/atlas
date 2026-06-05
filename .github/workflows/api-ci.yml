@@ -1,0 +1,71 @@
+name: api-ci
+
+# Fast PR-gating checks for @ogden/api that need no Docker:
+#   - lint: tsc --noEmit (type check)
+#   - test: the mock-DB vitest suite (vi.mock'd db plugin, in-process FIFO queue;
+#           no real Postgres/PostGIS — see entities/api.md)
+#
+# The slow real-PostGIS *.pgtest.ts suite is gated separately in
+# api-integration.yml. @ogden/shared resolves to source via tsconfig paths +
+# package exports, so neither job needs a prior build step.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/api-ci.yml'
+  push:
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/api-ci.yml'
+
+permissions:
+  contents: read
+
+# A newer push to the same ref supersedes an in-flight run.
+concurrency:
+  group: api-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check @ogden/api (tsc --noEmit)
+        run: pnpm --filter @ogden/api lint
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run @ogden/api mock-DB test suite
+        run: pnpm --filter @ogden/api test

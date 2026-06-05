@@ -1,13 +1,15 @@
-﻿/**
- * Pilot-plot store â€” ACT-stage Module 2 (Small-and-Slow piloting).
+/**
+ * Pilot-plot store — ACT-stage Module 2 (Small-and-Slow piloting).
  *
  * The "Use small and slow solutions" Holmgren principle says: test on a
  * small plot before committing the whole site. This store tracks those
- * experiments â€” what was tried, what was learned, whether to scale.
+ * experiments — what was tried, what was learned, whether to scale.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PilotStatus = 'running' | 'success' | 'fail' | 'inconclusive';
 
@@ -20,7 +22,7 @@ export interface PilotPlot {
   plotSizeM2: number;
   /** ISO date. */
   startDate: string;
-  /** ISO date â€” undefined while pilot is still running. */
+  /** ISO date — undefined while pilot is still running. */
   endDate?: string;
   status: PilotStatus;
   /** Free-text takeaways; populated as the pilot progresses. */
@@ -43,8 +45,8 @@ export const usePilotPlotStore = create<PilotPlotState>()(
         set((s) => ({ pilots: s.pilots.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePilot: (id) => set((s) => ({ pilots: s.pilots.filter((p) => p.id !== id) })),
     }),
-    { name: 'ogden-act-pilots', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-pilots', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-usePilotPlotStore.persist.rehydrate();
+rehydrateWithLogging(usePilotPlotStore);

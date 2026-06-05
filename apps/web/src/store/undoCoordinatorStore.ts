@@ -40,6 +40,18 @@ import { useLivestockStore } from './livestockStore.js';
 import { useClosedLoopStore } from './closedLoopStore.js';
 import { usePolycultureStore } from './polycultureStore.js';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
+// Additional annotation/feature stores wrapped with zundo `temporal()` —
+// added so Ctrl-Z also rolls back vertex-edit + create/delete operations
+// on these kinds. See 2026-05-21 click-delete vertex-fix follow-up.
+import { useConventionalCropStore } from './conventionalCropStore.js';
+import { usePastureStore } from './pastureStore.js';
+import { useVegetationStore } from './vegetationStore.js';
+import { useRegenerationPlanStore } from './regenerationPlanStore.js';
+import { useUtilityRunStore } from './utilityRunStore.js';
+import { useSetbackStore } from './setbackStore.js';
+import { useMonitoringTransectStore } from './monitoringTransectStore.js';
+import { useEcologicalNoteStore } from './ecologicalNoteStore.js';
+import { useAgribusinessStore } from './agribusinessStore.js';
 
 export type UndoableStoreName =
   | 'humanContext'
@@ -55,7 +67,16 @@ export type UndoableStoreName =
   | 'livestock'
   | 'closedLoop'
   | 'polyculture'
-  | 'builtEnvironment';
+  | 'builtEnvironment'
+  | 'conventionalCrop'
+  | 'pasture'
+  | 'vegetation'
+  | 'regenerationPlan'
+  | 'utilityRun'
+  | 'setback'
+  | 'monitoringTransect'
+  | 'ecologicalNote'
+  | 'agribusiness';
 
 interface UndoCoordinatorState {
   history: UndoableStoreName[];
@@ -109,6 +130,15 @@ const STORES: Record<UndoableStoreName, StoreWithMiddleware> = {
   closedLoop: useClosedLoopStore as unknown as StoreWithMiddleware,
   polyculture: usePolycultureStore as unknown as StoreWithMiddleware,
   builtEnvironment: useBuiltEnvironmentStoreV2 as unknown as StoreWithMiddleware,
+  conventionalCrop: useConventionalCropStore as unknown as StoreWithMiddleware,
+  pasture: usePastureStore as unknown as StoreWithMiddleware,
+  vegetation: useVegetationStore as unknown as StoreWithMiddleware,
+  regenerationPlan: useRegenerationPlanStore as unknown as StoreWithMiddleware,
+  utilityRun: useUtilityRunStore as unknown as StoreWithMiddleware,
+  setback: useSetbackStore as unknown as StoreWithMiddleware,
+  monitoringTransect: useMonitoringTransectStore as unknown as StoreWithMiddleware,
+  ecologicalNote: useEcologicalNoteStore as unknown as StoreWithMiddleware,
+  agribusiness: useAgribusinessStore as unknown as StoreWithMiddleware,
 };
 
 export const useUndoCoordinatorStore = create<UndoCoordinatorState>((set, get) => ({

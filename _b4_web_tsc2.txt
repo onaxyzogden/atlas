@@ -1,0 +1,10 @@
+
+> @ogden/web@0.1.0 typecheck C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web
+> node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit
+
+src/store/__tests__/projectStore.secondaryReopen.test.ts(54,60): error TS2345: Argument of type '{ name: string; projectType: "regenerative_farm"; metadata: { projectTypeRecord: { primaryTypeId: "homestead" | "regenerative_farm" | "market_garden" | "orchard_food_forest" | "silvopasture" | ... 7 more ... | "residential"; secondaryTypeIds: ("homestead" | ... 11 more ... | "residential")[]; tensionAcknowledgements...' is not assignable to parameter of type '{ name: string; country: "US" | "CA" | "INTL"; units: "metric" | "imperial"; description?: string | undefined; address?: string | undefined; parcelId?: string | undefined; projectType?: "homestead" | ... 13 more ... | undefined; provinceState?: string | undefined; metadata?: objectOutputType<...> | undefined; orgId?...'.
+  Type '{ name: string; projectType: "regenerative_farm"; metadata: { projectTypeRecord: { primaryTypeId: "homestead" | "regenerative_farm" | "market_garden" | "orchard_food_forest" | "silvopasture" | ... 7 more ... | "residential"; secondaryTypeIds: ("homestead" | ... 11 more ... | "residential")[]; tensionAcknowledgements...' is missing the following properties from type '{ name: string; country: "US" | "CA" | "INTL"; units: "metric" | "imperial"; description?: string | undefined; address?: string | undefined; parcelId?: string | undefined; projectType?: "homestead" | ... 13 more ... | undefined; provinceState?: string | undefined; metadata?: objectOutputType<...> | undefined; orgId?...': country, units
+C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @ogden/web@0.1.0 typecheck: `node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit`
+Exit status 2
+WEB_TSC_EXIT=2

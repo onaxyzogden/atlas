@@ -152,7 +152,7 @@ function FlagCard({ flag }: { flag: TerrainFlag }) {
       <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 4 }}>
         {flag.description}
       </div>
-      <div style={{ fontSize: 10, color: `var(--color-earth-600, ${semantic.primary})`, fontStyle: 'italic' }}>
+      <div style={{ fontSize: 10, color: `var(--color-neutral-600, ${semantic.primary})`, fontStyle: 'italic' }}>
         {flag.recommendation}
       </div>
     </div>

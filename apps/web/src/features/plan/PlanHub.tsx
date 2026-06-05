@@ -181,6 +181,7 @@ export default function PlanHub({ project }: Props) {
         { label: 'Guild builder →', sectionId: 'plan-guild-builder' },
         { label: 'Canopy simulator →', sectionId: 'plan-canopy-simulator' },
         { label: 'Planting tool →', sectionId: 'planting-tool' },
+        { label: 'Nursery ledger →', sectionId: 'nursery-ledger' },
       ],
       empty: projectCrops.length === 0,
     };

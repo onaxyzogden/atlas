@@ -1,0 +1,238 @@
+/* ObserveCommandCentrePage — Observe-domain-only classes. The shared Command
+   Centre scaffold (shell / tabs / body / sidebar / map / rail / tray) and the
+   building blocks reused across Observe, Plan and Act (panel, cards, stat/gap/
+   timeline rows, buttons) now live in ./shell/CommandCentreShell.module.css.
+   What remains here is genuinely Observe-only: the embedded module-dashboard
+   cards and the observation-need card's runtime affordances (status / origin /
+   priority badges, progress track, raise form, dismiss & edit/remove controls).
+   Tokens only, biophilic register (no glow/blur). */
+
+/* Module dashboards (ModuleDashboardsPanel) */
+.modGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+.modCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.modHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-chrome-bg-translucent);
+}
+.modTitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+.modLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.modLink:hover {
+  text-decoration: underline;
+}
+.modLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+/* Cap each embedded dashboard so one heavy module can't dominate the page;
+   it scrolls within its card. */
+.modBody {
+  max-height: 560px;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+/* ============================================================
+   Observation-need card — runtime affordances (OpenObservationNeedsPanel).
+   The card scaffold (objCard / objStatus / objOrigin base) is shared and lives
+   in the shell sheet; the status/origin/priority variants, progress track and
+   steward controls below are Observe-only.
+   ============================================================ */
+
+/* Live status badge variants (paired with shell .objStatus) */
+.status_in_progress {
+  background: var(--color-warning-muted);
+  color: var(--color-warning-600, var(--color-warning));
+  border-color: transparent;
+}
+.status_evidence_submitted {
+  background: var(--color-info-muted, var(--color-panel-bg));
+  color: var(--color-accent);
+  border-color: transparent;
+}
+.status_complete {
+  background: var(--color-success-muted, var(--color-panel-bg));
+  color: var(--color-success, var(--color-accent));
+  border-color: transparent;
+}
+.status_needs_review {
+  background: var(--color-warning-muted);
+  color: var(--color-warning-600, var(--color-warning));
+  border-color: transparent;
+}
+
+/* Priority pill */
+.objPriority {
+  margin-left: auto;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  background: var(--color-panel-bg);
+  color: var(--color-text-muted);
+}
+.prio_high {
+  background: var(--color-warning-muted);
+  color: var(--color-warning-600, var(--color-warning));
+}
+.prio_medium {
+  color: var(--color-text);
+}
+
+/* Origin badge variants (paired with shell .objOrigin) — marks how a need arose
+   (seed catalog vs. raised at runtime). */
+.origin_follow_up {
+  background: var(--color-info-muted, var(--color-panel-bg));
+  color: var(--color-accent);
+  border-color: transparent;
+}
+.origin_manual {
+  background: var(--color-success-muted, var(--color-panel-bg));
+  color: var(--color-success, var(--color-accent));
+  border-color: transparent;
+}
+/* System-raised: dashed rim signals "not authored by a steward". */
+.origin_auto {
+  background: var(--color-warning-muted, var(--color-panel-bg));
+  color: var(--color-warning, var(--color-accent));
+  border: 1px dashed var(--color-warning, var(--color-border));
+}
+
+/* Raise-need form wrapper + confirmation hint */
+.raiseFormWrap {
+  margin-bottom: var(--space-3);
+}
+.raiseHint {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-success, #4caf7d);
+}
+
+/* Per-card progress track */
+.objProgressTrack {
+  position: relative;
+  height: 4px;
+  width: 100%;
+  margin-top: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  overflow: hidden;
+}
+.objProgressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width var(--duration-base) var(--ease-default);
+}
+
+/* Card footer: Open (always) + Dismiss (auto) + Edit/Remove (steward-raised),
+   right-aligned. */
+.objCardActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+/* Ghost button to clear a system-raised need without recording it. */
+.dismissBtn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+.dismissBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+/* Compact icon button for Edit / Remove on steward-raised need cards. */
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 0;
+}
+.iconBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+/* Top-right "x" that opens the dismiss confirm on auto needs. */
+.cardDismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 0;
+}
+.cardDismiss:hover {
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 50%, transparent);
+}
+/* Inline "Remove?" confirm shown in place of Edit/Remove. */
+.confirmPrompt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.removeConfirmBtn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-error) 50%, transparent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+.removeConfirmBtn:hover {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}

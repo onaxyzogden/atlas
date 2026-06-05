@@ -1,0 +1,20 @@
+/*
+ * MapActivationStrip — thin label + reused OLOS OverlayBundleStrip. Spacing
+ * mirrors the rest of the panel's vertical rhythm (12px gap, 14/16 padding).
+ */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px 8px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}

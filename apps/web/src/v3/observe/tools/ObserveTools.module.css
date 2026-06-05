@@ -1,19 +1,16 @@
 /*
- * Bento layout: the outer .toolbox is the panel shell (surface bg, hairline
- * border, soft shadow, --radius-lg) and each inner .group is a quieter inset
- * card on --color-bg with --radius-md. Mirrors the right-rail checklist
- * (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
- * so the two rails read as a matching bento pair.
+ * ObserveTools bento — consumes the canonical surface primitive at
+ * apps/web/src/components/ui/BentoBox.module.css via `composes:` (no more
+ * byte-identical clone). Outer .toolbox composes `bento + outer-default +
+ * padding-md`; inner .group composes `group`. Mirrors the right-rail
+ * checklist (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
+ * so the two rails read as a matching bento pair. Consumer-specific layout
+ * (overflow, scrollbar, sizing, data-attribute selectors) stays local.
+ *
+ * ADR: atlas/wiki/decisions/2026-05-27-atlas-bento-box-canonical-surface.md
  */
 .toolbox {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  composes: bento outer-default padding-md from '../../../components/ui/BentoBox.module.css';
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 200px;
@@ -46,16 +43,7 @@
 }
 
 .group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  --group-dot: var(--color-text-muted);
-  transition: border-color 120ms ease, box-shadow 120ms ease,
-    filter 150ms ease, opacity 150ms ease;
+  composes: group from '../../../components/ui/BentoBox.module.css';
 }
 
 /*
@@ -82,6 +70,23 @@
 .group[data-module='earth-water-ecology']   { --group-dot: #5fc7d4; }
 .group[data-module='sectors-zones']         { --group-dot: #d68bd0; }
 .group[data-module='swot-synthesis']        { --group-dot: #e88aa4; }
+
+/*
+ * Built-Environment family accents. All BE sections share
+ * data-module='built-environment', so the per-module block above never
+ * colors them — they fell back to the grey --color-text-muted default.
+ * The base rule colors the "From map" meta-section; each data-be-category
+ * override (equal specificity, declared after) gives each category its own
+ * distinct hue. Tones are chosen to stay clear of the six module accents
+ * already in use (mint/gold/lime/cyan/orchid/rose).
+ */
+.group[data-module='built-environment']    { --group-dot: #8a93a6; } /* From map — slate */
+.group[data-be-category='building']        { --group-dot: #c08457; } /* terracotta */
+.group[data-be-category='agricultural']    { --group-dot: #d9a45b; } /* wheat / amber */
+.group[data-be-category='utility']         { --group-dot: #6aa6d9; } /* steel blue */
+.group[data-be-category='infrastructure']  { --group-dot: #9a8bd6; } /* periwinkle */
+.group[data-be-category='machinery']       { --group-dot: #c0705e; } /* rust */
+.group[data-be-category='amenity']         { --group-dot: #46b39d; } /* teal */
 
 .groupHeader {
   display: flex;
@@ -272,4 +277,55 @@
 
 .subgroupHeader:hover {
   color: var(--color-text);
+}
+
+/*
+ * 2026-05-24 — Stage Compass focus empty state. Shown when no objective is
+ * selected (mirrors the right-rail ObserveChecklistAside empty state). Tokens
+ * only; biophilic register (no glow/blur).
+ */
+.emptyPrompt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 4px;
+}
+
+.emptyText {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.compassLink {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background var(--duration-base) var(--ease-default);
+}
+
+.compassLink:hover {
+  background: var(--color-accent-hover);
+}
+
+.compassLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }

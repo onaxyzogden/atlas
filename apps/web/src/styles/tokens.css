@@ -3,7 +3,7 @@
    Organic Biophilic Design System
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
 
@@ -18,15 +18,22 @@
      ======================================================================== */
 
   /* Elevation ladder — hold chroma/hue constant so surfaces differ only in L.
-     Estate-palette retune (2026-04-28): hue shifted from warm yellow (60) to
-     near-neutral green (155) and chroma dropped to 0.005 so the dark-mode base
-     reads as deep-forest near-black rather than warm-brown. */
-  --l-bg:            9%;
-  --l-surface:       13%;
-  --l-raised:        18%;
-  --l-popover:       24%;
-  --c-warm-neutral:  0.005;
-  --h-warm-neutral:  155;
+     "High-Tech Earth" retune (2026-05-30): hue shifted from warm-neutral green
+     (155) to cool slate-blue (253) and chroma lifted to 0.010 so the dark-mode
+     base reads as cool Obsidian rather than deep-forest. The L ladder is also
+     corrected upward — the prior 9%/13%/18% rendered well below the intended
+     hex fallback (≈16%) and the doc's Obsidian target #0B0D10 (L≈15.8%), i.e.
+     OKLCH browsers were rendering near-black. Var names kept (--c/-h-warm-
+     neutral) so the 4 @supports reference sites need no change.
+     bg=Obsidian #0B0D10 · surface=Mineral Slate #14191F. */
+  --l-bg:            15.8%;
+  --l-surface:       21.1%;
+  --l-raised:        25.3%;
+  --l-popover:       31%;
+  --c-warm-neutral:  0.020;  /* cool-slate chroma — raised from 0.010 so the
+                                near-neutral darks read clearly blue (not muddy/
+                                brown) and harmonize with the blue border ladder */
+  --h-warm-neutral:  253;
 
   /* Semantic hue channels (dark-mode targets) — gold + sage at full clarity */
   --l-primary: 75%;   --c-primary: 0.10;   --h-primary: 82;
@@ -40,17 +47,21 @@
      COLOR PALETTE
      ======================================================================== */
 
-  /* --- Earth (warm browns) --- */
-  --color-earth-50:  #faf8f4;
-  --color-earth-100: #f2ede3;
-  --color-earth-200: #e4d9c6;
-  --color-earth-300: #cebda0;
-  --color-earth-400: #b49a74;
-  --color-earth-500: #9a7a53;
-  --color-earth-600: #7d6140;
-  --color-earth-700: #634c31;
-  --color-earth-800: #4a3823;
-  --color-earth-900: #312617;
+  /* --- Neutral (cool greys) ---
+     Chrome ramp (2026-05-25): replaces the legacy warm-brown "earth" ramp for
+     all UI surfaces (panels, cards, inputs, borders, footers, muted text).
+     Estate gold + sage stay the brand identity; the biophilic map-data palette
+     (zones/structures/paths/parcel boundary) keeps its earth hues separately. */
+  --color-neutral-50:  #f7f8f9;
+  --color-neutral-100: #eef0f2;
+  --color-neutral-200: #dde1e5;
+  --color-neutral-300: #c3c9cf;
+  --color-neutral-400: #99a1a9;
+  --color-neutral-500: #6f777f;
+  --color-neutral-600: #545c64;
+  --color-neutral-700: #3f464d;
+  --color-neutral-800: #2b3035;
+  --color-neutral-900: #181b1e;
 
   /* --- Sage (organic greens) --- */
   --color-sage-50:  #f2f5f0;
@@ -129,6 +140,47 @@
   --color-group-general:     #9a7a8a;
 
   /* ========================================================================
+     STAGE ACCENTS  ("High-Tech Earth" lifecycle, 2026-05-30)
+     Wayfinding / identity ONLY — these tint chrome (header spine, stage hero,
+     stage badges) to give each lifecycle stage a recognisable color. They are
+     NOT action colors: gold (--color-primary) remains the universal action /
+     active / selection accent, and conifer green marks completion. Theme-
+     agnostic (same hue in light & dark). The 4 doc lifecycles map to the app's
+     3 stages + a completion accent:
+       Observe → Flint Blue · Plan → Verdigris Teal · Act → Loam Amber
+       (Stewardship) → Bio-Conifer Green, used for completed/100% states.
+     Per the doc's "glow" guidance, highlights use a transparent tint bg +
+     crisp lightened text rather than solid color blocks. Glow text colors are
+     lightened from the base hue so they clear WCAG AA on their own 0.15 tint. */
+  --color-stage-observe: #6c8294;  --color-stage-observe-rgb: 108, 130, 148;  /* Flint Blue */
+  --color-stage-plan:    #38a3a5;  --color-stage-plan-rgb:    56, 163, 165;   /* Verdigris Teal */
+  --color-stage-act:     #d9a036;  --color-stage-act-rgb:     217, 160, 54;   /* Loam Amber */
+  --color-stage-steward: #4a7c59;  --color-stage-steward-rgb: 74, 124, 89;    /* Bio-Conifer Green */
+  /* Portfolio §2.6 boundary stages without a lifecycle hue: pre-Plan setup +
+     archived/inactive. Muted-sand setup is kept distinct from Act amber (both
+     warm) by being desaturated and only ever dashed on the map. These two
+     mirror STAGE_PAINT.setup/archived in portfolioModel.ts (map paint can't
+     read CSS vars, so the hexes are duplicated there and must stay in sync). */
+  --color-stage-setup:    #b08a3a;  --color-stage-setup-rgb:    176, 138, 58;  /* Muted Sand */
+  --color-stage-archived: #8a8f94;  --color-stage-archived-rgb: 138, 143, 148; /* Neutral Grey */
+  --color-stage-observe-glow-bg: rgba(108, 130, 148, 0.15);  --color-stage-observe-glow-text: #8ba3b5;
+  --color-stage-plan-glow-bg:    rgba(56, 163, 165, 0.15);   --color-stage-plan-glow-text:    #4fc3c5;
+  --color-stage-act-glow-bg:     rgba(217, 160, 54, 0.15);   --color-stage-act-glow-text:     #e6b860;
+  --color-stage-steward-glow-bg: rgba(74, 124, 89, 0.15);    --color-stage-steward-glow-text: #6fa37e;
+
+  /* Cross-project relationship line colours (Portfolio Home §2.7). DOM parity
+     for the legend / rail / picker; the map duplicates these hexes in
+     PortfolioMap.tsx (REL_COLORS) because MapLibre paint can't read CSS vars —
+     keep the two in sync. shared_watershed=blue · adjacent_boundary=grey ·
+     habitat_corridor=green · same_management_unit=orange ·
+     shared_infrastructure=purple. */
+  --rel-shared-watershed:      #3b82f6;
+  --rel-adjacent-boundary:     #6b7280;
+  --rel-habitat-corridor:      #16a34a;
+  --rel-same-management-unit:  #f97316;
+  --rel-shared-infrastructure: #9333ea;
+
+  /* ========================================================================
      LIGHT MODE SEMANTIC TOKENS
      ======================================================================== */
 
@@ -136,15 +188,16 @@
      of warm-brown. Gold primary darkened to #b08a3a for AA contrast on white;
      sage accent at #5a8a5a. */
   --color-bg:              #f6f4ee;
-  --color-surface:         #ffffff;
+  --color-surface:          #ffffff;
+  --color-surface-alt:     #f3efe6;
   --color-surface-raised:  #faf7ef;
-  --color-border:          rgba(82, 72, 52, 0.14);
-  --color-border-subtle:   rgba(82, 72, 52, 0.08);
-  --color-text:            #1f231e;
+  --color-border:          rgba(84, 92, 100, 0.16);
+  --color-border-subtle:   rgba(84, 92, 100, 0.10);
+  --color-text:            #1b1e22;
   /* a11y: --color-text-muted ≈4.8:1 on light bg — passes WCAG AA for body
      text (≥14px or bold ≥11px). For small labels/timestamps use --color-text. */
-  --color-text-muted:      #5a5443;
-  --color-text-subtle:     #7d7864;
+  --color-text-muted:      #565c63;
+  --color-text-subtle:     #7a808a;
   --color-primary:         #b08a3a;
   --color-primary-hover:   #9a771f;
   --color-on-primary:      #2a2018;
@@ -155,8 +208,11 @@
 
   /* Brand gold (brand moments) vs. active-state gold. Brand uses the rich
    * estate gold; active reserved for UI states needing higher chroma. */
-  --color-gold-brand:      #d4af5f;
-  --color-gold-active:     #e0b56d;
+  /* Light values darkened (2026-05-24 hue pass) so estate gold reads as text/
+   * thin strokes on the now-light surfaces; dark-mode.css restores the bright
+   * estate gold (#d4af5f / #e0b56d) exactly. */
+  --color-gold-brand:      #b08a3a;
+  --color-gold-active:     #9a771f;
   /* --color-brand alias: legacy token used by v3 sidebar / structure modal /
    * a few card patterns that predate --color-primary. Always resolves to
    * the brand gold so the estate identity stays consistent. */
@@ -171,36 +227,75 @@
   --color-error-muted:     rgba(196, 73, 58, 0.15);
   --color-info:            var(--color-info-500);
   --color-info-muted:      rgba(61, 127, 158, 0.15);
+  /* On-surface status TEXT for pastel-on-tint pills/labels (2026-05-24 hue
+   * pass). RGB form so each site keeps its own alpha; dark channels (in
+   * dark-mode.css) match the exact pre-hue-pass pastels, light channels are
+   * AA-dark so the text reads on the translucent tint. */
+  --color-pos-text-rgb:    46, 125, 79;
+  --color-neg-text-rgb:    184, 58, 42;
+  --color-info-text-rgb:   58, 86, 176;
 
   /* --- Chrome neutrals (estate palette 2026-04-28) ---------------------
-   * Near-black green-tinted chrome anchors the frame without competing with
-   * the biophilic map imagery. Chrome stays dark even in light mode so the
-   * sidebar/header read as a unified estate frame around the canvas. */
-  --color-chrome-bg:             #0a0d0b;
-  --color-chrome-bg-translucent: rgba(10, 13, 11, 0.97);
-  /* Page-dimming overlay (loading states, modal scrims) — intentionally
-   * lower opacity than chrome-bg-translucent so underlying map remains
-   * partially legible during async loads. */
+   * Light-mode chrome (2026-05-23): chrome now adapts to the active theme.
+   * In light mode the header/sidebar/map overlays read as warm parchment
+   * surfaces; dark-mode.css restores the near-black estate frame. */
+  --color-chrome-bg:             #f6f4ee;
+  --color-chrome-bg-translucent: rgba(246, 244, 238, 0.95);
+  /* Page-dimming overlay (loading states, modal scrims) — stays dark in both
+   * modes: a dark scrim over light or dark content reads as a dimmer. */
   --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
   --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
+
+  /* --- Theme-flipping overlays/hairlines (2026-05-23) -------------------
+   * Replace the ad-hoc rgba(255,255,255,0.0x) overlays that components
+   * hardcoded for the always-dark UI. Dark values (in dark-mode.css) match
+   * the old literals so dark mode is unchanged; light values invert them. */
+  --color-hairline:        rgba(0, 0, 0, 0.08);
+  --color-hover-overlay:   rgba(0, 0, 0, 0.04);
+  --color-active-overlay:  rgba(0, 0, 0, 0.06);
+  /* Inset "well" panels (KPI blocks, blockquotes, mini-cards) that hardcoded
+   * a 20%-black backdrop for the dark UI. Dark value matches the old literal
+   * so dark mode is unchanged; light value is a faint tint, not a grey box. */
+  --color-inset-well:      rgba(0, 0, 0, 0.04);
+  /* Progress-ring (gauge) core disc + inner-bevel rim. Hardcoded near-black
+   * for the dark UI, which left the centred % label dark-on-dark in light
+   * mode. Dark values match the old literals; light values let the label read. */
+  --color-ring-core:       #efe9dc;
+  --color-ring-rim:        rgba(0, 0, 0, 0.06);
 
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       var(--color-chrome-bg-translucent);
   --color-sidebar-bg:      var(--color-chrome-bg-translucent);
-  --color-sidebar-icon:    #cfc9b8;
-  --color-sidebar-active:  #d4af5f;
-  --color-sidebar-text:    #e8e2d1;
+  --color-sidebar-icon:    #5a5443;
+  --color-sidebar-active:  #b08a3a;
+  --color-sidebar-text:    #1f231e;
   --color-panel-bg:        #ffffff;
   --color-panel-text:      #1f231e;
   --color-panel-muted:     #5a5443;
   --color-panel-card:      rgba(0, 0, 0, 0.025);
-  --color-panel-card-border: rgba(82, 72, 52, 0.10);
+  --color-panel-card-border: rgba(84, 92, 100, 0.12);
   --color-panel-title:     #1f231e;
   --color-panel-section:   #5a5443;
   --color-panel-subtle:    rgba(0, 0, 0, 0.03);
-  --color-map-header-bg:   rgba(10, 13, 11, 0.92);
-  --color-map-header-text: #e8e2d1;
-  --color-map-header-muted: #cfc9b8;
+  --color-map-header-bg:   rgba(255, 255, 255, 0.92);
+  --color-map-header-text: #1f231e;
+  --color-map-header-muted: #5a5443;
+  /* Floating map-canvas glass panels (basemap card, tool rail, map toolbar,
+     compass dock). RGB form so each panel keeps its own alpha; flips white
+     glass + black-alpha lines in light, warm-dark glass + parchment lines in
+     dark. Consumed as rgba(var(--color-map-panel-rgb), A). */
+  --color-map-panel-rgb:        255, 255, 255;
+  --color-map-panel-line-rgb:   0, 0, 0;
+  /* Sector-compass SVG chrome (disc/grid/spokes/centre/labels/empty-state).
+   * Dark values (dark-mode.css) match the pre-hue-pass inline hex exactly;
+   * light values let the diagram read on the now-white compass card. The
+   * wind/solar/manual wedge fills are data identity — left theme-agnostic. */
+  --color-compass-disc:    #cdd8c4;
+  --color-compass-grid:    #7d9275;
+  --color-compass-centre:  #4a7c3f;
+  --color-compass-label:   #4a6b4a;
+  --color-compass-empty:   #7d7864;
+  --color-compass-north:   #9a771f;
 
   /* ========================================================================
      ZONE CATEGORY IDENTITY
@@ -277,10 +372,10 @@
   --color-confidence-high-rgb: 45, 122, 79;
   --color-confidence-med-rgb:  138, 109, 30;
   --color-confidence-low-rgb:  155, 58, 42;
-  --color-gold-rgb:            212, 175, 95;
+  --color-gold-rgb:            176, 138, 58;
   --color-sage-rgb:            143, 200, 154;
-  --color-earth-600-rgb:       125, 97, 64;
-  --color-text-muted-rgb:      90, 84, 67;
+  --color-neutral-600-rgb:     84, 92, 100;
+  --color-text-muted-rgb:      86, 92, 99;
   --color-water-rgb:           91, 157, 184;
   --color-water-400-rgb:       91, 157, 184;
   --color-group-reporting-rgb: 21, 128, 61;
@@ -371,16 +466,16 @@
      SHADOWS  (earth-tinted for organic warmth)
      ======================================================================== */
 
-  --shadow-xs:    0 1px 2px rgba(49, 38, 23, 0.05);
-  --shadow-sm:    0 1px 3px rgba(49, 38, 23, 0.08),
-                  0 1px 2px rgba(49, 38, 23, 0.04);
-  --shadow-md:    0 4px 6px rgba(49, 38, 23, 0.07),
-                  0 2px 4px rgba(49, 38, 23, 0.04);
-  --shadow-lg:    0 10px 15px rgba(49, 38, 23, 0.08),
-                  0 4px 6px rgba(49, 38, 23, 0.03);
-  --shadow-xl:    0 20px 25px rgba(49, 38, 23, 0.08),
-                  0 8px 10px rgba(49, 38, 23, 0.03);
-  --shadow-inner: inset 0 2px 4px rgba(49, 38, 23, 0.05);
+  --shadow-xs:    0 1px 2px rgba(24, 27, 30, 0.05);
+  --shadow-sm:    0 1px 3px rgba(24, 27, 30, 0.08),
+                  0 1px 2px rgba(24, 27, 30, 0.04);
+  --shadow-md:    0 4px 6px rgba(24, 27, 30, 0.07),
+                  0 2px 4px rgba(24, 27, 30, 0.04);
+  --shadow-lg:    0 10px 15px rgba(24, 27, 30, 0.08),
+                  0 4px 6px rgba(24, 27, 30, 0.03);
+  --shadow-xl:    0 20px 25px rgba(24, 27, 30, 0.08),
+                  0 8px 10px rgba(24, 27, 30, 0.03);
+  --shadow-inner: inset 0 2px 4px rgba(24, 27, 30, 0.05);
 
   /* ========================================================================
      Z-INDEX SCALE
@@ -423,6 +518,21 @@
   --ease-in:      cubic-bezier(0.4, 0, 1, 1);
   --ease-out:     cubic-bezier(0, 0, 0.2, 1);
   --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Map-overlay motion (host-canopy-union tooltip + future overlays) ---
+   * Shared duration + translateY magnitude + easing for short-lived map
+   * surfaces (tooltip, popover) so a single design call governs all overlay
+   * fades. Values preserve the 2026-05-30 host-canopy-union tooltip ship
+   * verbatim: 120ms is intentionally shorter than --duration-base so the
+   * tooltip doesn't feel "draggy" under cursor motion; ease-out/ease-in are
+   * the bare CSS keywords (not the cubic-bezier --ease-* tokens) since the
+   * tooltip predates that family and we don't want a visual change as part
+   * of token extraction. A future ADR may align overlay easing onto the
+   * cubic-bezier family once the visual delta is verified. */
+  --motion-overlay-duration:  120ms;
+  --motion-overlay-translate: 2px;
+  --motion-overlay-ease-out:  ease-out;
+  --motion-overlay-ease-in:   ease-in;
 
   /* ========================================================================
      BREAKPOINTS  (reference values -- use in @media queries directly)

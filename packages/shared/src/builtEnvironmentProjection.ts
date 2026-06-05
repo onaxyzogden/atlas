@@ -74,6 +74,8 @@ export interface ProjectedPowerLine {
   geometry: GeoJSON.LineString;
   placement: 'overhead' | 'buried';
   lengthM: number;
+  /** Optional real-world width (metres) for width-aware line rendering. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -85,6 +87,8 @@ export interface ProjectedBuriedUtility {
   geometry: GeoJSON.LineString;
   kind: string;
   lengthM: number;
+  /** Optional real-world width (metres) for width-aware line rendering. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -96,6 +100,8 @@ export interface ProjectedFence {
   geometry: GeoJSON.LineString;
   kind: string;
   lengthM: number;
+  /** Optional real-world width (metres) for width-aware line rendering. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -117,6 +123,8 @@ export interface ProjectedExistingDriveway {
   geometry: GeoJSON.LineString;
   surface: string;
   lengthM: number;
+  /** Optional real-world width (metres) for width-aware line rendering. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -337,6 +345,7 @@ export function projectToPowerLines(
       geometry: e.geometry,
       placement: e.existing?.placement ?? 'overhead',
       lengthM: e.existing?.lengthM ?? 0,
+      widthM: e.existing?.widthM,
       label: e.label,
       notes: e.notes,
       createdAt: e.createdAt,
@@ -358,6 +367,7 @@ export function projectToBuriedUtilities(
       geometry: e.geometry,
       kind: e.existing?.subtype ?? 'other',
       lengthM: e.existing?.lengthM ?? 0,
+      widthM: e.existing?.widthM,
       label: e.label,
       notes: e.notes,
       createdAt: e.createdAt,
@@ -379,6 +389,7 @@ export function projectToFences(
       geometry: e.geometry,
       kind: e.existing?.subtype ?? 'other',
       lengthM: e.existing?.lengthM ?? 0,
+      widthM: e.existing?.widthM,
       label: e.label,
       notes: e.notes,
       createdAt: e.createdAt,
@@ -419,6 +430,7 @@ export function projectToExistingDriveways(
       geometry: e.geometry,
       surface: e.existing?.surface ?? 'other',
       lengthM: e.existing?.lengthM ?? 0,
+      widthM: e.existing?.widthM,
       label: e.label,
       notes: e.notes,
       createdAt: e.createdAt,

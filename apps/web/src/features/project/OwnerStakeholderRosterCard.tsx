@@ -131,7 +131,22 @@ const ROLE_LABEL: Record<ProjectRole, string> = {
   designer: 'Designer',
   reviewer: 'Reviewer',
   viewer: 'Viewer',
+  primary_steward: 'Primary steward',
+  team_member: 'Team member',
+  contractor: 'Contractor',
+  landowner: 'Landowner',
 };
+
+const ROLE_ORDER: readonly ProjectRole[] = [
+  'owner',
+  'primary_steward',
+  'designer',
+  'team_member',
+  'contractor',
+  'reviewer',
+  'landowner',
+  'viewer',
+];
 
 /* ── Component ───────────────────────────────────────────────────── */
 
@@ -154,10 +169,29 @@ export default function OwnerStakeholderRosterCard({ project }: Props) {
   );
 
   const roleCounts = useMemo(() => {
-    const c: Record<ProjectRole, number> = { owner: 0, designer: 0, reviewer: 0, viewer: 0 };
+    const c: Record<ProjectRole, number> = {
+      owner: 0,
+      designer: 0,
+      reviewer: 0,
+      viewer: 0,
+      primary_steward: 0,
+      team_member: 0,
+      contractor: 0,
+      landowner: 0,
+    };
     for (const m of rosterMembers) c[m.role] += 1;
     return c;
   }, [rosterMembers]);
+
+  // For project-type expectation checks, treat spec-shaped roles as
+  // satisfying their legacy alias (per
+  // `packages/shared/src/relationships/projectRoleCapabilities.ts`).
+  // primary_steward fulfils an owner expectation; team_member or
+  // contractor fulfil a designer expectation; reviewer has no spec
+  // equivalent so the legacy count stands alone.
+  const designerLike =
+    roleCounts.designer + roleCounts.team_member + roleCounts.contractor;
+  const reviewerLike = roleCounts.reviewer;
 
   const totalMembers = rosterMembers.length;
   const expectation = TYPE_EXPECTATION[project.projectType ?? ''] ?? null;
@@ -168,10 +202,10 @@ export default function OwnerStakeholderRosterCard({ project }: Props) {
     if (tier === 'outline') return 'work';
     // detailed
     if (totalMembers === 0) return 'work';
-    if (expectation?.expectsReviewer && roleCounts.reviewer === 0) return 'work';
-    if (expectation?.expectsDesigner && roleCounts.designer === 0) return 'work';
+    if (expectation?.expectsReviewer && reviewerLike === 0) return 'work';
+    if (expectation?.expectsDesigner && designerLike === 0) return 'work';
     return 'done';
-  }, [tier, totalMembers, expectation, roleCounts]);
+  }, [tier, totalMembers, expectation, designerLike, reviewerLike]);
 
   const w = wordCount(owner);
 
@@ -230,12 +264,16 @@ export default function OwnerStakeholderRosterCard({ project }: Props) {
       <div className={css.support!}>
         <div className={css.supportHead!}>Collaboration roster</div>
         <div className={css.supportGrid!}>
-          {(['owner', 'designer', 'reviewer', 'viewer'] as ProjectRole[]).map((role) => {
+          {ROLE_ORDER.map((role) => {
             const count = roleCounts[role];
             const expected =
               (role === 'reviewer' && expectation?.expectsReviewer) ||
-              (role === 'designer' && expectation?.expectsDesigner) ||
-              role === 'owner';
+              ((role === 'designer' ||
+                role === 'team_member' ||
+                role === 'contractor') &&
+                expectation?.expectsDesigner) ||
+              role === 'owner' ||
+              role === 'primary_steward';
             const cls =
               count > 0
                 ? css.supportCellFilled!

@@ -28,7 +28,7 @@ import CropPanel from '../../features/crops/CropPanel.js';
 import AccessPanel from '../../features/access/AccessPanel.js';
 import UtilityPanel from '../../features/utilities/UtilityPanel.js';
 import { useUIStore } from '../../store/uiStore.js';
-import { earth, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
+import { neutral, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './DesignToolsPanel.module.css';
 import { DelayedTooltip } from '../ui/DelayedTooltip.js';
@@ -634,7 +634,7 @@ function renderStructureOnMap(map: maplibregl.Map, structure: Structure) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': structure.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
+    paint: { 'text-color': neutral[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }
 
@@ -661,6 +661,6 @@ function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
+    paint: { 'text-color': neutral[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

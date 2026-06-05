@@ -67,6 +67,12 @@ import {
   type UtilityRunKind,
 } from '../../../store/utilityRunStore.js';
 import {
+  UTILITY_TYPE_CONFIG,
+  type Utility,
+  type UtilityType,
+} from '../../../store/utilityStore.js';
+import { UTILITY_POINT_TYPE_OPTIONS } from '../draw/tools/utilityPointTypes.js';
+import {
   SETBACK_PURPOSE_CONFIG,
   type SetbackPurpose,
   type SetbackRing,
@@ -89,6 +95,9 @@ import {
   STORAGE_LABEL,
   SURFACE_LABEL,
 } from '../cards/water-management/waterMath.js';
+import type { DesignElement } from '../../../store/designElementsStore.js';
+import { TREE_PLANTING_KINDS } from '../../../features/vegetation/treePlantingSpineSync.js';
+import { findElementSpec } from '../canvas/elementCatalog.js';
 
 // ---------- Silvopasture re-pin (shared) ----------
 //
@@ -509,6 +518,75 @@ export function buildPathEditSchema(
         type: t,
         color: PATH_TYPE_CONFIG[t].color,
         usageFrequency: values.usageFrequency as DesignPath['usageFrequency'],
+      });
+    },
+    onCancel: () => {
+      /* no-op */
+    },
+  };
+}
+
+// ---------- Utility point ----------
+//
+// Click-to-edit parity for typed utility points (`utilityStore`, C2/C4).
+// Mirrors the C4 draw-form field set (`UtilityPointTool.tsx`) so editing a
+// placed point behaves identically to placing one. `phaseField` is passed in
+// by the caller (PlanDataLayers) because the phase options come from the
+// `usePhaseFieldSpec` hook, which this pure builder cannot call. `color` is
+// intentionally NOT written — the render layer derives it from
+// `UTILITY_TYPE_CONFIG[type].color`, and `Utility` has no `color` field.
+
+export function buildUtilityPointEditSchema(
+  u: Utility,
+  updateUtility: (id: string, updates: Partial<Utility>) => void,
+  phaseField: FieldSpec,
+): Omit<InlineFormPayload, 'anchor'> {
+  return {
+    title: 'Edit utility point',
+    fields: [
+      {
+        key: 'type',
+        label: 'Type',
+        kind: 'select',
+        required: true,
+        options: UTILITY_POINT_TYPE_OPTIONS,
+      },
+      { key: 'name', label: 'Name', kind: 'text', required: true },
+      {
+        key: 'demandKwhPerDay',
+        label: 'Energy demand',
+        kind: 'number',
+        suffix: 'kWh/day',
+        placeholder: 'e.g. 4',
+      },
+      {
+        key: 'capacityGal',
+        label: 'Storage capacity',
+        kind: 'number',
+        suffix: 'gal',
+        placeholder: 'e.g. 250',
+      },
+      phaseField,
+    ],
+    initial: {
+      type: u.type,
+      name: u.name,
+      demandKwhPerDay: u.demandKwhPerDay ?? '',
+      capacityGal: u.capacityGal ?? '',
+      phase: u.phase,
+    },
+    onSave: (values) => {
+      const type = (values.type as UtilityType) ?? u.type;
+      const demand = Number(values.demandKwhPerDay);
+      const cap = Number(values.capacityGal);
+      updateUtility(u.id, {
+        type,
+        name:
+          String(values.name ?? '').trim() || UTILITY_TYPE_CONFIG[type].label,
+        phase: String(values.phase ?? u.phase),
+        demandKwhPerDay:
+          Number.isFinite(demand) && demand > 0 ? demand : undefined,
+        capacityGal: Number.isFinite(cap) && cap > 0 ? cap : undefined,
       });
     },
     onCancel: () => {
@@ -1378,6 +1456,13 @@ export function buildPowerLineEditSchema(
         required: true,
         options: POWER_LINE_PLACEMENT_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.2',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1388,6 +1473,7 @@ export function buildPowerLineEditSchema(
     ],
     initial: {
       placement: exist.placement ?? 'overhead',
+      widthM:    exist.widthM ?? '',
       label:     pl.label ?? '',
       notes:     pl.notes ?? '',
     },
@@ -1397,10 +1483,13 @@ export function buildPowerLineEditSchema(
         values.placement === 'buried' ? 'buried' : 'overhead';
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(pl.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { placement },
+        existing: { placement, widthM },
       });
     },
     onCancel: () => {
@@ -1430,6 +1519,13 @@ export function buildBuriedUtilityEditSchema(
         required: true,
         options: BURIED_UTILITY_SUBTYPE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.3',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1440,6 +1536,7 @@ export function buildBuriedUtilityEditSchema(
     ],
     initial: {
       subtype: exist.subtype ?? 'water_main',
+      widthM:  exist.widthM ?? '',
       label:   bu.label ?? '',
       notes:   bu.notes ?? '',
     },
@@ -1448,10 +1545,13 @@ export function buildBuriedUtilityEditSchema(
       const subtype = String(values.subtype ?? 'water_main');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(bu.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { subtype },
+        existing: { subtype, widthM },
       });
     },
     onCancel: () => {
@@ -1481,6 +1581,13 @@ export function buildFenceEditSchema(
         required: true,
         options: FENCE_SUBTYPE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.1',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1491,6 +1598,7 @@ export function buildFenceEditSchema(
     ],
     initial: {
       subtype: exist.subtype ?? 'page_wire',
+      widthM:  exist.widthM ?? '',
       label:   f.label ?? '',
       notes:   f.notes ?? '',
     },
@@ -1499,10 +1607,13 @@ export function buildFenceEditSchema(
       const subtype = String(values.subtype ?? 'page_wire');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(f.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { subtype },
+        existing: { subtype, widthM },
       });
     },
     onCancel: () => {
@@ -1568,6 +1679,13 @@ export function buildDrivewayEditSchema(
         required: true,
         options: DRIVEWAY_SURFACE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '3.5',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1578,6 +1696,7 @@ export function buildDrivewayEditSchema(
     ],
     initial: {
       surface: exist.surface ?? 'gravel',
+      widthM:  exist.widthM ?? '',
       label:   dw.label ?? '',
       notes:   dw.notes ?? '',
     },
@@ -1586,10 +1705,13 @@ export function buildDrivewayEditSchema(
       const surface = String(values.surface ?? 'gravel');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(dw.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { surface },
+        existing: { surface, widthM },
       });
     },
     onCancel: () => {
@@ -1673,6 +1795,296 @@ export function buildGenericBeEditSchema(
       if (nextState !== e.state) {
         store.setState(e.id, nextState);
       }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Habitat feature (Slice 8-E) ----------
+//
+// Inline editor for placed habitat-category DesignElements. The picker
+// surfaces `habitatMetadata.hostTreeFeatureId` for mount-on-tree kinds
+// (owl-box / raptor-perch / nest-box / snag) so the steward can wire the
+// host that the spine seeder will project into `dependsOnAuto`.
+//
+// Per-kind dimension fields mirror Slice 2's draw-tool popover:
+//   - owl-box / nest-box → mountingHeightM
+//   - raptor-perch       → heightM
+//   - snag               → approxHeightM + cavityCount
+// Universal label + notes. Other habitat kinds (brush-pile, insectary-
+// strip, wetland-edge) get only label + notes (no host).
+//
+// Save deep-patches `habitatMetadata` immutably and collapses fully-empty
+// metadata back to undefined so downstream consumers see a clean shape.
+
+/** Habitat kinds that mount on a host tree. Picker hides for non-members. */
+export const HOST_BEARING_HABITAT_KINDS: ReadonlySet<string> = new Set([
+  'owl-box',
+  'raptor-perch',
+  'nest-box',
+  'snag',
+]);
+
+export function habitatKindAcceptsHost(kind: string): boolean {
+  return HOST_BEARING_HABITAT_KINDS.has(kind);
+}
+
+function humanTreeKind(kind: string): string {
+  switch (kind) {
+    case 'oak-tree':   return 'Oak';
+    case 'pine-tree':  return 'Pine';
+    case 'apple-tree': return 'Apple';
+    case 'shrub':      return 'Shrub';
+    default:           return kind;
+  }
+}
+
+/** Vegetation-category point trees that qualify as habitat hosts. */
+export function listHabitatHostCandidates(
+  designElements: readonly DesignElement[],
+): { value: string; label: string }[] {
+  return designElements
+    .filter(
+      (el) =>
+        el.category === 'vegetation' &&
+        el.geometry.type === 'Point' &&
+        (TREE_PLANTING_KINDS as readonly string[]).includes(el.kind),
+    )
+    .map((el) => ({
+      value: el.id,
+      label: `${humanTreeKind(el.kind)}${el.label ? ` — ${el.label}` : ''}`,
+    }));
+}
+
+const HABITAT_KIND_TITLE: Record<string, string> = {
+  'owl-box':         'Edit owl box',
+  'raptor-perch':    'Edit raptor perch',
+  'nest-box':        'Edit nest box',
+  'brush-pile':      'Edit brush pile',
+  'snag':            'Edit snag',
+  'insectary-strip': 'Edit insectary strip',
+  'wetland-edge':    'Edit wetland edge',
+};
+
+export function buildHabitatFeatureEditSchema(
+  el: DesignElement,
+  projectId: string,
+  updateElement: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void,
+  designElements: readonly DesignElement[],
+): Omit<InlineFormPayload, 'anchor'> {
+  const md = el.habitatMetadata ?? {};
+  const acceptsHost = habitatKindAcceptsHost(el.kind);
+  const candidates = acceptsHost ? listHabitatHostCandidates(designElements) : [];
+  const hostHasCandidates = candidates.length > 0;
+
+  const fields: FieldSpec[] = [];
+
+  // --- Per-kind dimension fields ---
+  if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+    fields.push({
+      key: 'mountingHeightM',
+      label: 'Mounting height',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '3.0',
+    });
+  } else if (el.kind === 'raptor-perch') {
+    fields.push({
+      key: 'heightM',
+      label: 'Height',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '4.0',
+    });
+  } else if (el.kind === 'snag') {
+    fields.push(
+      {
+        key: 'approxHeightM',
+        label: 'Approx. height',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '8.0',
+      },
+      {
+        key: 'cavityCount',
+        label: 'Cavity count',
+        kind: 'number',
+        placeholder: '0',
+      },
+    );
+  } else if (el.kind === 'insectary-strip') {
+    // LineString habitat kind — real-world strip width (metres). Persists to
+    // the DesignElement top-level `widthM`, not habitatMetadata, so the
+    // width-aware line paint in DesignElementLayers can read it.
+    fields.push({
+      key: 'widthM',
+      label: 'Width',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '1.2',
+    });
+  }
+
+  // --- Host-tree picker (mount-on-tree kinds only) ---
+  if (acceptsHost) {
+    if (hostHasCandidates) {
+      fields.push({
+        key: 'hostTreeFeatureId',
+        label: 'Host tree',
+        kind: 'select',
+        options: [{ value: '', label: '(no host)' }, ...candidates],
+      });
+    } else {
+      fields.push({
+        key: 'hostTreeFeatureId',
+        label: 'Host tree',
+        kind: 'select',
+        readonly: true,
+        options: [
+          {
+            value: '',
+            label: 'Place an oak / pine / apple / shrub point first.',
+          },
+        ],
+      });
+    }
+  }
+
+  // --- Universal label + notes ---
+  fields.push(
+    { key: 'label', label: 'Label', kind: 'text' },
+    {
+      key: 'notes',
+      label: 'Notes',
+      kind: 'textarea',
+      placeholder: 'Free-form notes…',
+    },
+  );
+
+  const initial: Record<string, string | number> = {
+    label: el.label ?? '',
+    notes: md.notes ?? '',
+  };
+  if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+    initial.mountingHeightM = md.mountingHeightM ?? '';
+  } else if (el.kind === 'raptor-perch') {
+    initial.heightM = md.heightM ?? '';
+  } else if (el.kind === 'snag') {
+    initial.approxHeightM = md.approxHeightM ?? '';
+    initial.cavityCount = md.cavityCount ?? '';
+  } else if (el.kind === 'insectary-strip') {
+    initial.widthM = el.widthM ?? '';
+  }
+  if (acceptsHost) {
+    initial.hostTreeFeatureId = md.hostTreeFeatureId ?? '';
+  }
+
+  return {
+    title: HABITAT_KIND_TITLE[el.kind] ?? 'Edit habitat feature',
+    fields,
+    initial,
+    onSave: (values) => {
+      const labelStr = String(values.label ?? '').trim();
+      const notesStr = String(values.notes ?? '').trim();
+
+      const nextMd: NonNullable<DesignElement['habitatMetadata']> = { ...md };
+
+      if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+        const raw = Number(values.mountingHeightM);
+        if (Number.isFinite(raw) && raw > 0) nextMd.mountingHeightM = raw;
+        else delete nextMd.mountingHeightM;
+      } else if (el.kind === 'raptor-perch') {
+        const raw = Number(values.heightM);
+        if (Number.isFinite(raw) && raw > 0) nextMd.heightM = raw;
+        else delete nextMd.heightM;
+      } else if (el.kind === 'snag') {
+        const rawH = Number(values.approxHeightM);
+        if (Number.isFinite(rawH) && rawH > 0) nextMd.approxHeightM = rawH;
+        else delete nextMd.approxHeightM;
+        const rawC = Number(values.cavityCount);
+        if (Number.isFinite(rawC) && rawC >= 0) nextMd.cavityCount = rawC;
+        else delete nextMd.cavityCount;
+      }
+
+      if (acceptsHost) {
+        const raw = String(values.hostTreeFeatureId ?? '').trim();
+        if (raw) nextMd.hostTreeFeatureId = raw;
+        else delete nextMd.hostTreeFeatureId;
+      }
+
+      if (notesStr) nextMd.notes = notesStr;
+      else delete nextMd.notes;
+
+      const cleanedMd = Object.keys(nextMd).length > 0 ? nextMd : undefined;
+
+      const patch: Partial<Omit<DesignElement, 'id'>> = {
+        label: labelStr || undefined,
+        habitatMetadata: cleanedMd,
+      };
+
+      if (el.kind === 'insectary-strip') {
+        const rawW = Number(values.widthM);
+        patch.widthM =
+          Number.isFinite(rawW) && rawW > 0 ? rawW : undefined;
+      }
+
+      updateElement(projectId, el.id, patch);
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Plain line DesignElement kinds (hedgerow / path / road) ----------
+//
+// These three are LineString DesignElements with a catalog `defaultWidthM`
+// and width-aware paint, but no bespoke metadata axis — so the inline form
+// is just the real-world Width (m) override + label. `widthM` persists to the
+// DesignElement top-level field (read by the width-aware line paint in
+// DesignElementLayers); empty/invalid clears the override → catalog default.
+
+export function buildLineFeatureEditSchema(
+  el: DesignElement,
+  projectId: string,
+  updateElement: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void,
+): Omit<InlineFormPayload, 'anchor'> {
+  const spec = findElementSpec(el.kind);
+  const fields: FieldSpec[] = [
+    {
+      key: 'widthM',
+      label: 'Width',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: spec?.defaultWidthM != null ? String(spec.defaultWidthM) : '',
+    },
+    { key: 'label', label: 'Label', kind: 'text' },
+  ];
+  return {
+    title: `Edit ${spec?.label ?? el.kind}`,
+    fields,
+    initial: {
+      widthM: el.widthM ?? '',
+      label: el.label ?? '',
+    },
+    onSave: (values) => {
+      const labelStr = String(values.label ?? '').trim();
+      const rawW = Number(values.widthM);
+      const widthM = Number.isFinite(rawW) && rawW > 0 ? rawW : undefined;
+      updateElement(projectId, el.id, {
+        label: labelStr || undefined,
+        widthM,
+      });
     },
     onCancel: () => {
       /* no-op — record already exists */

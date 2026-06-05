@@ -1,0 +1,105 @@
+/*
+ * ObserveStageGapBanner - persistent teal/info notice inside the Observe stage
+ * naming the objectives + domains that still need field data (Plan Nav v1.1
+ * section 9, Observe-side render). Mirrors the Plan-side ObserveGapBanner
+ * rounded recipe; adds a row of deep-link domain chips. Tokens + CSS Modules
+ * only. No dismiss affordance -- the banner clears itself once domains have
+ * data.
+ */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5aa9c4) 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  pointer-events: auto;
+}
+
+.iconWrap {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, var(--color-info, #5aa9c4) 22%, transparent);
+  color: var(--color-info, #5aa9c4);
+  margin-top: 1px;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-info, #5aa9c4);
+}
+
+.copy {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+.domains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.domainChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-info, #5aa9c4);
+  background: color-mix(in srgb, var(--color-info, #5aa9c4) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5aa9c4) 32%, transparent);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.domainChip:hover {
+  background: color-mix(in srgb, var(--color-info, #5aa9c4) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-info, #5aa9c4) 48%, transparent);
+}
+
+.domainChip:focus-visible {
+  outline: 2px solid var(--color-info, #5aa9c4);
+  outline-offset: 2px;
+}
+
+.domainCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 9.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-bg, #14191f);
+  background: var(--color-info, #5aa9c4);
+}

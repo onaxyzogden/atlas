@@ -25,6 +25,8 @@ import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import { usePastureStore } from '../../../../store/pastureStore.js';
 import type { AnnotationKind } from './annotationFieldSchemas.js';
 
 function lineLengthM(geom: GeoJSON.LineString): number {
@@ -76,6 +78,9 @@ export const POLYGON_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind
   // Built-Environment polygons (Phase 4.5) — areaM2 recomputed on edit
   'building',
   'septic',
+  // Land-cover polygons — no cached scalar to recompute
+  'conventionalCrop',
+  'pasture',
 ]);
 
 /** Reposition a point annotation. Routes to the correct field name
@@ -164,30 +169,43 @@ export function writeLineString(
   }
 }
 
-/** Replace the geometry of a Polygon annotation (vertex edit). */
+/** Replace the geometry of a Polygon annotation (vertex edit).
+ *  `vegetation` and `pasture` accept MultiPolygon as well so the
+ *  Fill-remainder tool can write boundary-minus-patches results;
+ *  the MapboxDraw vertex-edit pipeline still only emits Polygon. */
 export function writePolygon(
   kind: AnnotationKind,
   id: string,
-  geometry: GeoJSON.Polygon,
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
 ): void {
   switch (kind) {
     case 'frostPocket':
     case 'hazardZone':
+      if (geometry.type !== 'Polygon') return;
       useExternalForcesStore.getState().updateHazard(id, { geometry });
       return;
     case 'vegetation':
       useVegetationStore.getState().updatePatch(id, { geometry });
       return;
     case 'building': {
+      if (geometry.type !== 'Polygon') return;
       const areaM2 = polygonAreaM2(geometry);
       useBuiltEnvironmentStore.getState().updateBuilding(id, { geometry, areaM2 });
       return;
     }
     case 'septic': {
+      if (geometry.type !== 'Polygon') return;
       const areaM2 = polygonAreaM2(geometry);
       useBuiltEnvironmentStore.getState().updateSeptic(id, { geometry, areaM2 });
       return;
     }
+    case 'conventionalCrop':
+      if (geometry.type !== 'Polygon') return;
+      useConventionalCropStore.getState().updateConventionalCrop(id, { geometry });
+      return;
+    case 'pasture':
+      usePastureStore.getState().updatePasture(id, { geometry });
+      return;
     default:
       return;
   }
@@ -304,11 +322,12 @@ export function readLineString(
   }
 }
 
-/** Read the *current* Polygon geometry, or null if the record vanished. */
+/** Read the *current* Polygon (or MultiPolygon, for `vegetation` /
+ *  `pasture`) geometry, or null if the record vanished. */
 export function readPolygon(
   kind: AnnotationKind,
   id: string,
-): GeoJSON.Polygon | null {
+): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
   switch (kind) {
     case 'frostPocket':
     case 'hazardZone': {
@@ -333,6 +352,18 @@ export function readPolygon(
       const r = useBuiltEnvironmentStore
         .getState()
         .septics.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'conventionalCrop': {
+      const r = useConventionalCropStore
+        .getState()
+        .conventionalCrops.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'pasture': {
+      const r = usePastureStore
+        .getState()
+        .pastures.find((x) => x.id === id);
       return r ? r.geometry : null;
     }
     default:

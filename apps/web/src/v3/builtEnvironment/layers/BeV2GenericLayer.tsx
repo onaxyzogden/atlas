@@ -97,6 +97,7 @@ export default function BeV2GenericLayer({
       if (e.projectId !== projectId) continue;
       if (stateFilter !== 'all' && e.state !== stateFilter) continue;
       if (LEGACY_OBSERVE_BE_KINDS.has(e.kind)) continue;
+      if (e.hidden) continue;
 
       const spec = getBuiltEnvironmentKind(e.kind);
       if (!spec) continue;

@@ -34,6 +34,7 @@ export default function RotationPlanCard({ projectId }: RotationPlanCardProps) {
   const setPlan = useRotationPlanStore((s) => s.setPlan);
   const upsertCell = useRotationPlanStore((s) => s.upsertCell);
   const removeCell = useRotationPlanStore((s) => s.removeCell);
+  const setPlanOptions = useRotationPlanStore((s) => s.setPlanOptions);
   const clearPlan = useRotationPlanStore((s) => s.clearPlan);
 
   const paddockById = useMemo(() => {
@@ -186,6 +187,33 @@ export default function RotationPlanCard({ projectId }: RotationPlanCardProps) {
         >
           Clear all
         </button>
+        <label className={css.field}>
+          <span>Start date</span>
+          <input
+            type="date"
+            value={plan?.startDateISO ?? ''}
+            onChange={(e) =>
+              setPlanOptions(projectId, {
+                startDateISO: e.target.value || undefined,
+              })
+            }
+          />
+        </label>
+        <label className={css.field}>
+          <span>Horizon</span>
+          <select
+            value={plan?.horizonCycles ?? 1}
+            onChange={(e) =>
+              setPlanOptions(projectId, {
+                horizonCycles: Number(e.target.value),
+              })
+            }
+          >
+            <option value={1}>1 cycle</option>
+            <option value={2}>2 cycles</option>
+            <option value={3}>3 cycles</option>
+          </select>
+        </label>
       </div>
 
       {groupedCells.map(([groupName, cells]) => {

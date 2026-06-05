@@ -1,0 +1,143 @@
+/*
+ * NextUpCard — featured CTA card for the next-best objective in the
+ * active stratum. Distinguishes itself from sibling ObjectiveCards via the
+ * gold accent border + arrow CTA so the steward knows where to land.
+ */
+
+.card {
+  --next-color: var(--color-gold-brand, #c4a265);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--next-color) 8%, var(--color-bg, #14191f));
+  border: 1px solid color-mix(in srgb, var(--next-color) 45%, var(--color-border));
+  border-radius: var(--radius-lg, 12px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+}
+
+.card:hover {
+  background: color-mix(in srgb, var(--next-color) 14%, var(--color-bg, #14191f));
+  border-color: var(--next-color);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--next-color);
+  outline-offset: 2px;
+}
+
+.card[data-status='active'] {
+  border-color: var(--next-color);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--next-color);
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-text, #f2ede3);
+  line-height: 1.3;
+}
+
+.statusPill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--next-color) 22%, transparent);
+  color: #f4e6cb;
+}
+
+/* Plan Nav v1.1 §5 — source-tag pill (Universal / Primary / Secondary). */
+.sourceTag {
+  padding: 3px 10px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  --source-color: var(--color-info, #5aa9c9);
+  background: color-mix(in srgb, var(--source-color) 18%, transparent);
+  color: var(--source-color);
+}
+
+.sourceTag[data-source='primary'] {
+  --source-color: var(--color-success, #5dd39e);
+}
+
+.sourceTag[data-source='secondary'] {
+  --source-color: #e8a958;
+}
+
+/* Slice 3.5 — divergence flag from Act (spec §6.4). Amber, not red. */
+.pillRow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.divergencePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(232, 169, 88, 0.18);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.5);
+}
+
+.card[data-has-divergence='true'] {
+  border-color: rgba(232, 169, 88, 0.55);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--next-color);
+  color: #1a1410;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.card:hover .cta {
+  background: color-mix(in srgb, var(--next-color) 90%, #fff);
+}

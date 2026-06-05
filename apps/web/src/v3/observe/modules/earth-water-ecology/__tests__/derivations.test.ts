@@ -14,6 +14,7 @@ import {
   getCriticalHabitatLayer,
   hydrologyKpis,
   jprKpis,
+  netCoverAreaM2,
   percRating,
   roofAnnualCaptureL,
   soilStats,
@@ -317,5 +318,60 @@ describe('troubledZones', () => {
 
   it('returns empty for empty inputs', () => {
     expect(troubledZones([], [])).toEqual([]);
+  });
+});
+
+describe('netCoverAreaM2', () => {
+  // ~111 m × ~111 m ≈ 1.23 ha at the equator. We just check ratios so the
+  // exact projected area doesn't matter.
+  const square = (
+    cx: number,
+    cy: number,
+    halfDeg: number,
+  ): GeoJSON.Polygon => ({
+    type: 'Polygon',
+    coordinates: [
+      [
+        [cx - halfDeg, cy - halfDeg],
+        [cx + halfDeg, cy - halfDeg],
+        [cx + halfDeg, cy + halfDeg],
+        [cx - halfDeg, cy + halfDeg],
+        [cx - halfDeg, cy - halfDeg],
+      ],
+    ],
+  });
+
+  it('returns 0 when there are no patches', () => {
+    expect(netCoverAreaM2([], [{ geometry: square(0, 0, 0.001) }])).toBe(0);
+  });
+
+  it('returns gross area when there are no subtractees', () => {
+    const patch = { geometry: square(0, 0, 0.001) };
+    const gross = netCoverAreaM2([patch], []);
+    expect(gross).toBeGreaterThan(0);
+  });
+
+  it('subtracts a fully-enclosed patch (crop) from the matrix', () => {
+    const matrix = { geometry: square(0, 0, 0.001) }; // ~222m × ~222m
+    const crop = { geometry: square(0, 0, 0.0005) }; // ~111m × ~111m, centered inside
+    const gross = netCoverAreaM2([matrix], []);
+    const net = netCoverAreaM2([matrix], [crop]);
+    expect(net).toBeLessThan(gross);
+    // The inner square covers ~1/4 of the outer square in lon/lat space.
+    expect(net).toBeGreaterThan(gross * 0.7);
+    expect(net).toBeLessThan(gross * 0.8);
+  });
+
+  it('clamps a fully-covered matrix to 0 (no negative area)', () => {
+    const matrix = { geometry: square(0, 0, 0.0005) };
+    const blanket = { geometry: square(0, 0, 0.001) }; // bigger, fully covers matrix
+    expect(netCoverAreaM2([matrix], [blanket])).toBe(0);
+  });
+
+  it('ignores non-overlapping subtractees', () => {
+    const matrix = { geometry: square(0, 0, 0.001) };
+    const elsewhere = { geometry: square(10, 10, 0.001) };
+    const gross = netCoverAreaM2([matrix], []);
+    expect(netCoverAreaM2([matrix], [elsewhere])).toBeCloseTo(gross, 6);
   });
 });

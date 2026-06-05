@@ -35,6 +35,14 @@ import {
   isActModule,
   type ActModule,
 } from '../act/types.js';
+import { usePlanImpactFlagCounts } from '../plan/impact/usePlanImpactFlags.js';
+import { usePlanDecisionCounts } from '../plan/decisions/usePlanDecisions.js';
+import { usePlanWorkPackageCounts } from '../plan/work-packages/usePlanWorkPackages.js';
+import { usePlanConflictCounts } from '../plan/conflicts/usePlanConflicts.js';
+import {
+  usePlanVersionCounts,
+  useActivePlanVersion,
+} from '../plan/versions/usePlanVersions.js';
 import css from './V3LifecycleSidebar.module.css';
 
 interface DisabledLink {
@@ -119,6 +127,12 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const projectId = params.projectId ?? 'mtc';
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const reviewCounts = usePlanImpactFlagCounts(projectId);
+  const decisionCounts = usePlanDecisionCounts(projectId);
+  const workPackageCounts = usePlanWorkPackageCounts(projectId);
+  const conflictCounts = usePlanConflictCounts(projectId);
+  const versionCounts = usePlanVersionCounts(projectId);
+  const activeVersion = useActivePlanVersion(projectId);
 
   const stageIsActive = (id: StageId): boolean =>
     (activeStage as string) === id;
@@ -158,6 +172,10 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         <span className={css.eyebrow}>Project</span>
       </header>
 
+      {/* True North · Stage 0 nav entry retired 2026-05-31 — the concept is no
+          longer part of the IA. The Fit Gate verdict surface remains reachable
+          at /true-north/fit-gate for projects that link to it directly. */}
+
       <Link
         to="/v3/project/$projectId/home"
         params={{ projectId }}
@@ -165,6 +183,27 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         data-active={activeStage === 'home' ? 'true' : 'false'}
       >
         Project Home
+      </Link>
+
+      <Link
+        to="/v3/project/$projectId/report"
+        params={{ projectId }}
+        className={css.homeLink}
+        data-active={activeStage === 'report' ? 'true' : 'false'}
+      >
+        Report
+      </Link>
+
+      {/* OLOS Protocol System — Protocol Dashboard, a peer surface of the three
+          lifecycle stages (Observe / Plan / Act). Flat link (no module list),
+          mirroring Project Home / Report. */}
+      <Link
+        to="/v3/project/$projectId/protocols"
+        params={{ projectId }}
+        className={css.homeLink}
+        data-active={activeStage === 'protocols' ? 'true' : 'false'}
+      >
+        Protocols
       </Link>
 
       <div className={css.stageGroups}>
@@ -226,6 +265,145 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                       </li>
                     );
                   })}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/review"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/review') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Reviews
+                          {reviewCounts.open > 0 ? (
+                            <span className={css.utilityCount}>
+                              {reviewCounts.open}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/decisions"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/decisions') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Decision Log
+                          {decisionCounts.draft > 0 ? (
+                            <span className={css.utilityCount}>
+                              {decisionCounts.draft}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/work-packages"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/work-packages')
+                            ? 'true'
+                            : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Work Packages
+                          {workPackageCounts.draft > 0 ? (
+                            <span className={css.utilityCount}>
+                              {workPackageCounts.draft}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/conflicts"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/conflicts') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Conflicts
+                          {conflictCounts.open > 0 ? (
+                            <span className={css.utilityCount}>
+                              {conflictCounts.open}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/versions"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/versions') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Versions
+                          {versionCounts.draft > 0 ? (
+                            <span className={css.utilityCount}>
+                              {versionCounts.draft}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/synthesis"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/synthesis')
+                            ? 'true'
+                            : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Synthesis
+                          {activeVersion?.status === 'approved' ? (
+                            <span
+                              className={css.utilityCount}
+                              title="Plan approved"
+                            >
+                              ✓
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
                 </ul>
               ) : null}
             </section>

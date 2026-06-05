@@ -1,0 +1,27 @@
+/* Sticky bottom batch-action bar — mirrors the legacy HomePage .compareBar. */
+
+.bar {
+  position: sticky;
+  bottom: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+}
+
+.text {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}

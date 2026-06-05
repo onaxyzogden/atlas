@@ -82,7 +82,7 @@ export default function HeroMapCanvas({
         position: 'absolute',
         inset: 0,
         backgroundImage:
-          'linear-gradient(135deg, var(--color-earth-700, #3a2f24), var(--color-sage-800, #2a3a2a))',
+          'linear-gradient(135deg, var(--color-neutral-700, #3f464d), var(--color-sage-800, #2a3a2a))',
         backgroundSize: 'cover',
       }}
       data-failed={failed ? 'true' : 'false'}

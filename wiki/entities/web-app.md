@@ -6,6 +6,9 @@
 ## Purpose
 React SPA for property design, map visualization, dashboard analytics, financial modeling, and export. Local-first architecture with Zustand stores persisted to localStorage.
 
+## CI / PR gating
+PRs touching `apps/web/**`, `packages/shared/**`, or `pnpm-lock.yaml` are gated by `.github/workflows/web-ci.yml` (added 2026-05-25, `016c6d0b`) — three parallel jobs: **typecheck** (`pnpm --filter @ogden/web typecheck`, 8 GB-heap `tsc --noEmit`), **test** (`vitest`, node env), **build** (`tsc && vite build` + Playwright `prerender:showcase`, with `VITE_MAPTILER_KEY`). This closed the last monorepo PR-CI gap (api was already gated by `api-ci.yml` + `api-integration.yml`); previously only `deploy.yml` exercised web, and only on `push` to `main`. See [[log/2026-05-25-web-ci-gate]].
+
 ## Key Structure
 ```
 src/
@@ -77,6 +80,30 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
   `templates`, `fieldwork`, `history`) remain in place. See
   [[2026-04-29-act-stage-ia-restructure]].
 
+## Cyclical Stage Navigator + Slide-up Top Bar (2026-05-18)
+- Header stage navigator (`LevelNavigatorBar`, state via
+  `LevelNavigatorContext` mounted by `V3LevelNavBridge`) is now a
+  **cyclical 3-stage carousel**: `goPrev`/`goNext` and the context
+  `prev`/`next` values use modulo wrap (`(activeIdx ± 1 + n) % n`), so
+  both side controls are always present/active. No more linear dead-ends
+  at the first/last stage.
+- `report` removed from `V3LevelNavBridge` `LEVELS` array — the cycle is
+  exactly `[observe, plan, act]`. The `/report` route and
+  `parseV3Route` / `handleLevelChange` report branches are untouched
+  (Report absorption into a module / left sidebar is separate future
+  work). Direct `/report` URL resolves `findIndex -1 → 0` → shows
+  "Observe" (accepted cosmetic side-effect on the soon-absorbed page).
+- ACT + OBSERVE slide-up sheets now render the module navigation bar
+  pinned at the top (`topBar` slot), matching PLAN — steward can switch
+  modules without closing the detail sheet. OBSERVE uses a bespoke
+  `observe/components/ModuleSlideUp.tsx` (not the shared one), so the
+  `topBar` prop + `.topBar` CSS were added there manually.
+- Test: `components/LevelNavigator/__tests__/LevelNavigatorCyclical.test.tsx`
+  (3 cases — act→next=observe, observe→prev=act, plan interior).
+- Pre-existing `validateDOMNesting` button-in-button warning in
+  `ObserveModuleBar` is now doubled (bar mounts twice — bottomTray +
+  topBar); flagged as separate out-of-scope cleanup task.
+
 ## Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)
 
 The 8 Plan-stage modules surfaced through `PlanModuleBar` were each adjudicated against their OGDEN counterpart by the Permaculture Scholar (NotebookLM `5aa3dcf3-…`). Index ADR: [[2026-05-07-atlas-plan-modules-scholar-iteration]]; per-module ADRs filed same date. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**.
@@ -93,6 +120,327 @@ Card inventory after iteration, keyed by `MODULE_CARDS` `sectionId` in `apps/web
 - **Module 8 · Principle verification** (`principle-verification`) — *Keep Atlas:* `HolmgrenChecklistCard` (~187L, 12-principle reflective rubric + linked-feature multi-pick) unchanged. Three enhancements deferred: three-Ethics rollup, Mission Statement cross-check, missing-principle warnings + coverage matrix.
 
 Cross-cutting follow-up: ported OGDEN cards (Modules 1, 2) still operate on mock inputs per the iteration's "visual-first port" cadence — wiring to real Zustand stores deferred.
+
+## Stage Zero Vision Builder (2026-05-25)
+
+Project intake is now a name-only form that routes to a structured
+**Stage Zero questionnaire** producing a machine-readable Vision Profile
+(per the `OLOS Stage Zero Vision Builder.md` spec). Lives under
+`apps/web/src/v3/stage-zero/`:
+
+- `data/visionBuilderQuestions.ts` — the question catalog. Each entry:
+  `eyebrow`, `title`, `kind` (`single`|`multi`), `profilePath` (dotted
+  path the answer writes into the Vision Profile), optional `visibleWhen`
+  for conditionals (livestock questions gated by `hasLivestockInScope`,
+  residential by `willLiveOnLand`).
+- `useVisionBuilder.ts` — cursor + answers; derives the visible-question
+  list (conditionals expand/collapse the total live) + progress.
+- `lib/deriveActivatedModules.ts` — pure Vision Profile → activated-module
+  preview (drives the bottom strip).
+- `StageZeroVisionPage.tsx` + components (`VisionStageHeader`,
+  `VisionQuestionCard`, `VisionUpcomingQuestions`, `VisionProfileSidebar`,
+  `VisionActivationStrip`) — self-contained `--vb-*` dark/gold palette,
+  full-screen takeover (`.page` fixed inset-0 z-600, above AppShell z-501).
+
+The Vision Profile persists on `project.metadata.visionProfile`
+(`ProjectMetadata` is `.passthrough()`, so no schema migration; lives in
+`projectStore` under localStorage `ogden-projects`). **Module activation
+is preview-only for the MVP** — the activation strip shows what the
+profile *would* turn on but does not yet gate which Plan/Act modules
+render (real gating deferred). `NewProjectPage` rewritten to name-only
+create → `/v3/project/$projectId/stage-zero` (preserves
+`?prefillTemplate`/`?orgId`/`?fullSetup`); the parcel **boundary moved to
+OBSERVE** — `MapToolbar` gained a KML/KMZ/GeoJSON import button
+(`parseGeoFile` → `onBoundaryImported` → `updateProject` persists FC +
+`parcelAcreage`). The legacy `features/project/wizard/Step*` components
+are preserved on disk; their `WizardData` interface was relocated from
+`NewProjectPage` into `features/project/wizard/types.ts`. ADR:
+[[2026-05-25-atlas-stage-zero-vision-builder]].
+
+## Per-type objective model -- wizard Step 2 + on-the-fly resolution (2026-05-29)
+
+Phase 2 of the OLOS UX plan. The fixed ~16-objective Plan spine skeleton is
+replaced by a **per-project resolved** Universal + Primary + Secondary set
+(shared engine documented in [[shared-package]] "Per-type objective model").
+ADR: [[2026-05-29-atlas-per-type-objective-model]].
+
+- **Wizard Step 2 Section A** (`v3/project-wizard/`): `WizardProjectTypeGrid`
+  (required 12-card radiogroup), `WizardSecondaryPicker` (compatible-only,
+  N/A hidden, A/M/X relation hints), `WizardTensionPanel` (amber, advisory --
+  "I understand, continue" records a timestamped `TensionAck`, **never blocks
+  Next**), mounted above the vision form in `WizardStep2Vision`. Selections
+  write directly to `metadata.projectTypeRecord` (not `visionProfile`), so the
+  resolver has one source of truth. `WizardStep3Team.finish` stamps an
+  idempotent "wizard completion" `versionHistory` entry -- no resolved-set
+  write (resolution is on the fly).
+- **`v3/plan/tiers/useProjectObjectives.ts`** -- resolves at render via a
+  4-tier fallback (`metadata.projectTypeRecord` -> bare `project.projectType`
+  -> static `PLAN_TIER_OBJECTIVES`). **No new Zustand store** (deviation from
+  the plan's recommended `projectObjectiveStore`); reload re-derives the
+  identical set deterministically, so provenance survives without persistence.
+- **14-consumer switch**: every reader of the static skeleton now routes
+  through the resolved set (render/derive: `PlanTierShell`,
+  `WizardCompletionScreen`, `home/StageStatusRow`, `home/useProjectUrgency`,
+  `observe/.../usePlanRevisionFlagSync`, `act/field-action/ViewAObjectiveExecution`,
+  `store/cycleAdvance`) or a project-scoped / global-union lookup
+  (`tiers/DecisionChecklist`, `observe/.../useRevisionEvents`, Act
+  `getObjectiveTitle`). MTC / untyped projects keep the static skeleton.
+- **`tiers/DecisionChecklist`** renders an "Expanded by: <Type>" provenance
+  chip for any checklist item the engine stamped `expandedBySecondaryId`
+  (neutral filled pill, distinct from the gold feeds chips + green Stage Zero
+  badge).
+
+## Plan decision-group render in DecisionChecklist (2026-05-31)
+
+`v3/plan/strata/DecisionChecklist.tsx` now groups the checklist when the
+objective carries `decisionGroups[]` (see [[concepts/decision-groups]]): each
+group renders a sub-header with its `label`, a "N items" count, and verbatim
+`observeFeeds` chips, with the existing per-item checkboxes nested beneath.
+When `decisionGroups` is empty it falls back to today's flat list (unencoded
+catalogues + the static MTC skeleton are unaffected). Patch-injected groups
+(`sourceSecondaryId != null`) reuse the established amber treatment -- the
+`#e8a958` left-border + an "Added by <Type>" chip via `findProjectType`. No
+new prop plumbing (the component already receives the full objective).
+**Disclosed divergence:** per-item checkboxes are kept (not groups-only)
+because `planStratumProgressStore` is keyed on item ids; a groups-only display
+with group-level completion is a deliberate later refinement. Tests in
+`v3/plan/strata/__tests__/DecisionChecklist.test.tsx` (happy-dom) cover
+grouped render, item bucketing, feed chips, amber attribution, and flat
+fallback. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
+
+## Objective -> formula binding: live livestock calculators + auto-satisfy (2026-06-02)
+
+The silvopasture/livestock Plan objectives now join the two systems they were
+authored independently of: the legacy **livestock formula engine** (pure,
+tested `compute*` functions in `features/livestock/`) and the **map draw
+tools**. Shared carries ids + config (the optional `formulaBinding` schema +
+`ckF`, [[entities/shared-package]]); apps/web joins each id to the real
+function/widget.
+
+- **`v3/plan/strata/formulaCatalog.ts`** -- exhaustive
+  `Record<ObjectiveFormulaId, FormulaSpec>` (`{ id, label, Widget: lazy(),
+  summarize }`) + `resolveFormula(id)`. Each `summarize(projectId)` is
+  **hook-free** (reads stores via `*.getState()`, filtered to
+  `p.projectId === projectId`) returning `{ hasResult, display }`; each `Widget`
+  is `lazy()`. Two NEW pure, ecological-only math modules back widgets:
+  `features/livestock/stockWaterDemandMath.ts` and
+  `features/livestock/forageCarryingCapacityMath.ts` (reuse `LIVESTOCK_SPECIES`
+  + `AU_FACTORS`). The S7 `enterprise-break-even` entry now ships a **live
+  cost-recovery readout** (`formula-widgets/BreakEvenWidget.tsx`), replacing the
+  earlier placeholder -- which is kept unmounted, not deleted
+  ([[feedback-no-deletion]]). It reuses the existing financial engine through a
+  pure `engine/computeProjectBreakEven.ts` core (runs `computeAllCosts ->
+  detectEnterprises -> computeRevenueStreams -> applyRevenueOverrides ->
+  computeCashflow -> computeBreakEven`, returns ONLY `{ hasModel, breakEvenYear,
+  peakNegativeCashflow }`) fed by a hook-free `engine/assembleFinancialInputs.ts`
+  (`*.getState()` store reads, mirroring `useFinancialModel`'s useMemo body). The
+  widget reads ONLY `breakEvenYear` + `peakNegativeCashflow` (recovery year +
+  peak capital outlay) and NEVER `tenYearROI` -- cost-recovery TIMING math only,
+  no advance-sale / salam / CSRA / investor / yield framing
+  ([[fiqh-csra-erased-2026-05-04]]); a covenant guard test pins the rendered text
+  + `summarize` display against a forbidden-token list. `summarize` tracks
+  `hasModel` (true even when `breakEvenYear` is null -- "computed even if never"),
+  so the S7 item auto-satisfies once a model exists, through the same 6th-arg
+  union below. No new input field; revenue is refined on the existing Economics
+  `revenueOverrides` path. Log: [[log/2026-06-02-atlas-s7-break-even-wiring]].
+- **`FormulaResultSection.tsx`** (+ CSS) in `ObjectiveDetailPanel` collects
+  `objective.checklist.filter(i => i.formulaBinding)`, returns `null` when none
+  (non-livestock panels untouched, no chunk cost), renders each widget inside
+  `Suspense` + a `CardErrorBoundary`.
+- **Auto-satisfy via the existing pure union.** `effectiveProgress.ts` gains an
+  OPTIONAL **6th arg** `formulaSatisfiedItemIds?: ReadonlySet<string>` unioned
+  into the flat map exactly like the answerSpec (5th-arg) path -- the module
+  imports no store and stays pure. New `useObjectiveFormulaProgress.ts` does the
+  store reads: `collectFormulaSatisfiedItemIds(projectId, objectives)`
+  (React-free) + the hook (subscribes livestock/rotation/site-data slices). All
+  three effective-progress consumers (`useEffectiveChecklistProgress`,
+  `usePortfolioPlanProgress`, `useProjectUrgency`) thread the per-project Set, so
+  a computed formula advances Plan/Portfolio/Home through one source of truth.
+
+ADR [[decisions/2026-06-02-atlas-objective-formula-binding]]; Log:
+[[log/2026-06-02-atlas-objective-formula-binding]].
+
+## Portfolio Home P7 -- Dashboard polish, summary bar, access control, nav model (2026-05-31)
+
+Phase 7 of the OLOS Portfolio Home epic (`OLOS_Portfolio_Home_Spec_v1.0`) at
+`v3/portfolio/`. The multi-project surface (`/v3/portfolio`) is the forward
+"all projects" landing for stewards with 2+ projects.
+
+- **`portfolioModel.ts`** -- `portfolioAccess(project, roleMap)` is the single
+  source of truth for the spec's §8 access matrix: returns
+  `{ role, isOwnerTier, canEdit, isContractor }`, deriving every gate from
+  `hasCapability(role, cap)` (`@ogden/shared`), never role-name literals.
+  Local-only projects (no `serverId`) resolve to owner-tier. There is **no
+  `admin` ProjectRole**, so New-project stays open to all authed users
+  (creating ⇒ owner). Also exports `projectTypeBadges(p)` (shared by card +
+  rail) and `STAGE_PAINT` (the High-Tech Earth stage hexes; mirror of the
+  `--color-stage-*` tokens -- MapLibre can't read CSS vars).
+- **`PortfolioSummaryBar.tsx`** (in `PortfolioDashboardView` above `.grid`) --
+  total projects, total area (Σ numeric `p.acreage`, dominant `units`),
+  per-stage `STAGE_PAINT` count chips, open-divergences metric; each tappable,
+  driving a `stageFilter` + `divergedOnly` state lifted into
+  `PortfolioDashboardView` (no new store).
+- **`ProjectUrgencyCard.tsx`** -- full §3.3 BentoBox composition: stage colour
+  bar, serif name, type badges, stage + active-stratum + Plan-progress bar,
+  last-activity line, urgency-chip alert row (the old chip logic, preserved),
+  area, explicit Open CTA. Stage + Plan progress are computed once in the
+  parent (`usePortfolioStages`, `usePortfolioPlanProgress`) and passed as
+  props -- no per-card store subscriptions in the grid. `RoleBadge` kept for
+  non-steward roles. The `stage` prop is required.
+- **`usePortfolioContractorRedirect.ts`** -- component-level effect (roles are
+  async, so NOT in `beforeLoad`): a contractor-somewhere / owner-tier-nowhere
+  viewer is redirected to their assigned project's Act surface, avoiding the
+  PerProjectHomePage contractor empty-state dead-end.
+- **Nav model §6** -- `landingRoute` (`routes/index.tsx`) `beforeLoad` is a
+  sync project-count branch on `useProjectStore.getState()` (zustand-persist,
+  hydrates synchronously): 0 → `/home`, 1 → `/v3/project/$id/home`, 2+ →
+  `/v3/portfolio`; no role logic. `AppShell.tsx` "All Projects → `/v3/project`"
+  repointed to `/v3/portfolio` "Portfolio".
+- **Compare gating** -- cross-project Observe compare entry points hidden in
+  `PortfolioProjectList` (new `canCompare` prop) + `DomainDetailHeader`;
+  `PortfolioObserveComparePage` short-circuits to a read-only notice when the
+  viewer is owner-tier on no project.
+
+Commit `6bdbb80c` (17 files). Web tsc clean (own files);
+`ProjectUrgencyCard` 3/3. P1-P6 of this four-zone spec were code-committed but
+not previously logged in the wiki. ADR
+[[decisions/2026-05-31-atlas-portfolio-home-p7]]; log
+[[log/2026-05-31-portfolio-home-p7]]; continues
+[[log/2026-05-28-portfolio-home-slice53]].
+
+## Portfolio Home P1-P6 -- four-zone map, rails, stage colouring, climate util, relationships, cross-project Observe (2026-05-30/31)
+
+The foundation the P7 section above polishes -- Phases 1-6 of the OLOS
+Portfolio Home epic (`OLOS_Portfolio_Home_Spec_v1.0`) at `v3/portfolio/`,
+code-committed in prior sessions and **wiki-backfilled 2026-05-31 from commit
+history**. Per-phase logs hold the detail; the surface in brief:
+
+- **P1 -- four-zone shell + multi-boundary map** (`37f0d062`). `/v3/portfolio`
+  defaults to a four-zone **Map** view (left project list / centre multi-boundary
+  MapLibre map / right + bottom rails) with a top-bar toggle preserving the
+  existing urgency-card grid as the **Dashboard** view (grid extracted verbatim,
+  [[feedback-no-deletion]]). `portfolioModel.ts` (`PortfolioStage`, `STAGE_PAINT`,
+  coarse `derivePortfolioStage`, boundary FeatureCollection / centroid / area);
+  `PortfolioMap.tsx` (MapLibre host reusing `lib/maplibre` + basemap store +
+  `MapTokenMissing`, data-driven paint, idempotent `styledata` re-add, DOM pins,
+  feature-state selection + fly-to); `PortfolioProjectList`; `PortfolioViewToggle`
+  + `PortfolioDashboardView`. See [[log/2026-05-30-portfolio-home-p1-four-zone-shell]].
+- **P2 -- at-a-glance + stage rails** (`7a0ff085` + mount follow-up `15bd29a2`).
+  `usePortfolioBriefing` (read-only composing hook, reuses the same shared
+  selectors + `useProjectUrgency` the other surfaces use, no mutators);
+  `PortfolioAtAGlanceRail` (§2.4); `PortfolioStageRail` (§2.5, High-Tech Earth
+  tokens, navigates into the per-project stage). See
+  [[log/2026-05-30-portfolio-home-p2-rails]].
+- **P3 -- §2.6 stage colouring unified + mobile** (`203b5d39`). Ratifies §2.6
+  onto the existing High-Tech Earth stage tokens; reconciles `STAGE_PAINT`
+  (plan #38a3a5 / act #d9a036 / observe #6c8294); extracts `OUTSTANDING_STATUSES`
+  + `deriveStageFromSignals`; new `usePortfolioStages` computes the live stage for
+  **every** project (fixing P1's coarse all-teal paint); mobile slide-up list +
+  bottom-sheet rail. See [[log/2026-05-31-portfolio-home-p3-stage-colouring-mobile]].
+- **P4 -- climate-context util (shared)** (`0b8c8ef7`). `deriveClimateContext`
+  in `@ogden/shared` (see [[entities/shared-package]]). Consumed by P6's badge.
+  See [[log/2026-05-31-portfolio-home-p4-climate-context]].
+- **P5 -- cross-project relationships (full-stack)** (`d1c9a7ff` backend +
+  `e52c1b27` frontend). `crossRelationshipStore` (API-synced, not persisted),
+  `apiClient.crossRelationships`, `PortfolioMap` relationship lines + off-by-default
+  Connections toggle + two-pin creation, rail relationships list, `--rel-*` tokens.
+  Kept distinct from the within-project Needs & Yields graph. Display/awareness
+  metadata only -- zero effect on Plan/Act/Observe (§9.4). Backend in
+  [[entities/api]]. See [[log/2026-05-31-portfolio-home-p5-cross-project-relationships]].
+- **P6 -- cross-project Observe comparison** (`070d4026`). `/v3/portfolio/observe-compare`;
+  **frontend-only** (derives from the client-side P4 `useObserveDataPointStore`;
+  disclosed divergence from the plan's full-stack P6). `observeCompareModel.ts`,
+  inline-SVG `ComparisonChart`, `PortfolioObserveComparePage` (min-2 / max-5,
+  shared-domain intersection, climate badges). Strictly read-only. See
+  [[log/2026-05-31-portfolio-home-p6-cross-project-observe]].
+
+ADR [[decisions/2026-05-31-atlas-portfolio-home-p7]] (the epic's only ADR);
+index in [[log]].
+
+## Project-sync hardening + POI resource-flow lines verified (2026-05-31)
+Follow-on to the Portfolio Home epic. A live diagnosis **inverted** the original
+"build the missing wizard->API sync path" premise: project->server sync already
+works (16/17 local projects carry a `serverId`; only public builtins + the `mtc`
+demo lack one, correctly). The real defect was a **double-create race** --
+`syncService.subscribeToProjects()` fired un-awaited, non-idempotent
+`syncProjectCreate` on every add WHILE both wizard create sites also called
+`api.projects.create()` inline (two server rows per wizard project).
+
+- **`syncProjectNow(localId): {ok, serverId?, error?}`** (`lib/syncService.ts`,
+  commit `e729365d`) -- the single canonical create path. Idempotent (`serverId`
+  short-circuit + `isBuiltin` guard), race-free (module-level `inFlightProjectSync`
+  promise map dedupes concurrent calls), awaitable. `subscribeToProjects` and both
+  wizard sites (`WizardStep1Site.tsx`, non-template branch of `NewProjectPage.tsx`)
+  now route through it; the wizard `toast.error`s on `!ok` but still navigates
+  (local-first). `prefillTemplate` branch left on its own server seam.
+- **Per-project sync status** -- `PortfolioProjectList` shows a "Not synced" tag +
+  "Sync now" button for `!serverId && !isBuiltin` rows (-> `handleSyncProject` ->
+  `emitPortfolioToast`); "Synced" / "Sample" affordances otherwise.
+- **POI resource-flow line verified live** -- DEV `__portfolioMap` handle added;
+  placed POI "Smoke Test Depot", `POST .../portfolio-pois/:id/flows` -> 201, the
+  dashed direction-coloured line rendered to "Phase 4 Smoke" behind the "Flows (N)"
+  toggle, each `portfolio-poi-flow-line-output|-input|-bidir` layer exactly once and
+  survived a basemap swap.
+- **Boundary-hydration gap CLOSED (2026-06-01)** -- `hydrateProjectBoundaries()`
+  (`syncService.ts`) back-fills geometry for server-synced projects
+  (`hasParcelBoundary && parcelBoundaryGeojson == null`) via `api.projects.get(serverId)`,
+  writing through `updateProject` under the `isSyncing` guard. `PortfolioMapPage` drives
+  it from a memoized `pendingBoundaryKey` effect (re-fires when the un-hydrated candidate
+  set changes -- covers projects that sync down after mount), with an
+  `inFlightBoundaryHydration` Set deduping overlapping runs. Server-only projects (e.g.
+  Halton Hills) can now be flow/relationship endpoints. Landed in commit `5aa973a4`.
+  *Caveat:* typecheck-clean + diff matches plan, but **not** live-screenshot-verified --
+  the working tree was polluted with unrelated `sourceFeatureRef` WIP that failed the
+  project-wide typecheck and made a trustworthy preview boot impossible; live confirmation
+  of a line drawn to Halton Hills is a recommended next-session check.
+
+ADR [[decisions/2026-05-31-atlas-project-sync-hardening]]; concept
+[[concepts/local-first-architecture]]; see
+[[log/2026-05-31-atlas-project-sync-hardening-poi-flow-verification]].
+
+## Act Tier Shell -- promoted to the default Act page (2026-05-30)
+
+The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
+sibling of the Plan stratum spine. `ActShellMode` is a 3-way per-project toggle
+`'tier-shell' | 'field-action' | 'command-centre'`; `getActShellMode`'s default
+is `'tier-shell'` (explicit per-project values still win -- toggle invariant, no
+persist migration). The two legacy Act shells stay reachable behind
+`ActShellToggle` per [[feedback-no-deletion]], and the throwaway prototype at
+`act/tier-prototype` (`ActProtoTierShell`) is left untouched -- the real shell
+*copies* its structure, never imports it. ADR
+[[2026-05-30-atlas-act-tier-shell-promotion]]; log
+[[log/2026-05-30-act-tier-shell-promotion]].
+
+- **`v3/act/tier-shell/`** -- `ActTierShell` is the entry: objective selection is
+  URL-driven (static-prefixed routes `act/tier-shell` + `act/tier-shell/$objectiveId`,
+  since two dynamic siblings under `act/` are impossible -- `act/$module` exists);
+  `selectedStratumId` / right-mode / armed-module are local state. The spine mounts
+  ABOVE `StageShell` (no top slot), with the four rails in the 5 slots: TOP
+  `ActTierSpine` (real per-stratum execution states), LEFT
+  `ActTierObjectiveRail`+`ActTierObjectiveCard` (`useProjectObjectives` filtered by
+  stratum, real "N/M verified" chips), CENTER the full read-only Act substrate +
+  `ActDrawHost`, RIGHT the already-real `ViewBDashboard` / `ViewAObjectiveExecution`
+  behind a dashboard/detail toggle, BOTTOM `ActTierToolsRail`. `objectiveProgress.ts`
+  computes per-objective progress ONCE, shared by the left rail and the map markers
+  so they cannot drift.
+- **`v3/act/tier-shell/ActTierToolsRail`** arms map tools for real:
+  `setActiveModule` + `useMapToolStore.setActiveTool`, picked up by the inline
+  `ActDrawHost`; the armed tool highlights via `data-active`. The `QUICK_LOGS`
+  registry was extracted from `ActTools.tsx` to a shared `v3/act/quickLogs.ts` so
+  the rail and `ActTools` share one source.
+- **Stratum execution state** comes from the new shared
+  `computeAllActStratumStates` (see [[shared-package]]), which -- unlike Plan's
+  `computeStratumState` -- **never returns `locked`** (Act execution reaches every
+  stratum). Objective markers are now **real** (2026-05-31, [[log/2026-05-31-act-tier-shell-followups]]):
+  pure `tier-shell/objectiveMarkerGeometry.ts` (`representativePoint` +
+  `computeObjectiveMarkerPositions`) sites each pin at the centroid of its
+  objective's field-action `locationGeometry` (Point/LineString/Polygon via
+  `lib/geo.ts` `polygonCentroid`); objectives with no logged geometry render
+  **no pin** (hide-until-real, no synthetic fallback -- ADR
+  [[decisions/2026-05-31-atlas-act-objective-marker-geometry]]). MTC's seed logs no
+  geometry so it shows zero objective pins today. `ViewAObjectiveExecution`'s
+  "Back to all tasks" is now mode-aware -- it resolves `getActShellMode` inside ViewA
+  and returns to `act/tier-shell` vs `act/field-action` for whichever shell is active.
 
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
@@ -153,6 +501,25 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Data-derived Observe progress + soft Observe→Plan gate (2026-05-23)** —
+  the Observe progress segments (`ObserveModuleBar` + header `LevelNavigator`
+  carousel) are no longer decorative. A new **pure engine**
+  `v3/observe/progress/objectives.ts` (`OBSERVE_OBJECTIVES` registry +
+  `evaluateModule`/`evaluateObserve`, no React/store) evaluates each module's
+  required + optional objectives as predicates over persisted store data;
+  `useObserveProgress.ts` (raw subscriptions + one `useMemo`, selector-stability
+  rule) feeds real `PillarTask[]` into the **existing** `taskColorFn`/`columnId`
+  + `gateIndicators` rendering — so both surfaces light up with **zero rendering
+  changes**. `V3LevelNavBridge` now emits real tasks + a gate diamond after
+  `swot-synthesis`; `ObserveReadyCue` ticks from the same progress. A **soft**
+  `StageGateOverlay` (mounted in `PlanLayout`) lists remaining required
+  objectives with **"Continue anyway"** (persisted per-project in new
+  `stageGateOverrideStore`) — navigation never hard-blocked. Required: one
+  objective/module (boundary · built feature · hazard-or-sector · contour-or-marker
+  · any earth-water-ecology obs · zone-or-patch · SWOT entry) + 1–3 optional each.
+  Observe-only this round; Plan→Act gating is a follow-up. The manual
+  `observeHowChecksStore` How-checks stay guidance-only. See
+  [[2026-05-23-atlas-observe-data-derived-progress-gate]].
 - **Vision Layout UX consolidation (2026-05-17)** — three Vision Layout
   (also `terrain3d`) Plan-canvas rough edges fixed, no behavior/layer
   deletion. `BaseMapCard` gained an optional `hiddenOverlays` prop (mount
@@ -215,6 +582,74 @@ All use `persist` middleware with localStorage. Key stores:
   blob loop can never double-write them. Full plan now complete; only the
   5.7 manual matrix remains operational. See
   [Phase 3 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase3.md).
+  **syncManifest B-series backfill (2026-05-18):** the coverage guard was
+  *failing on the branch* (a real bug, masked by a now-fixed vitest
+  react-resolution issue) — four project-scoped stores added by B/A feature
+  work were unregistered and would silently never sync. Classified all four
+  `versioned-blob` from their actual data shape: `ogden-rotation-plan`,
+  `ogden-compost-cycle`, `ogden-succession-path` (`byProject`) +
+  `ogden-habitat-features` (`projectId-tagged`, `usesTemporal`, mirrors
+  `ogden-soil-samples`). Incidental: worktree `vitest.config.ts` react
+  alias moved to a `createRequire` resolver — the old hard-coded
+  `../../node_modules/react` path doesn't exist in a worktree and was
+  silently collapsing the whole suite to "0 tests" (the masking cause).
+  Full suite **1162/1162, 99 files**, zero regressions. Main-tree
+  `vitest.config.ts` still has the old path — upstream port recommended.
+  See [B-series backfill ADR](../decisions/2026-05-18-atlas-syncmanifest-bseries-store-backfill.md).
+
+  **syncManifest Stage-0/compass backfill (2026-05-25):** the coverage
+  guard was *failing on the branch* again — seven more project-scoped
+  stores accreted by True-North / Stage-Compass / objective-card work
+  were unregistered and would silently never sync. Classified all seven
+  `versioned-blob`/`byProject` from their actual shape:
+  `ogden-observation-needs` (two byProject maps → custom `select`/`apply`),
+  `ogden-true-north` (`profilesByProject`), `ogden-atlas-act-compass` /
+  `-observe-compass` / `-plan-compass` (byProject; SEED is a read-time
+  fallback, not persisted — syncing the overrides is correct),
+  `ogden-atlas-objective-summaries` (nested `byStage→byProject` → custom
+  shape spanning all stages), and `ogden-atlas-stage-gate-override`
+  (byProject). Guard back to **10/10**, `tsc --noEmit` exit 0. Commit
+  `23490e0b`. See [[log/2026-05-25-syncmanifest-stage0-compass-backfill]].
+  **Dev-observability follow-up (2026-05-25, `05096b06`):** the prior
+  "known issue" — `initialSync` 401s for non-UUID demo projects like
+  `mtc` — was inaccurate. The client never sends a non-UUID id:
+  `enqueueVersionedBlob` (`syncService.ts:1216`) **silently returns**
+  when the active project has no `serverId`, so `mtc` is skipped before
+  any request; `mtc` is also a **builtin** (RBAC viewer-only → blob PUT
+  rejected even with a UUID); and the whole loop is **default-off**
+  behind `FLAGS.SYNC_STATE_BLOBS`. No server/DB/RBAC/validation change —
+  the no-`serverId` skip now emits a **dev-only, de-duped** `console.info`
+  so a tester sees *why* nothing syncs and reaches for a created/owned
+  project. Enable the loop in dev with
+  `$env:FEATURE_SYNC_STATE_BLOBS='true'; npm run dev`. Round-trip proof:
+  `syncManifestRoundTrip.test.ts` 76/76 (auto-covers the 7 stores). See
+  [[log/2026-05-25-versioned-blob-skip-dev-observability]].
+  **Ramp Stage 1 — real-Postgres validation (2026-05-25, `e6b48857`):** the
+  first run of `blobSync.integration` (A/B/C) against a live DB caught **two
+  latent `/project-state` route bugs invisible to the FIFO mock**, both of
+  which would hit every user on flag-flip. (1) `rev` (`BIGINT`) returns from
+  postgres.js as a **string** → `ProjectStateBlob.parse` (`z.number`) threw
+  → **422 on every successful PUT**; coerced in `parseRow`. (2) the PUT
+  pre-stringified then cast `::jsonb`, **double-encoding** the payload into a
+  jsonb string scalar; the client does no `JSON.parse`, so hydration would
+  load stores with a string — fixed with `${db.json(...)}::jsonb`. The flag
+  was thus **not flip-ready** before `e6b48857`; the Stage 2 operator matrix
+  must run on a build that includes it. See
+  [[log/2026-05-25-blobsync-stage1-validation-two-latent-bugs]].
+  **Ramp Stage 2 — operator A–E matrix, best-effort auto-drive (2026-05-25):**
+  drove §5.7 **A/B/C/E** through a live, genuinely flag-on browser build on an
+  `e6b48857`-inclusive build (migrated `postgis:16-3.4` on 5433 + API + preview
+  5205) — **all four PASS**. A: store edit → debounced subscribe → PUT 200 →
+  physical `jsonb_typeof=object` rows. B: clean local + reload hydrates all
+  slices. C: genuine cross-device 409 via out-of-band write → Connectivity chip
+  + toast, local not clobbered, recovery bumps rev. E: relabel + Export/Import
+  intact (~332KB bundle). **D-skew + the genuine two-physical-device sign-off
+  remain the operator's.** Central fix: the `.claude/launch.json` `web-sync`
+  entry's `set "VAR=true" &&` form dropped the env var under the preview
+  launcher's `cmd /c` spawn (inner quotes) → build came up flag-off; corrected
+  to quote-free `set VAR=true&& …`. **Stages 3 (soak) + 4 (flip) remain gated;**
+  `flags.ts`/`vite.config.ts` untouched. See
+  [[log/2026-05-25-blobsync-stage2-operator-matrix-autodrive]].
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
@@ -318,6 +753,135 @@ All use `persist` middleware with localStorage. Key stores:
   (`@ogden/shared` telemetry); adding an Act module requires editing
   **both** or tsc fails at the telemetry call sites. See
   [[2026-05-16-atlas-act-plan-execution-tracker]].
+
+  **Command Centre shell bounding (2026-05-25):** the shared stage-agnostic
+  `CommandCentreShell` (`v3/command/shell/`, used by Observe/Plan/Act) clipped
+  its bottom "Open Work Items" tray — but only on Act's **All Modules /
+  Tracker** tabs. Root `.shell` grid (`auto minmax(0,1fr) auto`) is the sole
+  direct child of AppShell's `.main` (`flex:1; position:relative;
+  overflow:hidden`). Two `.shell` facts combined: (1) `height:100%` didn't
+  reliably bound the grid → auto-height → the `1fr` body row stretched to the
+  **tallest column** (Act's tall right ops rail) and pushed the `auto` tray
+  below the viewport where `.main{overflow:hidden}` clipped it (worst on the
+  tallest-rail tabs; the carousel is horizontal so item count widens, not
+  heightens); (2) no explicit grid **column** → implicit `auto` column grew to
+  the widest row's max-content, blowing the body out (~9710px) and shoving the
+  rail off-screen. **CSS-only fix in `.shell`:** `height:100%` →
+  `position:absolute; inset:0` (definite height; grid clamps, sidebar/rail
+  scroll internally, tray always visible) + add
+  `grid-template-columns: minmax(0,1fr)`. One sheet fixes all three stages;
+  covenant-clean (no JSX/store/schema). Commit `2368e687`; ADR
+  [[2026-05-25-atlas-command-centre-shell-bounding]]; log
+  [[log/2026-05-25-command-centre-shell-bounding]]. Continues the prior
+  Observe-shell grid-track fix [[log/2026-05-25-command-centre-tray-and-waterrouter-fixes]].
+
+  **D0 — the operating-loop WorkItem spine (2026-05-18):** a new
+  canonical store `store/workItemStore.ts` (`ogden-work-items`,
+  projectId-tagged, `versioned-blob` sync class — no DB migration)
+  supersedes the five legacy planned-work stores (`phaseStore`
+  `PhaseTask`, `fieldTaskStore`, `maintenanceStore`,
+  `scheduledLivestockMoveStore`, `nurseryStore` `PropagationBatch`).
+  Schema is `@ogden/shared` `workItem.schema.ts` (union superset,
+  `.passthrough()`). `workItemStore.migration.ts` is the idempotent
+  one-time supersede; legacy stores **retained, write-dead** for
+  rollback (no-deletion covenant). Goal Compass emits `WorkItem[]` via
+  `v3/plan/engine/goalCompass/goalCompassSpineSync.ts` with the
+  generated-vs-overridden contract re-implemented byte-for-byte; nursery
+  `replacePlantingCalendarBatches` wholesale-regen contract ported.
+  Append-only event-logs keep their own stores, gaining an additive
+  `workItemId?` proof-link. `PlanExecutionTrackerCard.tsx` is the D0
+  proof surface — now grouped by phaseStore phases with a synthetic
+  `Operations (unphased)` bucket for `phaseId==null` rows; done-toggle
+  routes through `workItemStore.toggleDone`. Re-pointed readers
+  (clean cut-overs): `useEventAggregator.ts`, `v3/act/ops/
+  TodaysPriorities.tsx`. See [[2026-05-18-atlas-d0-workitem-spine]].
+
+  **D0.1 — coupled reader/writer cut-overs + `seedSaving` carry
+  (2026-05-18):** the deferred deep CRUD surfaces now read **and write**
+  the spine. `seedSaving` added to `workItem.schema.ts` +
+  `propagationBatchToWorkItem` (closes D0's 2nd lossy gap; migration
+  test asserts it). Pattern: **project spine `WorkItem`s back into the
+  legacy row shape the render block expects** so display is
+  byte-unchanged, and writers redirect to `workItemStore` actions
+  mirroring the migration mappers exactly (fidelity by construction).
+  Cut over: `MaintenanceScheduleCard` (CRUD → `addItem`/`deleteItem`/
+  `setStatus`), `NurseryLedgerDashboard` (reader; `nursery-batch`
+  projection; `StockTransfer` stays on `nurseryStore` — not migrated),
+  `RotationScheduleCard` (`scheduled-livestock-move` plans → spine via
+  `planToWorkItem`/`workItemToPlan`; the actual-move event log stays on
+  `livestockMoveLogStore`; auto-fulfilment sets WorkItem `done` + stamps
+  the event `workItemId`), `PhasingScaleMatrixCard` (per-phase task
+  pivot off WorkItems where `phaseId!=null`; `BuildPhase` stays the
+  container). `PhasingDashboard` needed **no change** — it rolls up off
+  built-environment `structures`, never `phase.tasks` (verified, not
+  assumed). One deferred seam: the structure-plan **Edit** button in
+  `RotationScheduleCard` still calls `startScheduledLivestockMove`
+  (`ActStructurePopover.actions`) which writes the legacy store — that
+  action is its own out-of-scope cut-over. Legacy stores remain
+  retained/write-dead. See [[2026-05-18-atlas-d0-1-coupled-cutovers]].
+
+  **D1 — dependency / critical-path engine (2026-05-18):** a new pure
+  engine `packages/shared/src/lib/workItemGraph.ts` (no React/store,
+  exported from `@ogden/shared`) computes the effective dependency DAG,
+  CPM critical path, and derived blocked-state over spine `WorkItem`s:
+  `effectiveDependencies` (union `dependsOn ∪ dependsOnAuto`),
+  `detectCycle` (self-edge = cycle; the editor's pre-write guard),
+  `itemDuration` ladder (scheduled span → `laborHrs/8` → 0 milestone),
+  `analyzeWorkItemGraph` (Kahn topo + forward/backward CPM; `slack===0`
+  ⇒ critical; cyclic ⇒ `cyclic:true` + CPM zeros, no loop; blocked
+  computed independently so it survives cycles; dangling ids ignored).
+  Schema gains additive `dependsOnAuto` (`.default([])` —
+  no DB migration): `dependsOn`=manual/steward, `dependsOnAuto`=
+  Goal-Compass-seeded, effective DAG=union (provenance Approach B).
+  `workItemStore.replaceGoalCompassDependencies` mirrors
+  `replaceGoalCompassRows` preservation 1:1 (only `goal-compass &&
+  !overridden`; idempotent). `v3/plan/engine/goalCompass/
+  goalCompassSpineSync.ts` gains pure `seedGoalCompassDependencies`
+  (maps `Intervention.prerequisites[]` → prereq WorkItem ids via
+  `generatedFromInterventionId`), called after `replaceGoalCompassRows`
+  (acyclic by construction). `PlanExecutionTrackerCard.tsx` extended in
+  place: Critical/Blocked/Slack read-only row badges (both group
+  modes), a per-row dependency editor (manual removable, auto
+  read-only, cycle/self-edge refused inline), and a third `timeline`
+  view toggle (CSS/SVG Gantt — bars earliest→finish, milestone
+  diamonds, critical highlight, dependency lines, cyclic banner).
+  Blocked/critical are derived at render only — **never** written to
+  `WorkItem.status` (D0.1 single-writer discipline). Strictly
+  project-operational (no D2–D5; no covenant-excluded framing;
+  `BudgetActualsCard` untouched). See
+  [[2026-05-18-atlas-d1-dependency-critical-path]].
+
+  **D2 — operational resourcing (2026-05-18):** crew/equipment/materials
+  surfaced on the spine. Net-new `@ogden/shared`
+  `crewMember.schema.ts` (skill enum + soft `weeklyHoursCap`; optional
+  non-coupled `networkContactId`) + projectId-tagged `crewMemberStore`
+  (`ogden-crew-members`, no DB migration, `syncManifest`-registered) —
+  distinct from `ProjectMemberRecord`/`NetworkContact`, fully
+  steward-authored (no Goal-Compass contract). Spine schema gains
+  additive `materialsAuto`/`equipmentRequiredAuto` `.default([])`
+  (no migration; `MaterialLine`/`MaterialLineSchema` exported) —
+  Approach B exactly like D1's `dependsOnAuto`.
+  `workItemStore.replaceGoalCompassResources` mirrors
+  `replaceGoalCompassDependencies` 1:1 (only `goal-compass &&
+  !overridden`; manual/overridden/other-project untouched; idempotent
+  same-reference). Pure `seedGoalCompassResources` (in
+  `goalCompassSpineSync`, after `replaceGoalCompassDependencies`) merges
+  intervention `materials` + `maintenanceSchedule.materialsPerOccurrence`
+  (label+unit deduped) + declared equipment → effective `*Auto`. New
+  pure engine `packages/shared/src/lib/resourcingConflicts.ts` (no
+  React/store): `effectiveEquipment`, `rollUpBom`,
+  `equipmentConflicts` (per-equipment pairwise span overlap, strict
+  `<`, missing-date skip), `assigneeWeeklyLoad` (ISO-week buckets vs
+  soft cap), `analyzeResourcing`→`{equipment,workload,byItemId}` —
+  hours only, derived only, never mutates `WorkItem.status`. New
+  `features/act/ResourcingCard.tsx` + manifest entry `act-resourcing`
+  under the `tracker` module (`v3/act/types.ts` + lazy import +
+  `renderActCard` in `ActModuleSlideUp.tsx`): crew CRUD, assignee
+  workload, equipment booking, BOM rollup, render-only conflict badges
+  — **no cost column**, subtitle points budget to D3. Strictly
+  operational (no D3 cost / `BudgetActualsCard` untouched; no D4/D5;
+  no covenant-excluded framing; no spine-status mutation; no DB
+  migration). See [[2026-05-18-atlas-d2-resourcing]].
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
@@ -439,6 +1003,8 @@ All use `persist` middleware with localStorage. Key stores:
 Design-system primitives + token architecture driven by `design-system/ogden-atlas/ui-ux-scholar-audit.md`.
 
 **Token architecture.** OKLCH primitives live at the top of `apps/web/src/styles/tokens.css` (`--l-bg/surface/raised/popover`, `--c-warm-neutral`, `--h-warm-neutral`, plus L/C/H triples for primary/accent/success/warning/error/info). `apps/web/src/styles/dark-mode.css` wraps its surface + semantic overrides in `@supports (color: oklch(0 0 0))` so the hex declarations above the gate remain authoritative on unsupporting browsers. See ADR `2026-04-23-oklch-token-migration.md`.
+
+**Dark-UI de-brown (2026-06-02).** The dark theme read warm-brown on Observe + Plan despite the cool OKLCH ladder. Root cause was NOT the palette: `--color-canvas` (backs the whole Observe dashboard surface, `UnifiedLandStateSurface.module.css`) and `--color-surface-0..3` (domain/rollup cards) were **referenced everywhere yet defined nowhere**, so consumers fell through to hardcoded warm fallbacks (`#181612`, `rgba(31,29,26,A)`). Fix: (1) defined those five tokens cool (Obsidian `#0b0d10` / Mineral-Slate `#14191f` ladder) in **all four** dark scopes of `dark-mode.css` (hex + `prefers-color-scheme` hex + two `@supports` OKLCH blocks, the OKLCH form holding `--c-warm-neutral 0.020` / `--h-warm-neutral 253`); (2) swept the bare warm literals across ~54 `*.module.css` files (`rgba(31,29,26,A)`->`rgba(20,25,31,A)`, `#181612`->`#0b0d10`, inert `var(--color-bg,#1f1d1a)` fallbacks->`#14191f`); (3) cooled the Plan-spine neutral ladder in `v3/plan/spine/spine-theme.css` (accent hues untouched). This **executes the Phase-4 warm-literal sweep deferred** by `2026-05-25-atlas-earth-to-neutral-chrome.md`. Deliberately untouched: `.tsx` map-layer/chart color literals (data-viz semantics, not chrome) and three `color:#1f1d1a` dark-text-on-gold-pill uses. Commit `b5f1c9ab`. ADR `2026-06-02-atlas-dark-ui-de-brown.md`.
 
 **UI primitives.** Three additions to `apps/web/src/components/ui/`:
 

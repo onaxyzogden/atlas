@@ -16,8 +16,12 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import {
+  useProjectStore,
+  MTC_SEED,
+  getPlanShellMode,
+} from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
@@ -26,8 +30,10 @@ import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import { useMapToolStore } from '../observe/components/measure/useMapToolStore.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../observe/components/overlays/SectorCompassOverlay.js';
 import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
+import PlanObjectiveCompletePrompt from './compass/PlanObjectiveCompletePrompt.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
@@ -43,14 +49,28 @@ import {
 } from '../builtEnvironment/layers/index.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
+import { planSectionIdModule } from './planSectionMap.js';
 import { PlanViewProvider } from './PlanViewContext.js';
 import StageShell from '../_shell/StageShell.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
 import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
+import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js';
+import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
+import { pushHabitatFeaturesToSpine } from '../../features/biodiversity/habitatFeatureSpineSync.js';
+import {
+  TREE_PLANTING_KINDS,
+  pushTreePlantingsToSpine,
+} from '../../features/vegetation/treePlantingSpineSync.js';
+import {
+  AGROFORESTRY_KINDS,
+  pushAgroforestryToSpine,
+} from '../../features/vegetation/agroforestrySpineSync.js';
+import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
+import { useSilvopastureDrilldownStore } from './layers/silvopastureDrilldownStore.js';
 import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
 import PlanContoursOverlay from './layers/PlanContoursOverlay.js';
 import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
@@ -61,6 +81,10 @@ import PlanStampToast from './draw/PlanStampToast.js';
 import StampModePicker from './canvas/StampModePicker.js';
 import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
+import StageGateOverlay from './StageGateOverlay.js';
+import PlanReadyCue from './components/PlanReadyCue.js';
+import PlanStratumShell from './strata/PlanStratumShell.js';
+import css from './PlanLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -86,6 +110,8 @@ export default function PlanLayout() {
     [projects, id],
   );
 
+  const planShellMode = getPlanShellMode(project);
+
   const boundary = v3Project?.location.boundary;
   // Coords-only fallback (no boundary): prefer the parcel's intake center
   // over the hard-coded stage centroid. Ignored when `boundary` exists —
@@ -93,6 +119,26 @@ export default function PlanLayout() {
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+  // Which specific rail section the steward picked. Several sections share a
+  // module (the BE categories → `structures-subsystems`), so module equality
+  // alone lights them all. Persisted in the URL `?section=` search param (the
+  // same way `$module` is the source of truth for the active module) so the
+  // single-section narrow survives reloads, back/forward nav, and shared links
+  // — and so BOTH the main rail (`PlanTools`) and the mini rail
+  // (`PlanChecklistAside`) read the same value (true cross-rail parity). Read
+  // loosely (no route `validateSearch`, matching `ObserveDeepLinkFocus`).
+  // Derived lazily into `effectiveSectionId`: a stale id (manual URL edit,
+  // bottom-bar nav, or the brief transient before async navigation resolves)
+  // routes to a different module and is ignored, falling back to the
+  // whole-family highlight.
+  const search = useSearch({ strict: false }) as {
+    section?: string;
+  };
+  const activeSectionId = search.section ?? null;
+  const effectiveSectionId =
+    activeSectionId && planSectionIdModule(activeSectionId) === validModule
+      ? activeSectionId
+      : null;
   const [activeView, setActiveView] = useState<PlanView>('vision');
   const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
   const [currentHovering, setCurrentHovering] = useState(false);
@@ -109,27 +155,166 @@ export default function PlanLayout() {
     usePhaseStore.getState().ensureDefaults(id);
   }, [id]);
 
+  // Habitat-feature → D0 work-item spine bridge (Slice 5 of the 2026-05-21
+  // habitat-feature unification). Mirrors the cover-crop editor-driven push:
+  // whenever the steward commits / edits / deletes a habitat-category
+  // DesignElement, re-seed `source:'habitat-feature'` rows via
+  // `replaceHabitatFeatureRows`. Override + cross-source preservation is
+  // enforced inside the store action — this effect just fires the rebuild.
+  // The signature key (id+kind+phase, sorted) keeps the effect from
+  // re-firing on cosmetic re-renders.
+  const planDesignElements = useDesignElementsForProject(id);
+  const habitatFeatureSignature = useMemo(
+    () =>
+      planDesignElements
+        .filter((el) => el.category === 'habitat')
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushHabitatFeaturesToSpine(id);
+  }, [id, habitatFeatureSignature]);
+
+  // Tree-planting → D0 work-item spine bridge (Slice 8-A of the 2026-05-21
+  // habitat-feature unification — D1 predecessor auto-edges). Mirrors the
+  // habitat-feature effect above: whenever the steward commits / edits /
+  // deletes a vegetation-category point DesignElement of one of the four
+  // tree-planting kinds, re-seed `source:'tree-planting'` rows. Override
+  // + cross-source preservation enforced inside `replaceTreePlantingRows`.
+  const treePlantingSignature = useMemo(
+    () =>
+      planDesignElements
+        .filter(
+          (el) =>
+            el.category === 'vegetation' &&
+            (TREE_PLANTING_KINDS as readonly string[]).includes(el.kind) &&
+            el.geometry.type === 'Point',
+        )
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushTreePlantingsToSpine(id);
+  }, [id, treePlantingSignature]);
+
+  // Agroforestry → D0 work-item spine bridge (Slice 8-C of the 2026-05-21
+  // habitat-feature unification). Sibling effect to the habitat-feature
+  // and tree-planting pushes above: whenever the steward commits / edits
+  // / deletes a hedgerow (vegetation/line), orchard (grazing/polygon),
+  // or silvopasture (grazing/polygon) DesignElement, re-seed
+  // `source:'agroforestry'` rows. Override + cross-source preservation
+  // enforced inside `replaceAgroforestryRows`. Three near-identical
+  // effects is acceptable for now; can be lifted into a shared
+  // `useDesignElementSpineSync(projectId)` hook in a follow-up.
+  const agroforestrySignature = useMemo(
+    () =>
+      planDesignElements
+        .filter((el) =>
+          (AGROFORESTRY_KINDS as readonly string[]).includes(el.kind),
+        )
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushAgroforestryToSpine(id);
+  }, [id, agroforestrySignature]);
+
   // Hydrate machinery inventory from the server and bridge local store
   // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
   // since it isn't a real server project.
   useServerMachineryInventory(id === 'mtc' ? undefined : id);
 
-  const handleSelectModule = (mod: PlanModule | null) => {
+  // Slice M (host-union drilldown) — subscribe to the silvopasture
+  // drilldown store's pending "Open full audit →" request. When set,
+  // navigate to the matching plan module + open the slide-up, then
+  // consume the request so it does not refire on re-mount. The
+  // `targetHostId` payload remains in the store for
+  // SilvopastureIntegrationCard to read on its mount.
+  const pendingOpenModule = useSilvopastureDrilldownStore(
+    (s) => s.pendingOpenModule,
+  );
+  const consumePendingOpen = useSilvopastureDrilldownStore(
+    (s) => s.consumePendingOpen,
+  );
+  const clearDrilldownTarget = useSilvopastureDrilldownStore(
+    (s) => s.clearTarget,
+  );
+
+  // Single navigation primitive: writes both the `$module` path param AND the
+  // `?section=` search param atomically (and closes the slide-up), so the
+  // active module and the narrowed section never disagree. `search` is always
+  // passed explicitly so the param is set/cleared deterministically.
+  const navigateModuleSection = (
+    mod: PlanModule | null,
+    sectionId: string | null,
+  ) => {
     if (!params.projectId) return;
+    setSlideUpOpen(false);
     if (mod === null) {
       navigate({
         to: '/v3/project/$projectId/plan',
         params: { projectId: params.projectId },
+        search: {},
       });
-      setSlideUpOpen(false);
       return;
     }
     navigate({
       to: '/v3/project/$projectId/plan/$module',
       params: { projectId: params.projectId, module: mod },
+      search: sectionId ? { section: sectionId } : {},
     });
-    setSlideUpOpen(false);
   };
+
+  // Programmatic / bottom-module-bar / slide-up module selection: clears any
+  // section narrowing so the picked module shows its whole family.
+  const handleSelectModule = (mod: PlanModule | null) =>
+    navigateModuleSection(mod, null);
+
+  // Rail section clicks (main rail + mini rail). Toggles on strict identity so
+  // re-clicking the sole-active section deselects; otherwise narrows to /
+  // switches to the clicked section across both rails.
+  const handleSelectSection = (mod: PlanModule, sectionId: string) => {
+    if (!params.projectId) return;
+    if (effectiveSectionId === sectionId) navigateModuleSection(null, null);
+    else navigateModuleSection(mod, sectionId);
+  };
+
+  // Slice M routing: when the drilldown card's "Open full audit →" fires
+  // `requestOpenAudit(hostId)`, the store populates `pendingOpenModule`.
+  // We consume it here — navigate to the requested module and open the
+  // slide-up so SilvopastureIntegrationCard mounts. The card reads
+  // `targetHostId` from the same store and handles the scroll +
+  // gold-border accent itself.
+  useEffect(() => {
+    if (!pendingOpenModule) return;
+    if (!params.projectId) return;
+    const req = consumePendingOpen();
+    if (!req) return;
+    if (isPlanModule(req.module)) {
+      // Programmatic module-open clears any section narrowing (whole family).
+      navigate({
+        to: '/v3/project/$projectId/plan/$module',
+        params: { projectId: params.projectId, module: req.module },
+        search: {},
+      });
+    }
+    setSlideUpOpen(true);
+  }, [pendingOpenModule, params.projectId, consumePendingOpen, navigate]);
+
+  // Clear the drilldown target when the slide-up closes so re-opening
+  // the card without an explicit target doesn't replay a stale scroll.
+  useEffect(() => {
+    if (!slideUpOpen) clearDrilldownTarget();
+  }, [slideUpOpen, clearDrilldownTarget]);
 
   const handleBoundaryDrawn = (polygon: GeoJSON.Polygon) => {
     updateProject(id, {
@@ -203,7 +388,8 @@ export default function PlanLayout() {
             stateFilter="existing"
           />
           <PlanObserveSelectionHandler map={map} />
-          <PlanDataLayers map={map} projectId={id} />
+          <PlanCropAreaSelectionHandler map={map} projectId={id} />
+          <PlanDataLayers map={map} projectId={id} activeModule={validModule} />
           {/* DesignElementLayers also mounts on Current (2026-05-11) so
               orchard / silvopasture / pasture-mix polygons drawn from
               PlanTools persist to designElementsStore and surface their
@@ -217,6 +403,7 @@ export default function PlanLayout() {
             selectedId={currentSelectedId}
             onHoverChange={setCurrentHovering}
             onSelect={setCurrentSelectedId}
+            activeModule={validModule}
           />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />
@@ -230,11 +417,13 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
+          <SectorCompassOverlay projectId={id} map={map} />
+          <CoverCropPopoverEditor />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           <PlanSelectionFloater
             onOpenGuildBuilder={() => {
-              handleSelectModule('plant-systems');
+              handleSelectModule('plants-food');
               setSlideUpOpen(true);
             }}
           />
@@ -253,6 +442,24 @@ export default function PlanLayout() {
     />
   );
 
+  if (planShellMode === 'stratum-spine') {
+    return (
+      <PlanViewProvider view={activeView}>
+        <StageShell
+          canvasLabel="Plan canvas"
+          leftRailLabel="Plan tools"
+          rightRailLabel="Plan checklist"
+          leftRail={null}
+          canvas={
+            <PlanStratumShell />
+          }
+          rightRail={null}
+          bottomTray={null}
+        />
+      </PlanViewProvider>
+    );
+  }
+
   return (
     <PlanViewProvider view={activeView}>
     <StageShell
@@ -262,19 +469,26 @@ export default function PlanLayout() {
       leftRail={
         <PlanTools
           activeModule={validModule}
+          effectiveSectionId={effectiveSectionId}
           onSelectModule={handleSelectModule}
+          onSelectSection={handleSelectSection}
           onOpenSlideUp={() => setSlideUpOpen(true)}
         />
       }
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
+          <StageGateOverlay projectId={params.projectId ?? null} />
           <DesignStatusChip
             project={project}
             onOpenAudit={() => {
-              handleSelectModule('principle-verification');
+              handleSelectModule('risk-compliance');
               setSlideUpOpen(true);
             }}
+          />
+          <PlanObjectiveCompletePrompt
+            projectId={params.projectId ?? null}
+            module={validModule}
           />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
           <PlanStampToast />
@@ -283,13 +497,25 @@ export default function PlanLayout() {
         </div>
       }
       rightRail={
-        <PlanChecklistAside
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        <div className={css.rightStack}>
+          {/* Project-level readiness cue only when no objective is focused;
+              once an objective is selected the rail belongs to that objective's
+              workspace, so the generic Plan-essentials cue is hidden. The cue
+              stacks above the checklist aside (column layout) instead of
+              squishing beside it. */}
+          {validModule === null && (
+            <PlanReadyCue projectId={params.projectId ?? null} />
+          )}
+          <PlanChecklistAside
+            activeModule={validModule}
+            effectiveSectionId={effectiveSectionId}
+            onSelectModule={handleSelectModule}
+            onSelectSection={handleSelectSection}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        </div>
       }
       bottomTray={moduleBar}
       overlay={

@@ -127,6 +127,25 @@ export const AU_FACTORS: Record<LivestockSpecies, number> = {
 };
 
 /**
+ * Mean Animal-Unit factor across a paddock's assigned species.
+ *
+ * This is the even-split AU convention `MultiSpeciesPlannerCard` already uses
+ * (it splits a paddock's area evenly across its `n` species, so the paddock's
+ * AU load reduces to `headPerHa × areaHa × mean(AU_FACTORS over species)`).
+ * Lifted to a shared helper so the rotation-sequence AU math
+ * (`rotationCapacityMath.auLoad`, `rotationMoveMaterials.paddockAnimalUnits`)
+ * and the planner card cannot diverge on how a multi-species paddock's grazing
+ * load is counted.
+ *
+ * Returns 0 for an empty list. Unknown species contribute 0 to the mean.
+ */
+export function paddockMeanAuFactor(species: LivestockSpecies[]): number {
+  if (species.length === 0) return 0;
+  const sum = species.reduce((acc, sp) => acc + (AU_FACTORS[sp] ?? 0), 0);
+  return sum / species.length;
+}
+
+/**
  * Sum Animal Units across a livestock inventory.
  *
  * Each entry may optionally carry a Manitoba Schedule A subcategory id

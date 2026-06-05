@@ -10,6 +10,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
@@ -155,10 +157,36 @@ export interface Watercourse {
   createdAt: string;
 }
 
+// ── Waterbodies (natural standing water — lakes, ponds, wetlands) ───────────
+//
+// Polygon counterpart to `Watercourse`. Captured from the basemap via the
+// "Adopt water from map" tool (OpenMapTiles `water` source-layer). Distinct
+// from `StorageInfra` (point-only built storage) and from Plan-stage
+// `WaterNode` (directed-graph design nodes). Pure observation — never
+// participates in Plan-stage hydraulic routing.
+
+export type WaterbodyKind =
+  | 'lake'
+  | 'pond'
+  | 'wetland'
+  | 'reservoir'
+  | 'other';
+
+export interface Waterbody {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.Polygon;
+  kind: WaterbodyKind;
+  name?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 interface WaterSystemsState {
   earthworks: Earthwork[];
   storageInfra: StorageInfra[];
   watercourses: Watercourse[];
+  waterbodies: Waterbody[];
   waterNodes: WaterNode[];
 
   addEarthwork: (e: Earthwork) => void;
@@ -173,6 +201,10 @@ interface WaterSystemsState {
   updateWatercourse: (id: string, patch: Partial<Watercourse>) => void;
   removeWatercourse: (id: string) => void;
 
+  addWaterbody: (w: Waterbody) => void;
+  updateWaterbody: (id: string, patch: Partial<Waterbody>) => void;
+  removeWaterbody: (id: string) => void;
+
   addWaterNode: (n: WaterNode) => void;
   updateWaterNode: (id: string, patch: Partial<WaterNode>) => void;
   removeWaterNode: (id: string) => void;
@@ -184,6 +216,7 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
       earthworks: [],
       storageInfra: [],
       watercourses: [],
+      waterbodies: [],
       waterNodes: [],
 
       addEarthwork: (e) => set((s) => ({ earthworks: [...s.earthworks, e] })),
@@ -204,6 +237,14 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
       removeWatercourse: (id) =>
         set((s) => ({ watercourses: s.watercourses.filter((w) => w.id !== id) })),
 
+      addWaterbody: (w) => set((s) => ({ waterbodies: [...s.waterbodies, w] })),
+      updateWaterbody: (id, patch) =>
+        set((s) => ({
+          waterbodies: s.waterbodies.map((w) => (w.id === id ? { ...w, ...patch } : w)),
+        })),
+      removeWaterbody: (id) =>
+        set((s) => ({ waterbodies: s.waterbodies.filter((w) => w.id !== id) })),
+
       addWaterNode: (n) => set((s) => ({ waterNodes: [...s.waterNodes, n] })),
       updateWaterNode: (id, patch) =>
         set((s) => ({
@@ -223,12 +264,15 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
     }), { limit: 200 }),
     {
       name: 'ogden-water-systems',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       migrate: (persisted) => {
         const p = (persisted ?? {}) as Partial<WaterSystemsState>;
         return {
           ...p,
           watercourses: p.watercourses ?? [],
+          waterbodies: p.waterbodies ?? [],
           waterNodes: p.waterNodes ?? [],
         } as WaterSystemsState;
       },
@@ -236,4 +280,4 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
   ),
 );
 
-useWaterSystemsStore.persist.rehydrate();
+rehydrateWithLogging(useWaterSystemsStore);

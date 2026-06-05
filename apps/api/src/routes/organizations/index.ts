@@ -6,7 +6,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { CreateOrganizationInput, InviteOrgMemberInput } from '@ogden/shared';
+import { CreateOrganizationInput, InviteOrgMemberInput, UpdateOrganizationInput } from '@ogden/shared';
 import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
 
 const ParamsId = z.object({ id: z.string().uuid() });
@@ -42,7 +42,7 @@ export default async function organizationRoutes(fastify: FastifyInstance) {
 
     const [org] = await db`
       INSERT INTO organizations (name) VALUES (${body.name})
-      RETURNING id, name, plan, created_at
+      RETURNING id, name, plan, jurisdiction, registry_id, created_at
     `;
 
     // Add creator as owner
@@ -57,6 +57,8 @@ export default async function organizationRoutes(fastify: FastifyInstance) {
         id: org!.id,
         name: org!.name,
         plan: org!.plan,
+        jurisdiction: (org!.jurisdiction ?? null) as string | null,
+        registryId: (org!.registry_id ?? null) as string | null,
         createdAt: (org!.created_at as Date).toISOString(),
       },
       meta: undefined,
@@ -67,7 +69,7 @@ export default async function organizationRoutes(fastify: FastifyInstance) {
   // GET / — list orgs where user is member
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
-      SELECT o.id, o.name, o.plan, o.created_at
+      SELECT o.id, o.name, o.plan, o.jurisdiction, o.registry_id, o.created_at
       FROM organizations o
       JOIN organization_members om ON om.org_id = o.id
       WHERE om.user_id = ${req.userId}
@@ -79,12 +81,66 @@ export default async function organizationRoutes(fastify: FastifyInstance) {
         id: r.id,
         name: r.name,
         plan: r.plan,
+        jurisdiction: (r.jurisdiction ?? null) as string | null,
+        registryId: (r.registry_id ?? null) as string | null,
         createdAt: (r.created_at as Date).toISOString(),
       })),
       meta: { total: rows.length },
       error: null,
     };
   });
+
+  // PATCH /:id — update org metadata (owner only)
+  fastify.patch<{ Params: { id: string } }>(
+    '/:id',
+    { preHandler: [authenticate] },
+    async (req) => {
+      const { id: orgId } = ParamsId.parse(req.params);
+      await requireOrgOwner(orgId, req.userId);
+
+      const body = UpdateOrganizationInput.parse(req.body);
+
+      // Build dynamic SET — only update provided fields. postgres.js does not
+      // accept SET fragments via tagged template easily, so we run targeted
+      // UPDATEs per provided key. All run inside a single tx for atomicity.
+      const updated = await db.begin(async (sql: any) => {
+        if (body.name !== undefined) {
+          await sql`UPDATE organizations SET name = ${body.name} WHERE id = ${orgId}`;
+        }
+        if (body.plan !== undefined) {
+          await sql`UPDATE organizations SET plan = ${body.plan} WHERE id = ${orgId}`;
+        }
+        if (body.jurisdiction !== undefined) {
+          await sql`UPDATE organizations SET jurisdiction = ${body.jurisdiction} WHERE id = ${orgId}`;
+        }
+        if (body.registryId !== undefined) {
+          await sql`UPDATE organizations SET registry_id = ${body.registryId} WHERE id = ${orgId}`;
+        }
+        const [row] = await sql`
+          SELECT id, name, plan, jurisdiction, registry_id, created_at
+          FROM organizations WHERE id = ${orgId}
+        `;
+        return row!;
+      });
+
+      if (!updated) {
+        throw new NotFoundError('Organization', orgId);
+      }
+
+      return {
+        data: {
+          id: updated.id,
+          name: updated.name,
+          plan: updated.plan,
+          jurisdiction: (updated.jurisdiction ?? null) as string | null,
+          registryId: (updated.registry_id ?? null) as string | null,
+          createdAt: (updated.created_at as Date).toISOString(),
+        },
+        meta: undefined,
+        error: null,
+      };
+    },
+  );
 
   // GET /:id/members — list org members (must be org member)
   fastify.get<{ Params: { id: string } }>(

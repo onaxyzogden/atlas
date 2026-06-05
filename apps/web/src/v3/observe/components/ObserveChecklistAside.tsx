@@ -12,14 +12,12 @@
  */
 
 import { useRef } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
-import ObserveReadyCue from './ObserveReadyCue.js';
+import { useObjectiveSummaryStore } from '../../../store/objectiveSummaryStore.js';
 import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
-import {
-  GuidanceCard,
-  type GuidanceCardData,
-} from '../../_shared/components/GuidanceCard.js';
+import { GuidanceCard } from '../../_shared/components/GuidanceCard.js';
+import { progressFromChecks } from '../../_shared/objectiveWorkspace/objectiveStatus.js';
 import {
   BE_CATEGORY_GUIDANCE,
   BE_CATEGORY_LABEL,
@@ -31,27 +29,9 @@ import {
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
+import { MODULE_GUIDANCE, OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
+import { BE_CATEGORY_TO_OBSERVE_MODULE } from '../observeSectionMap.js';
 import css from './ObserveChecklistAside.module.css';
-
-/**
- * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_OBSERVE_MODULE` in
- * `ObserveTools.tsx`. Kept here (instead of in `_shared/`) so the right
- * rail can be edited without touching the rail registry — but the two
- * tables must agree.
- */
-const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
-  BuiltEnvironmentCategory,
-  ObserveModule
-> = {
-  building: 'built-environment',
-  agricultural: 'built-environment',
-  utility: 'built-environment',
-  infrastructure: 'built-environment',
-  machinery: 'built-environment',
-  amenity: 'built-environment',
-  vegetation: 'earth-water-ecology',
-  earthworks: 'topography',
-};
 
 /**
  * Stable empty-array reference for the zustand selector. DO NOT inline `?? []`
@@ -60,92 +40,16 @@ const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
  */
 const EMPTY_CHECKS: readonly number[] = [];
 
-const MODULE_GUIDANCE: Record<ObserveModule, GuidanceCardData> = {
-  'human-context': {
-    why: 'Observe and Interact (Holmgren P1) begins with understanding the cultural, social, and economic climate of the human residents, who are the beating heart of the system (OSU PDC, Week 1).',
-    how: [
-      'Pin your primary dwelling or activity hub.',
-      'Trace existing access roads and daily footpaths.',
-      'Pin neighbour interfaces or public borders.',
-    ],
-    pitfall:
-      'Do not design new paths yet; only map current existing human access and interaction.',
-  },
-  'built-environment': {
-    why: 'Existing infrastructure shapes what design moves are even possible — a buried gas line vetoes earthworks across it, a strong well sets your irrigation budget, fence lines define livestock subdivision options.',
-    how: [
-      'Trace buildings and outbuildings.',
-      'Mark wells (with depth/flow if known) and septic systems.',
-      'Sketch power lines and buried utilities; walk the fence lines.',
-      'Drop gates and trace existing driveways.',
-    ],
-    pitfall:
-      'Don’t skip "invisible" assets — buried lines and utility easements bind the design more than visible structures.',
-  },
-  'macroclimate-hazards': {
-    why: 'Catching and storing energy (Holmgren P2) requires first identifying major local forces, like fire and flood, that must be deflected to protect the site’s vitality (OSU PDC, Sectors/Hazards).',
-    how: [
-      'Outline low-lying areas where frost settles.',
-      'Draw polygons over flood plains, fire corridors, or steep slide zones.',
-    ],
-    pitfall:
-      'Don’t confuse broad macro-hazards with microclimates; hazards are extreme regional forces acting upon the site from the outside.',
-  },
-  topography: {
-    why: 'Water flows at right angles to contour, making landform the essential first step to creating a design structured around water abundance (OSU PDC, Matrix).',
-    how: [
-      'Pin the highest and lowest elevation points.',
-      'Trace key contour lines across slopes.',
-      'Draw drainage lines where water naturally collects and exits.',
-    ],
-    pitfall:
-      'Don’t assume slopes are uniform; topography is infinitely varied, so track exact fall lines carefully.',
-  },
-  'earth-water-ecology': {
-    why: 'Designing for water and soil fertility creates the bones and digestive system of your site, transforming raw materials into a vibrant ecology (OSU PDC, Land Physician).',
-    how: [
-      'Draw lines for existing streams, swales, or ponds.',
-      'Pin locations of soil test pits.',
-      'Outline distinct ecological patches (e.g., mature forest, disturbed pasture).',
-    ],
-    pitfall:
-      'Don’t forget the scales of landscape permanence; map water supplies before analyzing and altering soil.',
-  },
-  'sectors-zones': {
-    why: 'Design from Patterns to Details (Holmgren P7) dictates mapping wild sector forces coming in, and zones of human use radiating out, so the design directly responds to them (OSU PDC, Sectors & Zones).',
-    how: [
-      'Drag wedges from outside the property inward to show sun, wind, and wildlife paths.',
-      'Draw concentric polygons around the house based on daily-to-yearly maintenance frequency.',
-    ],
-    pitfall:
-      'Don’t confuse zones (internal human effort/maintenance) with sectors (external wild energies flowing into the site).',
-  },
-  'swot-synthesis': {
-    why: 'Applying Self-Regulation and Accepting Feedback (Holmgren P4) requires an honest diagnosis of site conditions before prescribing a design treatment (OSU PDC, SWOT Analysis).',
-    how: [
-      'Tag specific site areas with Strengths (resources) or Weaknesses (degradation).',
-      'Tag external borders with Opportunities (community) or Threats (pollution/development).',
-    ],
-    pitfall:
-      'Don’t confuse internal factors (Strengths/Weaknesses on the land) with external ones (Opportunities/Threats from the outside).',
-  },
-};
-
-/** Per-module dot palette. Mirrors the legacy `[data-module='...']` rules
- *  formerly carried by ObserveChecklistAside.module.css. */
-const OBSERVE_MODULE_DOT: Record<ObserveModule, string> = {
-  'human-context': '#5dd39e',
-  'built-environment': '#8a8e94',
-  'macroclimate-hazards': '#e6c34a',
-  topography: '#8bd16a',
-  'earth-water-ecology': '#5fc7d4',
-  'sectors-zones': '#d68bd0',
-  'swot-synthesis': '#e88aa4',
-};
-
 interface ObserveChecklistAsideProps {
   activeModule: ObserveModule | null;
-  onSelectModule: (module: ObserveModule | null) => void;
+  /**
+   * The reconciled picked-section id (owned by `ObserveLayout`, shared with
+   * the main rail). Non-null → exactly that card lights; null → fall back to
+   * whole-family module-equality highlight.
+   */
+  effectiveSectionId: string | null;
+  /** Section selection — narrows / toggles the cross-rail highlight. */
+  onSelectSection: (module: ObserveModule, sectionId: string) => void;
   slideUpOpen: boolean;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
@@ -156,7 +60,7 @@ function ObserveGuidanceCard({
   active,
   projectId,
   slideUpOpen,
-  onSelectModule,
+  onSelectSection,
   onOpenSlideUp,
   onCloseSlideUp,
 }: {
@@ -164,7 +68,7 @@ function ObserveGuidanceCard({
   active: boolean;
   projectId: string | null;
   slideUpOpen: boolean;
-  onSelectModule: (module: ObserveModule | null) => void;
+  onSelectSection: (module: ObserveModule, sectionId: string) => void;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
 }) {
@@ -174,6 +78,14 @@ function ObserveGuidanceCard({
   );
   const toggle = useObserveHowChecksStore((s) => s.toggle);
 
+  const summaryText = useObjectiveSummaryStore((s) =>
+    projectId ? s.getSummary('observe', projectId, module) : '',
+  );
+  const setSummary = useObjectiveSummaryStore((s) => s.setSummary);
+
+  const guidance = MODULE_GUIDANCE[module];
+  const progress = progressFromChecks(checkedList, guidance.how.length);
+
   return (
     <GuidanceCard
       moduleKey={module}
@@ -181,89 +93,152 @@ function ObserveGuidanceCard({
       dotColor={OBSERVE_MODULE_DOT[module]}
       active={active}
       slideUpOpen={slideUpOpen}
-      guidance={MODULE_GUIDANCE[module]}
+      guidance={guidance}
       checkedList={checkedList}
       onToggle={(i) => projectId && toggle(projectId, module, i)}
-      onSelect={() => onSelectModule(module)}
+      onSelect={() => onSelectSection(module, module)}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
+      progress={progress}
+      summary={{
+        value: summaryText,
+        onChange: (text) =>
+          projectId && setSummary('observe', projectId, module, text),
+        disabled: !projectId,
+      }}
     />
   );
 }
 
 export default function ObserveChecklistAside({
   activeModule,
-  onSelectModule,
+  effectiveSectionId,
+  onSelectSection,
   slideUpOpen,
   onOpenSlideUp,
   onCloseSlideUp,
 }: ObserveChecklistAsideProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const navigate = useNavigate();
 
   const asideRef = useRef<HTMLElement | null>(null);
   useAutoScrollToActiveModule(activeModule, asideRef);
+
+  // 2026-05-24 — Goal 2 (Stage Compass focus): the rail follows the compass's
+  // single-objective focus. With no objective selected, show a quiet prompt
+  // back to the compass instead of the full card menu.
+  if (activeModule === null) {
+    return (
+      <aside
+        ref={asideRef}
+        className={css.checklistBox}
+        data-has-active={false}
+        aria-label="Observe guidance"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below to choose your next objective.
+          </p>
+          {projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/observe',
+                  params: { projectId },
+                })
+              }
+            >
+              Back to Observe
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // Focus mode: render ONLY the active objective's card(s). Built Environment
+  // is one objective surfaced as its per-category cards; every other module is
+  // a single guidance card. Context cards (ReadyCue, PlacedFeatures) are
+  // intentionally omitted so the rail mirrors the compass's single focus.
+  const showBuiltEnvironment = activeModule === 'built-infrastructure';
 
   return (
     <aside
       ref={asideRef}
       className={css.checklistBox}
-      data-has-active={activeModule !== null}
+      data-has-active
       aria-label="Observe guidance"
     >
-      <ObserveReadyCue projectId={projectId} />
-      {OBSERVE_MODULES.map((mod) => {
-        // 2026-05-14 — BE flatten: parent `built-environment` guidance
-        // card is replaced by 9 per-category cards rendered below.
-        if (mod === 'built-environment') return null;
-        return (
-          <ObserveGuidanceCard
-            key={mod}
-            module={mod}
-            active={mod === activeModule}
-            projectId={projectId}
-            slideUpOpen={slideUpOpen}
-            onSelectModule={onSelectModule}
-            onOpenSlideUp={onOpenSlideUp}
-            onCloseSlideUp={onCloseSlideUp}
-          />
-        );
-      })}
-      {BE_TOOL_GROUPS.map((group) => {
-        // 2026-05-14 — Vegetation BE category suppressed in Observe to
-        // match the rail; mature trees / shrubs live under the
-        // `earth-water-ecology` module guidance instead.
-        if (group.category === 'vegetation') return null;
-        // 2026-05-14 — Earthworks BE category dropped; Berm / Raised bed /
-        // Terrace surface inside EWE / Amenities sections. No standalone
-        // guidance card.
-        if (group.category === 'earthworks') return null;
-        const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
-        const guidance = BE_CATEGORY_GUIDANCE[group.category];
-        const active = routed === activeModule;
-        return (
-          <GuidanceCard
-            key={`be-${group.category}`}
-            moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
-            label={BE_CATEGORY_LABEL[group.category]}
-            dotColor={OBSERVE_MODULE_DOT[routed]}
-            active={active}
-            slideUpOpen={slideUpOpen}
-            guidance={guidance}
-            checkedList={EMPTY_CHECKS}
-            onToggle={() => {
-              /* category cards don't persist how-checks — they share the
-               * routed module's slot. checksDisabled flag below suppresses
-               * the UI affordance entirely. */
-            }}
-            onSelect={() => onSelectModule(routed)}
-            onOpenSlideUp={onOpenSlideUp}
-            onCloseSlideUp={onCloseSlideUp}
-            checksDisabled
-          />
-        );
-      })}
+      {!showBuiltEnvironment &&
+        OBSERVE_MODULES.map((mod) => {
+          // Render only the active module's card. `activeModule` is already
+          // narrowed to exclude `built-environment` here (handled by the
+          // branch below), so a single equality check yields exactly one card.
+          if (mod !== activeModule) return null;
+          const active =
+            effectiveSectionId !== null
+              ? effectiveSectionId === mod
+              : mod === activeModule;
+          return (
+            <ObserveGuidanceCard
+              key={mod}
+              module={mod}
+              active={active}
+              projectId={projectId}
+              slideUpOpen={slideUpOpen}
+              onSelectSection={onSelectSection}
+              onOpenSlideUp={onOpenSlideUp}
+              onCloseSlideUp={onCloseSlideUp}
+            />
+          );
+        })}
+      {showBuiltEnvironment &&
+        BE_TOOL_GROUPS.map((group) => {
+          // 2026-05-14 — Vegetation BE category suppressed in Observe to
+          // match the rail; mature trees / shrubs live under the
+          // `earth-water-ecology` module guidance instead.
+          if (group.category === 'vegetation') return null;
+          // 2026-05-14 — Earthworks BE category dropped; Berm / Raised bed /
+          // Terrace surface inside EWE / Amenities sections. No standalone
+          // guidance card.
+          if (group.category === 'earthworks') return null;
+          const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
+          // Only categories that belong to the active Built Environment
+          // objective render here (vegetation/earthworks already skipped).
+          if (routed !== activeModule) return null;
+          const guidance = BE_CATEGORY_GUIDANCE[group.category];
+          const sectionId = `be-${group.category}`;
+          const active =
+            effectiveSectionId !== null
+              ? effectiveSectionId === sectionId
+              : routed === activeModule;
+          return (
+            <GuidanceCard
+              key={`be-${group.category}`}
+              moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
+              label={BE_CATEGORY_LABEL[group.category]}
+              dotColor={OBSERVE_MODULE_DOT[routed]}
+              active={active}
+              slideUpOpen={slideUpOpen}
+              guidance={guidance}
+              checkedList={EMPTY_CHECKS}
+              onToggle={() => {
+                /* category cards don't persist how-checks — they share the
+                 * routed module's slot. checksDisabled flag below suppresses
+                 * the UI affordance entirely. */
+              }}
+              onSelect={() => onSelectSection(routed, sectionId)}
+              onOpenSlideUp={onOpenSlideUp}
+              onCloseSlideUp={onCloseSlideUp}
+              checksDisabled
+            />
+          );
+        })}
     </aside>
   );
 }

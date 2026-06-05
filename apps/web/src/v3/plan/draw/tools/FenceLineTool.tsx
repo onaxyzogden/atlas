@@ -33,6 +33,7 @@ import {
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
@@ -44,6 +45,7 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const FENCE_OPTIONS: { value: FenceType; label: string }[] = [
@@ -60,7 +62,7 @@ const MOBILITY_OPTIONS: { value: FenceLineMobility; label: string }[] = [
   { value: 'temporary-strip', label: 'Temporary strip wire' },
 ];
 
-export default function FenceLineTool({ map, projectId }: Props) {
+export default function FenceLineTool({ map, projectId, getSnapTargets }: Props) {
   const addFenceLine = useLivestockStore((s) => s.addFenceLine);
   const updateFenceLine = useLivestockStore((s) => s.updateFenceLine);
   const deleteFenceLine = useLivestockStore((s) => s.deleteFenceLine);
@@ -133,6 +135,8 @@ export default function FenceLineTool({ map, projectId }: Props) {
     mode: 'draw_line_string',
     onComplete: handleComplete,
     enabled: dimMode === 'freehand',
+    snap: true,
+    getSnapTargets,
   });
 
   useDimensionDrawTool({

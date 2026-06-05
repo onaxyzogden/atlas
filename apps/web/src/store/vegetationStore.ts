@@ -17,6 +17,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import {
   type SuccessionStage,
@@ -43,7 +45,10 @@ export {
 export interface VegetationPatch {
   id: string;
   projectId: string;
-  geometry: GeoJSON.Polygon;
+  // MultiPolygon is permitted so a vegetation matrix produced by the
+  // Fill-remainder tool (boundary minus crop / building patches) can
+  // store the disconnected pieces that turf.difference leaves behind.
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   successionStage: SuccessionStage;
   groundCover: GroundCoverState;
   label?: string;
@@ -99,12 +104,20 @@ export const useVegetationStore = create<VegetationState>()(
     ),
     {
       name: 'ogden-vegetation',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
     },
   ),
 );
 
-useVegetationStore.persist.rehydrate();
+// absorbLegacyEcologyZones reads getState().migratedFromEcology as its guard.
+// Under the async IndexedDB backend that read must happen AFTER hydration (a
+// synchronous call would see the empty pre-hydration state and re-absorb / get
+// clobbered), so it runs via the onHydrated hook. It is idempotent.
+rehydrateWithLogging(useVegetationStore, {
+  onHydrated: absorbLegacyEcologyZones,
+});
 
 /**
  * One-time absorb: drain legacy `EcologyZone` records out of the
@@ -168,8 +181,6 @@ function absorbLegacyEcologyZones(): void {
     useVegetationStore.getState()._markEcologyMigrated([]);
   }
 }
-
-absorbLegacyEcologyZones();
 
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenVegetationStore =

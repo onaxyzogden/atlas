@@ -5,7 +5,7 @@
   align-items: center;
   height: 42px;
   background: var(--color-sidebar-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--color-hairline);
   padding: 0 16px;
   flex-shrink: 0;
   z-index: var(--z-sticky, 200);
@@ -26,20 +26,20 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-sidebar-icon);
   transition: color 150ms, background 150ms;
   text-decoration: none;
 }
 .backLink:hover {
-  color: rgba(232, 220, 200, 0.9);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-sidebar-text);
+  background: var(--color-hover-overlay);
 }
 
 .projectName {
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-sidebar-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -60,7 +60,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-sidebar-icon);
   cursor: pointer;
   transition: color 150ms, border-color 150ms;
   line-height: 1;
@@ -69,7 +69,7 @@
   align-items: center;
 }
 .tab:hover {
-  color: rgba(232, 220, 200, 0.8);
+  color: var(--color-sidebar-text);
 }
 
 .tabActive {
@@ -94,7 +94,7 @@
   border-radius: 6px;
   border: 1px solid rgba(196, 162, 101, 0.35);
   background: rgba(196, 162, 101, 0.12);
-  color: #d4b97a;
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;

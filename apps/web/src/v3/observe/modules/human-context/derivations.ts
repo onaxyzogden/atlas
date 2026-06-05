@@ -8,15 +8,20 @@
 
 import type {
   RegionalContext,
+  SharedVision,
   StewardProfile,
   VisionData,
 } from '../../../../store/visionStore.js';
 
 /* --------------------------- steward ---------------------------------- */
 
-/** The eight fields counted toward steward completeness. */
+/**
+ * The eight profile-overlay fields counted toward per-steward completeness.
+ * Identity (name) lives on the member record, not the profile, so it is not
+ * counted here.
+ */
 const STEWARD_FIELDS: Array<keyof StewardProfile> = [
-  'name',
+  'relationship',
   'age',
   'occupation',
   'lifestyle',
@@ -92,6 +97,28 @@ export function totalHoursPerWeek(steward: StewardProfile | undefined): number {
   return (steward?.maintenanceHrsInitial ?? 0) + (steward?.maintenanceHrsOngoing ?? 0);
 }
 
+/* --------------------------- roster rollups --------------------------- */
+
+/** Combined weekly hours pledged across the whole steward roster. */
+export function rosterCapacityHours(profiles: StewardProfile[]): number {
+  return profiles.reduce((acc, p) => acc + totalHoursPerWeek(p), 0);
+}
+
+/**
+ * Roster completeness — the mean per-steward completeness. An empty roster
+ * reads 0%. `filled`/`total` are summed across stewards for the caption.
+ */
+export function rosterCompleteness(profiles: StewardProfile[]): Completeness {
+  if (profiles.length === 0) {
+    return { filled: 0, total: STEWARD_FIELDS.length, pct: 0 };
+  }
+  const each = profiles.map((p) => stewardCompleteness(p));
+  const filled = each.reduce((acc, c) => acc + c.filled, 0);
+  const total = each.reduce((acc, c) => acc + c.total, 0);
+  const pct = Math.round(each.reduce((acc, c) => acc + c.pct, 0) / each.length);
+  return { filled, total, pct };
+}
+
 /* --------------------------- regional --------------------------------- */
 
 export interface RegionalCounts {
@@ -143,26 +170,26 @@ export interface VisionCounts {
   constraints: number;
 }
 
-export function visionCounts(steward: StewardProfile | undefined): VisionCounts {
+export function visionCounts(vision: SharedVision | undefined): VisionCounts {
   return {
-    coreFunctions: steward?.coreFunctions?.length ?? 0,
-    successMetrics: steward?.successMetrics?.length ?? 0,
-    moodboardImages: steward?.moodboardImages?.length ?? 0,
-    experienceGoals: steward?.experienceGoals?.length ?? 0,
-    principles: steward?.principles?.length ?? 0,
-    guidingValues: steward?.guidingValues?.length ?? 0,
-    constraints: steward?.constraints?.length ?? 0,
+    coreFunctions: vision?.coreFunctions?.length ?? 0,
+    successMetrics: vision?.successMetrics?.length ?? 0,
+    moodboardImages: vision?.moodboardImages?.length ?? 0,
+    experienceGoals: vision?.experienceGoals?.length ?? 0,
+    principles: vision?.principles?.length ?? 0,
+    guidingValues: vision?.guidingValues?.length ?? 0,
+    constraints: vision?.constraints?.length ?? 0,
   };
 }
 
 export function visionCompleteness(vision: VisionData | undefined): Completeness {
-  const steward = vision?.steward;
+  const sv = vision?.sharedVision;
   const checks: boolean[] = [
-    isFilled(steward?.vision),
-    (steward?.coreFunctions?.length ?? 0) > 0,
-    (steward?.successMetrics?.length ?? 0) > 0,
-    (steward?.experienceGoals?.length ?? 0) > 0,
-    (steward?.moodboardImages?.length ?? 0) > 0,
+    isFilled(sv?.statement),
+    (sv?.coreFunctions?.length ?? 0) > 0,
+    (sv?.successMetrics?.length ?? 0) > 0,
+    (sv?.experienceGoals?.length ?? 0) > 0,
+    (sv?.moodboardImages?.length ?? 0) > 0,
     (vision?.phaseNotes ?? []).some((p) => p.notes.trim().length > 0),
   ];
   const total = checks.length;
@@ -172,11 +199,18 @@ export function visionCompleteness(vision: VisionData | undefined): Completeness
 
 /* --------------------------- module rollup ---------------------------- */
 
-export function moduleCompleteness(vision: VisionData | undefined): Completeness {
-  const sw = stewardCompleteness(vision?.steward);
+/**
+ * Module completeness over the steward roster. `profiles` is the roster's
+ * profile overlays (one per member); when empty the people axis reads 0%.
+ * Weighted: roster 40%, regional 35%, vision 25%.
+ */
+export function moduleCompleteness(
+  vision: VisionData | undefined,
+  profiles: StewardProfile[],
+): Completeness {
+  const sw = rosterCompleteness(profiles);
   const rg = regionalCompleteness(vision?.regional);
   const vs = visionCompleteness(vision);
-  // Weighted: steward 40%, regional 35%, vision 25%.
   const pct = Math.round(sw.pct * 0.4 + rg.pct * 0.35 + vs.pct * 0.25);
   // Synthetic filled/total for the "X of Y areas captured" caption.
   const total = sw.total + rg.total + vs.total;

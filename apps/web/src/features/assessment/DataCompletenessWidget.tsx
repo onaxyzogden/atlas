@@ -14,6 +14,16 @@
 
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
+import { useFieldVerification } from '../../lib/fieldVerification/useFieldVerification.js';
+import FieldVerificationBadge from './FieldVerificationBadge.js';
+
+/** Human label for each verifiable layer type, for the field-check readout. */
+const LAYER_LABEL: Record<string, string> = {
+  soils: 'Soils',
+  watershed: 'Watershed',
+  wetlands_flood: 'Wetlands/Flood',
+  land_cover: 'Land Cover',
+};
 
 interface DataCompletenessWidgetProps {
   project: LocalProject;
@@ -30,6 +40,12 @@ interface CompletenessBreakdown {
 
 export default function DataCompletenessWidget({ project, compact }: DataCompletenessWidgetProps) {
   const siteData = useSiteData(project.id);
+  // Field-verification axis (OLOS gap #10): per-layer ground-truth standing
+  // derived from logged soil samples + monitoring transects. Distinct from
+  // (and shown beneath, never merged into) the data-completeness score —
+  // completeness asks "is the dataset present?", field-verification asks "has a
+  // steward confirmed it on the ground, recently?".
+  const { perLayer: fieldVerification } = useFieldVerification(project.id);
   const breakdown = computeCompleteness(project, siteData);
   const overallScore = Math.round(
     breakdown.reduce((sum, b) => sum + b.score * b.weight, 0) /
@@ -61,6 +77,45 @@ export default function DataCompletenessWidget({ project, compact }: DataComplet
           <CategoryRow key={cat.category} breakdown={cat} />
         ))}
       </div>
+
+      {fieldVerification.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--color-text)',
+              marginBottom: 8,
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 6,
+            }}
+          >
+            Field verification
+            <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>
+              ground-truth, separate from source confidence
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {fieldVerification.map((fv) => (
+              <div
+                key={fv.layerType}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                  {LAYER_LABEL[fv.layerType] ?? fv.layerType}
+                </span>
+                <FieldVerificationBadge verification={fv} compact />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {overallScore < 70 && (
         <div

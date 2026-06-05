@@ -9,6 +9,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { RuleWeightCategory } from '../features/rules/SitingRules.js';
 
 /* ------------------------------------------------------------------ */
@@ -72,6 +74,8 @@ export const useSitingWeightStore = create<SitingWeightState>()(
     }),
     {
       name: 'ogden-siting-weights',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({ weights: state.weights }),
@@ -80,4 +84,4 @@ export const useSitingWeightStore = create<SitingWeightState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useSitingWeightStore.persist.rehydrate();
+rehydrateWithLogging(useSitingWeightStore);

@@ -1,0 +1,246 @@
+/*
+ * StratumRow — single row in the Plan stratum spine (Plan Navigation Spec v1).
+ * The row aligns its spine dot with the parent StratumSpine's connecting
+ * line so the 7 strata visually thread together. Surface treatment leans
+ * on the BentoBox primitive (color-mix surface 96%/white + hairline
+ * border + --radius-lg) for visual cohesion with the rest of OLOS.
+ */
+
+.row {
+  --stratum-state-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  --stratum-state-bg: color-mix(in srgb, var(--color-surface, #14191f) 92%, #fff);
+  --stratum-state-border: color-mix(
+    in srgb,
+    var(--color-border, rgba(242, 237, 227, 0.12)) 88%,
+    #fff
+  );
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 44px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px 14px 14px;
+  width: 100%;
+  background: var(--stratum-state-bg);
+  border: 1px solid var(--stratum-state-border);
+  border-radius: var(--radius-lg, 12px);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text, #f2ede3);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+}
+
+.row:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--stratum-state-color) 45%,
+    var(--stratum-state-border)
+  );
+  /* Express hover as a lightness lift (dark mode) + warm token shadow that
+     stays visible in light mode. Avoid pure-black drop shadows, which vanish
+     on dark chrome. See dark-mode advice (elevation via lightness, not shadow). */
+  background: color-mix(in srgb, var(--stratum-state-bg) 90%, #fff);
+  box-shadow: var(--shadow-sm);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+/* --- state colors -------------------------------------------------------- */
+
+/*
+ * State elevation ladder (dark-mode advice §2 — depth via lightness).
+ * The semantic surface tokens step lighter as they "rise":
+ *   --color-bg  <  --color-surface  <  --color-surface-raised
+ * so locked recedes to page-bg, available sits on base surface, and
+ * complete/active lift to the raised tier. Works in light mode too —
+ * there the gold/green tints + glows carry the hierarchy when the
+ * lightness steps flatten out against white surfaces.
+ */
+.row[data-state='complete'] {
+  --stratum-state-color: #5dd39e;
+  --stratum-state-bg: color-mix(
+    in srgb,
+    var(--color-surface-raised, #1c2120) 94%,
+    #5dd39e 6%
+  );
+}
+
+.row[data-state='active'] {
+  --stratum-state-color: var(--color-gold-brand, #c4a265);
+  /* Lift to the raised surface tier so the current stratum reads as
+     forward-most, then warm gold glow instead of a black shadow. */
+  --stratum-state-bg: var(--color-surface-raised, #1c2120);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 55%,
+    var(--stratum-state-border)
+  );
+  box-shadow:
+    0 0 0 1px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 30%, transparent),
+    0 4px 18px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
+}
+
+/* Halo the spine dot of the active stratum — it sits on the spine line,
+   so the glow fuses the active row to the connecting thread. */
+.row[data-state='active'] .spineDot {
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
+}
+
+.row[data-state='available'] {
+  --stratum-state-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 70%,
+    var(--color-text, #f2ede3)
+  );
+}
+
+.row[data-state='locked'] {
+  opacity: 0.55;
+  cursor: pointer; /* still clickable — opens the locked popover */
+  /* Recede to page background — lowest rung of the elevation ladder. */
+  --stratum-state-bg: var(--color-bg, #0b0e0c);
+  --stratum-state-border: var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+/* --- active selection ---------------------------------------------------- */
+
+.row[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  /* Set the surface var (not background directly) so the gold wash layers
+     on top of whatever elevation tier the state ladder picked. */
+  --stratum-state-bg: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 12%,
+    var(--color-surface-raised, #1c2120)
+  );
+}
+
+/* --- spine dot ----------------------------------------------------------- */
+
+.spineDot {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg, #14191f);
+  border: 2px solid var(--stratum-state-color);
+  color: var(--stratum-state-color);
+}
+
+.spineDotInner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stratum-state-color);
+  opacity: 0.85;
+}
+
+.row[data-state='complete'] .spineDot {
+  background: var(--stratum-state-color);
+  color: #18221b;
+}
+
+.row[data-state='locked'] .spineDot {
+  background: var(--color-bg, #14191f);
+}
+
+/* --- ordinal + body ------------------------------------------------------ */
+
+.ordinal {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--stratum-state-color);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+  letter-spacing: -0.005em;
+}
+
+.summary {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  line-height: 1.45;
+}
+
+/* --- pill ---------------------------------------------------------------- */
+
+.pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--stratum-state-color) 18%, transparent);
+  color: var(--stratum-state-color);
+  white-space: nowrap;
+}
+
+.row[data-state='complete'] .pill {
+  background: color-mix(in srgb, #5dd39e 22%, transparent);
+  color: #d6f0df;
+}
+
+.row[data-state='active'] .pill {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 30%,
+    transparent
+  );
+  color: #f4e6cb;
+}
+
+/* --- Slice 2.4 highlight flash ------------------------------------------ */
+/*
+ * Three 1s pulses of a gold ring around the row, then fade. Triggered by
+ * the wizard "Continue setup in Plan" CTA (?highlightIncomplete=s1) and
+ * cleared by PlanStratumShell after 3s. Honours reduced-motion preferences.
+ */
+@keyframes stratum-row-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
+  }
+}
+
+.row[data-highlighting='true'] {
+  animation: stratum-row-highlight-pulse 1s ease-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row[data-highlighting='true'] {
+    animation: none;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 55%, transparent);
+  }
+}

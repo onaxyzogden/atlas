@@ -9,6 +9,7 @@ import { parcelAcreage } from '../../../lib/geo.js';
 import { useProjectStore, type ProjectAttachment } from '../../../store/projectStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { api } from '../../../lib/apiClient.js';
+import { recordShowcaseEvent } from '../../../showcase/lib/showcaseEventLog.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 
@@ -71,10 +72,26 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
     return Object.keys(md).length > 0 ? md : undefined;
   };
 
-  const handleCreate = () => {
-    const metadata = buildMetadata();
+  const [creating, setCreating] = useState(false);
 
-    // Create the project
+  const handleCreate = async () => {
+    if (creating) return;
+    setCreating(true);
+    const baseMetadata = buildMetadata() ?? {};
+    // Phase 4 (2026-05-21): when the wizard arrived with a template
+    // slug (either via the StepTemplate picker or via a /register tier
+    // handoff), stamp `instantiatedFromTemplate` on the project so the
+    // client-side seedFromEcosystemFarmTemplate auto-fire hook
+    // recognises the project on subscribe.
+    const metadataWithTemplate: Record<string, unknown> | undefined =
+      data.templateSlug
+        ? { ...baseMetadata, instantiatedFromTemplate: data.templateSlug }
+        : Object.keys(baseMetadata).length > 0
+          ? baseMetadata
+          : undefined;
+
+    // Create the project (local Zustand copy — always created so the
+    // wizard can hand off cleanly even in offline / unauth contexts).
     const project = createProject({
       name: data.name,
       description: data.description || undefined,
@@ -84,7 +101,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       country: data.country,
       provinceState: data.provinceState || undefined,
       units: data.units,
-      metadata,
+      metadata: metadataWithTemplate,
     });
 
     // Calculate acreage from boundary if available
@@ -115,46 +132,70 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Navigate immediately — local copy is the source of truth. Land in the
-    // v3 / Land OS Observe stage (the active lifecycle surface), not the
-    // legacy project page; the v3 tree reads the same store.
+    // Authenticated: server-side create.
+    //  - Template branch (Phase 4): instantiate via the public template
+    //    route so the server deep-replays features + regen-events +
+    //    relationships, then mirror the serverId into the local copy.
+    //  - Vanilla branch: existing /projects + /boundary flow.
+    // Unauthenticated: navigate immediately (local copy is source of truth).
+    if (token) {
+      try {
+        if (data.templateSlug) {
+          const { data: serverProject } = await api.templates.instantiatePublic(
+            data.templateSlug,
+            {
+              name: data.name,
+              parcelBoundaryGeojson: data.parcelBoundaryGeojson ?? null,
+              orgId: data.orgId,
+            },
+          );
+          updateProjectFn(project.id, { serverId: serverProject.id });
+          // Showcase conversion terminus — a visitor who arrived through a
+          // tier CTA (drawFirst/fullSetup paths) instantiated the template
+          // via the wizard. Tier isn't tracked through the wizard, so it is
+          // left null; the server id + template slug carry the signal.
+          recordShowcaseEvent({
+            eventType: 'template_instantiated',
+            projectId: serverProject.id,
+            payload: { template: data.templateSlug },
+          });
+          // File uploads are non-blocking — fire-and-forget per attachment.
+          for (const att of attachments) {
+            api.files.upload(serverProject.id, att.file).catch(() => {});
+          }
+        } else {
+          const { data: serverProject } = await api.projects.create({
+            name: data.name,
+            description: data.description || undefined,
+            address: data.address || undefined,
+            parcelId: data.parcelId || undefined,
+            projectType: (data.projectType as any) || undefined,
+            country: data.country,
+            provinceState: data.provinceState || undefined,
+            units: data.units,
+            metadata: metadataWithTemplate,
+            orgId: data.orgId,
+          });
+          updateProjectFn(project.id, { serverId: serverProject.id });
+          const geo = data.parcelBoundaryGeojson;
+          if (geo) {
+            await api.projects.setBoundary(serverProject.id, geo);
+          }
+          // File uploads are non-blocking — fire-and-forget per attachment.
+          for (const att of attachments) {
+            api.files.upload(serverProject.id, att.file).catch(() => {});
+          }
+        }
+      } catch {
+        // Backend unavailable — local copy is intact, sync will retry later.
+        // Proceed to navigate so the user is not blocked offline.
+      }
+    }
+
     navigate({
       to: '/v3/project/$projectId/observe',
       params: { projectId: project.id },
     });
-
-    // Fire-and-forget backend sync (only when authenticated)
-    if (token) {
-      api.projects.create({
-        name: data.name,
-        description: data.description || undefined,
-        address: data.address || undefined,
-        parcelId: data.parcelId || undefined,
-        projectType: (data.projectType as any) || undefined,
-        country: data.country,
-        provinceState: data.provinceState || undefined,
-        units: data.units,
-        metadata,
-      }).then(async ({ data: serverProject }) => {
-        // Store the backend-assigned UUID so future syncs can reference it
-        updateProjectFn(project.id, { serverId: serverProject.id });
-
-        // Push boundary if one was drawn
-        const geo = data.parcelBoundaryGeojson;
-        if (geo) {
-          await api.projects.setBoundary(serverProject.id, geo);
-        }
-
-        // Upload file attachments to the server
-        for (const att of attachments) {
-          api.files.upload(serverProject.id, att.file).catch(() => {
-            // Upload failure is non-fatal — local attachment is still in store
-          });
-        }
-      }).catch(() => {
-        // Backend unavailable — local copy is intact, sync will retry later
-      });
-    }
   };
 
   const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -378,7 +419,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             onClick={() => fileInputRef.current?.click()}
           >
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
-              Drop files here or <span style={{ color: 'var(--color-earth-600)', fontWeight: 500 }}>browse</span>
+              Drop files here or <span style={{ color: 'var(--color-neutral-600)', fontWeight: 500 }}>browse</span>
             </p>
             <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
               Photos, site plans, title maps, survey documents
@@ -410,7 +451,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
                     fontSize: 12,
                   }}
                 >
-                  <span style={{ color: 'var(--color-earth-600)' }}>
+                  <span style={{ color: 'var(--color-neutral-600)' }}>
                     {att.type === 'photo' ? '🖼' : '📄'}
                   </span>
                   <span style={{ flex: 1, color: 'var(--color-text)' }}>{att.file.name}</span>
@@ -442,7 +483,8 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         onNext={handleCreate}
         isFirst={isFirst}
         isLast={isLast}
-        nextLabel="Create Project"
+        nextLabel={creating ? 'Creating…' : 'Create Project'}
+        nextDisabled={creating}
       />
     </div>
   );

@@ -1,0 +1,542 @@
+/**
+ * CoverCropPlannerCard — B5.2.x per-CropArea cover-crop plan editor.
+ *
+ * Single new write-surface for `CropArea.coverCropPlan`: stewards
+ * add / edit / remove `CropCoverWindow` rows against the 14-entry
+ * COVER_CROP_CATALOG. Writes go through the existing single-writer
+ * `updateCropArea(id, { coverCropPlan })` action — atomic array
+ * replacement, no new store action. The read-only LivingRootsCard
+ * (cross-registered into plant-systems + soil-fertility) picks up
+ * the writes automatically through Zustand.
+ *
+ * Mounted under the plant-systems module (sibling of LivingRootsCard).
+ * Not cross-registered — the audit travels to soil-fertility; the
+ * editor stays on the plant-systems tab where stewards draw crop
+ * areas.
+ *
+ * Covenant: agronomic only — no riba / gharar / CSRA / salam /
+ * investor / financing / cost-of-capital framing. "Coverage" is
+ * months of living roots in the ground, never a financial or
+ * yield-as-return notion.
+ */
+
+import { useMemo, useState } from 'react';
+import { useCropStore, type CropArea, type CropCoverWindow } from '../../store/cropStore.js';
+import { useWorkItemStore } from '../../store/workItemStore.js';
+import { CATALOG_BY_ID } from '../../data/plantCatalog.js';
+import {
+  COVER_CROP_CATALOG,
+  coverCropEntryFor,
+  livingRootMonthsFor,
+  type CoverCropRole,
+} from './coverCropCatalog.js';
+import {
+  addWindow,
+  removeWindow,
+  defaultWindowFor,
+  windowsEqual,
+  formatMonthRange,
+  isValidMonth,
+} from './coverCropPlannerMath.js';
+import { pushCoverCropPlanToSpine } from './coverCropSpineSync.js';
+import css from './CoverCropPlannerCard.module.css';
+
+interface Props {
+  projectId: string;
+}
+
+const ROLE_GROUP_ORDER: CoverCropRole[] = [
+  'winter_cover',
+  'smother',
+  'green_manure',
+  'scavenger',
+  'biofumigant',
+  'living_mulch',
+];
+
+const ROLE_LABEL: Record<CoverCropRole, string> = {
+  winter_cover: 'Winter cover',
+  smother: 'Smother',
+  green_manure: 'Green manure',
+  scavenger: 'Scavenger',
+  biofumigant: 'Biofumigant',
+  living_mulch: 'Living mulch',
+};
+
+const SEASON_LABEL: Record<'spring' | 'summer' | 'fall' | 'winter', string> = {
+  spring: 'Spring',
+  summer: 'Summer',
+  fall: 'Fall',
+  winter: 'Winter',
+};
+
+function speciesLabel(speciesId: string): string {
+  const plant = CATALOG_BY_ID[speciesId];
+  return plant?.commonName ?? speciesId;
+}
+
+function seasonsFor(months: number[]): string[] {
+  const set = new Set<'spring' | 'summer' | 'fall' | 'winter'>();
+  for (const m of months) {
+    if (m >= 3 && m <= 5) set.add('spring');
+    else if (m >= 6 && m <= 8) set.add('summer');
+    else if (m >= 9 && m <= 11) set.add('fall');
+    else set.add('winter');
+  }
+  return Array.from(set).map((s) => SEASON_LABEL[s]);
+}
+
+export default function CoverCropPlannerCard({ projectId }: Props) {
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const updateCropArea = useCropStore((s) => s.updateCropArea);
+  const workItems = useWorkItemStore((s) => s.items);
+
+  const areas = useMemo(
+    () => allCropAreas.filter((a) => a.projectId === projectId),
+    [projectId, allCropAreas],
+  );
+
+  // B5.2.x.c — cropAreaIds that have at least one cash-crop
+  // (planting-calendar) WorkItem in this project. Areas not in this set
+  // surface an orphan-warning banner because their cover-crop window
+  // won't seed any terminate-before edge.
+  const cashCropAreaIds = useMemo(() => {
+    const out = new Set<string>();
+    for (const it of workItems) {
+      if (it.projectId !== projectId) continue;
+      const prov = it.generatedFromPlantingCalendar;
+      if (!prov) continue;
+      const parts = prov.split(':');
+      if (parts.length !== 3) continue;
+      const id = parts[1];
+      if (id) out.add(id);
+    }
+    return out;
+  }, [workItems, projectId]);
+
+  const Head = () => (
+    <div className={css.cardHead}>
+      <div>
+        <h3 className={css.cardTitle}>Cover-crop planner</h3>
+        <p className={css.cardHint}>
+          Schedule cover-crop windows per crop area against the cited
+          catalog. Coverage flows into the living-roots audit below.
+        </p>
+      </div>
+      <span className={css.modeBadge}>Writes to cover-crop plan</span>
+    </div>
+  );
+
+  if (areas.length === 0) {
+    return (
+      <section className={css.card}>
+        <Head />
+        <div className={css.empty}>
+          No crop areas yet — draw a row crop, garden bed, or orchard in
+          the plant-systems module to begin planning cover crops.
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className={css.card}>
+      <Head />
+      <div className={css.areaList}>
+        {areas.map((area) => (
+          <AreaEditor
+            key={area.id}
+            area={area}
+            otherAreas={areas.filter((a) => a.id !== area.id)}
+            hasCashCrop={cashCropAreaIds.has(area.id)}
+            onSave={(next, alsoApplyTo) => {
+              updateCropArea(area.id, { coverCropPlan: next });
+              for (const otherId of alsoApplyTo) {
+                const other = areas.find((a) => a.id === otherId);
+                if (!other) continue;
+                const merged = mergeWindows(other.coverCropPlan ?? [], next);
+                updateCropArea(otherId, { coverCropPlan: merged });
+              }
+              pushCoverCropPlanToSpine(projectId);
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** B5.2.x.c — append windows from `src` into `target`, skipping any window
+ *  that is structurally identical (species + role + months) to one already
+ *  present. Pure / order-preserving on the target side. */
+function mergeWindows(
+  target: CropCoverWindow[],
+  src: CropCoverWindow[],
+): CropCoverWindow[] {
+  const same = (a: CropCoverWindow, b: CropCoverWindow) =>
+    a.speciesId === b.speciesId &&
+    a.role === b.role &&
+    a.startMonth === b.startMonth &&
+    a.endMonth === b.endMonth;
+  const out = [...target];
+  for (const w of src) {
+    if (out.some((t) => same(t, w))) continue;
+    out.push(w);
+  }
+  return out;
+}
+
+interface AreaEditorProps {
+  area: CropArea;
+  otherAreas: CropArea[];
+  hasCashCrop: boolean;
+  onSave: (next: CropCoverWindow[], alsoApplyTo: string[]) => void;
+}
+
+function AreaEditor({ area, otherAreas, hasCashCrop, onSave }: AreaEditorProps) {
+  const stored = area.coverCropPlan ?? [];
+  const [draft, setDraft] = useState<CropCoverWindow[]>(stored);
+  const [storedSnapshot, setStoredSnapshot] = useState<CropCoverWindow[]>(stored);
+
+  // Reconcile if the stored array changed under us (e.g. another tab wrote).
+  if (!windowsEqual(stored, storedSnapshot) && windowsEqual(draft, storedSnapshot)) {
+    setStoredSnapshot(stored);
+    setDraft(stored);
+  }
+
+  const [adding, setAdding] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+
+  const dirty = !windowsEqual(draft, stored);
+
+  return (
+    <div className={css.areaRow}>
+      <div className={css.areaHead}>
+        <span className={css.areaName}>{area.name}</span>
+        <span className={css.areaMeta}>
+          {area.type.replace(/_/g, ' ')} · {area.areaM2.toFixed(0)} m²
+        </span>
+      </div>
+
+      {!hasCashCrop && (
+        <div className={css.orphanWarning} role="status">
+          No cash crop scheduled on this area yet — a terminate-before
+          edge will be created when one is added.
+        </div>
+      )}
+
+      {draft.length === 0 ? (
+        <div className={css.noWindows}>No cover-crop windows yet.</div>
+      ) : (
+        <ul className={css.windowList}>
+          {draft.map((w, i) => (
+            <li key={`${w.speciesId}-${i}`} className={css.windowItem}>
+              <span className={css.windowSpecies}>{speciesLabel(w.speciesId)}</span>
+              <span className={css.windowRole}>{ROLE_LABEL[w.role]}</span>
+              <span className={css.windowRange}>
+                {formatMonthRange(w.startMonth, w.endMonth)}
+              </span>
+              <button
+                type="button"
+                className={css.windowRemove}
+                onClick={() => setDraft((cur) => removeWindow(cur, i))}
+                aria-label={`Remove ${speciesLabel(w.speciesId)} window`}
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {adding ? (
+        <AddWindowForm
+          onAdd={(w) => {
+            setDraft((cur) => addWindow(cur, w));
+            setAdding(false);
+          }}
+          onCancel={() => setAdding(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          className={css.addButton}
+          onClick={() => setAdding(true)}
+        >
+          + Add cover-crop window
+        </button>
+      )}
+
+      {otherAreas.length > 0 && (
+        <div className={css.bulkApply}>
+          <button
+            type="button"
+            className={css.bulkToggle}
+            onClick={() => setBulkOpen((v) => !v)}
+            aria-expanded={bulkOpen}
+          >
+            {bulkOpen ? '− Apply to other areas' : '+ Apply to other areas'}
+            {bulkSelected.size > 0 && (
+              <span className={css.bulkCount}>({bulkSelected.size})</span>
+            )}
+          </button>
+          {bulkOpen && (
+            <ul className={css.bulkChips} role="listbox" aria-label="Other crop areas">
+              {otherAreas.map((a) => {
+                const checked = bulkSelected.has(a.id);
+                return (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={checked}
+                      className={
+                        checked ? `${css.bulkChip} ${css.bulkChipOn}` : css.bulkChip
+                      }
+                      onClick={() => {
+                        setBulkSelected((cur) => {
+                          const next = new Set(cur);
+                          if (next.has(a.id)) next.delete(a.id);
+                          else next.add(a.id);
+                          return next;
+                        });
+                      }}
+                    >
+                      {a.name}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <div className={css.actions}>
+        <button
+          type="button"
+          className={css.saveButton}
+          disabled={!dirty && bulkSelected.size === 0}
+          onClick={() => {
+            onSave(draft, Array.from(bulkSelected));
+            setStoredSnapshot(draft);
+            setBulkSelected(new Set());
+            setBulkOpen(false);
+          }}
+        >
+          Save changes
+        </button>
+        <button
+          type="button"
+          className={css.discardButton}
+          disabled={!dirty}
+          onClick={() => setDraft(stored)}
+        >
+          Discard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface AddWindowFormProps {
+  onAdd: (w: CropCoverWindow) => void;
+  onCancel: () => void;
+}
+
+function AddWindowForm({ onAdd, onCancel }: AddWindowFormProps) {
+  const grouped = useMemo(() => {
+    const out: Record<CoverCropRole, typeof COVER_CROP_CATALOG[number][]> = {
+      winter_cover: [],
+      smother: [],
+      green_manure: [],
+      scavenger: [],
+      biofumigant: [],
+      living_mulch: [],
+    };
+    for (const entry of COVER_CROP_CATALOG) {
+      const primary = entry.roles[0] as CoverCropRole | undefined;
+      if (primary && out[primary]) out[primary].push(entry);
+    }
+    return out;
+  }, []);
+
+  const firstEntry = COVER_CROP_CATALOG[0]!;
+  const firstDefault = defaultWindowFor(firstEntry);
+
+  const [speciesId, setSpeciesId] = useState<string>(firstEntry.speciesId);
+  const [role, setRole] = useState<CoverCropRole>(firstEntry.roles[0]!);
+  const [startMonth, setStartMonth] = useState<number>(firstDefault.startMonth);
+  const [endMonth, setEndMonth] = useState<number>(firstDefault.endMonth);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [seedCostOverride, setSeedCostOverride] = useState<string>('');
+  const [laborHrsOverride, setLaborHrsOverride] = useState<string>('');
+
+  const entry = coverCropEntryFor(speciesId);
+  const allowedRoles = entry?.roles ?? [];
+
+  const months = livingRootMonthsFor({ startMonth, endMonth });
+  const seasons = seasonsFor(months);
+
+  const canSubmit =
+    !!entry &&
+    !!role &&
+    allowedRoles.includes(role) &&
+    isValidMonth(startMonth) &&
+    isValidMonth(endMonth);
+
+  return (
+    <div className={css.addForm}>
+      <label className={css.field}>
+        <span className={css.fieldLabel}>Species</span>
+        <select
+          className={css.select}
+          value={speciesId}
+          onChange={(e) => {
+            const nextId = e.target.value;
+            const next = coverCropEntryFor(nextId);
+            setSpeciesId(nextId);
+            if (next) {
+              setRole(next.roles[0]!);
+              const def = defaultWindowFor(next);
+              setStartMonth(def.startMonth);
+              setEndMonth(def.endMonth);
+            }
+          }}
+        >
+          {ROLE_GROUP_ORDER.map((groupRole) =>
+            grouped[groupRole].length > 0 ? (
+              <optgroup key={groupRole} label={ROLE_LABEL[groupRole]}>
+                {grouped[groupRole].map((e) => {
+                  const plant = CATALOG_BY_ID[e.speciesId];
+                  return (
+                    <option key={e.speciesId} value={e.speciesId}>
+                      {plant?.commonName ?? e.speciesId}
+                      {plant?.latinName ? ` · ${plant.latinName}` : ''}
+                    </option>
+                  );
+                })}
+              </optgroup>
+            ) : null,
+          )}
+        </select>
+      </label>
+
+      <label className={css.field}>
+        <span className={css.fieldLabel}>Role</span>
+        <select
+          className={css.select}
+          value={role}
+          onChange={(e) => setRole(e.target.value as CoverCropRole)}
+        >
+          {allowedRoles.map((r) => (
+            <option key={r} value={r}>
+              {ROLE_LABEL[r]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className={css.monthRow}>
+        <label className={css.field}>
+          <span className={css.fieldLabel}>Start month</span>
+          <input
+            className={css.monthInput}
+            type="number"
+            min={1}
+            max={12}
+            value={startMonth}
+            onChange={(e) => setStartMonth(Number(e.target.value))}
+          />
+        </label>
+        <label className={css.field}>
+          <span className={css.fieldLabel}>End month</span>
+          <input
+            className={css.monthInput}
+            type="number"
+            min={1}
+            max={12}
+            value={endMonth}
+            onChange={(e) => setEndMonth(Number(e.target.value))}
+          />
+        </label>
+      </div>
+
+      <div className={css.seasonHint}>
+        Living roots: {seasons.length > 0 ? seasons.join(', ') : '—'}
+      </div>
+
+      <button
+        type="button"
+        className={css.cancelButton}
+        onClick={() => setAdvancedOpen((v) => !v)}
+        aria-expanded={advancedOpen}
+        style={{ marginTop: 8 }}
+      >
+        {advancedOpen ? '− Advanced' : '+ Advanced (site-specific cost overrides)'}
+      </button>
+      {advancedOpen && (
+        <div className={css.monthRow}>
+          <label className={css.field}>
+            <span className={css.fieldLabel}>Override seed cost (USD/acre)</span>
+            <input
+              className={css.monthInput}
+              type="number"
+              min={0}
+              step="0.01"
+              value={seedCostOverride}
+              onChange={(e) => setSeedCostOverride(e.target.value)}
+              placeholder={
+                entry?.seedCostUSDPerAcre != null
+                  ? `catalog: ${entry.seedCostUSDPerAcre}`
+                  : 'no catalog default'
+              }
+            />
+          </label>
+          <label className={css.field}>
+            <span className={css.fieldLabel}>Override seeding labor (hrs/acre)</span>
+            <input
+              className={css.monthInput}
+              type="number"
+              min={0}
+              step="0.01"
+              value={laborHrsOverride}
+              onChange={(e) => setLaborHrsOverride(e.target.value)}
+              placeholder={
+                entry?.seedingLaborHrsPerAcre != null
+                  ? `catalog: ${entry.seedingLaborHrsPerAcre}`
+                  : 'no catalog default'
+              }
+            />
+          </label>
+        </div>
+      )}
+
+      <div className={css.formActions}>
+        <button
+          type="button"
+          className={css.addConfirm}
+          disabled={!canSubmit}
+          onClick={() => {
+            const next: CropCoverWindow = { speciesId, role, startMonth, endMonth };
+            const seedNum = Number(seedCostOverride);
+            if (seedCostOverride !== '' && Number.isFinite(seedNum) && seedNum >= 0) {
+              next.seedCostUSDPerAcreOverride = seedNum;
+            }
+            const laborNum = Number(laborHrsOverride);
+            if (laborHrsOverride !== '' && Number.isFinite(laborNum) && laborNum >= 0) {
+              next.seedingLaborHrsPerAcreOverride = laborNum;
+            }
+            onAdd(next);
+          }}
+        >
+          Add window
+        </button>
+        <button type="button" className={css.cancelButton} onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,45 @@
+/*
+ * StratumSpine — vertical column of StratumRows with a left-edge connecting
+ * line that threads the spine dots. The connecting line is a single
+ * 2px column positioned to fall under the centres of each StratumRow's
+ * spineDot (StratumRow column 1 is 28px wide; the dot is 24px centred,
+ * so the line sits at 14px + the row's 14px left padding = 28px).
+ */
+
+.spine {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 720px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.spineLine {
+  position: absolute;
+  left: 28px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(
+      in srgb,
+      var(--color-gold-brand, #c4a265) 35%,
+      var(--color-border, rgba(242, 237, 227, 0.12))
+    ),
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.spineItem {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}

@@ -1,9 +1,9 @@
-﻿/**
- * Enterprise store â€” project-scoped enterprise tags for Multi-Enterprise
- * permaculture sites (PLAN spec Â§15 / project-type "Multi-Enterprise"
+/**
+ * Enterprise store — project-scoped enterprise tags for Multi-Enterprise
+ * permaculture sites (PLAN spec §15 / project-type "Multi-Enterprise"
  * checklist items #1, #2, #6).
  *
- * Enterprises are operational sub-businesses inside a single parcel â€”
+ * Enterprises are operational sub-businesses inside a single parcel —
  * e.g. "Market garden", "Sheep dairy", "Retreat lodging", "Education".
  * Every placeable Plan feature (zone, path, structure, paddock, crop,
  * guild, fertility unit, water node) can be tagged with one enterprise
@@ -17,6 +17,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export interface Enterprise {
   id: string;
@@ -54,8 +56,8 @@ export const useEnterpriseStore = create<EnterpriseState>()(
       removeEnterprise: (id) =>
         set((s) => ({ enterprises: s.enterprises.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-enterprises', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-enterprises', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useEnterpriseStore.persist.rehydrate();
+rehydrateWithLogging(useEnterpriseStore);

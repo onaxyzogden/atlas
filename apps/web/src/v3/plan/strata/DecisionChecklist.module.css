@@ -1,0 +1,401 @@
+/*
+ * DecisionChecklist — YOUR DECISIONS list inside ObjectiveDetailPanel.
+ * Row layout: checkbox + (label + tag row). Tags include `feeds <next
+ * objective>` chips and an `optional` chip when the item is not required.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.meta {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-variant-numeric: tabular-nums;
+}
+
+.meta[data-status='complete'] {
+  color: #5dd39e;
+}
+
+.meta[data-status='active'] {
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 5%, transparent);
+}
+
+.row[data-complete='true'] .label {
+  text-decoration: line-through;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.checkbox {
+  margin: 3px 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-gold-brand, #c4a265);
+  cursor: pointer;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text, #f2ede3);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.feedsInto {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 12%, transparent);
+  color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 90%, var(--color-text, #f2ede3));
+  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 24%, transparent);
+}
+
+.optional {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+}
+
+/*
+ * Provenance chip for a checklist item injected by a secondary layer's
+ * modifying patch (resolveProjectObjectives stamps expandedBySecondaryId).
+ * Amber — the shared "secondary / patch" accent (matches the source-tag
+ * Secondary pill and the divergence/tension treatment) — so the steward can
+ * see at a glance which decisions a secondary layer added. Distinct from the
+ * gold `feeds` chips (downstream links) and the green Stage Zero badge.
+ */
+.expandedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+/* Plan Nav v1.1 §5.5 — a checklist item injected by a secondary layer's
+   modifying patch gets an amber left-border so the injection reads at a
+   glance even before the steward notices the "Added by" chip. */
+.row[data-injected='true'] {
+  border-left: 2px solid color-mix(in srgb, #e8a958 55%, transparent);
+  border-top-left-radius: var(--radius-sm, 6px);
+  border-bottom-left-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, #e8a958 5%, transparent);
+}
+
+/* Decision Groups Reference v1.0 (OLOS spec 9.3-9.4) — when an objective
+   carries decision groups, the checklist renders grouped under each group's
+   sub-header: label + "N items" count + observe-feed chips, with the item
+   rows nested beneath. A group injected by a secondary layer
+   (sourceSecondaryId stamped by the resolver) reuses the amber patch accent. */
+.groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.group[data-injected='true'] {
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, #e8a958 55%, transparent);
+  border-top-left-radius: var(--radius-sm, 6px);
+  border-bottom-left-radius: var(--radius-sm, 6px);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.groupLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text, #f2ede3);
+}
+
+.groupCount {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+  font-variant-numeric: tabular-nums;
+}
+
+.groupAddedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+.groupFeeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.groupFeed {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 7%, transparent);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.16));
+}
+
+/* Plan Nav v1.1 §5.6 — completion-gate block. The gate text is the
+   objective's pass condition; when a secondary layer amended it (the
+   resolver concatenates onto the base gate) an amber "Amended by" pill
+   credits the contributing type. */
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.1));
+  border-radius: var(--radius-md, 8px);
+}
+
+.gateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gateEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.amendedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+.gateBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+/* Part D - greyed previous-gate history. Sits between the header and the
+ * current gate body: a muted block showing the pre-amendment ("Previously")
+ * text plus an attributed trail of what each secondary added. Quieter than the
+ * live gate so the current text stays primary. */
+.gateHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px dashed var(--color-border-subtle, rgba(242, 237, 227, 0.16));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 96%, #ffffff);
+}
+
+.gatePreviousLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
+}
+
+.gatePrevious {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.gateAmendments {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gateAmendment {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.62));
+}
+
+.gateAmendmentSource {
+  font-weight: 600;
+  color: color-mix(in srgb, #e8a958 80%, var(--color-text, #f2ede3));
+}
+
+/* Slice 1.12 — Stage Zero Vision bridge. Items satisfied by the
+ * VisionProfile render with a subtle "From Stage Zero Vision" chip and
+ * an evidence block beneath. Checkbox is disabled because the source of
+ * truth is the wizard, not the steward's manual toggle here. */
+
+.row[data-derived='true'] {
+  cursor: default;
+}
+
+.row[data-derived='true']:hover {
+  background: transparent;
+}
+
+.row[data-derived='true'] .checkbox {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.derivedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, #5dd39e 14%, transparent);
+  color: color-mix(in srgb, #5dd39e 92%, var(--color-text, #f2ede3));
+  border: 1px solid color-mix(in srgb, #5dd39e 28%, transparent);
+}
+
+.evidence {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.1));
+  border-left: 2px solid color-mix(in srgb, #5dd39e 55%, transparent);
+  border-radius: var(--radius-sm, 6px);
+}

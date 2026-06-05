@@ -28,6 +28,7 @@ import type {
   ActModuleId,
   PlanProjectTypeId,
 } from '@ogden/shared';
+import { ACT_MODULE_TO_DOMAIN } from '@ogden/shared';
 import { getModuleAffinityRank } from '../../../v3/act/data/projectTypeModuleAffinity.js';
 import css from './AffinityTelemetryDashboard.module.css';
 
@@ -236,7 +237,7 @@ export default function AffinityTelemetryDashboard() {
                   <th className={css.rowHeader}>{PROJECT_TYPE_LABEL[t]}</th>
                   {MODULES.map((m) => {
                     const cell = grid[t][m];
-                    const v1Rank = getModuleAffinityRank(t, m);
+                    const v1Rank = getModuleAffinityRank(t, ACT_MODULE_TO_DOMAIN[m]);
                     const observed = obs.get(m);
                     let delta: number | null = null;
                     if (cell.touchCount > 0 && observed != null && Number.isFinite(v1Rank)) {

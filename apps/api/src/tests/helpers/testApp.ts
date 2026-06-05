@@ -34,7 +34,16 @@ const queue: unknown[][] = [];
  */
 export const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) => {
   let settled: Promise<unknown[]> | undefined;
-  const run = () => (settled ??= Promise.resolve(queue.shift() ?? []));
+  const run = () =>
+    (settled ??= Promise.resolve().then(() => {
+      const rows = queue.shift() ?? [];
+      // A row-set carrying an `__error` marker (pushed via `enqueueError`)
+      // rejects instead of resolving — used to simulate DB faults such as a
+      // 23505 unique-violation that a route maps to a 409.
+      const err = (rows as { __error?: unknown }).__error;
+      if (err !== undefined) return Promise.reject(err);
+      return rows as unknown[];
+    }));
   return {
     then: (onFulfilled?: ((v: unknown[]) => unknown) | null, onRejected?: ((r: unknown) => unknown) | null) =>
       run().then(onFulfilled, onRejected),
@@ -58,6 +67,17 @@ mockDb.begin = async (cb: (tx: typeof mockDb) => unknown) => cb(mockDb);
 
 /** Push row(s) onto the mock DB queue. */
 export const enqueue = (...rows: unknown[]) => { queue.push(rows); };
+
+/**
+ * Push a row-set that REJECTS when awaited — simulates a DB fault (e.g. a
+ * Postgres `{ code: '23505' }` unique-violation that a route maps to 409).
+ * Consumes one queue slot, like `enqueue`.
+ */
+export const enqueueError = (err: unknown) => {
+  const marker: unknown[] = [];
+  (marker as { __error?: unknown }).__error = err;
+  queue.push(marker);
+};
 
 /** Clear all queued rows (call in beforeEach). */
 export const clearQueue = () => { queue.length = 0; };

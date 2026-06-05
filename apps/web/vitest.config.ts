@@ -17,6 +17,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Forks (not the default `threads` pool) are force-killed by tinypool on
+    // teardown. happy-dom can leave a pending OS handle, and the `threads` pool
+    // waits for it indefinitely on Windows → `vitest run` never exits and
+    // becomes a multi-day zombie. Forks + a bounded teardown guarantee exit.
+    pool: 'forks',
+    teardownTimeout: 10_000,
+    // Even with forks + a bounded teardown, vitest 2.1.x still hangs at exit
+    // after all files pass: tinypool's graceful pool.close() waits on a handle
+    // a happy-dom worker leaves alive and never returns (a multi-minute zombie
+    // on CI). The force-exit reporter ends the run from onFinished — which
+    // vitest awaits after results aggregate but before pool.close() — with the
+    // correct pass/fail code. 'default' is kept for the run summary.
+    reporters: ['default', './scripts/force-exit-reporter.mjs'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     // Inline zustand so its bare `react` import is rewritten by the
     // resolve.alias below (externalized deps bypass the alias and pull
@@ -51,6 +64,7 @@ export default defineConfig({
       '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
       '@ogden/shared/relationships': resolve(__dirname, '../../packages/shared/src/relationships/index.ts'),
+      '@ogden/shared/evidence': resolve(__dirname, '../../packages/shared/src/evidence/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
   },

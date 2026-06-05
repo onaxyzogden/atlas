@@ -1,0 +1,65 @@
+/*
+ * ActProgressBar — read-only field-verification strip (Plan Nav v1.1 §4.3).
+ * Sage track/fill matches the "complete" status accent used across the spine
+ * (ObjectiveCard / DecisionChecklist), so a full bar reads as "verified" at
+ * the same glance as a complete objective.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
+
+.headerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5dd39e;
+  font-variant-numeric: tabular-nums;
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, #5dd39e 14%, transparent);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  min-width: 0;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, #5dd39e 80%, var(--color-bg, #14191f));
+  transition: width 120ms ease;
+}
+
+.fill[data-complete='true'] {
+  background: #5dd39e;
+}

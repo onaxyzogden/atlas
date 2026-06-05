@@ -15,7 +15,19 @@ import { useUtilityStore } from '../../../../store/utilityStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useRotationPlanStore } from '../../../../store/rotationPlanStore.js';
+import { usePolycultureStore } from '../../../../store/polycultureStore.js';
+import { useCropStore } from '../../../../store/cropStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
+import { usePhaseStore } from '../../../../store/phaseStore.js';
+import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import { computeRestCompliancePct } from '../../../../features/livestock/rotationSequenceMath.js';
+import {
+  computeRotationMovesCompletedPct,
+  computeRotationSpinePresencePct,
+} from '../../../../features/livestock/rotationSequenceReadiness.js';
+import { computeSilvopastureIntegrationPct } from '../../../../features/agroforestry/guildLivestockMath.js';
+import { computeBeneficialHabitatPct } from '../../../../features/biodiversity/beneficialHabitatMath.js';
+import { computeLivingRootsCoveragePct } from '../../../../features/coverCrops/livingRootsMath.js';
 import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
@@ -41,12 +53,19 @@ export default function CriteriaForecastTab({ project }: Props) {
   const rotationPlan = useRotationPlanStore(
     (s) => s.byProject[project.id] ?? null,
   );
+  const allGuilds = usePolycultureStore((s) => s.guilds);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const designElements = useDesignElementsForProject(project.id);
+  const allPhases = usePhaseStore((s) => s.phases);
+  const allWorkItems = useWorkItemStore((s) => s.items);
 
   const currentValues = useMemo<Record<string, number>>(() => {
     const paddocks = allPaddocks.filter((p) => p.projectId === project.id);
     const utilities = allUtilities.filter((u) => u.projectId === project.id);
     const waterNodes = allWaterNodes.filter((n) => n.projectId === project.id);
     const structures = allStructures.filter((s2) => s2.projectId === project.id);
+    const declaredPhases = allPhases.filter((p) => p.projectId === project.id);
+    const todayISO = new Date().toISOString().slice(0, 10);
     const { paddockCount, passPct } = welfareSummaryForProject(
       paddocks,
       utilities,
@@ -60,6 +79,36 @@ export default function CriteriaForecastTab({ project }: Props) {
         paddocks,
         rotationPlan,
       ),
+      'livestock-rotation-spine-presence-pct':
+        computeRotationSpinePresencePct({
+          projectId: project.id,
+          paddocks,
+          plan: rotationPlan,
+          declaredPhases,
+          items: allWorkItems,
+        }),
+      'livestock-rotation-moves-completed-pct':
+        computeRotationMovesCompletedPct({
+          projectId: project.id,
+          todayISO,
+          items: allWorkItems,
+        }),
+      'silvopasture-integration-pct': computeSilvopastureIntegrationPct({
+        projectId: project.id,
+        cropAreas: allCropAreas,
+        designElements,
+        paddocks: allPaddocks,
+        guilds: allGuilds,
+      }),
+      'beneficial-organism-habitat-pct': computeBeneficialHabitatPct({
+        projectId: project.id,
+        guilds: allGuilds,
+        designElements,
+      }),
+      'living-roots-coverage-pct': computeLivingRootsCoveragePct({
+        projectId: project.id,
+        cropAreas: allCropAreas,
+      }),
     };
   }, [
     allPaddocks,
@@ -67,6 +116,11 @@ export default function CriteriaForecastTab({ project }: Props) {
     allWaterNodes,
     allStructures,
     rotationPlan,
+    allGuilds,
+    allCropAreas,
+    designElements,
+    allPhases,
+    allWorkItems,
     project.id,
   ]);
 

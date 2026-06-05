@@ -38,10 +38,15 @@ import {
   getDesignElementsForProject,
   removeDesignElement,
   removeStructure,
+  updateDesignElement,
 } from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
-import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
+import {
+  buildPaddockEditSchema,
+  buildHabitatFeatureEditSchema,
+  buildLineFeatureEditSchema,
+} from './layers/inlineEditSchemas.js';
 import {
   resolveSilvopastureHosts,
   listHostsForSelection,
@@ -50,6 +55,7 @@ import css from '../observe/components/SelectionFloater.module.css';
 
 const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
   guild: 'Guild',
+  'guild-member': 'Guild member',
   zone: 'Zone',
   crop: 'Crop area',
   paddock: 'Paddock',
@@ -58,6 +64,7 @@ const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
   fertility: 'Fertility node',
   water: 'Water node',
   utility: 'Utility run',
+  'utility-point': 'Utility point',
   setback: 'Setback ring',
   flow: 'Flow connector',
   transect: 'Monitoring transect',
@@ -73,6 +80,12 @@ const POLYGON_KINDS: ReadonlySet<PlanSelectionItem['kind']> = new Set([
   // record's geometry is a Polygon — checked dynamically below.
   'design-element',
 ]);
+
+/** Plain LineString DesignElement kinds whose only inline-edit affordance is
+ *  the real-world `widthM` override + label (no bespoke metadata axis).
+ *  `swale` is excluded (edited via its own water form); habitat lines like
+ *  `insectary-strip` go through `buildHabitatFeatureEditSchema`. */
+const LINE_EDIT_KINDS: ReadonlySet<string> = new Set(['hedgerow', 'path', 'road']);
 
 /** Returns the geometry type for a design-element selection (used to
  *  decide whether Edit-vertices is available). */
@@ -211,6 +224,48 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
       : KIND_LABEL[single.kind]
     : `${items.length} selected`;
 
+  const habitatElement =
+    single && single.kind === 'design-element' && single.projectId
+      ? getDesignElementsForProject(single.projectId).find(
+          (el) => el.id === single.id && el.category === 'habitat',
+        ) ?? null
+      : null;
+
+  const lineElement =
+    single && single.kind === 'design-element' && single.projectId
+      ? getDesignElementsForProject(single.projectId).find(
+          (el) => el.id === single.id && LINE_EDIT_KINDS.has(el.kind),
+        ) ?? null
+      : null;
+
+  const onOpenHabitatEdit = () => {
+    if (!habitatElement || !single || !single.projectId) return;
+    const projectId = single.projectId;
+    const centroid = turf.centroid(turf.feature(habitatElement.geometry));
+    const [lng, lat] = centroid.geometry.coordinates as [number, number];
+    const designElements = getDesignElementsForProject(projectId);
+    useInlineFormStore.getState().open({
+      ...buildHabitatFeatureEditSchema(
+        habitatElement,
+        projectId,
+        updateDesignElement,
+        designElements,
+      ),
+      anchor: [lng, lat],
+    });
+  };
+
+  const onOpenLineEdit = () => {
+    if (!lineElement || !single || !single.projectId) return;
+    const projectId = single.projectId;
+    const centroid = turf.centroid(turf.feature(lineElement.geometry));
+    const [lng, lat] = centroid.geometry.coordinates as [number, number];
+    useInlineFormStore.getState().open({
+      ...buildLineFeatureEditSchema(lineElement, projectId, updateDesignElement),
+      anchor: [lng, lat],
+    });
+  };
+
   const onOpenPaddockEdit = () => {
     if (!single || single.kind !== 'paddock') return;
     const pd = useLivestockStore
@@ -246,6 +301,26 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
           className={css.count}
           onClick={onOpenPaddockEdit}
           title="Edit paddock"
+          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
+        >
+          {countLabel}
+        </button>
+      ) : habitatElement ? (
+        <button
+          type="button"
+          className={css.count}
+          onClick={onOpenHabitatEdit}
+          title="Edit habitat feature"
+          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
+        >
+          {countLabel}
+        </button>
+      ) : lineElement ? (
+        <button
+          type="button"
+          className={css.count}
+          onClick={onOpenLineEdit}
+          title="Edit width & label"
           style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
         >
           {countLabel}

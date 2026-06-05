@@ -6,6 +6,8 @@ import {
   phaseNotesCaptured,
   regionalCompleteness,
   regionalCounts,
+  rosterCapacityHours,
+  rosterCompleteness,
   stewardCompleteness,
   totalHoursPerWeek,
   visionCompleteness,
@@ -20,24 +22,22 @@ describe('stewardCompleteness', () => {
 
   it('counts only non-empty fields', () => {
     const c = stewardCompleteness({
-      name: 'A',
+      relationship: 'lead',
       age: 30,
       occupation: '',
       lifestyle: 'active',
       maintenanceHrsInitial: 0,
       skills: [],
     });
-    // name, age, lifestyle, maintenanceHrsInitial=0 (truthy as number? we use isFilled)
-    // 0 → isFilled false (zero is allowed via number, but our isFilled treats 0 as truthy because !==undefined && !=='')
-    // Actually 0 is not '' and not undefined and not array → counts as filled.
-    expect(c.filled).toBe(4); // name, age, lifestyle, maintenanceHrsInitial(0)
+    // relationship, age, lifestyle, maintenanceHrsInitial=0 (0 is filled per isFilled)
+    expect(c.filled).toBe(4);
     expect(c.total).toBe(8);
     expect(c.pct).toBe(50);
   });
 
   it('reaches 100% with all 8 fields', () => {
     const c = stewardCompleteness({
-      name: 'A',
+      relationship: 'lead',
       age: 30,
       occupation: 'farmer',
       lifestyle: 'active',
@@ -91,6 +91,38 @@ describe('totalHoursPerWeek', () => {
   });
 });
 
+describe('roster rollups', () => {
+  it('rosterCapacityHours sums hours across all stewards', () => {
+    expect(rosterCapacityHours([])).toBe(0);
+    expect(
+      rosterCapacityHours([
+        { maintenanceHrsInitial: 20, maintenanceHrsOngoing: 8 },
+        { maintenanceHrsInitial: 10, maintenanceHrsOngoing: 2 },
+      ]),
+    ).toBe(40);
+  });
+
+  it('rosterCompleteness averages per-steward completeness', () => {
+    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 8, pct: 0 });
+    const c = rosterCompleteness([
+      {
+        relationship: 'lead',
+        age: 30,
+        occupation: 'farmer',
+        lifestyle: 'active',
+        maintenanceHrsInitial: 20,
+        maintenanceHrsOngoing: 8,
+        budget: '$10k',
+        skills: ['carpentry'],
+      }, // 100%
+      {}, // 0%
+    ]);
+    expect(c.pct).toBe(50);
+    expect(c.total).toBe(16);
+    expect(c.filled).toBe(8);
+  });
+});
+
 describe('regionalCounts + regionalCompleteness', () => {
   it('handles undefined regional', () => {
     const counts = regionalCounts(undefined);
@@ -126,7 +158,7 @@ describe('regionalCounts + regionalCompleteness', () => {
 });
 
 describe('visionCounts + visionCompleteness', () => {
-  it('counts list fields on the steward', () => {
+  it('counts list fields on the shared vision', () => {
     const counts = visionCounts({
       coreFunctions: ['a', 'b'],
       successMetrics: ['x'],
@@ -150,7 +182,8 @@ describe('visionCounts + visionCompleteness', () => {
         moontranceIdentity: null,
         conceptOverlayVisible: false,
         milestones: [],
-        steward: { vision: 'a', coreFunctions: ['x'] },
+        stewardProfiles: {},
+        sharedVision: { statement: 'a', coreFunctions: ['x'] },
       }).pct,
     ).toBeGreaterThan(0);
   });
@@ -158,7 +191,7 @@ describe('visionCounts + visionCompleteness', () => {
 
 describe('moduleCompleteness + healthLabel + phaseNotesCaptured', () => {
   it('moduleCompleteness rolls up weighted', () => {
-    const empty = moduleCompleteness(undefined);
+    const empty = moduleCompleteness(undefined, []);
     expect(empty.pct).toBe(0);
   });
 
@@ -181,6 +214,8 @@ describe('moduleCompleteness + healthLabel + phaseNotesCaptured', () => {
         moontranceIdentity: null,
         conceptOverlayVisible: false,
         milestones: [],
+        stewardProfiles: {},
+        sharedVision: {},
       }),
     ).toEqual({ filled: 2, total: 3 });
   });

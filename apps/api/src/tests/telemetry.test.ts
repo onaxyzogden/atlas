@@ -131,6 +131,103 @@ describe('POST /api/v1/telemetry/act-interactions', () => {
   });
 });
 
+const sampleClientError = (overrides: Partial<Record<string, unknown>> = {}) => ({
+  sessionId: 'sess-client-1',
+  occurredAt: '2026-05-21T12:00:00.000Z',
+  projectId: null,
+  source: 'persist_rehydrate',
+  name: 'SyntaxError',
+  message: 'Unexpected token',
+  context: { persistKey: 'ogden-conventional-crops' },
+  ...overrides,
+});
+
+describe('POST /api/v1/telemetry/client-errors', () => {
+  it('returns 201 with ingested count after a happy-path batch', async () => {
+    enqueue();
+    enqueue();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        events: [
+          sampleClientError(),
+          sampleClientError({
+            source: 'api_client',
+            projectId: TEST_PROJ_ID,
+            name: 'ApiError',
+            message: 'Request failed',
+            stack: 'ApiError: Request failed\n  at request',
+            url: 'https://atlas.ogden.ag/projects/x',
+          }),
+        ],
+      },
+    });
+
+    expect(res.statusCode).toBe(201);
+    const body = JSON.parse(res.body);
+    expect(body.data.ingested).toBe(2);
+  });
+
+  it('accepts a null projectId (global-store failure)', async () => {
+    enqueue();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { events: [sampleClientError({ projectId: null })] },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(JSON.parse(res.body).data.ingested).toBe(1);
+  });
+
+  it('returns 401 without auth', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      payload: { events: [sampleClientError()] },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 422 for an unknown source', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { events: [sampleClientError({ source: 'mystery' })] },
+    });
+    expect(res.statusCode).toBe(422);
+    const body = JSON.parse(res.body);
+    expect(body.data).toBeNull();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 422 when batch is empty', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { events: [] },
+    });
+    expect(res.statusCode).toBe(422);
+    expect(JSON.parse(res.body).error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 422 when batch exceeds the 50-event cap', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/client-errors',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { events: Array.from({ length: 51 }, () => sampleClientError()) },
+    });
+    expect(res.statusCode).toBe(422);
+    expect(JSON.parse(res.body).error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
 describe('GET /api/v1/telemetry/act-interactions/aggregate', () => {
   it('returns 200 with grouped rows', async () => {
     enqueue(

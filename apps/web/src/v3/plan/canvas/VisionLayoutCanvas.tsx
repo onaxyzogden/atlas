@@ -43,12 +43,14 @@ import { useActiveElementKind } from './useToolIdToElementKind.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import PlanDataLayers from '../layers/PlanDataLayers.js';
 import PlanScheduledMovesOverlay from '../layers/PlanScheduledMovesOverlay.js';
+import PlanWaterRouterOverlay from '../layers/PlanWaterRouterOverlay.js';
 import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
@@ -170,6 +172,12 @@ export default function VisionLayoutCanvas({
             setMode={setMode}
           />
           <BaseMapCard stage="plan" hiddenOverlays={VISION_DEAD_OVERLAYS} />
+          {/* Captured-map PDF export (Master Plan / Base Map / Zone Map /
+              Planting Plan) now lives in the DesignToolRail (right edge) as the
+              "Export sheet" button — see useMapSheetExport + DesignToolRail.
+              The floating green pill that used to sit here was relocated so
+              export is one consistent control alongside the other map tools,
+              available on both the Current and Vision canvases. */}
           <SilvopasturePopover projectId={projectId} />
           <SilvopastureMemberOutline map={map} projectId={projectId} />
           <MapToolbar
@@ -186,6 +194,7 @@ export default function VisionLayoutCanvas({
           <ObserveAnnotationLayers map={map} projectId={projectId} />
           <PlanObserveSelectionHandler map={map} />
           <InlineFeaturePopover map={map} />
+          <SectorCompassOverlay projectId={projectId} map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           {/* Plan-data layers in non-editable mode: paddocks / zones /
@@ -197,6 +206,7 @@ export default function VisionLayoutCanvas({
               action working under 3D. */}
           <PlanDataLayers map={map} projectId={projectId} editable={false} />
           <PlanScheduledMovesOverlay map={map} projectId={projectId} />
+          <PlanWaterRouterOverlay map={map} projectId={projectId} />
           <Plan3DSelectionHandler map={map} />
           <PlanVertexEditHandler map={map} />
           <PlanSelectionFloater />

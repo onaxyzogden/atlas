@@ -10,6 +10,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
@@ -28,6 +30,14 @@ export interface GuildMember {
   /** plantDatabase.ts id. */
   speciesId: string;
   layer: GuildLayer;
+  /**
+   * Guild-local offset from `Guild.center` as `[east, north]` in metres.
+   * When undefined, the canopy-union math derives a deterministic ring
+   * layout from `layer` + index-within-layer
+   * (`features/agroforestry/guildMemberPositions.ts`). Future drag-to-place
+   * UI will write this field directly.
+   */
+  position?: [number, number];
 }
 
 export interface Guild {
@@ -134,7 +144,9 @@ export const usePolycultureStore = create<PolycultureState>()(
     ),
     {
       name: 'ogden-polyculture',
-      version: 3,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
+      version: 4,
       migrate: (persisted, version) => {
         const s = ((persisted as Partial<PolycultureState>) ?? {}) as Partial<PolycultureState>;
         let guilds: Guild[] = s.guilds ?? [];
@@ -149,10 +161,14 @@ export const usePolycultureStore = create<PolycultureState>()(
           }));
           species = species.map((sp) => ({ ...sp, speciesId: resolveSpeciesId(sp.speciesId) }));
         }
+        // v3→v4 (2026-05-21): GuildMember gains an optional `position?:
+        // [number, number]` (guild-local offset in metres). No-op for
+        // existing rows — undefined position triggers the ring-layout
+        // auto-positioner in the canopy-union math.
         return { guilds, species } as PolycultureState;
       },
     },
   ),
 );
 
-usePolycultureStore.persist.rehydrate();
+rehydrateWithLogging(usePolycultureStore);

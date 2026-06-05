@@ -19,9 +19,18 @@ export function computeMissionScore(
   input: AllFeaturesInput,
   breakEven: BreakEvenResult,
   weights: MissionWeights,
+  /**
+   * Optional ecological mission uplift, in ecological-score *points* (0..N),
+   * contributed by applied material substitutions (Rec #5 v2). COVENANT
+   * BOUNDARY: this routes into the ecological component ONLY and is clamped
+   * to [0, 100]. `scoreFinancial` does not see it and is byte-identical with
+   * or without uplift (guarded by the covenant test). Defaults to 0, so all
+   * existing callers are unaffected.
+   */
+  ecoUplift = 0,
 ): MissionScore {
   const financial = scoreFinancial(breakEven);
-  const ecological = scoreEcological(input);
+  const ecological = Math.min(100, scoreEcological(input) + Math.max(0, ecoUplift));
   const spiritual = scoreSpiritual(input);
   const community = scoreCommunity(input);
 

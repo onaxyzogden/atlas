@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CostRangeSchema } from './costRange.schema.js';
 
 // ─── Export type enum ─────────────────────────────────────────────────────────
 
@@ -19,12 +20,16 @@ export const ExportType = z.enum([
   'sectors_zones_report',
   'built_environment_report',
   'human_context_report',
+  'master_plan',
+  'base_map_sheet',
+  'zone_map_sheet',
+  'planting_plan',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
 // ─── Payload schemas (client-side data sent with request) ─────────────────────
 
-const CostRange = z.object({ low: z.number(), mid: z.number(), high: z.number() });
+const CostRange = CostRangeSchema;
 
 export const FieldNotesPayload = z.object({
   entries: z.array(z.object({
@@ -98,6 +103,51 @@ export const FinancialPayload = z.object({
     community: z.number(),
   }),
   assumptions: z.array(z.string()),
+  /**
+   * Natural-capital appreciation — annualized ecosystem-services valuation of
+   * the stewarded land. Covenant framing: this is informational appreciation
+   * of stewardship value, NOT a financial yield to capital partners.
+   * Derived from `computeEcosystemValuation()` on the web client.
+   */
+  naturalCapital: z.object({
+    totalUsdHaYr: z.number(),
+    totalUsdYr: z.number().nullable(),
+    dominantService: z.string(),
+    narrative: z.string(),
+  }).optional(),
+  /**
+   * §D.7 J-curve payload — the Apricot-Lane Phase 3 bridge from
+   * regeneration spend to natural-capital appreciation. Mirrors the
+   * D.1 `TransitionYear[]` shape (subset of fields needed by the PDF
+   * renderer) plus the D.3 cumulative natural-capital appreciation
+   * by year and the precomputed trough / breakeven markers from
+   * `jCurveTrough(...)`.
+   *
+   * `chartSvg` is an optional pre-rendered inline SVG markup string —
+   * the web client produces it from the same `<JCurveChart>` component
+   * shown in-app, serialised via `renderToStaticMarkup`. When absent,
+   * the PDF template falls back to a server-side ASCII sparkline so
+   * the section still anchors the narrative.
+   *
+   * Covenant: appreciation of stewarded land value, not investor
+   * yield. See [[fiqh-csra-erased-2026-05-04]].
+   */
+  jCurve: z.object({
+    transitionYears: z.array(z.object({
+      year: z.number(),
+      phase: z.enum(['establishment', 'build-up', 'maturation']),
+      capex: z.number(),
+      opex: z.number(),
+      revenue: z.number(),
+      netCashflow: z.number(),
+      cumulativeNetCashflow: z.number(),
+    })),
+    naturalCapitalAppreciationByYear: z.record(z.number()).optional(),
+    troughYear: z.number().nullable(),
+    troughValue: z.number(),
+    breakevenYear: z.number().nullable(),
+    chartSvg: z.string().optional(),
+  }).optional(),
 });
 export type FinancialPayload = z.infer<typeof FinancialPayload>;
 
@@ -430,17 +480,44 @@ export const BuiltEnvironmentPayload = z.object({
 });
 export type BuiltEnvironmentPayload = z.infer<typeof BuiltEnvironmentPayload>;
 
+/** One steward in the roster: member identity + profile overlay + derived stats. */
+export const StewardPayload = z.object({
+  /** Member userId (roster key). */
+  userId: z.string(),
+  /** Display name from the members roster. */
+  name: z.string().optional(),
+  /** App-permission role (owner/designer/reviewer/viewer). */
+  role: z.string().optional(),
+  /** Domain relationship to the project (lead/co-steward/family/ally/contributor). */
+  relationship: z.string().optional(),
+  age: z.number().optional(),
+  occupation: z.string().optional(),
+  lifestyle: z.enum(['active', 'sedentary']).optional(),
+  maintenanceHrsInitial: z.number().optional(),
+  maintenanceHrsOngoing: z.number().optional(),
+  budget: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  /** This steward's personal vision (hybrid model). */
+  personalVision: z.string().optional(),
+  /** This steward's personal experience goals (hybrid model). */
+  personalExperienceGoals: z.array(z.string()).optional(),
+  /** Derived: initial + ongoing hours/week. */
+  hoursPerWeek: z.number().optional(),
+  /** Derived: per-steward profile completeness 0–100. */
+  completenessPct: z.number().optional(),
+  /** Derived: per-steward archetype. */
+  archetype: z.object({
+    name: z.string(),
+    blurb: z.string(),
+  }).optional(),
+});
+export type StewardPayload = z.infer<typeof StewardPayload>;
+
 export const HumanContextPayload = z.object({
-  steward: z.object({
-    name: z.string().optional(),
-    age: z.number().optional(),
-    occupation: z.string().optional(),
-    lifestyle: z.enum(['active', 'sedentary']).optional(),
-    maintenanceHrsInitial: z.number().optional(),
-    maintenanceHrsOngoing: z.number().optional(),
-    budget: z.string().optional(),
-    skills: z.array(z.string()).optional(),
-    vision: z.string().optional(),
+  stewards: z.array(StewardPayload),
+  /** Project-level shared vision package (hybrid model). */
+  vision: z.object({
+    statement: z.string().optional(),
     coreFunctions: z.array(z.string()).optional(),
     experienceGoals: z.array(z.string()).optional(),
     successMetrics: z.array(z.string()).optional(),
@@ -471,21 +548,98 @@ export const HumanContextPayload = z.object({
     note: z.string(),
     targetDate: z.string().nullable(),
   })),
-  archetype: z.object({
-    name: z.string(),
-    blurb: z.string(),
-  }),
   totals: z.object({
     overallPct: z.number(),
     stewardPct: z.number(),
     regionalPct: z.number(),
     visionPct: z.number(),
+    /** Combined hours/week rolled across all stewards. */
     totalHoursPerWeek: z.number(),
+    /** Number of stewards in the roster. */
+    stewardCount: z.number(),
     milestonesDefined: z.number(),
     moodboardImageCount: z.number(),
   }),
 });
 export type HumanContextPayload = z.infer<typeof HumanContextPayload>;
+
+// ─── Master plan / map sheet payload ──────────────────────────────────────────
+
+/** A single map image captured client-side from the MapLibre canvas. */
+export const MapSheetImage = z.object({
+  /** PNG data URL from map.getCanvas().toDataURL() (needs preserveDrawingBuffer). */
+  dataUrl: z.string(),
+  caption: z.string().optional(),
+  /** Natural canvas pixel dimensions, used to preserve aspect ratio in the PDF. */
+  widthPx: z.number().optional(),
+  heightPx: z.number().optional(),
+});
+export type MapSheetImage = z.infer<typeof MapSheetImage>;
+
+/** A legend swatch describing a feature class drawn on the captured map. */
+export const MapLegendEntry = z.object({
+  label: z.string(),
+  color: z.string(),
+  kind: z.enum(['fill', 'line', 'point']).optional(),
+});
+export type MapLegendEntry = z.infer<typeof MapLegendEntry>;
+
+/**
+ * Shared payload for the captured-map exports (master_plan, base_map_sheet,
+ * zone_map_sheet). The map image(s) are required; the zone roster and
+ * narrative are optional enrichments — the template falls back to deriving an
+ * inventory from the project's persisted design features when absent.
+ */
+export const MasterPlanPayload = z.object({
+  mapImages: z.array(MapSheetImage).min(1),
+  legend: z.array(MapLegendEntry).optional(),
+  /** Free-form designer narrative rendered above the inventory. */
+  narrative: z.string().optional(),
+  /** Pre-computed zone roster (area computed client-side via turf). */
+  zones: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    category: z.string(),
+    primaryUse: z.string().optional(),
+    areaM2: z.number().optional(),
+    permacultureZone: z.number().optional(),
+    phaseTag: z.string().optional(),
+  })).optional(),
+  prevailingWind: z.string().optional(),
+});
+export type MasterPlanPayload = z.infer<typeof MasterPlanPayload>;
+
+/**
+ * A single row in the planting-plan species schedule (OSU PDC Weeks 7–8).
+ * Merged client-side from guild members (polycultureStore) and crop-area
+ * species (cropStore); see `buildPlantingSchedule`.
+ */
+export const PlantingScheduleRow = z.object({
+  /** Resolved common name from the plant catalog, else raw steward text. */
+  species: z.string(),
+  latinName: z.string().optional(),
+  /** Food-forest layer (guild member) or crop-type-derived layer. */
+  layer: z.string().optional(),
+  /** Guild name or crop-area name this row came from. */
+  source: z.string(),
+  sourceKind: z.enum(['guild', 'crop_area']),
+  /** Guild member count for this species within its guild. */
+  count: z.number().optional(),
+  /** Catalog `spacingM.inRow` (guild) or `cropArea.treeSpacingM` (crop area). */
+  spacingM: z.number().optional(),
+  /** Crop-area area (m²); guild rows leave this undefined. */
+  areaM2: z.number().optional(),
+});
+export type PlantingScheduleRow = z.infer<typeof PlantingScheduleRow>;
+
+/**
+ * Planting-plan export payload — the captured crop-zone map (reusing the
+ * master-plan map/legend/narrative base) plus a merged species schedule.
+ */
+export const PlantingPlanPayload = MasterPlanPayload.extend({
+  schedule: z.array(PlantingScheduleRow).default([]),
+});
+export type PlantingPlanPayload = z.infer<typeof PlantingPlanPayload>;
 
 // ─── Request / Response ───────────────────────────────────────────────────────
 
@@ -503,6 +657,8 @@ export const CreateExportInput = z.object({
     sectorsZones: SectorsZonesPayload.optional(),
     builtEnvironment: BuiltEnvironmentPayload.optional(),
     humanContext: HumanContextPayload.optional(),
+    mapSheet: MasterPlanPayload.optional(),
+    plantingPlan: PlantingPlanPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;

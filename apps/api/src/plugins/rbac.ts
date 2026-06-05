@@ -7,15 +7,24 @@
  *   3. No match → ForbiddenError
  *
  * Decorates:
- *   - req.projectRole  ('owner' | 'designer' | 'reviewer' | 'viewer')
+ *   - req.projectRole  (any ProjectRole variant — the 4 legacy roles plus
+ *                       the 4 OLOS spec-shaped roles added in Phase 5
+ *                       Slice 5.1: primary_steward | team_member |
+ *                       contractor | landowner)
  *   - req.projectId    (resolved UUID)
  *   - fastify.resolveProjectRole  (preHandler)
  *   - fastify.requireRole(...roles) (preHandler factory)
+ *
+ * `requireRole` runs the allow list through `roleSatisfies` from the
+ * shared `projectRoleCapabilities` helper rather than literal
+ * `Array.includes`, so the 22 existing `requireRole('owner', 'designer')`
+ * callsites accept a granted spec-shaped role (e.g. `primary_steward`,
+ * `team_member`) transparently via the documented alias map.
  */
 
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import type { ProjectRole } from '@ogden/shared';
+import { roleSatisfies, type ProjectRole } from '@ogden/shared';
 import { ForbiddenError, NotFoundError } from '../lib/errors.js';
 
 declare module 'fastify' {
@@ -87,9 +96,11 @@ export default fp(async (fastify: FastifyInstance) => {
     'requireRole',
     (...allowed: ProjectRole[]) => {
       return async (req: FastifyRequest, _reply: FastifyReply) => {
-        if (!allowed.includes(req.projectRole)) {
+        const granted = req.projectRole;
+        const ok = allowed.some((required) => roleSatisfies(granted, required));
+        if (!ok) {
           throw new ForbiddenError(
-            `This action requires one of: ${allowed.join(', ')}. Your role: ${req.projectRole}`,
+            `This action requires one of: ${allowed.join(', ')}. Your role: ${granted}`,
           );
         }
       };

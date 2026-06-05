@@ -122,7 +122,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   margin: 0 0 10px;
 }
 
@@ -193,25 +193,25 @@
 }
 .status_complete { color: var(--color-accent); }
 .status_pending { color: var(--color-primary); }
-.status_unavailable { color: rgba(180, 165, 140, 0.3); }
+.status_unavailable { color: var(--color-text-subtle); }
 .status_failed { color: var(--color-error-muted); }
 
 .accordionScoreValue {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.8);
+  color: var(--color-text);
   flex-shrink: 0;
 }
 
 .accordionWeight {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   flex-shrink: 0;
 }
 
 .accordionChevron {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -228,13 +228,13 @@
 
 .explainRow {
   font-size: 11px;
-  color: rgba(232, 220, 200, 0.7);
+  color: var(--color-text);
   line-height: 1.6;
 }
 
 .explainLabel {
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-right: 4px;
 }
 
@@ -256,19 +256,19 @@
 
 .breakdownName {
   flex: 1;
-  color: rgba(232, 220, 200, 0.65);
+  color: var(--color-text);
   text-transform: capitalize;
 }
 
 .breakdownVal {
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.8);
+  color: var(--color-text);
   flex-shrink: 0;
 }
 
 .breakdownSource {
   font-size: 9px;
-  color: rgba(180, 165, 140, 0.35);
+  color: var(--color-text-subtle);
   flex-shrink: 0;
 }
 
@@ -289,19 +289,19 @@
 .gapName {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.8);
+  color: var(--color-text);
   margin-bottom: 3px;
 }
 
 .gapStatus {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   margin-bottom: 4px;
 }
 
 .gapImpact {
   font-size: 11px;
-  color: rgba(232, 220, 200, 0.6);
+  color: var(--color-text);
   line-height: 1.5;
 }
 
@@ -318,7 +318,7 @@
   outline: none;
 }
 .glossarySearch::placeholder {
-  color: rgba(180, 165, 140, 0.35);
+  color: var(--color-text-subtle);
 }
 .glossarySearch:focus {
   border-color: rgba(var(--color-gold-rgb), 0.3);
@@ -334,7 +334,7 @@
   display: flex;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--color-hairline);
   align-items: baseline;
 }
 
@@ -348,13 +348,13 @@
 
 .glossaryDef {
   font-size: 11px;
-  color: rgba(232, 220, 200, 0.6);
+  color: var(--color-text);
   line-height: 1.5;
 }
 
 .glossaryEmpty {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   font-style: italic;
   padding: 8px 0;
   text-align: center;

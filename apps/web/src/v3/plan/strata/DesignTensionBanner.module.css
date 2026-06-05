@@ -1,0 +1,221 @@
+/*
+ * DesignTensionBanner — collapsible design-tension list at the top of the Plan
+ * objective column (Plan Nav v1.1 §8). Amber treatment (tensions are advisory
+ * friction, not failure), rounded surface consistent with CyclicalReviewBanner.
+ * The highlight ring is STATIC (no animation) by design, so it is inherently
+ * safe under prefers-reduced-motion.
+ */
+
+.banner {
+  /* The banner sits at the top of the Plan column's scrolling flex section.
+     Without flex-shrink:0 the column's default shrink collapses the banner to
+     a sliver (the objective list overflows the section), so pin its height and
+     let the section scroll instead. */
+  flex: 0 0 auto;
+  margin: 0 0 4px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e8a958 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--color-text, #f2ede3);
+  transition: background 120ms ease;
+}
+
+.header:hover {
+  background: color-mix(in srgb, #e8a958 8%, transparent);
+}
+
+.header:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: -2px;
+}
+
+.iconWrap {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, #e8a958 22%, transparent);
+  color: #e8a958;
+}
+
+.headerText {
+  flex: 1 1 auto;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 80%, #ffffff);
+}
+
+.row:has(.rowButton):hover {
+  border-color: color-mix(in srgb, #e8a958 45%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 74%, #ffffff);
+}
+
+.row[data-highlight='true'] {
+  border-color: color-mix(in srgb, #e8a958 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #e8a958 30%, transparent);
+}
+
+/* Interactive row: a full-bleed button wrapping the row body. Transparent so
+   the row's surface/ring (on the <li>) still reads as the visual container. */
+.rowButton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.rowButton:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.rowFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* "Show in plan" affordance — only rendered on interactive rows. Reveals fully
+   on row hover/focus; sits at reduced opacity at rest so the row stays calm. */
+.affordance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #e8a958;
+  opacity: 0.65;
+  transition: opacity 120ms ease;
+}
+
+.rowButton:hover .affordance,
+.rowButton:focus-visible .affordance {
+  opacity: 1;
+}
+
+.rowBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.resolvePill {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  white-space: nowrap;
+}
+
+/* Cross-stratum hints — "Also in {Stratum} (n)" chips for the strata a
+   tension's concerned objectives live in OTHER than the one the row navigates
+   to. Sibling of .rowButton (never nested — avoids an invalid button-in-button).
+   Each chip navigates + re-flashes that stratum. */
+.crossStratumHints {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+}
+
+.hintsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.hintChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 9px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, #e8a958 45%, transparent);
+  background: color-mix(in srgb, #e8a958 10%, transparent);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e8a958;
+  white-space: nowrap;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.hintChip:hover {
+  background: color-mix(in srgb, #e8a958 20%, transparent);
+  border-color: color-mix(in srgb, #e8a958 65%, transparent);
+}
+
+.hintChip:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: 2px;
+}

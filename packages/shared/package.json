@@ -28,6 +28,14 @@
     "./regeneration": {
       "types": "./src/regeneration/index.ts",
       "default": "./src/regeneration/index.ts"
+    },
+    "./evidence": {
+      "types": "./src/evidence/index.ts",
+      "default": "./src/evidence/index.ts"
+    },
+    "./fieldVerification": {
+      "types": "./src/fieldVerification/index.ts",
+      "default": "./src/fieldVerification/index.ts"
     }
   },
   "scripts": {

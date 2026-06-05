@@ -1,0 +1,383 @@
+/*
+ * SecondaryAddModal - mid-project secondary-type addition surface (Plan
+ * Navigation Spec v1.1 section 9). Shares the rounded gold-accented modal
+ * recipe used by CyclicalReviewModal / StratumUnlockCelebration so it sits
+ * visually inside the current Plan aesthetic. Wider card to host the secondary
+ * picker + consequences preview. Tokens + CSS Modules only; no flat/dark
+ * inline styling.
+ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: secondaryAddFade 160ms ease-out;
+}
+
+.card {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 28px 24px 22px;
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 3px color-mix(in srgb, var(--color-gold-brand, #c4a265) 14%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: secondaryAddRise 220ms ease-out;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.close:hover {
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 22%, transparent);
+  color: var(--color-gold-brand, #c4a265);
+  margin-bottom: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text, #f2ede3);
+  line-height: 1.25;
+}
+
+.copy {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+/* Plan Nav v1.1 §8.3 — manage surface: current secondary types with a Remove
+   control each, above the add picker. Quiet sectioning so it reads as a list,
+   not another call to action. */
+.currentWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.currentList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.currentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e8a958 30%, transparent);
+  background: color-mix(in srgb, #e8a958 7%, transparent);
+}
+
+.currentLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, var(--color-danger, #d9776b) 45%, transparent);
+  background: transparent;
+  color: color-mix(in srgb, var(--color-danger, #d9776b) 92%, var(--color-text, #f2ede3));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.removeButton:hover {
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger, #d9776b) 70%, transparent);
+}
+
+.removeButton:focus-visible {
+  outline: 2px solid var(--color-danger, #d9776b);
+  outline-offset: 2px;
+}
+
+.confirmGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.confirmHint {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.confirmRemove {
+  padding: 5px 12px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, var(--color-danger, #d9776b) 65%, transparent);
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 26%, transparent);
+  color: color-mix(in srgb, var(--color-danger, #d9776b) 96%, var(--color-text, #f2ede3));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.confirmRemove:hover {
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 38%, transparent);
+}
+
+.confirmRemove:focus-visible {
+  outline: 2px solid var(--color-danger, #d9776b);
+  outline-offset: 2px;
+}
+
+.confirmCancel {
+  padding: 5px 10px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.confirmCancel:hover {
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.confirmCancel:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.pickerWrap {
+  margin-top: 6px;
+}
+
+.consequences {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+}
+
+.consequencesEyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.consequenceList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.consequence {
+  position: relative;
+  padding-left: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.consequence::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-success, #5dd39e) 70%, transparent);
+}
+
+.consequence[data-tone='reopen']::before {
+  background: color-mix(in srgb, #e8a958 80%, transparent);
+}
+
+.consequence[data-tone='observe']::before {
+  background: color-mix(in srgb, var(--color-info, #5aa9c4) 80%, transparent);
+}
+
+.strong {
+  color: var(--color-text, #f2ede3);
+  font-weight: 600;
+}
+
+.tensionWrap {
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.secondary,
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.secondary {
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+.secondary:hover {
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.primary {
+  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 65%, transparent);
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 28%, transparent);
+  color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 96%, var(--color-text, #f2ede3));
+}
+
+.primary:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 40%, transparent);
+  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 85%, transparent);
+}
+
+.primary:active,
+.secondary:active {
+  transform: translateY(1px);
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+@keyframes secondaryAddFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes secondaryAddRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .card {
+    animation: none;
+  }
+}

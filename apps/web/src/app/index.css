@@ -28,6 +28,18 @@ html {
   }
 }
 
+/* Class-based fallback for headless capture UAs (Claude Code preview) that
+   do not report prefers-reduced-motion. Set by the UA sniff in main.tsx. */
+.reduce-motion html { scroll-behavior: auto; }
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -70,6 +82,14 @@ body {
 }
 .maplibregl-ctrl-bottom-left {
   bottom: 8px !important;
+  /* Center the native scale bar along the bottom edge instead of the
+     bottom-left corner, where the floating MapToolbar dock would hide it. */
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+/* Zero MapLibre's default 10px left margin so the control lands truly centered. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+  margin-left: 0 !important;
 }
 
 /* ─── Left toolbar scrollbar hide ────────────────────────────────────────── */
@@ -134,6 +154,20 @@ body {
   #root { height: auto; overflow: visible; }
 }
 
+/* ─── Showcase routes ────────────────────────────────────────────────────
+ * Public scrollytelling pages (/showcase/three-streams/*) need the document
+ * to scroll. Authed app shell locks body at 100vh; showcase routes opt-in
+ * to document scroll by toggling a `showcase-scroll` body class on mount.
+ */
+body.showcase-scroll {
+  overflow: auto;
+  height: auto;
+}
+body.showcase-scroll #root {
+  height: auto;
+  overflow: visible;
+}
+
 /* ─── Left tool spine buttons ─────────────────────────────────────────────
  * Shared styles for the 40 px icon-only triggers used by Cross-section,
  * Viewshed, Measure, Historical, and OSM overlays inside
@@ -150,7 +184,7 @@ body {
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #c4b49a;
+  color: var(--color-text);
   cursor: pointer;
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
   padding: 0;
@@ -158,7 +192,7 @@ body {
 }
 .spine-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: #e9decb;
+  color: var(--color-text);
 }
 .spine-btn:focus-visible {
   outline: 2px solid rgba(180, 165, 140, 0.6);
@@ -174,6 +208,21 @@ body {
 .spine-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ─── Native <select> dropdown popups ─────────────────────────────────────
+ * Browsers render the open <option> list with a white background by default,
+ * clashing with the dark UI. Token-driven so light and dark themes each get
+ * correct contrast. (Chromium + Firefox honor these on <option>.)
+ */
+select option {
+  background-color: var(--color-surface-raised);
+  color: var(--color-panel-text);
+}
+select option:checked,
+select option:hover {
+  background-color: var(--color-gold-brand);
+  color: #1a1a1a;
 }
 
 /* ─── Utility ────────────────────────────────────────────────────────────── */

@@ -1,19 +1,16 @@
 /**
  * ObserveReadyCue — soft, non-blocking completion cue (spec §3.4).
  *
- * Surfaces Observe "essentials captured" state — a drawn parcel
- * boundary plus at least one placed landscape annotation (zone or
- * vegetation patch) — and offers a one-click jump to Plan. It NEVER
- * gates navigation: the user may move between stages freely at any
- * time (the spec explicitly allows returning to Observe). This is a
- * progress hint only.
+ * Surfaces Observe "essentials captured" state and offers a one-click jump to
+ * Plan. Completion is data-derived from `useObserveProgress`: the cue lists the
+ * required objectives still outstanding (auto-ticking from real store data) and
+ * enables "Ready to Plan →" exactly when every required objective is done. It
+ * NEVER gates navigation — the user may move between stages freely at any time
+ * (the spec explicitly allows returning to Observe). This is a progress hint.
  */
 
-import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useProjectStore } from '../../../store/projectStore.js';
-import { useZoneStore } from '../../../store/zoneStore.js';
-import { useVegetationStore } from '../../../store/vegetationStore.js';
+import { useObserveProgress } from '../progress/useObserveProgress.js';
 import css from './ObserveReadyCue.module.css';
 
 export default function ObserveReadyCue({
@@ -22,47 +19,33 @@ export default function ObserveReadyCue({
   projectId: string | null;
 }) {
   const navigate = useNavigate();
-  const projects = useProjectStore((s) => s.projects);
-  const zones = useZoneStore((s) => s.zones);
-  const patches = useVegetationStore((s) => s.patches);
-
-  const { boundaryDone, landscapeDone } = useMemo(() => {
-    if (!projectId) return { boundaryDone: false, landscapeDone: false };
-    const project = projects.find(
-      (p) => p.id === projectId || p.serverId === projectId,
-    );
-    const boundaryDone = Boolean(
-      project?.hasParcelBoundary ||
-        project?.parcelBoundaryGeojson?.features?.length,
-    );
-    const landscapeDone =
-      zones.some((z) => z.projectId === projectId) ||
-      patches.some((p) => p.projectId === projectId);
-    return { boundaryDone, landscapeDone };
-  }, [projectId, projects, zones, patches]);
+  const progress = useObserveProgress(projectId);
 
   if (!projectId) return null;
 
-  const ready = boundaryDone && landscapeDone;
+  const { requiredComplete, remainingRequired, percent } = progress.overall;
 
   return (
     <div className={css.cue} aria-label="Observe readiness">
-      <span className={css.title}>Observe essentials</span>
-      <ul className={css.items}>
-        <li className={`${css.item} ${boundaryDone ? css.itemDone : ''}`}>
-          <span
-            className={`${css.dot} ${boundaryDone ? css.dotDone : ''}`}
-          />
-          Property boundary drawn
-        </li>
-        <li className={`${css.item} ${landscapeDone ? css.itemDone : ''}`}>
-          <span
-            className={`${css.dot} ${landscapeDone ? css.dotDone : ''}`}
-          />
-          At least one landscape type placed
-        </li>
-      </ul>
-      {ready ? (
+      <span className={css.title}>Observe essentials · {percent}%</span>
+      {requiredComplete ? (
+        <ul className={css.items}>
+          <li className={`${css.item} ${css.itemDone}`}>
+            <span className={`${css.dot} ${css.dotDone}`} />
+            All required objectives captured
+          </li>
+        </ul>
+      ) : (
+        <ul className={css.items}>
+          {remainingRequired.map((obj) => (
+            <li key={obj.id} className={css.item}>
+              <span className={css.dot} />
+              {obj.label}
+            </li>
+          ))}
+        </ul>
+      )}
+      {requiredComplete ? (
         <button
           type="button"
           className={css.proceed}
@@ -77,7 +60,7 @@ export default function ObserveReadyCue({
         </button>
       ) : (
         <span className={css.hint}>
-          Capture both to unlock a confident Plan — you can keep
+          Capture the above to unlock a confident Plan — you can keep
           refining Observe anytime.
         </span>
       )}

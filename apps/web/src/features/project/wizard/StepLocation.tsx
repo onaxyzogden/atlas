@@ -90,9 +90,21 @@ export default function StepLocation({ data, updateData, onNext, onBack, isFirst
       <h2 style={{ fontSize: 20, fontWeight: 400, marginBottom: 8, color: 'var(--color-text)' }}>
         Where is the property?
       </h2>
-      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 32, lineHeight: 1.6 }}>
-        Help us locate the property. An address or parcel ID helps auto-fetch terrain, soils, and climate data.
+      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
+        Help us locate the property. Address and parcel ID are saved as metadata.
       </p>
+      <div style={{
+        marginBottom: 32,
+        padding: '10px 14px',
+        borderLeft: '3px solid var(--color-neutral-400)',
+        background: 'var(--color-neutral-50, rgba(0,0,0,0.03))',
+        borderRadius: 4,
+        fontSize: 12,
+        color: 'var(--color-text-muted)',
+        lineHeight: 1.6,
+      }}>
+        Public GIS layers (elevation, soils, hydrology, climate, land-cover, zoning) are fetched after you draw the property boundary in the next step — not from the address alone.
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Address */}
@@ -209,11 +221,11 @@ export default function StepLocation({ data, updateData, onNext, onBack, isFirst
         {/* Helpful hint */}
         <div
           style={{
-            background: 'var(--color-earth-100)',
+            background: 'var(--color-neutral-100)',
             borderRadius: 'var(--radius-md)',
             padding: 16,
             fontSize: 12,
-            color: 'var(--color-earth-700)',
+            color: 'var(--color-neutral-700)',
             lineHeight: 1.6,
           }}
         >

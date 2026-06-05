@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Check,
   Compass,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { useExternalForcesStore, type SectorArrow } from '../../../../store/externalForcesStore.js';
+import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import SectorCompassDiagram from './SectorCompassDiagram.js';
@@ -19,8 +20,11 @@ import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
-import { compassKpis, type KpiIconKey } from './derivations.js';
+import { compassKpis, computedSectorRows, type KpiIconKey } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
+
+type SectorTypeKey = SectorArrow['type'];
+type SectorIntensityKey = NonNullable<SectorArrow['intensity']>;
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   compass: Compass,
@@ -32,7 +36,7 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   shield: Shield,
 };
 
-const SECTOR_TYPE_LABELS: Record<SectorArrow['type'], string> = {
+const SECTOR_TYPE_LABELS: Record<SectorTypeKey, string> = {
   sun_summer: 'Summer sun',
   sun_winter: 'Winter sun',
   wind_prevailing: 'Prevailing wind',
@@ -43,10 +47,55 @@ const SECTOR_TYPE_LABELS: Record<SectorArrow['type'], string> = {
   view: 'Views',
 };
 
-const INTENSITY_LABELS: Record<NonNullable<SectorArrow['intensity']>, string> = {
+const INTENSITY_LABELS: Record<SectorIntensityKey, string> = {
   high: 'High',
   med: 'Medium',
   low: 'Low',
+};
+
+const SECTOR_TYPE_ENTRIES = Object.entries(SECTOR_TYPE_LABELS) as Array<[SectorTypeKey, string]>;
+const INTENSITY_ENTRIES = Object.entries(INTENSITY_LABELS) as Array<[SectorIntensityKey, string]>;
+
+// Compact, theme-matching inline controls so editable cells fit the table.
+const cellControlStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(0,0,0,0.25)',
+  color: 'inherit',
+  border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: 4,
+  padding: '2px 6px',
+  fontSize: 12,
+};
+
+const bearingInputStyle: React.CSSProperties = {
+  ...cellControlStyle,
+  width: 64,
+  marginRight: 4,
+};
+
+const removeBtnStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: 'none',
+  color: 'rgba(232,220,200,0.55)',
+  cursor: 'pointer',
+  fontSize: 16,
+  lineHeight: 1,
+  padding: '0 4px',
+};
+
+// Auto-derived climate layers (wind rose + solar arcs) — listed read-only so the
+// table mirrors the compass diagram. Muted to read as context, not steward input.
+const computedDividerStyle: React.CSSProperties = {
+  color: 'rgba(232,220,200,0.5)',
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  paddingTop: 12,
+};
+
+const computedRowStyle: React.CSSProperties = {
+  color: 'rgba(232,220,200,0.55)',
 };
 
 export default function SectorCompassDetail() {
@@ -55,8 +104,13 @@ export default function SectorCompassDetail() {
   const project = useV3Project(id);
 
   const allSectors = useExternalForcesStore((s) => s.sectors);
+  const addSector = useExternalForcesStore((s) => s.addSector);
+  const updateSector = useExternalForcesStore((s) => s.updateSector);
+  const removeSector = useExternalForcesStore((s) => s.removeSector);
   const sectors = useMemo(() => allSectors.filter((s) => s.projectId === id), [allSectors, id]);
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const [draftType, setDraftType] = useState<SectorTypeKey>('wind_prevailing');
 
   const centroid = polygonCentroid(project?.location?.boundary);
   const centroidTuple: [number, number] | null = centroid
@@ -72,7 +126,20 @@ export default function SectorCompassDetail() {
     );
   }, [sectors]);
 
+  const computedRows = useMemo(() => computedSectorRows(centroidTuple), [centroidTuple]);
+
   const coveragePct = Math.min(100, sectors.length * 12);
+
+  const handleAddSector = () => {
+    addSector({
+      id: newAnnotationId('sec'),
+      projectId: id,
+      type: draftType,
+      bearingDeg: 270,
+      arcDeg: 60,
+      intensity: 'med',
+    });
+  };
 
   const designResponses: Array<[string, 'High' | 'Medium' | 'Low', string]> = [
     ['Establish windbreak on NW boundary', 'High', 'Pending'],
@@ -84,18 +151,18 @@ export default function SectorCompassDetail() {
   ];
 
   const priorityActions: Array<[string, string, 'High' | 'Medium' | 'Low']> = [
-    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1â€“2 weeks', 'High'],
-    ['Plant windbreak (NW) â€” 3-row shelterbelt', 'Due in 2â€“4 weeks', 'High'],
+    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1–2 weeks', 'High'],
+    ['Plant windbreak (NW) — 3-row shelterbelt', 'Due in 2–4 weeks', 'High'],
     ['Identify orchard zone & soil prep', 'Due in 1 month', 'Medium'],
-    ['Plan seating area & sun/shade strategy', 'Due in 1â€“2 months', 'Medium'],
-    ['Install pond & swale to SE', 'Due in 2â€“3 months', 'Low'],
+    ['Plan seating area & sun/shade strategy', 'Due in 1–2 months', 'Medium'],
+    ['Install pond & swale to SE', 'Due in 2–3 months', 'Low'],
   ];
 
   return (
     <div className={card.page}>
       <ObserveHero
         sectionId="observe-sectors-zones-sector-compass"
-        lede="Map and analyse the external energies and influences shaping your site â€” wind, sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so you can place, protect, and buffer with confidence."
+        lede={'Map and analyse the external energies and influences shaping your site — wind, sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so you can place, protect, and buffer with confidence.'}
       />
 
       <section className={card.section}>
@@ -168,8 +235,9 @@ export default function SectorCompassDetail() {
           ) : null}
         </h2>
         {sortedSectors.length === 0 ? (
-          <p className={card.empty}>No sectors logged yet â€” add one from the toolbar.</p>
-        ) : (
+          <p className={card.empty}>No sectors logged yet — add one below or from the map toolbar.</p>
+        ) : null}
+        {sortedSectors.length > 0 || computedRows.length > 0 ? (
           <table className={card.table}>
             <thead>
               <tr>
@@ -177,33 +245,109 @@ export default function SectorCompassDetail() {
                 <th>Bearing</th>
                 <th>Sector</th>
                 <th>Intensity</th>
+                <th aria-label="Remove" />
               </tr>
             </thead>
             <tbody>
               {sortedSectors.map((s, index) => {
                 const intensity = s.intensity ?? 'low';
-                const pillClass =
-                  intensity === 'high'
-                    ? card.pillFail
-                    : intensity === 'med'
-                      ? card.pillPartial
-                      : card.pillMet;
                 return (
                   <tr key={s.id}>
                     <td>{index + 1}</td>
-                    <td>{s.bearingDeg}Â°</td>
-                    <td>{SECTOR_TYPE_LABELS[s.type]}</td>
                     <td>
-                      <span className={`${card.pill} ${pillClass}`}>
-                        {INTENSITY_LABELS[intensity]}
-                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={359}
+                        value={s.bearingDeg}
+                        aria-label="Bearing in degrees"
+                        style={bearingInputStyle}
+                        onChange={(e) =>
+                          updateSector(s.id, {
+                            bearingDeg: Math.max(0, Math.min(359, Number(e.target.value) || 0)),
+                          })
+                        }
+                      />
+                      {'°'}
+                    </td>
+                    <td>
+                      <select
+                        value={s.type}
+                        aria-label="Sector type"
+                        style={cellControlStyle}
+                        onChange={(e) =>
+                          updateSector(s.id, { type: e.target.value as SectorTypeKey })
+                        }
+                      >
+                        {SECTOR_TYPE_ENTRIES.map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={intensity}
+                        aria-label="Intensity"
+                        style={cellControlStyle}
+                        onChange={(e) =>
+                          updateSector(s.id, { intensity: e.target.value as SectorIntensityKey })
+                        }
+                      >
+                        {INTENSITY_ENTRIES.map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        style={removeBtnStyle}
+                        aria-label="Remove sector"
+                        title="Remove sector"
+                        onClick={() => removeSector(s.id)}
+                      >
+                        {'×'}
+                      </button>
                     </td>
                   </tr>
                 );
               })}
+              {computedRows.length > 0 ? (
+                <>
+                  <tr>
+                    <td colSpan={5} style={computedDividerStyle}>
+                      Computed climate layers · auto-derived, read-only
+                    </td>
+                  </tr>
+                  {computedRows.map((row) => (
+                    <tr key={row.id} style={computedRowStyle}>
+                      <td>{'—'}</td>
+                      <td>{row.bearing}</td>
+                      <td>{row.label}</td>
+                      <td>{row.strength}</td>
+                      <td />
+                    </tr>
+                  ))}
+                </>
+              ) : null}
             </tbody>
           </table>
-        )}
+        ) : null}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 12 }}>
+          <select
+            value={draftType}
+            aria-label="New sector type"
+            style={{ ...cellControlStyle, width: 'auto', flex: '0 1 200px' }}
+            onChange={(e) => setDraftType(e.target.value as SectorTypeKey)}
+          >
+            {SECTOR_TYPE_ENTRIES.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <button type="button" className={card.btn} onClick={handleAddSector}>
+            + Add sector
+          </button>
+        </div>
       </section>
 
       <div className={card.grid}>
@@ -238,7 +382,7 @@ export default function SectorCompassDetail() {
                 <span>
                   {title}
                   <span style={{ display: 'block', marginTop: 2, color: 'rgba(232,220,200,0.55)', fontSize: 11 }}>
-                    {due} Â· {priority} priority
+                    {due}{' · '}{priority} priority
                   </span>
                 </span>
               </p>

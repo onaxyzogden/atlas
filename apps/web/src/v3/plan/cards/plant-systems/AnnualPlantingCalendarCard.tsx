@@ -25,6 +25,7 @@ import {
   type FrostDates,
   type PlantingScheduleOutput,
 } from '../../engine/plantSystems/schedulePlantingFromAreas.js';
+import { pushPlantingCalendarToSpine } from '../../engine/goalCompass/goalCompassSpineSync.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -84,6 +85,7 @@ export default function AnnualPlantingCalendarCard({ project }: Props) {
       output.phaseTasks,
     );
     replacePlantingCalendarBatches(project.id, output.nurseryBatches);
+    pushPlantingCalendarToSpine(project.id, output.nurseryBatches);
     setLastOutput(output);
     setNote(
       `Generated ${output.phaseTasks.length} task${output.phaseTasks.length === 1 ? '' : 's'} and ` +

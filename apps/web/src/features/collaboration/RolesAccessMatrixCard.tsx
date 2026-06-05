@@ -24,13 +24,32 @@ interface Props {
   project: LocalProject;
 }
 
-const ROLES: ProjectRole[] = ['owner', 'designer', 'reviewer', 'viewer'];
+// Phase 5 Slice 5.1 added 4 OLOS spec-shaped roles (primary_steward |
+// team_member | contractor | landowner) alongside the 4 legacy roles. The
+// matrix below reflects the capability adapter in
+// `packages/shared/src/relationships/projectRoleCapabilities.ts` rather
+// than collapsing spec roles onto their legacy alias — the user-facing
+// matrix should show 8 distinct rows so role coverage is auditable.
+const ROLES: ProjectRole[] = [
+  'owner',
+  'designer',
+  'reviewer',
+  'viewer',
+  'primary_steward',
+  'team_member',
+  'contractor',
+  'landowner',
+];
 
 const ROLE_LABEL: Record<ProjectRole, string> = {
   owner: 'Owner',
   designer: 'Designer',
   reviewer: 'Reviewer',
   viewer: 'Viewer',
+  primary_steward: 'Primary steward',
+  team_member: 'Team member',
+  contractor: 'Contractor',
+  landowner: 'Landowner',
 };
 
 const ROLE_BLURB: Record<ProjectRole, string> = {
@@ -38,6 +57,10 @@ const ROLE_BLURB: Record<ProjectRole, string> = {
   designer: 'Edits zones, structures, paths',
   reviewer: 'Comments and suggests edits',
   viewer: 'Read-only',
+  primary_steward: 'Admin tier — invite, transfer, delete (spec alias of Owner)',
+  team_member: 'Edits zones, structures, paths (spec alias of Designer)',
+  contractor: 'Edits scoped to engagement (spec alias of Designer)',
+  landowner: 'Read and comment — no edits, no sign-off',
 };
 
 type Action = 'read' | 'comment' | 'edit' | 'approve';
@@ -50,10 +73,14 @@ const ACTION_LABEL: Record<Action, string> = {
 };
 
 const RBAC: Record<ProjectRole, Record<Action, boolean>> = {
-  owner:    { read: true, comment: true, edit: true, approve: true },
-  designer: { read: true, comment: true, edit: true, approve: false },
-  reviewer: { read: true, comment: true, edit: false, approve: true },
-  viewer:   { read: true, comment: false, edit: false, approve: false },
+  owner:           { read: true, comment: true,  edit: true,  approve: true  },
+  designer:        { read: true, comment: true,  edit: true,  approve: false },
+  reviewer:        { read: true, comment: true,  edit: false, approve: true  },
+  viewer:          { read: true, comment: false, edit: false, approve: false },
+  primary_steward: { read: true, comment: true,  edit: true,  approve: true  },
+  team_member:     { read: true, comment: true,  edit: true,  approve: false },
+  contractor:      { read: true, comment: true,  edit: true,  approve: false },
+  landowner:       { read: true, comment: true,  edit: false, approve: false },
 };
 
 interface Flag {
@@ -81,12 +108,23 @@ export default function RolesAccessMatrixCard({ project }: Props) {
   }, [projectId, isAuthenticated]);
 
   const counts = useMemo(() => {
-    const c: Record<ProjectRole, number> = { owner: 0, designer: 0, reviewer: 0, viewer: 0 };
+    const c: Record<ProjectRole, number> = {
+      owner: 0, designer: 0, reviewer: 0, viewer: 0,
+      primary_steward: 0, team_member: 0, contractor: 0, landowner: 0,
+    };
     for (const m of members) c[m.role] += 1;
     return c;
   }, [members]);
 
   const total = members.length;
+
+  // Alias-folded counts so spec-role-only projects don't trigger false flags.
+  // primary_steward aliases owner (admin tier); team_member + contractor alias
+  // designer (editor tier). Reviewer + landowner stand alone per capability
+  // adapter in `packages/shared/src/relationships/projectRoleCapabilities.ts`.
+  const ownerLike = counts.owner + counts.primary_steward;
+  const designerLike = counts.designer + counts.team_member + counts.contractor;
+  const reviewerLike = counts.reviewer;
 
   const flags: Flag[] = useMemo(() => {
     const out: Flag[] = [];
@@ -94,28 +132,28 @@ export default function RolesAccessMatrixCard({ project }: Props) {
       out.push({ level: 'warn', text: 'No members loaded yet — sign in to fetch the team roster.' });
       return out;
     }
-    if (counts.owner === 0) {
+    if (ownerLike === 0) {
       out.push({ level: 'warn', text: 'No owner on record — ownership transfer or invite chain may be broken.' });
-    } else if (counts.owner === 1 && total > 1) {
+    } else if (ownerLike === 1 && total > 1) {
       out.push({ level: 'info', text: 'Single owner — consider naming a backup before extended absences.' });
     }
-    if (counts.reviewer === 0 && total > 1) {
+    if (reviewerLike === 0 && total > 1) {
       out.push({ level: 'warn', text: 'No reviewer assigned — comments and sign-off lack a dedicated voice.' });
     }
-    if (counts.designer === 0 && total > 1) {
+    if (designerLike === 0 && total > 1) {
       out.push({ level: 'info', text: 'No designer — only owner edits will land. Add a designer to share execution.' });
     }
-    if (total > 1 && counts.owner === 0 && counts.designer === 0) {
+    if (total > 1 && ownerLike === 0 && designerLike === 0) {
       out.push({ level: 'warn', text: 'Read-only team — no one can place or move features on this project.' });
     }
     if (out.length === 0) {
       out.push({ level: 'ok', text: 'Healthy posture — owner, design capacity, and reviewer voice are all present.' });
     }
     return out;
-  }, [counts, total]);
+  }, [ownerLike, designerLike, reviewerLike, total]);
 
-  const editors = counts.owner + counts.designer;
-  const voices = counts.owner + counts.reviewer;
+  const editors = ownerLike + designerLike;
+  const voices = ownerLike + reviewerLike;
 
   return (
     <section className={css.card} aria-label="Roles and access matrix">

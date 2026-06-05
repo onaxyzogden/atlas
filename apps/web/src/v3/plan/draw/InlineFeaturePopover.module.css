@@ -14,14 +14,47 @@
   max-height: calc(100% - 80px);
   overflow-y: auto;
   padding: 10px 12px;
-  background: rgba(31, 29, 26, 0.96);
-  color: #f2ede3;
+  background: rgba(20, 25, 31, 0.96);
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 8px;
   font-size: 12px;
   pointer-events: auto;
   backdrop-filter: blur(4px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  /* Fade machinery — same shape as HostCanopyUnionTooltip's, consuming
+     the shared --motion-overlay-* tokens (tokens.css). useLayoutEffect
+     flips data-visible='true' after mount so the enter transition fires
+     from these initial values up to opacity:1/translateY(0). Unlike the
+     tooltip this surface is interactive (pointer-events: auto), so the
+     exit rule explicitly drops pointer-events to none — a click on a
+     mid-fade Cancel/Save would race the displayed-mirror cleanup. */
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-out),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-out);
+}
+
+.popover[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.popover[data-exiting='true'] {
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  pointer-events: none;
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-in),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-in);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover,
+  .popover[data-exiting='true'] {
+    transition: none;
+  }
 }
 
 .title {
@@ -56,7 +89,7 @@
 .select {
   flex: 1;
   background: rgba(255, 255, 255, 0.1);
-  color: #f8f4ea;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.4);
   border-radius: 4px;
   padding: 4px 6px;
@@ -79,7 +112,7 @@
 
 .select option {
   background: #1a1a1a;
-  color: #f8f4ea;
+  color: var(--color-text);
 }
 
 .select option:checked,
@@ -124,7 +157,7 @@
 
 .secondaryBtn {
   background: transparent;
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.25);
 }
 
@@ -141,7 +174,7 @@
   font-weight: 600;
   cursor: pointer;
   background: transparent;
-  color: rgba(220, 140, 140, 0.95);
+  color: rgba(var(--color-neg-text-rgb), 0.95);
   border: 1px solid rgba(220, 80, 80, 0.5);
 }
 

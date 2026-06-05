@@ -81,7 +81,7 @@ export function buildProjectContext(projectId: string, layers: MockLayerResult[]
   if (paddocks.length > 0) {
     lines.push(`## Paddocks (${paddocks.length})`);
     for (const p of paddocks) {
-      const speciesNames = p.species.map((sp) => LIVESTOCK_SPECIES[sp]?.label ?? sp).join(', ');
+      const speciesNames = (p.species ?? []).map((sp) => LIVESTOCK_SPECIES[sp]?.label ?? sp).join(', ');
       lines.push(`- ${p.name} (${(p.areaM2 / 10000).toFixed(2)} ha, Species: ${speciesNames || 'none'}, Fencing: ${p.fencing})`);
     }
     lines.push('');
@@ -92,7 +92,7 @@ export function buildProjectContext(projectId: string, layers: MockLayerResult[]
     lines.push(`## Crop Areas (${crops.length})`);
     for (const c of crops) {
       const ct = CROP_TYPES[c.type];
-      lines.push(`- ${c.name} (${ct?.label ?? c.type}, ${(c.areaM2 / 10000).toFixed(2)} ha, Species: ${c.species.join(', ') || 'none'})`);
+      lines.push(`- ${c.name} (${ct?.label ?? c.type}, ${(c.areaM2 / 10000).toFixed(2)} ha, Species: ${(c.species ?? []).join(', ') || 'none'})`);
     }
     lines.push('');
   }

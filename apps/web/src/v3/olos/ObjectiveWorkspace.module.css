@@ -1,0 +1,279 @@
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  /* height: 100% + min-height: 0 inherits available space from the parent
+     flex chain (V3ProjectLayout.outletHost → LandOsShell → AppShell). Using
+     100vh would overflow by the OGDEN topbar height. The min-height: 0
+     keeps this from being a CSS-grid scroll trap so the .panel column
+     owns its own overflow. */
+  height: 100%;
+  min-height: 0;
+  gap: 8px;
+  padding: 8px;
+  background: var(--color-bg, #faf7f0);
+}
+
+.map {
+  /* Two-card column: OverlayBundleStrip (own bento) above, .mapBody (own
+     bento) below. The .map wrapper itself carries no surface — gap on the
+     outer .shell + this inner gap separates the strip and the map body
+     into distinct boxes per StageShell's nested-bento contract. */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mapBody {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px) var(--space-3, 12px);
+  /* Cards provide the surface; the column itself is just a scrollable
+     bento gutter. Background falls back to the page bg. */
+  background: transparent;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.panelHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stage {
+  font-weight: 600;
+  color: var(--color-text, #2a2722);
+}
+
+.domain {
+  color: var(--color-text, #2a2722);
+}
+
+.sep {
+  opacity: 0.5;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text, #2a2722);
+}
+
+.focused {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted, #6b6450);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.progress {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b6450);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.inputs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  border-top: 1px solid var(--color-border, #d6cebe);
+  font-size: 12px;
+}
+.inputs > .inputRow:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.inputKind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d6cebe);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.inputLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text, #2a2722);
+}
+
+.inputBadgePending {
+  background: #f0c878;
+  color: #5e4222;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checklistItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 4px;
+  border-top: 1px solid var(--color-border, #d6cebe);
+}
+.checklist > .checklistItem:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.checkboxLabel input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.itemText {
+  color: var(--color-text, #2a2722);
+}
+
+.itemTextDone {
+  color: var(--color-text-muted, #6b6450);
+  text-decoration: line-through;
+}
+
+.itemMeta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  padding-left: 22px;
+}
+
+.kind {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d6cebe);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.overlay {
+  color: var(--color-text-muted, #6b6450);
+}
+
+.optional {
+  background: var(--color-surface, #fff);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-text-muted, #6b6450);
+}
+
+.statusPicker {
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #d6cebe);
+  background: var(--color-surface, #fff);
+}
+
+.handoffBtn {
+  font: inherit;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #d6cebe);
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-muted, #6b6450);
+  cursor: not-allowed;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .map {
+    min-height: 280px;
+  }
+}

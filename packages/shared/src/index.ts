@@ -2,7 +2,9 @@
 export * from './schemas/confidence.schema.js';
 export * from './schemas/layer.schema.js';
 export * from './schemas/assessment.schema.js';
+export * from './schemas/visionProfile.schema.js';
 export * from './schemas/project.schema.js';
+export * from './schemas/universalDomain.schema.js';
 export * from './schemas/template.schema.js';
 export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
@@ -11,10 +13,14 @@ export * from './schemas/machineryItem.schema.js';
 export * from './schemas/vegetationPatch.schema.js';
 export * from './schemas/successionMilestone.schema.js';
 export * from './schemas/projectState.schema.js';
+export * from './schemas/syncedRecord.schema.js';
+export * from './schemas/syncConflict.schema.js';
 export * from './schemas/file.schema.js';
 export * from './schemas/export.schema.js';
 export * from './schemas/portal.schema.js';
 export * from './schemas/collaboration.schema.js';
+export * from './schemas/crossRelationship.schema.js';
+export * from './schemas/portfolioPoi.schema.js';
 export * from './schemas/regenerationEvent.schema.js';
 export * from './schemas/regenerationMetrics.js';
 export * from './schemas/websocket.schema.js';
@@ -49,6 +55,12 @@ export * from './schemas/section28.schema.js';
 export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
 export * from './schemas/actTelemetry.schema.js';
+export * from './schemas/clientErrorTelemetry.schema.js';
+export * from './schemas/showcaseTelemetry.schema.js';
+export * from './schemas/workItem.schema.js';
+export * from './schemas/crewMember.schema.js';
+export * from './schemas/costRange.schema.js';
+export * from './schemas/proofEvent.schema.js';
 
 // Built Environment (unified Observe + Plan entity — see ADR 2026-05-10)
 export * from './builtEnvironment.js';
@@ -59,8 +71,16 @@ export * from './demand/structureDemand.js';
 // Utilities
 export * from './lib/caseTransform.js';
 export * from './lib/geojsonGeometry.js';
+export * from './lib/workItemGraph.js';
+export * from './lib/resourcingConflicts.js';
+export * from './lib/budgetVariance.js';
+export * from './lib/fieldProof.js';
+export * from './lib/operatingHealth.js';
+export * from './lib/moduleDomainMap.js';
+export * from './lib/moduleDomainMigration.js';
 export * from './astronomy/sunPath.js';
 export * from './astronomy/solarExposure.js';
+export * from './climate/climateContext.js';
 export * from './climate/comfortCalendar.js';
 export * from './climate/comfortGrid.js';
 export * from './climate/windbreakLines.js';
@@ -69,11 +89,206 @@ export * from './ecology/ecoregion.js';
 export * from './ecology/corridorLCP.js';
 export * from './ecology/pollinatorHabitatState.js';
 export * from './succession/index.js';
+export * from './fieldVerification/index.js';
 
 // Constants
 export * from './constants/dataSources.js';
 export * from './constants/flags.js';
 export * from './constants/system.js';
+export * from './constants/universalDomain.js';
 
 // Store mirrors / payload helpers
 export * from './store-mirrors/pickHelpers.js';
+
+// OLOS (Observe / Plan / Act) — universal Stage × Domain × Objective foundation
+export * from './schemas/olos/stage.schema.js';
+export * from './schemas/olos/overlay.schema.js';
+export * from './schemas/olos/status.schema.js';
+export * from './schemas/olos/geometry.schema.js';
+export * from './schemas/olos/checklistItem.schema.js';
+export * from './schemas/olos/objective.schema.js';
+export * from './schemas/olos/observationRecord.schema.js';
+export * from './schemas/olos/planDecisionRecord.schema.js';
+export * from './schemas/olos/actHandoffPackage.schema.js';
+export * from './schemas/olos/actTask.schema.js';
+export * from './schemas/olos/proofRecord.schema.js';
+export * from './schemas/olos/verificationRecord.schema.js';
+export * from './schemas/olos/escalationRecord.schema.js';
+export * from './schemas/olos/stewardshipRoutine.schema.js';
+// Thermophilic-composting vertical — a distinct lightweight batch instrument,
+// NOT part of the land-use project taxonomy.
+export * from './schemas/compost/compostSite.schema.js';
+export * from './schemas/compost/compostPile.schema.js';
+export * from './schemas/compost/compostReading.schema.js';
+export * from './constants/olos/overlays.js';
+export * from './constants/olos/stageBoundaries.js';
+export * from './constants/olos/objectives.js';
+// checklistItems.ts is a re-export shim for direct imports — its named
+// exports already come through ./constants/olos/objectives.js
+
+// Plan stratum shell (OLOS Plan Navigation Spec v1)
+export * from './schemas/plan/planStratumObjective.schema.js';
+export * from './constants/plan/stratumObjectives.js';
+export * from './constants/plan/remapSlug.js';
+// Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
+export * from './schemas/plan/projectTypeTaxonomy.schema.js';
+export * from './constants/plan/projectTypes.js';
+export * from './constants/plan/relationshipMatrix.js';
+export * from './constants/plan/catalogues/index.js';
+export {
+  resolveProjectObjectives,
+  findPlanStratumObjectiveIn,
+  type ResolveProjectObjectivesInput,
+  type ResolveProjectObjectivesDeps,
+  type ResolvedProjectObjectives,
+  type ResolveProvenance,
+  type SkippedPatch,
+  type SecondaryResolutionFlag,
+} from './relationships/resolveProjectObjectives.js';
+export {
+  resolveProjectProtocols,
+  findProtocolIn,
+  type ResolveProjectProtocolsInput,
+  type ResolveProjectProtocolsDeps,
+  type ResolvedProjectProtocols,
+  type ResolveProtocolProvenance,
+  type SkippedProtocolPatch,
+  type SecondaryProtocolFlag,
+} from './relationships/resolveProjectProtocols.js';
+export {
+  computeObjectivesDelta,
+  type ObjectivesDelta,
+  type InjectedItemDelta,
+  type GateAmendmentDelta,
+} from './relationships/computeObjectivesDelta.js';
+export {
+  computeObjectiveStatus,
+  computeAllObjectiveStatuses,
+  type PlanStratumObjectiveStatusMap,
+} from './relationships/stratumObjectiveStatus.js';
+export {
+  computeStratumState,
+  computeAllStratumStates,
+  type PlanStratumStateMap,
+} from './relationships/stratumState.js';
+export {
+  computeActStratumExecution,
+  actStratumStateFromCounts,
+  computeAllActStratumStates,
+  type ActStratumCounts,
+  type ActStratumCountsMap,
+  type ActStratumStateMap,
+} from './relationships/actStratumExecution.js';
+export {
+  isCyclicalReviewDue,
+  CYCLICAL_REVIEW_DEFAULT_DAYS,
+  type CyclicalReviewInputs,
+} from './relationships/cyclicalReviewTrigger.js';
+
+// Protocol Layer (OLOS Protocol Layer Spec v1.0 — vertical slice 1: typed
+// foundation + read-only standard-template catalogue; engine/authoring deferred)
+export * from './schemas/protocol/protocol.schema.js';
+export * from './schemas/protocol/reviewFlag.schema.js';
+export * from './schemas/protocol/observationLogRecord.schema.js';
+export * from './constants/protocol/standardTemplates.js';
+export { UNIVERSAL_PROTOCOL_TEMPLATES } from './constants/protocol/catalogues/universal.js';
+export * from './constants/protocol/projectEnterprises.js';
+export * from './constants/protocol/protocolOutputs.js';
+export * from './constants/protocol/severityTierStyle.js';
+export * from './constants/protocol/deviationPolicy.js';
+export * from './constants/protocol/feedsToObjective.js';
+export * from './constants/protocol/coOccurrence.js';
+export * from './constants/protocol/chronicDetection.js';
+export * from './constants/protocol/observationLogRetention.js';
+
+// Field action (OLOS Act Command Center Spec v1 — Phase 3)
+export * from './schemas/fieldAction/proofItem.schema.js';
+export * from './schemas/fieldAction/proofSchema.schema.js';
+export * from './schemas/fieldAction/divergenceFlag.schema.js';
+export * from './schemas/fieldAction/fieldAction.schema.js';
+export * from './constants/fieldAction/proofSchemas.js';
+export {
+  canTransition,
+  computeNextStatus,
+  isTerminal,
+  isVerified,
+  isObserveFeedable,
+  hasAllRequiredProof,
+  type FieldActionEvent,
+} from './relationships/fieldActionStatus.js';
+
+// OLOS Observe Dashboard (Phase 4)
+export * from './schemas/observe/dataPoint.schema.js';
+export * from './schemas/observe/lensMeasurement.schema.js';
+export * from './schemas/observe/supersession.schema.js';
+export * from './schemas/observe/cycle.schema.js';
+export * from './schemas/observe/presentationShare.schema.js';
+export * from './constants/observe/domains.js';
+export * from './constants/observe/lenses.js';
+export {
+  computeSupersession,
+  restoreFromSupersession,
+  haversineMeters,
+  DEFAULT_SUPERSESSION_PROXIMITY_METERS,
+  type ComputeSupersessionOptions,
+  type RestorePatch,
+} from './relationships/supersession.js';
+export {
+  computeFreshness,
+  computeDomainFreshness,
+  type ObserveFreshness,
+  type FreshnessThresholds,
+} from './relationships/observeFreshness.js';
+export {
+  computeObserveRevisionFlag,
+  type ObserveRevisionTriggerInput,
+} from './relationships/observeRevisionTrigger.js';
+export {
+  computeRevisionPriority,
+  FOUNDATION_DOMAINS_FOR_REVISION,
+  type RevisionEvent,
+  type RevisionEventKind,
+  type RevisionPriority,
+} from './relationships/revisionPriority.js';
+export {
+  getObjectiveObserveDomains,
+  getObjectivesForDomain,
+  getPrimaryDomainForObjective,
+  OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
+  STRATUM_OBSERVE_DOMAINS_DEFAULT,
+} from './relationships/objectiveObserveDomains.js';
+export {
+  resolveActObjectiveId,
+} from './relationships/actObjectiveTaskBridge.js';
+export {
+  AS_BUILT_FEATURE_DOMAIN,
+  domainForFeatureKind,
+} from './relationships/featureRefDomain.js';
+export {
+  getObjectiveActTools,
+  OBJECTIVE_ACT_TOOLS_OVERRIDE,
+  STRATUM_ACT_TOOLS_DEFAULT,
+} from './relationships/objectiveActTools.js';
+export {
+  getObjectiveEvidence,
+  EVIDENCE_CATALOG,
+  OBJECTIVE_EVIDENCE_OVERRIDE,
+  STRATUM_EVIDENCE_DEFAULT,
+  type EvidenceDescriptor,
+  type EvidenceKind,
+} from './relationships/objectiveEvidence.js';
+export {
+  hasCapability,
+  roleSatisfies,
+  PROJECT_ROLE_CAPABILITIES,
+  type ProjectRoleCapability,
+} from './relationships/projectRoleCapabilities.js';
+export {
+  computeProjectUrgency,
+  sortByUrgency,
+  URGENCY_WEIGHTS,
+  INACTIVITY_DAYS_CAP,
+  type ProjectUrgencyInputs,
+  type ProjectUrgencyBreakdown,
+  type ProjectUrgencyResult,
+} from './relationships/urgencyScore.js';

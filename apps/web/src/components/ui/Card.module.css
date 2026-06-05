@@ -1,5 +1,12 @@
 /* -------------------------------------------------------------------------- */
-/*  Card — OGDEN Atlas Design System                                          */
+/*  Card — DEPRECATED stylesheet                                              */
+/*                                                                            */
+/*  Card.tsx now forwards to <BentoBox>, which uses BentoBox.module.css.      */
+/*  This file is no longer imported anywhere. Kept on disk per the            */
+/*  no-deletion covenant ([[feedback-no-deletion]]) and as a reference        */
+/*  for the prior visual contract.                                            */
+/*                                                                            */
+/*  Canonical surface stylesheet: BentoBox.module.css                         */
 /* -------------------------------------------------------------------------- */
 
 .card {

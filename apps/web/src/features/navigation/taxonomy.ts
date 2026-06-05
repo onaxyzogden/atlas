@@ -106,6 +106,13 @@ export interface NavItem {
   dashboardOnly?: boolean;
   /** Only show in IconSidebar (e.g. zones, structures, fieldwork, history). */
   mapOnly?: boolean;
+
+  /**
+   * Optional concrete route to navigate to when this item is clicked. When
+   * set, click handlers should `navigate({ to: href })` instead of setting
+   * `activeDashboardSection`. Currently used by the Archive infra surface.
+   */
+  href?: string;
 }
 
 // ── Group metadata ───────────────────────────────────────────────────────────
@@ -441,7 +448,12 @@ export const NAV_ITEMS: NavItem[] = [
     dashboardOnly: true,
   },
   {
-    id: 'act-budget-actuals', label: 'Budget Actuals',
+    id: 'act-budget', label: 'Budget vs actuals',
+    phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-operating-dashboard', label: 'Operating Dashboard',
     phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
     dashboardOnly: true,
   },
@@ -682,7 +694,7 @@ export const NAV_ITEMS: NavItem[] = [
   // Settings/archive are infra surfaces; intentionally untagged so they drop
   // out of the stage-grouped sidebar (settings is reachable via SidebarBottomControls).
   { id: 'dashboard-settings',  label: 'Settings', phase: 'P4', domainGroup: 'general', dashboardOnly: true },
-  { id: 'archive',             label: 'Archive',  phase: 'P4', domainGroup: 'general', dashboardOnly: true },
+  { id: 'archive',             label: 'Archive',  phase: 'P4', domainGroup: 'general', dashboardOnly: true, href: '/archive' },
 
   // ── Map-only items (Design Atlas sub-tools + fieldwork + history) ─────────
   {

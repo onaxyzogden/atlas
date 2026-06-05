@@ -29,6 +29,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import type { GroundCoverState, SuccessionStage } from './zoneStore.js';
 
@@ -313,6 +315,8 @@ export const useRegenerationPlanStore = create<RegenerationPlanState>()(
     ),
     {
       name: 'ogden-regen-plans',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted, version) =>
         migrateRegenPlans(persisted, version) as RegenerationPlanState,
@@ -321,7 +325,7 @@ export const useRegenerationPlanStore = create<RegenerationPlanState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useRegenerationPlanStore.persist.rehydrate();
+rehydrateWithLogging(useRegenerationPlanStore);
 
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenRegenerationPlanStore =

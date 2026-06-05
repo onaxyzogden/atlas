@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, ZONE_CATEGORY_CONFIG } from '../../store/zoneStore.js';
 import { generateMockLayers, getLayerSummaryText } from '../../lib/mockLayerData.js';
-import { earth, sage, semantic, zIndex } from '../../lib/tokens.js';
+import { neutral, sage, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
   project: LocalProject;
@@ -48,7 +48,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
           background: semantic.surface,
           borderRadius: 12,
           padding: 0,
-          color: earth[900],
+          color: neutral[900],
         }}
       >
         {/* Print controls — hidden when printing */}
@@ -59,7 +59,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '12px 20px',
-            borderBottom: `1px solid ${earth[200]}`,
+            borderBottom: `1px solid ${neutral[200]}`,
           }}
         >
           <span style={{ fontSize: 13, fontWeight: 500 }}>Project Summary</span>
@@ -84,7 +84,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
               style={{
                 padding: '6px 12px',
                 fontSize: 14,
-                border: `1px solid ${earth[200]}`,
+                border: `1px solid ${neutral[200]}`,
                 borderRadius: 6,
                 background: 'transparent',
                 color: semantic.textSubtle,
@@ -113,7 +113,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
               </div>
             </div>
             {project.description && (
-              <p style={{ fontSize: 12, color: earth[700], marginTop: 8, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12, color: neutral[700], marginTop: 8, lineHeight: 1.6 }}>
                 {project.description}
               </p>
             )}
@@ -154,7 +154,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
                 ].map((item) => (
                   <div key={item.label}>
                     {item.done ? '● ' : '○ '}
-                    <span style={{ color: item.done ? earth[900] : semantic.textSubtle }}>{item.label}</span>
+                    <span style={{ color: item.done ? neutral[900] : semantic.textSubtle }}>{item.label}</span>
                   </div>
                 ))}
               </div>
@@ -167,7 +167,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
               <SectionHeader>Land Zones ({zones.length})</SectionHeader>
               <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: `1px solid ${earth[200]}`, textAlign: 'left' }}>
+                  <tr style={{ borderBottom: `1px solid ${neutral[200]}`, textAlign: 'left' }}>
                     <th style={{ padding: '4px 8px', fontWeight: 600 }}>Name</th>
                     <th style={{ padding: '4px 8px', fontWeight: 600 }}>Category</th>
                     <th style={{ padding: '4px 8px', fontWeight: 600 }}>Area</th>
@@ -176,7 +176,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
                 </thead>
                 <tbody>
                   {zones.map((z) => (
-                    <tr key={z.id} style={{ borderBottom: `1px solid ${earth[100]}` }}>
+                    <tr key={z.id} style={{ borderBottom: `1px solid ${neutral[100]}` }}>
                       <td style={{ padding: '4px 8px' }}>
                         <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: z.color, marginRight: 4 }} />
                         {z.name}
@@ -189,7 +189,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
                           ? `${(z.areaM2 / 10000).toFixed(2)} ha`
                           : `${z.areaM2.toFixed(0)} m²`}
                       </td>
-                      <td style={{ padding: '4px 8px', color: earth[700] }}>{z.primaryUse || '—'}</td>
+                      <td style={{ padding: '4px 8px', color: neutral[700] }}>{z.primaryUse || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -203,14 +203,14 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {layers.map((layer) => (
                 <div key={layer.layerType} style={{ fontSize: 10 }}>
-                  <div style={{ fontWeight: 600, color: earth[700], marginBottom: 2, textTransform: 'capitalize' }}>
+                  <div style={{ fontWeight: 600, color: neutral[700], marginBottom: 2, textTransform: 'capitalize' }}>
                     {layer.layerType.replace('_', ' ')}
                     <span style={{ fontWeight: 400, color: semantic.textSubtle, marginLeft: 4 }}>
                       ({layer.confidence} conf.)
                     </span>
                   </div>
                   {getLayerSummaryText(layer).map((line, i) => (
-                    <div key={i} style={{ color: earth[900], lineHeight: 1.5 }}>{line}</div>
+                    <div key={i} style={{ color: neutral[900], lineHeight: 1.5 }}>{line}</div>
                   ))}
                   <div style={{ color: semantic.textSubtle, fontSize: 9, marginTop: 2 }}>
                     {layer.sourceApi}
@@ -234,7 +234,7 @@ export default function ProjectSummaryExport({ project, onClose }: Props) {
           )}
 
           {/* Footer */}
-          <div style={{ marginTop: 24, paddingTop: 12, borderTop: `1px solid ${earth[200]}`, fontSize: 9, color: semantic.textSubtle, textAlign: 'center' }}>
+          <div style={{ marginTop: 24, paddingTop: 12, borderTop: `1px solid ${neutral[200]}`, fontSize: 9, color: semantic.textSubtle, textAlign: 'center' }}>
             Generated by OGDEN Land Design Atlas — {new Date().toLocaleDateString()} — For planning purposes only
           </div>
         </div>
@@ -254,7 +254,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
         color: semantic.primary,
         marginBottom: 8,
         paddingBottom: 4,
-        borderBottom: `1px solid ${earth[200]}`,
+        borderBottom: `1px solid ${neutral[200]}`,
       }}
     >
       {children}
@@ -269,7 +269,7 @@ function DetailTable({ rows }: { rows: [string, string][] }) {
         {rows.map(([label, value]) => (
           <tr key={label}>
             <td style={{ color: semantic.textSubtle, paddingRight: 12, verticalAlign: 'top' }}>{label}</td>
-            <td style={{ color: earth[900] }}>{value}</td>
+            <td style={{ color: neutral[900] }}>{value}</td>
           </tr>
         ))}
       </tbody>
@@ -280,8 +280,8 @@ function DetailTable({ rows }: { rows: [string, string][] }) {
 function NoteBlock({ label, text }: { label: string; text: string }) {
   return (
     <div>
-      <div style={{ fontWeight: 600, color: earth[700], marginBottom: 2 }}>{label}</div>
-      <div style={{ color: earth[900], background: earth[50], padding: 8, borderRadius: 4, whiteSpace: 'pre-wrap' }}>
+      <div style={{ fontWeight: 600, color: neutral[700], marginBottom: 2 }}>{label}</div>
+      <div style={{ color: neutral[900], background: neutral[50], padding: 8, borderRadius: 4, whiteSpace: 'pre-wrap' }}>
         {text}
       </div>
     </div>

@@ -83,6 +83,31 @@ order it should land in v3.1.
 
 ## Cross-cutting
 
+### Observe stage — "Observation Needs" reframe
+- **DONE** — Reframed the Observe Command Centre from an objective/assignment-
+  flavoured workspace into an observation-needs workspace: stripped
+  assignment/review language out of Observe (it belongs to Plan/Act), renamed
+  `FieldObjective`→`ObservationNeed` at the code level, collapsed the lifecycle to
+  `open → in-progress → recorded` (+`resolved`), and moved the deep-link to
+  `?need=`. Live reference:
+  [OBSERVATION-NEEDS-WORKSPACE.md](apps/web/src/v3/command/OBSERVATION-NEEDS-WORKSPACE.md).
+- **DONE** — generative "Raise observation need" action. A follow-up CTA in the
+  Capture Workspace (inherits the parent's module + target, back-links via
+  `sourceObservationId`) and a manual "+ Raise observation need" button in the
+  Command Centre both write through `buildRaisedNeed` + the shared `RaiseNeedForm`
+  into the store's new `createdByProject` slice (persist v3). Cards show an origin
+  badge. See §5b/§7 of the reference.
+- **DONE** — system-generated needs (§5c). `autoObservationNeeds.ts` derives
+  `origin: 'auto'` needs from coverage gaps (`useEvidenceCounts` row `n === 0`) and
+  stale data (`useFieldVerification` layer back to `unverified`), merged into the
+  catalog by `useObservationNeeds` and recomputed each render (only run-state
+  persists, under deterministic ids). Cards show an **Auto** badge + a **Dismiss**
+  action; cleared auto-needs are suppressed at the display layer via
+  `isDismissedAutoNeed`. See §5c/§7 of the reference.
+- **Remaining follow-on** — editing/deleting raised needs (create-only today), and
+  re-raising an auto-need after its signal re-decays (§5c v1 leaves it suppressed
+  once recorded/dismissed).
+
 ### Backend
 - **Replace `useV3Project`** in
   [apps/web/src/v3/data/useV3Project.ts](apps/web/src/v3/data/useV3Project.ts)

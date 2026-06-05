@@ -1,0 +1,101 @@
+/* WizardUploadBoundary — centered dialog over the map. */
+
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 36px;
+  border-radius: 14px;
+  background: rgba(var(--color-map-panel-rgb), 0.96);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  max-width: 360px;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.closeBtn:hover {
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
+}
+
+.icon {
+  color: var(--color-gold-brand);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.help {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.pickBtn {
+  margin-top: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--color-gold-brand);
+  background: var(--color-gold-brand);
+  color: var(--color-on-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.pickBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.pickBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-error);
+  max-width: 280px;
+  line-height: 1.4;
+}

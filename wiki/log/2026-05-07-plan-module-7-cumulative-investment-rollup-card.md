@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 7 · Cumulative-investment rollup card
+
+
+Second enhancement landed from the Module 7 KEEP_ATLAS verdict (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). New sub-tab `plan-cumulative-investment` under `phasing-budgeting` shows per-phase incremental hrs/$ + running cumulative-since-start + a two-track stacked bar (gold = cost share of total, green = labor-hours share). Pivots on phase boundary rather than strict calendar year to avoid parsing free-text `BuildPhase.timeframe` ("Year 0-1" etc.) — same shape as the OSU PDC Pro "5-Year Total" rollup the Scholar cited. No store changes, no persistence change. Folded into the parent ADR rather than a new one (small additive view). Typecheck clean. Module 7 enhancement set is now complete except for capacity-validation against Client Survey, which remains deferred pending a project-survey store.

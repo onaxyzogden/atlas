@@ -1,0 +1,137 @@
+/* VisionFormsTabsModal.module.css
+ *
+ * Styles for the tabbed text-capture popup used by kind:'form' Act tier-shell
+ * tools. Tab chrome comes from Tabs.module.css; this file styles the per-tab
+ * body, prompt, textarea, footer, and the tab-label icon + captured dot. Uses
+ * the same BentoBox token vocabulary as VisionFormModal.module.css.
+ */
+
+/* ---------- Tab list (allow horizontal scroll for many tabs) ---------- */
+
+.tabList {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.capturedDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gold-brand, #c4a265);
+  flex: none;
+}
+
+/* ---------- Per-tab body ---------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+
+.prompt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  line-height: 1.5;
+  cursor: default;
+  user-select: none;
+}
+
+.hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+  letter-spacing: 0.02em;
+  cursor: default;
+  user-select: none;
+}
+
+/* Read-only recap tab: prefilled value + Edit-in-Plan, no textarea. */
+.recapActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 140px;
+  padding: 4px 0;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.06));
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.35));
+}
+
+.textarea:focus {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.cancelBtn:hover {
+  border-color: var(--color-gold-brand, #c4a265);
+  color: var(--color-text, #f2ede3);
+}
+
+.saveBtn {
+  padding: 7px 20px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-gold-brand, #c4a265);
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1611;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.saveBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

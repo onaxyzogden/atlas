@@ -1,5 +1,5 @@
-﻿/**
- * Maintenance store â€” ACT-stage Module 3 (Maintenance & Operations).
+/**
+ * Maintenance store — ACT-stage Module 3 (Maintenance & Operations).
  *
  * Recurring stewardship tasks bucketed by cadence (daily / weekly / monthly /
  * quarterly / annual). Each task can link to a feature (zone, crop area,
@@ -9,6 +9,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type MaintenanceCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
 export type MaintenanceSeason = 'winter' | 'spring' | 'summer' | 'fall';
@@ -54,8 +56,8 @@ export const useMaintenanceStore = create<MaintenanceState>()(
         }));
       },
     }),
-    { name: 'ogden-act-maintenance', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-maintenance', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useMaintenanceStore.persist.rehydrate();
+rehydrateWithLogging(useMaintenanceStore);

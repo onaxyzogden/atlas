@@ -32,7 +32,10 @@ import {
   POINT_KINDS,
   LINESTRING_KINDS,
   POLYGON_KINDS,
+  readPolygon,
 } from './draw/annotationGeometryRegistry.js';
+import { useVegetationStore } from '../../../store/vegetationStore.js';
+import { usePastureStore } from '../../../store/pastureStore.js';
 import { openBeInlineEditByObserveKind } from '../../builtEnvironment/inline/openBeInlineEdit.js';
 import css from './SelectionFloater.module.css';
 
@@ -54,6 +57,10 @@ export default function SelectionFloater({ projectId }: Props) {
   // Subscribed so the floater's sector-type label re-renders if the
   // underlying record's `type` is edited while selected (rare, but cheap).
   const sectors = useExternalForcesStore((s) => s.sectors);
+  // Subscribed so the MultiPolygon Move gate below re-evaluates when a
+  // Fill-remainder write flips a patch's geometry type while selected.
+  const vegetationPatches = useVegetationStore((s) => s.patches);
+  const pastures = usePastureStore((s) => s.pastures);
 
   // Esc → clear selection. Only attach when there's something selected so we
   // don't fight other Esc-bound consumers (form slide-up, detail panel) when
@@ -88,9 +95,21 @@ export default function SelectionFloater({ projectId }: Props) {
     selected.every((s) => s.kind === first.kind);
   const editEnabled = Boolean(projectId) && (single !== null || sameKindBatch);
   // Move (geometry reposition / vertex edit) is single-selection only and
-  // only for kinds with editable geometry.
+  // only for kinds with editable geometry. MapboxDraw cannot edit
+  // MultiPolygon geometries, so polygon kinds whose current geometry is a
+  // MultiPolygon (vegetation / pasture after a Fill-remainder split) are
+  // gated out — handing a MultiPolygon to direct_select would corrupt the
+  // record or crash the editor.
+  const polygonKindSelected = !!single && POLYGON_KINDS.has(single.kind);
+  void vegetationPatches;
+  void pastures;
+  const isMultiPolygonSelection =
+    polygonKindSelected &&
+    single !== null &&
+    readPolygon(single.kind, single.id)?.type === 'MultiPolygon';
   const moveEnabled =
     !!single &&
+    !isMultiPolygonSelection &&
     (POINT_KINDS.has(single.kind) ||
       LINESTRING_KINDS.has(single.kind) ||
       POLYGON_KINDS.has(single.kind));
@@ -192,11 +211,13 @@ export default function SelectionFloater({ projectId }: Props) {
       </DelayedTooltip>
       <DelayedTooltip
         label={
-          !moveEnabled
-            ? 'Select one feature with editable geometry'
-            : moveMode
-              ? 'Drag to reposition — click to finish'
-              : 'Move selected'
+          isMultiPolygonSelection
+            ? 'Edit vertices not supported on MultiPolygon — delete and redraw'
+            : !moveEnabled
+              ? 'Select one feature with editable geometry'
+              : moveMode
+                ? 'Drag to reposition — click to finish'
+                : 'Move selected'
         }
         position="top"
       >

@@ -1,0 +1,16 @@
+---
+id: cta
+title: Talk to us
+tiers: [dreaming, transitioning, stewarding]
+mapState:
+  activeLayers: []
+  features: []
+  view: { center: [-79.91, 43.56], zoom: 13 }
+---
+
+import { ContactCTA } from '../../components/ContactCTA';
+import { AttributionFooter } from '../../components/AttributionFooter';
+
+<ContactCTA tier={props.tier} />
+
+<AttributionFooter />

@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type MachineryKind =
   | 'tractor'
@@ -117,6 +118,8 @@ export const useMachineryInventoryStore = create<MachineryInventoryState>()(
     }),
     {
       name: 'ogden-atlas-machinery-inventory-v1',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as MachineryInventoryState,
     },

@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useMemberStore } from '../../store/memberStore.js';
+import { useVisionStore } from '../../store/visionStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ProjectRole } from '@ogden/shared';
@@ -24,7 +25,14 @@ const ROLE_CONFIG: Record<string, { icon: string; color: string; desc: string }>
   viewer:   { icon: '\u{1F441}\uFE0F',  color: roleToken.viewer, desc: 'View only \u2014 no comments or changes' },
 };
 
-const ASSIGNABLE_ROLES: Array<Exclude<ProjectRole, 'owner'>> = ['designer', 'reviewer', 'viewer'];
+// Admin-tier roles (owner, primary_steward) are excluded from invite + role-change flows
+// per `InviteMemberInput` / `UpdateMemberRoleInput` schema constraints; they require the
+// explicit ownership-transfer flow rather than a direct role assignment.
+const ASSIGNABLE_ROLES: Array<Exclude<ProjectRole, 'owner' | 'primary_steward'>> = [
+  'designer',
+  'reviewer',
+  'viewer',
+];
 
 export default function MembersTab({ project }: MembersTabProps) {
   const members = useMemberStore((s) => s.members);
@@ -39,8 +47,18 @@ export default function MembersTab({ project }: MembersTabProps) {
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = !!user;
 
+  // Cross-reference Human Context profiles: a member is a "steward" once they
+  // have a human-context overlay recorded (visionStore.stewardProfiles).
+  const stewardProfiles = useVisionStore(
+    (s) => s.getVisionData(project.serverId ?? project.id)?.stewardProfiles,
+  );
+  const isSteward = useCallback(
+    (userId: string) => !!stewardProfiles && userId in stewardProfiles,
+    [stewardProfiles],
+  );
+
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<Exclude<ProjectRole, 'owner'>>('reviewer');
+  const [inviteRole, setInviteRole] = useState<Exclude<ProjectRole, 'owner' | 'primary_steward'>>('reviewer');
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [isInviting, setIsInviting] = useState(false);
 
@@ -71,7 +89,7 @@ export default function MembersTab({ project }: MembersTabProps) {
     }
   }, [inviteEmail, inviteRole, projectId, inviteMember]);
 
-  const handleRoleChange = useCallback((userId: string, newRole: Exclude<ProjectRole, 'owner'>) => {
+  const handleRoleChange = useCallback((userId: string, newRole: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => {
     updateRole(projectId, userId, newRole);
   }, [projectId, updateRole]);
 
@@ -111,7 +129,7 @@ export default function MembersTab({ project }: MembersTabProps) {
             />
             <select
               value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as Exclude<ProjectRole, 'owner'>)}
+              onChange={(e) => setInviteRole(e.target.value as Exclude<ProjectRole, 'owner' | 'primary_steward'>)}
               style={{
                 background: 'var(--color-panel-subtle)', color: 'var(--color-panel-text)',
                 border: '1px solid var(--color-panel-card-border)', borderRadius: 6,
@@ -182,6 +200,16 @@ export default function MembersTab({ project }: MembersTabProps) {
                 <div className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {m.displayName ?? m.email.split('@')[0]}
                   {isCurrentUser && <span className={`${p.text10} ${p.muted}`} style={{ marginLeft: 4 }}>(you)</span>}
+                  {isSteward(m.userId) && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, letterSpacing: 0.3, marginLeft: 6,
+                      color: 'var(--color-green-brand, #6a994e)',
+                      background: 'rgba(106,153,78,0.15)', padding: '1px 6px',
+                      borderRadius: 4, textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    }}>
+                      {'\u{1F331}'} Steward
+                    </span>
+                  )}
                 </div>
                 <div className={`${p.text10} ${p.muted}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {m.email}
@@ -192,7 +220,7 @@ export default function MembersTab({ project }: MembersTabProps) {
               {isOwner && !isMemberOwner && !isCurrentUser ? (
                 <select
                   value={m.role}
-                  onChange={(e) => handleRoleChange(m.userId, e.target.value as Exclude<ProjectRole, 'owner'>)}
+                  onChange={(e) => handleRoleChange(m.userId, e.target.value as Exclude<ProjectRole, 'owner' | 'primary_steward'>)}
                   style={{
                     background: 'transparent', color: cfg.color,
                     border: `1px solid ${cfg.color}44`, borderRadius: 4,

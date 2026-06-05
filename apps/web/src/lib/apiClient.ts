@@ -44,14 +44,51 @@ import type {
   ElevationPointResponse,
   ActInteractionEventInput,
   GetActAffinityAggregateResult,
+  ClientErrorEventInput,
   ProjectStateBlob,
   UpsertProjectStateInput,
+  SyncedRecord,
+  UpsertSyncedRecordInput,
+  ConflictListItem,
+  ResolveConflictInput,
+  ResolveConflictResult,
   VegetationPatchSummary,
   CreateVegetationPatchInput,
   UpdateVegetationPatchInput,
   SuccessionMilestoneSummary,
   CreateSuccessionMilestoneInput,
   UpdateSuccessionMilestoneInput,
+  Overlay,
+  Objective,
+  ChecklistItem,
+  ObservationRecord,
+  PlanDecisionRecord,
+  ActHandoffPackage,
+  ActTask,
+  ProofRecord,
+  VerificationRecord,
+  EscalationRecord,
+  StewardshipRoutine,
+  ObserveStatus,
+  PlanApprovalStatus,
+  ActTaskStatus,
+  EscalationStatus,
+  EscalationSeverity,
+  Stage,
+  UniversalDomain,
+  StewardshipFrequency,
+  CrossRelationship,
+  CreateCrossRelationshipInput,
+  PortfolioPoi,
+  CreatePortfolioPoiInput,
+  UpdatePortfolioPoiInput,
+  PoiProjectFlow,
+  CreatePoiFlowInput,
+  UpdatePoiFlowInput,
+  CompostSite,
+  CompostPile,
+  CompostReading,
+  CompostReadingSource,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -80,6 +117,79 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+// Module-global 401 interceptor handler. Wired once at app boot from
+// `main.tsx` after `bootAuth()` to avoid a direct apiClient → store import
+// (apiClient is intentionally store-agnostic). When the server returns
+// 401 + UNAUTHORIZED|INVALID_TOKEN, the handler fires exactly once per
+// session-expiry event (idempotency lives in the store slice).
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function setSessionExpiredHandler(fn: (() => void) | null) {
+  sessionExpiredHandler = fn;
+}
+
+// Module-global client-error reporter. Wired once at app boot from
+// `bootAuthed.ts` (authed-only) — mirrors the `sessionExpiredHandler`
+// injection above to keep apiClient store-agnostic. A direct
+// `apiClient → clientErrorLog` import is forbidden: clientErrorLog already
+// imports `api` from here (module cycle) and pulling the telemetry buffer
+// into always-mounted code would regress the showcase bundle split
+// (see wiki ADR 2026-05-21-atlas-showcase-bundle-split).
+export interface ApiClientErrorReport {
+  /** 'ApiError' for server-returned failures, else the network error's name. */
+  name: string;
+  message: string;
+  /** HTTP status, or 0 for network/offline (fetch-reject) failures. */
+  status: number;
+  /** ApiError.code, or 'NETWORK_ERROR'. */
+  code: string;
+  method: string;
+  path: string;
+}
+
+let clientErrorReporter: ((r: ApiClientErrorReport) => void) | null = null;
+
+export function setApiClientErrorReporter(fn: ((r: ApiClientErrorReport) => void) | null) {
+  clientErrorReporter = fn;
+}
+
+// Module-global success hook. Wired once at app boot from `bootAuthed.ts`
+// (mirrors the reporter injection above) to drive the connectivity store's
+// `apiReachable` signal back to true once the server responds. A server that
+// recovers (restart) fires no browser `online` event, so an explicit success
+// signal is required for the API-unreachable status chip to auto-clear.
+let apiSuccessHandler: (() => void) | null = null;
+
+export function setApiSuccessHandler(fn: (() => void) | null) {
+  apiSuccessHandler = fn;
+}
+
+function reportApiSuccess(path: string): void {
+  if (!apiSuccessHandler) return;
+  // Skip telemetry POSTs — they are noise for reachability and could mask a
+  // genuinely unreachable API endpoint (same guard as reportApiFailure).
+  if (path.startsWith(TELEMETRY_PATH_PREFIX)) return;
+  try {
+    apiSuccessHandler();
+  } catch {
+    // Reporting must never break the request path.
+  }
+}
+
+const TELEMETRY_PATH_PREFIX = '/api/v1/telemetry/';
+
+function reportApiFailure(r: ApiClientErrorReport): void {
+  if (!clientErrorReporter) return;
+  // Loop guard: a failed telemetry POST must NEVER be reported, or the
+  // client-errors POST failing would enqueue another api_client event → ∞.
+  if (r.path.startsWith(TELEMETRY_PATH_PREFIX)) return;
+  try {
+    clientErrorReporter(r);
+  } catch {
+    // Reporting must never break the request path.
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -94,12 +204,30 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(path, {
-    method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined,
-    signal,
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method,
+      headers,
+      body: body != null ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (err) {
+    // Network/offline/DNS/CORS rejection. An AbortError is a deliberate
+    // cancellation (component unmount / debounced refetch), not a failure —
+    // do not report it. Re-throw the original error unchanged either way.
+    if (!(err instanceof Error && err.name === 'AbortError')) {
+      reportApiFailure({
+        name: err instanceof Error ? err.name : 'NetworkError',
+        message: err instanceof Error ? err.message : String(err),
+        status: 0,
+        code: 'NETWORK_ERROR',
+        method,
+        path,
+      });
+    }
+    throw err;
+  }
 
   const json = await response.json().catch(() => ({
     data: null,
@@ -107,14 +235,31 @@ async function request<T>(
   })) as ApiEnvelope<T>;
 
   if (!response.ok || json.error) {
-    throw new ApiError(
+    if (
+      response.status === 401 &&
+      (json.error?.code === 'UNAUTHORIZED' || json.error?.code === 'INVALID_TOKEN')
+    ) {
+      sessionExpiredHandler?.();
+    }
+    const apiError = new ApiError(
       json.error?.code ?? 'UNKNOWN',
       json.error?.message ?? `Request failed (${response.status})`,
       response.status,
       json.error?.details,
     );
+    reportApiFailure({
+      name: 'ApiError',
+      message: apiError.message,
+      status: apiError.status,
+      code: apiError.code,
+      method,
+      path,
+    });
+    throw apiError;
   }
 
+  // Reached the server and got a well-formed envelope — the API is reachable.
+  reportApiSuccess(path);
   return json;
 }
 
@@ -124,11 +269,24 @@ export interface ApiAuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  /** Phase 4.5 — personal default org created at register time; always present post-migration-036. */
+  defaultOrgId: string;
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 export const api = {
+  // Lightweight, unauthenticated reachability ping. Hits the proxied
+  // /api/v1/health route (the root /health is not under the web app's /api dev
+  // proxy). A 2xx fires the apiClient success hook (→ apiReachable = true) on
+  // the authed path; the shared attemptApiRecovery (apiRecovery.ts) no-token
+  // path also flips the flag directly off a resolved call, since the success
+  // hook is wired authed-only.
+  health: () =>
+    request<{ status: string; timestamp: string; version: string }>(
+      'GET', '/api/v1/health',
+    ),
+
   auth: {
     register: (email: string, password: string, displayName?: string) =>
       request<{ token: string; user: ApiAuthUser }>(
@@ -141,12 +299,17 @@ export const api = {
       ),
 
     me: () =>
-      request<{ id: string; email: string; displayName: string | null }>('GET', '/api/v1/auth/me'),
+      request<{ id: string; email: string; displayName: string | null; defaultOrgId: string }>(
+        'GET', '/api/v1/auth/me',
+      ),
   },
 
   projects: {
-    list: () =>
-      request<ProjectSummary[]>('GET', '/api/v1/projects'),
+    list: (params?: { status?: 'active' | 'archived' | 'all' }) =>
+      request<ProjectSummary[]>(
+        'GET',
+        params?.status ? `/api/v1/projects?status=${params.status}` : '/api/v1/projects',
+      ),
 
     // Public — returns only is_builtin = true rows. No auth required so
     // unauthenticated visitors see the canonical sample on the home page.
@@ -171,8 +334,15 @@ export const api = {
         >
       >('GET', '/api/v1/projects/builtins'),
 
+    // Returns the full single-project row. Unlike `list`, this embeds
+    // `parcelBoundaryGeojson` (raw PostGIS geometry via ST_AsGeoJSON) so the
+    // Portfolio Map can lazily hydrate boundaries for server-synced projects
+    // that arrive with `hasParcelBoundary: true` but no geometry.
     get: (id: string) =>
-      request<ProjectSummary>('GET', `/api/v1/projects/${id}`),
+      request<ProjectSummary & { parcelBoundaryGeojson: unknown | null }>(
+        'GET',
+        `/api/v1/projects/${id}`,
+      ),
 
     create: (input: CreateProjectInput) =>
       request<ProjectSummary>('POST', '/api/v1/projects', input),
@@ -205,6 +375,12 @@ export const api = {
 
     delete: (id: string) =>
       request<void>('DELETE', `/api/v1/projects/${id}`),
+
+    archive: (id: string) =>
+      request<ProjectSummary>('POST', `/api/v1/projects/${id}/archive`),
+
+    unarchive: (id: string) =>
+      request<ProjectSummary>('POST', `/api/v1/projects/${id}/unarchive`),
   },
 
   templates: {
@@ -214,6 +390,8 @@ export const api = {
         ownerId: string;
         name: string;
         sourceProjectId: string | null;
+        slug?: string | null;
+        public?: boolean;
         createdAt: string;
       }>>('GET', '/api/v1/templates'),
 
@@ -226,8 +404,25 @@ export const api = {
         createdAt: string;
       }>('POST', '/api/v1/templates', input),
 
-    instantiate: (id: string, input: { name: string }) =>
+    instantiate: (
+      id: string,
+      input: { name: string; parcelBoundaryGeojson?: unknown | null; orgId?: string },
+    ) =>
       request<ProjectSummary>('POST', `/api/v1/templates/${id}/instantiate`, input),
+
+    // Phase 4 (2026-05-21) — public ecosystem-template instantiation.
+    // Still auth-gated; only the owner check is relaxed for public rows.
+    // Phase 4.5 — accepts optional orgId to attach the cloned project to a
+    // specific workspace (membership-checked server-side).
+    instantiatePublic: (
+      slug: string,
+      input: { name: string; parcelBoundaryGeojson?: unknown | null; orgId?: string },
+    ) =>
+      request<ProjectSummary>(
+        'POST',
+        `/api/v1/templates/public/${encodeURIComponent(slug)}/instantiate`,
+        input,
+      ),
   },
 
   designFeatures: {
@@ -253,6 +448,32 @@ export const api = {
         'POST',
         `/api/v1/design-features/project/${projectId}/bulk`,
         { features },
+      ),
+  },
+
+  designMap: {
+    generate: (
+      projectId: string,
+      input: {
+        persist?: boolean;
+        options?: {
+          enterprises?: string[];
+          orchard?: Record<string, unknown>;
+          swale?: Record<string, unknown>;
+          paddock?: Record<string, unknown>;
+          corridor?: Record<string, unknown>;
+        };
+      } = {},
+    ) =>
+      request<{
+        features: DesignFeatureSummary[];
+        summary: Record<string, number>;
+        warnings: string[];
+        persisted?: { count: number; ids: string[] };
+      }>(
+        'POST',
+        `/api/v1/design-map/project/${projectId}/generate`,
+        input,
       ),
   },
 
@@ -298,6 +519,47 @@ export const api = {
       request<void>('DELETE', `/api/v1/succession/${id}`),
   },
 
+  // D.4 — SOM trajectory consumer for the J-curve secondary axis.
+  // Producer (POST recompute) is owner|designer-gated on the API; the web
+  // client only needs the GET today. Returns whole-project rows (zone_id
+  // NULL) ordered by year ASC.
+  soilRegeneration: {
+    getSomTrajectory: (projectId: string) =>
+      request<import('../features/financial/somAppreciation.js').SomYearRow[]>(
+        'GET',
+        `/api/v1/soil-regeneration/project/${projectId}/som-trajectory`,
+      ),
+
+    // K.1 — per-zone SOM trajectory for the sidebar sparklines. Same
+    // endpoint, filtered by zone via the F.3 `?zoneId=` query param.
+    // Returns that zone's rows (zone_id = zoneId) ordered by year ASC.
+    getSomTrajectoryByZone: (projectId: string, zoneId: string) =>
+      request<import('../features/financial/somAppreciation.js').SomYearRow[]>(
+        'GET',
+        `/api/v1/soil-regeneration/project/${projectId}/som-trajectory?zoneId=${encodeURIComponent(zoneId)}`,
+      ),
+  },
+
+  evidenceAudit: {
+    // F.4 — passive reproducibility ledger. Fire-and-forget from the
+    // client; the caller does not await this in render paths.
+    log: (
+      projectId: string,
+      body: {
+        panelKey: string;
+        inputHash: string;
+        inputPayload: unknown;
+        selectorName: string;
+        evidenceOutput: unknown;
+      },
+    ) =>
+      request<{ id: string }>(
+        'POST',
+        `/api/v1/projects/${projectId}/evidence-audit/log`,
+        body,
+      ),
+  },
+
   projectState: {
     list: (projectId: string) =>
       request<ProjectStateBlob[]>('GET', `/api/v1/project-state/project/${projectId}`),
@@ -312,6 +574,65 @@ export const api = {
       request<ProjectStateBlob>(
         'PUT',
         `/api/v1/project-state/project/${projectId}/${encodeURIComponent(storeKey)}`,
+        input,
+      ),
+  },
+
+  // Typed per-record sync for the Act stores (ADR 7 Phase 1). Mirrors
+  // `projectState`, but keyed per (project, storeKey, recordId) so each Act
+  // record carries its own rev. `list` pulls every record for one store;
+  // `upsert` writes one record under the baseRev-gated 409 conflict contract.
+  actRecords: {
+    list: (projectId: string, storeKey: string) =>
+      request<SyncedRecord[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}`,
+      ),
+
+    upsert: (
+      projectId: string,
+      storeKey: string,
+      recordId: string,
+      input: UpsertSyncedRecordInput,
+    ) =>
+      request<SyncedRecord>(
+        'PUT',
+        `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}/${encodeURIComponent(recordId)}`,
+        input,
+      ),
+
+    // Reconnect delta-pull (Phase 2 Problem B): every record in the project
+    // changed since `sinceISO` (omit for a full snapshot), across all stores,
+    // oldest-first. Apply-only on the client (server-wins by rev).
+    changedSince: (projectServerId: string, sinceISO?: string) =>
+      request<SyncedRecord[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectServerId}/changed-since${
+          sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+        }`,
+      ),
+
+    // ADR 7 Phase 4 — conflict resolution surface.
+    // `listConflicts` returns every open (escalated) conflict for the project;
+    // `resolveConflict` closes one by the steward's Keep-mine/Keep-server choice.
+    // Both return the standard ApiEnvelope (request<T> wraps it), so callers
+    // destructure `{ data }` exactly like list/upsert above.
+    listConflicts: (projectServerId: string) =>
+      request<ConflictListItem[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectServerId}/conflicts`,
+      ),
+
+    resolveConflict: (
+      projectServerId: string,
+      syncLogId: string,
+      input: ResolveConflictInput,
+    ) =>
+      request<ResolveConflictResult>(
+        'POST',
+        `/api/v1/act-records/project/${projectServerId}/conflicts/${encodeURIComponent(
+          syncLogId,
+        )}/resolve`,
         input,
       ),
   },
@@ -364,8 +685,22 @@ export const api = {
       onProgress?: (pct: number) => void,
     ): Promise<ApiEnvelope<ProjectFile>> =>
       new Promise((resolve, reject) => {
+        const path = `/api/v1/projects/${projectId}/files`;
+        // Report an ApiError to the client-error sink, then reject with it.
+        const fail = (apiError: ApiError) => {
+          reportApiFailure({
+            name: 'ApiError',
+            message: apiError.message,
+            status: apiError.status,
+            code: apiError.code,
+            method: 'POST',
+            path,
+          });
+          reject(apiError);
+        };
+
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `/api/v1/projects/${projectId}/files`);
+        xhr.open('POST', path);
 
         if (authToken) {
           xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
@@ -385,7 +720,7 @@ export const api = {
             if (xhr.status >= 200 && xhr.status < 300 && !json.error) {
               resolve(json);
             } else {
-              reject(new ApiError(
+              fail(new ApiError(
                 json.error?.code ?? 'UNKNOWN',
                 json.error?.message ?? `Upload failed (${xhr.status})`,
                 xhr.status,
@@ -393,12 +728,12 @@ export const api = {
               ));
             }
           } catch {
-            reject(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
+            fail(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
           }
         };
 
         xhr.onerror = () => {
-          reject(new ApiError('NETWORK_ERROR', 'Network error during upload', 0));
+          fail(new ApiError('NETWORK_ERROR', 'Network error during upload', 0));
         };
 
         const formData = new FormData();
@@ -411,6 +746,72 @@ export const api = {
 
     delete: (projectId: string, fileId: string) =>
       request<null>('DELETE', `/api/v1/projects/${projectId}/files/${fileId}`),
+  },
+
+  proofPhoto: {
+    /**
+     * Upload a field-action proof photo blob captured offline-first.
+     * Drives the `proof_photo_upload` sync queue case. Returns the
+     * canonical `assetUri` (`storage://...`) the server stamped on disk;
+     * the caller swaps the local `idb://` URI for it and flips
+     * `fileSyncStatus` to `'uploaded'`.
+     */
+    upload: (
+      projectId: string,
+      args: { actionId: string; slotId: string; blob: Blob; fileName: string; fileMime: string },
+    ): Promise<ApiEnvelope<{ assetUri: string; sizeBytes: number; mimetype: string }>> =>
+      new Promise((resolve, reject) => {
+        const path = `/api/v1/projects/${projectId}/proof-photo`;
+        const fail = (apiError: ApiError) => {
+          reportApiFailure({
+            name: 'ApiError',
+            message: apiError.message,
+            status: apiError.status,
+            code: apiError.code,
+            method: 'POST',
+            path,
+          });
+          reject(apiError);
+        };
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', path);
+        if (authToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+        }
+
+        xhr.onload = () => {
+          try {
+            const json = JSON.parse(xhr.responseText) as ApiEnvelope<{
+              assetUri: string;
+              sizeBytes: number;
+              mimetype: string;
+            }>;
+            if (xhr.status >= 200 && xhr.status < 300 && !json.error) {
+              resolve(json);
+            } else {
+              fail(new ApiError(
+                json.error?.code ?? 'UNKNOWN',
+                json.error?.message ?? `Proof upload failed (${xhr.status})`,
+                xhr.status,
+                json.error?.details,
+              ));
+            }
+          } catch {
+            fail(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
+          }
+        };
+
+        xhr.onerror = () => {
+          fail(new ApiError('NETWORK_ERROR', 'Network error during proof upload', 0));
+        };
+
+        const form = new FormData();
+        form.append('actionId', args.actionId);
+        form.append('slotId', args.slotId);
+        form.append('file', new File([args.blob], args.fileName, { type: args.fileMime }));
+        xhr.send(form);
+      }),
   },
 
   exports: {
@@ -516,7 +917,7 @@ export const api = {
         `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
       ),
 
-    uploadMedia: (projectId: string, file: File): Promise<ApiEnvelope<{
+    uploadMedia: async (projectId: string, file: File): Promise<ApiEnvelope<{
       url: string;
       contentType: string;
       size: number;
@@ -526,21 +927,42 @@ export const api = {
       formData.append('file', file);
       const headers: Record<string, string> = {};
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      return fetch(`/api/v1/projects/${projectId}/regeneration-events/media`, {
-        method: 'POST',
-        headers,
-        body: formData,
-      }).then(async (res) => {
-        const json = await res.json();
-        if (!res.ok || json.error) {
-          throw new ApiError(
-            json.error?.code ?? 'UPLOAD_FAILED',
-            json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
-            res.status,
-          );
+      const path = `/api/v1/projects/${projectId}/regeneration-events/media`;
+      let res: Response;
+      try {
+        res = await fetch(path, { method: 'POST', headers, body: formData });
+      } catch (err) {
+        // AbortError = deliberate cancellation, not a failure.
+        if (!(err instanceof Error && err.name === 'AbortError')) {
+          reportApiFailure({
+            name: err instanceof Error ? err.name : 'NetworkError',
+            message: err instanceof Error ? err.message : String(err),
+            status: 0,
+            code: 'NETWORK_ERROR',
+            method: 'POST',
+            path,
+          });
         }
-        return json;
-      });
+        throw err;
+      }
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        const apiError = new ApiError(
+          json.error?.code ?? 'UPLOAD_FAILED',
+          json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
+          res.status,
+        );
+        reportApiFailure({
+          name: 'ApiError',
+          message: apiError.message,
+          status: apiError.status,
+          code: apiError.code,
+          method: 'POST',
+          path,
+        });
+        throw apiError;
+      }
+      return json;
     },
   },
 
@@ -559,6 +981,12 @@ export const api = {
 
     myRole: (projectId: string) =>
       request<{ role: ProjectRole }>('GET', `/api/v1/projects/${projectId}/my-role`),
+
+    myRoles: () =>
+      request<Array<{ projectId: string; role: ProjectRole }>>(
+        'GET',
+        '/api/v1/projects/my-roles',
+      ),
   },
 
   organizations: {
@@ -567,6 +995,16 @@ export const api = {
 
     create: (name: string) =>
       request<OrganizationRecord>('POST', '/api/v1/organizations', { name }),
+
+    update: (
+      orgId: string,
+      input: {
+        name?: string;
+        plan?: string;
+        jurisdiction?: string | null;
+        registryId?: string | null;
+      },
+    ) => request<OrganizationRecord>('PATCH', `/api/v1/organizations/${orgId}`, input),
 
     listMembers: (orgId: string) =>
       request<OrgMemberRecord[]>('GET', `/api/v1/organizations/${orgId}/members`),
@@ -699,6 +1137,60 @@ export const api = {
       request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
   },
 
+  // Cross-project relationships (Portfolio Home §5) — distinct from the
+  // within-project `relationships` graph above. Connects two whole projects.
+  crossRelationships: {
+    list: (projectId: string) =>
+      request<CrossRelationship[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/cross-project-relationships`,
+      ),
+
+    create: (projectId: string, input: CreateCrossRelationshipInput) =>
+      request<CrossRelationship>(
+        'POST',
+        `/api/v1/projects/${projectId}/cross-project-relationships`,
+        input,
+      ),
+
+    delete: (projectId: string, relationshipId: string) =>
+      request<null>(
+        'DELETE',
+        `/api/v1/projects/${projectId}/cross-project-relationships/${relationshipId}`,
+      ),
+  },
+
+  // Portfolio resource POIs (Portfolio Home §2 resource-node extension) —
+  // user-scoped resource nodes that connect to whole projects via material
+  // flows. Server is the source of truth (no localStorage mirror).
+  portfolioPois: {
+    list: () => request<PortfolioPoi[]>('GET', '/api/v1/portfolio-pois'),
+
+    create: (input: CreatePortfolioPoiInput) =>
+      request<PortfolioPoi>('POST', '/api/v1/portfolio-pois', input),
+
+    update: (poiId: string, input: UpdatePortfolioPoiInput) =>
+      request<PortfolioPoi>('PATCH', `/api/v1/portfolio-pois/${poiId}`, input),
+
+    remove: (poiId: string) =>
+      request<null>('DELETE', `/api/v1/portfolio-pois/${poiId}`),
+
+    flows: {
+      create: (poiId: string, input: CreatePoiFlowInput) =>
+        request<PoiProjectFlow>('POST', `/api/v1/portfolio-pois/${poiId}/flows`, input),
+
+      update: (poiId: string, flowId: string, input: UpdatePoiFlowInput) =>
+        request<PoiProjectFlow>(
+          'PATCH',
+          `/api/v1/portfolio-pois/${poiId}/flows/${flowId}`,
+          input,
+        ),
+
+      remove: (poiId: string, flowId: string) =>
+        request<null>('DELETE', `/api/v1/portfolio-pois/${poiId}/flows/${flowId}`),
+    },
+  },
+
   telemetry: {
     postActInteractions: (events: ActInteractionEventInput[]) =>
       request<{ ingested: number }>(
@@ -717,6 +1209,505 @@ export const api = {
         'GET',
         `/api/v1/telemetry/act-interactions/aggregate${suffix}`,
       );
+    },
+
+    postClientErrors: (events: ClientErrorEventInput[]) =>
+      request<{ ingested: number }>(
+        'POST',
+        '/api/v1/telemetry/client-errors',
+        { events },
+      ),
+  },
+
+  // OLOS — universal Stage × Domain × Objective × Record system.
+  // Catalogue endpoints are public; project endpoints require auth + role.
+  olos: {
+    // ── Catalogue (15 overlays + 48 objectives + ~237 checklist items) ──
+    catalogue: () =>
+      request<{
+        overlays: Overlay[];
+        objectives: Objective[];
+        checklistItems: ChecklistItem[];
+        objectiveOverlays: Array<{ objectiveId: string; overlayId: string }>;
+      }>('GET', '/api/v1/olos/catalogue'),
+
+    overlays: () => request<Overlay[]>('GET', '/api/v1/olos/overlays'),
+    objectives: () => request<Objective[]>('GET', '/api/v1/olos/objectives'),
+    checklistItems: () =>
+      request<ChecklistItem[]>('GET', '/api/v1/olos/checklist-items'),
+
+    // ── ObservationRecord ──────────────────────────────────────────────
+    observations: {
+      list: (projectId: string, q?: { objectiveId?: string; status?: ObserveStatus }) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.status) qs.set('status', q.status);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<ObservationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations${suffix}`,
+        );
+      },
+      create: (projectId: string, input: Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>) =>
+        request<ObservationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/observations`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<ObservationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>> & {
+          baseRev?: number;
+        },
+      ) =>
+        request<ObservationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+          patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): every observation in the project changed
+      // since `sinceISO` (omit for a full snapshot), oldest-first by server
+      // `updated_at`. Apply-only on the client (server-wins by rev).
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+        ),
+    },
+
+    // ── PlanDecisionRecord ─────────────────────────────────────────────
+    planDecisions: {
+      list: (projectId: string, q?: { objectiveId?: string; approvalStatus?: PlanApprovalStatus }) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.approvalStatus) qs.set('approvalStatus', q.approvalStatus);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<PlanDecisionRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/plan-decisions${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<PlanDecisionRecord, 'id' | 'projectId' | 'decidedAt'>,
+      ) =>
+        request<PlanDecisionRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/plan-decisions`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<PlanDecisionRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<PlanDecisionRecord, 'id' | 'projectId' | 'decidedAt'>>,
+      ) =>
+        request<PlanDecisionRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+        ),
+    },
+
+    // ── ActHandoffPackage (POST 409s if upstream PlanDecision is not approved) ──
+    handoffs: {
+      list: (projectId: string, q?: { planDecisionRecordId?: string }) => {
+        const qs = q?.planDecisionRecordId
+          ? `?planDecisionRecordId=${q.planDecisionRecordId}`
+          : '';
+        return request<ActHandoffPackage[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/handoffs${qs}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<ActHandoffPackage, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<ActHandoffPackage>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/handoffs`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<ActHandoffPackage>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<ActHandoffPackage, 'id' | 'projectId' | 'planDecisionRecordId' | 'createdAt'>>,
+      ) =>
+        request<ActHandoffPackage>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+        ),
+    },
+
+    // ── ActTask ───────────────────────────────────────────────────────
+    tasks: {
+      list: (
+        projectId: string,
+        q?: {
+          objectiveId?: string;
+          handoffPackageId?: string;
+          status?: ActTaskStatus;
+          assigneeId?: string;
+        },
+      ) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.handoffPackageId) qs.set('handoffPackageId', q.handoffPackageId);
+        if (q?.status) qs.set('status', q.status);
+        if (q?.assigneeId) qs.set('assigneeId', q.assigneeId);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<ActTask[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<ActTask, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<ActTask>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks`,
+          input,
+        ),
+      get: (projectId: string, taskId: string) =>
+        request<ActTask>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        patch: Partial<Omit<ActTask, 'id' | 'projectId' | 'handoffPackageId' | 'createdAt'>>,
+      ) =>
+        request<ActTask>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+          patch,
+        ),
+      delete: (projectId: string, taskId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+        ),
+    },
+
+    // ── ProofRecord (scoped to a task) ────────────────────────────────
+    proofs: {
+      list: (projectId: string, taskId: string) =>
+        request<ProofRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs`,
+        ),
+      create: (
+        projectId: string,
+        taskId: string,
+        input: Omit<ProofRecord, 'id' | 'projectId' | 'taskId' | 'capturedAt' | 'verificationStatus'> & {
+          capturedAt?: string;
+          verificationStatus?: ProofRecord['verificationStatus'];
+        },
+      ) =>
+        request<ProofRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs`,
+          input,
+        ),
+      get: (projectId: string, taskId: string, proofId: string) =>
+        request<ProofRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        proofId: string,
+        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
+      ) =>
+        request<ProofRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+          patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped (NOT task-scoped) so a
+      // device catches up every proof changed since `sinceISO` in one call.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/proofs/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
+        ),
+      delete: (projectId: string, taskId: string, proofId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+        ),
+    },
+
+    // ── VerificationRecord (scoped to a task) ─────────────────────────
+    verifications: {
+      list: (projectId: string, taskId: string) =>
+        request<VerificationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications`,
+        ),
+      create: (
+        projectId: string,
+        taskId: string,
+        input: Omit<VerificationRecord, 'id' | 'projectId' | 'taskId' | 'verifiedAt'> & { verifiedAt?: string },
+      ) =>
+        request<VerificationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications`,
+          input,
+        ),
+      get: (projectId: string, taskId: string, verificationId: string) =>
+        request<VerificationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        verificationId: string,
+        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
+      ) =>
+        request<VerificationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+          patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped catch-up of every
+      // verification changed since `sinceISO`, oldest-first by server updated_at.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/verifications/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
+        ),
+      delete: (projectId: string, taskId: string, verificationId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+        ),
+    },
+
+    // ── EscalationRecord ──────────────────────────────────────────────
+    escalations: {
+      list: (
+        projectId: string,
+        q?: { taskId?: string; status?: EscalationStatus; severity?: EscalationSeverity; routedToStage?: Stage },
+      ) => {
+        const qs = new URLSearchParams();
+        if (q?.taskId) qs.set('taskId', q.taskId);
+        if (q?.status) qs.set('status', q.status);
+        if (q?.severity) qs.set('severity', q.severity);
+        if (q?.routedToStage) qs.set('routedToStage', q.routedToStage);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<EscalationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/escalations${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<EscalationRecord, 'id' | 'projectId' | 'raisedAt'>,
+      ) =>
+        request<EscalationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/escalations`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<EscalationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<EscalationRecord, 'id' | 'projectId' | 'raisedAt'>>,
+      ) =>
+        request<EscalationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+        ),
+    },
+
+    // ── StewardshipRoutine ────────────────────────────────────────────
+    stewardshipRoutines: {
+      list: (projectId: string, q?: { domainId?: UniversalDomain; frequency?: StewardshipFrequency }) => {
+        const qs = new URLSearchParams();
+        if (q?.domainId) qs.set('domainId', q.domainId);
+        if (q?.frequency) qs.set('frequency', q.frequency);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<StewardshipRoutine[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<StewardshipRoutine, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<StewardshipRoutine>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<StewardshipRoutine>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<StewardshipRoutine, 'id' | 'projectId' | 'createdAt'>>,
+      ) =>
+        request<StewardshipRoutine>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+        ),
+    },
+
+    // ── olos record conflict resolution (Phase 3B) ────────────────────────
+    // One generic route closes an escalated conflict for any of the three olos
+    // record domains; the server dispatches the keep_mine write to the table
+    // named by sync_log.store_key. Mirrors actRecords.resolveConflict, keyed on
+    // the olos `:id` project param. keep_server is a server-side read no-op.
+    resolveConflict: (
+      projectId: string,
+      syncLogId: string,
+      input: ResolveConflictInput,
+    ) =>
+      request<ResolveConflictResult>(
+        'POST',
+        `/api/v1/projects/${projectId}/olos/conflicts/${encodeURIComponent(
+          syncLogId,
+        )}/resolve`,
+        input,
+      ),
+  },
+
+  // ── Compost vertical (org-scoped Site / Pile / Reading; /api/v1/compost) ──
+  // The thermophilic-composting vertical persists piles + readings to typed
+  // org-scoped tables (NOT project-scoped synced_records). Mirrors the
+  // organizations/olos groups; `request` injects the Bearer token and drives
+  // the connectivity store's apiReachable signal.
+  compost: {
+    sites: {
+      list: (orgId: string) =>
+        request<CompostSite[]>(
+          'GET',
+          `/api/v1/compost/sites?orgId=${encodeURIComponent(orgId)}`,
+        ),
+      create: (input: Omit<CompostSite, 'id' | 'ownerId'>) =>
+        request<CompostSite>('POST', '/api/v1/compost/sites', input),
+      get: (siteId: string) =>
+        request<CompostSite>('GET', `/api/v1/compost/sites/${siteId}`),
+      update: (
+        siteId: string,
+        patch: Partial<Omit<CompostSite, 'id' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostSite>('PATCH', `/api/v1/compost/sites/${siteId}`, patch),
+      delete: (siteId: string) =>
+        request<void>('DELETE', `/api/v1/compost/sites/${siteId}`),
+    },
+
+    piles: {
+      list: (siteId: string) =>
+        request<CompostPile[]>('GET', `/api/v1/compost/sites/${siteId}/piles`),
+      create: (
+        siteId: string,
+        input: Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>,
+      ) => request<CompostPile>('POST', `/api/v1/compost/sites/${siteId}/piles`, input),
+      get: (pileId: string) =>
+        request<CompostPile>('GET', `/api/v1/compost/piles/${pileId}`),
+      update: (
+        pileId: string,
+        patch: Partial<Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostPile>('PATCH', `/api/v1/compost/piles/${pileId}`, patch),
+      delete: (pileId: string) =>
+        request<void>('DELETE', `/api/v1/compost/piles/${pileId}`),
+    },
+
+    readings: {
+      list: (pileId: string, source?: CompostReadingSource) => {
+        const suffix = source ? `?source=${source}` : '';
+        return request<CompostReading[]>(
+          'GET',
+          `/api/v1/compost/piles/${pileId}/readings${suffix}`,
+        );
+      },
+      create: (
+        pileId: string,
+        input: Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>,
+      ) =>
+        request<CompostReading>(
+          'POST',
+          `/api/v1/compost/piles/${pileId}/readings`,
+          input,
+        ),
+      get: (readingId: string) =>
+        request<CompostReading>('GET', `/api/v1/compost/readings/${readingId}`),
+      update: (
+        readingId: string,
+        patch: Partial<Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>>,
+      ) =>
+        request<CompostReading>('PATCH', `/api/v1/compost/readings/${readingId}`, patch),
+      delete: (readingId: string) =>
+        request<void>('DELETE', `/api/v1/compost/readings/${readingId}`),
     },
   },
 };

@@ -245,7 +245,7 @@
 
 .canvasNoticeText {
   font-size: 11px;
-  color: #e2dccf;
+  color: var(--color-text);
   font-style: italic;
   line-height: 1.4;
 }

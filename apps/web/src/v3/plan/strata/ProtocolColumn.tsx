@@ -1,0 +1,282 @@
+// ProtocolColumn — the CENTER column in Plan Protocol mode: a multi-select list
+// of the project's standard protocol templates, grouped by tier (mirrors the
+// ObjectiveColumn chrome it replaces in Protocol mode). Selecting rows drives the
+// stacked detail in ProtocolDetailColumn on the right. Selection lives in the
+// shell (local state this slice); this column is presentational.
+//
+// Rows are real <button role="checkbox"> toggles so the multi-select is keyboard-
+// and screen-reader-addressable. Selected rows take the gold accent that the
+// ObjectiveCard active state uses (C.gold border + translucent gold wash).
+
+import { useState } from 'react';
+import { type DesignTension } from '@ogden/shared';
+import { type ProtocolTierGroup } from './useProtocolLibrary.js';
+import {
+  type RecordStatus,
+  statusMeta,
+} from './ProtocolLibraryCard.js';
+import { C, F, CA } from '../spine/tokens.js';
+import { TypeBadge } from '../spine/protocolTypeStyle.js';
+import DesignTensionBanner from './DesignTensionBanner.js';
+
+interface Props {
+  /** Tier-grouped templates, in catalogue order (from useProtocolLibrary). */
+  groups: readonly ProtocolTierGroup[];
+  /** templateId → lifecycle status for the status dot/label. */
+  statusByTemplate: Record<string, RecordStatus>;
+  /** Currently-selected template ids (drives the gold accent + detail stack). */
+  selectedIds: readonly string[];
+  /** Toggle a template into / out of the selection. */
+  onToggle: (templateId: string) => void;
+  /**
+   * Select every visible template at once, or clear the selection if all are
+   * already selected. Optional — when omitted the bulk toggle button is hidden
+   * (keeps presentational tests back-compatible). The shell owns the actual
+   * all-vs-none decision; this column only reflects `allSelected` in the label.
+   */
+  onToggleAll?: () => void;
+  /**
+   * Secondary-type design conflicts for this project (from the resolver's
+   * `activeTensions`). When present, a read-only DesignTensionBanner surfaces
+   * them above the list — "surface conflicts," not navigation, so no
+   * onSelectTension/tensionStrataHints are wired here.
+   */
+  tensions?: readonly DesignTension[];
+  /** Tension ids reconciled at the currently-open stratum (ring-highlighted). */
+  highlightTensionIds?: readonly string[];
+}
+
+export default function ProtocolColumn({
+  groups,
+  statusByTemplate,
+  selectedIds,
+  onToggle,
+  onToggleAll,
+  tensions,
+  highlightTensionIds,
+}: Props) {
+  const templateCount = groups.reduce((n, g) => n + g.items.length, 0);
+  const selected = new Set(selectedIds);
+  // All visible templates already selected? Drives the bulk toggle label/aria.
+  const allSelected =
+    templateCount > 0 &&
+    groups.every((g) => g.items.every((t) => selected.has(t.id)));
+  const tensionList = tensions ?? [];
+  // Read-only banner: local collapse state, default expanded so conflicts are
+  // visible on entry. (No per-project persistence — this surface only displays
+  // conflicts; reconciliation happens in Design mode, which owns the store pref.)
+  const [tensionExpanded, setTensionExpanded] = useState(true);
+
+  return (
+    <section
+      data-testid="protocol-column"
+      style={{
+        flex: 3,
+        minWidth: 0,
+        minHeight: 0,
+        overflowY: 'auto',
+        background: C.bg,
+        borderRight: `1px solid ${C.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        padding: '14px 12px',
+      }}
+    >
+      {/* Secondary-type design conflicts (read-only) — surfaced above the list
+          so the steward sees them in context. Reconciliation is done in Design
+          mode; here the banner is informational. */}
+      {tensionList.length > 0 && (
+        <DesignTensionBanner
+          tensions={tensionList}
+          expanded={tensionExpanded}
+          highlightTensionIds={highlightTensionIds}
+          onToggle={() => setTensionExpanded((v) => !v)}
+        />
+      )}
+
+      {/* Eyebrow + count, with the bulk select/deselect-all toggle on the right */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span
+            style={{
+              fontSize: 12,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}
+          >
+            Protocols
+          </span>
+          <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
+            {templateCount} template{templateCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {onToggleAll && templateCount > 0 && (
+          <button
+            type="button"
+            data-testid="protocol-select-all-toggle"
+            aria-pressed={allSelected}
+            onClick={onToggleAll}
+            style={{
+              flexShrink: 0,
+              fontSize: 11,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: allSelected ? C.gold : C.textSecondary,
+              background: allSelected ? CA('gold', 0.1) : 'transparent',
+              border: `1px solid ${allSelected ? C.gold : C.border}`,
+              borderRadius: 4,
+              padding: '4px 9px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {allSelected ? 'Deselect all' : 'Select all'}
+          </button>
+        )}
+      </div>
+
+      {templateCount === 0 ? (
+        <div
+          data-testid="protocol-column-empty"
+          style={{
+            fontSize: 12,
+            color: C.textTertiary,
+            fontFamily: F.sans,
+            fontStyle: 'italic',
+            padding: '24px 4px',
+            lineHeight: 1.5,
+          }}
+        >
+          No protocol templates for this project&apos;s enterprises.
+        </div>
+      ) : (
+        groups.map((g) => (
+          <div
+            key={g.tier}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+          >
+            {/* Tier section header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                data-testid="protocol-column-tier-heading"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: C.textSecondary,
+                  fontFamily: F.sans,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {g.tier}
+              </span>
+              <div style={{ flex: 1, height: 1, background: C.border }} />
+              <span
+                style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}
+              >
+                {g.items.length}
+              </span>
+            </div>
+
+            {g.items.map((t) => {
+              const isSelected = selected.has(t.id);
+              const meta = statusMeta(statusByTemplate[t.id]);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  data-testid="protocol-list-row"
+                  data-template-id={t.id}
+                  data-selected={isSelected}
+                  onClick={() => onToggle(t.id)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    gap: 8,
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    border: `1px solid ${isSelected ? C.gold : C.border}`,
+                    background: isSelected ? CA('gold', 0.1) : C.bg2,
+                    color: C.textPrimary,
+                    fontFamily: F.sans,
+                    cursor: 'pointer',
+                    transition:
+                      'background 120ms ease, border-color 120ms ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        lineHeight: 1.3,
+                        color: C.textPrimary,
+                      }}
+                    >
+                      {t.name}
+                    </span>
+                    <TypeBadge type={t.type} />
+                  </div>
+                  {/* Lifecycle status dot + label */}
+                  <span
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      fontSize: 12,
+                      color: meta.color,
+                      fontFamily: F.sans,
+                      fontWeight: 600,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {meta.dot && (
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          background: meta.color,
+                          display: 'inline-block',
+                        }}
+                      />
+                    )}
+                    {meta.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ))
+      )}
+    </section>
+  );
+}

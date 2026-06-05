@@ -44,7 +44,7 @@ export default function WizardNav({
         onClick={onNext}
         disabled={nextDisabled}
         style={{
-          background: nextDisabled ? 'var(--color-earth-300)' : 'var(--color-earth-600)',
+          background: nextDisabled ? 'var(--color-neutral-300)' : 'var(--color-neutral-600)',
           color: '#fff',
           border: 'none',
           borderRadius: 'var(--radius-md)',

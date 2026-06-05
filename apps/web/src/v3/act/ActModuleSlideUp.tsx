@@ -6,7 +6,7 @@
  * `_shared/moduleNav/ModuleSlideUp.tsx`.
  */
 
-import { lazy, useCallback } from 'react';
+import { lazy, useCallback, type ReactNode } from 'react';
 import { ModuleSlideUp } from '../_shared/moduleNav/index.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ActModule } from './types.js';
@@ -14,8 +14,11 @@ import { MODULE_CARDS, ACT_MODULE_FULL_LABEL } from './types.js';
 
 // Act cards lazy-loaded.
 const PlanExecutionTrackerCard  = lazy(() => import('../../features/act/PlanExecutionTrackerCard.js'));
+const ResourcingCard            = lazy(() => import('../../features/act/ResourcingCard.js'));
+const IncomingWorkPackagesCard  = lazy(() => import('../../features/act/IncomingWorkPackagesCard.js'));
 const BuildGanttCard            = lazy(() => import('../../features/act/BuildGanttCard.js'));
-const BudgetActualsCard         = lazy(() => import('../../features/act/BudgetActualsCard.js'));
+const BudgetCard                = lazy(() => import('../../features/act/BudgetCard.js'));
+const OperatingDashboardCard    = lazy(() => import('../../features/act/OperatingDashboardCard.js'));
 const PilotPlotsCard            = lazy(() => import('../../features/act/PilotPlotsCard.js'));
 const MaintenanceScheduleCard   = lazy(() => import('../../features/act/MaintenanceScheduleCard.js'));
 const IrrigationManagerCard     = lazy(() => import('../../features/act/IrrigationManagerCard.js'));
@@ -45,8 +48,11 @@ function renderActCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
   switch (sectionId) {
     case 'act-plan-tracker':      return <PlanExecutionTrackerCard project={project} onSwitchToMap={noop} />;
+    case 'act-resourcing':        return <ResourcingCard project={project} onSwitchToMap={noop} />;
+    case 'act-incoming-packages': return <IncomingWorkPackagesCard projectId={project.id} />;
     case 'act-build-gantt':       return <BuildGanttCard project={project} onSwitchToMap={noop} />;
-    case 'act-budget-actuals':    return <BudgetActualsCard project={project} onSwitchToMap={noop} />;
+    case 'act-budget':            return <BudgetCard project={project} onSwitchToMap={noop} />;
+    case 'act-operating-dashboard': return <OperatingDashboardCard project={project} onSwitchToMap={noop} />;
     case 'act-pilot-plots':       return <PilotPlotsCard project={project} onSwitchToMap={noop} />;
     case 'act-maintenance-events': return <MaintenanceLogCard project={project} onSwitchToMap={noop} />;
     case 'act-maintenance':       return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;
@@ -80,9 +86,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   project: LocalProject;
+  topBar?: ReactNode;
 }
 
-export default function ActModuleSlideUp({ module, open, onClose, project }: Props) {
+export default function ActModuleSlideUp({ module, open, onClose, project, topBar }: Props) {
   const cards = module ? MODULE_CARDS[module] : [];
   const label = module ? ACT_MODULE_FULL_LABEL[module] : '';
 
@@ -100,6 +107,7 @@ export default function ActModuleSlideUp({ module, open, onClose, project }: Pro
       cards={cards}
       renderCard={renderCard}
       ariaLabel={module ? `${label} — act tools` : undefined}
+      topBar={topBar}
     />
   );
 }

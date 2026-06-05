@@ -1,0 +1,91 @@
+/* VisionFormModal.module.css
+ *
+ * Styles for the text-capture popup used by kind:'form' Act tier-shell tools.
+ * Uses the same BentoBox token vocabulary as ActTierShell.module.css.
+ */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+
+.hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+  letter-spacing: 0.02em;
+  cursor: default;
+  user-select: none;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.06));
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.35));
+}
+
+.textarea:focus {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.cancelBtn:hover {
+  border-color: var(--color-gold-brand, #c4a265);
+  color: var(--color-text, #f2ede3);
+}
+
+.saveBtn {
+  padding: 7px 20px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-gold-brand, #c4a265);
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1611;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.saveBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

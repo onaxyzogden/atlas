@@ -23,6 +23,7 @@ import {
 } from '../../../../store/monitoringTransectStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -35,6 +36,7 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: TransectMonitoringKind; label: string }[] = (
@@ -45,7 +47,7 @@ const CADENCE_OPTIONS: { value: TransectCadence; label: string }[] = (
   Object.keys(TRANSECT_CADENCE_LABEL) as TransectCadence[]
 ).map((c) => ({ value: c, label: TRANSECT_CADENCE_LABEL[c] }));
 
-export default function MonitoringTransectTool({ map, projectId }: Props) {
+export default function MonitoringTransectTool({ map, projectId, getSnapTargets }: Props) {
   const addTransect = useMonitoringTransectStore((s) => s.addTransect);
   const updateTransect = useMonitoringTransectStore((s) => s.updateTransect);
   const deleteTransect = useMonitoringTransectStore((s) => s.deleteTransect);
@@ -138,6 +140,8 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
     mode: 'draw_line_string',
     onComplete: handleComplete,
     enabled: dimMode === 'freehand',
+    snap: true,
+    getSnapTargets,
   });
 
   useDimensionDrawTool({

@@ -1,0 +1,241 @@
+/* LivingRootsCard — B5.1 cover-crop & living-roots audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--color-text-subtle);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-subtle);
+  background: rgba(232, 220, 200, 0.018);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.headline {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  border-left: 3px solid rgba(120, 160, 110, 0.55);
+  margin-bottom: 18px;
+}
+
+.headlineNumber {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.headlineLabel {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex: 1;
+}
+
+.pill {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pillGreen {
+  background: rgba(120, 160, 110, 0.22);
+  color: var(--color-text);
+}
+
+.pillAmber {
+  background: rgba(196, 162, 101, 0.18);
+  color: rgba(232, 200, 140, 0.92);
+}
+
+.pillRed {
+  background: rgba(192, 90, 80, 0.22);
+  color: var(--color-text);
+}
+
+.bandTitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  margin: 12px 0 8px;
+}
+
+.counterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.counter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+}
+
+.counterNum {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.counterLabel {
+  font-size: 10.5px;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.categoryBlock {
+  font-size: 11.5px;
+  color: var(--color-text);
+  line-height: 1.9;
+  margin-top: 12px;
+}
+
+.categoryLabel {
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  margin-right: 4px;
+}
+
+.categoryChip {
+  display: inline-block;
+  padding: 1px 8px;
+  margin: 0 4px 2px 0;
+  border-radius: 10px;
+  background: rgba(120, 160, 110, 0.18);
+  color: var(--color-text);
+  font-size: 11px;
+}
+
+.areaList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.areaRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+}
+
+.areaHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.areaName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.areaPct {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(196, 162, 101, 0.9);
+}
+
+.monthStrip {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+}
+
+.monthCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.monthOn {
+  background: rgba(120, 160, 110, 0.32);
+  color: var(--color-text);
+  border-color: rgba(120, 160, 110, 0.45);
+}
+
+.monthOff {
+  background: rgba(232, 220, 200, 0.02);
+  color: var(--color-text-subtle);
+}
+
+.areaMore {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  padding: 4px 6px;
+}

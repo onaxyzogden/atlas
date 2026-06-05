@@ -1,78 +1,76 @@
 /**
- * projectTypeModuleAffinity — per-project-type ranking of Act modules.
+ * projectTypeModuleAffinity — per-project-type ranking of Act domains
+ * (slice 3b+3c: rebased onto UniversalDomain). Lower rank index = higher
+ * operational priority for that project type.
  *
- * Lower rank index = higher operational priority for that project type.
  * Used by `TodaysPriorities` and `AlertsPanel` to re-rank items they
- * already surface, so a Conservation steward sees review/maintain items
- * promoted while a Retreat Center steward sees network/maintain promoted.
+ * already surface, so a Conservation steward sees monitoring-records /
+ * built-infrastructure items promoted while a Retreat Center steward
+ * sees people-governance / built-infrastructure promoted.
  *
- * Rankings reflect *daily field work* for each archetype, not parcel scope
- * or design priority. They are a v1 best-guess — easily edited as a single
- * constant; tunable based on usage feedback. When `effectiveType` is null
- * (no project type set), neither panel applies the affinity sort, so this
- * table only ever promotes — it never demotes default behavior.
+ * Rankings reflect *daily field work* for each archetype, not parcel
+ * scope or design priority. Rekeyed first-wins from the legacy 8-id
+ * lists via ACT_MODULE_TO_DOMAIN, deduped in canonical insertion order.
+ * When `effectiveType` is null (no project type set), neither panel
+ * applies the affinity sort, so this table only ever promotes — it
+ * never demotes default behavior.
  */
 
 import type { PlanProjectTypeKey } from '../../plan/data/planProjectTypeTemplates.js';
+import type { UniversalDomain } from '@ogden/shared';
 import type { ActModule } from '../types.js';
 
 const PROJECT_TYPE_MODULE_AFFINITY: Record<
   PlanProjectTypeKey,
-  readonly ActModule[]
+  readonly UniversalDomain[]
 > = {
   regenerative_farm: [
-    'harvest',
-    'livestock',
-    'maintain',
-    'build',
-    'review',
-    'network',
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
+    'built-infrastructure',  // ← maintain (first), build
+    'monitoring-records',    // ← review
+    'people-governance',     // ← network
   ],
   retreat_center: [
-    'network',
-    'maintain',
-    'review',
-    'build',
-    'harvest',
-    'livestock',
+    'people-governance',     // ← network
+    'built-infrastructure',  // ← maintain (first), build
+    'monitoring-records',    // ← review
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
   ],
   homestead: [
-    'maintain',
-    'harvest',
-    'livestock',
-    'build',
-    'network',
-    'review',
+    'built-infrastructure',  // ← maintain (first), build
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
+    'people-governance',     // ← network
+    'monitoring-records',    // ← review
   ],
   educational_farm: [
-    'network',
-    'review',
-    'maintain',
-    'harvest',
-    'build',
-    'livestock',
+    'people-governance',     // ← network
+    'monitoring-records',    // ← review
+    'built-infrastructure',  // ← maintain (first), build
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
   ],
   conservation: [
-    'review',
-    'maintain',
-    'build',
-    'network',
-    'harvest',
-    'livestock',
+    'monitoring-records',    // ← review
+    'built-infrastructure',  // ← maintain (first), build
+    'people-governance',     // ← network
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
   ],
   multi_enterprise: [
-    'build',
-    'review',
-    'harvest',
-    'maintain',
-    'livestock',
-    'network',
+    'built-infrastructure',  // ← build (first), maintain
+    'monitoring-records',    // ← review
+    'plants-food',           // ← harvest
+    'animals-livestock',     // ← livestock
+    'people-governance',     // ← network
   ],
 };
 
 /**
  * Returns the affinity rank (lower = higher priority) of `module` for
- * `type`. Modules absent from the table fall back to
+ * `type`. Domains absent from the table fall back to
  * `Number.POSITIVE_INFINITY` so they sort to the bottom of an
  * affinity-sorted list. `type === null` also returns infinity, but callers
  * should short-circuit and skip the sort entirely in that case.
@@ -86,3 +84,5 @@ export function getModuleAffinityRank(
   const idx = order.indexOf(module);
   return idx === -1 ? Number.POSITIVE_INFINITY : idx;
 }
+
+export { PROJECT_TYPE_MODULE_AFFINITY };

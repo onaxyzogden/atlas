@@ -1,0 +1,70 @@
+/*
+ * PlanSearchColumn — the broadened, cross-stratum match list shown in the
+ * centre column while a header Stage Search query is active (Plan stage).
+ * Mirrors ObjectiveColumn's dark spine container; the cards themselves reuse
+ * ObjectiveCard's own module.
+ */
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.headingLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+}
+
+/* The owning-stratum + matched-domain provenance line beneath each result, so
+   a cross-stratum match reads in context (which stratum) and a domain-only
+   match explains itself ("via Hydrology & Water"). */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 2px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.metaStratum {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.metaVia {
+  font-style: italic;
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}

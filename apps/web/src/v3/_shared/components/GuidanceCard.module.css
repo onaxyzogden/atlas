@@ -1,7 +1,16 @@
 /* GuidanceCard — shared right-rail guidance card structure for Observe / Plan / Act.
    Per-module dot colour comes via the `--group-dot` CSS variable set inline by
    the consuming stage (each stage owns its module palette). The parent
-   container's `[data-has-active='true']` attribute drives the inactive-fade. */
+   container's `[data-has-active='true']` attribute drives the inactive-fade.
+
+   .group below is byte-identical to BentoBox.module.css `.group` (the canonical
+   inner-card / "inner bento" surface for OLOS/Atlas): var(--color-bg) +
+   1px solid var(--color-border) + var(--radius-md) + 10px padding + 8px gap.
+   Per ADR 2026-05-27-atlas-bento-box-canonical-surface this stays in sync —
+   any future surface tweak to the canonical inner-bento must mirror here.
+   The transition / interaction layers (saturation drain, group-dot accents,
+   keyboard focus rings) are GuidanceCard-specific and intentionally live
+   only here. */
 
 .group {
   display: flex;
@@ -94,6 +103,65 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* ── Unified objective card: progress header (optional) ──────────────────── */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progressTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressBar {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--group-dot);
+  transition: width 200ms ease;
+}
+
+.progressMeta {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.statusPill {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.status_in_progress {
+  color: var(--group-dot);
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+}
+
+.status_complete {
+  color: var(--color-success, #4caf7d);
+  border-color: color-mix(in srgb, var(--color-success, #4caf7d) 50%, var(--color-border));
 }
 
 .why {
@@ -208,4 +276,42 @@
   font-size: 11px;
   line-height: 1.4;
   color: var(--color-text);
+}
+
+/* ── Unified objective card: summary note (optional) ─────────────────────── */
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: default;
+}
+
+.summaryArea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.summaryArea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.summaryArea:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--group-dot));
+  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+}
+
+.summaryArea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

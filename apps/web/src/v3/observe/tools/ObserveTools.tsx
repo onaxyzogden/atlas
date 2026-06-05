@@ -1,9 +1,12 @@
 /**
  * ObserveTools — left-rail tool palette for the Observe stage.
  *
- * Always renders the full set of tools across all six modules so contributors
- * can drop annotations without first switching the active module. The active
- * module's section is highlighted; everything else is visible but quieter.
+ * 2026-05-24 — Stage Compass focus (mirrors Goal 2's right-rail change): the
+ * rail follows the compass's single-objective focus. It renders ONLY the tool
+ * section(s) belonging to the chosen objective (active module) — so the steward
+ * sees just the tools needed to complete it, not every module's palette. With
+ * no objective selected, a quiet prompt links back to the Stage Compass. All
+ * section-rendering code is preserved (gated on the active module), not removed.
  *
  * Each button toggles a flat `MapToolId` ("observe.<module>.<tool>") on the
  * shared `useMapToolStore`; only one tool can be active at a time across all
@@ -17,12 +20,13 @@
 import { useEffect, useRef } from 'react';
 import { useEffectiveHomestead } from '../hooks/useEffectiveHomestead.js';
 import { useObserveTelemetry } from '../../../lib/observeInteractionLog.js';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   Bird,
   Eye,
   Fence,
+  Flag,
   Flame,
   MapPin,
   Mountain,
@@ -33,6 +37,7 @@ import {
   MousePointer,
   Skull,
   Snowflake,
+  Spline,
   Sprout,
   Star,
   Sun,
@@ -51,7 +56,6 @@ import {
   BE_TOOL_ITEMS,
   BE_TOOL_GROUPS,
 } from '../../_shared/builtEnvironmentTools.js';
-import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
@@ -62,17 +66,32 @@ import {
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
+import { BE_CATEGORY_TO_OBSERVE_MODULE } from '../observeSectionMap.js';
 import css from './ObserveTools.module.css';
 
 interface ObserveToolsProps {
   activeModule: ObserveModule | null;
   /**
-   * Optional handler to switch the active OBSERVE module from the toolbar.
-   * When provided, each section becomes a button that navigates to its
-   * module — mirroring the bottom `ObserveModuleBar`. Clicking the already-
-   * active section deselects (passes `null` to clear the URL module).
+   * The reconciled picked-section id (owned by `ObserveLayout`, shared with
+   * the mini rail). Non-null → exactly that section lights; null → fall back
+   * to whole-family module-equality highlight.
    */
-  onSelectModule?: (module: ObserveModule | null) => void;
+  effectiveSectionId: string | null;
+  /**
+   * Optional handler to narrow / toggle the cross-rail section highlight.
+   * When provided, each section becomes a button: clicking an inactive
+   * section narrows to it (and navigates to its module); clicking the sole-
+   * active section deselects. Section ids reuse each section's React `key`
+   * (`mod`, `be-from-map`, or `be-<category>`).
+   */
+  onSelectSection?: (module: ObserveModule, sectionId: string) => void;
+  /**
+   * Objective Focus Mode: when provided, the rail shows ONLY these tools (and
+   * hides any section left with no allowed tools). Lets a launched objective
+   * narrow the palette to exactly the tools its field work needs. Omitted in
+   * normal module browsing, where the active module's full palette shows.
+   */
+  restrictToTools?: MapToolId[];
 }
 
 interface ToolItem {
@@ -98,35 +117,14 @@ const BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
   toolId: `observe.built-environment.${it.kind}` as MapToolId,
 }));
 
-/**
- * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
- * own top-level rail section; clicking it activates the routed Observe
- * module below. Observe has fewer modules than Plan, so most categories
- * fall back to `built-environment`; vegetation / earthworks route to
- * ecology / topography respectively.
- */
-const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
-  BuiltEnvironmentCategory,
-  ObserveModule
-> = {
-  building: 'built-environment',
-  agricultural: 'built-environment',
-  utility: 'built-environment',
-  infrastructure: 'built-environment',
-  machinery: 'built-environment',
-  amenity: 'built-environment',
-  vegetation: 'earth-water-ecology',
-  earthworks: 'topography',
-};
-
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
-  'human-context': [
+  'people-governance': [
     { id: 'neighbour-pin',   label: 'Neighbour pin',       Icon: MapPin,   toolId: 'observe.human-context.neighbour-pin' },
     { id: 'steward',         label: 'Steward / household', Icon: Users,    toolId: 'observe.human-context.steward' },
     { id: 'access-road',     label: 'Access road',         Icon: Pencil,   toolId: 'observe.human-context.access-road' },
   ],
-  'built-environment': BE_TOOLS,
-  'macroclimate-hazards': [
+  'built-infrastructure': BE_TOOLS,
+  'climate': [
     { id: 'frost-pocket',    label: 'Frost pocket',        Icon: Snowflake, toolId: 'observe.macroclimate-hazards.frost-pocket' },
     { id: 'hazard-zone',     label: 'Hazard zone',         Icon: AlertTriangle, toolId: 'observe.macroclimate-hazards.hazard-zone' },
   ],
@@ -134,20 +132,15 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'contour-line',    label: 'Contour line',        Icon: PenLine,  toolId: 'observe.topography.contour-line' },
     { id: 'high-point',      label: 'High point',          Icon: Mountain, toolId: 'observe.topography.high-point' },
     { id: 'drainage-line',   label: 'Drainage line',       Icon: Waves,    toolId: 'observe.topography.drainage-line' },
+    { id: 'erosion-flag',    label: 'Erosion flag',        Icon: Flag,     toolId: 'observe.topography.erosion-flag' },
+    { id: 'runoff-path',     label: 'Runoff path',         Icon: Spline,   toolId: 'observe.topography.runoff-path' },
   ],
-  'earth-water-ecology': [
+  'hydrology': [
     { id: 'watercourse',     label: 'Watercourse',         Icon: Waves,    toolId: 'observe.earth-water-ecology.watercourse' },
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'vegetation',      label: 'Vegetation & cover',  Icon: Sprout,   toolId: 'observe.earth-water-ecology.vegetation' },
-    { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
-    { id: 'conventional-crop', label: 'Conventional crop', Icon: Wheat,    toolId: 'observe.earth-water-ecology.conventional-crop' },
-    // 2026-05-14 — Berm and Raised bed relocated from the Earthworks BE
-    // category (dropped). Use BE toolIds so the existing BE draw pipeline
-    // still handles persistence.
-    { id: 'be-berm',         label: 'Berm',                Icon: Mountain, toolId: 'observe.built-environment.berm' as MapToolId },
-    { id: 'be-raised-bed',   label: 'Raised bed',          Icon: Sprout,   toolId: 'observe.built-environment.raised-bed' as MapToolId },
   ],
-  'sectors-zones': [
+  'access-circulation': [
     { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },
     { id: 'sun-winter',      label: 'Sun (winter)',        Icon: Sunrise,  toolId: 'observe.sectors-zones.sun-winter' },
     { id: 'wind-prevailing', label: 'Wind (prevailing)',   Icon: Wind,     toolId: 'observe.sectors-zones.wind-prevailing' },
@@ -158,19 +151,36 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'view',            label: 'View',                Icon: Eye,      toolId: 'observe.sectors-zones.view' },
     { id: 'permaculture',    label: 'Permaculture zone',   Icon: Target,   toolId: 'observe.sectors-zones.permaculture' },
   ],
-  'swot-synthesis': [
+  'monitoring-records': [
     { id: 'strength',        label: 'Strength (S)',        Icon: Shield,      toolId: 'observe.swot-synthesis.strength' },
     { id: 'weakness',        label: 'Weakness (W)',        Icon: ShieldAlert, toolId: 'observe.swot-synthesis.weakness' },
     { id: 'opportunity',     label: 'Opportunity (O)',     Icon: Star,        toolId: 'observe.swot-synthesis.opportunity' },
     { id: 'threat',          label: 'Threat (T)',          Icon: Skull,       toolId: 'observe.swot-synthesis.threat' },
   ],
+  // Unauthored Observe domains — empty tool lists.
+  'vision-intent': [],
+  'land-base': [],
+  soil: [],
+  ecology: [],
+  'plants-food': [],
+  'animals-livestock': [],
+  'energy-resources': [],
+  'economics-capacity': [],
+  'risk-compliance': [],
 };
 
 export default function ObserveTools({
   activeModule,
-  onSelectModule,
+  effectiveSectionId,
+  onSelectSection,
+  restrictToTools,
 }: ObserveToolsProps) {
+  // Objective Focus Mode tool gate. Null set → no restriction (normal browse).
+  const restrictSet = restrictToTools ? new Set(restrictToTools) : null;
+  const allowTool = (toolId: MapToolId) =>
+    restrictSet === null || restrictSet.has(toolId);
   const params = useParams({ strict: false }) as { projectId?: string };
+  const navigate = useNavigate();
   // Match ObserveLayout's projectId normalisation (`params.projectId ?? 'mtc'`)
   // so the homestead selector here reads from the same partitioned-key slot
   // ObserveLayout writes to. Previously this was `?? null`, which meant the
@@ -198,6 +208,8 @@ export default function ObserveTools({
     const next = { placed: homesteadPlaced, source: effectiveSource };
     if (!prev || prev.placed !== next.placed || prev.source !== next.source) {
       recordObserve({
+        // Telemetry vocab in observeInteractionLog is pinned to legacy
+        // analytics dimension; intentionally not on UniversalDomain.
         module: 'sectors-zones',
         eventType: 'homestead_gate_flip',
         payload: { placed: next.placed, source: next.source },
@@ -239,7 +251,47 @@ export default function ObserveTools({
     setActiveTool(activeTool === toolId ? null : toolId);
   };
 
-  const canSelectModules = Boolean(onSelectModule);
+  const canSelectModules = Boolean(onSelectSection);
+
+  // 2026-05-24 — Stage Compass focus: with no objective selected, show a quiet
+  // prompt back to the compass instead of every module's tool palette. Mirrors
+  // the right-rail ObserveChecklistAside empty state (Goal 2).
+  if (activeModule === null) {
+    return (
+      <aside
+        ref={toolboxRef}
+        className={css.toolbox}
+        data-has-active={false}
+        aria-label="Observe tools"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below to choose your next objective.
+          </p>
+          {params.projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/observe',
+                  params: { projectId: params.projectId! },
+                })
+              }
+            >
+              Back to Observe
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // Focus mode: render ONLY the section(s) belonging to the chosen objective.
+  // Built Environment is one objective surfaced as its "From map" meta-section
+  // plus its per-category sections; every other module is a single section.
+  const showBuiltEnvironment = activeModule === 'built-infrastructure';
 
   return (
     <aside
@@ -253,17 +305,27 @@ export default function ObserveTools({
         // is no longer rendered as a rail section; its kinds surface as
         // 9 per-category sections appended after this loop. Slide-up is
         // still reachable via the bottom-rail tile.
-        if (mod === 'built-environment') return null;
-        const items = TOOL_GROUPS[mod];
-        const isActive = mod === activeModule;
+        if (mod === 'built-infrastructure') return null;
+        // Focus mode: only the chosen objective's section renders. `activeModule`
+        // is non-null here (empty state returned above), so this yields exactly
+        // one non-BE section.
+        if (mod !== activeModule) return null;
+        const items = TOOL_GROUPS[mod].filter((it) => allowTool(it.toolId));
+        // Focus mode may filter every tool out of this module — hide the
+        // empty section rather than render a header with no buttons.
+        if (items.length === 0) return null;
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === mod
+            : mod === activeModule;
         const headerLabel = OBSERVE_MODULE_LABEL[mod];
-        // Active sections also act as a button — clicking the active group
-        // deselects (mirrors the bottom rail's "click active card" behavior
-        // when no slide-up is open). Inactive sections navigate to that
-        // module. Both paths run through the same onSelectModule.
+        // Active sections also act as a button — clicking the sole-active
+        // section deselects (handled in `onSelectSection`'s toggle). Inactive
+        // sections narrow the cross-rail highlight to this module. Section id
+        // reuses the React `key` (`mod`).
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : mod);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(mod, mod);
         };
         const sectionInteractionProps = canSelectModules
           ? {
@@ -316,12 +378,33 @@ export default function ObserveTools({
        *  BE module section. Surfaces as its own leading "From map" section
        *  now that BE is flattened — kept routed to `built-environment` so
        *  click-to-activate still opens the parent BE slide-up. */}
-      {(() => {
-        const routed: ObserveModule = 'built-environment';
-        const isActive = routed === activeModule;
+      {showBuiltEnvironment && (() => {
+        const routed: ObserveModule = 'built-infrastructure';
+        const sectionId = 'be-from-map';
+        const adoptCandidates: ToolItem[] = [
+          {
+            id: 'adopt-basemap',
+            label: 'Adopt from map',
+            Icon: MousePointer,
+            toolId: 'observe.built-environment.adopt-basemap',
+          },
+          {
+            id: 'adopt-water',
+            label: 'Adopt water',
+            Icon: Waves,
+            toolId: 'observe.earth-water-ecology.adopt-water',
+          },
+        ];
+        const adoptItems = adoptCandidates.filter((it) => allowTool(it.toolId));
+        // Focus mode may exclude both adopt meta-tools — hide the section.
+        if (adoptItems.length === 0) return null;
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : routed === activeModule;
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : routed);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(routed, sectionId);
         };
         const sectionInteractionProps = canSelectModules
           ? {
@@ -359,18 +442,12 @@ export default function ObserveTools({
               <span className={css.groupLabel}>From map</span>
             </header>
             <div className={css.itemGrid}>
-              {renderToolButton(
-                {
-                  id: 'adopt-basemap',
-                  label: 'Adopt from map',
-                  Icon: MousePointer,
-                  toolId: 'observe.built-environment.adopt-basemap',
-                },
-                {
+              {adoptItems.map((it) =>
+                renderToolButton(it, {
                   activeTool,
                   homesteadPlaced,
                   onToolClick,
-                },
+                }),
               )}
             </div>
           </section>
@@ -392,10 +469,18 @@ export default function ObserveTools({
         // appended to the Amenities group below.
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
-        const isActive = routed === activeModule;
+        // Focus mode: only categories belonging to the chosen objective render.
+        // (vegetation→EWE / earthworks→topography already skipped above; the
+        // remaining six all route to built-environment.)
+        if (routed !== activeModule) return null;
+        const sectionId = `be-${group.category}`;
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : routed === activeModule;
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : routed);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(routed, sectionId);
         };
         const sectionInteractionProps = canSelectModules
           ? {
@@ -428,13 +513,38 @@ export default function ObserveTools({
                 // 2026-05-14 — Terrace relocated from Earthworks BE category.
                 ...BE_TOOL_ITEMS.filter((i) => i.kind === 'terrace'),
               ]
-            : group.items;
-        const groupItems: ToolItem[] = sourceItems.map((bg) => ({
-          id: bg.kind,
-          label: bg.label,
-          Icon: bg.Icon,
-          toolId: `observe.built-environment.${bg.kind}` as MapToolId,
-        }));
+            : group.category === 'agricultural'
+              ? [
+                  ...group.items,
+                  // 2026-05-21 — Pasture & Conventional crop relocated from
+                  // the earth-water-ecology module group. EWE-prefixed
+                  // toolIds preserved below so the existing draw + store
+                  // pipeline is unchanged; only the rail grouping moves.
+                  { kind: 'pasture',           label: 'Pasture / paddock', Icon: Fence },
+                  { kind: 'conventional-crop', label: 'Conventional crop', Icon: Wheat },
+                  // 2026-05-21 — Berm + Raised bed relocated here from EWE
+                  // (originally moved out of the dropped Earthworks BE
+                  // section on 2026-05-14). BE toolIds preserved.
+                  ...BE_TOOL_ITEMS.filter(
+                    (i) => i.kind === 'berm' || i.kind === 'raised-bed',
+                  ),
+                ]
+              : group.items;
+        const groupItems: ToolItem[] = sourceItems
+          .map((bg) => {
+            let toolId: MapToolId;
+            if (bg.kind === 'pasture') {
+              toolId = 'observe.earth-water-ecology.pasture';
+            } else if (bg.kind === 'conventional-crop') {
+              toolId = 'observe.earth-water-ecology.conventional-crop';
+            } else {
+              toolId = `observe.built-environment.${bg.kind}` as MapToolId;
+            }
+            return { id: bg.kind, label: bg.label, Icon: bg.Icon, toolId };
+          })
+          .filter((it) => allowTool(it.toolId));
+        // Focus mode may filter every kind out of this BE category — hide it.
+        if (groupItems.length === 0) return null;
         return (
           <section
             key={`be-${group.category}`}

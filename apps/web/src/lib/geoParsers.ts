@@ -173,11 +173,38 @@ async function extractKMLFromZip(buffer: ArrayBuffer): Promise<string> {
   throw new Error('No .kml file found in KMZ archive');
 }
 
+// ─── Shapefile (.zip) ──────────────────────────────────────────────────────
+
+/**
+ * Parse a zipped ESRI Shapefile bundle. The zip must contain at minimum
+ * a `.shp` (geometry) and `.dbf` (attributes); shp.js will read a `.prj`
+ * for reprojection when present and a `.shx` index when included.
+ *
+ * shp.js returns either a single FeatureCollection or an array of them
+ * (one per .shp inside the zip) — we collapse the array case into a
+ * single FC so downstream code sees a uniform shape.
+ */
+async function parseShapefileZip(
+  buffer: ArrayBuffer,
+): Promise<GeoJSON.FeatureCollection> {
+  const { default: shp } = await import('shpjs');
+  const result = await shp(buffer);
+  if (Array.isArray(result)) {
+    const features: GeoJSON.Feature[] = [];
+    for (const fc of result) {
+      if (fc.type === 'FeatureCollection') features.push(...fc.features);
+    }
+    return { type: 'FeatureCollection', features };
+  }
+  if (result.type === 'FeatureCollection') return result;
+  throw new Error('Shapefile parsed but no FeatureCollection produced');
+}
+
 // ─── Auto-detect and parse ─────────────────────────────────────────────────
 
 export interface ParseResult {
   geojson: GeoJSON.FeatureCollection;
-  format: 'geojson' | 'kml' | 'kmz';
+  format: 'geojson' | 'kml' | 'kmz' | 'shapefile';
   featureCount: number;
 }
 
@@ -202,5 +229,13 @@ export async function parseGeoFile(file: File): Promise<ParseResult> {
     return { geojson, format: 'kmz', featureCount: geojson.features.length };
   }
 
-  throw new Error(`Unsupported file type: ${name}. Supported formats: .geojson, .json, .kml, .kmz`);
+  if (name.endsWith('.zip')) {
+    const buffer = await file.arrayBuffer();
+    const geojson = await parseShapefileZip(buffer);
+    return { geojson, format: 'shapefile', featureCount: geojson.features.length };
+  }
+
+  throw new Error(
+    `Unsupported file type: ${name}. Supported formats: .geojson, .json, .kml, .kmz, .zip (Shapefile)`,
+  );
 }

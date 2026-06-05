@@ -1,0 +1,56 @@
+/*
+ * ObjectiveDetailPanel — host card for the four spec sections. Uses the
+ * BentoBox surface treatment (color-mix bg, hairline border, --radius-lg)
+ * so the panel reads as a sibling to StratumRow / ObjectiveCard / NextUpCard.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius-lg, 12px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 96%, #ffffff);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+  overflow: hidden auto;
+}
+
+.mapBody {
+  position: relative;
+  height: 260px;
+  margin: 0 16px;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.1));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 90%, var(--color-neutral-900, #181b1e));
+}
+
+.placeholderStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.placeholderSection {
+  padding: 12px 14px;
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+}
+
+.placeholderEyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.placeholderBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}

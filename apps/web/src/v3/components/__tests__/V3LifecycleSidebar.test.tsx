@@ -109,4 +109,17 @@ describe('V3LifecycleSidebar', () => {
     expect(names).toContain('ChevronDown');
     expect(names).toContain('ChevronRight');
   });
+
+  it('renders a standalone Report link to the report route', () => {
+    render(<V3LifecycleSidebar activeStage="plan" />);
+    const report = screen.getByText('Report');
+    expect(report).toBeTruthy();
+    expect(report.getAttribute('to')).toBe('/v3/project/$projectId/report');
+  });
+
+  it('marks the Report link active when activeStage="report"', () => {
+    render(<V3LifecycleSidebar activeStage="report" />);
+    const report = screen.getByText('Report');
+    expect(report.getAttribute('data-active')).toBe('true');
+  });
 });

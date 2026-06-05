@@ -24,6 +24,13 @@
   padding: 8px;
 }
 
+/* 'between-rails' bottom placement: drop the second (auto) row so the body
+   owns the full layout height and the rails span top-to-bottom. The bottom
+   tray moves into the center column (see .center). */
+.layoutBetween {
+  grid-template-rows: 1fr;
+}
+
 .body {
   display: grid;
   gap: 8px;
@@ -31,6 +38,25 @@
   /* Default: canvas-only single column. Overridden below by :has() when
      rails are present. */
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* Center column wrapper used only in 'between-rails' mode: stacks the canvas
+   (fills) above the bottom tray (pinned), so the tray sits between the
+   full-height rails instead of as a full-width row beneath them. */
+.center {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.center > .canvas {
+  flex: 1 1 auto;
+}
+
+.center > .bottom {
+  flex: 0 0 auto;
 }
 
 .body:has(> .left):has(> .right) {
@@ -43,6 +69,20 @@
 
 .body:not(:has(> .left)):has(> .right) {
   grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+/*
+ * Symmetric-rails opt-in (StageShell `symmetricRails` prop). Widen the left
+ * track to match the right track so peer rails (e.g. the Observe lens
+ * dashboard's cycle timeline vs land intelligence) read as equal-width
+ * columns rather than a narrow tools rail beside a wider guidance rail. The
+ * data-attribute + `:has()` selector sits one step above the asymmetric base
+ * rule's specificity, so it wins without `!important`; the breakpoint variants
+ * below mirror the right track's responsive widths. Off by default — every
+ * other consumer keeps the canonical 240/260 split.
+ */
+.layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
 }
 
 /*
@@ -108,6 +148,9 @@
   .body:not(:has(> .left)):has(> .right) {
     grid-template-columns: minmax(0, 1fr) 240px;
   }
+  .layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+    grid-template-columns: 240px minmax(0, 1fr) 240px;
+  }
 }
 
 @media (max-width: 1000px) {
@@ -121,6 +164,10 @@
   }
   .body:not(:has(> .left)):has(> .right) {
     grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 6px;
+  }
+  .layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+    grid-template-columns: 220px minmax(0, 1fr) 220px;
     gap: 6px;
   }
 }

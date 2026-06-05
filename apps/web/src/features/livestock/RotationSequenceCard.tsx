@@ -13,16 +13,25 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
 import {
   projectRotationSequence,
   type MoveCalendarEntry,
 } from './rotationSequenceMath.js';
+import { isSouthernHemisphere } from './forageSeasonMath.js';
+import {
+  computeFollowerTiers,
+  computeFollowerMoves,
+} from './polyfaceFollowerMath.js';
+import { LIVESTOCK_SPECIES } from './speciesData.js';
+import { computeRotationCarryingCapacity } from './rotationCapacityMath.js';
 import {
   computeOvergrazingRisk,
   computePaddockRecommendedStocking,
   type RiskLevel,
 } from './livestockAnalysis.js';
+import { pushRotationSequenceToSpine } from './rotationSequenceSpineSync.js';
 import css from './RotationSequenceCard.module.css';
 
 interface RotationSequenceCardProps {
@@ -45,11 +54,32 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
 
   const plan = useRotationPlanStore((s) => s.byProject[projectId] ?? null);
 
-  const startDateISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const speciesByPaddockId = useMemo(
+    () => new Map(paddocks.map((p) => [p.id, p.species])),
+    [paddocks],
+  );
+
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const startDateISO = plan?.startDateISO ?? today;
+  const horizonCycles = plan?.horizonCycles ?? 1;
+
+  // Hemisphere from the project boundary centroid — same derivation as
+  // `ForageQualitySeasonalCard`, so the calendar's season-stretched rest
+  // matches the forage-quality curve the steward already sees.
+  const boundary = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.parcelBoundaryGeojson ?? null,
+  );
+  const isSouthern = useMemo(
+    () => isSouthernHemisphere(boundary),
+    [boundary],
+  );
 
   const projection = useMemo(
-    () => projectRotationSequence(paddocks, plan, startDateISO),
-    [paddocks, plan, startDateISO],
+    () =>
+      projectRotationSequence(paddocks, plan, startDateISO, horizonCycles, {
+        isSouthern,
+      }),
+    [paddocks, plan, startDateISO, horizonCycles, isSouthern],
   );
 
   // Calendar grouped by cellGroup: 'ungrouped' sorts last, otherwise
@@ -87,6 +117,11 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
     }
     return rows;
   }, [paddocks]);
+
+  const rotationCapacity = useMemo(
+    () => computeRotationCarryingCapacity(paddocks, plan),
+    [paddocks, plan],
+  );
 
   if (paddocks.length === 0) {
     return (
@@ -139,7 +174,17 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
             sequence in the companion {'“'}Rotation plan{'”'} card.
           </p>
         </div>
-        <span className={css.modeBadge}>Read-only</span>
+        <div className={css.headActions}>
+          <button
+            type="button"
+            className={css.syncBtn}
+            onClick={() => pushRotationSequenceToSpine(projectId)}
+            aria-label="Sync rotation schedule to work-item spine"
+          >
+            Sync schedule
+          </button>
+          <span className={css.modeBadge}>Read-only</span>
+        </div>
       </div>
 
       {/* Headline rest-compliance */}
@@ -162,21 +207,62 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
               </span>
             </div>
             <div className={css.moveList}>
-              {entries.map((e) => (
-                <div key={`${e.cellGroup}-${e.paddockId}-${e.sequenceOrder}`} className={css.moveRow}>
-                  <div className={css.moveMain}>
-                    <span className={css.paddockName}>{e.paddockName}</span>
-                    <span className={css.moveDates}>
-                      {e.moveInDateISO} {'→'} {e.moveOutDateISO}
-                    </span>
+              {entries.map((e) => {
+                const followers = computeFollowerMoves(
+                  e,
+                  computeFollowerTiers(speciesByPaddockId.get(e.paddockId) ?? []),
+                );
+                return (
+                  <div key={`${e.cellGroup}-${e.paddockId}-${e.sequenceOrder}-${e.moveInDateISO}`}>
+                    <div className={css.moveRow}>
+                      <div className={css.moveMain}>
+                        <span className={css.paddockName}>{e.paddockName}</span>
+                        <span className={css.moveDates}>
+                          {e.moveInDateISO} {'→'} {e.moveOutDateISO}
+                        </span>
+                      </div>
+                      <div className={css.moveMeta}>
+                        <span>{e.grazeDays}d graze</span>
+                        <span className={css.metaDot}>{'·'}</span>
+                        <span>{e.restDaysUntilNextGraze}d rest until next graze</span>
+                        {e.seasonAdjustedRestDays > e.restDaysUntilNextGraze && (
+                          <>
+                            <span className={css.metaDot}>{'·'}</span>
+                            <span className={css.seasonRest}>
+                              summer rest +
+                              {e.seasonAdjustedRestDays - e.restDaysUntilNextGraze}d
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {followers.map((f) => (
+                      <div
+                        key={`${f.cellGroup}-${f.leadPaddockId}-${f.sequenceOrder}-${f.tierIndex}-${f.moveInDateISO}`}
+                        className={css.followerRow}
+                      >
+                        <div className={css.moveMain}>
+                          <span className={css.followerName}>
+                            {'↳ '}
+                            {f.species
+                              .map((sp) => LIVESTOCK_SPECIES[sp]?.label ?? sp)
+                              .join(' + ')}{' '}
+                            follower
+                          </span>
+                          <span className={css.moveDates}>
+                            {f.moveInDateISO} {'→'} {f.moveOutDateISO}
+                          </span>
+                        </div>
+                        <div className={css.moveMeta}>
+                          <span>{f.grazeDays}d graze</span>
+                          <span className={css.metaDot}>{'·'}</span>
+                          <span>+{f.lagDays}d behind lead</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className={css.moveMeta}>
-                    <span>{e.grazeDays}d graze</span>
-                    <span className={css.metaDot}>{'·'}</span>
-                    <span>{e.restDaysUntilNextGraze}d rest until next graze</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -217,6 +303,37 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
           <span className={css.groupName}>Carrying capacity</span>
           <span className={css.groupMeta}>advisory only</span>
         </div>
+        {rotationCapacity.length > 0 && (
+          <div className={css.moveList}>
+            {rotationCapacity.map((g) => (
+              <div key={g.cellGroup} className={css.complianceRow}>
+                <span className={css.paddockName}>
+                  {g.cellGroup === 'ungrouped' ? 'Ungrouped' : g.cellGroup}
+                </span>
+                <span className={css.complianceMeta}>
+                  {g.utilizationPct}% AU utilization {'·'} {g.cycleDays}d
+                  cycle {'·'} {g.paddockCount} paddock
+                  {g.paddockCount === 1 ? '' : 's'}
+                </span>
+                <span
+                  className={`${css.complianceBadge} ${
+                    g.status === 'over'
+                      ? css.badgeWarn
+                      : g.status === 'tight'
+                        ? css.badgeWarn
+                        : css.badgeGood
+                  }`}
+                >
+                  {g.status === 'over'
+                    ? 'Over'
+                    : g.status === 'tight'
+                      ? 'Tight'
+                      : 'OK'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
         {overstocked.length === 0 ? (
           <div className={css.advisoryClear}>
             No overstocking detected against recommended density.
@@ -237,11 +354,22 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
       </div>
 
       <div className={css.assumption}>
-        Calendar dates assume each cell group{'’'}s sequence starts today
-        and advances by planned graze days. Rest compliance compares planned
+        Calendar dates assume each cell group{'’'}s sequence starts on the
+        plan start date (default today) over {horizonCycles} cycle
+        {horizonCycles === 1 ? '' : 's'} and advances by planned graze days,
+        inserting an idle gap when a cell{'’'}s rest-days floor exceeds the
+        natural sibling-graze gap. Rest compliance compares planned
         rest (sum of other cells{'’'} graze in the group) against species
-        recovery requirements. Carrying-capacity notes are advisory and never
-        block the schedule.
+        recovery requirements. AU-utilization is a coarse animal-unit load
+        heuristic (planned vs recommended stocking over the cycle), not a
+        forage-budget model. {'“'}Summer rest{'”'} notes stretch the calendar
+        gap when a graze ends in a low-protein slump month, using the same
+        heuristic cool-season forage archetype as the forage-quality card
+        (not a measured forage budget). Follower sub-rows ({'↳'}) sequence a
+        polyface stack {'—'} when a paddock{'’'}s species span more than one
+        grazing niche, the trailing tier enters the same paddock a few days
+        behind the lead herd (the Salatin sanitation window). Carrying-capacity
+        notes are advisory and never block the schedule.
       </div>
     </section>
   );

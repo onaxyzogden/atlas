@@ -35,41 +35,31 @@
  * to" action, no flow-path vector drawing. See backlog file for v2 follow-ups.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useLandDesignStore } from '../../../../store/landDesignStore.js';
-import type { DesignElement } from '../../../../store/designElementsStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
+import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
+import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 import {
   aspectToBearingDeg,
   buildParcelBox,
-  estimateElevationM,
-  gravityHeadLostM,
-  geometryCentroid,
-  suggestUpperThirdCoord,
-  tierForHeadLost,
+  computeWaterRows,
+  translateGeometry,
+  WATER_KIND_LABEL,
   type RouterTier,
   type ParcelBox,
+  type WaterElementRow,
 } from './waterRouterMath.js';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
+  /** Phase E.5 mobile guard for Evidence disclosures. */
+  compactMode?: boolean;
 }
-
-/** Element kinds counted as a "water-harvest element" for the router audit. */
-const WATER_HARVEST_KINDS = new Set<string>([
-  'water-tank',
-  'pond',
-  'swale',
-]);
-
-const KIND_LABEL: Record<string, string> = {
-  'water-tank': 'Water tank',
-  pond: 'Pond',
-  swale: 'Swale',
-};
 
 const TIER_LABEL: Record<RouterTier, string> = {
   excellent: 'HIGH POTENTIAL',
@@ -90,47 +80,14 @@ interface ElevationSummary {
   mean_slope_deg?: number;
 }
 
-interface ElementRow {
-  id: string;
-  kind: string;
-  label: string;
-  centroid: [number, number];
-  elevationM: number;
-  headLostM: number;
-  tier: RouterTier;
-  suggestion: [number, number] | null;
-}
-
-function describeElement(
-  el: DesignElement,
-  box: ParcelBox,
-  minM: number,
-  maxM: number,
-): ElementRow | null {
-  const centroid = geometryCentroid(el.geometry);
-  if (!centroid) return null;
-  const elevationM = estimateElevationM(centroid, box, minM, maxM);
-  const headLostM = gravityHeadLostM(centroid, box, minM, maxM);
-  const tier = tierForHeadLost(headLostM);
-  return {
-    id: el.id,
-    kind: el.kind,
-    label: el.label || KIND_LABEL[el.kind] || el.kind,
-    centroid,
-    elevationM,
-    headLostM,
-    tier,
-    suggestion: tier === 'low-potential' ? suggestUpperThirdCoord(box) : null,
-  };
-}
-
 function formatCoord(c: [number, number]): string {
   return `${c[1].toFixed(5)}, ${c[0].toFixed(5)}`;
 }
 
-export default function WaterRouterCard({ project }: Props) {
+export default function WaterRouterCard({ project, compactMode = false }: Props) {
   const siteData = useSiteData(project.id);
   const byProject = useLandDesignStore((s) => s.byProject);
+  const updateElement = useLandDesignStore((s) => s.update);
 
   // Elevation summary — gates the audit. Without min/max + aspect we can't
   // run the heuristic at all, so the card surfaces an explicit empty state.
@@ -158,21 +115,29 @@ export default function WaterRouterCard({ project }: Props) {
     return buildParcelBox(parcel, aspectBearing!);
   }, [parcel, parcelReady, aspectReady, aspectBearing]);
 
-  const rows = useMemo<ElementRow[]>(() => {
+  const rows = useMemo<WaterElementRow[]>(() => {
     if (!box || !elevationReady) return [];
     const minM = elev!.min_elevation_m!;
     const maxM = elev!.max_elevation_m!;
     const list = byProject[project.id] ?? [];
-    const out: ElementRow[] = [];
-    for (const el of list) {
-      if (!WATER_HARVEST_KINDS.has(el.kind)) continue;
-      const row = describeElement(el, box, minM, maxM);
-      if (row) out.push(row);
-    }
-    // Worst (most head lost) first.
-    out.sort((a, b) => b.headLostM - a.headLostM);
-    return out;
+    return computeWaterRows(list, box, minM, maxM);
   }, [box, byProject, project.id, elev, elevationReady]);
+
+  /**
+   * One-click "move to suggested catchment" — shift the flagged element's
+   * geometry so its centroid lands on the suggested upper-third coordinate,
+   * preserving shape/size. Writes via landDesignStore.update (additive patch).
+   */
+  const moveToSuggestion = useMemo(
+    () => (row: WaterElementRow) => {
+      if (!row.suggestion) return;
+      const el = (byProject[project.id] ?? []).find((e) => e.id === row.id);
+      if (!el) return;
+      const geometry = translateGeometry(el.geometry, row.centroid, row.suggestion);
+      updateElement(project.id, row.id, { geometry });
+    },
+    [byProject, project.id, updateElement],
+  );
 
   const tierCounts = useMemo(() => {
     const counts = { excellent: 0, adequate: 0, 'low-potential': 0 } as Record<
@@ -201,6 +166,48 @@ export default function WaterRouterCard({ project }: Props) {
   if (!elevationReady) missing.push('elevation summary (min/max)');
   if (!aspectReady) missing.push('predominant aspect');
   const gated = missing.length > 0;
+
+  // Phase E.5 — Tier-2 Evidence inputs. Phase F.7.4 — emit audit.
+  // Note: deps use primitives (parcelReady/elevationReady/aspectReady)
+  // rather than the per-render `missing` array so memo identity stays
+  // stable across re-renders with unchanged inputs.
+  const evidenceInputs = useMemo(() => {
+    // Treat each scored element as a routed edge. Confidence is a function
+    // of input availability: full inputs → 0.8 baseline; missing aspect/DEM
+    // depresses it. Per-tier flagged share further depresses mean confidence.
+    const baseConfidence = !gated ? 0.8 : 0.3;
+    const flaggedShare = scoredCount === 0 ? 0 : flaggedCount / scoredCount;
+    const meanRoutingConfidence = Math.max(0, baseConfidence - 0.3 * flaggedShare);
+    const warnings: string[] = [];
+    if (!parcelReady) warnings.push('missing parcel boundary');
+    if (!elevationReady) warnings.push('missing elevation summary (min/max)');
+    if (!aspectReady) warnings.push('missing predominant aspect');
+    if (flaggedCount > 0) {
+      warnings.push(`${flaggedCount} low-potential placement${flaggedCount === 1 ? '' : 's'}`);
+    }
+    return {
+      routedEdgeCount: scoredCount,
+      meanRoutingConfidence,
+      hadDem: elevationReady,
+      hadAspect: aspectReady,
+      headLossBudgetM: 2.0,
+      warnings,
+    };
+  }, [scoredCount, flaggedCount, gated, parcelReady, elevationReady, aspectReady]);
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'water-router', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'WaterRouterCard',
+      selectorName: 'selectEvidenceFor(water-router)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   return (
     <div className={styles.page}>
@@ -304,7 +311,7 @@ export default function WaterRouterCard({ project }: Props) {
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                         <strong>{r.label}</strong>
                         <span className={styles.listMeta}>
-                          {KIND_LABEL[r.kind] ?? r.kind}
+                          {WATER_KIND_LABEL[r.kind] ?? r.kind}
                         </span>
                         <span
                           className={`${styles.pill} ${TIER_PILL_CLASS[r.tier]}`}
@@ -326,6 +333,15 @@ export default function WaterRouterCard({ project }: Props) {
                           {' '}(centroid of the parcel&apos;s upper third
                           along the predominant uphill axis). Refine with
                           on-site survey before earthworks.
+                          <div style={{ marginTop: 6 }}>
+                            <button
+                              type="button"
+                              className={styles.btn}
+                              onClick={() => moveToSuggestion(r)}
+                            >
+                              Move to suggested catchment
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -336,6 +352,9 @@ export default function WaterRouterCard({ project }: Props) {
           )}
         </>
       )}
+
+      {/* ── Tier-2 Evidence (Phase E.5) ────────────────────────────── */}
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </div>
   );
 }

@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
@@ -211,7 +212,7 @@ export const useUIStore = create<UIState>()(
 
 // Hydrate from localStorage (Zustand v5). Guarded for SSR / vitest.
 if (typeof window !== 'undefined') {
-  useUIStore.persist.rehydrate();
+  rehydrateWithLogging(useUIStore);
 }
 
 function applyColorScheme(isDark: boolean) {

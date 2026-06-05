@@ -11,12 +11,29 @@
  */
 
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
+import {
+  OBJECTIVE_STATUS_LABEL,
+  statusFromPct,
+  type ObjectiveProgress,
+} from '../objectiveWorkspace/objectiveStatus.js';
 import css from './GuidanceCard.module.css';
 
 export interface GuidanceCardData {
   why: string;
   how: readonly string[];
   pitfall?: string;
+}
+
+/**
+ * Summary-note binding for the unified objective card. When supplied, the card
+ * renders a persisted free-text completion note below the guidance. Plan and
+ * Observe pass this; Act / context cards omit it (note section is hidden).
+ */
+export interface GuidanceCardSummary {
+  value: string;
+  onChange: (text: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 export interface GuidanceCardProps<M extends string> {
@@ -38,6 +55,19 @@ export interface GuidanceCardProps<M extends string> {
    * leave it unset.
    */
   headerExtras?: ReactNode;
+  /**
+   * Optional completion progress (verified / total / pct). When present the
+   * card shows a progress bar, an "X% ready" readout, and a status pill —
+   * turning the guidance card into the unified objective workspace card
+   * (Plan + Observe). Omit to render plain guidance (Act / context cards).
+   */
+  progress?: ObjectiveProgress;
+  /**
+   * Optional persisted summary note. When present a "Summary" section with a
+   * textarea renders below the guidance. Pairs with `progress` for the unified
+   * objective card; omit to hide the note.
+   */
+  summary?: GuidanceCardSummary;
 }
 
 export function GuidanceCard<M extends string>({
@@ -54,7 +84,10 @@ export function GuidanceCard<M extends string>({
   onCloseSlideUp,
   checksDisabled = false,
   headerExtras,
+  progress,
+  summary,
 }: GuidanceCardProps<M>) {
+  const status = progress ? statusFromPct(progress.pct) : null;
   const handleCardClick = () => {
     if (active) {
       if (slideUpOpen) onCloseSlideUp();
@@ -98,6 +131,33 @@ export function GuidanceCard<M extends string>({
           <span className={css.groupHeaderExtras}>{headerExtras}</span>
         ) : null}
       </header>
+      {progress && status ? (
+        <div className={css.progress}>
+          <div className={css.progressTop}>
+            <div
+              className={css.progressBar}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress.pct}
+              aria-label={`${label} progress`}
+            >
+              <span
+                className={css.progressFill}
+                style={{ width: `${progress.pct}%` }}
+              />
+            </div>
+            <span
+              className={`${css.statusPill} ${css[`status_${status.replace('-', '_')}`] ?? ''}`}
+            >
+              {OBJECTIVE_STATUS_LABEL[status]}
+            </span>
+          </div>
+          <span className={css.progressMeta}>
+            {progress.pct}% ready · {progress.verified}/{progress.total} steps
+          </span>
+        </div>
+      ) : null}
       <p className={css.why}>{guidance.why}</p>
       <div className={css.howBlock}>
         <span className={css.blockLabel}>How</span>
@@ -132,6 +192,25 @@ export function GuidanceCard<M extends string>({
           <p className={css.pitfallText}>{guidance.pitfall}</p>
         </div>
       )}
+      {summary ? (
+        <div
+          className={css.summaryBlock}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <span className={css.blockLabel}>Summary</span>
+          <textarea
+            className={css.summaryArea}
+            value={summary.value}
+            placeholder={
+              summary.placeholder ??
+              'Note how this objective was met — decisions, evidence, follow-ups.'
+            }
+            disabled={summary.disabled}
+            onChange={(e) => summary.onChange(e.target.value)}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

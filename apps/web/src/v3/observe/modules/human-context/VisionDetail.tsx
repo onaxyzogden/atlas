@@ -30,8 +30,8 @@ export default function VisionDetail() {
   const id = projectId ?? 'mtc';
 
   const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
-  const updateSteward = useVisionStore((s) => s.updateSteward);
-  const setStewardList = useVisionStore((s) => s.setStewardList);
+  const updateSharedVision = useVisionStore((s) => s.updateSharedVision);
+  const setSharedVisionList = useVisionStore((s) => s.setSharedVisionList);
   const updatePhaseNote = useVisionStore((s) => s.updatePhaseNote);
   const addMoodboardImage = useVisionStore((s) => s.addMoodboardImage);
   const removeMoodboardImage = useVisionStore((s) => s.removeMoodboardImage);
@@ -42,7 +42,7 @@ export default function VisionDetail() {
     ensureDefaults(id);
   }, [id, ensureDefaults]);
 
-  const steward = vision?.steward;
+  const sv = vision?.sharedVision;
   const phaseNotesMap = (vision?.phaseNotes ?? []).reduce<Record<string, string>>(
     (acc, p) => {
       acc[p.phaseKey] = p.notes;
@@ -59,32 +59,32 @@ export default function VisionDetail() {
       />
 
       <ConceptSection
-        dataUrl={steward?.conceptImageDataUrl}
+        dataUrl={sv?.conceptImageDataUrl}
         onUpload={(url) => setConceptImage(id, url)}
         onClear={() => setConceptImage(id, undefined)}
       />
 
       <QuoteSection
-        value={steward?.vision ?? ''}
-        onChange={(v) => updateSteward(id, { vision: v })}
+        value={sv?.statement ?? ''}
+        onChange={(v) => updateSharedVision(id, { statement: v })}
       />
 
       <div className={card.grid}>
         <ChipSection
           title="Core functions"
           icon={Sprout}
-          items={steward?.coreFunctions ?? []}
+          items={sv?.coreFunctions ?? []}
           onAdd={(value) =>
-            setStewardList(id, 'coreFunctions', [
-              ...(steward?.coreFunctions ?? []),
+            setSharedVisionList(id, 'coreFunctions', [
+              ...(sv?.coreFunctions ?? []),
               value,
             ])
           }
           onRemove={(idx) =>
-            setStewardList(
+            setSharedVisionList(
               id,
               'coreFunctions',
-              (steward?.coreFunctions ?? []).filter((_, i) => i !== idx),
+              (sv?.coreFunctions ?? []).filter((_, i) => i !== idx),
             )
           }
           placeholder="New core function"
@@ -92,18 +92,18 @@ export default function VisionDetail() {
         <ChipSection
           title="Experience goals"
           icon={Sun}
-          items={steward?.experienceGoals ?? []}
+          items={sv?.experienceGoals ?? []}
           onAdd={(value) =>
-            setStewardList(id, 'experienceGoals', [
-              ...(steward?.experienceGoals ?? []),
+            setSharedVisionList(id, 'experienceGoals', [
+              ...(sv?.experienceGoals ?? []),
               value,
             ])
           }
           onRemove={(idx) =>
-            setStewardList(
+            setSharedVisionList(
               id,
               'experienceGoals',
-              (steward?.experienceGoals ?? []).filter((_, i) => i !== idx),
+              (sv?.experienceGoals ?? []).filter((_, i) => i !== idx),
             )
           }
           placeholder="New experience goal"
@@ -118,18 +118,18 @@ export default function VisionDetail() {
       <ListSection
         title="What success looks like"
         icon={CheckCircle2}
-        items={steward?.successMetrics ?? []}
+        items={sv?.successMetrics ?? []}
         onAdd={(value) =>
-          setStewardList(id, 'successMetrics', [
-            ...(steward?.successMetrics ?? []),
+          setSharedVisionList(id, 'successMetrics', [
+            ...(sv?.successMetrics ?? []),
             value,
           ])
         }
         onRemove={(idx) =>
-          setStewardList(
+          setSharedVisionList(
             id,
             'successMetrics',
-            (steward?.successMetrics ?? []).filter((_, i) => i !== idx),
+            (sv?.successMetrics ?? []).filter((_, i) => i !== idx),
           )
         }
         placeholder="New success metric"
@@ -139,15 +139,15 @@ export default function VisionDetail() {
         <ListSection
           title="Design principles"
           icon={Sprout}
-          items={steward?.principles ?? []}
+          items={sv?.principles ?? []}
           onAdd={(v) =>
-            setStewardList(id, 'principles', [...(steward?.principles ?? []), v])
+            setSharedVisionList(id, 'principles', [...(sv?.principles ?? []), v])
           }
           onRemove={(idx) =>
-            setStewardList(
+            setSharedVisionList(
               id,
               'principles',
-              (steward?.principles ?? []).filter((_, i) => i !== idx),
+              (sv?.principles ?? []).filter((_, i) => i !== idx),
             )
           }
           placeholder="New principle"
@@ -155,15 +155,15 @@ export default function VisionDetail() {
         <ListSection
           title="Guiding values"
           icon={Sprout}
-          items={steward?.guidingValues ?? []}
+          items={sv?.guidingValues ?? []}
           onAdd={(v) =>
-            setStewardList(id, 'guidingValues', [...(steward?.guidingValues ?? []), v])
+            setSharedVisionList(id, 'guidingValues', [...(sv?.guidingValues ?? []), v])
           }
           onRemove={(idx) =>
-            setStewardList(
+            setSharedVisionList(
               id,
               'guidingValues',
-              (steward?.guidingValues ?? []).filter((_, i) => i !== idx),
+              (sv?.guidingValues ?? []).filter((_, i) => i !== idx),
             )
           }
           placeholder="New value"
@@ -171,15 +171,15 @@ export default function VisionDetail() {
         <ListSection
           title="Key constraints"
           icon={TriangleAlert}
-          items={steward?.constraints ?? []}
+          items={sv?.constraints ?? []}
           onAdd={(v) =>
-            setStewardList(id, 'constraints', [...(steward?.constraints ?? []), v])
+            setSharedVisionList(id, 'constraints', [...(sv?.constraints ?? []), v])
           }
           onRemove={(idx) =>
-            setStewardList(
+            setSharedVisionList(
               id,
               'constraints',
-              (steward?.constraints ?? []).filter((_, i) => i !== idx),
+              (sv?.constraints ?? []).filter((_, i) => i !== idx),
             )
           }
           placeholder="New constraint"
@@ -187,7 +187,7 @@ export default function VisionDetail() {
         <section className={card.section}>
           <h2 className={card.sectionTitle}>Moodboard</h2>
           <MoodboardUploader
-            images={steward?.moodboardImages ?? []}
+            images={sv?.moodboardImages ?? []}
             onAdd={(image) => addMoodboardImage(id, image)}
             onRemove={(imageId) => removeMoodboardImage(id, imageId)}
           />

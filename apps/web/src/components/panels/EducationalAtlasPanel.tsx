@@ -9,6 +9,9 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayer } from '../../store/siteDataStore.js';
 import { computeAssessmentScores } from '../../lib/computeScores.js';
 import type { ScoredResult } from '../../lib/computeScores.js';
+import { useFieldVerification } from '../../lib/fieldVerification/useFieldVerification.js';
+import FieldVerificationBadge from '../../features/assessment/FieldVerificationBadge.js';
+import type { LayerFieldVerification } from '@ogden/shared';
 import AdvancedEducationPanel from '../../features/education/AdvancedEducationPanel.js';
 import { water, semantic, confidence } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
@@ -217,6 +220,19 @@ export default function EducationalAtlasPanel({ project }: EducationalAtlasPanel
 
   const missingLayers = layerStatuses.filter((l) => l.status !== 'complete');
 
+  // Field-verification axis (OLOS gap #10): a SECOND, distinct standing per
+  // layer — has a steward actually ground-truthed it? — shown alongside (never
+  // merged into) source confidence. Keyed by layerType so the accordion can
+  // look up each layer's badge. Only layers with at least one mapped field
+  // observation appear here; layers that can't be field-checked (elevation,
+  // climate, zoning) simply have no entry and render no badge.
+  const { perLayer: fieldVerification } = useFieldVerification(project.id);
+  const fvByLayer = useMemo(() => {
+    const m = new Map<string, LayerFieldVerification>();
+    for (const fv of fieldVerification) m.set(fv.layerType, fv);
+    return m;
+  }, [fieldVerification]);
+
   const filteredGlossary = glossaryFilter
     ? GLOSSARY.filter((g) => g.term.toLowerCase().includes(glossaryFilter.toLowerCase()) || g.definition.toLowerCase().includes(glossaryFilter.toLowerCase()))
     : GLOSSARY;
@@ -311,6 +327,15 @@ export default function EducationalAtlasPanel({ project }: EducationalAtlasPanel
                         <div className={s.explainRow}><span className={s.explainLabel}>Why it matters:</span> {layer.whyItMatters}</div>
                         {layer.confidence && (
                           <div className={s.explainRow}><span className={s.explainLabel}>Confidence:</span> {layer.confidence}</div>
+                        )}
+                        {fvByLayer.get(layer.id) && (
+                          <div className={s.explainRow}>
+                            <span className={s.explainLabel}>Field check:</span>{' '}
+                            <FieldVerificationBadge
+                              verification={fvByLayer.get(layer.id)}
+                              compact
+                            />
+                          </div>
                         )}
                       </div>
                     )}

@@ -33,6 +33,7 @@ import {
   Zap,
   Wrench,
   Square,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import type { DomainKey } from './domainMapping.js';
@@ -63,6 +64,7 @@ interface DomainFloatingToolbarProps {
   isMapReady: boolean;
   canEdit?: boolean;
   onExport: () => void;
+  onOpenDesignMap?: () => void;
 }
 
 // Tint color per domain. Gives the floating toolbar a visible anchor that
@@ -458,13 +460,18 @@ export default function DomainFloatingToolbar({
   isMapReady,
   canEdit = true,
   onExport,
+  onOpenDesignMap,
 }: DomainFloatingToolbarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const { visibleLayers, setLayerVisible, is3DTerrain } = useMapStore();
 
-  if (HIDDEN_DOMAINS.has(domain)) return null;
+  const hasDomainTools = !HIDDEN_DOMAINS.has(domain);
+  const showGlobalTools = !!onOpenDesignMap;
+  if (!hasDomainTools && !showGlobalTools) return null;
 
-  const tools = DOMAIN_TOOLS[domain as Exclude<DomainKey, 'default'>] ?? [];
+  const tools = hasDomainTools
+    ? (DOMAIN_TOOLS[domain as Exclude<DomainKey, 'default'>] ?? [])
+    : [];
   const ctx: ToolContext = { map, draw, onExport };
   const tint = DOMAIN_TINTS[domain];
 
@@ -473,16 +480,18 @@ export default function DomainFloatingToolbar({
       className={css.toolbar}
       style={{ '--domain-tint': tint } as React.CSSProperties}
     >
-      <button
-        className={css.header}
-        onClick={() => setCollapsed((v) => !v)}
-        aria-label={collapsed ? 'Expand toolbar' : 'Collapse toolbar'}
-      >
-        <span className={css.domainLabel}>{DOMAIN_LABELS[domain]}</span>
-        <span className={css.chevron}>{collapsed ? '\u25B2' : '\u25BC'}</span>
-      </button>
+      {hasDomainTools && (
+        <button
+          className={css.header}
+          onClick={() => setCollapsed((v) => !v)}
+          aria-label={collapsed ? 'Expand toolbar' : 'Collapse toolbar'}
+        >
+          <span className={css.domainLabel}>{DOMAIN_LABELS[domain]}</span>
+          <span className={css.chevron}>{collapsed ? '\u25B2' : '\u25BC'}</span>
+        </button>
+      )}
 
-      {!collapsed && (
+      {hasDomainTools && !collapsed && (
         <div className={css.toolRow}>
           {tools.map((tool) => {
             const Icon = tool.icon;
@@ -526,6 +535,22 @@ export default function DomainFloatingToolbar({
               </DelayedTooltip>
             );
           })}
+        </div>
+      )}
+
+      {showGlobalTools && (
+        <div className={css.toolRow}>
+          <DelayedTooltip label="Generate candidate Design Map (orchards, swales, paddocks, corridors)">
+            <button
+              className={css.toolBtn}
+              onClick={() => onOpenDesignMap?.()}
+            >
+              <span className={css.toolIcon} aria-hidden="true">
+                <Sparkles size={16} strokeWidth={1.75} />
+              </span>
+              <span className={css.toolLabel}>Design Map</span>
+            </button>
+          </DelayedTooltip>
         </div>
       )}
     </div>

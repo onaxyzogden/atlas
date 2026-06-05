@@ -8,7 +8,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.45);
+  color: var(--color-text-subtle);
   margin: 0 0 12px;
   display: block;
 }
@@ -32,7 +32,7 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
@@ -40,7 +40,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   max-width: 600px;
 }
 
@@ -66,7 +66,7 @@
   border-radius: 8px;
   border: 1px dashed rgba(180, 165, 140, 0.18);
   background: rgba(255, 255, 255, 0.015);
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -97,7 +97,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 /* ── Theme chips (large, for site-wide rollup) ───────────────────────── */
@@ -118,7 +118,7 @@
   font-weight: 500;
   background: rgba(232, 200, 130, 0.1);
   border: 1px solid rgba(196, 162, 101, 0.25);
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .themeChipGlyph {
@@ -145,7 +145,7 @@
   font-weight: 500;
   background: rgba(232, 220, 200, 0.05);
   border: 1px solid rgba(232, 220, 200, 0.1);
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
 }
 
 /* ── Route list ──────────────────────────────────────────────────────── */
@@ -159,7 +159,7 @@
 .routeRow {
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-hairline);
   background: rgba(255, 255, 255, 0.015);
 }
 
@@ -174,7 +174,7 @@
 .routeName {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .routeType {
@@ -182,16 +182,16 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-hover-overlay);
   white-space: nowrap;
 }
 
 .routeMeta {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   margin-bottom: 2px;
@@ -200,10 +200,10 @@
 .routeCallouts {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+  border-top: 1px dashed var(--color-hairline);
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(232, 220, 200, 0.72);
+  color: var(--color-text);
 }
 
 .routeCalloutsLabel {
@@ -212,12 +212,12 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   margin-right: 6px;
 }
 
 .routeCalloutsMore {
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -225,10 +225,10 @@
   margin-top: 8px;
   padding: 8px 10px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-hover-overlay);
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 /* ── Footnote ────────────────────────────────────────────────────────── */
@@ -236,19 +236,19 @@
 .footnote {
   margin: 16px 0 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }
 
 .footnote strong {
-  color: rgba(232, 220, 200, 0.78);
+  color: var(--color-text);
   font-weight: 600;
 }

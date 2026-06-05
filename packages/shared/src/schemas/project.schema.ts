@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { VisionProfile } from './visionProfile.schema.js';
+import { ProjectTypeRecord } from './plan/projectTypeTaxonomy.schema.js';
 
 // 'INTL' is the catch-all bucket for projects outside US/CA coverage.
 // Adapter registry routes INTL → NasaPowerAdapter for climate; other Tier-1
@@ -50,8 +52,12 @@ export const ProjectMetadata = z.object({
   avgDailySolarKwhM2: z.number().optional(),
   prevailingWindDir: z.string().max(20).optional(),
   climateNormals: z.string().max(100).optional(),
-  // Human-context fields captured by intake wizard / steward survey
+  // Human-context fields captured by intake wizard / steward survey.
+  // `stewardName` is the legacy single-steward convenience (still read by the
+  // atlas-ui StewardSurveyPage); `stewardNames` is the denormalized roster of
+  // all stewards on the project (multi-steward model). Keep both in sync.
   stewardName: z.string().max(200).optional(),
+  stewardNames: z.array(z.string().max(200)).max(50).optional(),
   visionStatement: z.string().max(2000).optional(),
   // OBSERVE sector wedge outer radius in metres. Falls back to
   // DEFAULT_SECTOR_RADIUS_M (250) when unset. 5 km cap is a sanity
@@ -68,18 +74,112 @@ export const ProjectMetadata = z.object({
   // 'approved' enum value is reserved for a later review-workflow slice.
   designStatus: z.enum(['draft', 'ready-for-review', 'approved']).optional(),
   allowOrphanOutputs: z.boolean().optional(),
+  // Stage Zero Vision Builder output — structured land-vision profile that
+  // frames the downstream OBSERVE / PLAN / ACT stages. See
+  // visionProfile.schema.ts. Authored incrementally (autosave + resume).
+  visionProfile: VisionProfile.optional(),
+  // Project Creation Wizard state (Phase 2 / Slice 2.1). `in_progress` marks
+  // a draft created by Step 1 "Next" but not yet through the completion
+  // screen; `complete` flips on Step 3 finish. `wizardLastStep` is the
+  // resume cursor for `/v3/project/$id/wizard/$step` deep-link recovery.
+  wizardStatus: z.enum(['in_progress', 'complete']).optional(),
+  wizardLastStep: z.enum(['site', 'vision', 'team']).optional(),
+  // Per-type objective-model selection (OLOS Project-Type + Secondary-Layer
+  // Spec v1.2). Written incrementally by Wizard Step 2 (primary + optional
+  // compatible secondaries + tension acknowledgements) and read by the
+  // resolution engine at completion to seed the per-project objective set.
+  // Additive + passthrough — lives in the metadata jsonb, no migration.
+  projectTypeRecord: ProjectTypeRecord.optional(),
+  // Project Creation Wizard Step 3 (Phase 2 / Slice 2.3). Captures the
+  // primary steward identity plus a queue of pending invites. Sends are
+  // deferred to Phase 6's notification architecture — for now the queue
+  // is durable but inert so the wizard can hand off cleanly. The Stratum 1
+  // bridge extension (Slice 2.4) reads this shape to satisfy
+  // `s1-stewardship-c1` / `c2`.
+  team: z
+    .object({
+      primarySteward: z
+        .object({
+          name: z.string().max(200).optional(),
+          email: z.string().email().max(200).optional(),
+        })
+        .optional(),
+      coStewards: z
+        .array(
+          z.object({
+            name: z.string().max(200).optional(),
+            email: z.string().email().max(200).optional(),
+          }),
+        )
+        .max(50)
+        .optional(),
+      queuedInvites: z
+        .array(
+          z.object({
+            email: z.string().email().max(200),
+            role: z.enum(['team_member', 'contractor', 'landowner', 'reviewer']),
+            queuedAt: z.string().datetime(),
+          }),
+        )
+        .max(50)
+        .optional(),
+    })
+    .optional(),
+  // OLOS Observe Dashboard share-link index (Phase 4 / Slice 4.1). Tokens
+  // also live in the per-project `presentationShareStore`; the metadata
+  // copy is the sync-mirrorable record so a share generated on one
+  // device resolves on another without standing up a server endpoint.
+  // Additive + passthrough — no migration.
+  presentationShares: z
+    .array(
+      z.object({
+        token: z.string().min(8).max(64),
+        createdAt: z.string().datetime(),
+        expiresAt: z.string().datetime().nullable(),
+        expiry: z.enum(['7d', '30d', '90d', 'permanent']),
+        sections: z
+          .array(
+            z.enum([
+              'site_overview',
+              'current_conditions',
+              'ecological_trajectory',
+              'evidence_library',
+            ]),
+          )
+          .default([]),
+      }),
+    )
+    .max(200)
+    .optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
+// 14-type OLOS taxonomy (Project-Type + Secondary-Layer Spec v1.2; livestock_operation
+// added 2026-06-03) plus the `moontrance` identity sentinel — kept so historical
+// OGDEN-template projects still validate, but never offered in the wizard (which
+// reads PROJECT_TYPES).
+// The 14 catalogue ids live in ProjectTypeId (projectTypeTaxonomy.schema.ts);
+// a sync test asserts ProjectType is the superset. Legacy values
+// (retreat_center / educational_farm / multi_enterprise) are backfilled by
+// migration 046 to agritourism / education / regenerative_farm respectively.
 export const ProjectType = z.enum([
-  'regenerative_farm',
-  'retreat_center',
   'homestead',
-  'educational_farm',
+  'regenerative_farm',
+  'market_garden',
+  'orchard_food_forest',
+  'silvopasture',
+  'ecovillage',
+  'agritourism',
+  'education',
   'conservation',
-  'multi_enterprise',
-  'moontrance',       // OGDEN identity template
+  'off_grid',
+  'wellness',
+  'nursery',
+  'residential',
+  'livestock_operation',
+  'moontrance',       // OGDEN identity template (sentinel; not in ProjectTypeId)
 ]);
+export type ProjectType = z.infer<typeof ProjectType>;
 
 // Shape-only GeoJSON validation for parcel boundaries. Rejects malformed /
 // non-GeoJSON bodies at the API boundary so the backend never feeds junk to
@@ -120,6 +220,10 @@ export const CreateProjectInput = z.object({
   provinceState: z.string().max(10).optional(),
   units: z.enum(['metric', 'imperial']).default('metric'),
   metadata: ProjectMetadata.optional(),
+  // Phase 4.5 — explicit workspace attach. When omitted, the server falls
+  // back to the caller's default org (set at register-time by Prong 1).
+  // Membership-checked server-side: caller must be a member of the org.
+  orgId: z.string().uuid().optional(),
 });
 export type CreateProjectInput = z.infer<typeof CreateProjectInput>;
 

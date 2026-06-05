@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -70,14 +70,14 @@
 .summaryValue {
   font-size: 22px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   line-height: 1;
 }
 
 .summaryDenom {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-left: 2px;
 }
 
@@ -86,7 +86,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-top: 4px;
 }
 
@@ -94,7 +94,7 @@
   flex: 1;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .sectionList {
@@ -158,14 +158,14 @@
 .sectionName {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
 }
 
 .sectionStatus {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .sectionEnabled .sectionStatus {
@@ -175,7 +175,7 @@
 .sectionChevron {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   width: 18px;
   height: 18px;
   display: flex;
@@ -215,14 +215,14 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .framingText {
   margin: 0;
   font-size: 12px;
   line-height: 1.6;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .footnote {
@@ -233,5 +233,5 @@
   border: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 11px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }

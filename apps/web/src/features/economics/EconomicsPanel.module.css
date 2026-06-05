@@ -409,3 +409,23 @@
 .revenueNoteBody {
   color: var(--color-panel-muted);
 }
+
+/* K.4 — J-curve + per-zone SOM sidebar row. Chart flexes to fill; sidebar
+   is a fixed 280px rail on desktop and hides under 720px so the mobile
+   Overview stack stays flat (feedback-mobile-overview-stack). */
+.jcurveRow {
+  display: flex;
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.jcurveMain {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .jcurveRow {
+    flex-direction: column;
+  }
+}

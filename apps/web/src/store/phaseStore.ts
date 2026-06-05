@@ -7,6 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { phase } from '../lib/tokens';
 import type { PhaseKey } from '../v3/plan/types.js';
 import type {
@@ -375,6 +377,8 @@ export const usePhaseStore = create<PhaseState>()(
     }),
     {
       name: 'ogden-phases',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       partialize: (state) => ({ phases: state.phases }),
       migrate: (persisted, version) => {
@@ -411,4 +415,4 @@ export const usePhaseStore = create<PhaseState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-usePhaseStore.persist.rehydrate();
+rehydrateWithLogging(usePhaseStore);

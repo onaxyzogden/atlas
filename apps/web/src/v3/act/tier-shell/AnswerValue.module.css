@@ -1,0 +1,66 @@
+/* AnswerValue.module.css
+ *
+ * Typed read-only value renderer shared by the Act tier-shell Checklist recap
+ * (AnswerRecap sidebar card) and the Vision forms modal (BentoBox surface). The
+ * value pills use theme tokens (no hardcoded light colors) so they adapt to the
+ * active data-theme: dark pills with light text on dark, light pills on light.
+ * Selected single_select pills read sage-green, band pills read info-blue. The
+ * recap CARD chrome lives in AnswerRecap.module.css, not here. */
+
+.chipRow,
+.bandRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+/* The single chosen option in a single_select reads as "selected" (sage-green). */
+.chipSelected {
+  color: var(--color-success);
+  background: var(--color-success-muted);
+  border-color: var(--color-success);
+  font-weight: 600;
+}
+
+.bandPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-info);
+  background: var(--color-info-muted);
+  border: 1px solid var(--color-info);
+  border-radius: 6px;
+}
+
+.stewardList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stewardLine {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}

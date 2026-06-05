@@ -71,8 +71,14 @@ export type MapToolId =
   | 'observe.topography.contour-line'
   | 'observe.topography.high-point'
   | 'observe.topography.drainage-line'
+  | 'observe.topography.erosion-flag'
+  | 'observe.topography.runoff-path'
   // Observe Module 4 — Earth/Water/Ecology
   | 'observe.earth-water-ecology.watercourse'
+  // Adopt a basemap water feature (OpenMapTiles `water` polygons +
+  // `waterway` lines) into the project. Polygon hits create a `Waterbody`;
+  // line hits create a `Watercourse`. Mirrors the BE adopt-basemap idiom.
+  | 'observe.earth-water-ecology.adopt-water'
   | 'observe.earth-water-ecology.soil-sample'
   | 'observe.earth-water-ecology.vegetation'
   | 'observe.earth-water-ecology.pasture'
@@ -132,11 +138,20 @@ export type MapToolId =
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)
   | 'plan.structures-subsystems.utility-run'
+  // Plan Module — Structures & Subsystems (typed utility points, C4 — reaches
+  // the C2 utilityStore promotion; offers the 11 non-BE utility types)
+  | 'plan.structures-subsystems.utility-point'
   // Plan Module — Built Environment (registry-driven, all 31 BE kinds with
   // `state: 'proposed'`). Mirrors Observe's BE rail. Pattern keeps the
   // strict-literal surface small while letting the kind registry grow:
   // dispatched in PlanDrawHost via prefix-match → BeV2ExistingTool.
   | `plan.structures-subsystems.be.${string}`
+  // Plan Module — Habitat Allocation (A2). Template-literal so the 7
+  // habitat-feature kinds added 2026-05-21 (owl-box / raptor-perch /
+  // nest-box / brush-pile / snag / insectary-strip / wetland-edge) flow
+  // through without growing the union. Dispatch in PlanDesignElementHost
+  // via `useToolIdToElementKind` switch.
+  | `plan.habitat-allocation.${string}`
   // Plan Module — Principle Verification (annotation marker, Tier B / B5)
   | 'plan.principle-verification.note'
   // Plan Module — Principle Verification (monitoring transect, Tier B / B4)

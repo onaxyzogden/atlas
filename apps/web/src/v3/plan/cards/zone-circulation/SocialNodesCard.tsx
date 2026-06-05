@@ -35,21 +35,23 @@
  * placement are deferred (see backlog file).
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useLandDesignStore } from '../../../../store/landDesignStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useSocialNodeDismissStore } from '../../../../store/socialNodeDismissStore.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 import {
   COVERED_RADIUS_M,
-  distanceM,
-  intersectionId,
-  pointInPolygon,
-  segmentIntersect,
+  computeOpportunities,
   tierForDensity,
   type DensityTier,
   type Pt,
+  type SocialElementPt,
+  type SocialOpportunity,
+  type SocialPath,
+  type SocialZone,
 } from './socialNodesMath.js';
 
 interface Props {
@@ -57,12 +59,39 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-const SOCIAL_KINDS = new Set<string>(['prayer-pavilion', 'fire-circle']);
+// Social-element kinds the coverage detector counts. v1 shipped the two amenity
+// points then in the catalog (prayer pavilion, fire circle); v2 adds the five
+// dedicated social-node kinds (bench, picnic table, shaded seat, signage post,
+// gathering pavilion) so a placed bench immediately counts as coverage.
+const SOCIAL_KINDS = new Set<string>([
+  'prayer-pavilion',
+  'fire-circle',
+  'bench',
+  'picnic-table',
+  'shaded-seat',
+  'signage-post',
+  'gathering-pavilion',
+]);
 
 const SOCIAL_KIND_LABEL: Record<string, string> = {
   'prayer-pavilion': 'Prayer pavilion',
   'fire-circle': 'Fire circle',
+  bench: 'Bench',
+  'picnic-table': 'Picnic table',
+  'shaded-seat': 'Shaded seat',
+  'signage-post': 'Signage post',
+  'gathering-pavilion': 'Gathering pavilion',
 };
+
+// Kinds the steward can place from an opportunity row. Ordered cheapest /
+// lightest first — a bench is the canonical "net in the flow".
+const PLACEABLE_KINDS: { kind: string; label: string }[] = [
+  { kind: 'bench', label: 'Bench' },
+  { kind: 'shaded-seat', label: 'Shaded seat' },
+  { kind: 'picnic-table', label: 'Picnic table' },
+  { kind: 'signage-post', label: 'Signage post' },
+  { kind: 'gathering-pavilion', label: 'Gathering pavilion' },
+];
 
 const TIER_LABEL: Record<DensityTier, string> = {
   served: 'NETS IN THE FLOW',
@@ -76,49 +105,49 @@ const TIER_PILL_CLASS: Record<DensityTier, string> = {
   unserved: styles.pillUnmet ?? '',
 };
 
-interface Opportunity {
-  id: string;
-  pt: Pt;
-  zoneLevel: 1 | 2;
-  /** Nearest covering social element, if any within COVERED_RADIUS_M. */
-  cover: { kind: string; label: string; distanceM: number } | null;
-}
-
-function pathCoords(el: DesignElement): number[][] | null {
-  if (el.geometry.type !== 'LineString') return null;
-  const cs = el.geometry.coordinates;
-  if (!cs || cs.length < 2) return null;
-  return cs;
-}
-
 function formatCoord(p: Pt): string {
   return `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
 }
 
+/** Best-effort unique id for a newly placed element (happy-dom-safe). */
+function newElementId(): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  if (c?.randomUUID) return c.randomUUID();
+  return `social-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+}
+
 export default function SocialNodesCard({ project }: Props) {
   const byProject = useLandDesignStore((s) => s.byProject);
+  const addElement = useLandDesignStore((s) => s.add);
   const allZones = useZoneStore((s) => s.zones);
+  const dismissedByProject = useSocialNodeDismissStore((s) => s.byProject);
+  const dismissOpportunity = useSocialNodeDismissStore((s) => s.dismiss);
+  const clearDismissed = useSocialNodeDismissStore((s) => s.clear);
+
+  const [placeKind, setPlaceKind] = useState<string>('bench');
 
   const elements = useMemo(
     () => byProject[project.id] ?? [],
     [byProject, project.id],
   );
 
-  const paths = useMemo(
+  const paths = useMemo<SocialPath[]>(
     () =>
-      elements.filter(
-        (e) => e.kind === 'path' && e.geometry.type === 'LineString',
-      ),
+      elements
+        .filter((e) => e.kind === 'path' && e.geometry.type === 'LineString')
+        .map((e) => ({
+          id: e.id,
+          coords: (e.geometry as GeoJSON.LineString).coordinates,
+        })),
     [elements],
   );
 
-  const socials = useMemo(
+  const socials = useMemo<SocialElementPt[]>(
     () =>
       elements
-        .filter(
-          (e) =>
-            SOCIAL_KINDS.has(e.kind) && e.geometry.type === 'Point',
-        )
+        .filter((e) => SOCIAL_KINDS.has(e.kind) && e.geometry.type === 'Point')
         .map((e) => {
           const c = (e.geometry as GeoJSON.Point).coordinates;
           return {
@@ -131,79 +160,49 @@ export default function SocialNodesCard({ project }: Props) {
     [elements],
   );
 
-  const inhabitedZones = useMemo(
+  const inhabitedZones = useMemo<SocialZone[]>(
     () =>
-      allZones.filter(
-        (z) =>
-          z.projectId === project.id &&
-          (z.permacultureZone === 1 || z.permacultureZone === 2),
-      ),
+      allZones
+        .filter(
+          (z) =>
+            z.projectId === project.id &&
+            (z.permacultureZone === 1 || z.permacultureZone === 2),
+        )
+        .map((z) => ({
+          geometry: z.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
+          permacultureZone: z.permacultureZone as 1 | 2,
+        })),
     [allZones, project.id],
   );
 
-  const opportunities = useMemo<Opportunity[]>(() => {
-    if (paths.length < 2 || inhabitedZones.length === 0) return [];
-    const seen = new Map<string, Opportunity>();
+  const dismissed = useMemo(
+    () => new Set(dismissedByProject[project.id] ?? []),
+    [dismissedByProject, project.id],
+  );
 
-    // Pairwise paths
-    for (let i = 0; i < paths.length; i++) {
-      const a = paths[i]!;
-      const csA = pathCoords(a);
-      if (!csA) continue;
-      for (let j = i + 1; j < paths.length; j++) {
-        const b = paths[j]!;
-        const csB = pathCoords(b);
-        if (!csB) continue;
-        // Pairwise segments
-        for (let m = 0; m < csA.length - 1; m++) {
-          const p1: Pt = { lng: csA[m]![0]!, lat: csA[m]![1]! };
-          const p2: Pt = { lng: csA[m + 1]![0]!, lat: csA[m + 1]![1]! };
-          for (let n = 0; n < csB.length - 1; n++) {
-            const p3: Pt = { lng: csB[n]![0]!, lat: csB[n]![1]! };
-            const p4: Pt = {
-              lng: csB[n + 1]![0]!,
-              lat: csB[n + 1]![1]!,
-            };
-            const hit = segmentIntersect(p1, p2, p3, p4);
-            if (!hit) continue;
-            // Which Z1/Z2 zone (if any)?
-            let zoneLevel: 1 | 2 | null = null;
-            for (const z of inhabitedZones) {
-              if (pointInPolygon(hit, z.geometry)) {
-                zoneLevel = z.permacultureZone as 1 | 2;
-                break;
-              }
-            }
-            if (zoneLevel === null) continue;
-            const id = intersectionId(a.id, b.id, hit);
-            if (seen.has(id)) continue;
-            // Nearest social element
-            let cover: Opportunity['cover'] = null;
-            let bestD = Infinity;
-            for (const s of socials) {
-              const d = distanceM(hit, s.pt);
-              if (d < bestD) {
-                bestD = d;
-                cover =
-                  d <= COVERED_RADIUS_M
-                    ? { kind: s.kind, label: s.label, distanceM: d }
-                    : null;
-              }
-            }
-            seen.set(id, { id, pt: hit, zoneLevel, cover });
-          }
-        }
-      }
-    }
+  const opportunities = useMemo<SocialOpportunity[]>(
+    () => computeOpportunities(paths, inhabitedZones, socials, dismissed),
+    [paths, inhabitedZones, socials, dismissed],
+  );
 
-    // Sort: uncovered first; ties broken by zone (Z1 before Z2).
-    return Array.from(seen.values()).sort((a, b) => {
-      const aCov = a.cover ? 1 : 0;
-      const bCov = b.cover ? 1 : 0;
-      if (aCov !== bCov) return aCov - bCov;
-      return a.zoneLevel - b.zoneLevel;
-    });
-  }, [paths, inhabitedZones, socials]);
+  const dismissedCount = (dismissedByProject[project.id] ?? []).length;
+
+  /** Place the selected social element exactly at an opportunity coordinate. */
+  const placeSocialElement = (o: SocialOpportunity) => {
+    const spec =
+      PLACEABLE_KINDS.find((k) => k.kind === placeKind) ?? PLACEABLE_KINDS[0]!;
+    const el: DesignElement = {
+      id: newElementId(),
+      category: 'amenity',
+      kind: spec.kind,
+      geometry: { type: 'Point', coordinates: [o.pt.lng, o.pt.lat] },
+      phase: 'buildings',
+      label: spec.label,
+      createdAt: new Date().toISOString(),
+      view: 'current',
+    };
+    addElement(project.id, el);
+  };
 
   const totalCount = opportunities.length;
   const coveredCount = opportunities.filter((o) => o.cover).length;
@@ -226,12 +225,13 @@ export default function SocialNodesCard({ project }: Props) {
           Path intersections inside Z1 / Z2 zones are high-traffic
           decision points. Placing a bench, shaded seat, or gathering
           spot there slows people down enough for chance conversations —
-          the Scholar&apos;s &quot;nets in the flow.&quot; v1 counts
-          existing amenity points (prayer pavilion, fire circle) as
-          coverage within {COVERED_RADIUS_M} m of an intersection; a
-          richer social-element catalog (bench, picnic table, signage)
-          lands in v2 along with one-click placement. Holmgren P8 —
-          Integrate rather than segregate.
+          the Scholar&apos;s &quot;nets in the flow.&quot; Any social
+          amenity (prayer pavilion, fire circle, bench, picnic table,
+          shaded seat, signage post, gathering pavilion) within{' '}
+          {COVERED_RADIUS_M} m of an intersection counts as coverage.
+          Pick an element below and <strong>Place</strong> it right on an
+          opportunity, or <strong>Dismiss</strong> intersections you have
+          judged unsuitable. Holmgren P8 — Integrate rather than segregate.
         </p>
       </header>
 
@@ -293,6 +293,35 @@ export default function SocialNodesCard({ project }: Props) {
           {totalCount > 0 && (
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Per-intersection audit</h2>
+              <div
+                className={styles.statRow}
+                style={{ alignItems: 'center', gap: 8 }}
+              >
+                <label htmlFor="social-place-kind">Element to place</label>
+                <select
+                  id="social-place-kind"
+                  value={placeKind}
+                  onChange={(e) => setPlaceKind(e.target.value)}
+                >
+                  {PLACEABLE_KINDS.map((k) => (
+                    <option key={k.kind} value={k.kind}>
+                      {k.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {dismissedCount > 0 && (
+                <div className={styles.hint}>
+                  {dismissedCount} dismissed this session.{' '}
+                  <button
+                    type="button"
+                    className={styles.btn}
+                    onClick={() => clearDismissed(project.id)}
+                  >
+                    Restore all
+                  </button>
+                </div>
+              )}
               <ul className={styles.list}>
                 {opportunities.map((o) => (
                   <li key={o.id} className={styles.listRow}>
@@ -326,13 +355,36 @@ export default function SocialNodesCard({ project }: Props) {
                           ({o.cover.distanceM.toFixed(1)} m away).
                         </div>
                       ) : (
-                        <div className={styles.hint}>
-                          Consider placing a social element here — bench,
-                          gathering spot, sign, or shaded seat. Human
-                          movement flows like water; a &quot;net in the
-                          flow&quot; slows people down for chance
-                          conversations.
-                        </div>
+                        <>
+                          <div className={styles.hint}>
+                            Consider placing a social element here — bench,
+                            gathering spot, sign, or shaded seat. Human
+                            movement flows like water; a &quot;net in the
+                            flow&quot; slows people down for chance
+                            conversations.
+                          </div>
+                          <div className={styles.btnRow}>
+                            <button
+                              type="button"
+                              className={styles.btn}
+                              onClick={() => placeSocialElement(o)}
+                            >
+                              Place{' '}
+                              {PLACEABLE_KINDS.find((k) => k.kind === placeKind)
+                                ?.label ?? 'element'}{' '}
+                              here
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.btn}
+                              onClick={() =>
+                                dismissOpportunity(project.id, o.id)
+                              }
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </li>

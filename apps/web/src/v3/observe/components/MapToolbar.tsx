@@ -15,7 +15,7 @@
  * mount/unmount in response to activeTool changes.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Crosshair,
   Map as MapIcon,
@@ -23,10 +23,12 @@ import {
   Mountain,
   Square,
   SquareDashed,
+  Upload,
   X,
 } from 'lucide-react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { polygonBounds } from '../../components/DiagnoseMap.js';
+import { parseGeoFile } from '../../../lib/geoParsers.js';
 import {
   BASEMAP_OPTIONS,
   useBasemapStore,
@@ -46,6 +48,12 @@ interface Props {
   /** Persisted parcel boundary, used to power the "Return to property" button. */
   boundary?: GeoJSON.Polygon | null;
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
+  /**
+   * Called when the steward imports a boundary from a file (KML / KMZ /
+   * GeoJSON). Receives the parsed FeatureCollection so the caller can persist
+   * it and compute acreage. Only wired when `showBoundary` is true.
+   */
+  onBoundaryImported?: (geojson: GeoJSON.FeatureCollection) => void;
   /** Show the draw-property-boundary button + tool. Defaults to true (Observe). */
   showBoundary?: boolean;
 }
@@ -55,12 +63,30 @@ export default function MapToolbar({
   projectId,
   boundary,
   onBoundaryDrawn,
+  onBoundaryImported,
   showBoundary = true,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const basemap = useBasemapStore((s) => s.basemap);
   const setBasemap = useBasemapStore((s) => s.setBasemap);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    setImportError(null);
+    try {
+      const { geojson } = await parseGeoFile(file);
+      onBoundaryImported?.(geojson);
+    } catch (err) {
+      setImportError(
+        err instanceof Error ? err.message : 'Could not read that file.',
+      );
+    }
+  };
 
   // Reset activeTool on unmount so route changes don't carry stale state.
   useEffect(() => {
@@ -163,6 +189,18 @@ export default function MapToolbar({
             </button>
           </DelayedTooltip>
         )}
+        {showBoundary && onBoundaryImported && (
+          <DelayedTooltip label="Import boundary (KML / GeoJSON)" position="top">
+            <button
+              type="button"
+              className={css.btn}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Import boundary from file"
+            >
+              <Upload size={16} strokeWidth={1.75} />
+            </button>
+          </DelayedTooltip>
+        )}
         <DelayedTooltip
           label={
             boundary
@@ -197,6 +235,32 @@ export default function MapToolbar({
           </>
         )}
       </div>
+
+      {showBoundary && onBoundaryImported && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".kml,.kmz,.geojson,.json,application/geo+json"
+          onChange={handleImportFile}
+          aria-label="Boundary file"
+          style={{ display: 'none' }}
+        />
+      )}
+
+      {importError && (
+        <div className={css.popover} role="alert">
+          <span className={css.popoverTitle}>Import failed</span>
+          <span style={{ fontSize: 12, lineHeight: 1.5 }}>{importError}</span>
+          <button
+            type="button"
+            className={css.btn}
+            style={{ marginTop: 8, width: '100%' }}
+            onClick={() => setImportError(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {activeTool === 'basemap' && (
         <div className={css.popover} role="dialog" aria-label="Basemap">

@@ -1,7 +1,7 @@
 # Atlas Design System
 
 ## Summary
-The OGDEN Atlas design system is defined in `design-system/ogden-atlas/MASTER.md`. It uses an organic, biophilic aesthetic rooted in earth tones — designed for land stewardship rather than generic SaaS.
+The OGDEN Atlas design system is defined in `design-system/ogden-atlas/MASTER.md`. It uses an organic, biophilic aesthetic — designed for land stewardship rather than generic SaaS. As of 2026-05-25 the UI **chrome** reads **cool neutral grey + estate gold** (the warm-brown "earth" ramp that previously dressed chrome was renamed to `--color-neutral-*`); the warm earth/biophilic palette is now **reserved for map data** (zones, structures, paths, parcel boundary). See [[decisions/2026-05-25-atlas-earth-to-neutral-chrome]].
 
 ## Token Sources
 
@@ -17,11 +17,11 @@ The full CSS token system lives in two files:
 
 **CSS:** `--color-{palette}-{shade}`, `--color-zone-{category}`, `--color-group-{domain}`, `--color-status-{level}`, `--color-map-{element}`
 
-**TypeScript:** `earth[500]`, `zone.habitation`, `group.livestock`, `status.good`, `chart.accent`
+**TypeScript:** `neutral[500]`, `zone.habitation`, `group.livestock`, `status.good`, `chart.accent`
 
 ## Token Families
 Palette families defined in `tokens.css`:
-- **Earth** (warm browns): `--color-earth-50` → `--color-earth-900`
+- **Neutral** (cool grey, UI chrome): `--color-neutral-50` → `--color-neutral-900` — renamed from the warm `--color-earth-*` ramp on 2026-05-25 ([[decisions/2026-05-25-atlas-earth-to-neutral-chrome]]); dresses panels/cards/borders/inputs/footers/muted text. The old warm-brown ramp no longer exists; warm earth hues survive only in the reserved **map-data** tokens below.
 - **Sage** (organic greens): `--color-sage-50` → `--color-sage-900`
 - **Water** (slate blues): `--color-water-50` → `--color-water-900`
 - **Sand** (warm neutrals): `--color-sand-50` → `--color-sand-200`
@@ -66,6 +66,20 @@ xs (4px), sm (8px), md (16px), lg (24px), xl (32px), 2xl (48px), 3xl (64px)
 
 ## Component Specs
 Buttons, Cards, Inputs, Modals, Accordions, Tabs, Tooltips — all defined in MASTER.md with sizes, states, and anti-patterns.
+
+### Surfaces — `<BentoBox>` (canonical, 2026-05-27)
+The **single** canonical surface primitive for OLOS/Atlas is `<BentoBox>` at `apps/web/src/components/ui/BentoBox.tsx`. The outer "toolbox" wraps recessed inner `<BentoBox.Group>` cards; together they read as a single bento containing N inner cards.
+- **Outer shell:** `color-mix(in srgb, var(--color-surface) 96%, #fff)` background + `1px solid color-mix(in srgb, var(--color-border) 88%, #fff)` border + `--radius-lg` + `0 1px 2px rgba(0,0,0,0.1)` shadow.
+- **Inner group:** `var(--color-bg)` + `1px solid var(--color-border)` + `--radius-md`.
+- **Variants:** `outer = default | flat | elevated`, `padding = none | sm | md | lg`, `accent = none | gold | sage | warning | danger`.
+- **Deprecation:** `Card.tsx` (and `Card.module.css`) are deprecated forwarding wrappers — `Card` forwards to `BentoBox`, `Card.Header/Body/Footer` forward to `BentoBox.Header/Body/Footer`. Files stay on disk per [[feedback-no-deletion]] but new code should import `BentoBox` directly from `components/ui`.
+- **Exceptions** (recognised in the ADR):
+  - **Full-bleed:** Stage Compass, True North, Fit Gate, the working map pages (`PlanLayout` / `ActLayout` / Stage Zero map step) — rendered edge-to-edge by `V3ProjectLayout` with no outer `.page` bento wrap.
+  - **Chrome-surface bento:** same contract on `--color-panel-bg` / `--color-panel-card` (Fit Gate inner blocks, SegmentIntakePanel) — sits on page chrome rather than a document.
+  - **Themed-canvas bento:** same contract on a scoped palette (Stage Zero Vision Builder's `--vb-*` dark/gold) — preserves the steward's mockup register regardless of app theme.
+- **Open follow-up:** 194 `features/**` `.card` surfaces use a legacy `rgba(232, 220, 200, …)` palette and follow the bento contract but skip the canonical tokens; a Phase 6 lint rule will either token-migrate them or accept the literal palette as a documented "legacy-feature-card" variant.
+
+ADR: [[decisions/2026-05-27-atlas-bento-box-canonical-surface]].
 
 ## Where It's Used
 - Frontend CSS (`apps/web/src/styles/`) — partially integrated

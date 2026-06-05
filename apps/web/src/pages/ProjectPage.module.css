@@ -51,7 +51,7 @@
 }
 
 .notFoundLink {
-  color: var(--color-earth-600);
+  color: var(--color-neutral-600);
   font-size: var(--text-base);
   text-decoration: underline;
 }

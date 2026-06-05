@@ -1,0 +1,65 @@
+.gate {
+  margin: 8px 20px 20px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(20, 25, 31, 0.55);
+  border: 1px dashed rgba(242, 237, 227, 0.22);
+  color: rgba(242, 237, 227, 0.65);
+  font-size: 13px;
+}
+
+.gate[data-ready='true'] {
+  background: rgba(106, 168, 79, 0.12);
+  border: 1px solid rgba(106, 168, 79, 0.45);
+  color: var(--color-text, #f2ede3);
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(242, 237, 227, 0.55);
+}
+
+.gate[data-ready='true'] .label {
+  color: #8fc97a;
+}
+
+.detail {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(106, 168, 79, 0.85);
+  color: #1f2a18;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+.button:hover {
+  filter: brightness(1.08);
+}
+
+.button:disabled {
+  background: rgba(242, 237, 227, 0.1);
+  color: rgba(242, 237, 227, 0.4);
+  cursor: not-allowed;
+}

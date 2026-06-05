@@ -10,11 +10,13 @@
  *   - plan-label      — symbol labels (one per feature)
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
+import { zoneDisplayLabel } from '../../../lib/zones/permacultureLabels.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
@@ -22,15 +24,47 @@ import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import {
+  assignRingPositions,
+  lonLatToMetresOffset,
+  metresToLonLatOffset,
+} from '../../../features/agroforestry/guildMemberPositions.js';
+import { findSpecies } from '../../../data/plantCatalog.js';
+import { LAYER_TINT } from '../cards/plant-systems/guildLayerOrder.js';
+import {
   useAllStructures,
   getAllStructures,
   updateStructure,
   getDesignElementsForProject,
+  useDesignElementsForProject,
 } from '../../../store/builtEnvironmentSelectors.js';
 import {
   resolveSilvopastureHosts,
   listHostsForSelection,
+  resolveMembers,
 } from '../../../features/agroforestry/silvopastureHosts.js';
+import { hostCanopyUnion } from '../../../features/agroforestry/guildLivestockMath.js';
+import {
+  HostCanopyUnionTooltip,
+  type HostBlockProps,
+  type HostBlockEntry,
+} from './HostCanopyUnionTooltip.js';
+import { HostUnionContextMenu } from './HostUnionContextMenu.js';
+import {
+  HostUnionDrilldownCard,
+  type DrilldownMemberRow,
+} from './HostUnionDrilldownCard.js';
+import { useSilvopastureDrilldownStore } from './silvopastureDrilldownStore.js';
+import {
+  selectEvidenceFor,
+  type HostCanopyUnionEvidenceInputs,
+} from '@ogden/shared/evidence';
+import { emitEvidenceAudit } from '../../../lib/evidence/auditEmit.js';
+
+// A single host's block of tooltip data, plus the hostId used for
+// click-toggle stack-equality unpin (not rendered). hostId is the
+// stable identity used by the displayedUnion mirror to merge hover
+// snapshots and decide which blocks are entering/exiting.
+type HostBlock = HostBlockProps & { hostId: string };
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -39,6 +73,10 @@ import { useEnterpriseStore } from '../../../store/enterpriseStore.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useEcologicalNoteStore } from '../../../store/ecologicalNoteStore.js';
 import { useUtilityRunStore } from '../../../store/utilityRunStore.js';
+import {
+  useUtilityStore,
+  UTILITY_TYPE_CONFIG,
+} from '../../../store/utilityStore.js';
 import {
   useSetbackStore,
   type SetbackSourceKind,
@@ -52,11 +90,13 @@ import {
 } from '../../../store/planSelectionStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import { useInlineFormStore } from '../draw/inlineFormStore.js';
+import { usePhaseFieldSpec } from '../draw/usePhaseFieldSpec.js';
 import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
 import type { StructureType } from '@ogden/shared';
+import type { PlanModule } from '../types.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
@@ -69,6 +109,7 @@ import {
   buildFertilityEditSchema,
   buildGuildEditSchema,
   buildWaterNodeEditSchema,
+  buildUtilityPointEditSchema,
   buildUtilityRunEditSchema,
   buildSetbackRingEditSchema,
   buildFlowConnectorEditSchema,
@@ -98,10 +139,57 @@ interface Props {
    * relocated. Defaults to true (Plan stage behavior).
    */
   editable?: boolean;
+  /**
+   * When a single Plan objective is focused in the map (via the compass's
+   * "Open on Map"), only features belonging to that module stay rendered —
+   * every other Plan group is dropped from the shared collections, mirroring
+   * the strict single-objective rail focus. `null`/omitted = full overlays
+   * (the bare `/plan` view), so nothing changes outside focus mode. The
+   * read-only cross-stage substrate (Observe annotations mounted alongside in
+   * the Plan map) stays always-ambient and is not scoped here. Modules with
+   * no map geometry (e.g. goal-compass, phasing-budgeting) correctly yield an
+   * empty Plan overlay when focused — only the ambient substrate remains.
+   */
+  activeModule?: PlanModule | null;
 }
 
 const SOURCE_PREFIX = 'plan-data-';
 const LAYER_PREFIX = 'plan-data-';
+
+/**
+ * Maps each plan-data feature `kind` to the Plan module it belongs to, so
+ * single-objective focus can drop everything outside the active module.
+ * Derived from the per-feature module comments in the FC builder below
+ * (e.g. crops/guilds → Plant Systems; paddocks/fences/product-chain →
+ * Livestock; water nodes + their conflict halos → Water Management).
+ */
+const KIND_MODULE: Record<string, PlanModule> = {
+  zone: 'access-circulation',
+  path: 'access-circulation',
+  setback: 'access-circulation',
+  crop: 'plants-food',
+  guild: 'plants-food',
+  'guild-member': 'plants-food',
+  'host-canopy-union': 'plants-food',
+  'host-canopy-union-label': 'plants-food',
+  paddock: 'animals-livestock',
+  'fence-line': 'animals-livestock',
+  slaughter_point: 'animals-livestock',
+  cold_chain_unit: 'animals-livestock',
+  market_node: 'animals-livestock',
+  utility: 'built-infrastructure',
+  'utility-point': 'built-infrastructure',
+  structure: 'built-infrastructure',
+  fertility: 'soil',
+  flow: 'soil',
+  note: 'risk-compliance',
+  transect: 'risk-compliance',
+  water_catchment: 'hydrology',
+  water_storage: 'hydrology',
+  water_swale: 'hydrology',
+  water_sink: 'hydrology',
+  utility_conflict: 'hydrology',
+};
 
 const WATER_COLOR: Record<string, string> = {
   catchment: '#5fc7d4',
@@ -207,7 +295,12 @@ function enterpriseColorExpr(
   ];
 }
 
-export default function PlanDataLayers({ map, projectId, editable = true }: Props) {
+export default function PlanDataLayers({
+  map,
+  projectId,
+  editable = true,
+  activeModule = null,
+}: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const zones = useZoneStore((s) => s.zones);
@@ -235,10 +328,161 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
+  const designElementsForProject = useDesignElementsForProject(projectId);
+  // Hover state for the per-host canopy-union tooltip (minzoom 17). Set
+  // from a mousemove on the `guild-host-canopy-union-fill` layer; cleared
+  // on mouseleave. Rendered via a portal into `map.getCanvasContainer()`
+  // so the cursor-anchored coordinates from `e.point` are in the same
+  // pixel space the tooltip lives in. `entries` is the multi-feature
+  // fan-out: every overlapping host at the cursor, deduped by hostId,
+  // topmost first.
+  const [hoveredUnion, setHoveredUnion] = useState<{
+    point: { x: number; y: number };
+    entries: HostBlock[];
+  } | null>(null);
+  // Pinned state for the same tooltip. Slice L (multi-pin) retired the
+  // single-pin `pinnedUnion` shape in favor of a per-host Map keyed by
+  // hostId. Each entry is sticky across cursor motion until explicitly
+  // unpinned (map-click-toggle on the same host) or until ESC /
+  // tap-outside clears the whole set. Map insertion order is preserved
+  // by JS spec, so newly-pinned blocks land at the top of the pinned
+  // section in the visual stack — consistent with the 2026-05-27
+  // "topmost MapLibre feature first" convention. Hover entries continue
+  // to populate even when pins exist; the merge mirror shadows hover by
+  // hostId so a host that's both pinned and currently hovered renders
+  // once (as pinned).
+  const [pinnedHosts, setPinnedHosts] = useState<Map<string, HostBlock>>(
+    () => new Map(),
+  );
+  // Slice M (host-union drilldown) — two sequential floating-surface
+  // states routed from the right-click / long-press trigger.
+  //   contextMenu — small "Open detail" menu opened by the trigger;
+  //     closed when the steward picks the item, ESC, or click-outside.
+  //   drilldownHost — sticky per-member card opened by the menu's
+  //     action; persists across cursor motion until ESC, close button,
+  //     click-outside, or "Open full audit" routes to the slide-up.
+  // The two are not concurrent: opening the card closes the menu.
+  // See wiki/decisions/2026-05-30-atlas-b4-tooltip-drilldown.md.
+  const [contextMenu, setContextMenu] = useState<{
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+  } | null>(null);
+  const [drilldownHost, setDrilldownHost] = useState<{
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+    members: DrilldownMemberRow[];
+  } | null>(null);
+  const requestOpenAudit = useSilvopastureDrilldownStore(
+    (s) => s.requestOpenAudit,
+  );
+  // Last cursor pixel inside the map canvas — freezes the tooltip
+  // anchor when the cursor leaves the canvas with pinned hosts still
+  // active. Without this, a pinned-only stack would have no `point`
+  // source (hoveredUnion is null on leave). Updated on every mousemove
+  // over the union layer; read only when hoveredUnion is null and at
+  // least one host is pinned.
+  const lastCursorPointRef = useRef<{ x: number; y: number } | null>(null);
+  // Display-lifetime mirror of `activeUnion = pinnedUnion ?? hoveredUnion`.
+  // Holds the tooltip mounted through its exit-fade after activeUnion → null
+  // so the CSS opacity transition has time to interpolate to 0.
+  //
+  // 2026-05-30 (Slice H) reshape: `entries` carry per-block phase so
+  // when the active set changes mid-display (one host drops out while
+  // others remain) only the dropped host fades. Container `phase`
+  // remains for the full-dismiss case (activeUnion → null).
+  //
+  // The 2026-05-29 monotonic `key` is gone: CSS transitions interpolate
+  // from the current computed value, so reverse-in-flight (re-enter
+  // mid-exit) no longer needs a remount — flipping `exiting` from true
+  // back to false naturally transitions opacity back to 1 from
+  // wherever it is.
+  const [displayedUnion, setDisplayedUnion] = useState<{
+    point: { x: number; y: number };
+    entries: HostBlockEntry[];
+    phase: 'entering' | 'exiting';
+  } | null>(null);
+
+  // Phase H.3 — host-canopy-union Evidence inputs / item / emit hook.
+  //
+  // Snapshot the displayedUnion entry that matches the currently-open
+  // drilldown host, project to the selector's input shape, run the
+  // selector, and emit a single audit row when the drilldown opens
+  // (or when the underlying numeric inputs materially change).
+  //
+  // String-signature dep key (F.7.4 precedent): without this, every
+  // displayedUnion mutation during hover would reseed evidenceInputs
+  // by reference, even when rounded numeric values are unchanged,
+  // flooding evidence_audit_log. The key collapses entry identity +
+  // rounded m² + cardinals to a stable string so the emit useEffect
+  // fires once per *meaningful* change.
+  const drilldownEvidenceDepKey = useMemo(() => {
+    if (!drilldownHost || !displayedUnion) return '';
+    const e = displayedUnion.entries.find(
+      (x) => x.hostId === drilldownHost.hostId,
+    );
+    if (!e) return '';
+    return [
+      e.hostId,
+      Math.round(e.unionAreaM2),
+      Math.round(e.rawSumM2),
+      e.guildCount,
+      e.memberCount,
+    ].join(':');
+  }, [drilldownHost, displayedUnion]);
+
+  const drilldownEvidenceInputs = useMemo<HostCanopyUnionEvidenceInputs | null>(
+    () => {
+      if (!drilldownHost || !displayedUnion) return null;
+      const e = displayedUnion.entries.find(
+        (x) => x.hostId === drilldownHost.hostId,
+      );
+      if (!e) return null;
+      return {
+        entries: [
+          {
+            hostId: e.hostId,
+            hostName: e.hostName,
+            unionAreaM2: e.unionAreaM2,
+            rawSumM2: e.rawSumM2,
+            guildCount: e.guildCount,
+            memberCount: e.memberCount,
+          },
+        ],
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [drilldownEvidenceDepKey],
+  );
+
+  const drilldownEvidenceItem = useMemo(() => {
+    if (!drilldownEvidenceInputs) return null;
+    return selectEvidenceFor({
+      panelKey: 'host-canopy-union',
+      inputs: drilldownEvidenceInputs,
+    });
+  }, [drilldownEvidenceInputs]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    if (!drilldownEvidenceInputs || !drilldownEvidenceItem) return;
+    emitEvidenceAudit({
+      projectId,
+      panelKey: 'host-canopy-union',
+      inputs: drilldownEvidenceInputs,
+      output: drilldownEvidenceItem,
+      selectorName: 'selectHostCanopyUnionEvidence',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, drilldownEvidenceDepKey]);
+
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
+  const utilities = useUtilityStore((s) => s.utilities);
+  const updateUtility = useUtilityStore((s) => s.updateUtility);
   const setbackRings = useSetbackStore((s) => s.rings);
   const updateSetbackRing = useSetbackStore((s) => s.updateRing);
   const flowConnectors = useClosedLoopStore((s) => s.materialFlows);
@@ -250,6 +494,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   );
   const activeTool = useMapToolStore((s) => s.activeTool);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: utilPhaseField } = usePhaseFieldSpec(projectId);
   const seededZonesVisible = useMatrixTogglesStore((s) => s.seededZones);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const lensMode = useLayeringLensStore((s) => s.mode);
@@ -263,6 +508,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const selected = selectedItems[0] ?? null;
   const selectedGuildId =
     selected?.kind === 'guild' ? selected.id : null;
+  const selectedStructureId =
+    selectedItems.find((i) => i.kind === 'structure')?.id ?? null;
+  const selectedMemberKey =
+    selected?.kind === 'guild-member' && selected.memberIndex !== undefined
+      ? `${selected.id}:${selected.memberIndex}`
+      : null;
 
   const {
     polyFC,
@@ -274,6 +525,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     transectFC,
     conflictPointFC,
     conflictLineFC,
+    memberPointFC,
+    memberCanopyFC,
+    hostCanopyUnionFC,
+    hostCanopyUnionLabelFC,
   } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -282,6 +537,24 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const setbacks: GeoJSON.Feature[] = [];
     const flows: GeoJSON.Feature[] = [];
     const transects: GeoJSON.Feature[] = [];
+    // Per-guild-member geometry — points (dots) + canopy disks (translucent).
+    // Built downstream from the same `assignRingPositions` + `Guild.center`
+    // pipeline the canopy-union math uses, so the on-parcel render and the
+    // SilvopastureIntegrationCard read from one geometric source of truth.
+    const memberPoints: GeoJSON.Feature[] = [];
+    const memberCanopies: GeoJSON.Feature[] = [];
+    // Per-host canopy-union polygons — one Polygon | MultiPolygon per
+    // silvopasture host whose member guilds (resolved through pin or
+    // spatial overlap) produce a non-null `hostCanopyUnion`. Renders as
+    // a soft grey halo beneath the individual member disks so the steward
+    // sees the aggregate footprint that `canopyDedupedM2` measures.
+    const hostCanopyUnions: GeoJSON.Feature[] = [];
+    // Parallel point-FC of per-host labels rendered above the union halo
+    // at minzoom 17. `unionAreaLabel` is pre-formatted at the push site
+    // (Math.round + " m²") so the symbol layer's `text-field` stays a
+    // trivial `['get']` and rounding matches the tooltip + the
+    // SilvopastureIntegrationCard verbatim.
+    const hostCanopyUnionLabels: GeoJSON.Feature[] = [];
     // Utility-conflict hazard halos — earthwork WaterNodes that intersected
     // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
     // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
@@ -312,6 +585,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const Z_DEFAULT = 2;
     const orderedZones = [...zones]
       .filter((z) => z.projectId === projectId)
+      .filter((z) => !z.hidden)
       .sort(
         (a, b) =>
           (b.permacultureZone ?? Z_DEFAULT) - (a.permacultureZone ?? Z_DEFAULT),
@@ -321,7 +595,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: z.id,
         kind: 'zone',
         color: z.color,
-        label: z.name,
+        label: zoneDisplayLabel(z),
         yeomansRank: 4,
         enterprise: z.enterprise ?? '',
         // Stamp Z-level on the feature so the fill-opacity ramp and the
@@ -503,6 +777,137 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         properties: props,
         geometry: { type: 'Point', coordinates: g.center },
       });
+
+      // Per-member geometry — one Point per member at the absolute lon/lat
+      // resolved from Guild.center + assignRingPositions output, plus an
+      // optional canopy disk for members whose species has canopySpreadM.
+      // The render mirrors the in-card GuildRingsCanvas layout so the steward
+      // sees the same spatial composition on the parcel as in the slide-up.
+      const memberPositions = assignRingPositions(g.members);
+      const [centerLng, centerLat] = g.center;
+      for (let i = 0; i < g.members.length; i += 1) {
+        const member = g.members[i]!;
+        const pos = memberPositions[i]!;
+        const [dLng, dLat] = metresToLonLatOffset(pos[0], pos[1], centerLat);
+        const lng = centerLng + dLng;
+        const lat = centerLat + dLat;
+        const species = findSpecies(member.speciesId);
+        const tint = LAYER_TINT[member.layer];
+        const memberProps = {
+          id: g.id,
+          kind: 'guild-member',
+          guildId: g.id,
+          memberIndex: i,
+          color: tint,
+          layer: member.layer,
+          speciesId: member.speciesId,
+          label: species?.commonName ?? member.speciesId,
+          yeomansRank: 8,
+          enterprise: g.enterprise ?? '',
+        };
+        memberPoints.push({
+          type: 'Feature',
+          id: `${g.id}:${i}`,
+          properties: memberProps,
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+        });
+        const spread = species?.canopySpreadM;
+        if (spread && spread > 0) {
+          try {
+            const disk = turf.circle([lng, lat], spread / 2, {
+              units: 'meters',
+              steps: 32,
+            });
+            memberCanopies.push({
+              type: 'Feature',
+              id: `${g.id}:${i}:canopy`,
+              properties: memberProps,
+              geometry: disk.geometry,
+            });
+          } catch {
+            /* skip — invalid geometry */
+          }
+        }
+      }
+    }
+
+    // Per-host canopy-union polygons. Iterates silvopasture hosts via the
+    // same selector the integration math uses (`resolveSilvopastureHosts` +
+    // `resolveMembers`), then plumbs each host's member guilds through
+    // `hostCanopyUnion` to recover the union geometry. Hosts with no
+    // canopy-bearing members yield `null` and are skipped. Render-only —
+    // selection, drag, and popover wiring all stay on the per-member layer.
+    const projectScopedGuilds = guilds.filter((g) => g.projectId === projectId);
+    const projectScopedPaddocks = paddocks.filter(
+      (p) => p.projectId === projectId,
+    );
+    const hosts = resolveSilvopastureHosts(
+      projectId,
+      cropAreas,
+      designElementsForProject,
+    );
+    for (const host of hosts) {
+      const hostMembers = resolveMembers(
+        host,
+        {
+          cropAreas,
+          designElements: designElementsForProject,
+          paddocks: projectScopedPaddocks,
+          guilds: projectScopedGuilds,
+        },
+        hosts,
+      );
+      const hostGuilds = hostMembers.guilds.map((m) => m.entity);
+      if (hostGuilds.length === 0) continue;
+      const union = hostCanopyUnion(hostGuilds);
+      if (!union) continue;
+      // Match hostCanopyUnion's circle-push gate exactly: a member is
+      // canopy-bearing iff its species has a positive finite
+      // canopySpreadM. Counting here, at the call site, keeps the
+      // hover-tooltip's "M canopy-bearing members" honest as
+      // "M circles were folded into this union."
+      let canopyBearingMembers = 0;
+      for (const g of hostGuilds) {
+        for (const m of g.members) {
+          const spread = findSpecies(m.speciesId)?.canopySpreadM;
+          if (typeof spread === 'number' && spread > 0) {
+            canopyBearingMembers += 1;
+          }
+        }
+      }
+      hostCanopyUnions.push({
+        type: 'Feature',
+        id: `${host.id}:canopy-union`,
+        properties: {
+          kind: 'host-canopy-union',
+          hostId: host.id,
+          hostName: host.name,
+          unionAreaM2: union.unionAreaM2,
+          rawSumM2: union.rawSumM2,
+          guildCount: hostGuilds.length,
+          memberCount: canopyBearingMembers,
+        },
+        geometry: union.unionGeometry,
+      });
+      // Centroid label — one Point feature per host union with the
+      // pre-formatted m² string. `turf.pointOnFeature` (not centroid) so
+      // the anchor is guaranteed inside the polygon even when the union
+      // is concave or a MultiPolygon — centroid can fall outside.
+      const labelAnchor = turf.pointOnFeature({
+        type: 'Feature',
+        geometry: union.unionGeometry,
+        properties: {},
+      });
+      hostCanopyUnionLabels.push({
+        type: 'Feature',
+        id: `${host.id}:canopy-union-label`,
+        properties: {
+          kind: 'host-canopy-union-label',
+          hostId: host.id,
+          unionAreaLabel: `${Math.round(union.unionAreaM2)} m²`,
+        },
+        geometry: labelAnchor.geometry,
+      });
     }
 
     // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
@@ -557,6 +962,36 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: n.id,
         properties: props,
         geometry: n.geometry,
+      });
+    }
+
+    // Utility points (point) — typed utilityStore promotion (C2), reachable
+    // via UtilityPointTool (C4). The 11 utility types with no Built-
+    // Environment equivalent. Yeomans rank 6 (Buildings / structures band).
+    // Color/label from UTILITY_TYPE_CONFIG. Full edit stays with the legacy
+    // UtilityPanel; this layer renders + makes the point selectable.
+    for (const u of utilities) {
+      if (u.projectId !== projectId) continue;
+      const cfg = UTILITY_TYPE_CONFIG[u.type];
+      const props = {
+        id: u.id,
+        kind: 'utility-point',
+        color: cfg?.color ?? '#8a8a8a',
+        label: u.name,
+        yeomansRank: 6,
+        enterprise: '',
+      };
+      points.push({
+        type: 'Feature',
+        id: u.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: u.center },
+      });
+      labels.push({
+        type: 'Feature',
+        id: u.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: u.center },
       });
     }
 
@@ -816,18 +1251,34 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       labels.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
     }
 
-    return {
-      polyFC: { type: 'FeatureCollection' as const, features: polys },
-      lineFC: { type: 'FeatureCollection' as const, features: lines },
-      pointFC: { type: 'FeatureCollection' as const, features: points },
-      labelFC: { type: 'FeatureCollection' as const, features: labels },
-      setbackFC: { type: 'FeatureCollection' as const, features: setbacks },
-      flowFC: { type: 'FeatureCollection' as const, features: flows },
-      transectFC: { type: 'FeatureCollection' as const, features: transects },
-      conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
-      conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
+    // Single-objective focus: when a module is active, drop every feature
+    // whose kind belongs to a different module. `null` = full overlays, so
+    // this is an identity pass outside focus mode. Features with an unmapped
+    // kind are dropped under focus (strict single-objective view).
+    const focus = (feats: GeoJSON.Feature[]): GeoJSON.Feature[] => {
+      if (activeModule == null) return feats;
+      return feats.filter((f) => {
+        const kind = (f.properties as { kind?: string } | null)?.kind;
+        return kind != null && KIND_MODULE[kind] === activeModule;
+      });
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId]);
+
+    return {
+      polyFC: { type: 'FeatureCollection' as const, features: focus(polys) },
+      lineFC: { type: 'FeatureCollection' as const, features: focus(lines) },
+      pointFC: { type: 'FeatureCollection' as const, features: focus(points) },
+      labelFC: { type: 'FeatureCollection' as const, features: focus(labels) },
+      setbackFC: { type: 'FeatureCollection' as const, features: focus(setbacks) },
+      flowFC: { type: 'FeatureCollection' as const, features: focus(flows) },
+      transectFC: { type: 'FeatureCollection' as const, features: focus(transects) },
+      conflictPointFC: { type: 'FeatureCollection' as const, features: focus(conflictPoints) },
+      conflictLineFC: { type: 'FeatureCollection' as const, features: focus(conflictLines) },
+      memberPointFC: { type: 'FeatureCollection' as const, features: focus(memberPoints) },
+      memberCanopyFC: { type: 'FeatureCollection' as const, features: focus(memberCanopies) },
+      hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: focus(hostCanopyUnions) },
+      hostCanopyUnionLabelFC: { type: 'FeatureCollection' as const, features: focus(hostCanopyUnionLabels) },
+    };
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, utilities, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject, activeModule]);
 
   useEffect(() => {
     if (!map) return;
@@ -854,6 +1305,45 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const transectSid = ensureSource('transect', transectFC);
       const conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
       const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      const memberPointSid = ensureSource('guild-member-point', memberPointFC);
+      const memberCanopySid = ensureSource('guild-member-canopy', memberCanopyFC);
+      const hostCanopyUnionSid = ensureSource(
+        'guild-host-canopy-union',
+        hostCanopyUnionFC,
+      );
+      const hostCanopyUnionLabelSid = ensureSource(
+        'guild-host-canopy-union-label',
+        hostCanopyUnionLabelFC,
+      );
+
+      // Orientation indicator — a single facing chevron on the SELECTED
+      // structure only (zero clutter; live while the steward edits its
+      // Rotation). Rebuilt here (not in the FC memo) because selection is an
+      // `apply()`-level concern, like `selectedGuildId` styling. Empty
+      // collection ⇒ no arrow when nothing (or a non-structure) is selected.
+      const orientFeatures: GeoJSON.Feature[] = [];
+      if (selectedStructureId) {
+        const st = structures.find(
+          (s) => s.id === selectedStructureId && s.projectId === projectId,
+        );
+        if (st) {
+          try {
+            const ctr = turf.centroid(st.geometry).geometry;
+            orientFeatures.push({
+              type: 'Feature',
+              id: st.id,
+              properties: { id: st.id, rotationDeg: st.rotationDeg ?? 0 },
+              geometry: ctr,
+            });
+          } catch {
+            /* skip — degenerate geometry */
+          }
+        }
+      }
+      const orientSid = ensureSource('orient', {
+        type: 'FeatureCollection',
+        features: orientFeatures,
+      });
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
@@ -1093,6 +1583,106 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         },
       });
 
+      // Per-guild-member layers — only visible at zoom ≥ 17. Below that
+      // the parcel is too small for the dots to read; the guild centroid
+      // is the right abstraction.
+      const memberStrokeColorExpr = selectedMemberKey
+        ? [
+            'case',
+            ['==', ['id'], selectedMemberKey],
+            '#ffd166',
+            '#1f1d1a',
+          ]
+        : '#1f1d1a';
+      const memberStrokeWidthExpr = selectedMemberKey
+        ? ['case', ['==', ['id'], selectedMemberKey], 3, 1.5]
+        : 1.5;
+      // Per-host canopy-union — soft grey halo beneath the individual
+      // member disks so the steward sees the unioned footprint that
+      // `canopyDedupedM2` measures. Neutral colour (no LAYER_TINT) avoids
+      // suggesting any one layer dominates the union. Added before the
+      // member-canopy layers so members render on top.
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-fill`,
+        type: 'fill',
+        source: hostCanopyUnionSid,
+        minzoom: 17,
+        paint: {
+          'fill-color': '#a8a8a8',
+          'fill-opacity': 0.15,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-line`,
+        type: 'line',
+        source: hostCanopyUnionSid,
+        minzoom: 17,
+        paint: {
+          'line-color': '#5a5a5a',
+          'line-opacity': 0.40,
+          'line-width': 1.25,
+        },
+      });
+      // Per-host union-area label — single Math.round-formatted m²
+      // string at the union's interior anchor (turf.pointOnFeature).
+      // Paint mirrors the existing main label layer below so the m²
+      // value reads as part of the same dark-glass design family.
+      // Inserted before the member-canopy layers so member disks paint
+      // on top of the label — the label is per-host context, the disks
+      // are per-member identity.
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-label`,
+        type: 'symbol',
+        source: hostCanopyUnionLabelSid,
+        minzoom: 17,
+        layout: {
+          'text-field': ['get', 'unionAreaLabel'],
+          'text-size': 11,
+          'text-anchor': 'center',
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+        },
+        paint: {
+          'text-color': '#f2ede3',
+          'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+          'text-halo-width': 1.2,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-canopy-fill`,
+        type: 'fill',
+        source: memberCanopySid,
+        minzoom: 17,
+        paint: {
+          'fill-color': ['get', 'color'] as never,
+          'fill-opacity': 0.10,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-canopy-line`,
+        type: 'line',
+        source: memberCanopySid,
+        minzoom: 17,
+        paint: {
+          'line-color': ['get', 'color'] as never,
+          'line-opacity': 0.30,
+          'line-width': 1,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-point`,
+        type: 'circle',
+        source: memberPointSid,
+        minzoom: 17,
+        paint: {
+          'circle-radius': 5,
+          'circle-color': ['get', 'color'] as never,
+          'circle-stroke-color': memberStrokeColorExpr as never,
+          'circle-stroke-width': memberStrokeWidthExpr as never,
+          'circle-opacity': 0.95,
+        },
+      });
+
       // Re-apply paint properties on existing layers so the toggle takes
       // effect for already-created layers (ensureLayer is a no-op when the
       // layer exists).
@@ -1132,6 +1722,18 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         map.setPaintProperty(`${LAYER_PREFIX}flow-line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}flow-arrow`, 'text-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}transect-line`, 'line-color', colorExpr as never);
+        if (map.getLayer(`${LAYER_PREFIX}guild-member-point`)) {
+          map.setPaintProperty(
+            `${LAYER_PREFIX}guild-member-point`,
+            'circle-stroke-color',
+            memberStrokeColorExpr as never,
+          );
+          map.setPaintProperty(
+            `${LAYER_PREFIX}guild-member-point`,
+            'circle-stroke-width',
+            memberStrokeWidthExpr as never,
+          );
+        }
       } catch {
         /* layer may have been removed mid-toggle */
       }
@@ -1174,6 +1776,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'text-halo-width': 1.2,
         },
       });
+      // Orientation chevron for the selected structure. `▲` points north at
+      // 0°; `text-rotate` is clockwise-from-north, while
+      // `createFootprintPolygon` rotates CCW in metric space (+y = north), so
+      // the stored `rotationDeg` is negated to keep the glyph aligned with the
+      // footprint's "front." (Sign/offset confirmed against the footprint math;
+      // final visual nudge is preview-gated.) `text-keep-upright:false` so the
+      // arrow actually turns instead of snapping upright (flow-arrow precedent).
+      ensureLayer({
+        id: `${LAYER_PREFIX}orient`,
+        type: 'symbol',
+        source: orientSid,
+        layout: {
+          'text-field': '▲',
+          'text-size': 20,
+          'text-rotate': ['*', ['coalesce', ['get', 'rotationDeg'], 0], -1] as never,
+          'text-rotation-alignment': 'map',
+          'text-keep-upright': false,
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: {
+          'text-color': '#ffd166',
+          'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+          'text-halo-width': 1.4,
+        },
+      });
     };
 
     apply();
@@ -1207,10 +1835,18 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     transectFC,
     conflictPointFC,
     conflictLineFC,
+    memberPointFC,
+    memberCanopyFC,
+    hostCanopyUnionFC,
+    hostCanopyUnionLabelFC,
     lensEnabled,
     lensMode,
     enterprises,
     selectedGuildId,
+    selectedMemberKey,
+    selectedStructureId,
+    structures,
+    projectId,
     seededZonesVisible,
   ]);
 
@@ -1359,6 +1995,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         `${LAYER_PREFIX}poly-fill`,
         `${LAYER_PREFIX}line`,
         `${LAYER_PREFIX}point`,
+        `${LAYER_PREFIX}guild-member-point`,
         `${LAYER_PREFIX}flow-line`,
         `${LAYER_PREFIX}flow-arrow`,
         `${LAYER_PREFIX}transect-line`,
@@ -1400,6 +2037,582 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
     };
   }, [map, activeTool, setSelection, updateGuild, openForm, editable]);
+
+  // Per-member drag-to-place + click-to-edit on guild member dots. Mirrors
+  // the guild centroid block above; the write target is
+  // `GuildMember.position` (guild-local [east, north] metres) computed via
+  // `lonLatToMetresOffset` from the absolute lon/lat delta. First drag of
+  // a ring-derived member writes the field; subsequent drags update.
+  useEffect(() => {
+    if (!map) return;
+    if (!editable) return;
+    if (activeTool !== null) return;
+    const layerId = `${LAYER_PREFIX}guild-member-point`;
+    const DRAG_THRESHOLD_PX = 4;
+
+    type MemberDragState = {
+      guildId: string;
+      memberIndex: number;
+      startX: number;
+      startY: number;
+      startLng: number;
+      startLat: number;
+      centerLat: number;
+      origPosition: [number, number];
+      dragging: boolean;
+    };
+    let down: MemberDragState | null = null;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind === 'guild-member') {
+        setCursorIntent('move');
+      }
+    };
+    const onMouseLeave = () => {
+      if (!down?.dragging) setCursorIntent(null);
+    };
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'guild-member') return;
+      e.preventDefault();
+      const guildId = String(f.properties.guildId);
+      const memberIndex = Number(f.properties.memberIndex);
+      const g = usePolycultureStore
+        .getState()
+        .guilds.find((x) => x.id === guildId);
+      if (!g || !g.center) return;
+      const member = g.members[memberIndex];
+      if (!member) return;
+      const selItem = {
+        kind: 'guild-member' as const,
+        id: guildId,
+        memberIndex,
+      };
+      if (e.originalEvent.shiftKey) {
+        usePlanSelectionStore.getState().toggle(selItem);
+      } else {
+        setSelection([selItem]);
+      }
+      // Resolve the *initial* member position so the drag delta accumulates
+      // from a stable base. Explicit `position` wins; otherwise the ring
+      // positioner picks the slot we rendered at, which is the same the
+      // pointer-down event fired on.
+      const positions = assignRingPositions(g.members);
+      const origPosition: [number, number] = positions[memberIndex] ?? [0, 0];
+      const hadExplicitOrig = member.position !== undefined;
+      down = {
+        guildId,
+        memberIndex,
+        startX: e.point.x,
+        startY: e.point.y,
+        startLng: e.lngLat.lng,
+        startLat: e.lngLat.lat,
+        centerLat: g.center[1],
+        origPosition,
+        dragging: false,
+      };
+      let lastEastM = origPosition[0];
+      let lastNorthM = origPosition[1];
+      const undoWindow = beginDragUndoWindow(usePolycultureStore);
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        if (!down) return;
+        const dx = ev.point.x - down.startX;
+        const dy = ev.point.y - down.startY;
+        if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+          down.dragging = true;
+          undoWindow.start();
+          map.dragPan.disable();
+          setCursorIntent('grabbing');
+        }
+        if (!down.dragging) return;
+        const dLng = ev.lngLat.lng - down.startLng;
+        const dLat = ev.lngLat.lat - down.startLat;
+        const [dEastM, dNorthM] = lonLatToMetresOffset(
+          dLng,
+          dLat,
+          down.centerLat,
+        );
+        const nextEast = down.origPosition[0] + dEastM;
+        const nextNorth = down.origPosition[1] + dNorthM;
+        lastEastM = nextEast;
+        lastNorthM = nextNorth;
+        const guildNow = usePolycultureStore
+          .getState()
+          .guilds.find((x) => x.id === down!.guildId);
+        if (!guildNow) return;
+        updateGuild(down.guildId, {
+          members: guildNow.members.map((m, i) =>
+            i === down!.memberIndex
+              ? { ...m, position: [nextEast, nextNorth] as [number, number] }
+              : m,
+          ),
+        });
+      };
+      const onUp = (ev: maplibregl.MapMouseEvent) => {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        if (!down) return;
+        const wasDrag = down.dragging;
+        const guildId2 = down.guildId;
+        const memberIndex2 = down.memberIndex;
+        const origPos = down.origPosition;
+        const downXY = { x: down.startX, y: down.startY };
+        const hadExplicitOrigUp = hadExplicitOrig;
+        down = null;
+        map.dragPan.enable();
+        setCursorIntent(null);
+        if (wasDrag) {
+          const finalEast = lastEastM;
+          const finalNorth = lastNorthM;
+          undoWindow.commit(
+            () => {
+              const cur = usePolycultureStore
+                .getState()
+                .guilds.find((x) => x.id === guildId2);
+              if (!cur) return;
+              if (hadExplicitOrigUp) {
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) =>
+                    i === memberIndex2
+                      ? { ...m, position: origPos }
+                      : m,
+                  ),
+                });
+              } else {
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) => {
+                    if (i !== memberIndex2) return m;
+                    const { position: _drop, ...rest } = m;
+                    return rest;
+                  }),
+                });
+              }
+            },
+            () => {
+              const cur = usePolycultureStore
+                .getState()
+                .guilds.find((x) => x.id === guildId2);
+              if (!cur) return;
+              updateGuild(guildId2, {
+                members: cur.members.map((m, i) =>
+                  i === memberIndex2
+                    ? { ...m, position: [finalEast, finalNorth] as [number, number] }
+                    : m,
+                ),
+              });
+            },
+          );
+          return;
+        }
+        // Click-without-drag → popover with Snap to ring + Remove.
+        const anchor: [number, number] = ev?.lngLat
+          ? [ev.lngLat.lng, ev.lngLat.lat]
+          : (() => {
+              try {
+                const { lng, lat } = map.unproject([downXY.x, downXY.y]);
+                return [lng, lat] as [number, number];
+              } catch {
+                return [0, 0] as [number, number];
+              }
+            })();
+        const g2 = usePolycultureStore
+          .getState()
+          .guilds.find((x) => x.id === guildId2);
+        if (!g2) return;
+        const m2 = g2.members[memberIndex2];
+        if (!m2) return;
+        const speciesLabel =
+          findSpecies(m2.speciesId)?.commonName ?? m2.speciesId;
+        const hasExplicit = m2.position !== undefined;
+        openForm({
+          title: `Edit ${speciesLabel}`,
+          anchor,
+          fields: [],
+          initial: {},
+          onSave: () => {
+            /* no editable fields — actions only */
+          },
+          onCancel: () => {
+            /* no-op */
+          },
+          customActions: [
+            {
+              label: 'Snap to ring',
+              onClick: (_values, close) => {
+                if (!hasExplicit) {
+                  close();
+                  return;
+                }
+                const cur = usePolycultureStore
+                  .getState()
+                  .guilds.find((x) => x.id === guildId2);
+                if (!cur) {
+                  close();
+                  return;
+                }
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) => {
+                    if (i !== memberIndex2) return m;
+                    const { position: _drop, ...rest } = m;
+                    return rest;
+                  }),
+                });
+                close();
+              },
+            },
+            {
+              label: 'Remove from guild',
+              variant: 'danger',
+              onClick: (_values, close) => {
+                if (
+                  typeof window !== 'undefined' &&
+                  !window.confirm(`Remove ${speciesLabel} from this guild?`)
+                ) {
+                  return;
+                }
+                const cur = usePolycultureStore
+                  .getState()
+                  .guilds.find((x) => x.id === guildId2);
+                if (!cur) {
+                  close();
+                  return;
+                }
+                updateGuild(guildId2, {
+                  members: cur.members.filter((_, i) => i !== memberIndex2),
+                });
+                close();
+              },
+            },
+          ],
+        });
+      };
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    };
+
+    map.on('mouseenter', layerId, onMouseEnter);
+    map.on('mouseleave', layerId, onMouseLeave);
+    map.on('mousedown', layerId, onMouseDown);
+
+    return () => {
+      try {
+        map.off('mouseenter', layerId, onMouseEnter);
+        map.off('mouseleave', layerId, onMouseLeave);
+        map.off('mousedown', layerId, onMouseDown);
+        map.dragPan.enable();
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, setSelection, updateGuild, openForm, editable]);
+
+  // Per-host canopy-union hover tooltip (minzoom 17). Cursor-following,
+  // read-only, mouseleave hides. Closes the loop from the 2026-05-24
+  // ADR: the steward could see *where* `canopyDedupedM2` lived
+  // geometrically but had to look at SilvopastureIntegrationCard to
+  // read the number; this surface puts the three m² values on the map.
+  // No selection / drag / popover wiring — `SELECTABLE_LAYERS`
+  // unchanged.
+  useEffect(() => {
+    if (!map) return;
+    const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
+
+    // Pulls every host-canopy-union feature at the cursor (not just
+    // the topmost), preserves MapLibre's render order (topmost first),
+    // and dedups by hostId — MapLibre can emit the same feature twice
+    // when its source has multiple visible tiles.
+    const unpackEntries = (
+      features: maplibregl.MapGeoJSONFeature[] | undefined,
+    ): HostBlock[] => {
+      if (!features || features.length === 0) return [];
+      const seen = new Set<string>();
+      const out: HostBlock[] = [];
+      for (const f of features) {
+        const p = f.properties;
+        if (!p || p.kind !== 'host-canopy-union') continue;
+        const hostId = String(p.hostId ?? '');
+        if (!hostId || seen.has(hostId)) continue;
+        seen.add(hostId);
+        out.push({
+          hostId,
+          hostName: String(p.hostName ?? ''),
+          unionAreaM2: Number(p.unionAreaM2) || 0,
+          rawSumM2: Number(p.rawSumM2) || 0,
+          guildCount: Number(p.guildCount) || 0,
+          memberCount: Number(p.memberCount) || 0,
+        });
+      }
+      return out;
+    };
+
+    const onMove = (e: maplibregl.MapLayerMouseEvent) => {
+      // Slice L: hover writes continue even when pins exist. The merge
+      // mirror shadows hover by hostId so a host that's both pinned and
+      // currently hovered renders once (as pinned). Cursor pixel is
+      // stashed in a ref so the tooltip anchor stays at the last known
+      // position when the cursor leaves the canvas with pins active.
+      lastCursorPointRef.current = { x: e.point.x, y: e.point.y };
+      const entries = unpackEntries(e.features);
+      if (entries.length === 0) {
+        setHoveredUnion(null);
+        return;
+      }
+      setHoveredUnion({
+        point: { x: e.point.x, y: e.point.y },
+        entries,
+      });
+    };
+    const onLeave = () => {
+      // Drop transient hover entries; pinned hosts stay (the merge
+      // mirror keeps using `lastCursorPointRef` as the anchor source).
+      setHoveredUnion(null);
+    };
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const entries = unpackEntries(e.features);
+      if (entries.length === 0) return;
+      // Slice L: per-host toggle. Each feature under the cursor flips
+      // its own pinned state — clicking on a host A while host B is
+      // already pinned adds A to the set (without touching B);
+      // clicking again on A removes only A. Multi-feature fan-out
+      // (2026-05-27) means a single click on two overlapping hosts
+      // toggles both at once.
+      setPinnedHosts((prev) => {
+        const next = new Map(prev);
+        for (const entry of entries) {
+          if (next.has(entry.hostId)) {
+            next.delete(entry.hostId);
+          } else {
+            next.set(entry.hostId, entry);
+          }
+        }
+        return next;
+      });
+      lastCursorPointRef.current = { x: e.point.x, y: e.point.y };
+    };
+    const onKey = (ev: KeyboardEvent) => {
+      // Slice L: ESC clears all pinned hosts at once (matches steward
+      // intent — "get this off my screen" is rarely scoped to one host).
+      if (ev.key === 'Escape') setPinnedHosts(new Map());
+    };
+    // Tap-outside-the-map-canvas dismisses pinned tooltips on touch
+    // devices where ESC is unavailable. `pointerdown` unifies mouse +
+    // touch; taps inside the canvas still flow through MapLibre's
+    // `click` (per-host toggle), so this only fills the missing
+    // tap-anywhere-off-the-union dismissal affordance. Slice L: clears
+    // all pins, not just one.
+    const onDocPointerDown = (ev: PointerEvent) => {
+      if (pinnedHosts.size === 0) return;
+      const canvasContainer = map.getCanvasContainer();
+      if (!canvasContainer) return;
+      const target = ev.target as Node | null;
+      if (target && canvasContainer.contains(target)) return;
+      // Slice K carve-out: when the pinned tooltip has the scroll-cap
+      // active (4+ hosts), it carries pointer-events: auto so the
+      // steward can scroll. A pointerdown on the tooltip's scrollbar
+      // or its scrollable content would otherwise fall through here
+      // (target is not inside the canvas container) and dismiss the
+      // very surface the steward is interacting with. Exempt the
+      // tooltip explicitly via the testid query — the portal mount
+      // means the tooltip is a sibling of the canvas container, not
+      // a descendant of it.
+      if (
+        target instanceof Element &&
+        target.closest('[data-testid="host-canopy-union-tooltip"]')
+      ) {
+        return;
+      }
+      setPinnedHosts(new Map());
+    };
+
+    map.on('mousemove', layerId, onMove);
+    map.on('mouseleave', layerId, onLeave);
+    map.on('click', layerId, onClick);
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDocPointerDown);
+
+    return () => {
+      try {
+        map.off('mousemove', layerId, onMove);
+        map.off('mouseleave', layerId, onLeave);
+        map.off('click', layerId, onClick);
+      } catch {
+        /* map already disposed */
+      }
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDocPointerDown);
+    };
+  }, [map, pinnedHosts]);
+
+  // Slice M (host-union drilldown): right-click + touch long-press
+  // trigger on the guild-host-canopy-union-fill layer opens the
+  // floating context menu. Long-press is synthesised from
+  // `pointerdown` + 500 ms timer + 10px movement abort (the threshold
+  // prevents map drag/scroll from triggering the menu). Both triggers
+  // route through the same `setContextMenu` setter so the menu
+  // component is trigger-agnostic.
+  //
+  // ESC + click-outside dismiss handlers live in their own effect
+  // gated on whether the menu / card is open (below) so they only run
+  // when a surface is mounted.
+  useEffect(() => {
+    if (!map) return;
+    const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
+
+    type HostHit = { hostId: string; hostName: string };
+    const hitTestTopHost = (point: {
+      x: number;
+      y: number;
+    }): HostHit | null => {
+      try {
+        const features = map.queryRenderedFeatures(
+          [point.x, point.y],
+          { layers: [layerId] },
+        );
+        const seen = new Set<string>();
+        for (const f of features) {
+          const p = f.properties;
+          if (!p || p.kind !== 'host-canopy-union') continue;
+          const hostId = String(p.hostId ?? '');
+          if (!hostId || seen.has(hostId)) continue;
+          return {
+            hostId,
+            hostName: String(p.hostName ?? ''),
+          };
+        }
+      } catch {
+        /* layer may not exist yet */
+      }
+      return null;
+    };
+
+    const onContextMenu = (e: maplibregl.MapMouseEvent) => {
+      const hit = hitTestTopHost(e.point);
+      if (!hit) return;
+      e.preventDefault();
+      // Suppress the OS context menu so the surface can take over.
+      e.originalEvent.preventDefault();
+      setContextMenu({
+        point: { x: e.point.x, y: e.point.y },
+        hostId: hit.hostId,
+        hostName: hit.hostName,
+      });
+      // Closing the drilldown card if one is up — only one surface at
+      // a time.
+      setDrilldownHost(null);
+    };
+
+    // Touch long-press synthesis. MapLibre does not synthesise
+    // `contextmenu` from a held touch, so we wire it manually.
+    type PressState = {
+      timer: number;
+      startX: number;
+      startY: number;
+    };
+    let press: PressState | null = null;
+    const clearPress = () => {
+      if (press) {
+        window.clearTimeout(press.timer);
+        press = null;
+      }
+    };
+    const onPointerDown = (e: maplibregl.MapMouseEvent) => {
+      const oe = e.originalEvent as PointerEvent;
+      if (oe.pointerType !== 'touch') return;
+      const hit = hitTestTopHost(e.point);
+      if (!hit) return;
+      const startX = e.point.x;
+      const startY = e.point.y;
+      const timer = window.setTimeout(() => {
+        setContextMenu({
+          point: { x: startX, y: startY },
+          hostId: hit.hostId,
+          hostName: hit.hostName,
+        });
+        setDrilldownHost(null);
+        press = null;
+      }, 500);
+      press = { timer, startX, startY };
+    };
+    const onPointerMove = (e: maplibregl.MapMouseEvent) => {
+      if (!press) return;
+      const dx = e.point.x - press.startX;
+      const dy = e.point.y - press.startY;
+      // 10px squared movement budget aborts the long-press so a touch
+      // scroll on the map doesn't unexpectedly open the menu.
+      if (dx * dx + dy * dy > 100) clearPress();
+    };
+    const onPointerUp = () => clearPress();
+
+    map.on('contextmenu', onContextMenu);
+    map.on('pointerdown', onPointerDown);
+    map.on('pointermove', onPointerMove);
+    map.on('pointerup', onPointerUp);
+    map.on('pointercancel', onPointerUp);
+
+    return () => {
+      clearPress();
+      try {
+        map.off('contextmenu', onContextMenu);
+        map.off('pointerdown', onPointerDown);
+        map.off('pointermove', onPointerMove);
+        map.off('pointerup', onPointerUp);
+        map.off('pointercancel', onPointerUp);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map]);
+
+  // Slice M dismiss handlers — ESC + document-level click-outside
+  // for the context menu and drilldown card. Both surfaces are
+  // pointer-events: auto sibling portals; the carve-out pattern from
+  // Slice K's tap-outside (target.closest on a data-testid) is
+  // reused per-surface here so a pointerdown inside either surface
+  // does not dismiss it.
+  useEffect(() => {
+    if (!map) return;
+    if (!contextMenu && !drilldownHost) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== 'Escape') return;
+      if (contextMenu) setContextMenu(null);
+      if (drilldownHost) setDrilldownHost(null);
+    };
+    const onDocPointerDown = (ev: PointerEvent) => {
+      const target = ev.target;
+      if (target instanceof Element) {
+        // Click inside a Slice M surface or the tooltip is exempt —
+        // these are interactive (menu) / sticky (card) surfaces.
+        if (
+          target.closest('[data-testid="host-union-context-menu"]') ||
+          target.closest('[data-testid="host-union-drilldown-card"]') ||
+          target.closest('[data-testid="host-canopy-union-tooltip"]')
+        ) {
+          return;
+        }
+      }
+      // Map-canvas-internal pointerdowns close the *menu* (steward
+      // clicked elsewhere on the map) but NOT the drilldown card —
+      // the card is sticky and dismisses only via close button / ESC
+      // / click-outside-the-map. This matches the steward intent:
+      // the card persists while they explore the map, the menu is
+      // a transient one-shot affordance.
+      if (contextMenu) setContextMenu(null);
+      const canvasContainer = map.getCanvasContainer();
+      const insideCanvas =
+        canvasContainer && target instanceof Node
+          ? canvasContainer.contains(target)
+          : false;
+      if (drilldownHost && !insideCanvas) setDrilldownHost(null);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDocPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDocPointerDown);
+    };
+  }, [map, contextMenu, drilldownHost]);
 
   // Click-to-edit + drag-to-move for placed Structures (poly fill).
   // Gated to `activeTool == null` so a Plan draw tool always wins.
@@ -2365,6 +3578,43 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     editable,
   ]);
 
+  // Click-to-edit for typed utility points (`utilityStore`, C2/C4). A
+  // dedicated `click` listener — NOT folded into the fertility/water
+  // drag handler above — because `utilityStore` has no temporal (zundo)
+  // middleware, so it cannot join `beginDragUndoWindow`. Utility points are
+  // therefore click-to-edit + selectable, but not drag-translatable (a
+  // deferred nicety). Selection writes are idempotent with the read-only
+  // KIND_MAP listener below.
+  useEffect(() => {
+    if (!map) return;
+    if (!editable) return;
+    if (activeTool !== null) return;
+    const layerId = `${LAYER_PREFIX}point`;
+
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind !== 'utility-point') return;
+      const id = String(f.properties.id);
+      const r = useUtilityStore.getState().utilities.find((x) => x.id === id);
+      if (!r) return;
+      setSelection([{ kind: 'utility-point', id }]);
+      const anchor: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      openForm({
+        ...buildUtilityPointEditSchema(r, updateUtility, utilPhaseField),
+        anchor,
+      });
+    };
+
+    map.on('click', layerId, onClick);
+    return () => {
+      try {
+        map.off('click', layerId, onClick);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, editable, openForm, setSelection, updateUtility, utilPhaseField]);
+
   // Click-to-edit for setback rings. Rings are anchored to their source
   // feature via sourceKind+sourceId — they are NOT drag-translatable,
   // since translating would detach them from the "X metres of clearance
@@ -2592,6 +3842,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       path: 'path',
       water_swale: 'water',
       utility: 'utility',
+      'utility-point': 'utility-point',
       fertility: 'fertility',
       water_storage: 'water',
       water_sink: 'water',
@@ -2654,5 +3905,246 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
   }, [map]);
 
-  return null;
+  // Mirror activeUnion into displayedUnion so the tooltip can play its
+  // CSS exit-fade after activeUnion → null. Two kinds of transition are
+  // managed here:
+  //
+  //   1. Container fade (full dismiss): activeUnion → null flips the
+  //      mirror's phase to 'exiting'. The tooltip's container
+  //      onTransitionEnd (propertyName='opacity') fires onExited which
+  //      clears the mirror. A 200 ms safety timeout covers the
+  //      prefers-reduced-motion case (where transitionend never fires
+  //      because `transition: none` makes the change instant) and any
+  //      other edge where the event is missed.
+  //
+  //   2. Per-block fade (partial set change): activeUnion's hostId set
+  //      changes while still non-null. We merge prev entries with the
+  //      new active set by hostId — kept hosts get phase='entering'
+  //      with refreshed data, dropped hosts get phase='exiting' and
+  //      remain in the array until their own per-block
+  //      onTransitionEnd fires onEntryExited, which drops them.
+  //
+  // Reverse-in-flight (re-enter mid-exit) is automatic with CSS
+  // transitions: flipping a host's phase from 'exiting' back to
+  // 'entering' transitions opacity from its current value back to 1
+  // with no snap; flipping the container's phase from 'exiting' back
+  // to 'entering' does the same at the container level.
+  // Slice L: activeUnion now merges pinned hosts (sticky) with hover
+  // entries (transient) into a single cursor-anchored stack. Pinned
+  // hosts come first in Map insertion order (newly-pinned blocks land
+  // at the top of the pinned section); hover-only entries that aren't
+  // already pinned follow in MapLibre topmost-first order. A host
+  // that's both pinned and currently hovered renders once (as pinned)
+  // — the dedupe lives on the `.filter(!pinnedHosts.has)` for hover.
+  // Anchor source: live cursor when hoveredUnion is non-null;
+  // otherwise the last known cursor pixel (so a pinned-only stack
+  // stays frozen at the last position when the cursor leaves).
+  const activeUnion = useMemo<
+    | {
+        point: { x: number; y: number };
+        entries: Array<HostBlock & { pinned: boolean }>;
+      }
+    | null
+  >(() => {
+    const hasPins = pinnedHosts.size > 0;
+    const hasHover = hoveredUnion !== null && hoveredUnion.entries.length > 0;
+    if (!hasPins && !hasHover) return null;
+    const point =
+      hoveredUnion?.point ?? lastCursorPointRef.current ?? { x: 0, y: 0 };
+    const pinnedEntries: Array<HostBlock & { pinned: boolean }> = [];
+    for (const host of pinnedHosts.values()) {
+      pinnedEntries.push({ ...host, pinned: true });
+    }
+    const hoverEntries: Array<HostBlock & { pinned: boolean }> = [];
+    if (hoveredUnion) {
+      for (const h of hoveredUnion.entries) {
+        if (!pinnedHosts.has(h.hostId)) {
+          hoverEntries.push({ ...h, pinned: false });
+        }
+      }
+    }
+    return { point, entries: [...pinnedEntries, ...hoverEntries] };
+  }, [pinnedHosts, hoveredUnion]);
+
+  useEffect(() => {
+    if (activeUnion) {
+      setDisplayedUnion((prev) => {
+        const newIds = new Set(activeUnion.entries.map((e) => e.hostId));
+        const prevEntries = prev?.entries ?? [];
+        const prevIds = new Set(prevEntries.map((e) => e.hostId));
+        // Preserve prev stack order (kept + still-exiting), then
+        // append brand-new hosts in their active-set order. This keeps
+        // the visible block positions stable while a host fades out
+        // instead of having the stack reflow.
+        const merged: HostBlockEntry[] = [];
+        for (const p of prevEntries) {
+          if (newIds.has(p.hostId)) {
+            const fresh = activeUnion.entries.find(
+              (e) => e.hostId === p.hostId,
+            )!;
+            merged.push({ ...fresh, phase: 'entering' });
+          } else {
+            // A dropped host: preserve its pinned state at the moment
+            // it dropped so the gold accent doesn't flicker during the
+            // exit fade.
+            merged.push({ ...p, phase: 'exiting' });
+          }
+        }
+        for (const e of activeUnion.entries) {
+          if (!prevIds.has(e.hostId)) {
+            merged.push({ ...e, phase: 'entering' });
+          }
+        }
+        return {
+          point: activeUnion.point,
+          entries: merged,
+          phase: 'entering',
+        };
+      });
+      return;
+    }
+    setDisplayedUnion((prev) =>
+      prev && prev.phase !== 'exiting'
+        ? { ...prev, phase: 'exiting' }
+        : prev,
+    );
+    const t = window.setTimeout(() => {
+      setDisplayedUnion((prev) =>
+        prev?.phase === 'exiting' ? null : prev,
+      );
+    }, 200);
+    return () => window.clearTimeout(t);
+  }, [activeUnion]);
+
+  // Per-host union hover tooltip is portalled into the map's canvas
+  // container so the cursor-pixel coordinates from `e.point` resolve
+  // directly against the tooltip's `position: absolute` origin. No
+  // other JSX is emitted — PlanDataLayers remains a side-effect-only
+  // component for everything else.
+  // Pinned tooltip takes precedence over hover; only one ever renders.
+  //
+  // Slice M adds two sibling portals into the same canvas container:
+  // the right-click / long-press `HostUnionContextMenu` and the
+  // sticky `HostUnionDrilldownCard`. Each is gated on its own state
+  // slot so they mount independently of the tooltip mirror.
+  if (!map) return null;
+  const canvasContainer = map.getCanvasContainer();
+  if (!canvasContainer) return null;
+  if (!displayedUnion && !contextMenu && !drilldownHost) return null;
+
+  // Slice M open-detail handler: resolve the host's canopy-bearing
+  // member roster via the same `resolveMembers` call the
+  // canopy-union polygons use at line ~706, flatten guild members
+  // to a flat row list filtered to canopy-bearing (canopySpreadM>0)
+  // so the card's count stays honest with the tooltip's
+  // `memberCount`, then write the drilldown state slot.
+  const openDrilldownFor = (m: {
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+  }) => {
+    const projectScopedGuilds = guilds.filter(
+      (g) => g.projectId === projectId,
+    );
+    const projectScopedPaddocks = paddocks.filter(
+      (p) => p.projectId === projectId,
+    );
+    const hosts = resolveSilvopastureHosts(
+      projectId,
+      cropAreas,
+      designElementsForProject,
+    );
+    const host = hosts.find((h) => h.id === m.hostId);
+    const rows: DrilldownMemberRow[] = [];
+    if (host) {
+      const hostMembers = resolveMembers(
+        host,
+        {
+          cropAreas,
+          designElements: designElementsForProject,
+          paddocks: projectScopedPaddocks,
+          guilds: projectScopedGuilds,
+        },
+        hosts,
+      );
+      for (const gm of hostMembers.guilds) {
+        const guild = gm.entity;
+        guild.members.forEach((member, idx) => {
+          const spread = findSpecies(member.speciesId)?.canopySpreadM;
+          if (typeof spread !== 'number' || !(spread > 0)) return;
+          const name =
+            findSpecies(member.speciesId)?.commonName ?? member.speciesId;
+          rows.push({
+            key: `${guild.id}:${idx}`,
+            name,
+            layer: member.layer,
+          });
+        });
+      }
+    }
+    setDrilldownHost({
+      point: m.point,
+      hostId: m.hostId,
+      hostName: m.hostName,
+      members: rows,
+    });
+  };
+
+  return (
+    <>
+      {displayedUnion
+        ? createPortal(
+            <HostCanopyUnionTooltip
+              point={displayedUnion.point}
+              entries={displayedUnion.entries}
+              exiting={displayedUnion.phase === 'exiting'}
+              onExited={() => setDisplayedUnion(null)}
+              onEntryExited={(hostId) => {
+                setDisplayedUnion((prev) => {
+                  if (!prev) return prev;
+                  const next = prev.entries.filter(
+                    (e) => e.hostId !== hostId,
+                  );
+                  if (next.length === prev.entries.length) return prev;
+                  if (next.length === 0) return null;
+                  return { ...prev, entries: next };
+                });
+              }}
+            />,
+            canvasContainer,
+          )
+        : null}
+      {contextMenu
+        ? createPortal(
+            <HostUnionContextMenu
+              point={contextMenu.point}
+              hostName={contextMenu.hostName}
+              onOpenDetail={() => {
+                openDrilldownFor(contextMenu);
+              }}
+              onClose={() => setContextMenu(null)}
+            />,
+            canvasContainer,
+          )
+        : null}
+      {drilldownHost
+        ? createPortal(
+            <HostUnionDrilldownCard
+              point={drilldownHost.point}
+              hostId={drilldownHost.hostId}
+              hostName={drilldownHost.hostName}
+              members={drilldownHost.members}
+              evidenceItem={drilldownEvidenceItem}
+              projectId={projectId}
+              onClose={() => setDrilldownHost(null)}
+              onOpenAudit={(hostId) => {
+                requestOpenAudit(hostId);
+                setDrilldownHost(null);
+              }}
+            />,
+            canvasContainer,
+          )
+        : null}
+    </>
+  );
 }

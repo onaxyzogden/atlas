@@ -16,6 +16,7 @@ import {
   useMapboxDrawTool,
   type DrawGeometry,
 } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import {
   addDesignElement,
   addDesignElements,
@@ -53,6 +54,14 @@ interface Args {
    * (per-tree spacing still applies).
    */
   parcelBoundary?: GeoJSON.Polygon;
+  /**
+   * Opt-in vertex/edge snapping for line/polygon element kinds. Forwarded
+   * verbatim into the inner `useMapboxDrawTool`. Inert for `draw_point`
+   * kinds (the hook only registers a snap mode for line/polygon).
+   */
+  snap?: boolean;
+  /** Snap-target source builder; only consulted when `snap` is true. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 /** Validate a candidate point placement against parcel boundary + same-
@@ -232,6 +241,8 @@ export function useDesignElementDrawTool({
   kind,
   onComplete,
   parcelBoundary,
+  snap,
+  getSnapTargets,
 }: Args) {
   const spec = findElementSpec(kind);
   const currentView = usePlanView();
@@ -377,6 +388,8 @@ export function useDesignElementDrawTool({
     mode: pointFillMode ? 'draw_polygon' : (spec?.drawMode ?? 'draw_point'),
     onComplete: pointFillMode ? handleFillComplete : handleComplete,
     enabled: !isPoint || pointFillMode,
+    snap,
+    getSnapTargets,
   });
 
   return { liveArea, liveLength };

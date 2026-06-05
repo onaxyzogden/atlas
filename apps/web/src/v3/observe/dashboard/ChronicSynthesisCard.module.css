@@ -1,0 +1,126 @@
+/**
+ * ChronicSynthesisCard -- heavier, deeper-red synthesis treatment than the
+ * amber CoOccurrenceSynthesisCard sibling, signalling the stronger CHRONIC
+ * "redesign, not retune" verdict. Read-only: the "Redesign in Plan" pointer is
+ * a muted hint, not a CTA. No animation (reduced-motion safe by construction).
+ *
+ * Reuses the sibling's token vocabulary (radius, bg, text, border tokens);
+ * only the accent hue is lifted from amber to a deeper alarm red.
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #d9573f 45%, transparent);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 90%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #e26b52;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  background: color-mix(in srgb, #d9573f 28%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.lede {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * Non-interactive group label (common-deviant anchor per season). Muted,
+ * uppercase, read-only -- no hover/cursor affordance that implies clickability.
+ */
+.groupHeader {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 96%, #ffffff);
+}
+
+.row[data-existential='true'] {
+  border-color: color-mix(in srgb, #d9573f 75%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #d9573f 32%, transparent);
+}
+
+.theme {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.objectives {
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.recurrence {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e26b52;
+}
+
+.pointer {
+  align-self: flex-end;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}

@@ -1,0 +1,328 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+  padding: 12px 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.compareLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.compareLink:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-full);
+}
+
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* ---- Text filter --------------------------------------------------------- */
+
+.filterField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 9px;
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.search {
+  width: 100%;
+  padding: 7px 10px 7px 30px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+
+/* ---- Stage filter chips -------------------------------------------------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+}
+
+.chip[data-active='true'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ---- List ---------------------------------------------------------------- */
+
+.list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Row wraps the selectable item button plus an optional "Sync" action button
+   (a sibling, not nested — buttons can't nest). */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.item:hover {
+  background: var(--color-hover-overlay);
+}
+
+.item[data-selected='true'] {
+  background: var(--color-surface-alt);
+  border-color: var(--color-primary);
+}
+
+.itemDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Select-mode row checkbox ------------------------------------------ */
+
+.rowCheck {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface, #fff);
+  color: #0f172a;
+}
+
+.rowCheckOn {
+  border-color: var(--color-accent, #c9a05a);
+  background: var(--color-accent, #c9a05a);
+  color: #0f172a;
+}
+
+.rowCheckDisabled {
+  opacity: 0.4;
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* ---- Sync-status tags + manual Sync button ------------------------------- */
+
+/* Small inline pills appended to the meta line. Reuse the muted meta tone; one
+   accent colour flags an un-synced project as needing attention. */
+.tagUnsynced,
+.tagSynced,
+.tagSample {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 0 6px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.tagUnsynced {
+  color: var(--color-warning, #b4690e);
+  background: rgba(180, 105, 14, 0.12);
+}
+
+.tagSynced {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+}
+
+.tagSample {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+}
+
+.syncBtn {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.syncBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-hover-overlay);
+}
+
+.syncBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.empty {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 24px 12px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}

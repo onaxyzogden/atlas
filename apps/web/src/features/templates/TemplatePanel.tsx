@@ -15,6 +15,7 @@ import RuleHotspotCostBundlesCard from './RuleHotspotCostBundlesCard.js';
 import TemplateGovernanceCard from './TemplateGovernanceCard.js';
 import p from '../../styles/panel.module.css';
 import { semantic } from '../../lib/tokens.js';
+import { extractBoundaryGeometry } from '../../lib/geo.js';
 
 interface TemplatePanelProps {
   project: LocalProject;
@@ -195,9 +196,10 @@ function mapCategory(templateCat: string): ZoneCategory {
 }
 
 function computeBoundaryCenter(project: LocalProject): { center: [number, number]; spanLng: number; spanLat: number } | null {
-  if (!project.parcelBoundaryGeojson?.features?.[0]?.geometry) return null;
+  const geom = extractBoundaryGeometry(project.parcelBoundaryGeojson);
+  if (!geom || geom.type !== 'Polygon') return null;
   try {
-    const coords = (project.parcelBoundaryGeojson.features[0].geometry as GeoJSON.Polygon).coordinates[0];
+    const coords = geom.coordinates[0];
     if (!coords || coords.length < 3) return null;
     let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
     for (const pos of coords) {

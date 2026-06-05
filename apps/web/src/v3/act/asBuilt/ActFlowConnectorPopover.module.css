@@ -1,0 +1,120 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.input,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+  background: rgba(12, 11, 10, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  resize: vertical;
+  color: var(--color-text);
+  background: rgba(12, 11, 10, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.note {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.65;
+  line-height: 1.4;
+}
+
+/* Positive variant: shown when both endpoints are pinned to mapped features and
+   the flow will earn closed-loop credit. Same metrics as .note but a solid
+   (non-dimmed) green cue and not italic, so the "earned" state reads as a
+   confirmation rather than a hint. */
+.noteEarned {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(122, 176, 122, 0.95);
+}
+
+.btnRow {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: 7px 14px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: rgba(214, 158, 46, 0.9);
+  color: #1f1d1a;
+  border: 1px solid rgba(214, 158, 46, 0.9);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: rgba(214, 158, 46, 1);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.secondaryBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}

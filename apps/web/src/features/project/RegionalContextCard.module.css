@@ -8,7 +8,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.45);
+  color: var(--color-text-subtle);
   margin: 0 0 12px;
   display: block;
 }
@@ -32,7 +32,7 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
@@ -40,7 +40,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   max-width: 600px;
 }
 
@@ -53,7 +53,7 @@
   padding: 3px 9px;
   border-radius: 4px;
   background: rgba(232, 220, 200, 0.05);
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   border: 1px solid rgba(232, 220, 200, 0.08);
   white-space: nowrap;
 }
@@ -64,7 +64,7 @@
   border-radius: 8px;
   border: 1px dashed rgba(180, 165, 140, 0.18);
   background: rgba(255, 255, 255, 0.015);
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-size: 11.5px;
   line-height: 1.55;
 }
@@ -80,7 +80,7 @@
 .row {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-hairline);
   background: rgba(255, 255, 255, 0.012);
 }
 
@@ -100,12 +100,12 @@
 }
 
 .row_entered {
-  border-color: rgba(232, 220, 200, 0.06);
+  border-color: var(--color-text);
   background: rgba(232, 220, 200, 0.02);
 }
 
 .row_missing {
-  border-color: rgba(180, 165, 140, 0.1);
+  border-color: var(--color-text-subtle);
   background: rgba(255, 255, 255, 0.008);
 }
 
@@ -120,13 +120,13 @@
 .rowField {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .rowHint {
   font-size: 10.5px;
   line-height: 1.4;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 
@@ -162,14 +162,14 @@
 
 .pill_entered {
   background: rgba(232, 220, 200, 0.06);
-  color: rgba(180, 165, 140, 0.85);
-  border-color: rgba(232, 220, 200, 0.12);
+  color: var(--color-text-subtle);
+  border-color: var(--color-text);
 }
 
 .pill_missing {
   background: rgba(180, 165, 140, 0.05);
-  color: rgba(180, 165, 140, 0.5);
-  border-color: rgba(180, 165, 140, 0.14);
+  color: var(--color-text-subtle);
+  border-color: var(--color-text-subtle);
 }
 
 .rowGrid {
@@ -193,22 +193,22 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
 }
 
 .colValue {
   font-size: 12px;
   line-height: 1.4;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
 }
 
 .dim {
-  color: rgba(180, 165, 140, 0.35);
+  color: var(--color-text-subtle);
 }
 
 .attr {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -221,7 +221,7 @@
   align-items: center;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .chipRowLabel {
@@ -229,7 +229,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   margin-right: 4px;
 }
 
@@ -239,11 +239,11 @@
   padding: 2px 8px;
   border-radius: 8px;
   background: rgba(232, 220, 200, 0.04);
-  color: rgba(232, 220, 200, 0.78);
+  color: var(--color-text);
   border: 1px solid rgba(232, 220, 200, 0.06);
 }
 
 .chipLabel {
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-weight: 600;
 }

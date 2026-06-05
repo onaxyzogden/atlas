@@ -72,6 +72,7 @@ const TEST_PASSWORD = 'password123';
 const TEST_USER_ID  = 'a0000000-0000-0000-0000-000000000001';
 const TEST_PROJ_ID  = 'b0000000-0000-0000-0000-000000000002';
 const FAKE_PROJ_ID  = 'c0000000-0000-0000-0000-000000000099';
+const TEST_ORG_ID   = 'd0000000-0000-0000-0000-000000000001';
 const NOW           = '2026-01-01T00:00:00.000Z';
 
 let app: FastifyInstance;
@@ -121,12 +122,29 @@ afterAll(async () => {
 // Each test owns its queue — prevents count drift cascading across tests.
 beforeEach(() => { clear(); });
 
+// ─── Health ──────────────────────────────────────────────────────────────────
+
+describe('GET /api/v1/health', () => {
+  it('returns 200 with an envelope, no auth and no DB', async () => {
+    // No enqueue() — the route must not touch the DB.
+    const res = await app.inject({ method: 'GET', url: '/api/v1/health' });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.error).toBeNull();
+    expect(body.data.status).toBe('ok');
+    expect(typeof body.data.timestamp).toBe('string');
+  });
+});
+
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
 describe('POST /api/v1/auth/register', () => {
   it('returns 201 with a token', async () => {
     enqueue();                                                               // SELECT → no existing user
-    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // INSERT → created user
+    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // INSERT users → created user
+    enqueue({ id: TEST_ORG_ID });                                           // INSERT organizations → default org (Phase 4.5)
+    enqueue();                                                               // INSERT organization_members (no RETURNING)
 
     const res = await app.inject({
       method: 'POST',
@@ -147,6 +165,7 @@ describe('POST /api/v1/auth/login', () => {
       display_name:  null,
       password_hash: loginHash,
     });
+    enqueue({ org_id: TEST_ORG_ID });                                        // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'POST',
@@ -162,6 +181,7 @@ describe('POST /api/v1/auth/login', () => {
 describe('GET /api/v1/auth/me', () => {
   it('returns 200 with a valid token', async () => {
     enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // SELECT user
+    enqueue({ org_id: TEST_ORG_ID });                                        // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'GET',
@@ -200,6 +220,7 @@ describe('GET /api/v1/projects', () => {
 
 describe('POST /api/v1/projects', () => {
   it('creates a project and returns 201', async () => {
+    enqueue({ org_id: 'd0000000-0000-0000-0000-000000000001' }); // SELECT default org (Phase 4.5)
     enqueue(projectRow());  // INSERT projects → row
     enqueue();              // INSERT data_pipeline_jobs → (no return needed)
 

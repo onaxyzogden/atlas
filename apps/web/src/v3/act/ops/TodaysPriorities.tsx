@@ -11,9 +11,8 @@
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useFieldTaskStore } from '../../../store/fieldTaskStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
 import { useActTelemetry } from '../../../lib/actInteractionLog.js';
-import { useMaintenanceStore } from '../../../store/maintenanceStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
 import { useSuccessionStore } from '../../../store/successionStore.js';
 import { useCommunityEventStore } from '../../../store/communityEventStore.js';
@@ -57,21 +56,20 @@ function formatTime(iso: string): string {
 function fieldTaskModule(category: FieldTaskCategory): ActModule | null {
   switch (category) {
     case 'ops':
-      return 'maintain';
+      return 'built-infrastructure';
     case 'weather':
     case 'regulation':
-      return 'review';
+      return 'monitoring-records';
     case 'team':
     case 'education':
-      return 'network';
+      return 'people-governance';
     default:
       return null;
   }
 }
 
 export default function TodaysPriorities({ projectId, activeModule }: Props) {
-  const fieldTasks = useFieldTaskStore((s) => s.tasks);
-  const maintenanceTasks = useMaintenanceStore((s) => s.tasks);
+  const workItems = useWorkItemStore((s) => s.items);
   const harvestEntries = useHarvestLogStore((s) => s.entries);
   const milestones = useSuccessionStore((s) => s.milestones);
   const events = useCommunityEventStore((s) => s.events);
@@ -88,46 +86,49 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
     };
 
     const wantBuild =
-      activeModule === null || activeModule === 'build';
+      activeModule === null || activeModule === 'built-infrastructure';
     const wantMaintain =
-      activeModule === null || activeModule === 'maintain';
+      activeModule === null || activeModule === 'built-infrastructure';
     const wantLivestock =
-      activeModule === null || activeModule === 'livestock';
+      activeModule === null || activeModule === 'animals-livestock';
     const wantHarvest =
-      activeModule === null || activeModule === 'harvest';
+      activeModule === null || activeModule === 'plants-food';
     const wantReview =
-      activeModule === null || activeModule === 'review';
+      activeModule === null || activeModule === 'monitoring-records';
     const wantNetwork =
-      activeModule === null || activeModule === 'network';
+      activeModule === null || activeModule === 'people-governance';
 
     if (wantBuild || wantMaintain || wantLivestock || wantReview) {
-      for (const t of fieldTasks) {
-        if (t.projectId !== projectId) continue;
-        if (t.status === 'done') continue;
-        if (!isToday(t.dueAt)) continue;
+      for (const w of workItems) {
+        if (w.projectId !== projectId) continue;
+        if (w.source !== 'field-task') continue;
+        if (w.status === 'done') continue;
+        const due = w.scheduledEnd ?? '';
+        if (!isToday(due)) continue;
         push({
-          id: `ft-${t.id}`,
-          title: t.title,
-          meta: `${t.category} · ${formatTime(t.dueAt)}`,
-          module: fieldTaskModule(t.category),
+          id: `ft-${w.id}`,
+          title: w.title,
+          meta: `${w.category} · ${formatTime(due)}`,
+          module: w.category ? fieldTaskModule(w.category) : null,
         });
       }
     }
 
     if (wantMaintain) {
-      for (const m of maintenanceTasks) {
-        if (m.projectId !== projectId) continue;
-        if (m.cadence !== 'daily') continue;
-        const last = m.lastDoneAt ? new Date(m.lastDoneAt) : null;
+      for (const w of workItems) {
+        if (w.projectId !== projectId) continue;
+        if (w.source !== 'maintenance') continue;
+        if (w.recurrenceFrequency !== 'daily') continue;
+        const last = w.doneAt ? new Date(w.doneAt) : null;
         const dueToday =
           !last ||
           last.toDateString() !== new Date().toDateString();
         if (!dueToday) continue;
         push({
-          id: `mt-${m.id}`,
-          title: m.title,
+          id: `mt-${w.id}`,
+          title: w.title,
           meta: `Maintenance · daily`,
-          module: 'maintain',
+          module: 'built-infrastructure',
         });
       }
     }
@@ -141,7 +142,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `hv-${e.id}`,
           title: `Harvest logged · ${e.quantity} ${e.unit}`,
           meta: e.sourceKind === 'crop' ? 'Crop area' : 'Paddock',
-          module: 'harvest',
+          module: 'plants-food',
         });
       }
       const dueMilestones = milestones.filter(
@@ -152,7 +153,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `sx-${m.id}`,
           title: m.observation || `Succession check · ${m.phase}`,
           meta: `Succession ${m.year}`,
-          module: 'harvest',
+          module: 'plants-food',
         });
       }
     }
@@ -169,7 +170,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `ev-${e.id}`,
           title: e.title,
           meta: `Event · ${new Date(e.date).toLocaleDateString()}`,
-          module: 'network',
+          module: 'people-governance',
         });
       }
     }
@@ -187,8 +188,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
   }, [
     projectId,
     activeModule,
-    fieldTasks,
-    maintenanceTasks,
+    workItems,
     harvestEntries,
     milestones,
     events,
@@ -212,7 +212,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
     // aggregate stays one row per (panel, hash). Per-row module data is
     // preserved in the payload for later breakdowns.
     record({
-      module: activeModule ?? 'review',
+      module: activeModule ?? 'monitoring-records',
       eventType: 'panel_row_visible',
       payload: {
         panel: 'priorities',

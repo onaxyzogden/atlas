@@ -36,6 +36,7 @@
   cursor: pointer;
   transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
   min-height: 44px;
+  position: relative;
 }
 
 .tile:hover {
@@ -49,6 +50,18 @@
   box-shadow: 0 0 0 1px var(--color-gold-brand);
 }
 
+.tileHit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
 .cardProgress {
   display: flex;
   gap: 2px;
@@ -57,6 +70,8 @@
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 2px;
+  position: relative;
+  z-index: 2;
 }
 
 .subseg {
@@ -83,4 +98,5 @@
   color: var(--color-text);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  pointer-events: none;
 }

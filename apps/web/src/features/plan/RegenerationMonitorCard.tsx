@@ -57,7 +57,38 @@ function VerdictBadge({ verdict }: { verdict: Verdict }) {
   );
 }
 
-export default function RegenerationMonitorCard({ project }: Props) {
+export default function RegenerationMonitorCard(props: Props) {
+  // Built-in / sample projects (`mtc`, `351-house`) come from
+  // `GET /api/v1/projects/builtins` for display only — they have no DB
+  // row, so any fetch against `/api/v1/projects/<id>/regeneration-events`
+  // genuinely 401s for an authenticated user. Early-return above the
+  // hook call so zero auth'd requests fire on the built-in path.
+  if (!props.project.serverId) {
+    return <BuiltInMonitorBanner kind="regeneration" />;
+  }
+  return <RegenerationMonitorCardInner {...props} />;
+}
+
+function BuiltInMonitorBanner({ kind }: { kind: 'regeneration' | 'biodiversity' }) {
+  const label = kind === 'regeneration' ? 'Regeneration monitor' : 'Biodiversity monitor';
+  return (
+    <div className={styles.page}>
+      <header className={styles.hero} data-stage="plan">
+        <span className={styles.heroTag}>Plan · {label}</span>
+        <h1 className={styles.title}>{label}</h1>
+      </header>
+      <section className={styles.section}>
+        <p className={styles.empty}>
+          <strong>Sample project — monitoring is read-only.</strong> This is a
+          built-in / sample project. Create your own project from the
+          dashboard to start logging {kind} samples.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function RegenerationMonitorCardInner({ project }: Props) {
   const apiProjectId = project.serverId ?? project.id;
   const projectEvents = useRegenerationEventsForProject(apiProjectId);
 

@@ -117,7 +117,7 @@ export default function SectorsDashboard() {
               byCategory: zc.byCategory as Record<string, number>,
               totalAreaM2,
             },
-            ...(wind && wind !== 'â€”' ? { prevailingWind: wind } : {}),
+            ...(wind && wind !== '—' ? { prevailingWind: wind } : {}),
           },
         },
       });
@@ -131,31 +131,31 @@ export default function SectorsDashboard() {
 
   const synopsis =
     sc.total === 0 && zc.total === 0
-      ? 'No sectors or zones traced yet â€” start by dropping sector arrows for the dominant forces (wind, sun, fire), then outline functional zones.'
-      : `${sc.total} sector arrow${sc.total === 1 ? '' : 's'} and ${zc.total} zone${zc.total === 1 ? '' : 's'} mapped â€” sector + zone analysis guides where each design element belongs.`;
+      ? 'No sectors or zones traced yet — start by dropping sector arrows for the dominant forces (wind, sun, fire), then outline functional zones.'
+      : `${sc.total} sector arrow${sc.total === 1 ? '' : 's'} and ${zc.total} zone${zc.total === 1 ? '' : 's'} mapped — sector + zone analysis guides where each design element belongs.`;
 
   const synthArticles: Array<[LucideIcon, string, string]> = [
     [
       Wind,
       'External forces',
       sc.total > 0
-        ? `${sc.total} arrow${sc.total === 1 ? '' : 's'} captured â€” wind, sun, fire, and view sectors shape placement decisions.`
-        : 'Drop sector arrows for wind, sun, and fire â€” they cap where buildings and gardens belong.',
+        ? `${sc.total} arrow${sc.total === 1 ? '' : 's'} captured — wind, sun, fire, and view sectors shape placement decisions.`
+        : 'Drop sector arrows for wind, sun, and fire — they cap where buildings and gardens belong.',
     ],
     [
       Layers,
       'Functional zones',
       zc.total > 0
-        ? `${zc.total} zone${zc.total === 1 ? '' : 's'} outlined â€” organize land into functional areas that support stewardship goals.`
+        ? `${zc.total} zone${zc.total === 1 ? '' : 's'} outlined — organize land into functional areas that support stewardship goals.`
         : 'Outline zones to group activities by proximity to the homestead and care intensity.',
     ],
     [
       Leaf,
       'Design implications',
       sc.fire > 0
-        ? `${sc.fire} fire/hazard sector${sc.fire === 1 ? '' : 's'} â€” keep tall vegetation and structures out of the fall zone.`
+        ? `${sc.fire} fire/hazard sector${sc.fire === 1 ? '' : 's'} — keep tall vegetation and structures out of the fall zone.`
         : sc.sun > 0
-          ? 'Solar sectors logged â€” site warm-season gardens and passive-gain glazing accordingly.'
+          ? 'Solar sectors logged — site warm-season gardens and passive-gain glazing accordingly.'
           : 'Once sectors are placed, design responses surface here.',
     ],
   ];
@@ -190,7 +190,7 @@ export default function SectorsDashboard() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generatingâ€¦' : 'Export sectors report'}
+          {exporting ? 'Generating…' : 'Export sectors report'}
         </button>
       </div>
 

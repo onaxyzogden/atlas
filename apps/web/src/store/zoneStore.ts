@@ -7,6 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { zone } from '../lib/tokens';
 
@@ -301,6 +303,13 @@ export interface LandZone {
    * field; existing zones load with `undefined`).
    */
   suitableForLivestock?: boolean;
+  /**
+   * Steward-side display flag set by the PlacedFeaturesCard visibility
+   * toggle. When `true`, canvas zone layers suppress this zone; the row
+   * still appears in the inventory (dimmed). Optional — undefined /
+   * false = shown.
+   */
+  hidden?: boolean;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */
@@ -370,6 +379,8 @@ export const useZoneStore = create<ZoneState>()(
     ),
     {
       name: 'ogden-zones',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       migrate: (persisted, version) => {
         const state = persisted as { zones?: LandZone[] };
@@ -393,7 +404,7 @@ export const useZoneStore = create<ZoneState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useZoneStore.persist.rehydrate();
+rehydrateWithLogging(useZoneStore);
 
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenZoneStore = useZoneStore;

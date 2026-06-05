@@ -12,11 +12,14 @@
 import { useEffect } from "react";
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
-import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
+// V3LifecycleSidebar (the "Project chrome" left nav) is intentionally no longer
+// mounted — the v3 workspace runs without the left sidebar. The component is
+// preserved for reuse; do not delete it.
 import ProjectBundleBar from "./components/ProjectBundleBar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
 import { useProjectStore } from "../store/projectStore.js";
+import { usePlanRevisionFlagSync } from "./observe/dashboard/revision/usePlanRevisionFlagSync.js";
 import type { LifecycleStage } from "./types.js";
 import { isObserveModule, type ObserveModule } from "./observe/types.js";
 import css from "./V3ProjectLayout.module.css";
@@ -49,6 +52,7 @@ function activeFromPath(pathname: string): ActiveRoute {
     }
     if (seg === "plan") return { stage: "plan" };
     if (seg === "act") return { stage: "act" };
+    if (seg === "protocols") return { stage: "protocols" };
     if ((LIFECYCLE_STAGES as readonly string[]).includes(seg)) {
       return { stage: seg as LifecycleStage | "home" };
     }
@@ -58,7 +62,7 @@ function activeFromPath(pathname: string): ActiveRoute {
 
 // Stages that own their own right rail via StageShell.rightRail. The outer
 // LandOsShell rail track is omitted entirely on these routes.
-const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "plan", "act"]);
+const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "plan", "act", "protocols", "observe"]);
 
 export default function V3ProjectLayout() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -71,15 +75,45 @@ export default function V3ProjectLayout() {
     if (params.projectId) setActiveProject(params.projectId);
   }, [params.projectId, setActiveProject]);
 
-  const rail = SELF_RAILED_STAGES.has(stage)
-    ? undefined
-    : <DecisionRail stage={stage} project={project} activeModule={module} />;
+  // Phase 4 Slice 4.4 — wire Observe divergence signals into the Phase 1
+  // cyclical-review trigger. No-ops when projectId is undefined.
+  usePlanRevisionFlagSync(params.projectId);
+
+  // The Stage Compass, Observe Command Centre, and the Stage 0 True North /
+  // Fit Gate are full-screen surfaces that own their own chrome — skip
+  // LandOsShell (sidebar/rail) and ProjectBundleBar entirely.
+  if (
+    pathname
+      .split("/")
+      .filter(Boolean)
+      .some(
+        (seg) =>
+          seg === "compass" ||
+          seg === "command-centre" ||
+          seg === "true-north" ||
+          seg === "fit-gate" ||
+          seg === "olos",
+      )
+  ) {
+    return <Outlet />;
+  }
+
+  // The Project Creation Wizard (/wizard/site|vision|team|complete) owns its
+  // own chrome (step indicator + footer) and must not show the DecisionRail.
+  // It still lives inside LandOsShell so the global header + ProjectBundleBar
+  // stay visible — only the rail track is omitted.
+  const isWizard = pathname
+    .split("/")
+    .filter(Boolean)
+    .includes("wizard");
+
+  const rail =
+    isWizard || SELF_RAILED_STAGES.has(stage) ? undefined : (
+      <DecisionRail stage={stage} project={project} activeModule={module} />
+    );
 
   return (
-    <LandOsShell
-      sidebar={<V3LifecycleSidebar activeStage={stage} />}
-      rail={rail}
-    >
+    <LandOsShell rail={rail}>
       <div className={css.frame}>
         <ProjectBundleBar />
         <div className={css.outletHost}>

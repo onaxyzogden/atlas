@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -77,14 +77,14 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   text-align: center;
 }
 
 .tone_good { color: rgba(180, 200, 150, 0.9); }
 .tone_fair { color: rgba(220, 180, 100, 0.95); }
 .tone_poor { color: rgba(220, 130, 110, 0.95); }
-.tone_muted { color: rgba(180, 165, 140, 0.7); }
+.tone_muted { color: var(--color-text-subtle); }
 
 /* ── Rule list ────────────────────────────────────────────────────────── */
 
@@ -110,7 +110,7 @@
 .rule_good { border-left-color: rgba(180, 200, 150, 0.7); }
 .rule_fair { border-left-color: rgba(220, 180, 100, 0.7); }
 .rule_poor { border-left-color: rgba(220, 130, 110, 0.7); }
-.rule_na { border-left-color: rgba(180, 165, 140, 0.3); opacity: 0.78; }
+.rule_na { border-left-color: var(--color-text-subtle); opacity: 0.78; }
 
 .ruleHead {
   display: flex;
@@ -122,7 +122,7 @@
 .ruleLabel {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .ruleBadge {
@@ -132,14 +132,14 @@
   text-transform: uppercase;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   white-space: nowrap;
 }
 
 .badge_good { color: rgba(180, 200, 150, 0.95); }
 .badge_fair { color: rgba(220, 180, 100, 0.95); }
 .badge_poor { color: rgba(220, 130, 110, 0.95); }
-.badge_na { color: rgba(180, 165, 140, 0.7); }
+.badge_na { color: var(--color-text-subtle); }
 
 /* ── Rule stats grid ──────────────────────────────────────────────────── */
 
@@ -164,13 +164,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .statVal {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -181,7 +181,7 @@
   margin: 0;
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 .ruleGuidance {
@@ -192,7 +192,7 @@
   border-top: 1px dashed rgba(232, 220, 200, 0.06);
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(220, 210, 185, 0.7);
+  color: var(--color-text-muted);
 }
 
 .guidanceKey {
@@ -208,7 +208,7 @@
 .guidanceVal {
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 /* ── Footnote ─────────────────────────────────────────────────────────── */
@@ -216,14 +216,14 @@
 .footnote {
   margin: 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }

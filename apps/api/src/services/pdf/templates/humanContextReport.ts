@@ -10,47 +10,19 @@
  * Eighth (final) Observe export following the locked 4-file recipe.
  */
 
+import type { HumanContextPayload, StewardPayload } from '@ogden/shared';
 import type { ExportDataBag } from './index.js';
 import { baseLayout, esc, fmtDate, notAvailable } from './baseLayout.js';
 
-interface HumanContextEntry {
-  steward: {
-    name?: string;
-    age?: number;
-    occupation?: string;
-    lifestyle?: 'active' | 'sedentary';
-    maintenanceHrsInitial?: number;
-    maintenanceHrsOngoing?: number;
-    budget?: string;
-    skills?: string[];
-    vision?: string;
-    coreFunctions?: string[];
-    experienceGoals?: string[];
-    successMetrics?: string[];
-    principles?: string[];
-    guidingValues?: string[];
-    constraints?: string[];
-    moodboardImageCount?: number;
-  };
-  regional: {
-    indigenousNames?: string[];
-    culturalChallenges?: string[];
-    culturalStrengths?: string[];
-    localNetwork?: Array<{ id: string; name: string; type: string; contact?: string }>;
-  };
-  phaseNotes: Array<{ phaseKey: string; label: string; notes: string }>;
-  milestones: Array<{ id: string; phaseId: string; note: string; targetDate: string | null }>;
-  archetype: { name: string; blurb: string };
-  totals: {
-    overallPct: number;
-    stewardPct: number;
-    regionalPct: number;
-    visionPct: number;
-    totalHoursPerWeek: number;
-    milestonesDefined: number;
-    moodboardImageCount: number;
-  };
-}
+type HumanContextEntry = HumanContextPayload;
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  lead: 'Lead steward',
+  'co-steward': 'Co-steward',
+  family: 'Family member',
+  ally: 'Allied contributor',
+  contributor: 'Contributor',
+};
 
 function healthTone(pct: number): { label: 'Strong' | 'Forming' | 'Sparse'; color: string } {
   if (pct >= 70) return { label: 'Strong', color: '#15803D' };
@@ -87,11 +59,21 @@ export function renderHumanContextReport(data: ExportDataBag): string {
   }
 
   const entry: HumanContextEntry = hc;
-  const s = entry.steward;
+  const stewards = entry.stewards ?? [];
+  const v = entry.vision;
   const r = entry.regional;
   const t = entry.totals;
 
   const overallTone = healthTone(t.overallPct);
+
+  // Lead steward drives the hero headline (falls back to first in roster).
+  const lead = stewards.find((x) => x.relationship === 'lead') ?? stewards[0];
+  const rosterSummary =
+    t.stewardCount === 0
+      ? 'No stewards on the roster yet.'
+      : `${t.stewardCount} steward${t.stewardCount === 1 ? '' : 's'}${
+          lead?.name ? `, led by <strong>${esc(lead.name)}</strong>${lead.occupation ? `, ${esc(lead.occupation)}` : ''}` : ''
+        }.`;
 
   // ─── Hero ─────────────────────────────────────────────────────────
   const hero = `
@@ -100,8 +82,8 @@ export function renderHumanContextReport(data: ExportDataBag): string {
       <p style="font-size:11pt;color:#4B5563;max-width:600px;margin:0 auto">
         Module health <strong style="color:${overallTone.color}">${overallTone.label}</strong> at
         <strong>${t.overallPct}%</strong> for ${esc(p.name)}.
-        ${s.name ? `Steward: <strong>${esc(s.name)}</strong>${s.occupation ? `, ${esc(s.occupation)}` : ''}.` : 'Steward profile not yet captured.'}
-        ${t.totalHoursPerWeek > 0 ? `Capacity ${t.totalHoursPerWeek} hrs/week.` : ''}
+        ${rosterSummary}
+        ${t.totalHoursPerWeek > 0 ? `Combined capacity ${t.totalHoursPerWeek} hrs/week.` : ''}
       </p>
     </div>`;
 
@@ -120,61 +102,92 @@ export function renderHumanContextReport(data: ExportDataBag): string {
   const kpiStrip = `
     <h2>Module health</h2>
     <div class="card-grid">
+      ${kpiCard(
+        'Stewards',
+        String(t.stewardCount),
+        t.stewardCount > 0 ? '#15803D' : '#6B7280',
+        t.totalHoursPerWeek > 0 ? `${t.totalHoursPerWeek} hrs/wk combined` : 'On the roster',
+      )}
       ${kpiCard('People & Capacity', `${t.stewardPct}%`, stewardTone.color, stewardTone.label)}
       ${kpiCard('Place & Culture', `${t.regionalPct}%`, regionalTone.color, regionalTone.label)}
       ${kpiCard('Vision & Purpose', `${t.visionPct}%`, visionTone.color, visionTone.label)}
-      ${kpiCard(
-        'Milestones',
-        String(t.milestonesDefined),
-        t.milestonesDefined > 0 ? '#15803D' : '#6B7280',
-        t.milestonesDefined > 0 ? 'Defined' : 'None yet',
-      )}
     </div>`;
 
-  // ─── Steward profile ──────────────────────────────────────────────
-  const stewardRows: Array<[string, string]> = [];
-  if (s.name) stewardRows.push(['Name', s.name]);
-  if (s.age != null) stewardRows.push(['Age', String(s.age)]);
-  if (s.occupation) stewardRows.push(['Occupation', s.occupation]);
-  if (s.lifestyle) stewardRows.push(['Lifestyle', s.lifestyle === 'active' ? 'Active' : 'Sedentary']);
-  if (s.maintenanceHrsInitial != null)
-    stewardRows.push(['Initial capacity', `${s.maintenanceHrsInitial} hrs/week`]);
-  if (s.maintenanceHrsOngoing != null)
-    stewardRows.push(['Ongoing capacity', `${s.maintenanceHrsOngoing} hrs/week`]);
-  if (s.budget) stewardRows.push(['Budget', s.budget]);
+  // ─── Steward roster (one block per steward) ───────────────────────
+  const renderSteward = (s: StewardPayload): string => {
+    const rows: Array<[string, string]> = [];
+    if (s.relationship)
+      rows.push(['Relationship', RELATIONSHIP_LABELS[s.relationship] ?? s.relationship]);
+    if (s.role) rows.push(['Project role', s.role]);
+    if (s.age != null) rows.push(['Age', String(s.age)]);
+    if (s.occupation) rows.push(['Occupation', s.occupation]);
+    if (s.lifestyle) rows.push(['Lifestyle', s.lifestyle === 'active' ? 'Active' : 'Sedentary']);
+    if (s.maintenanceHrsInitial != null)
+      rows.push(['Initial capacity', `${s.maintenanceHrsInitial} hrs/week`]);
+    if (s.maintenanceHrsOngoing != null)
+      rows.push(['Ongoing capacity', `${s.maintenanceHrsOngoing} hrs/week`]);
+    if (s.budget) rows.push(['Budget', s.budget]);
 
-  const stewardProfileTable =
-    stewardRows.length === 0
-      ? `<p style="font-size:9.5pt;color:#9CA3AF;font-style:italic">No steward fields captured yet — open the Steward Survey to fill in the basics.</p>`
-      : `<table>
-          <tbody>
-            ${stewardRows
-              .map(
-                ([k, v]) => `
-              <tr>
-                <td style="width:160px;color:#6B7280;font-size:9.5pt">${esc(k)}</td>
-                <td><strong>${esc(v)}</strong></td>
-              </tr>`,
-              )
-              .join('')}
-          </tbody>
-        </table>`;
+    const profileTable =
+      rows.length === 0
+        ? `<p style="font-size:9.5pt;color:#9CA3AF;font-style:italic">No profile fields captured yet.</p>`
+        : `<table>
+            <tbody>
+              ${rows
+                .map(
+                  ([k, val]) => `
+                <tr>
+                  <td style="width:160px;color:#6B7280;font-size:9.5pt">${esc(k)}</td>
+                  <td><strong>${esc(val)}</strong></td>
+                </tr>`,
+                )
+                .join('')}
+            </tbody>
+          </table>`;
 
-  const archetypeCard = `
-    <div class="card" style="background:#F0FDF4;border-left:4px solid #15803D">
-      <div class="card-header">Steward archetype</div>
-      <div class="card-value" style="color:#14532D;font-size:13pt">${esc(entry.archetype.name)}</div>
-      <p style="font-size:9.5pt;color:#4B5563;margin:6px 0 0">${esc(entry.archetype.blurb)}</p>
-    </div>`;
+    const archetypeCard = s.archetype
+      ? `<div class="card" style="background:#F0FDF4;border-left:4px solid #15803D">
+          <div class="card-header">Archetype</div>
+          <div class="card-value" style="color:#14532D;font-size:13pt">${esc(s.archetype.name)}</div>
+          <p style="font-size:9.5pt;color:#4B5563;margin:6px 0 0">${esc(s.archetype.blurb)}</p>
+        </div>`
+      : `<div class="card" style="background:#F9FAFB;border-left:4px solid #9CA3AF">
+          <div class="card-header">Archetype</div>
+          <p style="font-size:9.5pt;color:#9CA3AF;font-style:italic;margin:6px 0 0">Not enough profile data yet.</p>
+        </div>`;
+
+    const personalVision = s.personalVision
+      ? `<h3 style="font-size:10.5pt;margin:12px 0 6px;color:#14532D">Personal vision</h3>
+         <blockquote style="border-left:4px solid #CA8A04;padding:8px 12px;margin:0 0 8px;background:#FFFBEB;font-size:10pt;color:#14532D;font-style:italic">${esc(s.personalVision)}</blockquote>`
+      : '';
+
+    const headerName = s.name || s.userId;
+    const completeness =
+      s.completenessPct != null
+        ? `<span style="font-size:9pt;color:#6B7280;font-weight:400"> · ${s.completenessPct}% complete</span>`
+        : '';
+
+    return `
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="font-size:12pt;margin:0 0 10px;color:#14532D">${esc(headerName)}${completeness}</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+          <div>${profileTable}</div>
+          <div>${archetypeCard}</div>
+        </div>
+        <h3 style="font-size:10.5pt;margin:10px 0 6px;color:#14532D">Skills</h3>
+        ${chips(s.skills, 'No skills captured yet.')}
+        ${s.personalExperienceGoals?.length ? `<h3 style="font-size:10.5pt;margin:12px 0 6px;color:#14532D">Personal experience goals</h3>${chips(s.personalExperienceGoals, '')}` : ''}
+        ${personalVision}
+      </div>`;
+  };
 
   const stewardSection = `
-    <h2>Steward survey</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
-      <div>${stewardProfileTable}</div>
-      <div>${archetypeCard}</div>
-    </div>
-    <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Skills</h3>
-    ${chips(s.skills, 'No skills captured yet.')}
+    <h2>Steward roster</h2>
+    ${
+      stewards.length === 0
+        ? `<p style="font-size:9.5pt;color:#9CA3AF;font-style:italic">No stewards on the roster yet — add people in the Team tab, then capture each profile in the Steward Survey.</p>`
+        : stewards.map(renderSteward).join('')
+    }
   `;
 
   // ─── Regional + indigenous context ────────────────────────────────
@@ -215,26 +228,26 @@ export function renderHumanContextReport(data: ExportDataBag): string {
     ${networkTable}
   `;
 
-  // ─── Vision package ───────────────────────────────────────────────
-  const visionStatement = s.vision
-    ? `<blockquote style="border-left:4px solid #CA8A04;padding:10px 14px;margin:0 0 12px;background:#FFFBEB;font-size:11pt;color:#14532D;font-style:italic">${esc(s.vision)}</blockquote>`
+  // ─── Vision package (project-level shared vision) ─────────────────
+  const visionStatement = v.statement
+    ? `<blockquote style="border-left:4px solid #CA8A04;padding:10px 14px;margin:0 0 12px;background:#FFFBEB;font-size:11pt;color:#14532D;font-style:italic">${esc(v.statement)}</blockquote>`
     : `<p style="font-size:9.5pt;color:#9CA3AF;font-style:italic">No vision statement captured yet.</p>`;
 
   const visionSection = `
-    <h2>Vision detail</h2>
+    <h2>Shared vision</h2>
     ${visionStatement}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Core functions</h3>
-    ${chips(s.coreFunctions, 'No core functions captured yet.')}
+    ${chips(v.coreFunctions, 'No core functions captured yet.')}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Experience goals</h3>
-    ${chips(s.experienceGoals, 'No experience goals captured yet.')}
+    ${chips(v.experienceGoals, 'No experience goals captured yet.')}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Success metrics</h3>
-    ${chips(s.successMetrics, 'No success metrics captured yet.')}
+    ${chips(v.successMetrics, 'No success metrics captured yet.')}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Guiding principles</h3>
-    ${chips(s.principles, 'No principles captured yet.')}
+    ${chips(v.principles, 'No principles captured yet.')}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#14532D">Guiding values</h3>
-    ${chips(s.guidingValues, 'No guiding values captured yet.')}
+    ${chips(v.guidingValues, 'No guiding values captured yet.')}
     <h3 style="font-size:11pt;margin:14px 0 6px;color:#DC2626">Constraints</h3>
-    ${chips(s.constraints, 'No constraints captured yet.')}
+    ${chips(v.constraints, 'No constraints captured yet.')}
   `;
 
   // ─── Phased intent ────────────────────────────────────────────────
@@ -298,10 +311,16 @@ export function renderHumanContextReport(data: ExportDataBag): string {
   // ─── Recommended actions (heuristic) ──────────────────────────────
   const actions: { title: string; note: string; priority: 'High' | 'Medium' | 'Low' }[] = [];
 
-  if (t.stewardPct < 30) {
+  if (t.stewardCount === 0) {
+    actions.push({
+      title: 'Add the steward roster',
+      note: 'No stewards are on the roster yet — add the people stewarding this land in the Team tab so design can match real capacity, not a generic owner.',
+      priority: 'High',
+    });
+  } else if (t.stewardPct < 30) {
     actions.push({
       title: 'Fill in the steward survey',
-      note: 'Capture the basics — name, occupation, available capacity, budget, and 3+ skills — so design can match the steward, not a generic owner.',
+      note: 'Capture each steward\'s basics — relationship, occupation, available capacity, budget, and 3+ skills — so design can match the people, not a generic owner.',
       priority: 'High',
     });
   }
@@ -314,18 +333,18 @@ export function renderHumanContextReport(data: ExportDataBag): string {
     });
   }
 
-  if (!s.vision) {
+  if (!v.statement) {
     actions.push({
       title: 'Write a one-sentence vision statement',
-      note: 'The vision statement anchors zone prioritization and capital-partner conversations downstream.',
+      note: 'The shared vision statement anchors zone prioritization and capital-partner conversations downstream.',
       priority: 'High',
     });
   }
 
-  if ((s.coreFunctions?.length ?? 0) === 0) {
+  if ((v.coreFunctions?.length ?? 0) === 0) {
     actions.push({
       title: 'Identify 3–5 core functions',
-      note: 'Core functions become the design hypotheses — what the land must do for the steward.',
+      note: 'Core functions become the design hypotheses — what the land must do for the stewards.',
       priority: 'Medium',
     });
   }

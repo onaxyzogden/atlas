@@ -1,0 +1,124 @@
+/*
+ * ObserveLensSpine.module.css -- minimal lens filter chips for the Observe
+ * module-bar lens.
+ *
+ * Sits ABOVE StageShell (which has no top slot), mirroring ActTierSpine: a
+ * sticky project identity tile + a scrollable tablist of compact filter chips
+ * (icon + label + freshness dot). The rich per-lens detail moved to the bottom
+ * ObserveLensDetailRail; this bar is filter-only. Tokens resolve from the app's
+ * tokens.css.
+ */
+
+.spineRow {
+  display: flex;
+  gap: 8px;
+  padding: 8px 8px 0;
+  align-items: center;
+  flex: 0 0 auto;
+  overflow-x: auto;
+}
+
+.spine {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+
+/* Project identity tile -- static, pinned to the left edge so the project name
+   stays visible while the lens chips scroll. Gold identity accent. */
+.projectTile {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-width: 132px;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-left: 3px solid var(--color-gold-brand, #c4a265);
+  border-radius: var(--radius-md, 8px);
+}
+
+.projectTileTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text, #f2ede3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectTileTypes {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* Compact filter chip -- horizontal pill: icon + label + freshness dot. */
+.tier {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: 999px;
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.tier:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+}
+
+.tier:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.tier[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--color-surface)
+  );
+}
+
+.lensIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tierDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.tierTitle {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}

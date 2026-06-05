@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 4 · Site-context panel surfaces live precip + slope
+
+
+Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `PlantDatabaseSiteMatchCard`'s "Macro-site context" section reworked to match the v2 3-axis scoring: hardiness (country band) + annual precipitation (mm, climate layer) + mean slope (°, elevation layer) each surfaced on their own `statRow`. Stale TODO ("fold slope, aspect, precipitation rasters into the score once Observe data is reliably populated") and the misleading "country band drives hardiness scoring" framing both removed — the score already does this. Top caption documents the 0.55/0.30/0.15 weight split + drop-and-renormalise behaviour for unobserved axes; "not fetched — run an Observe site fetch" hint surfaces under-observation legibly. Card-doc comment updated. Typecheck clean.

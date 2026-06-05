@@ -8,7 +8,7 @@
   margin-bottom: 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hairline);
 }
 
 .head { display: flex; flex-direction: column; gap: 4px; }
@@ -17,19 +17,19 @@
   font-size: 14px;
   font-weight: 700;
   margin: 0;
-  color: rgba(232, 220, 200, 0.96);
+  color: var(--color-text);
 }
 
 .hint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   margin: 0;
   line-height: 1.4;
 }
 
 .empty {
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-style: italic;
   margin: 0;
 }
@@ -50,7 +50,7 @@
   padding: 8px 10px;
   border-radius: 6px;
   border-left: 3px solid transparent;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-hover-overlay);
 }
 
 .rowGood { border-left-color: #7fcf83; }
@@ -67,7 +67,7 @@
 .rowName {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .rowStatus {
@@ -75,7 +75,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.85);
+  color: var(--color-text-subtle);
 }
 
 .rowMeta {
@@ -87,7 +87,7 @@
 
 .rowScores {
   font-size: 11px;
-  color: rgba(220, 210, 195, 0.8);
+  color: var(--color-text);
 }
 
 .weightBadge {
@@ -97,13 +97,13 @@
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover-overlay);
 }
 .weight_critical { color: #e08077; background: rgba(214, 86, 76, 0.12); }
 .weight_important { color: #d4b97a; background: rgba(196, 162, 101, 0.12); }
-.weight_supportive { color: rgba(180, 165, 140, 0.7); }
+.weight_supportive { color: var(--color-text-subtle); }
 
 .conf {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }

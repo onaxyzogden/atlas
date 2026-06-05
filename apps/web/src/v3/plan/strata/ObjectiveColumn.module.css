@@ -1,0 +1,111 @@
+/*
+ * ObjectiveColumn — right column of the Plan stratum shell. Stacks the
+ * parallel callout, next-up card, and the rest of the objectives as a
+ * vertical list.
+ */
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Plan Nav v1.1 §5 — source filter segmented control. Rounded pill-group
+   matching the page aesthetic; only mounts when the stratum mixes sources. */
+.filterBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 3px;
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #fff);
+}
+
+.filterButton {
+  padding: 4px 12px;
+  border: none;
+  border-radius: var(--radius-full, 999px);
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.filterButton:hover {
+  color: var(--color-text, #f2ede3);
+}
+
+.filterButton:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.filterButton[data-active='true'] {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 18%,
+    transparent
+  );
+  color: var(--color-text, #f2ede3);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  margin: 0;
+  padding: 0;
+}
+
+/* Plan Nav v1.1 §8.3 — shelved (deferred) objectives, grouped beneath the
+   active list with a quiet sage heading and a thin top divider so they read
+   as parked, not part of the live flow. */
+.deferredGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  margin-top: 2px;
+  border-top: 1px dashed
+    color-mix(in srgb, var(--color-sage, #8aa399) 35%, transparent);
+}
+
+.deferredHeading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(
+    in srgb,
+    var(--color-sage, #8aa399) 80%,
+    var(--color-text-muted, rgba(242, 237, 227, 0.7))
+  );
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  background: var(--color-bg, #14191f);
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+}

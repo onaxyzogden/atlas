@@ -1,0 +1,24 @@
+---
+id: y8-projected
+title: Year 8 — Stable ecosystem (projected)
+tiers: [dreaming, transitioning, stewarding]
+mapState:
+  activeLayers: [land_cover, watershed]
+  features: []
+  view: { center: [-79.91, 43.56], zoom: 14 }
+---
+
+import { ProjectedChart } from '../../components/ProjectedChart';
+import { PROJECTED_SERIES } from '../../data/projectedTrajectories';
+
+## Year 8 — Stable ecosystem (projected)
+
+Year 8 is the terminal scene of the eight-year arc. Soil OM projects to **~4.8%**, bird species richness to **~42**, infiltration on the cropped half to **~65 mm/hr** — roughly six times the Y0 baseline. Pollinator visitation in the orchard polyculture climbs to **~35 visits per minute per transect**.
+
+The polyculture is stable. The MDPI protocol's Y9 sampling round will confirm or correct the projection. [See methodology](#methodology).
+
+<ProjectedChart
+  measured={props.snapshot.regenerationEvents}
+  projected={PROJECTED_SERIES.find((s) => s.metric === 'soil_organic_matter')}
+  unit="% OM"
+/>

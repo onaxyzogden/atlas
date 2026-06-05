@@ -28,7 +28,18 @@
  * Aspect convention: compass-bearing degrees (N=0, going clockwise). Aspect
  * points **downhill** (USDA / permaculture convention). Uphill bearing is
  * `aspect + 180` modulo 360.
+ *
+ * **v2 additions (2026-05-25).** The card was textual-only in v1. v2 lifts the
+ * element-row computation out of the card into this module so the card *and*
+ * the new `PlanWaterRouterOverlay` share one source of truth (mirrors how
+ * socialNodesMath feeds both the card and SocialOpportunityLayer). New exports:
+ * `WATER_HARVEST_KINDS`, `WATER_KIND_LABEL`, the `WaterElementRow` interface,
+ * `describeWaterElement`, `computeWaterRows`, and `translateGeometry` (the pure
+ * geometry shift behind the one-click "move to suggested catchment"). All
+ * additive — `estimateElevationM` remains the single v2-DEM swap point.
  */
+
+import type { DesignElement } from '../../../../store/designElementsStore.js';
 
 /** 8-point compass bearings, degrees from N going clockwise. */
 const ASPECT_BEARING: Record<string, number> = {
@@ -267,4 +278,121 @@ export function geometryCentroid(
     return ringCentroid(ring);
   }
   return null;
+}
+
+/** Element kinds counted as a "water-harvest element" for the router audit. */
+export const WATER_HARVEST_KINDS = new Set<string>([
+  'water-tank',
+  'pond',
+  'swale',
+]);
+
+export const WATER_KIND_LABEL: Record<string, string> = {
+  'water-tank': 'Water tank',
+  pond: 'Pond',
+  swale: 'Swale',
+};
+
+/** One audited water-harvest element with its routing verdict. */
+export interface WaterElementRow {
+  id: string;
+  kind: string;
+  label: string;
+  centroid: [number, number];
+  elevationM: number;
+  headLostM: number;
+  tier: RouterTier;
+  /** Suggested upper-third coordinate — only set for low-potential rows. */
+  suggestion: [number, number] | null;
+}
+
+/**
+ * Describe a single design element as a `WaterElementRow`. Returns null when
+ * the geometry has no resolvable centroid. Pure — no store access.
+ */
+export function describeWaterElement(
+  el: DesignElement,
+  box: ParcelBox,
+  minM: number,
+  maxM: number,
+): WaterElementRow | null {
+  const centroid = geometryCentroid(el.geometry);
+  if (!centroid) return null;
+  const elevationM = estimateElevationM(centroid, box, minM, maxM);
+  const headLostM = gravityHeadLostM(centroid, box, minM, maxM);
+  const tier = tierForHeadLost(headLostM);
+  return {
+    id: el.id,
+    kind: el.kind,
+    label: el.label || WATER_KIND_LABEL[el.kind] || el.kind,
+    centroid,
+    elevationM,
+    headLostM,
+    tier,
+    suggestion: tier === 'low-potential' ? suggestUpperThirdCoord(box) : null,
+  };
+}
+
+/**
+ * Compute the worst-first list of water-harvest rows for a project's elements.
+ * Filters to `WATER_HARVEST_KINDS`, describes each, and sorts by head lost
+ * (most squandered head first). Shared by the card and the map overlay.
+ */
+export function computeWaterRows(
+  elements: readonly DesignElement[],
+  box: ParcelBox,
+  minM: number,
+  maxM: number,
+): WaterElementRow[] {
+  const out: WaterElementRow[] = [];
+  for (const el of elements) {
+    if (!WATER_HARVEST_KINDS.has(el.kind)) continue;
+    const row = describeWaterElement(el, box, minM, maxM);
+    if (row) out.push(row);
+  }
+  out.sort((a, b) => b.headLostM - a.headLostM);
+  return out;
+}
+
+/**
+ * Translate a geometry by the lng/lat delta `(to − from)`. Pure — returns a
+ * fresh geometry of the same type with every coordinate shifted by the same
+ * offset, preserving the element's shape and size while relocating it so its
+ * reference point lands on `to`. Used by the one-click "move to suggested
+ * catchment" action: pass the element's current centroid as `from` and the
+ * suggested upper-third coordinate as `to`.
+ */
+export function translateGeometry<G extends GeoJSON.Geometry>(
+  geom: G,
+  fromLngLat: [number, number],
+  toLngLat: [number, number],
+): G {
+  const dLng = toLngLat[0] - fromLngLat[0];
+  const dLat = toLngLat[1] - fromLngLat[1];
+  const shift = (p: number[]): number[] => [
+    (p[0] ?? 0) + dLng,
+    (p[1] ?? 0) + dLat,
+    ...p.slice(2),
+  ];
+  if (geom.type === 'Point') {
+    return { ...geom, coordinates: shift(geom.coordinates) };
+  }
+  if (geom.type === 'LineString' || geom.type === 'MultiPoint') {
+    return { ...geom, coordinates: geom.coordinates.map(shift) };
+  }
+  if (geom.type === 'Polygon' || geom.type === 'MultiLineString') {
+    return {
+      ...geom,
+      coordinates: geom.coordinates.map((ring) => ring.map(shift)),
+    };
+  }
+  if (geom.type === 'MultiPolygon') {
+    return {
+      ...geom,
+      coordinates: geom.coordinates.map((poly) =>
+        poly.map((ring) => ring.map(shift)),
+      ),
+    };
+  }
+  return geom;
 }

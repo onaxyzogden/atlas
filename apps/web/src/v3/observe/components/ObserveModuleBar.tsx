@@ -74,19 +74,16 @@ export default function ObserveModuleBar({
             return (
               <div
                 key={mod}
-                role="button"
-                tabIndex={0}
-                aria-pressed={isActive}
                 className={`${css.tile} ${isActive ? css.tileActive : ''}`}
-                onClick={() => handleCardClick(mod)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleCardClick(mod);
-                  }
-                }}
               >
-                <div className={css.cardProgress} aria-hidden="true">
+                <button
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-label={OBSERVE_MODULE_LABEL[mod]}
+                  className={css.tileHit}
+                  onClick={() => handleCardClick(mod)}
+                />
+                <div className={css.cardProgress}>
                   {tasks.length > 0 ? (
                     tasks.map((task) => (
                       <button

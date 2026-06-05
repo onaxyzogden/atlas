@@ -50,7 +50,7 @@
   font-family: var(--font-sans, 'Inter', sans-serif);
   font-size: 10px;
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-sidebar-icon);
   padding-left: 2px;
   user-select: none;
 }

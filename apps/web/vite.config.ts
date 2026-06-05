@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import mdx from '@mdx-js/rollup';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve, join, dirname } from 'path';
@@ -9,6 +12,46 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const cesiumRoot = dirname(require.resolve('cesium/package.json'));
 const cesiumBuild = join(cesiumRoot, 'Build', 'Cesium');
+
+// Phase 3.5 Prong B — middleware that rewrites bare `/showcase/*` paths
+// (i.e. URLs without a trailing file extension) to `/showcase.html` so the
+// SPA fallback serves the showcase entry's HTML instead of the authed
+// `index.html`. Vite's default SPA fallback always points at `index.html`;
+// for a multi-entry MPA we have to do the rewrite ourselves. Runs in both
+// dev (`configureServer`) and preview (`configurePreviewServer`) so the
+// Playwright prerender in `scripts/prerender-showcase.ts` reaches the
+// correct HTML.
+//
+// Static assets (.js, .css, .webp, etc.) under `/showcase/...` are *not*
+// rewritten — the extension check leaves them alone so the Vite asset
+// pipeline serves them normally. Same for `/_capture` (dev-only Playwright
+// target) which falls under the showcase prefix.
+function showcaseEntryRewrite() {
+  const rewrite = (req: { url?: string }): void => {
+    if (!req.url) return;
+    const url = req.url.split('?')[0];
+    if (!url.startsWith('/showcase/')) return;
+    // Skip paths that look like files (have an extension after the last /).
+    const last = url.slice(url.lastIndexOf('/') + 1);
+    if (last.includes('.')) return;
+    req.url = '/showcase.html' + (req.url.slice(url.length) || '');
+  };
+  return {
+    name: 'ogden-showcase-entry-rewrite',
+    configureServer(server: { middlewares: { use: (fn: (req: { url?: string }, _res: unknown, next: () => void) => void) => void } }) {
+      server.middlewares.use((req, _res, next) => {
+        rewrite(req);
+        next();
+      });
+    },
+    configurePreviewServer(server: { middlewares: { use: (fn: (req: { url?: string }, _res: unknown, next: () => void) => void) => void } }) {
+      server.middlewares.use((req, _res, next) => {
+        rewrite(req);
+        next();
+      });
+    },
+  };
+}
 
 export default defineConfig({
   optimizeDeps: {
@@ -20,6 +63,14 @@ export default defineConfig({
     include: ['cookie', 'set-cookie-parser'],
   },
   plugins: [
+    showcaseEntryRewrite(),
+    mdx({
+      // Parse YAML front-matter (---...---) at the top of .mdx files and
+      // expose it as named exports (`frontmatter`, plus per-key). Without
+      // these plugins, @mdx-js/rollup hands the YAML block to acorn as a
+      // JS expression and throws ParseError, blocking every scene module.
+      remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter],
+    }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -133,19 +184,34 @@ export default defineConfig({
       ),
       '@ogden/ui-components': resolve(
         __dirname,
-        '../../node_modules/@ogden/ui-components/dist/ogden-ui-components.es.js',
+        '../../node_modules/@ogden/ui-components/dist/index.es.js',
       ),
       '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
       '@ogden/shared/demand': resolve(__dirname, '../../packages/shared/src/demand/index.ts'),
       '@ogden/shared/relationships': resolve(__dirname, '../../packages/shared/src/relationships/index.ts'),
       '@ogden/shared/regeneration': resolve(__dirname, '../../packages/shared/src/regeneration/index.ts'),
+      '@ogden/shared/evidence': resolve(__dirname, '../../packages/shared/src/evidence/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
       'mapbox-gl': 'maplibre-gl',
     },
   },
   build: {
+    // Bumped from default ('modules' = ES2017) to es2022 so top-level-await
+    // in transitively-bundled deps doesn't crash the production build.
+    // Required for the Task 14 prerender chain (vite build → postbuild
+    // → Playwright capture) to run without a manual `--target` flag.
+    target: 'es2022',
     rollupOptions: {
+      // Phase 3.5 Prong B — multi-entry MPA. The showcase entry lives at
+      // `apps/web/showcase.html` → `src/showcase-entry.tsx` and pulls a
+      // showcase-only router (`src/showcase/router.tsx`), keeping the
+      // authed-app graph (AppShell, V3 pages, Cesium) physically out of
+      // the showcase chunk tree. The main entry is unchanged.
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        showcase: resolve(__dirname, 'showcase.html'),
+      },
       output: {
         manualChunks(id: string) {
           // Vendor splits
@@ -158,12 +224,27 @@ export default defineConfig({
               id.includes('@tanstack/react-query')
             ) return 'framework';
             if (id.includes('cesium')) return 'cesium';
+            // Phase 3.5 Prong B — showcase-specific vendor bundle (scrollama,
+            // framer-motion, @mdx-js runtime). Keeps the showcase entry's
+            // vendor chunk distinct from `framework` so authed-app pages
+            // don't pay for scroll/animation libs they don't render.
+            if (
+              id.includes('scrollama') ||
+              id.includes('framer-motion') ||
+              id.includes('@mdx-js')
+            ) return 'showcase-vendor';
             return undefined;
           }
+          const norm = id.replace(/\\/g, '/');
+          // Phase 3.5 Prong B — all `src/showcase/**` + the showcase entry
+          // module land in a dedicated chunk for the showcase HTML.
+          if (
+            norm.includes('/src/showcase/') ||
+            norm.endsWith('/src/showcase-entry.tsx')
+          ) return 'showcase-app';
           // Sprint BS: split the lazy-loaded SiteIntelligencePanel (~1.14 MB)
           // into shell + sections + compute-libs so sections load in parallel
           // and changing one section/lib doesn't invalidate the whole panel chunk.
-          const norm = id.replace(/\\/g, '/');
           // FAO EcoCrop dataset (~968 kB parsed JSON) — isolate so panel-compute stays lean
           if (norm.includes('/data/ecocrop_parsed.json') || norm.includes('/data/ecocropSubset')) return 'ecocrop-db';
           if (norm.includes('/components/panels/sections/')) return 'panel-sections';
@@ -183,6 +264,24 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        // Translate upstream connection failures into the API's JSON
+        // envelope so apiClient.ts surfaces an actionable message
+        // instead of "Response not JSON (500)". Mirrors the shape of
+        // apps/api/src/app.ts setErrorHandler.
+        configure: (proxy) => {
+          proxy.on('error', (err: NodeJS.ErrnoException, _req, res) => {
+            if (res && 'writeHead' in res && !res.headersSent) {
+              res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({
+                data: null,
+                error: {
+                  code: 'API_OFFLINE',
+                  message: `API server unreachable at http://localhost:3001 (${err.code ?? err.message}). Start it with:  pnpm --filter @ogden/api dev`,
+                },
+              }));
+            }
+          });
+        },
       },
       '/uploads': {
         target: 'http://localhost:3001',

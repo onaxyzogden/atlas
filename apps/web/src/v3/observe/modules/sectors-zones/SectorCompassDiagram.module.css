@@ -1,0 +1,13 @@
+/* Theme-flipping chrome for the pure-SVG sector compass. SVG presentation
+ * attributes do not resolve var(), so the structural colours come through
+ * these classes instead. Dark token values match the original inline hex
+ * exactly; light values let the diagram read on the white compass card.
+ * Wind/solar/manual wedge fills stay inline (data identity, theme-agnostic). */
+
+.disc   { fill: var(--color-compass-disc); }
+.grid   { stroke: var(--color-compass-grid); }
+.centre { fill: var(--color-compass-centre); }
+.label  { fill: var(--color-compass-label); }
+.empty  { fill: var(--color-compass-empty); }
+.north  { fill: var(--color-compass-north); stroke: #2a2218; }
+.northLabel { fill: var(--color-compass-north); }

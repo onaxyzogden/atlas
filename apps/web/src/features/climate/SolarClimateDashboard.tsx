@@ -36,7 +36,7 @@ import SeasonalShadowCard from './SeasonalShadowCard.js';
 import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
 import PassiveSolarTuningCard from './PassiveSolarTuningCard.js';
 import css from './SolarClimateDashboard.module.css';
-import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
+import { neutral, status as statusToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface SolarClimateDashboardProps {
@@ -1084,7 +1084,7 @@ function SunArcDiagram({ sunPath, width, height }: { sunPath: SunPosition[]; wid
 
   return (
     <svg width={width} height={height} style={{ display: 'block', margin: '0 auto' }}>
-      <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke={earth[800]} strokeWidth={1} />
+      <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke={neutral[800]} strokeWidth={1} />
       <path d={pathD} fill="none" stroke={group.livestock} strokeWidth={2} />
       {visiblePath
         .filter((p) => p.elevation > 0 && p.hour % 3 === 0)
@@ -1094,8 +1094,8 @@ function SunArcDiagram({ sunPath, width, height }: { sunPath: SunPosition[]; wid
             <text x={scaleX(p.azimuth)} y={scaleY(p.elevation) - 7} fill={semantic.textSubtle} fontSize={9} textAnchor="middle">{p.hour}h</text>
           </g>
         ))}
-      <text x={padding} y={height - 2} fill={earth[700]} fontSize={9}>E</text>
-      <text x={width - padding - 5} y={height - 2} fill={earth[700]} fontSize={9}>W</text>
+      <text x={padding} y={height - 2} fill={neutral[700]} fontSize={9}>E</text>
+      <text x={width - padding - 5} y={height - 2} fill={neutral[700]} fontSize={9}>W</text>
     </svg>
   );
 }
@@ -1116,7 +1116,7 @@ function WindRose({ lat, windData }: { lat: number; windData: WindRoseData | nul
   return (
     <svg width={size} height={size} style={{ display: 'block', margin: '0 auto' }}>
       {[0.33, 0.66, 1].map((r) => (
-        <circle key={r} cx={cx} cy={cy} r={maxR * r} fill="none" stroke={earth[800]} strokeWidth={0.5} />
+        <circle key={r} cx={cx} cy={cy} r={maxR * r} fill="none" stroke={neutral[800]} strokeWidth={0.5} />
       ))}
       {directions.map((dir, i) => {
         const angle = (i * stepDeg - 90) * (Math.PI / 180);
@@ -1404,7 +1404,7 @@ function AdaptationCards({ items }: { items: AdaptationItem[] }) {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
             <span style={{ fontSize: 14 }}>{item.icon}</span>
-            <h4 style={{ margin: 0, fontSize: 12, letterSpacing: '0.03em', color: earth[100], fontWeight: 600 }}>
+            <h4 style={{ margin: 0, fontSize: 12, letterSpacing: '0.03em', color: neutral[100], fontWeight: 600 }}>
               {item.title}
             </h4>
           </div>

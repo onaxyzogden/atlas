@@ -42,8 +42,15 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
-import { findSpecies, type CanopyLayer } from '../../../../data/plantCatalog.js';
+import { findSpecies } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import {
+  LAYER_ROWS,
+  lightByLayer,
+  maturityFactor,
+  canopyMetrics,
+  speciesFromIds,
+} from '../../../../features/forest/canopyMetricsMath.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -73,46 +80,31 @@ const PHASE_NOTE: Record<SuccessionPhase, string> = {
   maturity:      'Stable polyculture. Edge management, replacement planting.',
 };
 
-/** Six layers per Scholar ask (adds Root zone vs. OGDEN's surface-only set). */
-const LAYER_ROWS: Array<{
-  layer: CanopyLayer | 'root_zone';
-  label: string;
-  heightLabel: string;
-  /** Vertical band start/end on a 0..100 cross-section (top = sky). */
-  yStart: number;
-  yEnd: number;
-}> = [
-  { layer: 'canopy',       label: 'Tall canopy', heightLabel: '12–25 m', yStart: 0,  yEnd: 25 },
-  { layer: 'sub_canopy',   label: 'Sub-canopy',  heightLabel: '6–12 m',  yStart: 25, yEnd: 45 },
-  { layer: 'shrub',        label: 'Shrub',       heightLabel: '1–6 m',   yStart: 45, yEnd: 65 },
-  { layer: 'herbaceous',   label: 'Herbaceous',  heightLabel: '0.3–1 m', yStart: 65, yEnd: 78 },
-  { layer: 'ground_cover', label: 'Groundcover', heightLabel: '0–0.3 m', yStart: 78, yEnd: 85 },
-  { layer: 'root_zone',    label: 'Root zone',   heightLabel: '0–2 m below', yStart: 85, yEnd: 100 },
+// LAYER_ROWS, maturityFactor, and lightByLayer now live in the shared
+// pure module features/forest/canopyMetricsMath.ts (extracted verbatim,
+// no behaviour change) so the derived metric panels below and this
+// card's light/cross-section views share one source of truth.
+
+/** Display order + labels for the seven catalog niches (productivity /
+ *  biomass panels). Distinct from LAYER_ROWS, which is the cross-section
+ *  band layout and carries a display-only `root_zone`. */
+const NICHE_META: Array<{ layer: string; label: string }> = [
+  { layer: 'canopy', label: 'Tall canopy' },
+  { layer: 'sub_canopy', label: 'Sub-canopy' },
+  { layer: 'shrub', label: 'Shrub' },
+  { layer: 'herbaceous', label: 'Herbaceous' },
+  { layer: 'ground_cover', label: 'Groundcover' },
+  { layer: 'vine', label: 'Vine' },
+  { layer: 'root', label: 'Root crops' },
 ];
 
-/** Linear maturity factor over 25 years. */
-function maturityFactor(year: number): number {
-  return Math.min(1, year / 25);
-}
-
-/** Light reaching each layer: starts at 100% above canopy and is
- *  attenuated by the cumulative cover fraction of every layer above it.
- *  Cover fraction per layer = clamp01(speciesCount × maturityFactor / 4). */
-function lightByLayer(
-  layerCounts: Record<string, number>,
-  year: number,
-): Record<string, number> {
-  const m = maturityFactor(year);
-  let remaining = 1;
-  const out: Record<string, number> = {};
-  for (const row of LAYER_ROWS) {
-    out[row.layer] = remaining;
-    const count = layerCounts[row.layer] ?? 0;
-    const cover = Math.min(1, (count * m) / 4);
-    remaining = Math.max(0, remaining * (1 - cover));
-  }
-  return out;
-}
+/** Show a rounded percentage, surfacing a tiny-but-nonzero share as "<1%"
+ *  instead of a misleading "0%". `present` confirms the layer carries a
+ *  pick, so a 0 here is a rounding artifact of a true positive value
+ *  (every displayed row has >=1 pick, and biomass/yield proxies are
+ *  strictly positive for any picked species at year >= 1). */
+const fmtSharePct = (rounded: number, present: boolean) =>
+  present && rounded === 0 ? '<1%' : `${rounded}%`;
 
 export default function CanopySuccessionCard({ project }: Props) {
   const allPicks = usePolycultureStore((s) => s.species);
@@ -176,6 +168,14 @@ export default function CanopySuccessionCard({ project }: Props) {
   }, [contributingPicks]);
 
   const light = useMemo(() => lightByLayer(layerCounts, year), [layerCounts, year]);
+
+  // Derived planning metrics for the panels below. Resolved through the
+  // shared pure module so the numbers stay grounded in PLANT_CATALOG —
+  // no hardcoded mockup values.
+  const metrics = useMemo(
+    () => canopyMetrics(speciesFromIds(contributingPicks.map((p) => p.speciesId)), year),
+    [contributingPicks, year],
+  );
 
   return (
     <div className={styles.page}>
@@ -286,6 +286,135 @@ export default function CanopySuccessionCard({ project }: Props) {
           </ul>
         )}
       </section>
+
+      {contributingPicks.length > 0 && (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Key metrics ({scenario.label})</h2>
+            <div className={styles.statRow}>
+              <span>Canopy closure</span>
+              <span>{metrics.closurePct}%</span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Understory light (floor)</span>
+              <span>{metrics.understoryLightPct}%</span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Niches filled</span>
+              <span>
+                {metrics.nichesFilled} / {metrics.nicheCount}
+              </span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Ecological functions present</span>
+              <span>{metrics.distinctFunctions} / 9</span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Productivity index</span>
+              <span>{metrics.productivityIndex} / 100</span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Est. shade on floor</span>
+              <span>~{metrics.shadeHours} h/day</span>
+            </div>
+            <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
+              Planning estimates derived from your picks and the catalog —
+              not a calibrated yield model.
+            </p>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Productivity &amp; biomass by layer</h2>
+            <ul className={styles.list}>
+              {NICHE_META.filter(
+                (n) =>
+                  metrics.productivityByLayer[n.layer] != null ||
+                  metrics.biomassByLayer[n.layer] != null,
+              ).map((n) => {
+                const prod = metrics.productivityByLayer[n.layer] ?? 0;
+                const bio = metrics.biomassByLayer[n.layer] ?? 0;
+                const prodPct = Math.round(prod * 100);
+                const present = (metrics.layerCounts[n.layer] ?? 0) > 0;
+                return (
+                  <li key={n.layer} className={styles.listRow}>
+                    <div style={{ flex: 1 }}>
+                      <strong>{n.label}</strong>
+                      <div className={styles.listMeta}>
+                        {metrics.layerCounts[n.layer] ?? 0} picked · {fmtSharePct(bio, present)} of biomass
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          height: 6,
+                          background: 'rgba(255,255,255,0.06)',
+                          borderRadius: 3,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${prodPct}%`,
+                            height: '100%',
+                            background: 'rgba(230,195,74,0.8)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <span style={{ minWidth: 56, textAlign: 'right', fontSize: 12 }}>
+                      {fmtSharePct(prodPct, present)} prod.
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
+              Productivity is relative (most productive layer = 100%); biomass
+              is each layer's share of the whole, both scaled by maturity.
+            </p>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Ecological insights</h2>
+            <ul className={styles.list}>
+              {(() => {
+                const tips: string[] = [];
+                if (metrics.nichesFilled < 4) {
+                  const missing = NICHE_META.filter(
+                    (n) => !((metrics.layerCounts[n.layer] ?? 0) > 0),
+                  )
+                    .slice(0, 2)
+                    .map((n) => n.label.toLowerCase());
+                  if (missing.length) {
+                    tips.push(
+                      `Only ${metrics.nichesFilled} of 7 niches filled — adding a ${missing.join(
+                        ' or ',
+                      )} species would deepen the stack.`,
+                    );
+                  }
+                }
+                if (metrics.understoryLightPct < 25) {
+                  tips.push(
+                    `Floor light is ~${metrics.understoryLightPct}% at this stage — favour shade-tolerant groundcover.`,
+                  );
+                }
+                if (metrics.distinctFunctions < 3) {
+                  tips.push(
+                    `Only ${metrics.distinctFunctions} ecological function(s) present — a nitrogen fixer or dynamic accumulator would broaden support.`,
+                  );
+                }
+                if (!tips.length) {
+                  tips.push('Structure looks balanced for this succession stage.');
+                }
+                return tips.map((t, i) => (
+                  <li key={i} className={styles.listRow}>
+                    <span style={{ flex: 1 }}>{t}</span>
+                  </li>
+                ));
+              })()}
+            </ul>
+          </section>
+        </>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Cross-section ({scenario.label})</h2>

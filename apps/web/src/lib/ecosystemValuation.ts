@@ -178,6 +178,66 @@ function buildEsvNarrative(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Layer-driven selector                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Extracts ESV inputs from already-fetched site layers and computes a
+ * valuation. Centralizes the layer-reads + carbon-seq derivation that the
+ * legacy `SiteIntelligencePanel.tsx` performed inline, so other surfaces
+ * (e.g., Capital Partner export) can reuse it without duplicating logic.
+ *
+ * Returns null if none of the required ESV-input layers (land_cover,
+ * wetlands_flood, soils) are present.
+ */
+export function selectEcosystemValuationFromLayers(args: {
+  layers: ReadonlyArray<{ layerType: string; summary?: unknown }>;
+  propertyAcres: number | null;
+  socialCostCarbonUsdPerTon?: number;
+}): EcosystemValuation | null {
+  const { layers, propertyAcres, socialCostCarbonUsdPerTon } = args;
+
+  const lcLayer = layers.find((l) => l.layerType === 'land_cover');
+  const wfLayer = layers.find((l) => l.layerType === 'wetlands_flood');
+  const soilsLayer = layers.find((l) => l.layerType === 'soils');
+  const cvLayer = layers.find((l) => l.layerType === 'crop_validation');
+  if (!lcLayer && !wfLayer && !soilsLayer) return null;
+
+  const lcs = lcLayer?.summary as Record<string, unknown> | undefined;
+  const wfs = wfLayer?.summary as Record<string, unknown> | undefined;
+  const ss = soilsLayer?.summary as Record<string, unknown> | undefined;
+  const cvs = cvLayer?.summary as Record<string, unknown> | undefined;
+
+  const canopy = typeof lcs?.tree_canopy_pct === 'number' ? lcs.tree_canopy_pct : null;
+  const wetland = typeof wfs?.wetland_pct === 'number' ? wfs.wetland_pct : null;
+  const riparian = typeof wfs?.riparian_buffer_m === 'number' ? wfs.riparian_buffer_m : null;
+  const om = typeof ss?.organic_matter_pct === 'number' ? ss.organic_matter_pct : null;
+  const isCropland = cvs?.is_cropland === true;
+
+  // Carbon seq rate — matches computeScores.ts Sprint R formula. Inlined to
+  // keep this helper dependency-free at the consumer site.
+  const cCanopy = canopy ?? 0;
+  const cWetland = wetland ?? 0;
+  const cOm = om ?? 0;
+  const forestSeq = (cCanopy / 100) * 4.5;
+  const wetSeq = (cWetland / 100) * 6.0;
+  const soilSeq = cOm > 3 ? 1.5 : cOm > 2 ? 0.8 : cOm > 1 ? 0.3 : 0;
+  const cropPenalty = isCropland ? -0.5 : 0;
+  const carbonSeq = Math.round(Math.max(0, forestSeq + wetSeq + soilSeq + cropPenalty) * 100) / 100;
+
+  return computeEcosystemValuation({
+    treeCanopyPct: canopy,
+    wetlandPct: wetland,
+    riparianBufferM: riparian,
+    organicMatterPct: om,
+    isCropland,
+    carbonSeqTonsCO2HaYr: carbonSeq,
+    propertyAcres,
+    socialCostCarbonUsdPerTon,
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Wetland Function (Cowardin-style classifier)                      */
 /* ------------------------------------------------------------------ */
 

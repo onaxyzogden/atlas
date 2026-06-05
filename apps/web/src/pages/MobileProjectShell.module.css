@@ -18,7 +18,7 @@
   height: 48px;
   padding: 0 12px;
   background: var(--color-sidebar-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--color-hairline);
   flex-shrink: 0;
   z-index: var(--z-sticky, 200);
 }
@@ -32,12 +32,12 @@
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   cursor: pointer;
   text-decoration: none;
   transition: background 150ms;
 }
-.iconLink:hover { background: rgba(255, 255, 255, 0.05); }
+.iconLink:hover { background: var(--color-hover-overlay); }
 .iconLink:active { background: rgba(255, 255, 255, 0.1); }
 
 .projectName {
@@ -45,7 +45,7 @@
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,7 +99,7 @@
   grid-template-columns: repeat(4, 1fr);
   height: 56px;
   background: var(--color-sidebar-bg);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--color-hairline);
   flex-shrink: 0;
   z-index: var(--z-sticky, 200);
 }
@@ -112,7 +112,7 @@
   gap: 3px;
   background: transparent;
   border: none;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -120,7 +120,7 @@
   transition: color 150ms;
   padding: 0;
 }
-.navButton:active { background: rgba(255, 255, 255, 0.04); }
+.navButton:active { background: var(--color-hover-overlay); }
 
 .navActive {
   color: var(--color-primary, #d4b97a);

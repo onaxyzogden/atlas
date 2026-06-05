@@ -1,149 +1,83 @@
 /**
  * WasteVectorTool — PLAN Module 5.
  *
- * Captures waste-to-resource flows as labelled directed edges between
- * any two existing on-project features (zones, structures, fertility
- * units, crop areas). The picker pulls from all stores so the steward
- * can connect e.g. "kitchen → chickens → orchard" in two clicks.
+ * Hosts a List / Dashboard segmented view switcher over the project's
+ * waste-to-resource MaterialFlow records. The list view captures vectors
+ * as labelled directed edges between any two existing on-project features
+ * (zones, structures, fertility units, crop areas); the dashboard view
+ * is a read-mostly bento overview of streams, flows, risks and scenarios.
  */
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useClosedLoopStore,
-  MATERIAL_KIND_CONFIG,
-  type MaterialFlow,
-  type MaterialKind,
-} from '../../store/closedLoopStore.js';
-import { newAnnotationId } from '../../store/site-annotations.js';
-import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
-import styles from '../../v3/_shared/stageCard/stageCard.module.css';
+import WasteVectorListView from './WasteVectorListView.js';
+import WasteVectorDashboardView from './WasteVectorDashboardView.js';
+import LoopDesignScorePanel from './closedLoop/LoopDesignScorePanel.js';
+import ActHandoffPreviewPanel from './closedLoop/ActHandoffPreviewPanel.js';
+import shared from '../../v3/_shared/stageCard/stageCard.module.css';
+import styles from './WasteVectorTool.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
 
-const RESOURCE_TYPES: Array<{ value: MaterialKind; label: string }> = [
-  { value: 'organic_matter', label: 'Organic matter' },
-  { value: 'manure',         label: 'Manure' },
-  { value: 'greywater',      label: 'Greywater' },
-  { value: 'compost',        label: 'Compost' },
-];
+type View = 'list' | 'dashboard' | 'loop';
 
 export default function WasteVectorTool({ project }: Props) {
-  const allFlows = useClosedLoopStore((s) => s.materialFlows);
-  const addFlow = useClosedLoopStore((s) => s.addMaterialFlow);
-  const removeFlow = useClosedLoopStore((s) => s.removeMaterialFlow);
-
-  const vectors = useMemo(
-    () => allFlows.filter((v) => v.projectId === project.id),
-    [allFlows, project.id],
-  );
-  const featureOptions = useFlowEndpointOptions(project.id);
-
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [label, setLabel] = useState('');
-  const [resource, setResource] = useState<MaterialKind>('organic_matter');
-
-  function commit() {
-    if (!from || !to || from === to || !label.trim()) return;
-    const v: MaterialFlow = {
-      id: newAnnotationId('wv'),
-      projectId: project.id,
-      label: label.trim(),
-      materialKind: resource,
-      sourceId: from,
-      sinkId: to,
-      origin: 'list',
-      color: MATERIAL_KIND_CONFIG[resource].color,
-      createdAt: new Date().toISOString(),
-    };
-    addFlow(v);
-    setLabel('');
-  }
-
-  function featureLabel(id: string): string {
-    return featureOptions.find((f) => f.id === id)?.label ?? `(removed ${id.slice(0, 6)})`;
-  }
+  const [view, setView] = useState<View>('list');
 
   return (
-    <div className={styles.page}>
-      <header className={styles.hero} data-stage="plan">
-        <span className={styles.heroTag}>Plan · Module 5 · Soil Fertility</span>
-        <h1 className={styles.title}>Waste-to-resource vectors</h1>
-        <p className={styles.lede}>
+    <div className={shared.page}>
+      <header className={shared.hero} data-stage="plan">
+        <span className={shared.heroTag}>Plan · Module 5 · Soil Fertility</span>
+        <h1 className={shared.title}>Waste-to-resource vectors</h1>
+        <p className={shared.lede}>
           Connect features that produce a waste stream to those that
           consume it as input. The classic example: kitchen → chicken
           coop → composter → orchard.
         </p>
       </header>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Add vector</h2>
-        {featureOptions.length < 2 ? (
-          <p className={styles.empty}>
-            Add at least two features (zones / structures / fertility units / crops) to draw vectors between them.
-          </p>
-        ) : (
-          <>
-            <div className={styles.grid}>
-              <label className={styles.field}>
-                <span>From feature</span>
-                <select value={from} onChange={(e) => setFrom(e.target.value)}>
-                  <option value="">— choose —</option>
-                  {featureOptions.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                </select>
-              </label>
-              <label className={styles.field}>
-                <span>To feature</span>
-                <select value={to} onChange={(e) => setTo(e.target.value)}>
-                  <option value="">— choose —</option>
-                  {featureOptions.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                </select>
-              </label>
-              <label className={styles.field}>
-                <span>Resource type</span>
-                <select value={resource} onChange={(e) => setResource(e.target.value as MaterialKind)}>
-                  {RESOURCE_TYPES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-                </select>
-              </label>
-              <label className={styles.field}>
-                <span>Label</span>
-                <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. weekly bucket run" />
-              </label>
-            </div>
-            <div className={styles.btnRow}>
-              <button type="button" className={styles.btn} onClick={commit}
-                disabled={!from || !to || from === to || !label.trim()}>
-                Add vector
-              </button>
-            </div>
-          </>
-        )}
-      </section>
+      <LoopDesignScorePanel project={project} />
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Vectors ({vectors.length})</h2>
-        {vectors.length === 0 ? (
-          <p className={styles.empty}>None yet.</p>
-        ) : (
-          <ul className={styles.list}>
-            {vectors.map((v) => (
-              <li key={v.id} className={styles.listRow}>
-                <div>
-                  <strong>{v.label}</strong>
-                  <div className={styles.listMeta}>
-                    {featureLabel(v.sourceId ?? '')} → {featureLabel(v.sinkId ?? '')} · {v.materialKind}
-                  </div>
-                </div>
-                <button type="button" className={styles.removeBtn} onClick={() => removeFlow(v.id)}>Remove</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className={styles.switcher} role="tablist" aria-label="Waste vector view">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'list'}
+          className={`${styles.switcherBtn} ${view === 'list' ? styles.switcherBtnActive : ''}`}
+          onClick={() => setView('list')}
+        >
+          List
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'dashboard'}
+          className={`${styles.switcherBtn} ${view === 'dashboard' ? styles.switcherBtnActive : ''}`}
+          onClick={() => setView('dashboard')}
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'loop'}
+          className={`${styles.switcherBtn} ${view === 'loop' ? styles.switcherBtnActive : ''}`}
+          onClick={() => setView('loop')}
+        >
+          Loop / Handoff
+        </button>
+      </div>
+
+      {view === 'list' ? (
+        <WasteVectorListView project={project} />
+      ) : view === 'dashboard' ? (
+        <WasteVectorDashboardView project={project} onSwitchToList={() => setView('list')} />
+      ) : (
+        <ActHandoffPreviewPanel project={project} />
+      )}
     </div>
   );
 }

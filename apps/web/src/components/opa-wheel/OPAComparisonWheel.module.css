@@ -8,23 +8,18 @@
   margin: var(--spacing-md, 1.5rem) 0;
 }
 
+/* Content-flow wheel: grows responsively to the column width (no fixed cap),
+   width-driven so the surrounding dashboard content is undisturbed. Shared
+   standard from components/wheel-shared/wheelFit.module.css. */
 .wheelWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 400px;
-  width: 100%;
+  composes: relaxedHost from '../wheel-shared/wheelFit.module.css';
 }
 
-/* Mobile responsive: scale down on smaller screens */
+/* Mobile responsive: tighten the card chrome on smaller screens. */
 @media (max-width: 640px) {
   .container {
     padding: var(--spacing-md, 1rem);
     margin: var(--spacing-sm, 1rem) 0;
-  }
-
-  .wheelWrapper {
-    max-width: 100%;
   }
 }
 

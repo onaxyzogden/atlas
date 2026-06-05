@@ -1,0 +1,77 @@
+﻿{
+    "fetchedAt":  "2026-05-21T05:46:48.3481947-04:00",
+    "url":  "http://localhost:4173/showcase/three-streams",
+    "categories":  {
+                       "performance":  {
+                                           "title":  "Performance",
+                                           "score":  0.55
+                                       }
+                   },
+    "audits":  {
+                   "first-contentful-paint":  {
+                                                  "numericValue":  11153.243999999999,
+                                                  "displayValue":  "11.2Â s"
+                                              },
+                   "largest-contentful-paint":  {
+                                                    "numericValue":  11529.696000000002,
+                                                    "displayValue":  "11.5Â s"
+                                                },
+                   "total-byte-weight":  {
+                                             "numericValue":  1530770,
+                                             "displayValue":  "Total size was 1,495Â KiB"
+                                         },
+                   "unused-javascript":  {
+                                             "details":  [
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/index-B8C0PHez.js",
+                                                                 "totalBytes":  618909,
+                                                                 "wastedBytes":  405232
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/maplibre-CV78ebrz.js",
+                                                                 "totalBytes":  234118,
+                                                                 "wastedBytes":  195078
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/turf-DZj88d-k.js",
+                                                                 "totalBytes":  145218,
+                                                                 "wastedBytes":  125614
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/projectStore-CD_vlQ-C.js",
+                                                                 "totalBytes":  101598,
+                                                                 "wastedBytes":  67903
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/panel-compute-CGeUzTsL.js",
+                                                                 "totalBytes":  53160,
+                                                                 "wastedBytes":  39101
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/framework-DEhcRgVg.js",
+                                                                 "totalBytes":  85923,
+                                                                 "wastedBytes":  36902
+                                                             },
+                                                             {
+                                                                 "url":  "http://localhost:4173/assets/panel-sections-xkJe3YXx.js",
+                                                                 "totalBytes":  57576,
+                                                                 "wastedBytes":  35263
+                                                             }
+                                                         ],
+                                             "displayValue":  "Est savings of 884Â KiB",
+                                             "numericValue":  4530
+                                         },
+                   "bootup-time":  {
+                                       "numericValue":  361.24000000000007,
+                                       "displayValue":  "0.4Â s"
+                                   },
+                   "speed-index":  {
+                                       "numericValue":  11153.243999999999,
+                                       "displayValue":  "11.2Â s"
+                                   },
+                   "total-blocking-time":  {
+                                               "numericValue":  110,
+                                               "displayValue":  "110Â ms"
+                                           }
+               }
+}

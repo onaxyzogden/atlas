@@ -1,0 +1,85 @@
+.root {
+  border-top: 1px solid var(--vb-border);
+  padding-top: 18px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vb-text-muted);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  color: var(--vb-text);
+}
+
+.chevron {
+  transition: transform 140ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--vb-gold-wash);
+  color: var(--vb-gold);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--vb-border);
+  background: var(--vb-surface);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.item:hover {
+  border-color: var(--vb-gold-dim);
+  background: var(--vb-surface-hover);
+}
+
+.itemEyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vb-gold);
+}
+
+.itemTitle {
+  font-size: 13px;
+  color: var(--vb-text);
+  line-height: 1.35;
+}

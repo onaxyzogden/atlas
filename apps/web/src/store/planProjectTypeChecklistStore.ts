@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { PlanProjectTypeKey } from '../v3/plan/data/planProjectTypeTemplates.js';
 
 interface ProjectState {
@@ -75,6 +76,8 @@ export const usePlanProjectTypeChecklistStore = create<PlanProjectTypeChecklistS
     }),
     {
       name: 'ogden-atlas-plan-project-type-checklist',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as PlanProjectTypeChecklistState,
     },

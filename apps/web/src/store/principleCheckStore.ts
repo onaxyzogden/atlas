@@ -1,8 +1,8 @@
-﻿/**
- * Principle-check store â€” PLAN-stage Module 8.
+/**
+ * Principle-check store — PLAN-stage Module 8.
  *
  * Tracks the steward's running self-assessment against Holmgren's twelve
- * permaculture-design principles. Each (project Ã— principle) pair carries
+ * permaculture-design principles. Each (project × principle) pair carries
  * a justification narrative, a list of linked feature ids drawn from the
  * other PLAN/OBSERVE stores (zones, paths, structures, transects, guilds,
  * earthworks, etc.), and a status pill.
@@ -14,6 +14,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PrincipleStatus = 'unmet' | 'partial' | 'met';
 
@@ -26,11 +28,11 @@ export interface PrincipleCheck {
   updatedAt: string;
 }
 
-/** principleId â†’ check, keyed inside one project. */
+/** principleId → check, keyed inside one project. */
 export type ProjectPrincipleChecks = Record<string, PrincipleCheck>;
 
 interface PrincipleCheckState {
-  /** projectId â†’ principleId â†’ check. */
+  /** projectId → principleId → check. */
   byProject: Record<string, ProjectPrincipleChecks>;
   upsertCheck: (projectId: string, check: PrincipleCheck) => void;
   removeCheck: (projectId: string, principleId: string) => void;
@@ -59,8 +61,8 @@ export const usePrincipleCheckStore = create<PrincipleCheckState>()(
           return { byProject: { ...s.byProject, [projectId]: next } };
         }),
     }),
-    { name: 'ogden-principle-checks', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-principle-checks', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-usePrincipleCheckStore.persist.rehydrate();
+rehydrateWithLogging(usePrincipleCheckStore);

@@ -9,9 +9,9 @@
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  background: rgba(31, 29, 26, 0.92);
-  color: #f2ede3;
-  border: 1px solid rgba(242, 237, 227, 0.18);
+  background: rgba(var(--color-map-panel-rgb), 0.92);
+  color: var(--color-text);
+  border: 1px solid rgba(var(--color-map-panel-line-rgb), 0.18);
   border-radius: 12px;
   backdrop-filter: blur(4px);
   z-index: 3;
@@ -25,16 +25,16 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(242, 237, 227, 0.72);
+  color: var(--color-text-muted);
 }
 
 .select {
   appearance: none;
   width: 100%;
   padding: 6px 8px;
-  background: rgba(242, 237, 227, 0.08);
-  color: #f2ede3;
-  border: 1px solid rgba(242, 237, 227, 0.22);
+  background: rgba(var(--color-map-panel-line-rgb), 0.08);
+  color: var(--color-text);
+  border: 1px solid rgba(var(--color-map-panel-line-rgb), 0.22);
   border-radius: 6px;
   font-family: inherit;
   font-size: 12px;
@@ -42,8 +42,8 @@
 }
 
 .select option {
-  background: #1a1a1a;
-  color: #f8f4ea;
+  background: rgba(var(--color-map-panel-rgb), 1);
+  color: var(--color-text);
   padding: 4px 6px;
 }
 
@@ -65,7 +65,7 @@
   gap: 8px;
   cursor: pointer;
   font-size: 12px;
-  color: #f2ede3;
+  color: var(--color-text);
 }
 
 .row input {
@@ -115,7 +115,7 @@
   cursor: pointer;
   font-size: 12px;
   line-height: 1.35;
-  color: #f2ede3;
+  color: var(--color-text);
 }
 
 .rowLabel input[type='checkbox'] {

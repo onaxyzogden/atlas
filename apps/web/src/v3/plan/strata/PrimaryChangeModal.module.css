@@ -1,0 +1,78 @@
+/* PrimaryChangeModal — change-specific styling that sits alongside the reused
+ * SecondaryAddModal.module.css shell. Only the bits the add-modal does not
+ * already provide: the Amanah scopeNotes callout and the two confirm gates
+ * (opt-in clone backup + the required "I understand" acknowledgement). */
+
+.amanahCallout {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-warning, #d9b15f) 55%, transparent);
+  background: color-mix(in srgb, var(--color-warning, #d9b15f) 14%, transparent);
+}
+
+.amanahEyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-warning, #d9b15f) 92%, var(--color-text, #f2ede3));
+}
+
+.amanahList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amanahNote {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #f2ede3);
+}
+
+.amanahNoteHead {
+  font-weight: 600;
+}
+
+.amanahDirection {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.gates {
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gateRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-text, #f2ede3);
+  cursor: pointer;
+}
+
+.gateRow input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.gateHint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}

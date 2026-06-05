@@ -1,0 +1,115 @@
+/* spine-theme.css
+ *
+ * Theme variables for the OLOS Plan Spine prototype. The spine's tokens.ts
+ * `C` palette resolves to these `--spine-*` custom properties, so a single
+ * declaration block re-skins all ~220 inline-styled elements.
+ *
+ * Dark is the prototype's native palette (verbatim from the original
+ * hardcoded tokens.ts). The light variant is keyed to the app's existing
+ * `data-theme` attribute (set on <html> by useUIStore). Scoped to
+ * `.olos-spine-root` so it never leaks into the rest of the app — custom
+ * properties still inherit to descendants even though that element is
+ * `display:contents`.
+ *
+ * The `*-rgb` triplets back the CA(token, alpha) helper in tokens.ts, which
+ * builds translucent colours via `rgba(var(--spine-x-rgb), a)` (a hex-alpha
+ * suffix on a `var()` would be invalid CSS).
+ */
+
+/* ── Base font reset — ensures all spine elements use the OLOS default Inter
+ * stack. Elements that explicitly set fontFamily (F.serif / F.mono) still win
+ * because inline styles have higher specificity than a CSS selector rule.
+ * Without this, elements that rely purely on CSS inheritance can render in a
+ * browser UA default (e.g. system serif) if the inheritance chain is broken.  */
+.olos-spine-root * {
+  font-family: var(--font-sans);
+}
+
+/* ── Box-sizing + thin-scrollbar reset for every spine-root surface (Plan
+ * stratum shell, Act protocol rail, protocols dashboard). Previously injected
+ * inline by PlanStratumShell, which meant the rules only existed while the Plan
+ * shell was mounted; lifted here so any `.olos-spine-root` consumer inherits
+ * them and the shared protocol cards never render unboxed. Scoped to spine-root
+ * so it never leaks into the rest of the app. */
+.olos-spine-root *,
+.olos-spine-root *::before,
+.olos-spine-root *::after {
+  box-sizing: border-box;
+}
+.olos-spine-root ::-webkit-scrollbar {
+  width: 3px;
+}
+.olos-spine-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.olos-spine-root ::-webkit-scrollbar-thumb {
+  background: var(--spine-border);
+  border-radius: 2px;
+}
+
+/* ── Dark (native / default) ── */
+.olos-spine-root {
+  /* Cool Obsidian/Mineral-Slate ladder (de-browned 2026-06-02) — neutral
+     surfaces, borders, and text aligned to the High-Tech Earth palette so the
+     Plan spine no longer reads warm-grey. Accent hues below are unchanged. */
+  --spine-bg: #0d1014;
+  --spine-bg2: #14181e;
+  --spine-bg3: #1b2026;
+  --spine-bg4: #222831;
+  --spine-border: #242f3d;
+  --spine-border-light: #30404f;
+  --spine-text-primary: #f4f6f8;
+  --spine-text-secondary: #8a99a8;
+  --spine-text-tertiary: #5f6b78;
+  --spine-blue: #4a8fd4;
+  --spine-blue-dim: #1a2f45;
+  --spine-blue-mid: #243c55;
+  --spine-green: #5aaf72;
+  --spine-green-dim: #162a1c;
+  --spine-amber: #d4944a;
+  --spine-amber-dim: #2e1f0a;
+  --spine-teal: #3a9b8a;
+  --spine-teal-dim: #0e2420;
+  --spine-red: #c45a4a;
+  --spine-gold: #c4a84a;
+  --spine-gold-dim: #2a220a;
+
+  --spine-blue-rgb: 74, 143, 212;
+  --spine-green-rgb: 90, 175, 114;
+  --spine-amber-rgb: 212, 148, 74;
+  --spine-teal-rgb: 58, 155, 138;
+  --spine-border-rgb: 42, 42, 37;
+  --spine-gold-rgb: 196, 168, 74;
+}
+
+/* ── Light variant — warm paper palette aligned with production light tokens ── */
+:root[data-theme='light'] .olos-spine-root {
+  --spine-bg: #f6f4ee;
+  --spine-bg2: #ffffff;
+  --spine-bg3: #f3efe6;
+  --spine-bg4: #ece7db;
+  --spine-border: rgba(84, 92, 100, 0.16);
+  --spine-border-light: rgba(84, 92, 100, 0.28);
+  --spine-text-primary: #1b1e22;
+  --spine-text-secondary: #565c63;
+  --spine-text-tertiary: #8a909a;
+  --spine-blue: #2f6fb0;
+  --spine-blue-dim: #e4edf6;
+  --spine-blue-mid: #d2e1f0;
+  --spine-green: #3e8f58;
+  --spine-green-dim: #e3f1e7;
+  --spine-amber: #b07a2e;
+  --spine-amber-dim: #f6ecda;
+  --spine-teal: #2c7e70;
+  --spine-teal-dim: #e0f0ec;
+  --spine-red: #b0463a;
+  --spine-gold: #9a771f;
+  --spine-gold-dim: #f3ead0;
+
+  --spine-blue-rgb: 47, 111, 176;
+  --spine-green-rgb: 62, 143, 88;
+  --spine-amber-rgb: 176, 122, 46;
+  --spine-teal-rgb: 44, 126, 112;
+  --spine-border-rgb: 84, 92, 100;
+  --spine-gold-rgb: 154, 119, 31;
+}

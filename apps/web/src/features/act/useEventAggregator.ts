@@ -1,21 +1,30 @@
 /**
- * useEventAggregator — collapses dated entries from five stores into a
- * single map keyed by `YYYY-MM-DD` for the EventCalendarCard / WeatherStrip /
- * UpcomingEvents-broadened panel.
+ * useEventAggregator — collapses dated entries into a single map keyed by
+ * `YYYY-MM-DD` for the EventCalendarCard / WeatherStrip / broadened
+ * UpcomingEvents panel.
+ *
+ * D0 spine cut-over: the four *planned* categories (field tasks, scheduled
+ * livestock moves, nursery batches, Goal-Compass phase tasks) now read the
+ * canonical `workItemStore` instead of their five legacy stores. The
+ * append-only *event-logs* stay their own stores (a logged move / harvest /
+ * transfer is a record that something happened, not planned work). Output
+ * is byte-identical to the pre-cut-over aggregator — same ids, titles,
+ * meta, source split, and the recurring-maintenance forward projection.
  *
  * Sources (priority order — what shows first when a day has multiple
  * entries):
- *   1. community  — communityEventStore
- *   2. task       — fieldTaskStore (uses dueAt, ignores status='done' for
- *                   the *upcoming* helper but still surfaces them on the
- *                   calendar grid for retrospective context)
- *   3. livestock  — livestockMoveLogStore (logged moves) +
- *                   scheduledLivestockMoveStore (unfulfilled forward plans,
- *                   surfaced with a "Planned:" title prefix and `planned · …`
- *                   meta so the existing source filter / dot styling apply)
- *   4. harvest    — harvestLogStore
- *   5. nursery    — nurseryStore (sowDate AND expectedReadyDate emit
- *                   separate entries)
+ *   1. community  — communityEventStore (event log)
+ *   2. task       — workItemStore `source:'field-task'`
+ *   3. livestock  — livestockMoveLogStore (logged moves, event log) +
+ *                   workItemStore `source:'scheduled-livestock-move'`
+ *                   (unfulfilled forward plans → "Planned:" prefix)
+ *   4. harvest    — harvestLogStore (event log)
+ *   5. nursery    — workItemStore `source:'nursery-batch'` (sow + ready
+ *                   emit separate entries) + nurseryStore transfers
+ *                   (executed-transfer event log)
+ *   6/7. phaseTask / plantingCalendar — workItemStore phase rows
+ *                   (`phaseId != null`); phaseStore is read only to resolve
+ *                   the phase name shown in `meta`.
  *
  * Phase milestones are intentionally excluded — `BuildPhase` carries
  * `timeframe` strings ("Year 0-1") not specific calendar dates, so they
@@ -24,13 +33,12 @@
 
 import { useMemo } from 'react';
 import { useCommunityEventStore } from '../../store/communityEventStore.js';
-import { useFieldTaskStore } from '../../store/fieldTaskStore.js';
 import { useLivestockMoveLogStore } from '../../store/livestockMoveLogStore.js';
-import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMoveStore.js';
 import { useHarvestLogStore } from '../../store/harvestLogStore.js';
 import { useNurseryStore } from '../../store/nurseryStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
-import type { MaintenanceFrequency } from '../../v3/plan/data/goalCompassTypes.js';
+import { useWorkItemStore } from '../../store/workItemStore.js';
+import type { WorkItemRecurrence } from '@ogden/shared';
 
 export type CalendarSource =
   | 'community'
@@ -101,7 +109,12 @@ export interface UseEventAggregatorResult {
 // never run away.
 const MAINTENANCE_VIEW_HORIZON_YEARS = 5;
 const MAINTENANCE_MAX_OCCURRENCES = 240;
-const RECURRENCE_STEP_MONTHS: Record<MaintenanceFrequency, number> = {
+// Phase tasks only ever carry the five Goal-Compass maintenance
+// frequencies; `daily`/`weekly` (legal on the spine recurrence union, used
+// by maintenance-source rows which never enter the phase loop) map to
+// undefined → treated as non-recurring, exactly as the legacy
+// `Record<MaintenanceFrequency, number>` lookup behaved.
+const RECURRENCE_STEP_MONTHS: Partial<Record<WorkItemRecurrence, number>> = {
   monthly: 1,
   quarterly: 3,
   annual: 12,
@@ -121,13 +134,11 @@ const SOURCE_ORDER: Record<CalendarSource, number> = {
 
 export function useEventAggregator(projectId: string): UseEventAggregatorResult {
   const communityEvents = useCommunityEventStore((s) => s.events);
-  const tasks = useFieldTaskStore((s) => s.tasks);
   const livestockMoves = useLivestockMoveLogStore((s) => s.events);
-  const scheduledMoves = useScheduledLivestockMoveStore((s) => s.plans);
   const harvests = useHarvestLogStore((s) => s.entries);
-  const nurseryBatches = useNurseryStore((s) => s.batches);
   const stockTransfers = useNurseryStore((s) => s.transfers);
   const phases = usePhaseStore((s) => s.phases);
+  const workItems = useWorkItemStore((s) => s.items);
 
   return useMemo(() => {
     const all: CalendarEntry[] = [];
@@ -146,17 +157,20 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       });
     }
 
-    for (const t of tasks) {
-      if (t.projectId !== projectId) continue;
-      const key = toDateKey(t.dueAt);
-      if (!key) continue;
+    const projectWorkItems = workItems.filter((w) => w.projectId === projectId);
+
+    for (const w of projectWorkItems) {
+      if (w.source !== 'field-task') continue;
+      const due = w.scheduledEnd ?? null;
+      const key = toDateKey(due);
+      if (!key || !due) continue;
       all.push({
-        id: `task:${t.id}`,
+        id: `task:${w.id}`,
         source: 'task',
         dateKey: key,
-        iso: t.dueAt,
-        title: t.title,
-        meta: `${t.category} · ${t.status}`,
+        iso: due,
+        title: w.title,
+        meta: `${w.category} · ${w.status}`,
       });
     }
 
@@ -175,19 +189,22 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       });
     }
 
-    for (const p of scheduledMoves) {
-      if (p.projectId !== projectId) continue;
-      if (p.fulfilledByEventId) continue;
-      const key = toDateKey(p.plannedDate);
-      if (!key) continue;
-      const head = p.headCount != null ? `${p.headCount} head` : 'move';
+    for (const w of projectWorkItems) {
+      if (w.source !== 'scheduled-livestock-move') continue;
+      // A fulfilled plan migrated with status:'done' (the legacy
+      // `fulfilledByEventId` skip) — unfulfilled plans stay 'todo'.
+      if (w.status === 'done') continue;
+      const planned = w.scheduledEnd ?? null;
+      const key = toDateKey(planned);
+      if (!key || !planned) continue;
+      const head = w.headCount != null ? `${w.headCount} head` : 'move';
       all.push({
-        id: `scheduled-livestock:${p.id}`,
+        id: `scheduled-livestock:${w.id}`,
         source: 'livestock',
         dateKey: key,
-        iso: p.plannedDate,
-        title: `Planned: ${head} · ${p.species}`,
-        meta: `planned · ${p.direction.replace('_', ' ')}`,
+        iso: planned,
+        title: `Planned: ${head} · ${w.species}`,
+        meta: `planned · ${(w.direction ?? '').replace('_', ' ')}`,
       });
     }
 
@@ -205,93 +222,102 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       });
     }
 
-    for (const b of nurseryBatches) {
-      if (b.projectId !== projectId) continue;
-      const batchSource: CalendarSource = b.generatedFromPlantingCalendar
+    for (const w of projectWorkItems) {
+      if (w.source !== 'nursery-batch') continue;
+      const batchSource: CalendarSource = w.generatedFromPlantingCalendar
         ? 'plantingCalendar'
         : 'nursery';
-      const sowKey = toDateKey(b.sowDate);
-      if (sowKey) {
+      const sowDate = w.scheduledStart ?? null;
+      const sowKey = toDateKey(sowDate);
+      if (sowKey && sowDate) {
         all.push({
-          id: `nursery-sow:${b.id}`,
+          id: `nursery-sow:${w.id}`,
           source: batchSource,
           dateKey: sowKey,
-          iso: b.sowDate,
-          title: `Sow ${b.species}`,
-          meta: `${b.quantity} · ${b.method}`,
+          iso: sowDate,
+          title: `Sow ${w.species}`,
+          meta: `${w.quantity} · ${w.propagationMethod}`,
         });
       }
-      const readyKey = toDateKey(b.expectedReadyDate);
-      if (readyKey && readyKey !== sowKey) {
+      const readyDate = w.scheduledEnd ?? null;
+      const readyKey = toDateKey(readyDate);
+      if (readyKey && readyDate && readyKey !== sowKey) {
         all.push({
-          id: `nursery-ready:${b.id}`,
+          id: `nursery-ready:${w.id}`,
           source: batchSource,
           dateKey: readyKey,
-          iso: b.expectedReadyDate,
-          title: `Ready: ${b.species}`,
-          meta: `${b.quantity} · ${b.stage}`,
+          iso: readyDate,
+          title: `Ready: ${w.species}`,
+          meta: `${w.quantity} · ${w.growthStage}`,
         });
       }
     }
 
-    for (const phase of phases) {
-      if (phase.projectId !== projectId) continue;
-      for (const t of phase.tasks ?? []) {
-        if (!t.scheduledStart) continue;
-        const firstKey = toDateKey(t.scheduledStart);
-        if (!firstKey) continue;
-        const laborMeta = t.laborHrs ? `${t.laborHrs}h` : '';
-        const roleMeta = t.roleAccess && t.roleAccess.length > 0
-          ? t.roleAccess.join('/')
-          : '';
-        const src: CalendarSource = t.generatedFromPlantingCalendar
-          ? 'plantingCalendar'
-          : 'phaseTask';
+    // Phase rows now live on the spine (phaseId != null uniquely
+    // identifies a phaseStore-originated WorkItem — field-task /
+    // maintenance / scheduled-move / nursery rows all carry phaseId:null).
+    // phaseStore is read solely to resolve the phase *name* shown in meta,
+    // and to keep the legacy `phase.projectId` gate exact.
+    const phaseById = new Map(phases.map((p) => [p.id, p]));
 
-        const recurStep =
-          t.isMaintenanceTask && t.recurrenceFrequency
-            ? RECURRENCE_STEP_MONTHS[t.recurrenceFrequency]
-            : null;
+    for (const w of projectWorkItems) {
+      if (w.phaseId == null) continue;
+      const phase = phaseById.get(w.phaseId);
+      if (!phase || phase.projectId !== projectId) continue;
+      if (!w.scheduledStart) continue;
+      const firstKey = toDateKey(w.scheduledStart);
+      if (!firstKey) continue;
+      const laborMeta = w.laborHrs ? `${w.laborHrs}h` : '';
+      const roleMeta = w.roleAccess && w.roleAccess.length > 0
+        ? w.roleAccess.join('/')
+        : '';
+      const src: CalendarSource = w.generatedFromPlantingCalendar
+        ? 'plantingCalendar'
+        : 'phaseTask';
 
-        if (recurStep == null) {
-          const meta = [phase.name, laborMeta, roleMeta]
-            .filter(Boolean)
-            .join(' · ');
-          all.push({
-            id: `phase-task:${t.id}`,
-            source: src,
-            dateKey: firstKey,
-            iso: `${firstKey}T09:00:00`,
-            title: t.title,
-            meta,
-          });
-          continue;
-        }
+      const recurStep =
+        w.isRecurring && w.recurrenceFrequency
+          ? RECURRENCE_STEP_MONTHS[w.recurrenceFrequency] ?? null
+          : null;
 
-        // Recurring maintenance: project bounded virtual occurrences from
-        // the first scheduled date forward by the cadence.
-        const meta = [phase.name, laborMeta, roleMeta, `recurring ${t.recurrenceFrequency}`]
+      if (recurStep == null) {
+        const meta = [phase.name, laborMeta, roleMeta]
           .filter(Boolean)
           .join(' · ');
-        const [y0, m0, d0] = firstKey.split('-').map(Number) as [number, number, number];
-        const horizonEnd = new Date(y0 + MAINTENANCE_VIEW_HORIZON_YEARS, m0 - 1, d0);
-        let occ = new Date(y0, m0 - 1, d0);
-        for (
-          let n = 0;
-          n < MAINTENANCE_MAX_OCCURRENCES && occ.getTime() <= horizonEnd.getTime();
-          n++
-        ) {
-          const dk = `${occ.getFullYear()}-${String(occ.getMonth() + 1).padStart(2, '0')}-${String(occ.getDate()).padStart(2, '0')}`;
-          all.push({
-            id: `phase-task:${t.id}@${dk}`,
-            source: src,
-            dateKey: dk,
-            iso: `${dk}T09:00:00`,
-            title: t.title,
-            meta,
-          });
-          occ = new Date(y0, m0 - 1 + recurStep * (n + 1), d0);
-        }
+        all.push({
+          id: `phase-task:${w.id}`,
+          source: src,
+          dateKey: firstKey,
+          iso: `${firstKey}T09:00:00`,
+          title: w.title,
+          meta,
+        });
+        continue;
+      }
+
+      // Recurring maintenance: project bounded virtual occurrences from
+      // the first scheduled date forward by the cadence.
+      const meta = [phase.name, laborMeta, roleMeta, `recurring ${w.recurrenceFrequency}`]
+        .filter(Boolean)
+        .join(' · ');
+      const [y0, m0, d0] = firstKey.split('-').map(Number) as [number, number, number];
+      const horizonEnd = new Date(y0 + MAINTENANCE_VIEW_HORIZON_YEARS, m0 - 1, d0);
+      let occ = new Date(y0, m0 - 1, d0);
+      for (
+        let n = 0;
+        n < MAINTENANCE_MAX_OCCURRENCES && occ.getTime() <= horizonEnd.getTime();
+        n++
+      ) {
+        const dk = `${occ.getFullYear()}-${String(occ.getMonth() + 1).padStart(2, '0')}-${String(occ.getDate()).padStart(2, '0')}`;
+        all.push({
+          id: `phase-task:${w.id}@${dk}`,
+          source: src,
+          dateKey: dk,
+          iso: `${dk}T09:00:00`,
+          title: w.title,
+          meta,
+        });
+        occ = new Date(y0, m0 - 1 + recurStep * (n + 1), d0);
       }
     }
 
@@ -325,12 +351,10 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
   }, [
     projectId,
     communityEvents,
-    tasks,
     livestockMoves,
-    scheduledMoves,
     harvests,
-    nurseryBatches,
     stockTransfers,
     phases,
+    workItems,
   ]);
 }

@@ -25,6 +25,7 @@
 import { lazy, useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
+import { useStewardRoster } from '../../v3/observe/modules/human-context/roster.js';
 import { useSiteDataStore, getLayerSummary, type SiteData } from '../../store/siteDataStore.js';
 import { useSoilSampleStore } from '../../store/soilSampleStore.js';
 import { useEcologyStore } from '../../store/ecologyStore.js';
@@ -99,6 +100,7 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
   };
 
   const visionData = useVisionStore((s) => s.getVisionData(project.id));
+  const roster = useStewardRoster(project.id);
   const siteData = useProjectSiteData(project.id);
   const soilSamples = useProjectSoilSamples(project.id);
 
@@ -123,7 +125,14 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
     // observe-steward-survey + observe-indigenous-regional).
     const phaseNotesFilled =
       visionData?.phaseNotes?.filter((p) => p.notes.trim().length > 0).length ?? 0;
-    const stewardName = visionData?.steward?.name ?? null;
+    const stewardCount = roster.length;
+    const stewardNames = roster.map((r) => r.member.displayName || r.member.email).filter(Boolean);
+    const stewardSummary =
+      stewardCount === 0
+        ? '—'
+        : stewardCount <= 2
+          ? stewardNames.join(', ')
+          : `${stewardNames.slice(0, 2).join(', ')} +${stewardCount - 2}`;
     const regional = visionData?.regional;
     const regionalItems =
       (regional?.indigenousNames?.length ?? 0) +
@@ -135,7 +144,7 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
       number: '1',
       title: 'Human Context',
       rows: [
-        { label: 'Steward', value: nonEmpty(stewardName) },
+        { label: stewardCount === 1 ? 'Steward' : 'Stewards', value: stewardCount > 0 ? `${stewardSummary} (${stewardCount})` : '—' },
         { label: 'Vision phases captured', value: `${phaseNotesFilled} / 3` },
         { label: 'Milestones', value: `${visionData?.milestones?.length ?? 0}` },
         { label: 'Regional context', value: regionalItems > 0 ? `${regionalItems} captured` : '—' },
@@ -145,7 +154,7 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
         { label: 'Indigenous & regional →', sectionId: 'observe-indigenous-regional' },
         { label: 'Vision detail →', sectionId: 'vision' },
       ],
-      empty: phaseNotesFilled === 0 && !stewardName && regionalItems === 0,
+      empty: phaseNotesFilled === 0 && stewardCount === 0 && regionalItems === 0,
     };
 
     // ── 2. Macroclimate & Hazards ─────────────────────────────────────────
@@ -260,7 +269,7 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
     };
 
     return [humanContext, macroclimate, topography, diagnostics, sectorsZones, synthesis];
-  }, [visionData, siteData, soilSamples, projectHazards, projectTransects, projectSectors, projectEcology, projectSwot]);
+  }, [visionData, roster, siteData, soilSamples, projectHazards, projectTransects, projectSectors, projectEcology, projectSwot]);
 
   return (
     <div className={styles.page}>

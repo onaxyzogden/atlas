@@ -21,6 +21,7 @@ Zod schemas, type utilities, and constants shared between API and web app. Singl
 
 ## Utilities
 - `lib/caseTransform.ts` — `toCamelCase()` for converting snake_case DB rows to camelCase
+- `climate/climateContext.ts` — **Added 2026-05-31 (Portfolio Home P4).** `deriveClimateContext(lat, date) => { hemisphere, latitudeBand, season }`, **main-barrel** export. Reuses the `Season` vocabulary + `SEASON_DATES` from `astronomy/sunPath` (no redefined seasons); bands at the Tropic 23.5 / Polar Circle 66.5; UTC-stable season inverted for the southern hemisphere. **No Köppen `climateZone`** (lat+date can't derive one; a lat-proxy would duplicate latitudeBand — a disclosed amendment to the planned signature). Consumed by the web cross-project Observe comparison badge (P6). 31-case test (`tests/climateContext.test.ts`). See [[log/2026-05-31-portfolio-home-p4-climate-context]].
 
 ## Constants
 - `constants/dataSources.ts` — ADAPTER_REGISTRY (7 layers x 2 countries = 14 adapters)
@@ -81,6 +82,72 @@ Scoring engine slot: `WEIGHTS['Ecological Integration'] = 0` in
 dimension is reserved at weight 0 in Phase 1 so existing project overall
 scores don't shift; weight is moved up when Phase 2 (canvas edge editor)
 ships and the dimension is computed for every project.
+
+## Per-type objective model (main barrel; OLOS Project-Type + Secondary-Layer Spec v1.2)
+**Added 2026-05-29.** Phase 2 of the OLOS UX plan -- replaces the fixed
+~16-objective `constants/plan/tierObjectives.ts` skeleton (rendered identically
+for every project) with a resolved **19 Universal + Primary-type +
+Secondary-type** set, where secondaries are *additive* (whole new objectives)
+or *modifying* (inject checklist items into existing objectives via patch
+records). Unlike the Needs & Yields `relationships` subpath above, every symbol
+here is re-exported from the **main barrel** (`@ogden/shared`), not a subpath.
+Decision: [decisions/2026-05-29-atlas-per-type-objective-model.md](../decisions/2026-05-29-atlas-per-type-objective-model.md).
+
+| File | Purpose |
+|------|---------|
+| `schemas/plan/projectTypeTaxonomy.schema.ts` | `ProjectTypeId` (14 ids; `livestock_operation` added 2026-06-03), `SecondaryClass`, `TensionAck`, `ProjectTypeRecord`, `ProjectTypeVersion` -- the record a wizard writes to `metadata.projectTypeRecord` (primary + secondaries + tension acks). |
+| `schemas/plan/planTierObjective.schema.ts` | **Extended additively 2026-05-29** -- new optional/defaulted objective fields (`source`, `sourceTypeId`, `secondaryClass`, `ref`, `completionGate`, `actHandoff`, `scopeNotes`) + checklist-item fields (`isMethodology`, `expandedBySecondaryId`) + `PatchRecordSchema` (`secondaryTypeId`, `targetObjectiveId`, `injectedItems`, `completionGateAmendment`, `scopeNote`). All defaulted, so the static seed still validates. **Extended again additively 2026-06-02** -- optional `formulaBinding` on `PlanDecisionChecklistItemSchema`: new `ObjectiveFormulaId` enum (6 ids -- `carrying-capacity-seasonal`, `paddock-system-capacity`, `paddock-stocking-density`, `stock-water-demand`, `forage-carrying-capacity`, `enterprise-break-even`) + `ObjectiveFormulaBindingSchema { formulaId, satisfiesWhenComputed?, resultLabel? }`, plus a `ckF` authoring helper mirroring `ckA`. Shared holds **ids + config only** (no app deps); `apps/web` joins the id -> the real `compute*` function/widget. Optional -> every existing seed/catalogue validates unchanged. Decision: [[decisions/2026-06-02-atlas-objective-formula-binding]]. |
+| `constants/plan/projectTypes.ts` | 14-entry `PROJECT_TYPES` table `{id,label,ordinal,canBePrimary,canBeSecondary,description}` (`livestock_operation` ordinal 13 added 2026-06-03); `PRIMARY_TYPES` (13) / `SECONDARY_TYPES` (8) views; `findProjectType(id)`. The wizard reads this table; the Zod `ProjectType` enum keeps a `moontrance` sentinel (validates but never offered). |
+| `constants/plan/relationshipMatrix.ts` | `getPairRelation`, `isCompatibleSecondary`, `getActiveTensions`; `RelationCell` ('M'\|'A'\|'X'\|'NA'); `DesignTension`; the 12 named design tensions (2 added 2026-06-03: livestock_operation x wellness @ s4, livestock_operation x market_garden @ s5). The compile-strict `Record<PrimaryTypeId>` carries 13 primary cells per secondary row. `residential.regenerative_farm = 'M'` is the encoded modifying pair; `residential.homestead = 'NA'` (incompatible -- "Homestead+Residential" was a stale plan-doc label). |
+| `constants/plan/catalogues/{universal,regenFarm,ecovillage,agritourism,wellness,silvopasture,orchard,nursery,homestead,education,conservation,marketGarden,offGrid,livestockOperation,residential}.ts` | The encoded catalogues: Universal-19, Regenerative-Farm primary (13), Ecovillage primary (31), Agritourism primary (29), Wellness primary (27) + Wellness secondary (5 additive, no patches), Silvopasture primary (26; 45 with universal), Orchard primary (25; 44 with universal), Nursery secondary (8 additive, no patches), Homestead primary (15), Education primary (22), Conservation primary (30), Market Garden primary (24), Off-Grid primary (27), **Livestock Operation primary (23; 42 with universal -- new primary-only type added 2026-06-03, binds all 6 livestock/grazing formula ids; ref prefix `LVS`)**, Residential secondary (6 additive + **5** patch records). With Livestock, **12 of the 13 selectable primaries now carry their own encoded layer**; only **Nursery** as a *primary* still resolves universal-only (its encoded catalogue is secondary-only). Adding a primary = a file + **five** edits to `catalogues/index.ts` (import + re-export + `getPrimaryCatalogue` arm + `ALL_CATALOGUE_OBJECTIVES` union + header-comment) plus, for a *new* type, its taxonomy id (`PROJECT_TYPE_IDS`, `ProjectType` superset, `PROJECT_TYPES` row) and a `relationshipMatrix` column cell in all 8 secondary rows. Agritourism is `canBeSecondary:true` in the taxonomy but its doc carries only a primary layer, so it is registered `getPrimaryCatalogue`-only; `getSecondaryCatalogue` serves Residential + Wellness. Silvopasture + Orchard ship primary-only (2026-05-30): each doc carries `->` universal-augmentation blocks and a secondary layer that are **deferred** pending operator source files -- no primary-to-universal patch seam exists yet (`resolveProjectObjectives` collects patches from secondaries only). See [[log/2026-05-30-atlas-silvo-orchard-catalogue]], [[log/2026-06-02-olos-food-forest-adoption]]. **Coverage gap:** the 5 newer primaries (Homestead/Education/Conservation/Market Garden/Off-Grid) are NOT in `catalogues.test.ts`/`shortTitle.test.ts` `ALL_AUTHORED`, so they are typecheck-guarded only; closing this needs the `OBJECTIVE_REF` regex to add `HMS|EDU|CON|MGD|OFG`. |
+| `constants/plan/catalogues/authoring.ts` | Catalogue Authoring Standards v1.4 rubric constants (id-namespacing, item-count bounds, Ref format) consumed by `__tests__/catalogues.test.ts`. |
+| `constants/plan/catalogues/index.ts` | Barrel: catalogue union + lookup helpers. |
+| `relationships/resolveProjectObjectives.ts` | Pure `resolveProjectObjectives({primaryTypeId, secondaryTypeIds})` -> 19 Universal (deep-copied) + primary + secondary-additive (dedup by id) + modifying patches applied **last**, each injected item stamped `expandedBySecondaryId`; a missing patch target is skipped + recorded (`SkippedPatch`), never thrown; gate amendments concatenate onto `completionGate`. Also `findPlanTierObjectiveIn(resolved, id)`; types `ResolveProjectObjectivesInput`/`Deps`, `ResolvedProjectObjectives`, `ResolveProvenance`, `SecondaryResolutionFlag`. **Physically in `relationships/` but main-barrel exported** (not the `@ogden/shared/relationships` subpath). |
+| `relationships/actStratumExecution.ts` | **Added 2026-05-30.** Pure Act-stage execution rollup, main-barrel exported. `computeActStratumExecution(actions)` -> per-`stratumId` `{total, verified, inFlight, notStarted}` in one pass (reads only `{stratumId?, status}`; actions with no `stratumId` skipped); `actStratumStateFromCounts(counts)` -> `PlanStratumState`; `computeAllActStratumStates(stratumIds, actions)`. **Deliberately NOT `computeStratumState`** (the Plan-side `stratumState.ts` returns `locked` for empty / prereq-gated strata): Act execution reaches every stratum, so this **never returns `locked`** -- empty/undefined -> `available`; any `in_progress\|submitted\|diverged\|blocked` (IN_FLIGHT) -> `active`; `total>0 && all verified` -> `complete`; else `available`. Backs the web Act tier shell ([[web-app]] "Act Tier Shell"). ADR [[2026-05-30-atlas-act-tier-shell-promotion]]. |
+
+Resolution is **on the fly** per project (web `useProjectObjectives(projectId)`,
+4-tier fallback to the static skeleton) -- no persisted resolved-set store.
+Verified pair regen_farm + residential = **38 objectives** across 7 strata
+(5/6/5/6/6/4/6). The `planTierStore.toProgressMap` global-id-uniqueness
+invariant holds: injected patch item ids are namespaced and `catalogues.test.ts`
+asserts global uniqueness incl. patch items.
+
+**Spec intake 2026-05-30 (planned, NOT encoded).** Three OLOS specs were
+ingested into the wiki as authoritative forward design with no code change:
+`decision_groups[]` (an editorial Plan-layer grouping of an objective's
+Act-layer checklist items -- see [[concepts/decision-groups]]) and the
+project-type **graduation** model (grow-into-types via append-only
+`type_history[]` -- see [[concepts/project-type-graduation]]). Neither is in
+the `planStratumObjective` schema or the catalogues yet. Four doc-vs-code
+deltas are recorded, code remaining canonical: (1) the Secondary Layer Spec
+v1.2 says "Sixteen objectives are universal" but the encoded model carries
+**19** (`universal.ts`); (2) the Decision Groups Reference uses type-prefix
+refs (`RF.S1.1`, `RS.S2.1`) vs the encoded `SILV-/ORCH-/U-` scheme; (3) docs
+reference 13 design tensions vs the **10** encoded in `relationshipMatrix.ts`;
+(4) `decision_groups[]` is a new unencoded schema field. ADR:
+[[decisions/2026-05-30-olos-spec-intake-decision-groups-graduation]]. The
+Silvopasture/Orchard **secondary** catalogues remain blocked on operator
+source files -- these three specs do not supply them (both types appear only
+as primaries in the Decision Groups Reference).
+
+**Decision groups ENCODED 2026-05-31 (delta #4 above now closed).**
+`DecisionGroupSchema` ({ id, label, itemIds[>=1], observeFeeds[] verbatim
+strings, sourceSecondaryId nullable }) added to
+`planStratumObjective.schema.ts`; `decisionGroups[]` on the objective and
+`injectedGroups[]` on `PatchRecordSchema`, both defaulted. `resolveProjectObjectives`
+deep-clones groups and stamps `sourceSecondaryId = p.secondaryTypeId` on
+patch-injected groups (mirroring the `injectedItems`/`expandedBySecondaryId`
+path). A `dg(...)` helper joins `ck`/`obj`/`patch` in `catalogues/authoring.ts`.
+Every encoded catalogue now carries full mutually-exclusive group partitions:
+universal/regenFarm/residential (Phase 3a, residential patches inject groups,
+rubric `-dgres<n>`), then agritourism, wellness, silvopasture (`-dgsilv1`),
+orchard (`-dgorch1`), nursery (no patches), ecovillage (primary-only, no
+patches). Group ids `<objId>-dg<n>`, globally unique. The catalogues test
+asserts the 1-6/full-partition/unique-id invariants; resolver test asserts
+the sourceSecondaryId stamping and shared-constant immutability. Per the
+2026-05-31 rulings: R1 (authored item membership), R2 (verbatim feed strings),
+extended override + "author meaningful labels" for rows the doc doesn't
+enumerate. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
 
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration

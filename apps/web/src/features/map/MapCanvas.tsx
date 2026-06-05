@@ -10,6 +10,7 @@ import { useMaplibre } from './hooks/useMaplibre.js';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import MapLoadingIndicator from './MapLoadingIndicator.js';
+import MapCoordinateReadout from './MapCoordinateReadout.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -25,7 +26,7 @@ import { CROP_TYPES } from '../livestock/speciesData.js';
 import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
-import { map as mapTokens, zone as zoneTokens, structure as structureTokens, earth, group } from '../../lib/tokens.js';
+import { map as mapTokens, zone as zoneTokens, structure as structureTokens, neutral, group } from '../../lib/tokens.js';
 import { wireAdoptedHidings } from './adoptedBasemapBuildings.js';
 
 interface MapCanvasProps {
@@ -650,13 +651,17 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
           style-load finishes (suppressed while the overlay above is showing). */}
       <MapLoadingIndicator map={map} suppressed={!isLoaded} />
 
+      {/* Live lat/long readout chip — bottom-left, just above the scale bar. */}
+      <MapCoordinateReadout map={map} />
+
       {/* Basemap style switcher is rendered by MapView's top-right
           cluster (top:56 right:60), NOT here. A previous duplicate at
           top:12 right:12 collided with the floatingControls row
           (Draw Boundary + zones · structures) producing a visible
           overlap — see chrome audit, 2026-04-25. */}
 
-      {/* Map scale bar is added natively by Mapbox — no floating panels needed */}
+      {/* Map scale bar is added natively by MapLibre (bottom-left); the
+          coordinate readout chip sits just above it (MapCoordinateReadout). */}
     </div>
   );
 }
@@ -709,7 +714,7 @@ function placeMarker(
     .setLngLat(coords)
     .setPopup(
       new maplibregl.Popup({ offset: 20, closeButton: false })
-        .setHTML(`<div style="font-size:12px;font-weight:500;color:${earth[900]};max-width:200px;line-height:1.4">${label}</div>`),
+        .setHTML(`<div style="font-size:12px;font-weight:500;color:${neutral[900]};max-width:200px;line-height:1.4">${label}</div>`),
     )
     .addTo(map);
 

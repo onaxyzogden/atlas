@@ -1,5 +1,5 @@
 /**
- * PublicPortalShell â€” full-page storytelling layout for the public portal.
+ * PublicPortalShell — full-page storytelling layout for the public portal.
  * Dark earth-tone aesthetic, scroll-spy navigation, OGDEN footer.
  */
 
@@ -14,7 +14,7 @@ import StageRevealStory from './sections/StageRevealStory.js';
 import BeforeAfterSlider from './sections/BeforeAfterSlider.js';
 import NarrativeSections from './sections/NarrativeSections.js';
 import SupportCTA from './sections/SupportCTA.js';
-import { earth, semantic } from '../../lib/tokens.js';
+import { neutral, semantic } from '../../lib/tokens.js';
 
 interface Props {
   config: PortalConfig;
@@ -52,7 +52,7 @@ export default function PublicPortalShell({ config, project }: Props) {
       style={{
         minHeight: '100vh',
         background: 'var(--color-bg, #1a1611)',
-        color: earth[100],
+        color: neutral[100],
         fontFamily: "'Inter', 'Georgia', system-ui, serif",
         overflowX: 'hidden',
       }}
@@ -79,7 +79,7 @@ export default function PublicPortalShell({ config, project }: Props) {
           <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.12em', color: semantic.sidebarActive }}>
             OGDEN
           </span>
-          <span style={{ fontSize: 11, color: semantic.sidebarIcon, borderLeft: `1px solid ${earth[800]}`, paddingLeft: 8 }}>
+          <span style={{ fontSize: 11, color: semantic.sidebarIcon, borderLeft: `1px solid ${neutral[800]}`, paddingLeft: 8 }}>
             {project.name}
           </span>
         </div>
@@ -140,10 +140,10 @@ export default function PublicPortalShell({ config, project }: Props) {
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: semantic.sidebarActive, marginBottom: 8 }}>
           OGDEN
         </div>
-        <div style={{ fontSize: 11, color: earth[800] }}>
-          Land Design Atlas â€” A tool for seeing land whole and building it wisely.
+        <div style={{ fontSize: 11, color: neutral[800] }}>
+          Land Design Atlas — A tool for seeing land whole and building it wisely.
         </div>
-        <div style={{ fontSize: 10, color: earth[800], marginTop: 12 }}>
+        <div style={{ fontSize: 10, color: neutral[800], marginTop: 12 }}>
           {project.address && <span>{project.address}</span>}
           {project.provinceState && <span> &middot; {project.provinceState}, {project.country}</span>}
         </div>

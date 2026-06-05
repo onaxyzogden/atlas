@@ -51,19 +51,19 @@
 .title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 .message {
   font-size: 13px;
   line-height: 1.4;
-  color: rgba(232, 220, 200, 0.82);
+  color: var(--color-text);
   margin: 0;
 }
 
 .source {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-top: 2px;
 }
 
@@ -75,7 +75,7 @@
   border-radius: 8px;
   border: 1px solid rgba(214, 86, 76, 0.45);
   background: rgba(214, 86, 76, 0.18);
-  color: #f0d9d4;
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;

@@ -25,12 +25,12 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   margin: 0 0 4px;
-  color: rgba(240, 230, 210, 0.97);
+  color: var(--color-text);
 }
 
 .pageSubtitle {
   font-size: 13px;
-  color: rgba(180, 165, 140, 0.8);
+  color: var(--color-text-subtle);
   margin: 0;
   max-width: 70ch;
 }
@@ -90,13 +90,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.85);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
 .columnHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin: 0 0 8px;
   font-style: italic;
 }
@@ -107,7 +107,7 @@
   flex-direction: column;
   gap: 6px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-hairline);
   margin-top: 6px;
 }
 
@@ -115,12 +115,12 @@
   font-size: 14px;
   font-weight: 700;
   margin: 0;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 .sectionHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   margin: 0 0 6px;
   font-style: italic;
 }
@@ -128,7 +128,7 @@
 /* ── Methodology drawer ───────────────────────────────────────────── */
 .methodology {
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-hairline);
   padding-top: 12px;
 }
 
@@ -138,7 +138,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   padding: 6px 0;
   list-style: none;
   display: flex;

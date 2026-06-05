@@ -1,0 +1,94 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(20, 25, 31, 0.78);
+  border: 1px solid rgba(242, 237, 227, 0.12);
+  border-radius: 14px;
+}
+
+.headline {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  letter-spacing: 0.01em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  border-radius: 999px;
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.chip:hover {
+  background: rgba(242, 237, 227, 0.06);
+}
+
+.chip[data-active='true'][data-freshness='current'] {
+  background: rgba(120, 184, 134, 0.18);
+  border-color: rgba(120, 184, 134, 0.7);
+  color: rgba(170, 220, 180, 1);
+}
+
+.chip[data-active='true'][data-freshness='ageing'] {
+  background: rgba(229, 184, 96, 0.18);
+  border-color: rgba(229, 184, 96, 0.7);
+  color: rgba(238, 199, 122, 1);
+}
+
+.chip[data-active='true'][data-freshness='stale'] {
+  background: rgba(213, 120, 84, 0.18);
+  border-color: rgba(213, 120, 84, 0.75);
+  color: rgba(228, 148, 116, 1);
+}
+
+.chip[data-active='true'][data-freshness='missing'] {
+  background: rgba(150, 142, 130, 0.22);
+  border-color: rgba(186, 178, 166, 0.65);
+  color: rgba(204, 196, 184, 1);
+}
+
+.chipCount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chipLabel {
+  font-size: 11.5px;
+  color: inherit;
+}
+
+.clear {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(242, 237, 227, 0.6);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.clear:hover {
+  color: var(--color-text, #f2ede3);
+  background: rgba(242, 237, 227, 0.06);
+}

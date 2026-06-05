@@ -32,6 +32,7 @@ import {
   findGuildPreset,
 } from '../../../../data/guildPresets.js';
 import { findCompanions } from '../../../../lib/companionPlanting.js';
+import { guildAnalytics } from '../../../../features/agroforestry/guildAnalyticsMath.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 import GuildRingsCanvas from './GuildRingsCanvas.js';
 import {
@@ -103,6 +104,15 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
   );
   const anchor = active ? findSpecies(active.anchorSpeciesId) ?? null : null;
 
+  // Formula-driven guild analytics (pure module — no hardcoded numbers).
+  // Recomputes whenever the active guild's members/anchor change, since
+  // updateGuild replaces the guild object (new reference). Null until an
+  // anchor is set so we never render a half-built guild's scores.
+  const analytics = useMemo(
+    () => (active && active.anchorSpeciesId ? guildAnalytics(active) : null),
+    [active],
+  );
+
   function startNewGuild() {
     const g: Guild = {
       id: newAnnotationId('gld'),
@@ -139,6 +149,37 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
       members: active.members.filter((_, i) => i !== memberIndex),
     });
   }
+
+  function moveMember(memberIndex: number, position: [number, number]) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map((m, i) =>
+        i === memberIndex ? { ...m, position } : m,
+      ),
+    });
+  }
+
+  function snapMember(memberIndex: number) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map((m, i) => {
+        if (i !== memberIndex) return m;
+        const { position: _drop, ...rest } = m;
+        return rest;
+      }),
+    });
+  }
+
+  function snapAllToRings() {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map(({ position: _drop, ...rest }) => rest),
+    });
+  }
+
+  const anyMemberPositioned = active
+    ? active.members.some((m) => m.position !== undefined)
+    : false;
 
   function setAnchor(speciesId: string) {
     if (!active) return;
@@ -393,6 +434,8 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
                   setActiveRing(null);
                 }}
                 activeRing={activeRing}
+                onMemberDrag={moveMember}
+                onMemberSnap={snapMember}
               />
 
               <div>
@@ -540,6 +583,19 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
               </button>
               <button
                 type="button"
+                className={styles.btn}
+                onClick={snapAllToRings}
+                disabled={!anyMemberPositioned}
+                title={
+                  anyMemberPositioned
+                    ? 'Clear every member position; layout snaps back to layer rings.'
+                    : 'No dragged members to snap.'
+                }
+              >
+                Snap all to rings
+              </button>
+              <button
+                type="button"
                 className={styles.removeBtn}
                 onClick={() => active && removeGuild(active.id)}
               >
@@ -549,6 +605,110 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
           </>
         )}
       </section>
+
+      {active && analytics && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Guild analytics</h2>
+          <div className={styles.statRow}>
+            <span>Members</span>
+            <span>{analytics.memberCount}</span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Niches filled</span>
+            <span>
+              {analytics.nichesFilled} / {analytics.nicheCount}
+            </span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Compatibility</span>
+            <span>{analytics.compatibility.score} / 100</span>
+          </div>
+          {(analytics.compatibility.errors > 0 ||
+            analytics.compatibility.warnings > 0 ||
+            analytics.compatibility.unverified > 0) && (
+            <div className={styles.statRow}>
+              <span>Compatibility flags</span>
+              <span>
+                {analytics.compatibility.errors} antagonism
+                {analytics.compatibility.errors === 1 ? '' : 's'} ·{' '}
+                {analytics.compatibility.warnings} warning
+                {analytics.compatibility.warnings === 1 ? '' : 's'} ·{' '}
+                {analytics.compatibility.unverified} unverified
+              </span>
+            </div>
+          )}
+          <div className={styles.statRow}>
+            <span>Nutrient cycling</span>
+            <span>
+              {analytics.nutrientCycling.nFixers} N-fixer
+              {analytics.nutrientCycling.nFixers === 1 ? '' : 's'} ·{' '}
+              {analytics.nutrientCycling.accumulators} accumulator
+              {analytics.nutrientCycling.accumulators === 1 ? '' : 's'}
+            </span>
+          </div>
+
+          <ul className={styles.list} style={{ marginTop: 8 }}>
+            {[
+              {
+                label: 'Functional coverage',
+                pct: analytics.functionalCoveragePct,
+                meta: 'distinct ecological functions present',
+              },
+              {
+                label: 'Fertility contribution',
+                pct: analytics.nutrientCycling.pct,
+                meta: 'members carrying a fertility function',
+              },
+              {
+                label: 'Water-regime consistency',
+                pct: analytics.waterBalancePct,
+                meta: 'share in the guild’s dominant water band',
+              },
+              {
+                label: 'Resilience',
+                pct: analytics.resilienceScore,
+                meta: 'niche + functional spread + compatibility',
+              },
+            ].map((row) => (
+              <li key={row.label} className={styles.listRow}>
+                <div style={{ flex: 1 }}>
+                  <strong>{row.label}</strong>
+                  <div className={styles.listMeta}>{row.meta}</div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      height: 6,
+                      background: 'rgba(255,255,255,0.06)',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${row.pct}%`,
+                        height: '100%',
+                        background:
+                          row.pct >= 60
+                            ? 'rgba(230,195,74,0.85)'
+                            : row.pct >= 25
+                              ? 'rgba(180,150,80,0.7)'
+                              : 'rgba(110,90,55,0.7)',
+                      }}
+                    />
+                  </div>
+                </div>
+                <span style={{ minWidth: 44, textAlign: 'right', fontSize: 12 }}>
+                  {row.pct}%
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
+            Design-time planning estimates from your guild&rsquo;s catalog
+            members &mdash; not a survival prediction.
+          </p>
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Parcel placement</h2>

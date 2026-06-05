@@ -22,10 +22,23 @@ import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useMaintenanceLogStore } from '../../../store/maintenanceLogStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
+import type { ActModule } from '../types.js';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /**
+   * When set (a valid `$module` reached via the compass's "Open on Map"),
+   * scope the Act overlays to that single objective: show only the
+   * execution-event dots whose `sourceKind` maps to the active module; hide
+   * the rest. `null` (the bare `/act` view) is an identity pass — full
+   * overlays, byte-for-byte the prior behaviour. Cross-stage substrate
+   * (Observe annotations + read-only Plan geometry) and the sector-compass
+   * HUD stay ambient and are NOT scoped here. Act modules with no own
+   * geometry (tracker/build/review/network/schedule) yield an empty overlay
+   * under focus, leaving only the ambient substrate.
+   */
+  activeModule?: ActModule | null;
 }
 
 const SOURCE_PREFIX = 'act-data-';
@@ -35,13 +48,41 @@ const RECENT_MS = 30 * 24 * 60 * 60 * 1000;
 const RECENT_COLOR = '#c4a265';
 const STALE_COLOR = '#8a6a4a';
 
-export default function ActDataLayers({ map, projectId }: Props) {
+/**
+ * Maps a feature's `sourceKind` (stamped on every Act execution-event point)
+ * to the Act objective it belongs to. Steward-confirmed harvest mapping is
+ * "by source": a livestock-sourced harvest event → `livestock`, a
+ * crop-sourced one → `harvest`. `structure` is included for completeness
+ * (not currently emitted by ActDataLayers).
+ */
+const SOURCEKIND_MODULE: Record<string, ActModule> = {
+  crop: 'plants-food',
+  livestock: 'animals-livestock',
+  earthwork: 'built-infrastructure',
+  storage: 'built-infrastructure',
+  structure: 'built-infrastructure',
+};
+
+export default function ActDataLayers({ map, projectId, activeModule = null }: Props) {
   const entries = useHarvestLogStore((s) => s.entries);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);
   const maintEvents = useMaintenanceLogStore((s) => s.events);
   const earthworks = useWaterSystemsStore((s) => s.earthworks);
   const storageInfra = useWaterSystemsStore((s) => s.storageInfra);
+
+  /**
+   * Single-objective focus filter. Identity pass when no objective is active
+   * (full overlays); otherwise keep only features whose `sourceKind` maps to
+   * the active module. Features with no/unmapped `sourceKind` drop under focus.
+   */
+  const focus = (feats: GeoJSON.Feature[]): GeoJSON.Feature[] => {
+    if (activeModule == null) return feats;
+    return feats.filter((f) => {
+      const sk = (f.properties as { sourceKind?: string } | null)?.sourceKind;
+      return sk != null && SOURCEKIND_MODULE[sk] === activeModule;
+    });
+  };
 
   const harvestFC = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -92,8 +133,8 @@ export default function ActDataLayers({ map, projectId }: Props) {
       });
     }
 
-    return { type: 'FeatureCollection', features };
-  }, [entries, cropAreas, paddocks, projectId]);
+    return { type: 'FeatureCollection', features: focus(features) };
+  }, [entries, cropAreas, paddocks, projectId, activeModule]);
 
   const maintenanceFC = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -141,8 +182,8 @@ export default function ActDataLayers({ map, projectId }: Props) {
       });
     }
 
-    return { type: 'FeatureCollection', features };
-  }, [maintEvents, earthworks, storageInfra, projectId]);
+    return { type: 'FeatureCollection', features: focus(features) };
+  }, [maintEvents, earthworks, storageInfra, projectId, activeModule]);
 
   useEffect(() => {
     if (!map) return;

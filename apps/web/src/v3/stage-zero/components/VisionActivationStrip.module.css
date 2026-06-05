@@ -1,0 +1,51 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  border-top: 1px solid var(--vb-border);
+  background: var(--vb-header-bg);
+  flex: none;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vb-text-muted);
+  white-space: nowrap;
+}
+
+.icon {
+  color: var(--vb-gold);
+}
+
+.empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--vb-text-subtle);
+}
+
+.modules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.module {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--vb-gold-wash);
+  border: 1px solid var(--vb-gold-dim);
+  color: var(--vb-gold);
+  font-size: 12.5px;
+  font-weight: 500;
+}

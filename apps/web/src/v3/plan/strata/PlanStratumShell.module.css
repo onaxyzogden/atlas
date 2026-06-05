@@ -1,0 +1,130 @@
+.shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg, #14191f);
+  color: var(--color-text, #f2ede3);
+}
+
+.intro {
+  flex: 0 0 auto;
+  max-width: 720px;
+  margin: 0 0 20px;
+}
+
+.introHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * .typeButton - the "Project type" trigger that opens the mid-project
+ * secondary-add modal (Plan Navigation Spec v1.1 section 9). Rounded pill in
+ * the existing subtle-border idiom; gold accent on hover to echo the spine's
+ * active/next eyebrows without competing with them at rest.
+ */
+.typeButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 88%, #ffffff);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.typeButton:hover {
+  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 55%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.typeButton:active {
+  transform: translateY(1px);
+}
+
+.typeButton:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+/*
+ * .layout — switches between a single-column spine view (no stratum
+ * selected) and a two-column spine + ObjectiveColumn view (stratum
+ * selected). The single-column mode keeps the centered, low-density
+ * look from Slice 1.4; the two-column mode opens the spine to the
+ * left and lets the ObjectiveColumn breathe on the right.
+ */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 720px);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.layout[data-has-objective-column='true'] {
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+}
+
+/* Detail-panel mode — 1/4 / 1/4 / 1/2 proportional split of the grid area. */
+.layout[data-has-detail-panel='true'] {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(0, 2fr);
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  /*
+   * Narrow viewports collapse the spine + column + panel into one
+   * stacked column. Three independent scroll regions on a small screen
+   * is a scroll-trap anti-pattern, so restore single document-flow
+   * scroll on the shell and let each section size to its own content.
+   * This re-enables the shell-level scroll that desktop turns off, and
+   * by content-sizing the grid rows it leaves the per-column
+   * overflow-y rules (in StratumSpine/ObjectiveColumn/ObjectiveDetailPanel)
+   * inert here — each section gets its full content height.
+   */
+  .shell {
+    overflow-y: auto;
+  }
+
+  .layout,
+  .layout[data-has-objective-column='true'],
+  .layout[data-has-detail-panel='true'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    flex: 0 0 auto;
+    min-height: auto;
+  }
+}

@@ -10,6 +10,37 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const flags = vi.hoisted(() => ({ SYNC_STATE_BLOBS: false }));
+const h = vi.hoisted(() => ({ params: { projectId: 'proj-1' } as { projectId?: string } }));
+
+// ProjectBundleBar renders on the v3 project frame, so it reads the active
+// projectId from the router and links to the Protocols dashboard. Stub the
+// router: useParams returns the hoisted params; Link renders a plain anchor
+// with $projectId interpolated from params.
+vi.mock('@tanstack/react-router', () => ({
+  useParams: () => h.params,
+  Link: ({
+    to,
+    params,
+    children,
+    ...rest
+  }: {
+    to?: string;
+    params?: { projectId?: string };
+    children?: unknown;
+    [k: string]: unknown;
+  }) => {
+    const href =
+      typeof to === 'string'
+        ? to.replace('$projectId', params?.projectId ?? '')
+        : '#';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (
+      <a href={href} {...(rest as any)}>
+        {children as any}
+      </a>
+    );
+  },
+}));
 
 // Icons are presentational and pull lucide's CJS build (dual-React hazard in
 // the test env). Stub them — the unit under test is copy/role/controls.
@@ -28,6 +59,7 @@ import ProjectBundleBar from '../ProjectBundleBar.js';
 
 beforeEach(() => {
   flags.SYNC_STATE_BLOBS = false;
+  h.params = { projectId: 'proj-1' };
   localStorage.clear();
 });
 
@@ -52,5 +84,18 @@ describe('ProjectBundleBar — sync-aware framing', () => {
     render(<ProjectBundleBar />);
     expect(screen.getByRole('button', { name: /export bundle/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /import bundle/i })).toBeTruthy();
+  });
+
+  it('links to the Protocols dashboard for the active project', () => {
+    h.params = { projectId: 'proj-1' };
+    render(<ProjectBundleBar />);
+    const link = screen.getByRole('link', { name: /protocols/i });
+    expect(link.getAttribute('href')).toBe('/v3/project/proj-1/protocols');
+  });
+
+  it('omits the Protocols link when no project is active', () => {
+    h.params = {};
+    render(<ProjectBundleBar />);
+    expect(screen.queryByRole('link', { name: /protocols/i })).toBeNull();
   });
 });

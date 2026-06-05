@@ -9,6 +9,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { LivestockSpecies } from './livestockStore.js';
 
 export type LivestockMoveDirection = 'move_in' | 'move_out' | 'rotate_through';
@@ -75,6 +77,12 @@ export interface LivestockMoveEvent {
    *  pair before persisting).
    */
   linkedEventId?: string;
+  /**
+   * D0 spine link — the scheduled-livestock-move `WorkItem` this actual
+   * move fulfils (set by `scheduledLivestockMoveStore.markFulfilled`).
+   * Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 /** Destination paddock id, with legacy v2 fallback. */
@@ -246,6 +254,8 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
     }),
     {
       name: 'ogden-livestock-moves',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 4,
       migrate: (persisted, fromVersion) => {
         const state = persisted as { events?: LivestockMoveEvent[] } | undefined;
@@ -302,4 +312,4 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
   ),
 );
 
-useLivestockMoveLogStore.persist.rehydrate();
+rehydrateWithLogging(useLivestockMoveLogStore);

@@ -1,0 +1,187 @@
+/* ProjectWizardShell — dark/gold panel, indicator + body + footer. */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  /* Fill the layout slot we are given (V3ProjectLayout's .outletHost, which
+     already sits below the app header AND the ProjectBundleBar) and never
+     page-scroll; individual sections (e.g. the Step 1 form column) scroll
+     internally. Measuring from 100vh here would overshoot by the bundle-bar
+     height and push the whole page into a scroll. */
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Step indicator strip */
+.indicator {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 18px 24px;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 720px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background-color 120ms ease;
+}
+
+.step + .step::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  width: 8px;
+  height: 1px;
+  background: var(--color-border-subtle);
+}
+
+.step[data-state='complete'] .stepNum {
+  background: var(--color-success);
+  color: var(--color-on-primary);
+  border-color: transparent;
+}
+
+.step[data-state='current'] {
+  background: rgba(var(--color-primary-rgb), 0.08);
+}
+.step[data-state='current'] .stepNum {
+  background: var(--color-gold-brand);
+  color: var(--color-on-primary);
+  border-color: transparent;
+}
+.step[data-state='current'] .stepLabel {
+  color: var(--color-text);
+}
+
+.step[data-state='pending'] .stepNum,
+.step[data-state='pending'] .stepLabel {
+  color: var(--color-text-muted);
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.stepLabel {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Body — children take it from here */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Footer */
+.footer {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+
+.footerLeft {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.footerHint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: center;
+  min-height: 1em;
+}
+
+.footerRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.backBtn,
+.skipBtn,
+.nextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.backBtn,
+.skipBtn {
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text);
+}
+.backBtn:hover,
+.skipBtn:hover {
+  background: var(--color-hover-overlay);
+  border-color: var(--color-border);
+}
+
+.skipBtn {
+  border-color: transparent;
+  color: var(--color-text-muted);
+}
+.skipBtn:hover {
+  color: var(--color-text);
+  background: var(--color-hover-overlay);
+}
+
+.nextBtn {
+  background: var(--color-gold-brand);
+  border: 1px solid var(--color-gold-brand);
+  color: var(--color-on-primary);
+}
+.nextBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.nextBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -170,36 +170,105 @@ export default async function projectRoutes(fastify: FastifyInstance) {
   });
 
   // GET /projects — list current user's projects (owned + shared) plus builtin samples.
-  fastify.get('/', { preHandler: [authenticate] }, async (req) => {
+  // ?status=active (default) | archived | all
+  fastify.get<{ Querystring: { status?: string } }>(
+    '/',
+    { preHandler: [authenticate] },
+    async (req) => {
+      const statusFilter = req.query?.status === 'archived'
+        ? 'archived'
+        : req.query?.status === 'all'
+          ? 'all'
+          : 'active';
+      const rows = await db`
+        SELECT DISTINCT ON (p.id)
+          p.id, p.name, p.description, p.status, p.project_type,
+          p.country, p.province_state, p.conservation_auth_id,
+          p.address, p.parcel_id,
+          p.acreage::float8 AS acreage,
+          p.data_completeness_score::float8 AS data_completeness_score,
+          (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          p.is_builtin,
+          p.created_at, p.updated_at
+        FROM projects p
+        LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
+        WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
+          AND ${
+            statusFilter === 'archived'
+              ? db`p.status = 'archived'`
+              : statusFilter === 'all'
+                ? db`TRUE`
+                : db`p.status != 'archived'`
+          }
+        ORDER BY p.id, p.updated_at DESC
+      `;
+      return { data: rows.map((r) => ProjectSummary.parse(toCamelCase(r))), meta: { total: rows.length }, error: null };
+    },
+  );
+
+  // GET /projects/my-roles - bulk role map for the signed-in user across all
+  // their non-builtin projects (owned + shared). Powers the Portfolio role
+  // badge and the Per-Project Home access gate (Slice 5.5a). Declared as a
+  // static route; Fastify matches it ahead of the `/:id/...` param routes, so
+  // "my-roles" is never treated as a project id.
+  fastify.get('/my-roles', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
-      SELECT DISTINCT ON (p.id)
-        p.id, p.name, p.description, p.status, p.project_type,
-        p.country, p.province_state, p.conservation_auth_id,
-        p.address, p.parcel_id,
-        p.acreage::float8 AS acreage,
-        p.data_completeness_score::float8 AS data_completeness_score,
-        (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
-        p.is_builtin,
-        p.created_at, p.updated_at
+      SELECT p.id AS project_id,
+             CASE WHEN p.owner_id = ${req.userId} THEN 'owner' ELSE pm.role END AS role
       FROM projects p
       LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
-      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
-        AND p.status != 'archived'
-      ORDER BY p.id, p.updated_at DESC
+      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL)
+        AND p.is_builtin = false
     `;
-    return { data: rows.map((r) => ProjectSummary.parse(toCamelCase(r))), meta: { total: rows.length }, error: null };
+    return {
+      data: rows.map((r) => ({ projectId: r.project_id, role: r.role })),
+      meta: { total: rows.length },
+      error: null,
+    };
   });
 
   // POST /projects — create a new project and enqueue Tier 1 data pipeline
   fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     const body = CreateProjectInput.parse(req.body);
 
+    // Phase 4.5 — resolve workspace (org) for project attach.
+    // Migration 036 made projects.org_id NOT NULL. The client may pass
+    // body.orgId explicitly (e.g. via OrganizationSwitcherModal); otherwise
+    // we fall back to the caller's oldest owner-role membership (the
+    // personal default org created at register-time by Prong 1).
+    let orgId: string | null = null;
+    if (body.orgId) {
+      const [member] = await db`
+        SELECT 1 FROM organization_members
+        WHERE org_id = ${body.orgId} AND user_id = ${req.userId}
+      `;
+      if (!member) {
+        throw new ForbiddenError(
+          'You are not a member of the requested workspace.',
+        );
+      }
+      orgId = body.orgId;
+    } else {
+      const [defaultOrg] = await db`
+        SELECT org_id FROM organization_members
+        WHERE user_id = ${req.userId} AND role = 'owner'
+        ORDER BY joined_at ASC
+        LIMIT 1
+      `;
+      if (!defaultOrg) {
+        throw new ValidationError(
+          'No workspace is available for this account. Create a workspace first.',
+        );
+      }
+      orgId = defaultOrg.org_id;
+    }
+
     const [project] = await db`
       INSERT INTO projects (
-        owner_id, name, description, project_type,
+        owner_id, org_id, name, description, project_type,
         country, province_state, units, metadata
       ) VALUES (
-        ${req.userId}, ${body.name}, ${body.description ?? null},
+        ${req.userId}, ${orgId}, ${body.name}, ${body.description ?? null},
         ${body.projectType ?? null}, ${body.country}, ${body.provinceState ?? null},
         ${body.units}, ${db.json((body.metadata ?? {}) as never)}
       )
@@ -237,6 +306,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           p.acreage::float8 AS acreage,
           p.data_completeness_score::float8 AS data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          ST_AsGeoJSON(p.parcel_boundary)::jsonb AS parcel_boundary_geojson,
           p.is_builtin,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
           p.metadata,
@@ -280,6 +350,48 @@ export default async function projectRoutes(fastify: FastifyInstance) {
                   parcel_boundary IS NOT NULL AS has_parcel_boundary,
                   created_at, updated_at
       `;
+      return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
+    },
+  );
+
+  // POST /projects/:id/archive — soft-delete via status flip (owner only)
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/archive',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
+    async (req) => {
+      await refuseIfBuiltin(req.projectId);
+      const [updated] = await db`
+        UPDATE projects SET status = 'archived'
+        WHERE id = ${req.projectId}
+        RETURNING id, name, description, status, project_type, country, province_state,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  created_at, updated_at
+      `;
+      if (!updated) throw new NotFoundError('Project', req.projectId);
+      return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
+    },
+  );
+
+  // POST /projects/:id/unarchive — restore from archived (owner only)
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/unarchive',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
+    async (req) => {
+      await refuseIfBuiltin(req.projectId);
+      const [updated] = await db`
+        UPDATE projects SET status = 'active'
+        WHERE id = ${req.projectId}
+        RETURNING id, name, description, status, project_type, country, province_state,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  created_at, updated_at
+      `;
+      if (!updated) throw new NotFoundError('Project', req.projectId);
       return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
     },
   );

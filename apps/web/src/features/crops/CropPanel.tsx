@@ -22,7 +22,7 @@ import {
 } from './waterDemand.js';
 import { useClimateMultiplier } from './useClimateMultiplier.js';
 import { ClimateAttributionChip } from './ClimateAttributionChip.js';
-import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
+import { neutral, zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 /** Per-crop-type label for the spacing-slider count read-out. */
@@ -405,6 +405,6 @@ function renderCropOnMap(map: maplibregl.Map, crop: CropArea) {
   map.addLayer({
     id: `crop-label-${crop.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': crop.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
+    paint: { 'text-color': neutral[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

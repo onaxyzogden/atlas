@@ -122,8 +122,10 @@ export default function DesignMap({
       center: initialCenter,
       zoom,
       attributionControl: { compact: true },
+      preserveDrawingBuffer: true, // Required for master-plan canvas capture (toDataURL)
       transformRequest: maptilerTransformRequest,
     });
+    m.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     setMap(m);
     return () => {
       setMap(null);

@@ -19,10 +19,16 @@ const LINE_LAYER = "matrix-waterway-line";
 
 export interface WaterOverlayProps {
   map: maplibregl.Map;
+  /**
+   * Force the overlay on regardless of the manual toggle. Set while an
+   * objective whose `requiredLayers` resolve to the Earth/Water/Ecology
+   * module is focused; clearing it (on focus exit) reverts to the toggle.
+   */
+  forceVisible?: boolean;
 }
 
-export default function WaterOverlay({ map }: WaterOverlayProps) {
-  const visible = useMatrixTogglesStore((s) => s.water);
+export default function WaterOverlay({ map, forceVisible }: WaterOverlayProps) {
+  const visible = useMatrixTogglesStore((s) => s.water) || !!forceVisible;
 
   useEffect(() => {
     if (!map) return;
@@ -84,7 +90,7 @@ export default function WaterOverlay({ map }: WaterOverlayProps) {
     return () => {
       map.off("styledata", onStyle);
     };
-  }, [map, visible]);
+  }, [map, visible, forceVisible]);
 
   return null;
 }

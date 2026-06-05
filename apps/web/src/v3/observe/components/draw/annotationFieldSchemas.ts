@@ -18,6 +18,7 @@ import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { usePlacementSignalStore } from '../../../../store/placementSignalStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import {
@@ -67,7 +68,10 @@ export type AnnotationKind =
   | 'contourLine'
   | 'highPoint'
   | 'drainageLine'
+  | 'erosionFlag'
+  | 'runoffPath'
   | 'watercourse'
+  | 'waterbody'
   | 'vegetation'
   | 'pasture'
   | 'conventionalCrop'
@@ -150,6 +154,10 @@ export function createWithDefaults(
   if (!ctx.geometry) return null;
   const newId = crypto.randomUUID();
   schema.save(schema.defaults, { ...ctx, existingId: undefined, newId });
+  // Pulse the placement signal so the capture workspace can auto-capture
+  // annotation evidence when a feature is drawn with a required tool. Tools
+  // stay oblivious to focus; the listener lives in CaptureAnnotationAutoCapture.
+  usePlacementSignalStore.getState().signal(newId);
   return newId;
 }
 
@@ -522,6 +530,116 @@ const drainageLine: FieldSchema = {
   },
 };
 
+const erosionFlag: FieldSchema = {
+  title: 'Erosion flag',
+  fields: [
+    {
+      name: 'severity',
+      label: 'Severity',
+      type: 'select',
+      options: [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+      ],
+    },
+    {
+      name: 'type',
+      label: 'Type',
+      type: 'select',
+      options: [
+        { value: 'sheet', label: 'Sheet' },
+        { value: 'rill', label: 'Rill' },
+        { value: 'gully', label: 'Gully' },
+        { value: 'bank', label: 'Bank' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Cause, extent, after-rain behaviour…' },
+  ],
+  defaults: { severity: 'medium', type: 'sheet', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useTopographyStore.getState().erosionFlags.find((e) => e.id === id);
+    if (!rec) return null;
+    return { severity: rec.severity, type: rec.type, notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useTopographyStore.getState();
+    if (ctx.existingId) {
+      store.updateErosionFlag(ctx.existingId, {
+        severity: v.severity as 'low' | 'medium' | 'high',
+        type: v.type as 'sheet' | 'rill' | 'gully' | 'bank',
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
+    const [lng, lat] = ctx.geometry.coordinates as [number, number];
+    store.addErosionFlag({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      position: [lng, lat],
+      severity: v.severity as 'low' | 'medium' | 'high',
+      type: v.type as 'sheet' | 'rill' | 'gully' | 'bank',
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const runoffPath: FieldSchema = {
+  title: 'Runoff path',
+  fields: [
+    { name: 'from', label: 'From', type: 'text', placeholder: 'Ridge, roof, road…' },
+    { name: 'to', label: 'To', type: 'text', placeholder: 'Swale, pond, boundary…' },
+    {
+      name: 'flowCondition',
+      label: 'Flow condition',
+      type: 'select',
+      options: [
+        { value: 'dry', label: 'Dry' },
+        { value: 'light', label: 'Light' },
+        { value: 'active', label: 'Active' },
+        { value: 'severe', label: 'Severe' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Linked rainfall event, observed depth…' },
+  ],
+  defaults: { from: '', to: '', flowCondition: 'active', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useTopographyStore.getState().runoffPaths.find((r) => r.id === id);
+    if (!rec) return null;
+    return {
+      from: rec.from ?? '',
+      to: rec.to ?? '',
+      flowCondition: rec.flowCondition,
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useTopographyStore.getState();
+    if (ctx.existingId) {
+      store.updateRunoffPath(ctx.existingId, {
+        from: s(v.from),
+        to: s(v.to),
+        flowCondition: v.flowCondition as 'dry' | 'light' | 'active' | 'severe',
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    store.addRunoffPath({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      from: s(v.from),
+      to: s(v.to),
+      flowCondition: v.flowCondition as 'dry' | 'light' | 'active' | 'severe',
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
 const watercourse: FieldSchema = {
   title: 'Watercourse',
   fields: [
@@ -562,6 +680,57 @@ const watercourse: FieldSchema = {
       geometry: ctx.geometry,
       kind: v.kind as 'stream' | 'creek' | 'ditch' | 'other',
       perennial: Boolean(v.perennial),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const waterbody: FieldSchema = {
+  title: 'Waterbody',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'lake', label: 'Lake' },
+        { value: 'pond', label: 'Pond' },
+        { value: 'wetland', label: 'Wetland' },
+        { value: 'reservoir', label: 'Reservoir' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'name', label: 'Name', type: 'text', placeholder: 'North pond' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'pond', name: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useWaterSystemsStore.getState().waterbodies.find((w) => w.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      name: rec.name ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useWaterSystemsStore.getState();
+    if (ctx.existingId) {
+      store.updateWaterbody(ctx.existingId, {
+        kind: v.kind as 'lake' | 'pond' | 'wetland' | 'reservoir' | 'other',
+        name: s(v.name),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addWaterbody({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as 'lake' | 'pond' | 'wetland' | 'reservoir' | 'other',
+      name: s(v.name),
       notes: s(v.notes),
       createdAt: nowIso(),
     });
@@ -621,7 +790,11 @@ const vegetation: FieldSchema = {
       });
       return;
     }
-    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    if (
+      !ctx.geometry ||
+      (ctx.geometry.type !== 'Polygon' && ctx.geometry.type !== 'MultiPolygon')
+    )
+      return;
     store.addPatch({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
@@ -671,7 +844,11 @@ const pasture: FieldSchema = {
       });
       return;
     }
-    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    if (
+      !ctx.geometry ||
+      (ctx.geometry.type !== 'Polygon' && ctx.geometry.type !== 'MultiPolygon')
+    )
+      return;
     store.addPasture({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
@@ -1388,7 +1565,10 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   contourLine,
   highPoint,
   drainageLine,
+  erosionFlag,
+  runoffPath,
   watercourse,
+  waterbody,
   vegetation,
   pasture,
   conventionalCrop,
@@ -1427,7 +1607,10 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   contourLine: (id) => useTopographyStore.getState().removeContour(id),
   highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
   drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
+  erosionFlag: (id) => useTopographyStore.getState().removeErosionFlag(id),
+  runoffPath: (id) => useTopographyStore.getState().removeRunoffPath(id),
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
+  waterbody: (id) => useWaterSystemsStore.getState().removeWaterbody(id),
   vegetation: (id) => useVegetationStore.getState().removePatch(id),
   pasture: (id) => usePastureStore.getState().removePasture(id),
   conventionalCrop: (id) =>

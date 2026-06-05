@@ -5,15 +5,43 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
+import {
+  ProjectType,
+  getActiveTensions,
+  isCompatibleSecondary,
+  computeObjectivesDelta,
+  resolveProjectObjectives,
+  computeAllObjectiveStatuses,
+  findProjectType,
+  type CreateProjectInput,
+  type ProjectMetadata,
+  type ProjectTypeId,
+  type ProjectTypeRecord,
+  type ProjectTypeVersion,
+  type TensionAck,
+  type ReopeningAck,
+} from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
+import { api } from '../lib/apiClient.js';
+import { ARCHETYPE_TO_PROJECT_TYPE } from '../v3/true-north/trueNorthConfig.js';
 import {
   seedBuiltinObserveData,
   BUILTIN_PROJECT_NARRATIVE,
 } from '../data/builtinSampleObserveData.js';
 import { useSiteDataStore } from './siteDataStore.js';
+import {
+  usePlanStratumProgressStore,
+  selectProjectProgress,
+  toProgressMap,
+  selectDeferredObjectives,
+  toDeferredSet,
+} from './planStratumStore.js';
+import { seedCuratedMtcActionsIfEmpty } from '../v3/act/field-action/seedCuratedMtcActions.js';
+import { seedMtcObserveDataPoints } from '../data/builtinObserveDataPoints.js';
 import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
@@ -69,6 +97,144 @@ export interface LocalProject {
    * current month at generation time. ISO YYYY-MM-DD.
    */
   startDate?: string | null;
+  /**
+   * ISO YYYY-MM-DD. Date land establishment/planting began; drives the
+   * establishment-dip (years 1-2) re-frame on review flags. Distinct from
+   * startDate (Goal Compass scheduling anchor).
+   */
+  commencementDate?: string | null;
+  /**
+   * Which Plan-stage shell the steward sees: the new 7-stratum spine
+   * (OLOS Plan Navigation Spec v1) or the legacy module bar. Per-project
+   * so legacy projects with `MTC_SEED` keep their module shape, while
+   * new projects open straight into the stratum spine. Read via
+   * `getPlanShellMode(project)` which applies the defaulting rules.
+   */
+  planShellMode?: PlanShellMode;
+  /**
+   * Which Act-stage shell the steward sees: the new field-action
+   * dashboard (OLOS Act Command Center Spec v1, Phase 3) or the legacy
+   * command-centre module shell. Per-project so existing module-bar
+   * projects keep their carousel UX while new projects land on View B.
+   * Read via `getActShellMode(project)` which applies the defaulting
+   * rules.
+   */
+  actShellMode?: ActShellMode;
+  /**
+   * Which Observe-stage shell the steward sees: the new dashboard
+   * (OLOS Observe Dashboard Spec v1, Phase 4) — Unified Land State /
+   * Domain Detail / Temporal Layer — or the legacy 7-module bar.
+   * Per-project so existing module-bar projects keep their carousel
+   * UX while new projects land on the dashboard. Read via
+   * `getObserveShellMode(project)` which applies the defaulting rules.
+   */
+  observeShellMode?: ObserveShellMode;
+  /**
+   * Which data source the `module-bar` Observe lens reads: `live` resolves
+   * the lens bundle from the project's real ObserveDataPoint store +
+   * domain snapshots; `mock` falls back to the static Millbrook fixtures
+   * (the escape hatch). Per-project so a steward can pin either source.
+   * Read via `getObserveLensDataSource(project)` which defaults to `live`.
+   */
+  observeLensDataSource?: ObserveLensDataSource;
+}
+
+/**
+ * Which Plan-stage navigation shell a project renders. `stratum-spine` is
+ * the OLOS Plan Navigation Spec v1 default for new projects; `module-bar`
+ * is the legacy module-driven shell preserved behind a toggle so the
+ * 52 existing module cards remain reachable during the Phase 1–7
+ * migration. Removed in Phase 7 once every card has been folded into
+ * a stratum objective via `legacyCardSectionId`.
+ */
+export type PlanShellMode = 'stratum-spine' | 'module-bar';
+
+/**
+ * Canonical accessor for a project's Plan shell mode. Explicit per-
+ * project values win; everything else — including builtin samples (MTC,
+ * "351 House") — now defaults to the `stratum-spine`. Builtins were
+ * formerly pinned to `module-bar`; their curated content is surfaced in
+ * the spine via `legacyCardSectionId` reference cards. The `module-bar`
+ * shell stays reachable per project via `PlanNavToggle`.
+ */
+export function getPlanShellMode(
+  project: Pick<LocalProject, 'planShellMode' | 'isBuiltin'>,
+): PlanShellMode {
+  if (project.planShellMode) return project.planShellMode;
+  return 'stratum-spine';
+}
+
+/**
+ * Which Act-stage navigation shell a project renders. `tier-shell` is the
+ * map-centric 4-rail default (stratum spine + left objectives + center map
+ * + bottom tools + right execution panel); `field-action` is the 2-column
+ * map-first layout; `command-centre` is the legacy module-driven shell.
+ * All three are preserved behind `ActShellToggle` (no deletion). The legacy
+ * shells are removed in Phase 7 once every legacy module card has retired.
+ */
+export type ActShellMode = 'tier-shell' | 'field-action' | 'command-centre';
+
+/**
+ * Canonical accessor for a project's Act shell mode. Explicit per-
+ * project values win; everything else — including builtin samples (MTC,
+ * "351 House") — now defaults to `tier-shell`, the promoted 4-rail tier
+ * shell. Projects that previously persisted `field-action` or
+ * `command-centre` keep that choice (no persist migration). Every mode
+ * stays reachable per project via `ActShellToggle`.
+ */
+export function getActShellMode(
+  project: Pick<LocalProject, 'actShellMode' | 'isBuiltin'>,
+): ActShellMode {
+  if (project.actShellMode) return project.actShellMode;
+  return 'tier-shell';
+}
+
+/**
+ * Which Observe-stage navigation shell a project renders.
+ * `dashboard` is the OLOS Observe Dashboard Spec v1 default for new
+ * projects; `module-bar` is the legacy 7-module shell preserved behind
+ * a toggle so existing builtin samples (MTC, "351 House") keep their
+ * hand-seeded module content visible. Removed in Phase 7 alongside
+ * the Plan + Act shells.
+ */
+export type ObserveShellMode = 'dashboard' | 'module-bar';
+
+/**
+ * Canonical accessor for a project's Observe shell mode. Explicit
+ * per-project values win; everything else — including builtin samples
+ * (MTC, "351 House") — now defaults to `dashboard`. Builtins were
+ * formerly pinned to `module-bar`; their seeded source-store data is
+ * surfaced in the dashboard via `builtinObserveDataPoints`. The
+ * `module-bar` shell stays reachable per project via `ObserveShellToggle`.
+ */
+export function getObserveShellMode(
+  project: Pick<LocalProject, 'observeShellMode' | 'isBuiltin'>,
+): ObserveShellMode {
+  if (project.observeShellMode) return project.observeShellMode;
+  return 'dashboard';
+}
+
+/**
+ * Which data source the `module-bar` Observe lens renders. `live` builds
+ * the lens bundle from the project's real ObserveDataPoint store + domain
+ * snapshots (the default for every project, builtin and user-created);
+ * `mock` is the escape hatch back to the static Millbrook fixtures. Both
+ * stay reachable per project via `ObserveLensDataSourceToggle`.
+ */
+export type ObserveLensDataSource = 'mock' | 'live';
+
+/**
+ * Canonical accessor for a project's Observe lens data source. Explicit
+ * per-project values win; everything else — including builtin samples
+ * (MTC, "351 House") — defaults to `live` so the lens reflects real
+ * captured observations out of the box. No persist backfill: an undefined
+ * value resolves to the live default here.
+ */
+export function getObserveLensDataSource(
+  project: Pick<LocalProject, 'observeLensDataSource'>,
+): ObserveLensDataSource {
+  if (project.observeLensDataSource) return project.observeLensDataSource;
+  return 'live';
 }
 
 /**
@@ -144,6 +310,28 @@ export interface ProjectAttachment {
   data: unknown | null;
 }
 
+/** Tally returned by the batch lifecycle actions. */
+export interface BatchResult {
+  ok: number;
+  failed: number;
+}
+
+/** Run a per-id async action across many ids concurrently, tolerating
+ *  individual failures, and tally the outcomes. Exported for unit testing. */
+export async function runBatch(
+  ids: string[],
+  op: (id: string) => Promise<void>,
+): Promise<BatchResult> {
+  const results = await Promise.allSettled(ids.map((id) => op(id)));
+  let ok = 0;
+  let failed = 0;
+  for (const r of results) {
+    if (r.status === 'fulfilled') ok += 1;
+    else failed += 1;
+  }
+  return { ok, failed };
+}
+
 interface ProjectState {
   projects: LocalProject[];
   activeProjectId: string | null;
@@ -154,7 +342,18 @@ interface ProjectState {
   // Actions
   createProject: (input: CreateProjectInput) => LocalProject;
   updateProject: (id: string, updates: Partial<LocalProject>) => void;
-  deleteProject: (id: string) => void;
+  deleteProject: (id: string) => Promise<void>;
+  archiveProject: (id: string) => Promise<void>;
+  unarchiveProject: (id: string) => Promise<void>;
+  /**
+   * Batch variants of the three lifecycle actions — loop the per-id action
+   * with `Promise.allSettled` and return an `{ ok, failed }` tally so the UI
+   * can surface one summary toast. Each per-id action already handles API
+   * sync, cascade cleanup, builtin no-op, and `activeProjectId` clearing.
+   */
+  archiveProjects: (ids: string[]) => Promise<BatchResult>;
+  unarchiveProjects: (ids: string[]) => Promise<BatchResult>;
+  deleteProjects: (ids: string[]) => Promise<BatchResult>;
   /**
    * Duplicate an existing project — clones the project metadata + parcel
    * boundary + all design-intent entities (zones, structures, paths,
@@ -177,10 +376,188 @@ interface ProjectState {
   ) => void;
   /** Strip the field so the project falls back to defaults. */
   clearZoneThresholds: (projectId: string) => void;
+  /**
+   * Set the PRIMARY project type when none has been chosen yet (e.g. a
+   * project created without a type, like the builtin MTC). Additive and
+   * strictly non-destructive: returns `false` (no-op) when the project is
+   * missing, when a `projectTypeRecord` ALREADY exists (replacing a primary
+   * mid-project is out of scope — the wizard owns that), or when the id is
+   * not a valid primary (e.g. `residential`, which is secondary-only).
+   * On success it writes a fresh `ProjectTypeRecord` with the chosen primary
+   * and empty secondary/ack/version arrays (mirroring the wizard's
+   * primary-select write — no `versionHistory` entry, since the taxonomy has
+   * no `'primary-set'` action), and normalizes the legacy bare `projectType`
+   * string in the same write so record- and string-level resolution agree.
+   * Metadata is written wholesale via `updateProject` (builtin allowlist +
+   * `updatedAt` stamping apply). Returns `true` when applied.
+   */
+  setPrimaryType: (projectId: string, primaryTypeId: ProjectTypeId) => boolean;
+  /**
+   * Add a secondary project type to an active project mid-project (OLOS
+   * Plan Navigation Spec v1.1 §9). Returns `true` when applied, `false`
+   * (no-op) when guarded out: no primary chosen yet, the id IS the primary,
+   * a duplicate, incompatible with the primary, or the 8-secondary ceiling
+   * is reached. On success it appends a `ProjectTypeVersion`
+   * (action `'secondary-added'`, actor defaulting to the steward), records
+   * `TensionAck`s for any newly-active tensions, and sets the new
+   * `secondaryTypeIds`. Metadata is written wholesale via `updateProject`
+   * (so the builtin allowlist + `updatedAt` stamping apply). No persist bump
+   * — every touched field is additive / Zod-defaulted.
+   */
+  addSecondaryType: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+    opts?: { actor?: string; note?: string },
+  ) => boolean;
+  /**
+   * Record a steward acknowledgement that a mid-project secondary addition
+   * reopened one or more previously-complete objectives for review (Plan
+   * Navigation Spec v1.1 §9). Append-only — one `ReopeningAck` per event.
+   * No-op when the project or its type record is absent.
+   */
+  acknowledgeReopening: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+    affectedObjectiveIds: string[],
+  ) => void;
+  /**
+   * Remove a secondary type from an active project (spec section 8.3).
+   * Permitted only when none of the secondary's delta objectives (its additive
+   * objectives + any objective it injected items into) are currently `active`,
+   * `complete`, or `deferred`. When blocked, returns the blocking objective ids
+   * (the UI names them and offers "mark as Deferred instead") WITHOUT mutating.
+   * When allowed, drops the secondary, appends a `'secondary-removed'`
+   * `ProjectTypeVersion`, prunes orphaned checklist progress for the removed
+   * objectives, and writes metadata wholesale via `updateProject`. No persist
+   * bump (append to existing `versionHistory`; `secondaryTypeIds` already exists).
+   * Guard failures (missing project/record, secondary not present) return
+   * `{ ok: false, blockingObjectiveIds: [] }`.
+   */
+  removeSecondaryType: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+  ) => { ok: true } | { ok: false; blockingObjectiveIds: string[] };
+  /**
+   * Change the PRIMARY type of an already-typed project mid-project. Unlike
+   * `setPrimaryType` (which only ever sets a first primary and refuses to
+   * replace one), this DESTRUCTIVELY re-derives the objective catalogue: it
+   * prunes secondaries incompatible with the new primary, appends a
+   * `'primary-changed'` `ProjectTypeVersion`, normalizes the legacy bare
+   * `projectType` string, and discards orphaned checklist progress for the
+   * objectives unique to the OLD type (the inverse delta — objectives present
+   * under the current selection but absent under the next). Tensions newly
+   * active under the new pairing are acknowledged (mirroring the add flow; the
+   * modal gates Confirm on the steward acknowledging). The caller is expected
+   * to offer an opt-in clone backup BEFORE invoking this (see
+   * `cloneForProject`), since the discard is irreversible.
+   *
+   * No-op `{ ok: false }` when the project or its type record is missing, the
+   * candidate is not a valid primary (e.g. `residential`), or it equals the
+   * current primary. On success returns the dropped secondaries and discarded
+   * objective ids so the UI can report counts. No persist bump — every touched
+   * field is additive / already present.
+   */
+  changePrimaryType: (
+    projectId: string,
+    nextPrimaryId: ProjectTypeId,
+    opts?: { actor?: string; note?: string },
+  ) =>
+    | { ok: true; droppedSecondaryIds: ProjectTypeId[]; discardedObjectiveIds: string[] }
+    | { ok: false };
 }
 
 function generateId(): string {
   return crypto.randomUUID();
+}
+
+/**
+ * Normalize a project's `projectType` to the server's canonical snake_case
+ * `ProjectType` enum. The Plan goal-tree / intake vocabulary uses kebab-case
+ * archetypes (e.g. "regenerative-farm"); if one leaks into `projectType` (a
+ * legacy fixture, or a creation path that skipped `ARCHETYPE_TO_PROJECT_TYPE`),
+ * `project:create` fails server validation with a 422 "Invalid enum value" on
+ * sync. Normalizing on write (createProject) and on rehydrate (persist migrate)
+ * keeps the local store free of unsyncable values.
+ *
+ *   null / undefined / ""        -> null   (projectType is optional server-side)
+ *   valid snake_case ProjectType -> unchanged
+ *   dropped pre-v1.2 legacy enum -> forwarded to its migration-046 home
+ *   known kebab archetype        -> snake_case ProjectType (forwarded if legacy)
+ *   anything else                -> null   (unsyncable; drop rather than 422)
+ *
+ * The legacy-forward step is the CLIENT mirror of migration 046
+ * (apps/api/src/db/migrations/046_project_type_taxonomy.sql). The OLOS v1.2
+ * rename dropped educational_farm / multi_enterprise / retreat_center from the
+ * ProjectType enum, so a project still holding one — persisted before the
+ * rename, or produced by the legacy archetype / vision-builder vocabulary — is
+ * mapped to its nearest surviving type instead of 422-ing or dropping to null.
+ */
+const ARCHETYPE_PROJECT_TYPE_LOOKUP = ARCHETYPE_TO_PROJECT_TYPE as Record<
+  string,
+  string | undefined
+>;
+
+/**
+ * Pre-v1.2 ProjectType values dropped by the rename -> nearest surviving home.
+ * Targets match migration 046 exactly so the client and server backfills agree.
+ */
+const LEGACY_PROJECT_TYPE_BACKFILL: Record<string, string> = {
+  educational_farm: 'education',
+  multi_enterprise: 'regenerative_farm',
+  retreat_center: 'agritourism',
+};
+
+export function normalizeProjectType(
+  value: string | null | undefined,
+): string | null {
+  if (value == null || value === '') return null;
+  if (ProjectType.safeParse(value).success) return value;
+  // A dropped pre-v1.2 enum value supplied directly (a project persisted before
+  // the rename, or the legacy vision-builder vocabulary) -> migration-046 home.
+  const forwarded = LEGACY_PROJECT_TYPE_BACKFILL[value];
+  if (forwarded) return forwarded;
+  // A kebab archetype -> its enum value, forwarded again in case that value was
+  // itself a dropped legacy (e.g. "retreat" -> "retreat_center" -> "agritourism").
+  const mapped = ARCHETYPE_PROJECT_TYPE_LOOKUP[value];
+  if (mapped) return LEGACY_PROJECT_TYPE_BACKFILL[mapped] ?? mapped;
+  return null;
+}
+
+/**
+ * Build a fresh `ProjectTypeRecord` from a project's bare `projectType` string
+ * when — and only when — that string normalizes to a valid PRIMARY type.
+ *
+ * Legacy/seeded projects (e.g. the "351 House" homestead, or a project created
+ * before the wizard wrote records) carry a bare `projectType` but no
+ * `metadata.projectTypeRecord`. The resolution ladder in `useProjectObjectives`
+ * tolerates that via its Level-2 string fallback, but the Step-2 wizard reads the
+ * record DIRECTLY — so without a record it renders no primary selection, hides the
+ * secondary picker, and blocks `handleToggleSecondary`. This helper lets both the
+ * persist `migrate` backfill and the wizard materialize the SAME record the
+ * steward would get by re-picking, mirroring `setPrimaryType`'s write exactly
+ * (empty secondary / ack / version / reopening arrays, no `versionHistory` entry).
+ *
+ *   null / "" / unknown string   -> null
+ *   secondary-only (residential) -> null   (canBePrimary: false)
+ *   kebab archetype / legacy enum -> normalized + materialized (via normalizeProjectType)
+ *
+ * Returns `null` when no valid primary can be derived, so callers leave the
+ * project untouched (it keeps falling through to the static skeleton).
+ */
+export function recordFromBareProjectType(
+  projectType: string | null | undefined,
+): ProjectTypeRecord | null {
+  const normalized = normalizeProjectType(projectType);
+  if (!normalized) return null;
+  const def = findProjectType(normalized);
+  if (!def?.canBePrimary) return null;
+  return {
+    primaryTypeId: def.id,
+    secondaryTypeIds: [],
+    tensionAcknowledgements: [],
+    versionHistory: [],
+    reopeningAcknowledgements: [],
+  };
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -201,7 +578,7 @@ export const useProjectStore = create<ProjectState>()(
           name: input.name,
           description: input.description ?? null,
           status: 'active',
-          projectType: input.projectType ?? null,
+          projectType: normalizeProjectType(input.projectType),
           country: input.country ?? 'US',
           provinceState: input.provinceState ?? null,
           conservationAuthId: null,
@@ -241,6 +618,24 @@ export const useProjectStore = create<ProjectState>()(
             'parcelBoundaryGeojson',
             'hasParcelBoundary',
             'metadata',
+            // UI preference, not narrative content — must be settable
+            // on builtin samples too so the steward can flip between
+            // stratum-spine and module-bar on the demo project.
+            'planShellMode',
+            // Same rationale as planShellMode — Act shell mode is a
+            // per-steward UI choice, not narrative content.
+            'actShellMode',
+            // Same rationale — Observe shell mode is a per-steward
+            // UI choice, not narrative content.
+            'observeShellMode',
+            // Same rationale — Observe lens data source (live/mock) is a
+            // per-steward UI choice, settable on builtin samples (MTC) so
+            // the steward can flip the lens between live and fixtures.
+            'observeLensDataSource',
+            // commencementDate is a steward-entered date, not narrative
+            // content -- must be settable on builtin sample projects so the
+            // establishment-dip re-frame works in preview/demo contexts.
+            'commencementDate',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>
@@ -268,16 +663,65 @@ export const useProjectStore = create<ProjectState>()(
         }));
       },
 
-      deleteProject: (id) => {
+      deleteProject: async (id) => {
         // Builtin sample projects are read-only — silently no-op on delete.
         const target = get().projects.find((p) => p.id === id);
         if (target?.isBuiltin) return;
+        if (target?.serverId) {
+          try {
+            await api.projects.delete(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] deleteProject API failed, removing locally:', err);
+          }
+        }
         cascadeDeleteProject(id);
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
           activeProjectId: state.activeProjectId === id ? null : state.activeProjectId,
         }));
       },
+
+      archiveProject: async (id) => {
+        const target = get().projects.find((p) => p.id === id);
+        if (!target || target.isBuiltin) return;
+        if (target.serverId) {
+          try {
+            await api.projects.archive(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] archiveProject API failed, mutating locally:', err);
+          }
+        }
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === id
+              ? { ...p, status: 'archived', updatedAt: new Date().toISOString() }
+              : p,
+          ),
+        }));
+      },
+
+      unarchiveProject: async (id) => {
+        const target = get().projects.find((p) => p.id === id);
+        if (!target || target.isBuiltin) return;
+        if (target.serverId) {
+          try {
+            await api.projects.unarchive(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] unarchiveProject API failed, mutating locally:', err);
+          }
+        }
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === id
+              ? { ...p, status: 'active', updatedAt: new Date().toISOString() }
+              : p,
+          ),
+        }));
+      },
+
+      archiveProjects: (ids) => runBatch(ids, get().archiveProject),
+      unarchiveProjects: (ids) => runBatch(ids, get().unarchiveProject),
+      deleteProjects: (ids) => runBatch(ids, get().deleteProject),
 
       duplicateProject: (sourceId, overrideName) => {
         const source = get().projects.find((p) => p.id === sourceId);
@@ -371,10 +815,297 @@ export const useProjectStore = create<ProjectState>()(
             return { ...rest, updatedAt: new Date().toISOString() } as LocalProject;
           }),
         })),
+
+      setPrimaryType: (projectId, primaryTypeId) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return false;
+        // Non-destructive: only sets a primary when none exists. Replacing an
+        // already-set primary mid-project orphans progress and is owned by the
+        // wizard — refuse it here.
+        if (project.metadata?.projectTypeRecord) return false;
+        // Reject ids that cannot be a primary (e.g. residential, secondary-only).
+        const def = findProjectType(primaryTypeId);
+        if (!def?.canBePrimary) return false;
+
+        // Mirror the wizard's primary-select write: a fresh record with the
+        // chosen primary and empty arrays. The taxonomy has no 'primary-set'
+        // version action, so — like the wizard — record no versionHistory entry.
+        const nextRecord: ProjectTypeRecord = {
+          primaryTypeId,
+          secondaryTypeIds: [],
+          tensionAcknowledgements: [],
+          versionHistory: [],
+          reopeningAcknowledgements: [],
+        };
+
+        // Wholesale write — updateProject's builtin allowlist permits both
+        // `projectType` and `metadata`. Writing the legacy bare string keeps
+        // string-level resolution aligned with the authoritative record.
+        get().updateProject(projectId, {
+          projectType: primaryTypeId,
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+        return true;
+      },
+
+      addSecondaryType: (projectId, secondaryTypeId, opts) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return false;
+        const existing = project.metadata?.projectTypeRecord;
+        // Cannot add a secondary before a primary type is chosen.
+        if (!existing) return false;
+        const primaryTypeId = existing.primaryTypeId;
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        // Guards — any failure is a silent no-op (returns false).
+        if (secondaryTypeId === primaryTypeId) return false;
+        if (currentSecondaries.includes(secondaryTypeId)) return false;
+        if (!isCompatibleSecondary(secondaryTypeId, primaryTypeId)) return false;
+        if (currentSecondaries.length >= 8) return false;
+
+        const now = new Date().toISOString();
+        const nextSecondaries = [...currentSecondaries, secondaryTypeId];
+
+        // Acknowledge any tensions that become active with this addition and
+        // are not already acknowledged (mirrors the wizard's tension flow;
+        // the add-secondary modal gates confirm on the steward acknowledging).
+        const active = getActiveTensions(primaryTypeId, nextSecondaries);
+        const ackedIds = new Set(
+          (existing.tensionAcknowledgements ?? []).map((a) => a.tensionId),
+        );
+        const newAcks: TensionAck[] = active
+          .filter((t) => !ackedIds.has(t.id))
+          .map((t) => ({ tensionId: t.id, acknowledgedAt: now }));
+
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId,
+          secondaryTypeIds: nextSecondaries,
+          changedAt: now,
+          note: opts?.note ?? `added secondary: ${secondaryTypeId}`,
+          actor: opts?.actor ?? 'yousef@ogden.ag',
+          action: 'secondary-added',
+        };
+
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          secondaryTypeIds: nextSecondaries,
+          tensionAcknowledgements: [
+            ...(existing.tensionAcknowledgements ?? []),
+            ...newAcks,
+          ],
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          // Defensive default — records drafted before the v1.1 schema lack
+          // this field at runtime even though the inferred type marks it
+          // required (Zod default applies only on parse).
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+
+        // Wholesale metadata write — reuses updateProject's builtin allowlist
+        // (metadata is allowed) and updatedAt stamping. No persist bump.
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+        return true;
+      },
+
+      acknowledgeReopening: (projectId, secondaryTypeId, affectedObjectiveIds) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return;
+        const existing = project.metadata?.projectTypeRecord;
+        if (!existing) return;
+        const ack: ReopeningAck = {
+          secondaryTypeId,
+          affectedObjectiveIds,
+          acknowledgedAt: new Date().toISOString(),
+        };
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          reopeningAcknowledgements: [
+            ...(existing.reopeningAcknowledgements ?? []),
+            ack,
+          ],
+        };
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+      },
+
+      removeSecondaryType: (projectId, secondaryTypeId) => {
+        const blocked = (ids: string[] = []) =>
+          ({ ok: false, blockingObjectiveIds: ids }) as const;
+
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return blocked();
+        const existing = project.metadata?.projectTypeRecord;
+        if (!existing) return blocked();
+        const primaryTypeId = existing.primaryTypeId;
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        if (!currentSecondaries.includes(secondaryTypeId)) return blocked();
+
+        const nextSecondaries = currentSecondaries.filter(
+          (id) => id !== secondaryTypeId,
+        );
+
+        // Inverse delta: diffing the post-removal record AGAINST the current one
+        // surfaces the objectives that would disappear (`newObjectiveIds`) and
+        // the host objectives that would lose injected items
+        // (`objectivesWithNewItems`) — i.e. exactly this secondary's delta.
+        const current = { primaryTypeId, secondaryTypeIds: currentSecondaries };
+        const afterRemoval = { primaryTypeId, secondaryTypeIds: nextSecondaries };
+        const inverse = computeObjectivesDelta(afterRemoval, current);
+        const deltaObjectiveIds = Array.from(
+          new Set([
+            ...inverse.newObjectiveIds,
+            ...inverse.objectivesWithNewItems,
+          ]),
+        );
+
+        // Block removal if any delta objective is started/finished/parked.
+        // Status is computed from the CURRENT resolution against the same
+        // progress + deferred sets the spine uses.
+        const progressStore = usePlanStratumProgressStore.getState();
+        const progressMap = toProgressMap(
+          selectProjectProgress(progressStore, projectId),
+        );
+        const deferredSet = toDeferredSet(
+          selectDeferredObjectives(progressStore, projectId),
+        );
+        const currentObjectives = resolveProjectObjectives(current).objectives;
+        const statuses = computeAllObjectiveStatuses(
+          currentObjectives,
+          progressMap,
+          deferredSet,
+        );
+        const BLOCKING = new Set(['active', 'complete', 'deferred']);
+        const blockingObjectiveIds = deltaObjectiveIds.filter((id) =>
+          BLOCKING.has(statuses[id] ?? 'locked'),
+        );
+        if (blockingObjectiveIds.length > 0) {
+          return blocked(blockingObjectiveIds);
+        }
+
+        const now = new Date().toISOString();
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId,
+          secondaryTypeIds: nextSecondaries,
+          changedAt: now,
+          note: `removed secondary: ${secondaryTypeId}`,
+          actor: 'yousef@ogden.ag',
+          action: 'secondary-removed',
+        };
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          secondaryTypeIds: nextSecondaries,
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+
+        // Prune orphaned progress: the additive objectives that no longer exist
+        // (their item ids would otherwise strand in the progress store). Host
+        // objectives that merely lose injected items keep their own progress —
+        // and, since removal was permitted, hold no checked injected items.
+        const removedObjectiveIds = new Set(inverse.newObjectiveIds);
+        for (const objId of removedObjectiveIds) {
+          progressStore.clearForObjective(projectId, objId);
+        }
+        return { ok: true };
+      },
+
+      changePrimaryType: (projectId, nextPrimaryId, opts) => {
+        const failed = { ok: false } as const;
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return failed;
+        const existing = project.metadata?.projectTypeRecord;
+        // Only for an already-typed project; the unset path is setPrimaryType's.
+        if (!existing) return failed;
+        const fromPrimary = existing.primaryTypeId;
+        // No-op when unchanged or the candidate cannot be a primary
+        // (e.g. residential, secondary-only).
+        if (nextPrimaryId === fromPrimary) return failed;
+        const def = findProjectType(nextPrimaryId);
+        if (!def?.canBePrimary) return failed;
+
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        // Prune secondaries incompatible with the new primary.
+        const keptSecondaries = currentSecondaries.filter((s) =>
+          isCompatibleSecondary(s, nextPrimaryId),
+        );
+        const droppedSecondaryIds = currentSecondaries.filter(
+          (s) => !keptSecondaries.includes(s),
+        );
+
+        // Disappearing objectives: present under the CURRENT selection but not
+        // the NEXT (inverse delta — same pattern as removeSecondaryType). These
+        // are the old-type-unique objectives whose progress is now orphaned.
+        const current = { primaryTypeId: fromPrimary, secondaryTypeIds: currentSecondaries };
+        const next = { primaryTypeId: nextPrimaryId, secondaryTypeIds: keptSecondaries };
+        const inverse = computeObjectivesDelta(next, current);
+        const discardedObjectiveIds = Array.from(new Set(inverse.newObjectiveIds));
+
+        const now = new Date().toISOString();
+
+        // Acknowledge tensions that become active under the new pairing and are
+        // not already acknowledged (mirrors addSecondaryType; the change modal
+        // gates Confirm on the steward acknowledging). Prior acks are retained.
+        const active = getActiveTensions(nextPrimaryId, keptSecondaries);
+        const ackedIds = new Set(
+          (existing.tensionAcknowledgements ?? []).map((a) => a.tensionId),
+        );
+        const newAcks: TensionAck[] = active
+          .filter((t) => !ackedIds.has(t.id))
+          .map((t) => ({ tensionId: t.id, acknowledgedAt: now }));
+
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId: nextPrimaryId,
+          secondaryTypeIds: keptSecondaries,
+          changedAt: now,
+          note: opts?.note ?? `changed primary: ${fromPrimary} -> ${nextPrimaryId}`,
+          actor: opts?.actor ?? 'yousef@ogden.ag',
+          action: 'primary-changed',
+        };
+
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          primaryTypeId: nextPrimaryId,
+          secondaryTypeIds: keptSecondaries,
+          tensionAcknowledgements: [
+            ...(existing.tensionAcknowledgements ?? []),
+            ...newAcks,
+          ],
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+
+        // Wholesale write — updateProject's builtin allowlist permits both
+        // `projectType` and `metadata`. The legacy bare string is kept aligned
+        // with the authoritative record, matching setPrimaryType.
+        get().updateProject(projectId, {
+          projectType: nextPrimaryId,
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+
+        // Discard orphaned progress on the old-type-unique objectives. This is
+        // checklist DATA the steward explicitly chose to discard (the opt-in
+        // clone preserves it under the old type).
+        const progressStore = usePlanStratumProgressStore.getState();
+        progressStore.discardObjectivesProgress(projectId, discardedObjectiveIds);
+
+        return { ok: true, droppedSecondaryIds, discardedObjectiveIds };
+      },
     }),
     {
       name: 'ogden-projects',
-      version: 4,
+      // Durable IndexedDB backend (Phase 1 pilot store). Moves the full
+      // projects[] off the ~5–10 MB localStorage origin cap onto IDB, where the
+      // offline write queue already lives. Rehydration is now ASYNC: the boot
+      // sequence in syncService.start() awaits hydration before attaching the
+      // write-through subscriptions (see awaitStoresHydrated), so the diff
+      // baseline is the hydrated project list — not an empty pre-hydration
+      // snapshot that would re-push every project as a create on boot.
+      storage: idbPersistStorage,
+      version: 9,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -391,16 +1122,95 @@ export const useProjectStore = create<ProjectState>()(
           // means future default changes (e.g. 25→30) propagate to
           // unmigrated projects automatically.
         }
+        if (version < 5) {
+          // Normalize kebab-case archetype values that leaked into
+          // projectType (e.g. a legacy "regenerative-farm" fixture) to the
+          // server snake_case ProjectType enum, so project:create stops
+          // failing server validation with a 422 on sync. See
+          // normalizeProjectType.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            projectType: normalizeProjectType(
+              (p as { projectType?: string | null }).projectType,
+            ),
+          }));
+        }
+        if (version < 6) {
+          // OLOS v1.2 taxonomy rename: re-run normalizeProjectType so a project
+          // persisted at v5 that still holds a dropped legacy value
+          // (educational_farm / multi_enterprise / retreat_center) is forwarded
+          // to its migration-046 home, instead of failing the server enum parse
+          // with a 422 on the next sync. See normalizeProjectType.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            projectType: normalizeProjectType(
+              (p as { projectType?: string | null }).projectType,
+            ),
+          }));
+        }
+        if (version < 7) {
+          // Plan stratum rename: view discriminator 'tier-spine' -> 'stratum-spine'.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            planShellMode:
+              (p as { planShellMode?: string }).planShellMode === 'tier-spine'
+                ? 'stratum-spine'
+                : (p as { planShellMode?: string }).planShellMode,
+          }));
+        }
+        if (version < 8) {
+          // Backfill a `projectTypeRecord` for any project (builtins included)
+          // that carries a valid bare `projectType` but no record yet. Legacy/
+          // seeded projects resolved their objectives via the string-level
+          // fallback in `useProjectObjectives`, but the Step-2 wizard reads the
+          // record directly — so without one the steward cannot add secondary
+          // layers without first re-picking the primary. Seeding the record the
+          // bare string already implies makes resolution uniformly source:'record'
+          // and unblocks the wizard. Idempotent: projects already holding a record
+          // (or whose string is empty / unknown / secondary-only) pass through.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => {
+            const meta = (p as { metadata?: Record<string, unknown> | null })
+              .metadata;
+            if (meta?.projectTypeRecord) return p;
+            const record = recordFromBareProjectType(
+              (p as { projectType?: string | null }).projectType,
+            );
+            if (!record) return p;
+            return {
+              ...p,
+              metadata: { ...(meta ?? {}), projectTypeRecord: record },
+            };
+          });
+        }
+        if (version < 9) {
+          // No data transform — `observeLensDataSource` stays undefined on
+          // existing projects and resolves to the `live` default via
+          // `getObserveLensDataSource(project)`. Leaving the field absent
+          // means the module-bar Observe lens reads live project data out of
+          // the box; the steward opts back to `mock` per project via the
+          // ObserveLensDataSourceToggle.
+        }
         return state;
       },
       // Strip large geospatial blobs (parsed attachments) from localStorage to
       // prevent quota issues. Parcel boundary FCs are small (~1-10 KB) so they
       // ride directly in localStorage like designElementsStore does in PLAN
       // — single source of truth, no IDB-restore race window. See ADDENDUM 6.
+      // Defensive against partial / drift-shaped state (e.g. a project
+      // seeded via raw setState that skipped `attachments: []`, or a sync
+      // path that replaced state with `{}`). The persist middleware reruns
+      // partialize on EVERY setState — including ones from useEffects like
+      // V3ProjectLayout's `setActiveProject` — so an undefined here crashes
+      // the whole render tree, not just persistence. Same guard pattern as
+      // `tagged.apply` in syncManifest.ts.
       partialize: (state) => ({
-        projects: state.projects.map((p) => ({
+        projects: (state.projects ?? []).map((p) => ({
           ...p,
-          attachments: p.attachments.map((a) => ({
+          attachments: (p.attachments ?? []).map((a) => ({
             ...a,
             // Parsed geospatial data stored in IndexedDB under key "attachment:<id>"
             data: null,
@@ -433,6 +1243,30 @@ useProjectStore.persist.onFinishHydration(() => {
 // by `'mtc'` so `updateProject('mtc', …)` writes route through the
 // builtin allowlist (parcel boundary + metadata) instead of silently
 // dropping. Idempotent.
+// Plausible Ontario placeholder parcel for the Moontrance Creek demo (~40 ha
+// near Mulmur/Creemore, CA/ON). Long axis runs NW-SE along the lie of the
+// land; the seasonal creek follows the low NE edge. Full 6-dp precision,
+// true-north WGS84 -- swappable for surveyed coordinates later. DEMO DATA.
+const MTC_PARCEL_BOUNDARY: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { name: 'Moontrance Creek (demo parcel)' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-80.105900, 44.303500],
+          [-80.097200, 44.301800],
+          [-80.095800, 44.296500],
+          [-80.104500, 44.298200],
+          [-80.105900, 44.303500],
+        ]],
+      },
+    },
+  ],
+};
+
 export const MTC_SEED: LocalProject = {
   id: 'mtc',
   name: 'Moontrance Creek',
@@ -446,11 +1280,11 @@ export const MTC_SEED: LocalProject = {
   parcelId: null,
   acreage: null,
   dataCompletenessScore: null,
-  hasParcelBoundary: false,
+  hasParcelBoundary: true,
   isBuiltin: true,
   createdAt: '2026-05-13T00:00:00.000Z',
   updatedAt: '2026-05-13T00:00:00.000Z',
-  parcelBoundaryGeojson: null,
+  parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY,
   ownerNotes: null,
   zoningNotes: null,
   accessNotes: null,
@@ -462,10 +1296,34 @@ export const MTC_SEED: LocalProject = {
 
 function seedMtcDemo(): void {
   const existing = useProjectStore.getState().projects.find((p) => p.id === 'mtc');
-  if (existing) return;
-  useProjectStore.setState((state) => ({
-    projects: [...state.projects, MTC_SEED],
-  }));
+  if (!existing) {
+    useProjectStore.setState((state) => ({
+      projects: [...state.projects, MTC_SEED],
+    }));
+  } else if (!existing.parcelBoundaryGeojson) {
+    // Backfill the demo boundary onto a row persisted before it existed.
+    // Idempotent: only patches when the boundary is still absent, so a user
+    // who later draws their own boundary is never overwritten.
+    useProjectStore.setState((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === 'mtc'
+          ? { ...p, parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY, hasParcelBoundary: true }
+          : p,
+      ),
+    }));
+  }
+  // Seed MTC's curated Act content at hydrate time so View B is populated the
+  // moment the map-first shell mounts (the default now that builtins are no
+  // longer pinned to the legacy command-centre). Idempotent by the field-action
+  // store's per-project gate, so a row that already exists won't duplicate and
+  // View B's own mount-effect seed becomes a no-op. Run unconditionally — the
+  // MTC project row can persist from a prior session while its actions are
+  // empty (e.g. after a field-action store reset).
+  seedCuratedMtcActionsIfEmpty('mtc');
+  // Light up MTC's Observe Dashboard with its OWN site facts (distinct from
+  // the 351-House fixture) now that builtins default to the dashboard shell.
+  // Idempotent merge-by-id replay into the data-point store.
+  seedMtcObserveDataPoints('mtc');
 }
 
 // Local fallback used when the API is unreachable (e.g. dev server not
@@ -591,7 +1449,15 @@ interface BuiltinRow {
   layers?: MockLayerResult[];
 }
 
-function asFeatureCollection(
+/**
+ * Normalize a server-supplied parcel boundary into the `FeatureCollection`
+ * shape the store stores. `ST_AsGeoJSON(parcel_boundary)` returns a bare
+ * Geometry (Polygon/MultiPolygon), so wrap it in a single-feature FC; an
+ * already-FC value (e.g. a locally-drawn boundary) passes through unchanged.
+ * Exported so the lazy boundary-hydration path in `syncService` can reuse the
+ * exact same normalization (see `hydrateProjectBoundaries`).
+ */
+export function asFeatureCollection(
   raw: GeoJSON.FeatureCollection | GeoJSON.Geometry | null | undefined,
 ): GeoJSON.FeatureCollection | null {
   if (!raw) return null;
@@ -793,7 +1659,7 @@ async function migrateLegacyIdbBoundaries(): Promise<void> {
 }
 
 // Hydrate from localStorage (Zustand v5 requires explicit rehydrate)
-useProjectStore.persist.rehydrate();
+rehydrateWithLogging(useProjectStore);
 // After rehydrate completes, run the one-time legacy IDB migrator. This
 // is fire-and-forget; if the legacy entry exists it is folded into the
 // next zustand persist cycle automatically when state changes.

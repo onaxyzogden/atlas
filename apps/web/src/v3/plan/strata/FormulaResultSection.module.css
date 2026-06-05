@@ -1,0 +1,45 @@
+/*
+ * FormulaResultSection — the LIVE CALCULATIONS section inside
+ * ObjectiveDetailPanel. Renders one formula result widget per checklist item
+ * that carries a `formulaBinding`. Visual sibling to DetailsExpander: top
+ * hairline + gold eyebrow so it reads as part of the same stratum shell.
+ *
+ * Strictly ecological readouts (animal-unit / forage / head / water). The
+ * deferred break-even widget renders only a calm pending message — no
+ * financial framing originates here.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.headerLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.placeholder {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}

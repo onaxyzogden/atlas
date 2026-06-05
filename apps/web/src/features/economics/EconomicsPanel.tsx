@@ -3,7 +3,8 @@
  * All financial data is computed from placed features via the financial engine.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useFinancialStore } from '../../store/financialStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
@@ -11,6 +12,12 @@ import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
 import { zone } from '../../lib/tokens.js';
 import { formatKRange, formatUsdRange } from '../../lib/formatRange.js';
+import { api } from '../../lib/apiClient.js';
+import { computeTransitionBudget } from '../financial/engine/transitionBudget.js';
+import { naturalCapitalAppreciationByYear } from '../financial/somAppreciation.js';
+import JCurveChart from '../financial/JCurveChart.js';
+import ZoneSomSidebar from '../financial/ZoneSomSidebar.js';
+import { useZoneStore } from '../../store/zoneStore.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
@@ -22,6 +29,7 @@ import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
 import CostByFeaturePhaseCard from './CostByFeaturePhaseCard.js';
+import StewardshipProgramsCashflowCard from './StewardshipProgramsCashflowCard.js';
 import LandownerPartnershipCard from './LandownerPartnershipCard.js';
 import RevenueStreamTaggingCard from './RevenueStreamTaggingCard.js';
 
@@ -61,6 +69,44 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
   const region = useFinancialStore((st) => st.region);
   const setRegion = useFinancialStore((st) => st.setRegion);
   const siteData = useSiteData(project.id);
+
+  // D.4 — J-curve producers. Hooks must run unconditionally; the chart
+  // itself returns null on empty input so it's safe to compute even when
+  // `model` hasn't materialised yet.
+  const transitionYears = useMemo(
+    () => (model ? computeTransitionBudget(model.cashflow) : []),
+    [model],
+  );
+  const somQuery = useQuery({
+    queryKey: ['somTrajectory', project.id],
+    queryFn: async () => {
+      const { data } = await api.soilRegeneration.getSomTrajectory(project.id);
+      return data ?? [];
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
+  const natCap = useMemo(() => {
+    if (!somQuery.data || somQuery.data.length === 0 || project.acreage == null) {
+      return undefined;
+    }
+    return naturalCapitalAppreciationByYear({
+      trajectory: somQuery.data,
+      acres: project.acreage,
+    });
+  }, [somQuery.data, project.acreage]);
+
+  // K.4 — per-zone SOM sidebar descriptors. Subscribe to `zones` raw and
+  // derive in useMemo (getProjectZones allocates a fresh array each call →
+  // infinite loop if used as a selector). See zustand-selector-stability ADR.
+  const allZones = useZoneStore((st) => st.zones);
+  const zoneSomDescriptors = useMemo(
+    () =>
+      allZones
+        .filter((z) => z.projectId === project.id)
+        .map((z) => ({ id: z.id, label: z.name })),
+    [allZones, project.id],
+  );
 
   if (!model) {
     return (
@@ -278,6 +324,19 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
             <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'rgba(196, 162, 101, 0.3)', width: 12, height: 8, borderRadius: 2 }} /> Range</span>
           </div>
 
+          {/* D.4 — J-curve: transition-stage cumulative cashflow + optional
+              natural-capital appreciation overlay. Covenant-safe: appreciation
+              of stewarded land value, not investor yield. */}
+          <div className={s.jcurveRow}>
+            <div className={s.jcurveMain}>
+              <JCurveChart
+                transitionYears={transitionYears}
+                naturalCapitalAppreciationByYear={natCap}
+              />
+            </div>
+            <ZoneSomSidebar projectId={project.id} zones={zoneSomDescriptors} />
+          </div>
+
           {/* Scenario comparison */}
           <SectionLabel>Scenario Comparison (est.)</SectionLabel>
           <div className={s.scenarioRow}>
@@ -438,6 +497,11 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {activeTab === 'costs' && (
         <div className={`${p.section} ${p.sectionGapLg}`}>
           <CostByFeaturePhaseCard model={model} />
+          {/* Slice 7 (S7-B): combined cover-crop + habitat-feature
+              per-phase cashflow rollup — sibling to the cross-feature pivot
+              above, so the steward sees the budget-line view first, then
+              the stewardship-program detail breakdown. */}
+          <StewardshipProgramsCashflowCard projectId={project.id} />
           {costLineItems.length === 0 && (
             <div className={p.empty}>No cost items. Place features on the map.</div>
           )}

@@ -1,8 +1,8 @@
-﻿/**
- * Succession store â€” ACT-stage Module 4 (Ecological Monitoring & Yield).
+/**
+ * Succession store — ACT-stage Module 4 (Ecological Monitoring & Yield).
  *
  * Multi-year canopy / pioneer-species milestones per zone. Permaculture
- * systems evolve from pioneer â†’ mid â†’ climax over decades; this store
+ * systems evolve from pioneer → mid → climax over decades; this store
  * captures the steward's dated observations so the `SuccessionTrackerCard`
  * can render a vertical timeline per zone.
  *
@@ -12,13 +12,15 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type SuccessionPhase = 'pioneer' | 'mid' | 'climax';
 
 export interface SuccessionMilestone {
   id: string;
   projectId: string;
-  /** `zoneStore.Zone.id` â€” optional so site-wide milestones are possible. */
+  /** `zoneStore.Zone.id` — optional so site-wide milestones are possible. */
   zoneId?: string;
   /** Year of observation (e.g. 2028). Free integer, no validation. */
   year: number;
@@ -26,6 +28,11 @@ export interface SuccessionMilestone {
   observation: string;
   /** Optional inline photo (data-URL). */
   photoDataUrl?: string;
+  /**
+   * D0 spine link — the `WorkItem` (e.g. a planned succession-review)
+   * this observation completes. Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 interface SuccessionState {
@@ -47,8 +54,8 @@ export const useSuccessionStore = create<SuccessionState>()(
       removeMilestone: (id) =>
         set((s) => ({ milestones: s.milestones.filter((m) => m.id !== id) })),
     }),
-    { name: 'ogden-act-succession', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-succession', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useSuccessionStore.persist.rehydrate();
+rehydrateWithLogging(useSuccessionStore);

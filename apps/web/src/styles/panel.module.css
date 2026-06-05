@@ -10,7 +10,7 @@
   height: 100%;
   color: var(--color-panel-text);
   scrollbar-width: thin;
-  scrollbar-color: rgba(180, 165, 140, 0.18) transparent;
+  scrollbar-color: var(--color-text-subtle) transparent;
 }
 
 .container::-webkit-scrollbar { width: 6px; }
@@ -295,7 +295,7 @@
   font-size: var(--text-xs);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-active-overlay);
   color: var(--color-panel-text);
   font-family: inherit;
   outline: none;

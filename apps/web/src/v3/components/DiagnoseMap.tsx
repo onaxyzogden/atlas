@@ -122,8 +122,17 @@ export default function DiagnoseMap({
       zoom,
       attributionControl: { compact: true },
       transformRequest: maptilerTransformRequest,
+      // Capture-ready: keep the WebGL drawing buffer so `captureMapImage`'s
+      // `toDataURL` reads real pixels instead of a cleared backbuffer. Required
+      // by the DesignToolRail "Export sheet" button (via useMapSheetExport, on
+      // both Plan Current + Vision) and the legacy MapSheetExportControl, and
+      // shared by every DiagnoseMap surface (Observe) for free. Without this the
+      // browser clears the buffer after compositing and the export PNG comes
+      // back near-blank even though tiles are visible on screen.
+      preserveDrawingBuffer: true,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    m.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     if (import.meta.env.DEV) (window as unknown as { __atlasMap?: maplibregl.Map }).__atlasMap = m;
     setMap(m);
     return () => {

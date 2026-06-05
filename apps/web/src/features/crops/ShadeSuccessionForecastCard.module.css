@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .hint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.68);
+  color: var(--color-text-subtle);
   max-width: 600px;
 }
 
@@ -49,7 +49,7 @@
   border-radius: 8px;
   border: 1px dashed rgba(232, 220, 200, 0.12);
   background: rgba(232, 220, 200, 0.015);
-  color: rgba(180, 165, 140, 0.62);
+  color: var(--color-text-subtle);
   font-size: 12px;
   line-height: 1.55;
   text-align: center;
@@ -61,7 +61,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 
@@ -86,7 +86,7 @@
 .timelineYear {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   letter-spacing: 0.04em;
 }
 
@@ -122,7 +122,7 @@
 .timelineValue {
   font-size: 10.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -146,14 +146,14 @@
 .calloutTitle {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
 .calloutBody {
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(200, 188, 165, 0.78);
+  color: var(--color-text);
 }
 
 /* ── Per-cluster breakdown ── */
@@ -162,7 +162,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin: 14px 0 8px;
 }
 
@@ -202,7 +202,7 @@
 .clusterName {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .clusterTypeBadge {
@@ -213,7 +213,7 @@
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(232, 220, 200, 0.04);
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 .clusterArc {
@@ -234,14 +234,14 @@
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-bottom: 1px;
 }
 
 .clusterArcShade {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -257,7 +257,7 @@
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(232, 220, 200, 0.04);
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .role_pioneer {
@@ -277,7 +277,7 @@
 
 .role_unknown {
   background: rgba(232, 220, 200, 0.03);
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .clusterWarn {
@@ -299,11 +299,11 @@
   padding-top: 10px;
   border-top: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .summary strong {
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -311,5 +311,5 @@
   margin-top: 8px;
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
 }

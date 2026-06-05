@@ -1,0 +1,332 @@
+/*
+ * Bento page — mirrors apps/web/src/components/ui/BentoBox.module.css
+ * .bento-shell + .outer-default. The centered document now reads as a
+ * single bento containing header + sections. Padding/gap unchanged.
+ */
+.page {
+  max-width: 880px;
+  margin: var(--space-4) auto;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+.lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 64ch;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.cardList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-border);
+}
+
+.card[data-impact='likely'] {
+  border-left-color: #e0794b;
+}
+
+.card[data-impact='possible'] {
+  border-left-color: #d4af5f;
+}
+
+.card[data-status='reviewed'] {
+  opacity: 0.85;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.moduleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.moduleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-brand, #d4af5f);
+}
+
+.impactBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.impactBadge[data-impact='likely'] {
+  background: rgba(224, 121, 75, 0.16);
+  color: #e0794b;
+}
+
+.impactBadge[data-impact='possible'] {
+  background: rgba(212, 175, 95, 0.16);
+  color: #c79a3e;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.cardReason {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 12px;
+}
+
+.sourceLink {
+  color: var(--color-brand, #d4af5f);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sourceLink:hover {
+  text-decoration: underline;
+}
+
+.recordedAt {
+  color: var(--color-text-muted);
+}
+
+.decideBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.decideEyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.decisionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.decisionBtn {
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.decisionBtn:hover {
+  border-color: var(--color-brand, #d4af5f);
+  color: var(--color-brand, #d4af5f);
+}
+
+.noteInput {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.reviewedBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.decisionRecorded {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.decisionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.noteRecorded {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+}
+
+.reviewedActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.logDecisionBtn {
+  padding: 4px 12px;
+  border: 1px solid var(--color-brand, #d4af5f);
+  border-radius: 6px;
+  background: rgba(212, 175, 95, 0.16);
+  color: var(--color-brand, #d4af5f);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logDecisionBtn:hover {
+  background: rgba(212, 175, 95, 0.28);
+}
+
+.reopenBtn {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reopenBtn:hover {
+  border-color: var(--color-brand, #d4af5f);
+  color: var(--color-brand, #d4af5f);
+}

@@ -1,0 +1,97 @@
+/* WizardVisionFormFields — chip groups + textarea for Step 2. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.hint {
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+  margin-left: 4px;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease,
+    opacity 120ms ease;
+}
+.chip:hover {
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
+}
+.chip[data-selected='true'] {
+  background: rgba(var(--color-primary-rgb), 0.16);
+  color: var(--color-gold-brand);
+  border-color: var(--color-gold-brand);
+}
+.chip[data-disabled='true'] {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.chip[data-disabled='true']:hover {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border-subtle);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 92px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-gold-brand);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.18);
+}
+
+.counter {
+  align-self: flex-end;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

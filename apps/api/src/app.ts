@@ -38,21 +38,31 @@ import { initGaezService } from './services/gaez/GaezRasterService.js';
 import soilgridsRoutes from './routes/soilgrids/index.js';
 import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
+import designMapRoutes from './routes/design-map/index.js';
 import machineryItemRoutes from './routes/machinery-items/index.js';
 import projectStateRoutes from './routes/project-state/index.js';
+import actRecordRoutes from './routes/act-records/index.js';
 import vegetationRoutes from './routes/vegetation/index.js';
 import successionRoutes from './routes/succession/index.js';
 import fileRoutes from './routes/files/index.js';
+import proofPhotoRoutes from './routes/proof-photo/index.js';
 import exportRoutes from './routes/exports/index.js';
 import portalRoutes from './routes/portal/index.js';
 import publicPortalRoutes from './routes/portal/public.js';
 import commentRoutes from './routes/comments/index.js';
 import relationshipRoutes from './routes/relationships/index.js';
+import crossProjectRelationshipRoutes from './routes/cross-project-relationships/index.js';
+import portfolioPoiRoutes from './routes/portfolio-pois/index.js';
 import memberRoutes from './routes/members/index.js';
 import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
 import regenerationEventRoutes from './routes/regeneration-events/index.js';
+import olosCatalogRoutes from './routes/olos/catalog.js';
+import olosRoutes from './routes/olos/index.js';
+import compostRoutes from './routes/compost/index.js';
+import soilRegenerationRoutes from './routes/soil-regeneration/index.js';
+import evidenceAuditRoutes from './routes/evidence-audit/index.js';
 import telemetryRoutes from './routes/telemetry/index.js';
 
 // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
@@ -204,21 +214,31 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(gaezRoutes,     { prefix: '/api/v1/gaez' });
   await app.register(soilgridsRoutes,{ prefix: '/api/v1/soilgrids' });
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
+  await app.register(designMapRoutes,     { prefix: '/api/v1/design-map' });
   await app.register(machineryItemRoutes, { prefix: '/api/v1/machinery-items' });
   await app.register(projectStateRoutes,  { prefix: '/api/v1/project-state' });
+  await app.register(actRecordRoutes,      { prefix: '/api/v1/act-records' });
   await app.register(vegetationRoutes,    { prefix: '/api/v1/vegetation' });
   await app.register(successionRoutes,    { prefix: '/api/v1/succession' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
+  await app.register(proofPhotoRoutes,    { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
   await app.register(portalRoutes,        { prefix: '/api/v1/projects' });
   await app.register(publicPortalRoutes,  { prefix: '/api/v1/portal' });
   await app.register(commentRoutes,       { prefix: '/api/v1/projects' });
   await app.register(relationshipRoutes,  { prefix: '/api/v1/projects' });
+  await app.register(crossProjectRelationshipRoutes, { prefix: '/api/v1/projects' });
+  await app.register(portfolioPoiRoutes, { prefix: '/api/v1/portfolio-pois' });
   await app.register(memberRoutes,        { prefix: '/api/v1/projects' });
   await app.register(organizationRoutes,  { prefix: '/api/v1/organizations' });
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
+  await app.register(olosCatalogRoutes,    { prefix: '/api/v1/olos' });
+  await app.register(olosRoutes,           { prefix: '/api/v1/projects' });
+  await app.register(compostRoutes,        { prefix: '/api/v1/compost' });
+  await app.register(soilRegenerationRoutes, { prefix: '/api/v1/soil-regeneration' });
+  await app.register(evidenceAuditRoutes, { prefix: '/api/v1/projects' });
   await app.register(telemetryRoutes,     { prefix: '/api/v1/telemetry' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
 
@@ -407,10 +427,27 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   // ─── Health check ────────────────────────────────────────────────────────────
 
+  // Root liveness probe for infra / load-balancers. Bare object (no envelope),
+  // and NOT under /api/v1 — so it is not reachable through the web app's
+  // /api-only dev proxy (and would not share the SPA's API origin in prod).
   app.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: '0.1.0',
+  }));
+
+  // Lightweight, unauthenticated reachability ping for the browser. Lives under
+  // the proxied /api/v1 prefix and returns the standard { data, error } envelope
+  // so apiClient.request() treats a 2xx as "API reachable" (firing the success
+  // hook). Used by ApiReachabilityBanner's no-token Retry to flip apiReachable
+  // back to true without a full page reload. Static — no DB/Redis access.
+  app.get('/api/v1/health', async () => ({
+    data: {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: '0.1.0',
+    },
+    error: null,
   }));
 
   // ─── Cleanup hooks ──────────────────────────────────────────────────────────

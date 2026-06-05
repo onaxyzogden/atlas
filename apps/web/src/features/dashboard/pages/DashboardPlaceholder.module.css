@@ -19,13 +19,13 @@
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 
 .desc {
   font-size: 14px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   margin: 0 0 24px;
 }
 

@@ -16,6 +16,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type MaintenanceSourceKind = 'earthwork' | 'storage' | 'structure';
 
@@ -39,6 +41,11 @@ export interface MaintenanceEvent {
   /** Optional steward / contractor name. */
   who?: string;
   notes?: string;
+  /**
+   * D0 spine link — the recurring-maintenance `WorkItem` this event
+   * completes. Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 interface MaintenanceLogState {
@@ -59,6 +66,8 @@ export const useMaintenanceLogStore = create<MaintenanceLogState>()(
     }),
     {
       name: 'ogden-act-maintenance-log',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       // No-op migrate so legacy v1 state hydrates silently. Bumps
       // have been additive — undefined slots fall through to []/{}.
@@ -67,4 +76,4 @@ export const useMaintenanceLogStore = create<MaintenanceLogState>()(
   ),
 );
 
-useMaintenanceLogStore.persist.rehydrate();
+rehydrateWithLogging(useMaintenanceLogStore);

@@ -51,7 +51,19 @@ Edit both `.env` files. At minimum you need:
 pnpm install
 ```
 
-### 4. Run in development
+### 4. Install git hooks (one-time, per clone)
+
+```bash
+node scripts/git-hooks/install.mjs
+```
+
+Wires `core.hooksPath` to `scripts/git-hooks/`. The `pre-push` hook
+refuses any push that deletes a `wiki/log/*.md` entry, catching the
+silent-drop failure mode when two sessions concurrently rebase
+`feat/atlas-permaculture`. See
+[wiki/concepts/parallel-session-coordination.md](wiki/concepts/parallel-session-coordination.md).
+
+### 5. Run in development
 
 ```bash
 pnpm dev

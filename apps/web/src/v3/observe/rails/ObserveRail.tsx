@@ -19,19 +19,19 @@ interface ObserveRailProps {
 }
 
 const PLACEHOLDER_CHECKLIST: Record<ObserveModule, string[]> = {
-  'human-context': [
+  'people-governance': [
     'Capture stakeholder vision',
     'Document current land use',
     'Note governance & tenure',
     'List adjacent neighbours',
   ],
-  'built-environment': [
+  'built-infrastructure': [
     'Trace buildings and outbuildings',
     'Mark wells and septic systems',
     'Sketch power and buried utilities',
     'Walk the fence and gate lines',
   ],
-  'macroclimate-hazards': [
+  'climate': [
     'Pull regional climate normals',
     'Map wildfire / flood / wind exposure',
     'Note historical extremes',
@@ -41,22 +41,32 @@ const PLACEHOLDER_CHECKLIST: Record<ObserveModule, string[]> = {
     'Identify ridges & drainages',
     'Mark aspect zones',
   ],
-  'earth-water-ecology': [
+  'hydrology': [
     'Soil sampling plan',
     'Surface water inventory',
     'Existing vegetation survey',
   ],
-  'sectors-zones': [
+  'access-circulation': [
     'Identify wild energy sectors',
     'Sketch zone 0–5 placement',
     'Note disturbance corridors',
   ],
-  'swot-synthesis': [
+  'monitoring-records': [
     'Strengths review',
     'Weaknesses review',
     'Opportunities review',
     'Threats review',
   ],
+  // Unauthored Observe domains — empty checklists.
+  'vision-intent': [],
+  'land-base': [],
+  soil: [],
+  ecology: [],
+  'plants-food': [],
+  'animals-livestock': [],
+  'energy-resources': [],
+  'economics-capacity': [],
+  'risk-compliance': [],
 };
 
 type Tab = 'checklist' | 'notes';

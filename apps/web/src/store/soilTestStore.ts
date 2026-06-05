@@ -1,11 +1,11 @@
-﻿/**
- * Soil-test store â€” PLAN-stage Module 5 (Soil Fertility & Closed-Loop).
+/**
+ * Soil-test store — PLAN-stage Module 5 (Soil Fertility & Closed-Loop).
  *
  * Persists the steward's jar-test / percolation / pH readings authored in
  * `SoilBaselineCard`. Per Permaculture Scholar verdict 2026-05-07
  * (`wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`)
- * the Scholar called "soil management areas" â€” a project usually has more
- * than one reading because soil varies across zones â€” so each entry
+ * the Scholar called "soil management areas" — a project usually has more
+ * than one reading because soil varies across zones — so each entry
  * carries an optional `zoneId` plus a free-text label.
  *
  * Selector discipline: subscribers should read `state.byProject` and
@@ -15,6 +15,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export interface SoilTest {
   id: string;
@@ -36,7 +38,7 @@ export interface SoilTest {
 }
 
 interface SoilTestState {
-  /** projectId â†’ soil-test list. */
+  /** projectId → soil-test list. */
   byProject: Record<string, SoilTest[]>;
   addTest: (test: SoilTest) => void;
   updateTest: (id: string, patch: Partial<Omit<SoilTest, 'id' | 'projectId' | 'createdAt'>>) => void;
@@ -71,11 +73,11 @@ export const useSoilTestStore = create<SoilTestState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-soil-tests', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-soil-tests', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useSoilTestStore.persist.rehydrate();
+rehydrateWithLogging(useSoilTestStore);
 
 export function newSoilTestId(): string {
   return `st-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

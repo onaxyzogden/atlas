@@ -12,6 +12,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type VerticalElementType = 'structure' | 'tree' | 'shrub' | 'swale' | 'pond';
@@ -142,11 +144,44 @@ export interface DrainageLine {
   createdAt: string;
 }
 
+export type ErosionSeverity = 'low' | 'medium' | 'high';
+export type ErosionType = 'sheet' | 'rill' | 'gully' | 'bank';
+
+/** Point flag marking observed soil erosion (OSU PDC Screen 4 erosion log). */
+export interface ErosionFlag {
+  id: string;
+  projectId: string;
+  /** [lng, lat] */
+  position: [number, number];
+  severity: ErosionSeverity;
+  type: ErosionType;
+  notes?: string;
+  createdAt: string;
+}
+
+export type RunoffFlowCondition = 'dry' | 'light' | 'active' | 'severe';
+
+/** Line tracing observed overland runoff (OSU PDC Screen 4 runoff path). */
+export interface RunoffPath {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.LineString;
+  /** Where the flow originates (free-text landmark). */
+  from?: string;
+  /** Where the flow terminates (free-text landmark). */
+  to?: string;
+  flowCondition: RunoffFlowCondition;
+  notes?: string;
+  createdAt: string;
+}
+
 interface TopographyState {
   transects: Transect[];
   contours: Contour[];
   highPoints: HighPoint[];
   drainageLines: DrainageLine[];
+  erosionFlags: ErosionFlag[];
+  runoffPaths: RunoffPath[];
 
   addTransect: (t: Transect) => void;
   updateTransect: (id: string, patch: Partial<Transect>) => void;
@@ -163,6 +198,14 @@ interface TopographyState {
   addDrainageLine: (d: DrainageLine) => void;
   updateDrainageLine: (id: string, patch: Partial<DrainageLine>) => void;
   removeDrainageLine: (id: string) => void;
+
+  addErosionFlag: (e: ErosionFlag) => void;
+  updateErosionFlag: (id: string, patch: Partial<ErosionFlag>) => void;
+  removeErosionFlag: (id: string) => void;
+
+  addRunoffPath: (r: RunoffPath) => void;
+  updateRunoffPath: (id: string, patch: Partial<RunoffPath>) => void;
+  removeRunoffPath: (id: string) => void;
 }
 
 export const useTopographyStore = create<TopographyState>()(
@@ -172,6 +215,8 @@ export const useTopographyStore = create<TopographyState>()(
       contours: [],
       highPoints: [],
       drainageLines: [],
+      erosionFlags: [],
+      runoffPaths: [],
 
       addTransect: (t) => set((s) => ({ transects: [...s.transects, t] })),
       updateTransect: (id, patch) =>
@@ -196,9 +241,27 @@ export const useTopographyStore = create<TopographyState>()(
         })),
       removeDrainageLine: (id) =>
         set((s) => ({ drainageLines: s.drainageLines.filter((d) => d.id !== id) })),
+
+      addErosionFlag: (e) => set((s) => ({ erosionFlags: [...s.erosionFlags, e] })),
+      updateErosionFlag: (id, patch) =>
+        set((s) => ({
+          erosionFlags: s.erosionFlags.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+        })),
+      removeErosionFlag: (id) =>
+        set((s) => ({ erosionFlags: s.erosionFlags.filter((e) => e.id !== id) })),
+
+      addRunoffPath: (r) => set((s) => ({ runoffPaths: [...s.runoffPaths, r] })),
+      updateRunoffPath: (id, patch) =>
+        set((s) => ({
+          runoffPaths: s.runoffPaths.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+        })),
+      removeRunoffPath: (id) =>
+        set((s) => ({ runoffPaths: s.runoffPaths.filter((r) => r.id !== id) })),
     }), { limit: 200 }),
     {
       name: 'ogden-topography',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted) => {
         const p = (persisted ?? {}) as Partial<TopographyState>;
@@ -207,10 +270,12 @@ export const useTopographyStore = create<TopographyState>()(
           contours: p.contours ?? [],
           highPoints: p.highPoints ?? [],
           drainageLines: p.drainageLines ?? [],
+          erosionFlags: p.erosionFlags ?? [],
+          runoffPaths: p.runoffPaths ?? [],
         } as TopographyState;
       },
     },
   ),
 );
 
-useTopographyStore.persist.rehydrate();
+rehydrateWithLogging(useTopographyStore);

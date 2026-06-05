@@ -11,12 +11,20 @@ import type { ProjectMemberRecord, ProjectRole } from '@ogden/shared';
 interface MemberState {
   members: ProjectMemberRecord[];
   myRole: ProjectRole | null;
+  myRoles: Record<string, ProjectRole>;
   isLoading: boolean;
 
   fetchMembers: (projectId: string) => Promise<void>;
   fetchMyRole: (projectId: string) => Promise<void>;
-  inviteMember: (projectId: string, email: string, role: Exclude<ProjectRole, 'owner'>) => Promise<ProjectMemberRecord | null>;
-  updateRole: (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner'>) => Promise<void>;
+  fetchMyRoles: () => Promise<void>;
+  /**
+   * Seed a local roster for the offline/demo flow (no auth, no backend).
+   * No-op when members are already present so a real fetched roster is never
+   * clobbered. Used by the builtin sample seed.
+   */
+  seedLocalMembers: (members: ProjectMemberRecord[]) => void;
+  inviteMember: (projectId: string, email: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => Promise<ProjectMemberRecord | null>;
+  updateRole: (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => Promise<void>;
   removeMember: (projectId: string, userId: string) => Promise<void>;
   reset: () => void;
 }
@@ -24,6 +32,7 @@ interface MemberState {
 export const useMemberStore = create<MemberState>()((set, get) => ({
   members: [],
   myRole: null,
+  myRoles: {},
   isLoading: false,
 
   fetchMembers: async (projectId: string) => {
@@ -40,6 +49,11 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
+  seedLocalMembers: (members: ProjectMemberRecord[]) => {
+    if (get().members.length > 0) return;
+    set({ members });
+  },
+
   fetchMyRole: async (projectId: string) => {
     try {
       const { data } = await api.members.myRole(projectId);
@@ -51,7 +65,22 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
-  inviteMember: async (projectId: string, email: string, role: Exclude<ProjectRole, 'owner'>) => {
+  fetchMyRoles: async () => {
+    try {
+      const { data } = await api.members.myRoles();
+      if (data) {
+        const next: Record<string, ProjectRole> = {};
+        for (const entry of data) {
+          next[entry.projectId] = entry.role;
+        }
+        set({ myRoles: next });
+      }
+    } catch (err) {
+      console.warn('[OGDEN] Failed to fetch my roles:', err);
+    }
+  },
+
+  inviteMember: async (projectId: string, email: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => {
     try {
       const { data } = await api.members.invite(projectId, { email, role });
       if (data) {
@@ -67,7 +96,7 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
-  updateRole: async (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner'>) => {
+  updateRole: async (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => {
     // Optimistic update
     set((s) => ({
       members: s.members.map((m) => (m.userId === userId ? { ...m, role } : m)),
@@ -94,5 +123,5 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
-  reset: () => set({ members: [], myRole: null, isLoading: false }),
+  reset: () => set({ members: [], myRole: null, myRoles: {}, isLoading: false }),
 }));

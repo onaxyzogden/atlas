@@ -7,6 +7,8 @@
 import type { MockLayerResult } from '../../../../lib/mockLayerData.js';
 import type { SectorArrow } from '../../../../store/externalForcesStore.js';
 import type { LandZone, ZoneCategory } from '../../../../store/zoneStore.js';
+import { computeWindSectors } from '../../../../lib/sectors/wind.js';
+import { computeSolarSectors } from '../../../../lib/sectors/solar.js';
 
 // ── KpiItem shape (same contract as topography/earth-water derivations) ───────
 
@@ -203,4 +205,63 @@ export function compassKpis(
       tone: sectors.length > 0 ? 'green' : 'dim',
     },
   ];
+}
+
+// ── computedSectorRows (read-only climate layers for the observations table) ──
+
+/**
+ * Read-only rows mirroring the auto-computed layers the SectorCompassDiagram
+ * draws on top of the steward's manual arrows — the wind rose (`computeWindSectors`)
+ * and the solar arcs (`computeSolarSectors`). Applying the same guards as the
+ * diagram keeps the table and the compass in lockstep.
+ */
+export interface ComputedSectorRow {
+  id: string;
+  group: 'wind' | 'solar';
+  bearing: string; // wind: "270°"  · solar: "112°–248°"
+  label: string; // wind: "Prevailing wind — W"  · solar: "Summer solstice sun arc"
+  strength: string; // wind: "27%" (frequency)  · solar: "—"
+}
+
+export function computedSectorRows(
+  centroid: [number, number] | null,
+): ComputedSectorRow[] {
+  if (!centroid) return [];
+
+  const windRows: ComputedSectorRow[] = computeWindSectors(centroid)
+    .wedges
+    .map((w) => {
+      const meta = (w.meta ?? {}) as {
+        direction?: string;
+        centerBearingDeg?: number;
+        frequency?: number;
+      };
+      const freq = typeof meta.frequency === 'number' ? meta.frequency : 0;
+      const center =
+        typeof meta.centerBearingDeg === 'number' ? meta.centerBearingDeg : w.startBearingDeg;
+      return {
+        id: w.id,
+        group: 'wind' as const,
+        bearing: `${Math.round(center)}°`,
+        label: `Prevailing wind — ${meta.direction ?? ''}`.trimEnd(),
+        strength: `${Math.round(freq * 100)}%`,
+        freq,
+      };
+    })
+    .sort((a, b) => b.freq - a.freq)
+    .map(({ freq: _freq, ...row }) => row);
+
+  const lat = centroid[1];
+  const solarRows: ComputedSectorRow[] =
+    lat == null || lat < -90 || lat > 90
+      ? []
+      : computeSolarSectors(centroid).wedges.map((w) => ({
+          id: w.id,
+          group: 'solar' as const,
+          bearing: `${Math.round(w.startBearingDeg)}°–${Math.round(w.endBearingDeg)}°`,
+          label: w.label,
+          strength: DASH,
+        }));
+
+  return [...windRows, ...solarRows];
 }

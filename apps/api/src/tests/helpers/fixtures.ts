@@ -164,6 +164,44 @@ export function relationshipRow(overrides?: Record<string, unknown>) {
   };
 }
 
+/** Portfolio POI row — created_at is Date for routes calling .toISOString() */
+export function poiRow(overrides?: Record<string, unknown>) {
+  return {
+    id: 'f0000000-0000-0000-0000-000000000001',
+    owner_id: TEST_USER_ID,
+    name: 'Regional Compost Depot',
+    poi_kind: 'compost_hub',
+    lng: -79.4,
+    lat: 43.7,
+    notes: null,
+    created_at: NOW_DATE,
+    updated_at: NOW_DATE,
+    ...overrides,
+  };
+}
+
+/** POI↔project flow row — created_at is Date for .toISOString() */
+export function poiFlowRow(overrides?: Record<string, unknown>) {
+  return {
+    id: 'f1000000-0000-0000-0000-000000000001',
+    poi_id: 'f0000000-0000-0000-0000-000000000001',
+    project_id: TEST_PROJ_ID,
+    material_kind: 'compost',
+    direction: 'output',
+    label: null,
+    mass_kg_per_month: 500,
+    volume_l_per_month: null,
+    energy_kwh_per_month: null,
+    nutrient_n_kg_per_month: null,
+    nutrient_p_kg_per_month: null,
+    nutrient_k_kg_per_month: null,
+    notes: null,
+    created_at: NOW_DATE,
+    project_name: 'Test Farm',
+    ...overrides,
+  };
+}
+
 export function portalRow(overrides?: Record<string, unknown>) {
   return {
     id: crypto.randomUUID(),

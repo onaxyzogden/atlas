@@ -23,7 +23,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import css from './LandOsShell.module.css';
 
 export interface LandOsShellProps {
-  sidebar: ReactNode;
+  /** Left sidebar content. When undefined/null, the sidebar aside AND its
+   *  col-edge (resize/collapse) track are omitted entirely, so the content
+   *  area spans the freed width. Mirrors the `rail` slot. */
+  sidebar?: ReactNode;
   /** Right rail content. When undefined/null, the rail track is omitted
    *  entirely so the page can own its right rail via StageShell.rightRail. */
   rail?: ReactNode;
@@ -54,14 +57,15 @@ export default function LandOsShell({ sidebar, rail, children }: LandOsShellProp
     stateRef.current = { sidebarW, railW, sidebarCollapsed, railCollapsed };
   }, [sidebarW, railW, sidebarCollapsed, railCollapsed]);
 
+  const hasSidebar = sidebar !== undefined && sidebar !== null;
   const hasRail = rail !== undefined && rail !== null;
   const left = sidebarCollapsed ? `${COLLAPSED_W}px` : `${sidebarW}px`;
   const right = railCollapsed ? `${COLLAPSED_W}px` : `${railW}px`;
-  const shellStyle: CSSProperties = {
-    gridTemplateColumns: hasRail
-      ? `${left} ${EDGE_W}px 1fr ${EDGE_W}px ${right}`
-      : `${left} ${EDGE_W}px 1fr`,
-  };
+  const cols: string[] = [];
+  if (hasSidebar) cols.push(left, `${EDGE_W}px`);
+  cols.push('1fr');
+  if (hasRail) cols.push(`${EDGE_W}px`, right);
+  const shellStyle: CSSProperties = { gridTemplateColumns: cols.join(' ') };
 
   const onHandlePointerDown = (side: Side) => (e: React.PointerEvent<HTMLDivElement>) => {
     const startX = e.clientX;
@@ -159,32 +163,36 @@ export default function LandOsShell({ sidebar, rail, children }: LandOsShellProp
 
   return (
     <div className={css.shell} style={shellStyle}>
-      <aside
-        className={`${css.sidebar} ${sidebarCollapsed ? css.collapsed : ''}`}
-        aria-label="Lifecycle navigation"
-      >
-        {!sidebarCollapsed && <div className={css.paneBody}>{sidebar}</div>}
-      </aside>
+      {hasSidebar && (
+        <>
+          <aside
+            className={`${css.sidebar} ${sidebarCollapsed ? css.collapsed : ''}`}
+            aria-label="Lifecycle navigation"
+          >
+            {!sidebarCollapsed && <div className={css.paneBody}>{sidebar}</div>}
+          </aside>
 
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={`Sidebar — drag to resize, click to ${sidebarCollapsed ? 'expand' : 'collapse'}`}
-        className={css.colEdge}
-        tabIndex={0}
-        onPointerDown={onHandlePointerDown('left')}
-        onKeyDown={onHandleKeyDown('left')}
-      >
-        <div className={css.colEdgeLine} aria-hidden="true" />
-        <button
-          type="button"
-          className={css.colEdgeToggle}
-          tabIndex={-1}
-          aria-hidden="true"
-        >
-          {sidebarChevron}
-        </button>
-      </div>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label={`Sidebar — drag to resize, click to ${sidebarCollapsed ? 'expand' : 'collapse'}`}
+            className={css.colEdge}
+            tabIndex={0}
+            onPointerDown={onHandlePointerDown('left')}
+            onKeyDown={onHandleKeyDown('left')}
+          >
+            <div className={css.colEdgeLine} aria-hidden="true" />
+            <button
+              type="button"
+              className={css.colEdgeToggle}
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              {sidebarChevron}
+            </button>
+          </div>
+        </>
+      )}
 
       <section className={css.content} aria-label="Workspace content">
         {children}

@@ -91,4 +91,58 @@ describe('rotationPlanStore', () => {
       cells: [],
     });
   });
+
+  /* ---------- B3.1 — optional plan options ---------- */
+
+  it('setPlanOptions round-trips startDateISO and horizonCycles', () => {
+    const { setPlan, setPlanOptions } = useRotationPlanStore.getState();
+    setPlan('p1', [cell('a')]);
+    setPlanOptions('p1', { startDateISO: '2026-08-01', horizonCycles: 3 });
+    const plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan.startDateISO).toBe('2026-08-01');
+    expect(plan.horizonCycles).toBe(3);
+    expect(plan.cells.map((c) => c.paddockId)).toEqual(['a']);
+  });
+
+  it('setPlan / upsertCell / removeCell preserve previously-set options', () => {
+    const { setPlan, setPlanOptions, upsertCell, removeCell } =
+      useRotationPlanStore.getState();
+    setPlan('p1', [cell('a', { sequenceOrder: 0 })]);
+    setPlanOptions('p1', { startDateISO: '2026-09-15', horizonCycles: 2 });
+
+    upsertCell('p1', cell('b', { sequenceOrder: 1 }));
+    let plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan.startDateISO).toBe('2026-09-15');
+    expect(plan.horizonCycles).toBe(2);
+
+    removeCell('p1', 'a');
+    plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan.startDateISO).toBe('2026-09-15');
+    expect(plan.horizonCycles).toBe(2);
+
+    setPlan('p1', [cell('c')]);
+    plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan.startDateISO).toBe('2026-09-15');
+    expect(plan.horizonCycles).toBe(2);
+  });
+
+  it('setPlanOptions can update one option without clobbering the other', () => {
+    const { setPlanOptions } = useRotationPlanStore.getState();
+    setPlanOptions('p1', { startDateISO: '2026-10-01', horizonCycles: 3 });
+    setPlanOptions('p1', { horizonCycles: 1 });
+    const plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan.startDateISO).toBe('2026-10-01');
+    expect(plan.horizonCycles).toBe(1);
+  });
+
+  it('default plan (no options set) is still { projectId, cells }', () => {
+    useRotationPlanStore.getState().setPlan('p1', [cell('a')]);
+    const plan = useRotationPlanStore.getState().byProject['p1']!;
+    expect(plan).toEqual({
+      projectId: 'p1',
+      cells: [cell('a')],
+    });
+    expect('startDateISO' in plan).toBe(false);
+    expect('horizonCycles' in plan).toBe(false);
+  });
 });

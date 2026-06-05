@@ -67,7 +67,14 @@ export default function HomePage() {
         meta={`${project.location.region} · ${formatLocationArea(project.location)}`}
         verdict={project.verdict}
         actions={[
-          { label: "Continue Project", onClick: () => navigate({ to: "/cycle" }) },
+          {
+            label: "Continue Project",
+            onClick: () =>
+              navigate({
+                to: "/v3/project/$projectId/observe",
+                params: { projectId: project.id },
+              }),
+          },
           { label: "Generate Brief", variant: "secondary", onClick: () => {} },
         ]}
       />

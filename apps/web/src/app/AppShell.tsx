@@ -6,15 +6,15 @@
 import { type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
-import OfflineBanner from '../components/OfflineBanner.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
-import { Button } from '../components/ui/Button.js';
-import { FLAGS } from '@ogden/shared';
-import { LevelNavigatorBar } from '../components/LevelNavigator/index.js';
+import HeaderStageSpine from '../v3/HeaderStageSpine.js';
+import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
+import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
+import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -23,11 +23,9 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === '/home' || pathname === '/v3/project';
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
-  const openPalette = useUIStore((s) => s.openCommandPalette);
 
   useKeyboardShortcuts();
   useGlobalAnnotationUndo();
@@ -38,26 +36,27 @@ export default function AppShell({ children }: AppShellProps) {
       <a href="#main-content" className={styles.skipLink}>
         Skip to main content
       </a>
-      {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/v3/project" className={styles.logo}>
+        <Link to="/v3/portfolio" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
           <span className={styles.logoSub}>Land OS</span>
         </Link>
 
         <div className={styles.headerCenter}>
-          <LevelNavigatorBar />
+          <HeaderStageSpine />
         </div>
 
-        {/* Search / Command Palette trigger */}
-        <button
-          onClick={openPalette}
-          aria-label="Search or open command palette"
-          className={styles.searchTrigger}
-        >
-          <span className={styles.searchPlaceholder}>Search...</span>
-          <kbd className={styles.searchKbd}>Ctrl+K</kbd>
-        </button>
+        {/* Stage search — locates objectives / tools / domains within the
+            currently selected stage (renders only on observe/plan/act). */}
+        <HeaderStageSearch />
+
+        {/* Sync status (relocated from the Act in-page rails to global header) */}
+        <ProofSyncIndicator />
+
+        {/* API reachability — non-blocking status chip (replaces the former
+            fixed full-width banner that occluded the header/toolbar). Visible
+            only on a problem; self-heal runs globally via ApiReachabilityWatcher. */}
+        <ApiReachabilityStatus />
 
         {/* Theme toggle */}
         <button
@@ -99,19 +98,6 @@ export default function AppShell({ children }: AppShellProps) {
           </Link>
         )}
 
-        {/* New Project button */}
-        {pathname !== '/new' && (
-          <Link to="/new" className={styles.newProjectLink}>
-            <Button variant="primary" size="sm">New Project</Button>
-          </Link>
-        )}
-
-        {/* Back to Projects */}
-        {!isHome && pathname !== '/new' && (
-          <Link to="/v3/project" aria-label="Back to all projects" className={styles.backLink}>
-            All Projects
-          </Link>
-        )}
       </header>}
 
       <main id="main-content" className={styles.main}>

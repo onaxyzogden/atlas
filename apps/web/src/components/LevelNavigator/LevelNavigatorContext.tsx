@@ -94,19 +94,25 @@ export function LevelNavigatorProvider({
   }, []);
 
   const goPrev = useCallback(() => {
-    const target = levels[activeIdx - 1];
+    const n = levels.length;
+    if (n === 0) return;
+    const prevIdx = (activeIdx - 1 + n) % n;
+    const target = levels[prevIdx];
     if (!target) return;
     slide('right');
     if (onLevelChange) onLevelChange(target.key);
-    else setInternalIdx(activeIdx - 1);
+    else setInternalIdx(prevIdx);
   }, [activeIdx, levels, onLevelChange, slide]);
 
   const goNext = useCallback(() => {
-    const target = levels[activeIdx + 1];
+    const n = levels.length;
+    if (n === 0) return;
+    const nextIdx = (activeIdx + 1) % n;
+    const target = levels[nextIdx];
     if (!target) return;
     slide('left');
     if (onLevelChange) onLevelChange(target.key);
-    else setInternalIdx(activeIdx + 1);
+    else setInternalIdx(nextIdx);
   }, [activeIdx, levels, onLevelChange, slide]);
 
   const active = levels[activeIdx];
@@ -116,8 +122,14 @@ export function LevelNavigatorProvider({
     return {
       levels,
       active,
-      prev: levels[activeIdx - 1] ?? null,
-      next: levels[activeIdx + 1] ?? null,
+      prev:
+        levels.length > 0
+          ? levels[(activeIdx - 1 + levels.length) % levels.length] ?? null
+          : null,
+      next:
+        levels.length > 0
+          ? levels[(activeIdx + 1) % levels.length] ?? null
+          : null,
       slideDir,
       goPrev,
       goNext,

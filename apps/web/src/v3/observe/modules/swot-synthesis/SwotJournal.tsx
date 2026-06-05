@@ -104,7 +104,7 @@ export default function SwotJournal() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generatingâ€¦' : 'Export journal'}
+          {exporting ? 'Generating…' : 'Export journal'}
         </button>
       </div>
 
@@ -161,7 +161,7 @@ export default function SwotJournal() {
           Journal entries
         </h2>
         {sorted.length === 0 ? (
-          <p className={card.empty}>No journal entries yet â€” add one from the toolbar above.</p>
+          <p className={card.empty}>No journal entries yet — add one from the toolbar above.</p>
         ) : (
           <ul className={card.list}>
             {sorted.map((e) => (

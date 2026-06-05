@@ -6,6 +6,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
+import type { TransitionYear } from '../features/financial/engine/transitionBudget.js';
 
 export interface ScenarioVariantConfig {
   /** Project type override for this scenario (null = use project default) */
@@ -64,6 +67,23 @@ export interface Scenario {
   annualRevenueMid: number;
   /** Mission alignment scores (computed with variant weights) */
   missionScore: ScenarioMissionScore;
+
+  // ── D.1 transition budget (additive; producers land in D.4 / D.3) ────
+  /**
+   * Per-year transition-phase view (establishment / build-up / maturation)
+   * aggregated from `computeCashflow`. Produced by the scenario-recompute
+   * path in D.4 (J-curve consumer); undefined on scenarios captured before
+   * D.4 wiring. See [[atlas-phase-d-jcurve-trajectory]] (TBD) and
+   * `features/financial/engine/transitionBudget.ts`.
+   */
+  transitionBudgetMid?: TransitionYear[];
+  /**
+   * Optional natural-capital appreciation by year — SOM × USD/tC.
+   * Producer lands in D.3 (`projectSomTrajectory`); undefined until the
+   * trajectory table populates. Covenant-safe label: appreciation of
+   * stewarded land value, not investor yield ([[fiqh-csra-erased-2026-05-04]]).
+   */
+  naturalCapitalAppreciationByYear?: Record<number, number>;
 }
 
 interface ScenarioState {
@@ -119,6 +139,8 @@ export const useScenarioStore = create<ScenarioState>()(
     }),
     {
       name: 'ogden-scenarios',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persistedState: unknown, fromVersion: number) => {
         const state = persistedState as { scenarios?: unknown[]; activeScenarioId?: string | null };
@@ -137,4 +159,4 @@ export const useScenarioStore = create<ScenarioState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useScenarioStore.persist.rehydrate();
+rehydrateWithLogging(useScenarioStore);

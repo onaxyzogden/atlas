@@ -12,6 +12,7 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { scheduleTasksToCalendar } from '../../engine/goalCompass/scheduleTasksToCalendar.js';
+import { pushGoalCompassToSpine } from '../../engine/goalCompass/goalCompassSpineSync.js';
 import type { PlanModule } from '../../types.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -26,6 +27,9 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
   const projectStartDate = useProjectStore(
     (s) => s.projects.find((p) => p.id === project.id)?.startDate ?? null,
+  );
+  const projectCommencementDate = useProjectStore(
+    (s) => s.projects.find((p) => p.id === project.id)?.commencementDate ?? null,
   );
 
   const generatedPhases = useMemo(
@@ -46,6 +50,7 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
       projectStartDate,
     );
     replaceGoalCompassRows(project.id, generatedPhases, scheduled);
+    pushGoalCompassToSpine(project.id, generatedPhases, scheduled);
   };
 
   const totals = useMemo(() => {
@@ -86,6 +91,17 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
               }
             />
           </div>
+          <div className={styles.field}>
+            <label htmlFor="gc-project-commencement-date">Establishment start (land)</label>
+            <input
+              id="gc-project-commencement-date"
+              type="date"
+              value={projectCommencementDate ?? ''}
+              onChange={(e) =>
+                updateProject(project.id, { commencementDate: e.target.value || null })
+              }
+            />
+          </div>
         </div>
         {hasProposal ? (
           <div className={styles.btnRow}>
@@ -113,7 +129,7 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
               <button
                 type="button"
                 className={styles.btn}
-                onClick={() => onSwitchModule('phasing-budgeting')}
+                onClick={() => onSwitchModule('economics-capacity')}
               >
                 Open Phasing &amp; Budgeting
               </button>

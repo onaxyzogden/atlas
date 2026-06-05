@@ -89,6 +89,11 @@ export const ExistingMetadata = z.object({
   surface: z.string().max(32).optional(),
   /** PowerLine placement — 'overhead' | 'buried'. */
   placement: z.enum(['overhead', 'buried']).optional(),
+  /** Real-world width (metres) override for line-geometry kinds (driveway,
+   *  fence, power-line, buried-utility). When absent the kind's catalog
+   *  default (LINE_KIND_DEFAULT_WIDTH_M in builtEnvironmentKinds) applies.
+   *  Drives width-aware line-width paint in `ObserveAnnotationLayers`. */
+  widthM: z.number().nonnegative().optional(),
   /** Tile feature id of the basemap building this entity was adopted from
    *  (OpenMapTiles `building` source-layer). Set by the "Adopt from map"
    *  tool so the basemap renderer can hide that feature via feature-state,
@@ -175,6 +180,10 @@ export const BuiltEnvironmentEntity = z.object({
   updatedAt: z.string().datetime({ offset: true }),
   /** Server-assigned UUID after backend sync. Undefined = client-only. */
   serverId: z.string().optional(),
+  /** When true, the canvas suppresses this entity. Steward-side display
+   *  flag set by the PlacedFeaturesCard visibility toggle; data is
+   *  preserved. Optional — undefined / false = shown. */
+  hidden: z.boolean().optional(),
 
   /** State-specific metadata blocks. Both optional — per-kind helpers
    *  enforce required-by-state. The two blocks are NOT mutually exclusive

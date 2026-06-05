@@ -29,8 +29,8 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  background: rgba(31, 29, 26, 0.85);
-  color: #f2ede3;
+  background: rgba(20, 25, 31, 0.85);
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.25);
   border-radius: 6px;
   cursor: pointer;
@@ -38,7 +38,7 @@
 }
 
 .toolBtn:hover {
-  background: rgba(31, 29, 26, 0.95);
+  background: rgba(20, 25, 31, 0.95);
   border-color: rgba(242, 237, 227, 0.5);
 }
 

@@ -35,6 +35,11 @@ const REGION_MULTIPLIERS: Record<CostRegion, number> = {
 
 const BENCHMARKS_CACHE = new Map<CostRegion, RegionalCostBenchmarks>();
 
+/** The coarse cost index for a region, relative to US Midwest (×1.00). */
+export function getRegionMultiplier(region: CostRegion): number {
+  return REGION_MULTIPLIERS[region];
+}
+
 export function getCostBenchmarks(region: CostRegion): RegionalCostBenchmarks {
   if (region === 'us-midwest') return US_MIDWEST;
   if (region === 'ca-ontario') return CA_ONTARIO;

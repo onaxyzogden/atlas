@@ -5,13 +5,13 @@
   font-family: 'Fira Code', monospace;
   font-size: 32px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   margin: 0 0 12px;
 }
 .desc {
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   max-width: 560px;
   margin: 0 0 28px;
 }
@@ -22,7 +22,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin: 0 0 12px;
   display: block;
 }
@@ -36,8 +36,8 @@
 .climateMetric {
   padding: 14px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .climateMetricLabel {
   display: block;
@@ -45,14 +45,14 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 .climateMetricValue {
   display: block;
   font-size: 18px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
 }
 
 /* ── Sun path card ─────────────────────────────────────────── */
@@ -73,10 +73,10 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: capitalize;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   border-radius: 6px;
   background: transparent;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   cursor: pointer;
   transition: background 150ms, color 150ms;
 }
@@ -88,7 +88,7 @@
 }
 .seasonLabel {
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   text-align: center;
   margin-bottom: 8px;
 }
@@ -107,26 +107,26 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 3px;
 }
 .sunMetricValue {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
 }
 
 /* ── Wind card ─────────────────────────────────────────────── */
 .windCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .windNote {
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   text-align: center;
   margin-top: 10px;
   line-height: 1.5;
@@ -143,7 +143,7 @@
 .pendingNote {
   font-size: 13px;
   font-style: italic;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   text-align: center;
   padding: 12px 0;
 }
@@ -157,8 +157,8 @@
 .microCard {
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -169,11 +169,11 @@
 .microTitle {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232,220,200,0.8);
+  color: var(--color-text);
 }
 .microCount {
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
 }
 
 .comfortCard {
@@ -189,29 +189,29 @@
 .comfortLabel {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .comfortRating {
   font-size: 16px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
 }
 .comfortScore {
   font-size: 12px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-left: auto;
 }
 
 .pendingCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   font-size: 13px;
   font-style: italic;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   text-align: center;
 }
 
@@ -225,12 +225,12 @@
 .solarOppText {
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(232,220,200,0.75);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 .solarOppNote {
   font-size: 11px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   font-style: italic;
   margin: 0;
 }

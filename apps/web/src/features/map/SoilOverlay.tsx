@@ -59,7 +59,7 @@ interface RasterState {
   entry: CatalogEntry;
 }
 
-// â”€â”€ SoilOverlay â€” canvas-source + decode lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SoilOverlay — canvas-source + decode lifecycle ─────────────────────────
 
 interface SoilOverlayProps {
   map: maplibregl.Map | null;
@@ -247,7 +247,7 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
     return () => { cancelled = true; };
   }, [map, visible, activeEntry]);
 
-  // Hover readout â€” pixel-sampled in-memory (no network).
+  // Hover readout — pixel-sampled in-memory (no network).
   useEffect(() => {
     if (!map || !visible) return;
 
@@ -270,7 +270,7 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
       setTooltip({
         x: point.x,
         y: point.y,
-        text: `${s.entry.label} Â· ${formatted}`,
+        text: `${s.entry.label} · ${formatted}`,
         borderColor: rgbaToCss(rgba),
       });
     };
@@ -340,7 +340,7 @@ function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   return undefined;
 }
 
-// â”€â”€ SoilMapControls â€” floating picker + legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SoilMapControls — floating picker + legend ─────────────────────────────
 
 export function SoilMapControls() {
   const visible = useMapStore((s) => s.visibleLayers.has('soil_properties'));
@@ -420,7 +420,7 @@ export function SoilMapControls() {
           textAlign: 'left',
         }}
       >
-        Soil Properties {collapsed ? 'â–¸' : 'â–¾'}
+        Soil Properties {collapsed ? '▸' : '▾'}
       </button>
       {!collapsed && (
         <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -428,7 +428,7 @@ export function SoilMapControls() {
             <div style={{ color: '#c07878', fontSize: 11 }}>Catalog failed: {error}</div>
           )}
           {!catalog && !error && (
-            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalogâ€¦</div>
+            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalog…</div>
           )}
           {catalog && catalog.length === 0 && (
             <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>
@@ -461,7 +461,7 @@ export function SoilMapControls() {
             </>
           )}
           <div style={{ fontSize: 10, color: semantic.sidebarIcon, fontStyle: 'italic', marginTop: 4 }}>
-            ISRIC SoilGrids v2.0 Â· CC BY 4.0
+            ISRIC SoilGrids v2.0 · CC BY 4.0
           </div>
         </div>
       )}

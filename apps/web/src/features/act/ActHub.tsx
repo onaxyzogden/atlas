@@ -106,8 +106,9 @@ export default function ActHub({ project }: Props) {
       ],
       actions: [
         { label: '5-year build Gantt →', sectionId: 'act-build-gantt' },
-        { label: 'Budget actuals →', sectionId: 'act-budget-actuals' },
+        { label: 'Budget vs actuals →', sectionId: 'act-budget' },
         { label: 'Pilot plots →', sectionId: 'act-pilot-plots' },
+        { label: 'Operating Dashboard →', sectionId: 'act-operating-dashboard' },
       ],
       empty: projectPhases.length === 0 && projectPilots.length === 0,
     };

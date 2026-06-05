@@ -5,6 +5,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { utility } from '../lib/tokens';
 
 export type UtilityType =
@@ -62,6 +64,13 @@ export interface Utility {
    * `isTemporary` is `true`. Empty / undefined = year-round when present.
    */
   seasonalMonths?: number[];
+  /**
+   * Server design_features id once synced (PLAN-stage typed-promotion,
+   * 2026-05-22). Utilities round-trip through the typed `design_features`
+   * table (featureType `point`) like zones/structures/paths — present once
+   * the create sync returns. Absent = not yet pushed.
+   */
+  serverId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -115,6 +124,8 @@ export const useUtilityStore = create<UtilityState>()(
     }),
     {
       name: 'ogden-utilities',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({ utilities: state.utilities }),
@@ -123,4 +134,4 @@ export const useUtilityStore = create<UtilityState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useUtilityStore.persist.rehydrate();
+rehydrateWithLogging(useUtilityStore);

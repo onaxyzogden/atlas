@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, zone, semantic, phase as phaseTokens } from '../../../lib/tokens.js';
+import { neutral, zone, semantic, phase as phaseTokens } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -72,7 +72,7 @@ export default function StageRevealStory({ config }: Props) {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <h3 style={{ fontSize: 18, fontWeight: 500, color: earth[100], margin: 0 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: neutral[100], margin: 0 }}>
                   {phase.title}
                 </h3>
                 {phase.years && (
@@ -93,7 +93,7 @@ export default function StageRevealStory({ config }: Props) {
               }}>
                 <p style={{
                   fontSize: 15, fontStyle: 'italic', lineHeight: 1.7,
-                  color: earth[400], margin: 0,
+                  color: neutral[400], margin: 0,
                 }}>
                   &ldquo;{phase.desc}&rdquo;
                 </p>

@@ -1,0 +1,336 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/MY OWN AXIS/Documents/MAQASID OS - V2.1/atlas/apps/web[39m
+
+ [32m✓[39m src/v3/observe/dashboard/revision/__tests__/buildRevisionEvents.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/store/__tests__/cycleAdvance.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstderr[2m | src/v3/home/__tests__/useProjectUrgency.test.ts[2m > [22m[2museProjectUrgency[2m > [22m[2mreturns a stable empty Map when no projects are passed
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+
+[90mstderr[2m | src/v3/home/__tests__/useProjectUrgency.test.ts[2m > [22m[2museProjectUrgency[2m > [22m[2mkeys the result Map by projectId for every input project
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+
+[90mstderr[2m | src/v3/home/__tests__/useProjectUrgency.test.ts[2m > [22m[2museProjectUrgency[2m > [22m[2msurfaces wizardStatus="in_progress" as a draftWizard contribution
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+
+[90mstderr[2m | src/v3/home/__tests__/useProjectUrgency.test.ts[2m > [22m[2museProjectUrgency[2m > [22m[2mreturns score 0 for a fresh project with no signals and no inactivity
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+
+[90mstderr[2m | src/v3/home/__tests__/useProjectUrgency.test.ts[2m > [22m[2museProjectUrgency[2m > [22m[2mcounts a blocked field action via the field-action store
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\node_modules\@testing-library\react\dist\pure.js:328:5)
+
+ [32m✓[39m src/v3/home/__tests__/useProjectUrgency.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+[90mstderr[2m | Fetch.onError (file:\C:\Users\MY%20OWN%20AXIS\Documents\MAQASID%20OS%20-%20V2.1\atlas\node_modules\happy-dom\lib\fetch\Fetch.js:539:41)
+[22m[39mAggregateError: 
+[90m    at internalConnectMultiple (node:net:1142:49)[39m
+[90m    at afterConnectMultiple (node:net:1723:7)[39m {
+  code: [32m'ECONNREFUSED'[39m,
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:3000
+    [90m    at createConnectionError (node:net:1686:14)[39m
+    [90m    at afterConnectMultiple (node:net:1716:16)[39m {
+      errno: [33m-4078[39m,
+      code: [32m'ECONNREFUSED'[39m,
+      syscall: [32m'connect'[39m,
+      address: [32m'::1'[39m,
+      port: [33m3000[39m
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:3000
+    [90m    at createConnectionError (node:net:1686:14)[39m
+    [90m    at afterConnectMultiple (node:net:1716:16)[39m {
+      errno: [33m-4078[39m,
+      code: [32m'ECONNREFUSED'[39m,
+      syscall: [32m'connect'[39m,
+      address: [32m'127.0.0.1'[39m,
+      port: [33m3000[39m
+    }
+  ]
+}
+
+[90mstderr[2m | hydrateBuiltins (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web\src\store\projectStore.ts:1002:13)
+[22m[39m[OGDEN] Failed to fetch builtin samples — using local fallback: DOMException [NetworkError]: Failed to execute "fetch()" on "Window" with URL "http://localhost:3000/api/v1/projects/builtins": 
+    at Fetch.onError (file:///C:/Users/MY%20OWN%20AXIS/Documents/MAQASID%20OS%20-%20V2.1/atlas/node_modules/[4mhappy-dom[24m/lib/fetch/Fetch.js:540:21)
+[90m    at ClientRequest.emit (node:events:508:28)[39m
+[90m    at emitErrorEvent (node:_http_client:108:11)[39m
+[90m    at Socket.socketErrorListener (node:_http_client:575:5)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at emitErrorNT (node:internal/streams/destroy:170:8)[39m
+[90m    at emitErrorCloseNT (node:internal/streams/destroy:129:3)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:90:21)[39m
+
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 04:24:16
+[2m   Duration [22m 3.99s[2m (transform 1.63s, setup 0ms, collect 4.09s, tests 48ms, environment 1.19s, prepare 559ms)[22m
+
+VITEST_EXIT=0

@@ -60,11 +60,11 @@ interface Props {
  */
 function rankToModule(rank: number): PlanModule | undefined {
   switch (rank) {
-    case 2: return 'cross-section-solar';   // Landform — transects
-    case 3: return 'water-management';
-    case 4: return 'zone-circulation';      // Access — paths
-    case 7: return 'soil-fertility';
-    case 8: return 'plant-systems';
+    case 2: return 'climate';   // Landform — transects
+    case 3: return 'hydrology';
+    case 4: return 'access-circulation';      // Access — paths
+    case 7: return 'soil';
+    case 8: return 'plants-food';
     default: return undefined;
   }
 }

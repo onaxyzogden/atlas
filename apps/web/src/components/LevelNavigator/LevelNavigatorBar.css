@@ -27,7 +27,7 @@
 }
 
 .fln-bar__side--active:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-hover-overlay);
 }
 
 .fln-bar__side--active:focus-visible {
@@ -125,7 +125,7 @@
 }
 
 .fln-bar__center--clickable:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover-overlay);
 }
 
 .fln-bar__center--clickable:focus-visible {

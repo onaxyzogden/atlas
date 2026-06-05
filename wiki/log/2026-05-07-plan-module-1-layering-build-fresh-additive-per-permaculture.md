@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 1 (Layering) · BUILD_FRESH (additive) per Permaculture Scholar verdict
+
+
+Permaculture Scholar (NotebookLM `5aa3dcf3-…`, conversation `48a34396-…`) ruled Atlas's 9-rank Yeomans rollup orthodox but "an accounting exercise" — collapsing Access + Structures (OGDEN's 5-level scale) is a Keyline violation; what's missing is a spatial/relational view with ordering-violation warnings. Verdict: BUILD_FRESH, additive. New card `PermanenceLadderCard` reuses the 9 Zustand stores from the legacy `PermanenceScalesCard`, adds proportional bars + an Ordering check that walks per-rank prerequisites (Water→[1,2]; Access→[1,2,3]; Vegetation→[3,4,7]; etc.) and flags ranks with `count > 0` whose prereqs are empty. Wired as second sub-tab `plan-permanence-ladder` in `MODULE_CARDS['dynamic-layering']`; original tab kept. ADR: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`. Typecheck exit 0.

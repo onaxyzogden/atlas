@@ -49,9 +49,24 @@ const ROLE_LABEL: Record<ProjectRole, string> = {
   designer: 'Designer',
   reviewer: 'Reviewer',
   viewer: 'Viewer',
+  primary_steward: 'Primary steward',
+  team_member: 'Team member',
+  contractor: 'Contractor',
+  landowner: 'Landowner',
 };
 
-const ROLES_ORDER: ProjectRole[] = ['owner', 'designer', 'reviewer', 'viewer'];
+// Display order — legacy roles first (preserves existing UX), then OLOS
+// spec-shaped roles grouped by capability tier under the alias map.
+const ROLES_ORDER: ProjectRole[] = [
+  'owner',
+  'designer',
+  'reviewer',
+  'viewer',
+  'primary_steward',
+  'team_member',
+  'contractor',
+  'landowner',
+];
 
 const RECENT_JOIN_DAYS = 30;
 const STALE_DAYS = 180;
@@ -88,6 +103,10 @@ export default function UserManagementReadinessCard({ project }: Props): JSX.Ele
       designer: 0,
       reviewer: 0,
       viewer: 0,
+      primary_steward: 0,
+      team_member: 0,
+      contractor: 0,
+      landowner: 0,
     };
     for (const m of members) counts[m.role] += 1;
 
@@ -112,8 +131,14 @@ export default function UserManagementReadinessCard({ project }: Props): JSX.Ele
         ? `${newestJoinDays}d ago`
         : `${Math.floor(newestJoinDays / 30)}mo ago`;
 
-    const ownerCount = counts.owner;
-    const collaboratorCount = counts.designer + counts.reviewer;
+    // OLOS spec roles aliased to their legacy capability tier (per
+    // `packages/shared/src/relationships/projectRoleCapabilities.ts`):
+    //   primary_steward → owner; team_member + contractor → designer.
+    // Reviewer is the only role that grants `suggest_edits`, so it stays
+    // alone in the collaborator count.
+    const ownerCount = counts.owner + counts.primary_steward;
+    const collaboratorCount =
+      counts.designer + counts.team_member + counts.contractor + counts.reviewer;
 
     let verdict: Verdict;
     if (total === 0) verdict = 'empty';

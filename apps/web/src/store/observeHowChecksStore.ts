@@ -1,18 +1,45 @@
 /**
- * observeHowChecksStore — per-project per-module checklist state for the
- * Observe right-rail GuidanceCard "How" steps.
+ * observeHowChecksStore — per-project per-domain checklist state for the
+ * Observe right-rail GuidanceCard "How" steps (slice 3b+3c: rebased onto
+ * UniversalDomain).
  *
- * Each module has a fixed-length list of How steps (defined in
- * ObserveChecklistAside.tsx → MODULE_GUIDANCE). This store persists which
- * step indices the user has marked complete. Data is local-only; pattern
- * mirrors homesteadStore.ts.
+ * Persist v1→v2: collapses legacy 7-id ObserveModule keys to the 16
+ * UniversalDomain ids. Observe is collision-free, so the mergeFn is a
+ * pass-through (always called with parts.length === 1).
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
+import type { UniversalDomain } from '@ogden/shared';
+import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { ObserveModule } from '../v3/observe/types.js';
 
 type ModuleChecks = Partial<Record<ObserveModule, number[]>>;
+
+/**
+ * HOW-step counts at the moment of the v1→v2 cutover. Immutable migration
+ * constants — must NOT drift if MODULE_GUIDANCE.how is edited later.
+ */
+const HOW_STEP_COUNTS: Record<string, number> = {
+  'human-context': 3,
+  'built-environment': 4,
+  'macroclimate-hazards': 2,
+  'topography': 3,
+  'earth-water-ecology': 3,
+  'sectors-zones': 2,
+  'swot-synthesis': 2,
+};
+
+const howChecksMergeFn: MergeFn<number[]> = (_domain, parts) => {
+  const out: number[] = [];
+  let offset = 0;
+  for (const { moduleId, value } of parts) {
+    for (const idx of value) out.push(idx + offset);
+    offset += HOW_STEP_COUNTS[moduleId] ?? 0;
+  }
+  return out.sort((a, b) => a - b);
+};
 
 export interface ObserveHowChecksState {
   byProject: Record<string, ModuleChecks>;
@@ -69,8 +96,26 @@ export const useObserveHowChecksStore = create<ObserveHowChecksState>()(
     }),
     {
       name: 'ogden-atlas-observe-how-checks',
-      version: 1,
-      migrate: (persisted) => persisted as ObserveHowChecksState,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
+      version: 2,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          const migrated = migrateByProjectModuleKeys<number[]>(
+            persisted,
+            'observe',
+            howChecksMergeFn,
+          );
+          if (migrated) {
+            return {
+              ...(persisted as object),
+              byProject: migrated.byProject,
+            } as ObserveHowChecksState;
+          }
+          return { byProject: {} } as ObserveHowChecksState;
+        }
+        return persisted as ObserveHowChecksState;
+      },
     },
   ),
 );

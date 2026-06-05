@@ -7,6 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type HazardKind =
   | 'frost'
@@ -114,6 +116,8 @@ export const useHazardsStore = create<HazardsState>()(
     }),
     {
       name: 'ogden-hazards',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({ byProject: state.byProject }),
@@ -121,7 +125,7 @@ export const useHazardsStore = create<HazardsState>()(
   ),
 );
 
-useHazardsStore.persist.rehydrate();
+rehydrateWithLogging(useHazardsStore);
 
 export function makeHazardId(): string {
   return `hz_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

@@ -13,6 +13,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { rehydrateWithLogging } from "./persistRehydrate.js";
+import { idbPersistStorage } from "../lib/indexedDBStorage.js";
 
 export type FieldTaskCategory =
   | "ops"
@@ -77,8 +79,8 @@ export const useFieldTaskStore = create<FieldTaskState>()(
           ),
         })),
     }),
-    { name: "ogden-field-tasks", version: 1 },
+    { name: "ogden-field-tasks", storage: idbPersistStorage, version: 1 },
   ),
 );
 
-useFieldTaskStore.persist.rehydrate();
+rehydrateWithLogging(useFieldTaskStore);

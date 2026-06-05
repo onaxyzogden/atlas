@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type CompostMethod = 'hot' | 'cold' | 'vermicompost' | 'compost_tea';
 export type CompostStatus = 'planned' | 'active' | 'cured';
@@ -26,6 +27,14 @@ export interface CompostBatch {
   readyDateISO?: string;
   feedstockNote?: string;
   status: CompostStatus;
+  /**
+   * B2.1 amendment-application plan (all optional, additive — old
+   * persisted rows simply lack them; `version:1` stays, no `migrate`).
+   * Closes the loop from finished compost back to soil application.
+   */
+  appliedToZone?: string;
+  applicationDateISO?: string;
+  applicationRateNote?: string;
 }
 
 interface CompostCycleState {
@@ -81,6 +90,6 @@ export const useCompostCycleStore = create<CompostCycleState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-compost-cycle', version: 1 },
+    { name: 'ogden-compost-cycle', storage: idbPersistStorage, version: 1 },
   ),
 );

@@ -74,7 +74,7 @@ export default function LifecycleProgressRing({
           cy={cy}
           r={r}
           fill="none"
-          stroke="rgba(var(--color-earth-600-rgb), 0.20)"
+          stroke="rgba(var(--color-neutral-600-rgb), 0.20)"
           strokeWidth={strokeWidth}
         />
         <circle
@@ -82,7 +82,7 @@ export default function LifecycleProgressRing({
           cy={cy}
           r={r}
           fill="none"
-          stroke="var(--color-earth-600)"
+          stroke="var(--color-neutral-600)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${circumference - dash}`}

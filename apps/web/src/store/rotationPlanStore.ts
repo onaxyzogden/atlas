@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type {
   RotationCell,
   RotationPlan,
@@ -22,7 +23,27 @@ interface RotationPlanState {
   setPlan: (projectId: string, cells: RotationCell[]) => void;
   upsertCell: (projectId: string, cell: RotationCell) => void;
   removeCell: (projectId: string, paddockId: string) => void;
+  setPlanOptions: (
+    projectId: string,
+    options: { startDateISO?: string; horizonCycles?: number },
+  ) => void;
   clearPlan: (projectId: string) => void;
+}
+
+/** Carry forward the optional B3.1 plan options when rewriting cells. */
+function withOptions(
+  base: RotationPlan,
+  next: { projectId: string; cells: RotationCell[] },
+): RotationPlan {
+  return {
+    ...next,
+    ...(base.startDateISO !== undefined
+      ? { startDateISO: base.startDateISO }
+      : {}),
+    ...(base.horizonCycles !== undefined
+      ? { horizonCycles: base.horizonCycles }
+      : {}),
+  };
 }
 
 /** Sort by (cellGroup asc, sequenceOrder asc); returns a new array. */
@@ -50,22 +71,26 @@ export const useRotationPlanStore = create<RotationPlanState>()(
         set((s) => ({
           byProject: {
             ...s.byProject,
-            [projectId]: { projectId, cells: sortCells(cells) },
+            [projectId]: withOptions(planFor(s, projectId), {
+              projectId,
+              cells: sortCells(cells),
+            }),
           },
         })),
 
       upsertCell: (projectId, cell) =>
         set((s) => {
-          const existing = planFor(s, projectId).cells.filter(
+          const current = planFor(s, projectId);
+          const existing = current.cells.filter(
             (c) => c.paddockId !== cell.paddockId,
           );
           return {
             byProject: {
               ...s.byProject,
-              [projectId]: {
+              [projectId]: withOptions(current, {
                 projectId,
                 cells: sortCells([...existing, cell]),
-              },
+              }),
             },
           };
         }),
@@ -76,11 +101,37 @@ export const useRotationPlanStore = create<RotationPlanState>()(
           return {
             byProject: {
               ...s.byProject,
-              [projectId]: {
+              [projectId]: withOptions(current, {
                 projectId,
                 cells: current.cells.filter(
                   (c) => c.paddockId !== paddockId,
                 ),
+              }),
+            },
+          };
+        }),
+
+      setPlanOptions: (projectId, options) =>
+        set((s) => {
+          const current = planFor(s, projectId);
+          return {
+            byProject: {
+              ...s.byProject,
+              [projectId]: {
+                projectId,
+                cells: current.cells,
+                ...(current.startDateISO !== undefined
+                  ? { startDateISO: current.startDateISO }
+                  : {}),
+                ...(current.horizonCycles !== undefined
+                  ? { horizonCycles: current.horizonCycles }
+                  : {}),
+                ...(options.startDateISO !== undefined
+                  ? { startDateISO: options.startDateISO }
+                  : {}),
+                ...(options.horizonCycles !== undefined
+                  ? { horizonCycles: options.horizonCycles }
+                  : {}),
               },
             },
           };
@@ -93,6 +144,6 @@ export const useRotationPlanStore = create<RotationPlanState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-rotation-plan', version: 1 },
+    { name: 'ogden-rotation-plan', storage: idbPersistStorage, version: 1 },
   ),
 );

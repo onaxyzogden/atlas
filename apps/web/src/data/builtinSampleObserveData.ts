@@ -17,6 +17,8 @@
  */
 
 import { useVisionStore } from '../store/visionStore.js';
+import { useMemberStore } from '../store/memberStore.js';
+import type { ProjectMemberRecord } from '@ogden/shared';
 import {
   useExternalForcesStore,
   type HazardEvent,
@@ -38,6 +40,7 @@ import {
   useSwotStore,
   type SwotEntry,
 } from '../store/swotStore.js';
+import { seedBuiltinObserveDataPoints } from './builtinObserveDataPoints.js';
 
 // ─── Project narrative ──────────────────────────────────────────────────
 // Spread onto the LocalProject from `applyBuiltinsToStore` for any builtin
@@ -58,6 +61,30 @@ export const BUILTIN_PROJECT_NARRATIVE = {
     'A small Carolinian homestead that produces food, hosts learning, and integrates daily prayer with regenerative care of land — modest scale, long horizon.',
 } as const;
 
+// ─── Demo steward roster ────────────────────────────────────────────────
+// Land is rarely stewarded by one person. Offline/demo has no auth and no
+// backend members, so the sample injects two synthetic ProjectMemberRecords
+// into memberStore (no-op when a real roster is already present) plus a
+// matching profile overlay per userId. Both the authed and offline flows
+// then feed the same useStewardRoster selector.
+
+const DEMO_MEMBERS: ProjectMemberRecord[] = [
+  {
+    userId: '00000000-0000-4000-8000-000000000001',
+    email: 'yousef@ogden.ag',
+    displayName: 'Yousef Abdelsalam',
+    role: 'owner',
+    joinedAt: '2024-01-15T00:00:00.000Z',
+  },
+  {
+    userId: '00000000-0000-4000-8000-000000000002',
+    email: 'amina@ogden.ag',
+    displayName: 'Amina Abdelsalam',
+    role: 'designer',
+    joinedAt: '2024-02-01T00:00:00.000Z',
+  },
+];
+
 // ─── Seeder ────────────────────────────────────────────────────────────
 
 export function seedBuiltinObserveData(localProjectId: string): void {
@@ -68,6 +95,10 @@ export function seedBuiltinObserveData(localProjectId: string): void {
   seedSoilSamples(localProjectId);
   seedEcology(localProjectId);
   seedSwot(localProjectId);
+  // Project the seeded source facts into the Phase-4 observeDataPointStore so
+  // the Observe Dashboard's 16 domain cards light up (they read only the
+  // data-point store, never these source stores). Idempotent merge-by-id.
+  seedBuiltinObserveDataPoints(localProjectId);
   // siteDataStore (Tier-1 climate/elevation summaries) is now populated
   // by `applyBuiltinsToStore` directly from the public /projects/builtins
   // payload (or LOCAL_BUILTIN_FALLBACK_LAYERS when offline) — no fixture
@@ -78,14 +109,21 @@ export function seedBuiltinObserveData(localProjectId: string): void {
 
 function seedVision(projectId: string): void {
   const store = useVisionStore.getState();
-  // Idempotency: if a vision entry already exists for this project AND has
-  // a steward name, treat as already seeded.
+  // Offline/demo: hydrate the live members roster so useStewardRoster has
+  // people to overlay. No-op when a real (fetched) roster is already present.
+  useMemberStore.getState().seedLocalMembers(DEMO_MEMBERS);
+
+  // Idempotency: if profiles already exist for this project, treat as seeded.
   const existing = store.getVisionData(projectId);
-  if (existing?.steward?.name) return;
+  if (existing?.stewardProfiles && Object.keys(existing.stewardProfiles).length > 0) {
+    return;
+  }
 
   store.ensureDefaults(projectId);
-  store.updateSteward(projectId, {
-    name: 'Yousef Abdelsalam',
+
+  // Lead steward — owner.
+  store.updateStewardProfile(projectId, DEMO_MEMBERS[0]!.userId, {
+    relationship: 'lead',
     age: 34,
     occupation: 'Software / regenerative design',
     lifestyle: 'active',
@@ -93,8 +131,55 @@ function seedVision(projectId: string): void {
     maintenanceHrsOngoing: 8,
     budget: '$15k/yr establishment, $3k/yr ongoing',
     skills: ['carpentry (intermediate)', 'orcharding', 'gardening', 'CAD/GIS'],
-    vision: BUILTIN_PROJECT_NARRATIVE.visionStatement,
+    personalVision:
+      'Build a place where my family prays, eats from the land, and learns the craft of regenerative care together.',
+    personalExperienceGoals: [
+      'Lead a weekend retreat by year 4',
+      'Hand-graft the first heritage apple block',
+    ],
   });
+
+  // Co-steward — family member sharing the maintenance load.
+  store.updateStewardProfile(projectId, DEMO_MEMBERS[1]!.userId, {
+    relationship: 'co-steward',
+    age: 31,
+    occupation: 'Educator / community organiser',
+    lifestyle: 'active',
+    maintenanceHrsInitial: 10,
+    maintenanceHrsOngoing: 6,
+    budget: 'Shared household budget',
+    skills: ['herbalism', 'food preservation', 'hosting & education'],
+    personalVision:
+      'A welcoming kitchen garden and a teaching space where neighbours and children learn where food comes from.',
+    personalExperienceGoals: ['Run a seasonal preserving workshop', 'Establish the kitchen-garden guild'],
+  });
+
+  // Project-level shared vision package (hybrid model — shared, not per-steward).
+  store.updateSharedVision(projectId, {
+    statement: BUILTIN_PROJECT_NARRATIVE.visionStatement,
+    coreFunctions: [
+      'Produce a meaningful share of the household\'s food',
+      'Host learning and retreat days',
+      'Integrate daily prayer with land care',
+      'Regenerate soil and water on a degraded cash-crop parcel',
+    ],
+    experienceGoals: [
+      'A calm, prayerful daily rhythm on the land',
+      'Children growing up knowing where food comes from',
+    ],
+    successMetrics: [
+      'Soil organic matter rising year over year on the lower field',
+      'Seasonal creek infiltration restored within the regulated corridor',
+      'First retreat season hosted by year 4',
+    ],
+    principles: ['Observe and interact', 'Catch and store energy', 'Produce no waste'],
+    guidingValues: ['Amanah (trust/stewardship)', 'Modesty of scale', 'Long time-horizon'],
+    constraints: [
+      'Conservation Halton 30 m watercourse setback',
+      'No interest-bearing finance (qard hasan / donation / in-kind only)',
+    ],
+  });
+
   store.updatePhaseNote(
     projectId,
     'year1',

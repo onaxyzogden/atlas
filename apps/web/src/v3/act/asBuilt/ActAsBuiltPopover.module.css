@@ -1,0 +1,226 @@
+.popover {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+  max-width: 280px;
+  padding: 12px 14px;
+  background: rgba(20, 25, 31, 0.96);
+  color: var(--color-text);
+  border: 1px solid rgba(242, 237, 227, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transform: translate(12px, -50%);
+}
+
+.popover[data-flipped='true'] {
+  transform: translate(calc(-100% - 12px), -50%);
+}
+
+/* Panel variant: the same form rendered inline in the right rail (no floating
+ * position/transform/shadow). Fills the rail body and scrolls if tall. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(242, 237, 227, 0.12);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: 11px;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.input,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+  background: rgba(12, 11, 10, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.changed {
+  border-color: rgba(214, 158, 46, 0.7);
+}
+
+.shapeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(242, 237, 227, 0.12);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleRow input {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(214, 158, 46, 0.9);
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 5px 7px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: vertical;
+  color: var(--color-text);
+  background: rgba(12, 11, 10, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.captureRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.captureReadout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(245, 158, 11, 0.95);
+}
+
+.clearBtn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.clearBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.note {
+  font-size: 10px;
+  font-style: italic;
+  opacity: 0.65;
+  line-height: 1.4;
+}
+
+.btnRow {
+  display: flex;
+  gap: 6px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: rgba(214, 158, 46, 0.9);
+  color: #1f1d1a;
+  border: 1px solid rgba(214, 158, 46, 0.9);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: rgba(214, 158, 46, 1);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.secondaryBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}

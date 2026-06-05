@@ -1,9 +1,9 @@
-﻿/**
- * Setback / buffer-ring store â€” outward polygon offsets around existing
+/**
+ * Setback / buffer-ring store — outward polygon offsets around existing
  * Plan features (Plan toolbar Tier B / B2).
  *
  * Stewards drop a ring to express "X metres of clearance around <thing>"
- * â€” e.g., a 30 m fire setback around a structure, a 5 m biosecurity ring
+ * — e.g., a 30 m fire setback around a structure, a 5 m biosecurity ring
  * around a paddock (Educational Farm "double fencing"), a 50 m noise
  * buffer around a workshop, a 15 m windbreak setback along a property
  * line. Lives under `zone-circulation` in the PLAN toolbar (rings are
@@ -16,7 +16,7 @@
  *
  * The buffer is materialised as a static `geometry` polygon at create
  * time. If the source feature later moves, the ring does NOT
- * auto-recompute â€” recomputing from a live source would couple every
+ * auto-recompute — recomputing from a live source would couple every
  * draw store to this one (creates ambiguity if the source is deleted).
  * Stewards re-create the ring instead, which mirrors how survey markers
  * work in the field.
@@ -28,6 +28,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type SetbackPurpose =
@@ -57,7 +59,7 @@ export interface SetbackRing {
   purpose: SetbackPurpose;
   /** Materialised offset polygon (or multipolygon when the source has holes). */
   geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
-  /** Hex colour â€” defaults to the purpose palette entry. */
+  /** Hex colour — defaults to the purpose palette entry. */
   color: string;
   notes: string;
   phase?: string;
@@ -105,8 +107,8 @@ export const useSetbackStore = create<SetbackState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-setback-rings', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-setback-rings', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useSetbackStore.persist.rehydrate();
+rehydrateWithLogging(useSetbackStore);

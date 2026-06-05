@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { Map as MaplibreMap, ExpressionSpecification } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
@@ -28,6 +28,7 @@ import { usePastureStore } from '../../../../store/pastureStore.js';
 import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useFieldVerification } from '../../../../lib/fieldVerification/useFieldVerification.js';
 import {
   useBuildingsForProject,
   useWellsForProject,
@@ -38,33 +39,104 @@ import {
   useGatesForProject,
   useExistingDrivewaysForProject,
 } from '../../../../store/builtEnvironmentSelectors.js';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
 import { openBeInlineEditByObserveKind } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
-import { useProjectStore } from '../../../../store/projectStore.js';
-import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
-import type {
-  SectorType,
-  SectorIntensity,
-} from '../../../../store/externalForcesStore.js';
 import type { MatrixToggleKey } from '../../../../store/matrixTogglesStore.js';
 import {
   registerObserveIcons,
   tryRegisterMissingObserveIcon,
 } from '../../lib/lucideSprite.js';
 import type { AnnotationKind } from '../draw/annotationFieldSchemas.js';
+import type { ObserveModule } from '../../types.js';
+import { LINE_KIND_DEFAULT_WIDTH_M } from '@ogden/shared';
+
+/**
+ * Width-aware line-width paint expression. Converts the feature's
+ * `widthM` property (real-world metres) into screen pixels via a zoom-
+ * interpolated exponential. The `max(…)` floors keep narrow kinds
+ * (fence at 0.1 m, power-line at 0.2 m) legible at low zoom. Per the
+ * 2026-05-21 drawn-line-feature-width slice.
+ */
+// Accept `number | undefined` because `noUncheckedIndexedAccess` makes
+// `LINE_KIND_DEFAULT_WIDTH_M[kind]` return that union; a missing kind
+// falls back to 1 m so the paint expression always has a positive number.
+const beLineWidthExpr = (defaultM: number | undefined): ExpressionSpecification => {
+  const m = defaultM ?? 1;
+  return [
+    'interpolate',
+    ['exponential', 2],
+    ['zoom'],
+    12, ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], m], 0.05]],
+    19, ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], m], 1.6]],
+    22, ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], m], 25]],
+  ] as unknown as ExpressionSpecification;
+};
 
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
+  /**
+   * When a single OBSERVE objective is focused in the map (reached via the
+   * compass's "Open on Map"), only the data layers belonging to that module
+   * stay visible — every other annotation group is hidden, mirroring the
+   * strict single-objective rail focus. `null`/omitted = full overlays (the
+   * bare `/observe` view), so nothing changes outside focus mode. The sector
+   * compass HUD (`SectorCompassOverlay`) stays always-ambient and is not
+   * scoped here.
+   */
+  activeModule?: ObserveModule | null;
+  /**
+   * Need focus: the union of modules a focused `ObservationNeed` declares via
+   * its `requiredLayers` (normalized through `requiredLayersToModules`). When
+   * set to a non-empty array it SUPERSEDES `activeModule` — only specs whose
+   * module is in this set stay visible, so a need can foreground layers from
+   * several modules at once (e.g. topography + hydrology). `null`/empty = fall
+   * back to the single-`activeModule` gate above.
+   */
+  focusModules?: ObserveModule[] | null;
 }
 
 const SOURCE_PREFIX = 'observe-anno-';
 const LAYER_PREFIX = 'observe-anno-';
+
+/**
+ * Maps each annotation `LayerSpec.id` to the OBSERVE module it represents,
+ * so single-objective focus can hide everything outside the active module.
+ * Permaculture zones (`human-zones`, sourced from the human-context store)
+ * belong to the steward's "Sectors & Zones" objective. `field-verification`
+ * is cross-module ground-truth with no single home — omitted here so it is
+ * hidden under strict focus (shown only when no objective is active).
+ */
+const SPEC_MODULE: Record<string, ObserveModule> = {
+  'human-points': 'people-governance',
+  'human-roads': 'people-governance',
+  'human-zones': 'access-circulation',
+  hazards: 'climate',
+  'topography-lines': 'topography',
+  'topography-points': 'topography',
+  'topography-runoff': 'topography',
+  'topography-erosion': 'topography',
+  'water-lines': 'hydrology',
+  'water-bodies': 'hydrology',
+  'soil-points': 'hydrology',
+  ecology: 'hydrology',
+  pasture: 'hydrology',
+  'pasture-fence': 'hydrology',
+  'conventional-crop': 'hydrology',
+  swot: 'monitoring-records',
+  'be-buildings': 'built-infrastructure',
+  'be-wells': 'built-infrastructure',
+  'be-septics': 'built-infrastructure',
+  'be-power-lines': 'built-infrastructure',
+  'be-buried-utilities': 'built-infrastructure',
+  'be-fences': 'built-infrastructure',
+  'be-gates': 'built-infrastructure',
+  'be-driveways': 'built-infrastructure',
+};
 const HALO_SOURCE = 'observe-anno-selection';
 const HALO_LAYER_CIRCLE = 'observe-anno-selection-circle';
 const HALO_LAYER_LINE = 'observe-anno-selection-line';
@@ -82,11 +154,11 @@ interface LayerSpec {
    *  as an independent overlay row in BaseMapCard and must not also be
    *  ANDed with the `observeAnnotations` master). When omitted, the
    *  group falls under the `observeAnnotations` master toggle. PLAN-
-   *  stage-only keys (`sunPath`, `zoneRings`) are excluded — Observe
-   *  annotation specs never gate on them. */
+   *  stage-only keys (`sunPath`, `zoneRings`, `waterRouter`) are excluded —
+   *  Observe annotation specs never gate on them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
+    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones' | 'waterRouter'
   >;
 }
 
@@ -123,68 +195,6 @@ const PALETTE = {
   swotT: '#7c5a8a',
 };
 
-const SECTOR_TYPE_COLOR: Record<string, string> = {
-  sun_summer: '#e0b860',
-  sun_winter: '#c89048',
-  wind_prevailing: PALETTE.sectorWind,
-  wind_storm: '#3a5a7a',
-  fire: PALETTE.sectorFire,
-  noise: '#7a7a7a',
-  wildlife: PALETTE.sectorView,
-  view: '#9a8aa8',
-};
-
-// Sector grouping for per-group legend toggles. Each `SectorType` belongs to
-// exactly one of four groups, and each group maps to a `MatrixToggleKey`.
-// Splitting the legacy single `sectors` spec by group lets the steward gate
-// "Solar / Wind / Hazard / View" wedges independently from the legend.
-type SectorGroup = 'solar' | 'wind' | 'hazard' | 'view';
-
-const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
-  sun_summer: 'solar',
-  sun_winter: 'solar',
-  wind_prevailing: 'wind',
-  wind_storm: 'wind',
-  fire: 'hazard',
-  noise: 'hazard',
-  wildlife: 'hazard',
-  view: 'view',
-};
-
-const GROUP_TOGGLE: Record<
-  SectorGroup,
-  Exclude<
-    MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
-  >
-> = {
-  solar: 'sectors',
-  wind: 'wind',
-  hazard: 'hazards',
-  view: 'views',
-};
-
-// Wind-sector visual upgrade (Option B, 2026-05-08): scale wedge radius by
-// intensity so high-intensity sectors read as longer reaches, mirroring the
-// proportional-wedge style of the climatology-driven prevailing rose. Each
-// wind wedge also emits a Point feature mid-arc so a compass+intensity label
-// can render via a sibling symbol layer.
-const INTENSITY_RADIUS_MULT: Record<SectorIntensity, number> = {
-  low: 0.4,
-  med: 0.7,
-  high: 1.0,
-};
-const INTENSITY_LABEL: Record<SectorIntensity, string> = {
-  low: 'low',
-  med: 'med',
-  high: 'high',
-};
-function compassFromBearing(deg: number): string {
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
-  return dirs[idx]!;
-}
-
 const SWOT_COLOR: Record<string, string> = {
   S: PALETTE.swotS,
   W: PALETTE.swotW,
@@ -210,34 +220,20 @@ function circlePolygon(
   return f.geometry;
 }
 
-/** Build a wedge (sector) polygon anchored at `center`, opening along
- *  `bearingDeg` ± `arcDeg/2`, with outer radius `radiusM`. */
-function wedgePolygon(
-  center: [number, number],
-  bearingDeg: number,
-  arcDeg: number,
-  radiusM: number,
-  steps = 24,
-): GeoJSON.Polygon {
-  const half = arcDeg / 2;
-  const start = bearingDeg - half;
-  const end = bearingDeg + half;
-  const ring: [number, number][] = [center];
-  for (let i = 0; i <= steps; i++) {
-    const b = start + ((end - start) * i) / steps;
-    const dest = turf.destination(turf.point(center), radiusM / 1000, b, {
-      units: 'kilometers',
-    });
-    const c = dest.geometry.coordinates as [number, number];
-    ring.push(c);
-  }
-  ring.push(center);
-  return { type: 'Polygon', coordinates: [ring] };
-}
-
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function ObserveAnnotationLayers({ map, projectId }: Props) {
+export default function ObserveAnnotationLayers({
+  map,
+  projectId,
+  activeModule = null,
+  focusModules = null,
+}: Props) {
+  // Objective focus supersedes the single-module gate: build the lookup once.
+  // Empty/null ⇒ no set ⇒ the existing `activeModule` path is used unchanged.
+  // (Referenced inline inside the apply effect below — like `subToggles` — with
+  // the source prop `focusModules` carried in the dependency array.)
+  const focusSet =
+    focusModules && focusModules.length > 0 ? new Set(focusModules) : null;
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
   // Per-group sub-toggles. A spec with a `toggleKey` is gated SOLELY by
   // its own sub-toggle (each is an independent overlay row in
@@ -246,26 +242,19 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
   const topographyVisible = useMatrixTogglesStore((s) => s.topography);
   const zonesVisible = useMatrixTogglesStore((s) => s.zones);
-  const windVisible = useMatrixTogglesStore((s) => s.wind);
   const waterVisible = useMatrixTogglesStore((s) => s.water);
-  const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
-  const viewsVisible = useMatrixTogglesStore((s) => s.views);
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const scheduledMovesVisible = useMatrixTogglesStore((s) => s.scheduledMoves);
-  const subToggles: Record<
-    Exclude<
-      MatrixToggleKey,
-      'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
-    >,
-    boolean
-  > = {
+  // Keyed by exactly the same type as `LayerSpec['toggleKey']` (single source
+  // of truth) so the index at the visibility sites below can never diverge from
+  // the set of keys this object provides. waterRouter is a Plan-stage overlay
+  // (downslope flow / catchment pins), not an Observe annotation group, so it
+  // is excluded from that type and never appears here.
+  const subToggles: Record<NonNullable<LayerSpec['toggleKey']>, boolean> = {
     sectors: sectorsVisible,
     topography: topographyVisible,
     zones: zonesVisible,
-    wind: windVisible,
     water: waterVisible,
-    hazards: hazardsVisible,
-    views: viewsVisible,
     builtEnvironment: builtEnvironmentVisible,
     scheduledMoves: scheduledMovesVisible,
   };
@@ -279,14 +268,21 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const contours = useTopographyStore((s) => s.contours);
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
+  const erosionFlags = useTopographyStore((s) => s.erosionFlags);
+  const runoffPaths = useTopographyStore((s) => s.runoffPaths);
   const hazards = useExternalForcesStore((s) => s.hazards);
-  const sectors = useExternalForcesStore((s) => s.sectors);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
+  const waterbodies = useWaterSystemsStore((s) => s.waterbodies);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
   const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
+  // Field-verification axis (OLOS gap #10): buffered influence zones derived
+  // on the fly from soil samples + monitoring transects. Glows brighter where
+  // the ground has been read recently, fades as observations decay. Falls
+  // under the `observeAnnotations` master toggle (no independent sub-toggle).
+  const { zones: verificationZones } = useFieldVerification(projectId ?? undefined);
   // Phase 6.B: read built-environment slices directly from V2 via the
   // project-filtered selector hooks. Each hook is already memoized so
   // identity stays stable when nothing in this project's slice changed —
@@ -301,19 +297,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const fences = useFencesForProject(beProjectId);
   const gates = useGatesForProject(beProjectId);
   const existingDriveways = useExistingDrivewaysForProject(beProjectId);
-  const homesteadByProject = useHomesteadStore((s) => s.byProject);
-  const homestead = projectId ? homesteadByProject[projectId] : undefined;
-  // Per-project sector wedge outer radius (metres). Falls back to
-  // DEFAULT_SECTOR_RADIUS_M when unset / non-finite / non-positive.
-  // Subscribed directly so a metadata edit triggers a re-render.
-  const sectorRadiusM = useProjectStore((s) => {
-    if (!projectId) return DEFAULT_SECTOR_RADIUS_M;
-    const v = s.projects.find((p) => p.id === projectId)?.metadata
-      ?.sectorRadiusM;
-    return typeof v === 'number' && Number.isFinite(v) && v > 0
-      ? v
-      : DEFAULT_SECTOR_RADIUS_M;
-  });
 
   const layerSpecs = useMemo<LayerSpec[]>(() => {
     if (!projectId) return [];
@@ -322,6 +305,60 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       arr.filter((x) => x.projectId === projectId);
 
     const result: LayerSpec[] = [];
+
+    // ── Field-verification zones (OLOS gap #10) ─────────────────────────────
+    // Pushed FIRST so it renders beneath every annotation: a soft sub-regional
+    // glow showing where the ground has been corroborated/verified by recent
+    // field observations. Distinct earth-green ramp (verified = deep, the same
+    // climax green as ecology) so it reads as "ground-truth" not "hazard".
+    // Opacity scales with level so verified zones glow brighter than merely
+    // corroborated ones; both fade as their underlying observations decay.
+    if (verificationZones.features.length) {
+      const levelColor: ExpressionSpecification = [
+        'match',
+        ['get', 'level'],
+        'verified',
+        '#2a6a3a',
+        'corroborated',
+        '#7a8a3c',
+        '#8a7a68',
+      ] as unknown as ExpressionSpecification;
+      const levelFillOpacity: ExpressionSpecification = [
+        'match',
+        ['get', 'level'],
+        'verified',
+        0.22,
+        'corroborated',
+        0.14,
+        0.07,
+      ] as unknown as ExpressionSpecification;
+      result.push({
+        id: 'field-verification',
+        data: verificationZones as GeoJSON.FeatureCollection,
+        layers: [
+          {
+            id: `${LAYER_PREFIX}field-verification-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}field-verification`,
+            paint: {
+              'fill-color': levelColor,
+              'fill-opacity': levelFillOpacity,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}field-verification-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}field-verification`,
+            paint: {
+              'line-color': levelColor,
+              'line-width': 1,
+              'line-opacity': 0.5,
+              'line-dasharray': [2, 2],
+            },
+          },
+        ],
+      });
+    }
 
     // ── Human Context: points (neighbours + households) ─────────────────────
     const humanPoints: GeoJSON.Feature[] = [
@@ -507,123 +544,10 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
-    // ── Sectors (anchor on homestead, fall back to map center) ──────────────
-    // Partitioned into four groups (solar / wind / hazard / view) so the
-    // legend can gate them independently. Each non-empty group emits its own
-    // source + fill/line layer pair; click handlers (wireClick) pick up the
-    // new layer ids automatically because every feature still carries
-    // `annoKind: 'sector'` + `annoId`.
-    const projectSectors = inProject(sectors);
-    if (projectSectors.length) {
-      const center = map.getCenter();
-      const anchor: [number, number] = homestead ?? [center.lng, center.lat];
-      const grouped: Record<SectorGroup, GeoJSON.Feature[]> = {
-        solar: [],
-        wind: [],
-        hazard: [],
-        view: [],
-      };
-      for (const s of projectSectors) {
-        const g = SECTOR_GROUP[s.type];
-        // Wind wedges scale radius by intensity (Option B); other groups
-        // keep the uniform `sectorRadiusM` reach so solar arcs / hazard
-        // wedges / view cones still read as full-length sightlines.
-        const radius =
-          g === 'wind'
-            ? sectorRadiusM *
-              (INTENSITY_RADIUS_MULT[s.intensity ?? 'med'] ?? 0.7)
-            : sectorRadiusM;
-        const color = SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector;
-        grouped[g].push({
-          type: 'Feature',
-          properties: {
-            kind: s.type,
-            color,
-            annoKind: 'sector',
-            annoId: s.id,
-          },
-          geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, radius),
-        });
-        // Emit a label Point for wind only — mirrors the climatology rose's
-        // mid-wedge text. Label = compass + intensity (e.g. "NW · high").
-        if (g === 'wind') {
-          const labelDest = turf.destination(
-            turf.point(anchor),
-            (radius * 0.6) / 1000,
-            s.bearingDeg,
-            { units: 'kilometers' },
-          );
-          const compass = compassFromBearing(s.bearingDeg);
-          const intensityLabel = INTENSITY_LABEL[s.intensity ?? 'med'];
-          grouped[g].push({
-            type: 'Feature',
-            properties: {
-              kind: s.type,
-              color,
-              annoKind: 'sector',
-              annoId: s.id,
-              label: `${compass} · ${intensityLabel}`,
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: labelDest.geometry.coordinates as [number, number],
-            },
-          });
-        }
-      }
-      (Object.keys(grouped) as SectorGroup[]).forEach((group) => {
-        const features = grouped[group];
-        if (!features.length) return;
-        const layers: maplibregl.LayerSpecification[] = [
-          {
-            id: `${LAYER_PREFIX}sectors-${group}-fill`,
-            type: 'fill',
-            source: `${SOURCE_PREFIX}sectors-${group}`,
-            filter: ['==', ['geometry-type'], 'Polygon'],
-            paint: {
-              'fill-color': ['get', 'color'],
-              'fill-opacity': group === 'wind' ? 0.18 : 0.16,
-            },
-          },
-          {
-            id: `${LAYER_PREFIX}sectors-${group}-line`,
-            type: 'line',
-            source: `${SOURCE_PREFIX}sectors-${group}`,
-            filter: ['==', ['geometry-type'], 'Polygon'],
-            paint: {
-              'line-color': ['get', 'color'],
-              'line-width': group === 'wind' ? 1.4 : 1,
-              'line-opacity': group === 'wind' ? 0.7 : 0.55,
-            },
-          },
-        ];
-        if (group === 'wind') {
-          layers.push({
-            id: `${LAYER_PREFIX}sectors-wind-label`,
-            type: 'symbol',
-            source: `${SOURCE_PREFIX}sectors-wind`,
-            filter: ['==', ['geometry-type'], 'Point'],
-            layout: {
-              'text-field': ['get', 'label'],
-              'text-size': 11,
-              'text-allow-overlap': false,
-              'text-ignore-placement': false,
-            },
-            paint: {
-              'text-color': '#1f3340',
-              'text-halo-color': '#f2ede3',
-              'text-halo-width': 1.2,
-            },
-          });
-        }
-        result.push({
-          id: `sectors-${group}`,
-          toggleKey: GROUP_TOGGLE[group],
-          data: { type: 'FeatureCollection', features },
-          layers,
-        });
-      });
-    }
+    // Sector wedges are no longer rendered as MapLibre layers — the
+    // `SectorCompassOverlay` HUD (mounted in `ObserveLayout`) now summarises
+    // wind petals + solar arcs + manual sector arrows in a single compass
+    // rose at the bottom-right of the map.
 
     // ── Topography: lines (contours + drainage) ─────────────────────────────
     const topoLines: GeoJSON.Feature[] = [
@@ -716,6 +640,81 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // ── Topography: runoff paths ───────────────────────────────────────────
+    const runoffFeatures: GeoJSON.Feature[] = inProject(runoffPaths).map((r) => ({
+      type: 'Feature',
+      properties: {
+        flowCondition: r.flowCondition,
+        color:
+          r.flowCondition === 'severe'
+            ? '#c4452f'
+            : r.flowCondition === 'active'
+              ? '#3a8aa8'
+              : '#7aa8b8',
+        annoKind: 'runoffPath',
+        annoId: r.id,
+      },
+      geometry: r.geometry,
+    }));
+    if (runoffFeatures.length) {
+      result.push({
+        id: 'topography-runoff',
+        toggleKey: 'topography',
+        data: { type: 'FeatureCollection', features: runoffFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}topography-runoff`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}topography-runoff`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 2,
+              'line-opacity': 0.85,
+              'line-dasharray': [2, 1.5],
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Topography: erosion flags ──────────────────────────────────────────
+    const erosionFeatures: GeoJSON.Feature[] = inProject(erosionFlags).map((e) => ({
+      type: 'Feature',
+      properties: {
+        severity: e.severity,
+        color:
+          e.severity === 'high'
+            ? '#c4452f'
+            : e.severity === 'medium'
+              ? '#c87a3f'
+              : '#c4a265',
+        annoKind: 'erosionFlag',
+        annoId: e.id,
+      },
+      geometry: { type: 'Point', coordinates: e.position },
+    }));
+    if (erosionFeatures.length) {
+      result.push({
+        id: 'topography-erosion',
+        toggleKey: 'topography',
+        data: { type: 'FeatureCollection', features: erosionFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}topography-erosion`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}topography-erosion`,
+            paint: {
+              'circle-radius': 6,
+              'circle-color': ['get', 'color'],
+              'circle-stroke-color': '#3a2a1a',
+              'circle-stroke-width': 1.5,
+              'circle-opacity': 0.9,
+            },
+          },
+        ],
+      });
+    }
+
     // ── Watercourses (natural drainage) ────────────────────────────────────
     const waterFeatures: GeoJSON.Feature[] = inProject(watercourses).map((w) => ({
       type: 'Feature',
@@ -754,6 +753,46 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
               'line-width': 2,
               'line-opacity': 0.9,
               'line-dasharray': [3, 2],
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Waterbodies (adopted from basemap — polygons) ──────────────────────
+    const waterbodyFeatures: GeoJSON.Feature[] = inProject(waterbodies).map((wb) => ({
+      type: 'Feature',
+      properties: {
+        kind: wb.kind,
+        label: wb.name ?? '',
+        annoKind: 'waterbody',
+        annoId: wb.id,
+      },
+      geometry: wb.geometry,
+    }));
+    if (waterbodyFeatures.length) {
+      result.push({
+        id: 'water-bodies',
+        toggleKey: 'water',
+        data: { type: 'FeatureCollection', features: waterbodyFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}water-bodies-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}water-bodies`,
+            paint: {
+              'fill-color': '#5b8aa8',
+              'fill-opacity': 0.45,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}water-bodies-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}water-bodies`,
+            paint: {
+              'line-color': PALETTE.water,
+              'line-width': 1.25,
+              'line-opacity': 0.9,
             },
           },
         ],
@@ -883,6 +922,48 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // Paddock fence — extruded ribbon around the boundary (paddock subtype only).
+    // ~1.5 m tall, ~0.4 m wide; only visible when the camera is tilted.
+    const paddockFenceFeatures: GeoJSON.Feature[] = [];
+    for (const p of inProject(pastures)) {
+      if (p.kind !== 'paddock') continue;
+      try {
+        const boundary = turf.polygonToLine(
+          turf.feature(p.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon),
+        );
+        const ribbon = turf.buffer(boundary as never, 0.4, { units: 'meters' }) as
+          | GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>
+          | undefined;
+        if (!ribbon) continue;
+        paddockFenceFeatures.push({
+          type: 'Feature',
+          properties: { annoKind: 'pastureFence', annoId: p.id },
+          geometry: ribbon.geometry,
+        });
+      } catch {
+        // skip malformed geometry
+      }
+    }
+    if (paddockFenceFeatures.length) {
+      result.push({
+        id: 'pasture-fence',
+        data: { type: 'FeatureCollection', features: paddockFenceFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}pasture-fence-extrusion`,
+            type: 'fill-extrusion',
+            source: `${SOURCE_PREFIX}pasture-fence`,
+            paint: {
+              'fill-extrusion-color': '#5a4326',
+              'fill-extrusion-height': 1.5,
+              'fill-extrusion-base': 0,
+              'fill-extrusion-opacity': 0.92,
+            },
+          },
+        ],
+      });
+    }
+
     // ── Conventional crop ──────────────────────────────────────────────────
     const CROP_COLOR: Record<string, string> = {
       'annual-row': '#a8854a',
@@ -912,9 +993,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}conventional-crop-fill`,
             type: 'fill',
             source: `${SOURCE_PREFIX}conventional-crop`,
+            // Crops are "patches" that sit on top of the vegetation / pasture
+            // matrix wash (0.22). Raised opacity so they read as occluding
+            // patches instead of additive blends — operator can then draw the
+            // ground-cover matrix once across the whole area without tracing
+            // around individual crop blocks.
             paint: {
               'fill-color': ['get', 'color'],
-              'fill-opacity': 0.22,
+              'fill-opacity': 0.55,
             },
           },
           {
@@ -997,7 +1083,8 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-buildings-fill`,
             type: 'fill',
             source: `${SOURCE_PREFIX}be-buildings`,
-            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.35 },
+            // Patch-on-matrix: buildings occlude ground-cover wash beneath.
+            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.6 },
           },
           {
             id: `${LAYER_PREFIX}be-buildings-line`,
@@ -1067,7 +1154,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Power lines
     const powerLineFeatures: GeoJSON.Feature[] = inProject(powerLines).map((p) => ({
       type: 'Feature',
-      properties: { placement: p.placement, annoKind: 'powerLine', annoId: p.id },
+      properties: {
+        placement: p.placement,
+        annoKind: 'powerLine',
+        annoId: p.id,
+        widthM: p.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['power-line'],
+      },
       geometry: p.geometry,
     }));
     if (powerLineFeatures.length) {
@@ -1080,7 +1172,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-power-lines`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-power-lines`,
-            paint: { 'line-color': '#c87a3f', 'line-width': 2, 'line-opacity': 0.9 },
+            paint: {
+              'line-color': '#c87a3f',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['power-line']),
+              'line-opacity': 0.9,
+            },
           },
         ],
       });
@@ -1090,7 +1186,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     const buriedUtilityFeatures: GeoJSON.Feature[] = inProject(buriedUtilities).map(
       (u) => ({
         type: 'Feature',
-        properties: { kind: u.kind, annoKind: 'buriedUtility', annoId: u.id },
+        properties: {
+          kind: u.kind,
+          annoKind: 'buriedUtility',
+          annoId: u.id,
+          widthM: u.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['buried-utility'],
+        },
         geometry: u.geometry,
       }),
     );
@@ -1106,7 +1207,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             source: `${SOURCE_PREFIX}be-buried-utilities`,
             paint: {
               'line-color': '#7a7a7a',
-              'line-width': 1.5,
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['buried-utility']),
               'line-opacity': 0.85,
               'line-dasharray': [2, 2],
             },
@@ -1118,7 +1219,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Fences
     const fenceFeatures: GeoJSON.Feature[] = inProject(fences).map((f) => ({
       type: 'Feature',
-      properties: { kind: f.kind, annoKind: 'fence', annoId: f.id },
+      properties: {
+        kind: f.kind,
+        annoKind: 'fence',
+        annoId: f.id,
+        widthM: f.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['fence'],
+      },
       geometry: f.geometry,
     }));
     if (fenceFeatures.length) {
@@ -1131,7 +1237,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-fences`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-fences`,
-            paint: { 'line-color': '#5a4a3a', 'line-width': 1.2, 'line-opacity': 0.85 },
+            paint: {
+              'line-color': '#5a4a3a',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['fence']),
+              'line-opacity': 0.85,
+            },
           },
         ],
       });
@@ -1167,7 +1277,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Existing driveways
     const drivewayFeatures: GeoJSON.Feature[] = inProject(existingDriveways).map((d) => ({
       type: 'Feature',
-      properties: { surface: d.surface, annoKind: 'existingDriveway', annoId: d.id },
+      properties: {
+        surface: d.surface,
+        annoKind: 'existingDriveway',
+        annoId: d.id,
+        widthM: d.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['driveway'],
+      },
       geometry: d.geometry,
     }));
     if (drivewayFeatures.length) {
@@ -1180,7 +1295,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-driveways`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-driveways`,
-            paint: { 'line-color': '#8a6a3f', 'line-width': 2.5, 'line-opacity': 0.9 },
+            paint: {
+              'line-color': '#8a6a3f',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['driveway']),
+              'line-opacity': 0.9,
+            },
           },
         ],
       });
@@ -1196,14 +1315,17 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     contours,
     highPoints,
     drainageLines,
+    erosionFlags,
+    runoffPaths,
     hazards,
-    sectors,
     watercourses,
+    waterbodies,
     vegetationPatches,
     pastures,
     conventionalCrops,
     swot,
     soilSamples,
+    verificationZones,
     buildings,
     wells,
     septics,
@@ -1212,8 +1334,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     fences,
     gates,
     existingDriveways,
-    homestead,
-    sectorRadiusM,
     map,
   ]);
 
@@ -1403,9 +1523,18 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
-        const specVisible = spec.toggleKey
-          ? subToggles[spec.toggleKey]
-          : visible;
+        // Single-objective focus: when a module is active (or an objective's
+        // requiredLayers set is in focus), only matching specs stay visible
+        // (AND'd into the existing toggle gate). Neither set ⇒ full overlays,
+        // so this is a no-op outside focus mode. `focusSet` supersedes the
+        // single `activeModule` gate so an objective can span several modules.
+        const specModule = SPEC_MODULE[spec.id];
+        const moduleMatch = focusSet
+          ? specModule != null && focusSet.has(specModule)
+          : activeModule == null || specModule === activeModule;
+        const specVisible =
+          moduleMatch &&
+          (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
         for (const layer of spec.layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer as AnnoLayer);
@@ -1423,9 +1552,13 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       // Apply visibility to all our layers: toggleKey'd specs follow their
       // own independent sub-toggle; untoggled specs follow the master.
       for (const spec of layerSpecs) {
-        const specVisible = spec.toggleKey
-          ? subToggles[spec.toggleKey]
-          : visible;
+        const specModule = SPEC_MODULE[spec.id];
+        const moduleMatch = focusSet
+          ? specModule != null && focusSet.has(specModule)
+          : activeModule == null || specModule === activeModule;
+        const specVisible =
+          moduleMatch &&
+          (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
         for (const layer of spec.layers) {
           if (map.getLayer(layer.id)) {
             map.setLayoutProperty(
@@ -1539,10 +1672,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     sectorsVisible,
     topographyVisible,
     zonesVisible,
-    windVisible,
     waterVisible,
-    hazardsVisible,
-    viewsVisible,
     builtEnvironmentVisible,
     openDetail,
     openForm,
@@ -1551,6 +1681,8 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     toggleSelection,
     clearSelection,
     projectId,
+    activeModule,
+    focusModules,
   ]);
 
   // Clean up everything when the component unmounts (route change).

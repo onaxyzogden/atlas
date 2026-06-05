@@ -111,6 +111,10 @@ const ROLE_LABEL: Record<ProjectRole, string> = {
   designer: 'Designer',
   reviewer: 'Reviewer',
   viewer: 'Viewer',
+  primary_steward: 'Primary steward',
+  team_member: 'Team member',
+  contractor: 'Contractor',
+  landowner: 'Landowner',
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────── */

@@ -1,0 +1,35 @@
+/* ProofSyncIndicator -- sync-status pill for the global AppShell header.
+   Extracted from the Act proof/ProofCapture.module.css when the indicator
+   moved to global chrome. Only the .syncIndicator rules are needed here; the
+   component renders a lucide icon (not the legacy .syncIndicatorDot span). */
+
+.syncIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(242, 237, 227, 0.06);
+  color: rgba(242, 237, 227, 0.7);
+  border: 1px solid rgba(242, 237, 227, 0.12);
+}
+
+.syncIndicator[data-pending='true'] {
+  background: rgba(196, 162, 101, 0.16);
+  color: var(--color-gold-brand, #c4a265);
+  border-color: rgba(196, 162, 101, 0.4);
+}
+
+.syncIndicator[data-syncing='true'] {
+  background: rgba(124, 156, 192, 0.18);
+  color: #9bb6d6;
+  border-color: rgba(124, 156, 192, 0.4);
+}
+
+.syncIndicator[data-error='true'] {
+  background: rgba(217, 119, 87, 0.18);
+  color: #d97757;
+  border-color: rgba(217, 119, 87, 0.4);
+}

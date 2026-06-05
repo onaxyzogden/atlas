@@ -21,42 +21,26 @@ import {
   useClosedLoopStore,
   type FertilityInfraType,
 } from '../../../../store/closedLoopStore.js';
-import { useZoneStore } from '../../../../store/zoneStore.js';
-import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
-import { useCropStore } from '../../../../store/cropStore.js';
-import { useLivestockStore } from '../../../../store/livestockStore.js';
-import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { usePolycultureStore } from '../../../../store/polycultureStore.js';
-import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import {
+  useClosedLoopValidation,
+  type ClosedLoopNode,
+} from '../../../../features/plan/useClosedLoopValidation.js';
+import {
+  edgeWidth,
+  flowMagnitude,
+  flowPolylinePoints,
+  polylinePointsAttr,
+  dashForFlow,
+} from '../../../../features/plan/closedLoop/flowMapGeometry.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
-
-/** Avg of all vertices across all rings — cheap centroid, fine for layout. */
-function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
-  let sx = 0;
-  let sy = 0;
-  let n = 0;
-  for (const ring of geom.coordinates) {
-    for (const pt of ring) {
-      sx += pt[0]!;
-      sy += pt[1]!;
-      n++;
-    }
-  }
-  return n === 0 ? null : [sx / n, sy / n];
-}
+import pulse from './ClosedLoopGraphCard.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
 
-interface Node {
-  id: string;
-  label: string;
-  kind: 'zone' | 'structure' | 'crop' | 'fertility' | 'paddock' | 'water' | 'guild';
-  /** [lng, lat] centroid when known, else null (e.g. structure without geometry). */
-  lngLat: [number, number] | null;
-}
+type Node = ClosedLoopNode;
 
 type LayoutMode = 'ring' | 'spatial';
 
@@ -116,105 +100,19 @@ const KIND_COLOR: Record<Node['kind'], string> = {
 };
 
 export default function ClosedLoopGraphCard({ project }: Props) {
-  const allVectors = useClosedLoopStore((s) => s.materialFlows);
+  // Fertility raw slice retained only for the type-aware remedy lookup below;
+  // all node-assembly + validation now lives in the shared hook so this card
+  // and WasteVectorDashboardView can never disagree on the counts.
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
-  const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useAllStructures();
-  const allCrops = useCropStore((s) => s.cropAreas);
-  const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
-  const allStorage = useWaterSystemsStore((s) => s.storageInfra);
-  const allGuilds = usePolycultureStore((s) => s.guilds);
-
-  // Fertility infra is the only phase-tagged entity in this card.
-  // Capped by the year scrubber's `yeomansCapForYear(currentYear)` via
-  // the phaseStore→Yeomans adapter. Zones, structures, crops, and vectors stay uncapped:
-  // they have no phase field, and caps are presentational — dangling
-  // edges from a capped-out fertility node are accepted (matches the
-  // principle established for WaterStorageCard overflow targets).
-  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
-  const fertilityRaw = useMemo(
-    () => allFertility.filter((f) => f.projectId === project.id),
-    [allFertility, project.id],
-  );
-  const fertility = usePhaseStoreCappedEntities(fertilityRaw);
-
-  const { nodes, vectors } = useMemo(() => {
-    const pId = project.id;
-    const ns: Node[] = [];
-    for (const z of allZones) {
-      if (z.projectId !== pId) continue;
-      ns.push({ id: z.id, label: z.name || z.category, kind: 'zone', lngLat: polygonCentroid(z.geometry as GeoJSON.Polygon) });
-    }
-    for (const s of allStructures) {
-      if (s.projectId !== pId) continue;
-      ns.push({ id: s.id, label: s.name || s.type, kind: 'structure', lngLat: s.center ?? polygonCentroid(s.geometry) });
-    }
-    for (const c of allCrops) {
-      if (c.projectId !== pId) continue;
-      ns.push({ id: c.id, label: (c as { name?: string }).name ?? 'crop area', kind: 'crop', lngLat: polygonCentroid(c.geometry) });
-    }
-    for (const f of fertility) {
-      ns.push({ id: f.id, label: `${f.type.replace(/_/g, ' ')}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
-    }
-    for (const p of allPaddocks) {
-      if (p.projectId !== pId) continue;
-      ns.push({ id: p.id, label: p.name || 'paddock', kind: 'paddock', lngLat: polygonCentroid(p.geometry) });
-    }
-    for (const e of allEarthworks) {
-      if (e.projectId !== pId) continue;
-      ns.push({ id: e.id, label: e.type.replace(/_/g, ' '), kind: 'water', lngLat: null });
-    }
-    for (const st of allStorage) {
-      if (st.projectId !== pId) continue;
-      ns.push({ id: st.id, label: st.type.replace(/_/g, ' '), kind: 'water', lngLat: st.center });
-    }
-    for (const g of allGuilds) {
-      if (g.projectId !== pId) continue;
-      ns.push({ id: g.id, label: g.name || 'guild', kind: 'guild', lngLat: null });
-    }
-    const vs = allVectors.filter((v) => v.projectId === pId);
-    return { nodes: ns, vectors: vs };
-  }, [project.id, allZones, allStructures, allCrops, fertility, allPaddocks, allEarthworks, allStorage, allGuilds, allVectors]);
-
-  // Adjacency
-  const inDeg = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const v of vectors) if (v.sinkId) m.set(v.sinkId, (m.get(v.sinkId) ?? 0) + 1);
-    return m;
-  }, [vectors]);
-  const outDeg = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const v of vectors) if (v.sourceId) m.set(v.sourceId, (m.get(v.sourceId) ?? 0) + 1);
-    return m;
-  }, [vectors]);
-
-  // Orphan fertility = fertility node with no edges either direction.
-  const orphanFertility = useMemo(
-    () =>
-      nodes.filter(
-        (n) => n.kind === 'fertility' && (inDeg.get(n.id) ?? 0) === 0 && (outDeg.get(n.id) ?? 0) === 0,
-      ),
-    [nodes, inDeg, outDeg],
-  );
-  // Isolated feature = any non-fertility node that touches no vector.
-  const isolatedFeatures = useMemo(
-    () =>
-      nodes.filter(
-        (n) => n.kind !== 'fertility' && (inDeg.get(n.id) ?? 0) === 0 && (outDeg.get(n.id) ?? 0) === 0,
-      ),
-    [nodes, inDeg, outDeg],
-  );
-  // Sink-less producers = node that produces (out > 0) but never receives (in == 0).
-  // For non-fertility, this is fine (fields produce). For fertility, an outgoing-only
-  // unit with no incoming feedstock is suspicious.
-  const fertilityWithoutFeedstock = useMemo(
-    () =>
-      nodes.filter(
-        (n) => n.kind === 'fertility' && (outDeg.get(n.id) ?? 0) > 0 && (inDeg.get(n.id) ?? 0) === 0,
-      ),
-    [nodes, inDeg, outDeg],
-  );
+  const {
+    nodes,
+    vectors,
+    inDeg,
+    outDeg,
+    orphanFertility,
+    fertilityWithoutFeedstock,
+    isolatedFeatures,
+  } = useClosedLoopValidation(project);
 
   // SVG layout: two modes.
   //  · 'ring' — nodes evenly spaced around a circle (original behaviour,
@@ -290,6 +188,18 @@ export default function ClosedLoopGraphCard({ project }: Props) {
     return c;
   }, [nodes]);
 
+  // Largest single-flow throughput magnitude across the project, the denominator
+  // for the relative edge-width ramp (A3). 0 when no flow carries throughput, in
+  // which case every edge renders at the minimum width (edgeWidth handles it).
+  const maxMag = useMemo(() => {
+    let max = 0;
+    for (const v of vectors) {
+      const mag = flowMagnitude(v);
+      if (mag > max) max = mag;
+    }
+    return max;
+  }, [vectors]);
+
   return (
     <div className={styles.page}>
       <header className={styles.hero} data-stage="plan">
@@ -361,16 +271,24 @@ export default function ClosedLoopGraphCard({ project }: Props) {
               {vectors.map((v) => {
                 const a = v.sourceId ? positions.get(v.sourceId) : undefined;
                 const b = v.sinkId ? positions.get(v.sinkId) : undefined;
-                if (!a || !b) return null;
+                // Via waypoints: each transformationNodeId resolves to a node
+                // centroid for free; ids without a known position are skipped so
+                // the flow degrades to a straight source -> sink segment.
+                const via = (v.transformationNodeIds ?? []).map((id) =>
+                  positions.get(id),
+                );
+                const pts = flowPolylinePoints(a, via, b);
+                if (pts.length < 2) return null;
+                const width = edgeWidth(flowMagnitude(v), maxMag);
+                const dash = dashForFlow(v);
                 return (
-                  <line
+                  <polyline
                     key={v.id}
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
+                    points={polylinePointsAttr(pts)}
+                    fill="none"
                     stroke="rgba(255,255,255,0.45)"
-                    strokeWidth={1.4}
+                    strokeWidth={width}
+                    strokeDasharray={dash}
                     markerEnd="url(#cl-arrow)"
                   />
                 );
@@ -381,6 +299,14 @@ export default function ClosedLoopGraphCard({ project }: Props) {
                   (n.kind === 'fertility' && (inDeg.get(n.id) ?? 0) === 0 && (outDeg.get(n.id) ?? 0) === 0);
                 return (
                   <g key={n.id}>
+                    {isOrphan && (
+                      <circle
+                        className={pulse.pulseRing}
+                        cx={p.x}
+                        cy={p.y}
+                        r={9}
+                      />
+                    )}
                     <circle
                       cx={p.x}
                       cy={p.y}

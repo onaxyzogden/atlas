@@ -27,9 +27,31 @@ import {
   phaseIndex,
   yeomansCapForYear,
   type PlanView,
+  type PlanModule,
 } from '../../types.js';
 import { findElementSpec } from '../elementCatalog.js';
+import type { DesignCategory } from '../elementCatalog.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
+
+/**
+ * Maps a design-element category to the Plan objective (module) it belongs to.
+ * Used to scope the Vision design-element canvas to a single objective when the
+ * Plan map is in single-objective focus (an objective is "Open on Map"). When
+ * `activeModule` is null the full design-element set renders. `custom` has no
+ * home objective, so it is hidden under focus.
+ */
+const CATEGORY_MODULE: Record<DesignCategory, PlanModule | null> = {
+  water: 'hydrology',
+  access: 'access-circulation',
+  grazing: 'animals-livestock',
+  structure: 'built-infrastructure',
+  machinery: 'built-infrastructure',
+  amenity: 'built-infrastructure',
+  vegetation: 'plants-food',
+  earthworks: 'hydrology',
+  habitat: 'ecology',
+  custom: null,
+};
 
 interface Props {
   map: MaplibreMap;
@@ -45,6 +67,11 @@ interface Props {
    *  a direct map click. Lets the parent mirror the local `selectedId` state
    *  that drives the gold-outline feature-state highlight. */
   onSelect?: (id: string | null) => void;
+  /** When set, scope the canvas to a single Plan objective: only design
+   *  elements whose category maps to `activeModule` render (CATEGORY_MODULE).
+   *  Null = full design-element set (no focus). Mirrors the strict
+   *  single-objective rail/overlay focus. */
+  activeModule?: PlanModule | null;
 }
 
 const SOURCE_PREFIX = 'design-el-';
@@ -57,6 +84,7 @@ export default function DesignElementLayers({
   selectedId,
   onHoverChange,
   onSelect,
+  activeModule = null,
 }: Props) {
   // Opt into draft rows so the generated-design review layer renders;
   // every other consumer excludes drafts by default (ADR 2026-05-14).
@@ -73,6 +101,7 @@ export default function DesignElementLayers({
     const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const visible = elements
+      .filter((el) => !el.hidden)
       .filter((el) => phaseIndex(el.phase) <= cap)
       .filter((el) => {
         // Per-view origin scoping (2026-05-11):
@@ -85,7 +114,15 @@ export default function DesignElementLayers({
         if (originView === 'current')
           return !(el.hiddenInViews ?? []).includes(view);
         return false;
-      });
+      })
+      // Single-objective focus (2026-05-24): when an objective is "Open on
+      // Map", show only design elements whose category maps to it. `custom`
+      // (CATEGORY_MODULE = null) is hidden under focus. Full set when null.
+      .filter(
+        (el) =>
+          activeModule == null ||
+          CATEGORY_MODULE[el.category] === activeModule,
+      );
 
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -145,7 +182,13 @@ export default function DesignElementLayers({
           /* malformed polygon — skip label */
         }
       } else if (el.geometry.type === 'LineString') {
-        lines.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
+        const widthM = el.widthM ?? spec?.defaultWidthM ?? 1;
+        lines.push({
+          type: 'Feature',
+          id: el.id,
+          properties: { ...props, widthM },
+          geometry: el.geometry,
+        });
         if (hasConflict) {
           conflictLines.push({
             type: 'Feature',
@@ -172,7 +215,7 @@ export default function DesignElementLayers({
       conflictPolyFC: { type: 'FeatureCollection' as const, features: conflictPolys },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [elements, view, currentYear]);
+  }, [elements, view, currentYear, activeModule]);
 
   useEffect(() => {
     if (!map) return;
@@ -308,13 +351,32 @@ export default function DesignElementLayers({
           'line-dasharray': [2, 2],
         },
       });
+      // Width-aware line rendering: real-world `widthM` (per-feature override
+      // or kind default from elementCatalog, stamped onto the GeoJSON props
+      // above) is interpolated across zoom into screen pixels. The `max(…)`
+      // floors keep narrow kinds legible at low zoom. The +2 px selection
+      // emphasis is folded into each interpolate stop's OUTPUT (not wrapped
+      // around the whole expression): MapLibre requires the zoom curve to be
+      // the outermost expression of `line-width` and forbids more than one
+      // zoom-based sub-expression, so a `['case', selFlag, ['+', expr, 2],
+      // expr]` wrapper — which nests the zoom interpolate twice — throws
+      // "Only one zoom-based step/interpolate subexpression may be used" on
+      // every repaint. feature-state is allowed in the stop outputs.
+      const lineWidthExpr: ExpressionSpecification = [
+        'interpolate',
+        ['exponential', 2],
+        ['zoom'],
+        12, ['+', ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], 1], 0.05]], ['case', selFlag, 2, 0]],
+        19, ['+', ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], 1], 1.6]],  ['case', selFlag, 2, 0]],
+        22, ['+', ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], 1], 25]],   ['case', selFlag, 2, 0]],
+      ];
       ensureLayer({
         id: `${LAYER_PREFIX}line`,
         type: 'line',
         source: lineSid,
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
-          'line-width': ['case', selFlag, 4, 2],
+          'line-width': lineWidthExpr,
           'line-opacity': ['case', draftFlag, 0.65, 0.9],
           'line-dasharray': [2, 1],
         },

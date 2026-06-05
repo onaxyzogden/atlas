@@ -95,7 +95,7 @@
   flex-direction: column;
   padding: var(--space-8, 32px) var(--space-8, 32px) var(--space-3, 12px) var(--space-8, 32px);
   background: var(--surface, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--border, var(--color-hairline));
   border-radius: var(--radius-xl, 16px);
   min-width: 0;
 }
@@ -150,7 +150,7 @@
   gap: 5px;
   min-width: 0;
   background: var(--bg2, var(--surface, rgba(255, 255, 255, 0.04)));
-  border: 1.5px solid var(--border, rgba(255, 255, 255, 0.08));
+  border: 1.5px solid var(--border, var(--color-hairline));
   border-radius: 10px;
   padding: 8px 6px 6px;
   cursor: pointer;

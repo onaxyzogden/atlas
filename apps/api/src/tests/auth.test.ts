@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import type { FastifyInstance } from 'fastify';
 import bcrypt from 'bcryptjs';
 import { mockDb, enqueue, clearQueue } from './helpers/testApp.js';
-import { TEST_USER_ID, TEST_EMAIL, TEST_PASSWORD, userRow } from './helpers/fixtures.js';
+import { TEST_USER_ID, TEST_EMAIL, TEST_PASSWORD, TEST_ORG_ID, userRow } from './helpers/fixtures.js';
 
 // ─── Module mocks ───
 vi.mock('../plugins/database.js', async () => {
@@ -52,7 +52,9 @@ beforeEach(() => { clearQueue(); });
 describe('POST /api/v1/auth/register', () => {
   it('returns 201 with a token', async () => {
     enqueue(); // SELECT → no existing user
-    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null }); // INSERT
+    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null }); // INSERT users
+    enqueue({ id: TEST_ORG_ID }); // INSERT organizations RETURNING id (Phase 4.5 default org)
+    enqueue(); // INSERT organization_members (no RETURNING)
 
     const res = await app.inject({
       method: 'POST',
@@ -63,6 +65,7 @@ describe('POST /api/v1/auth/register', () => {
     expect(res.statusCode).toBe(201);
     expect(JSON.parse(res.body).data.token).toBeTruthy();
     expect(JSON.parse(res.body).data.user.email).toBe(TEST_EMAIL);
+    expect(JSON.parse(res.body).data.user.defaultOrgId).toBe(TEST_ORG_ID);
   });
 
   it('returns 409 for duplicate email', async () => {
@@ -104,6 +107,7 @@ describe('POST /api/v1/auth/register', () => {
 describe('POST /api/v1/auth/login', () => {
   it('returns 200 with a token', async () => {
     enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null, password_hash: loginHash });
+    enqueue({ org_id: TEST_ORG_ID }); // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'POST',
@@ -145,6 +149,7 @@ describe('POST /api/v1/auth/login', () => {
 describe('GET /api/v1/auth/me', () => {
   it('returns 200 with valid token', async () => {
     enqueue(userRow());
+    enqueue({ org_id: TEST_ORG_ID }); // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'GET',
@@ -154,6 +159,7 @@ describe('GET /api/v1/auth/me', () => {
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).data.email).toBe(TEST_EMAIL);
+    expect(JSON.parse(res.body).data.defaultOrgId).toBe(TEST_ORG_ID);
   });
 
   it('returns 401 without token', async () => {

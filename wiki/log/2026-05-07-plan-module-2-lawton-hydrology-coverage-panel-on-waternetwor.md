@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 2 · Lawton hydrology coverage panel on WaterNetworkCard
+
+
+`WaterNetworkCard` now renders a five-cell "Lawton hydrology coverage" panel between Peak-event sizing and Validation. Each cell maps a Lawton stage (capture / slow / spread / sink / store) to one or more `WaterNodeKind` values and shows present/absent state with a count. Missing stages are listed explicitly with Lawton's framing ("water moved through fewer than five stages exits the site faster than it arrived"), so a steward who has captured + stored water but never slowed or sunk it is flagged at the depth-of-treatment level rather than just at the nodes-and-edges level. Lawton was already cited as the directed-graph rationale in the Module 2 ADR; this surfaces the five-stage ladder as an explicit fitness check. Pure render addition, no schema change. ADR `2026-05-07-atlas-plan-water-scholar-build-fresh.md` updated.

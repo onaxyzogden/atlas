@@ -1,5 +1,5 @@
-﻿/**
- * SWOT store â€” Scholar-aligned namespace consolidation
+/**
+ * SWOT store — Scholar-aligned namespace consolidation
  * (plan few-concerns-shiny-quokka.md, ADR
  * 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md).
  *
@@ -9,6 +9,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type SwotBucket = 'S' | 'W' | 'O' | 'T';
@@ -21,7 +23,7 @@ export interface SwotEntry {
   body?: string;
   tags?: string[];
   /**
-   * Optional [lng, lat] pin â€” present when the SWOT entry was tagged on the
+   * Optional [lng, lat] pin — present when the SWOT entry was tagged on the
    * OBSERVE map (Module 6). Legacy text-only entries omit this field.
    */
   position?: [number, number];
@@ -46,8 +48,8 @@ export const useSwotStore = create<SwotState>()(
         set((s) => ({ swot: s.swot.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeSwot: (id) => set((s) => ({ swot: s.swot.filter((e) => e.id !== id) })),
     }), { limit: 200 }),
-    { name: 'ogden-swot', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-swot', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
-useSwotStore.persist.rehydrate();
+rehydrateWithLogging(useSwotStore);

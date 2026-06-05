@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 1 · Diagnostic edge encoding on layer-relationships graph
+
+
+Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The 9-rank prereq graph in `PermanenceLadderCard` previously rendered every curved edge in the same neutral grey — structurally correct but inert. Edges now encode satisfaction state in colour + width + dash + arrowhead: amber+heavier when the source rank is populated but its prerequisite is empty (Yeomans-violation visualised), green when both ends carry elements, dashed dim when neither does. Each `<path>` carries a `<title>` tooltip naming the state. Three arrowhead `<marker>` defs (`prereq-arrow-ok` / `-warn` / neutral) keep tip colour consistent with shaft. The graph is now itself diagnostic — Holmgren P8 violations show on the diagram, not just in the panel above. No data-model change. Typecheck clean.

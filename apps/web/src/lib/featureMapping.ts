@@ -9,6 +9,8 @@
 import type { CreateDesignFeatureInput, DesignFeatureSummary } from '@ogden/shared';
 import type { LandZone } from '../store/zoneStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
+import type { DesignPath } from '../store/pathStore.js';
+import type { Utility } from '../store/utilityStore.js';
 
 export function zoneToDesignFeature(zone: LandZone, _projectServerId: string): CreateDesignFeatureInput {
   return {
@@ -85,6 +87,98 @@ export function designFeatureToStructure(df: DesignFeatureSummary, projectLocalI
     costEstimate: (props.costEstimate as number | null) ?? null,
     infrastructureReqs: (props.infrastructureReqs as string[]) ?? [],
     notes: (props.notes as string) ?? '',
+    createdAt: df.createdAt,
+    updatedAt: df.updatedAt,
+    serverId: df.id,
+  };
+}
+
+export function pathToDesignFeature(p: DesignPath, _projectServerId: string): CreateDesignFeatureInput {
+  return {
+    featureType: 'path',
+    subtype: p.type,
+    geometry: p.geometry,
+    label: p.name,
+    properties: {
+      localId: p.id,
+      color: p.color,
+      lengthM: p.lengthM,
+      usageFrequency: p.usageFrequency,
+      accessible: p.accessible,
+      isTemporary: p.isTemporary,
+      seasonalMonths: p.seasonalMonths,
+      enterprise: p.enterprise,
+      restPointAnchors: p.restPointAnchors,
+      notes: p.notes,
+    },
+    phaseTag: p.phase || undefined,
+    style: { color: p.color },
+    sortOrder: 0,
+  };
+}
+
+export function designFeatureToPath(df: DesignFeatureSummary, projectLocalId: string): DesignPath {
+  const props = df.properties as Record<string, unknown>;
+  return {
+    id: (props.localId as string) || crypto.randomUUID(),
+    projectId: projectLocalId,
+    name: df.label ?? '',
+    type: (df.subtype ?? 'trail') as DesignPath['type'],
+    color: (props.color as string) ?? (df.style as Record<string, unknown>)?.color as string ?? '#888888',
+    geometry: df.geometry as DesignPath['geometry'],
+    lengthM: (props.lengthM as number) ?? 0,
+    phase: df.phaseTag ?? '',
+    notes: (props.notes as string) ?? '',
+    isTemporary: props.isTemporary as boolean | undefined,
+    seasonalMonths: props.seasonalMonths as number[] | undefined,
+    usageFrequency: props.usageFrequency as DesignPath['usageFrequency'],
+    enterprise: props.enterprise as string | undefined,
+    accessible: props.accessible as boolean | undefined,
+    restPointAnchors: props.restPointAnchors as [number, number][] | undefined,
+    createdAt: df.createdAt,
+    updatedAt: df.updatedAt,
+    serverId: df.id,
+  };
+}
+
+export function utilityToDesignFeature(u: Utility, _projectServerId: string): CreateDesignFeatureInput {
+  return {
+    featureType: 'point',
+    subtype: u.type,
+    geometry: { type: 'Point', coordinates: u.center },
+    label: u.name,
+    properties: {
+      localId: u.id,
+      center: u.center,
+      demandKwhPerDay: u.demandKwhPerDay,
+      capacityGal: u.capacityGal,
+      isTemporary: u.isTemporary,
+      seasonalMonths: u.seasonalMonths,
+      notes: u.notes,
+    },
+    phaseTag: u.phase || undefined,
+    sortOrder: 0,
+  };
+}
+
+export function designFeatureToPoint(df: DesignFeatureSummary, projectLocalId: string): Utility {
+  const props = df.properties as Record<string, unknown>;
+  const geom = df.geometry as GeoJSON.Point | undefined;
+  return {
+    id: (props.localId as string) || crypto.randomUUID(),
+    projectId: projectLocalId,
+    name: df.label ?? '',
+    type: (df.subtype ?? 'water_tank') as Utility['type'],
+    center:
+      (props.center as [number, number]) ??
+      (geom?.coordinates as [number, number] | undefined) ??
+      [0, 0],
+    phase: df.phaseTag ?? '',
+    notes: (props.notes as string) ?? '',
+    demandKwhPerDay: props.demandKwhPerDay as number | undefined,
+    capacityGal: props.capacityGal as number | undefined,
+    isTemporary: props.isTemporary as boolean | undefined,
+    seasonalMonths: props.seasonalMonths as number[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,

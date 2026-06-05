@@ -1,0 +1,37 @@
+/* WasteVectorTool view-switcher chrome.
+ * Segmented control mounted between the hero and the active view body.
+ * Visual feel matches `.tag` / `.tagActive` from shared stageCard tokens. */
+
+.switcher {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 18px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+}
+
+.switcherBtn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.switcherBtn:hover {
+  color: var(--color-text);
+}
+
+.switcherBtnActive {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  color: rgba(var(--color-gold-rgb), 0.95);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-gold-rgb), 0.4);
+}

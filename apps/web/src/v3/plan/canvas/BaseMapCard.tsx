@@ -28,10 +28,10 @@ interface MapOverlayDef {
 const MAP_OVERLAYS_COLLAPSE_KEY = 'atlas.v3.mapOverlaysLegend.collapsed';
 
 const DEFAULT_OVERLAYS: MapOverlayDef[] = [
-  { key: 'sectors', label: 'Solar sectors (sunrise→south→sunset wedges)', swatch: '#c4a265' },
-  { key: 'wind', label: 'Wind sectors (proportional · labelled)', swatch: '#5b7a8a' },
-  { key: 'hazards', label: 'Hazards (fire · noise · wildlife)', swatch: '#a85a3f' },
-  { key: 'views', label: 'Views (sightline sectors)', swatch: '#7aa86a' },
+  // Single Sector compass row drives the unified HUD (solar arcs + wind
+  // petals + manual sector arrows in one rose). See ADR
+  // wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md.
+  { key: 'sectors', label: 'Sector compass (solar · wind · hazards · views)', swatch: '#c4a265' },
   { key: 'zones', label: 'Permaculture zones (steward-drawn in Observe)', swatch: '#b07c4a' },
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
@@ -39,8 +39,9 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
   { key: 'sunPath', label: 'Sun path (hourly trajectory traces)', swatch: '#d68a4a' },
   { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
-  { key: 'seededZones', label: 'Seeded zones (ring-seed provisional drafts)', swatch: '#7a9a4a' },
+  { key: 'seededZones', label: 'Home centre / Daily touch / Weekly touch / Main crops / Forage / Wilderness', swatch: '#7a9a4a' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
+  { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
 ];
 
 // Per-stage overlay scoping: hide rows whose underlying layer isn't mounted on
@@ -63,9 +64,9 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
-  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
+  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
   plan: [],
-  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
+  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
 };
 
 export interface BaseMapCardProps {

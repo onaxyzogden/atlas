@@ -1,0 +1,134 @@
+/* PortfolioSummaryBar — §3 portfolio metrics strip above the Dashboard grid. */
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-4, 16px);
+  margin-bottom: var(--space-4, 16px);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  /* reset for the divergence <button> variant */
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.value {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border-subtle, var(--color-border));
+}
+
+/* ---- Stage count chips (tappable filters) ------------------------------ */
+
+.stages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, var(--stage-color) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--stage-color) 8%, transparent);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.stageChip:hover {
+  background: color-mix(in srgb, var(--stage-color) 16%, transparent);
+}
+
+.stageChipActive {
+  background: color-mix(in srgb, var(--stage-color) 22%, transparent);
+  border-color: var(--stage-color);
+}
+
+.stageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stage-color);
+  flex-shrink: 0;
+}
+
+.stageCount {
+  font-weight: 600;
+}
+
+.stageName {
+  color: var(--color-text-muted);
+}
+
+/* ---- Divergence metric (tappable filter) ------------------------------- */
+
+.divergence {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  margin: -4px -8px;
+  transition: background 120ms ease;
+}
+
+.divergence:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+
+.divergence:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.divergenceAlert .value {
+  color: #d98a8a;
+}
+
+.divergenceActive {
+  background: color-mix(in srgb, #d98a8a 14%, transparent);
+}
+
+@media (max-width: 760px) {
+  .bar {
+    gap: var(--space-3, 12px);
+  }
+  .divider {
+    display: none;
+  }
+}

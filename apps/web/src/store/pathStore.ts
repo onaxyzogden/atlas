@@ -1,9 +1,11 @@
-﻿/**
- * Path store â€” roads, trails, corridors, animal movement routes.
+/**
+ * Path store — roads, trails, corridors, animal movement routes.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { path } from '../lib/tokens';
 
@@ -31,8 +33,8 @@ export interface DesignPath {
   phase: string;
   notes: string;
   /**
-   * Optional marker for temporary or seasonal paths (Â§15 Timeline,
-   * Phasing & Staged Buildout â€” "temporary vs permanent, seasonal phase
+   * Optional marker for temporary or seasonal paths (§15 Timeline,
+   * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
    * view"). `true` = present only for this phase or a subset of the year
    * (e.g., winter-only grazing route); `false` / undefined = permanent.
    * The PhasingDashboard uses this to offer a "Hide temporary" toggle and
@@ -46,18 +48,18 @@ export interface DesignPath {
    */
   seasonalMonths?: number[];
   /**
-   * PLAN-stage Module 3 â€” usage frequency tag drives stroke-width scaling
+   * PLAN-stage Module 3 — usage frequency tag drives stroke-width scaling
    * on the Plan-stage path-frequency layer and informs zone-of-use logic.
    * Optional; unset paths render at the default width.
    */
   usageFrequency?: 'daily' | 'weekly' | 'occasional' | 'rare';
   /**
-   * PLAN-stage Multi-Enterprise â€” `enterpriseStore` enterprise id this
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
    * path belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
   /**
-   * Accessibility flag â€” true when the path is wheelchair / mobility-aid
+   * Accessibility flag — true when the path is wheelchair / mobility-aid
    * usable (graded surface, no steps, gentle slope). Surfaces in:
    *   - Educational Farm checklist item #4 (Wheelchair-accessible primary
    *     paths + rest points)
@@ -73,6 +75,13 @@ export interface DesignPath {
    * = no rest points captured yet.
    */
   restPointAnchors?: [number, number][];
+  /**
+   * Server design_features id once synced (PLAN-stage typed-promotion,
+   * 2026-05-22). Paths round-trip through the typed `design_features` table
+   * (featureType `path`) like zones/structures — present once the create
+   * sync returns. Absent = not yet pushed.
+   */
+  serverId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -118,9 +127,9 @@ export const usePathStore = create<PathState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-paths', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-paths', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
 // Hydrate from localStorage (Zustand v5)
-usePathStore.persist.rehydrate();
+rehydrateWithLogging(usePathStore);

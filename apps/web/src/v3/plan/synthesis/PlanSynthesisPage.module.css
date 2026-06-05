@@ -1,0 +1,326 @@
+/*
+ * Bento page — mirrors apps/web/src/components/ui/BentoBox.module.css
+ * .bento-shell + .outer-default. The centered document now reads as a
+ * single bento containing header + sections. Padding/gap unchanged.
+ */
+.page {
+  max-width: 880px;
+  margin: var(--space-4) auto;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+.lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 64ch;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ── Readiness tiles ─────────────────────────────────────────────────── */
+
+.tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-border);
+  text-decoration: none;
+  transition: border-color 0.12s ease;
+}
+
+.tile:hover {
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.tile[data-flag='true'] {
+  border-left-color: #d4af5f;
+}
+
+.tileNum {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.tile[data-flag='true'] .tileNum {
+  color: #c79a3e;
+}
+
+.tileLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* ── Open items ──────────────────────────────────────────────────────── */
+
+.clear {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.openList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.openLink {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid #d4af5f;
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.12s ease;
+}
+
+.openLink:hover {
+  border-color: var(--color-brand, #d4af5f);
+}
+
+/* ── Active version card ─────────────────────────────────────────────── */
+
+.versionCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-border);
+}
+
+.versionCard[data-status='draft'] {
+  border-left-color: #d4af5f;
+}
+
+.versionCard[data-status='approved'] {
+  border-left-color: #6ba47a;
+}
+
+.versionCard[data-status='superseded'] {
+  border-left-color: var(--color-border);
+  opacity: 0.85;
+}
+
+.versionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.versionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusBadge[data-status='draft'] {
+  background: rgba(212, 175, 95, 0.16);
+  color: #c79a3e;
+}
+
+.statusBadge[data-status='approved'] {
+  background: rgba(107, 164, 122, 0.16);
+  color: #4f8a64;
+}
+
+.statusBadge[data-status='superseded'] {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.versionMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.approvedBy {
+  color: #4f8a64;
+  font-weight: 600;
+}
+
+.versionLink {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand, #d4af5f);
+  text-decoration: none;
+}
+
+.versionLink:hover {
+  text-decoration: underline;
+}
+
+/* ── Approval block ──────────────────────────────────────────────────── */
+
+.approveBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+}
+
+.approvedLine {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4f8a64;
+  font-weight: 600;
+}
+
+.pendingLine {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.noteInput {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.approveActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.approveBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--color-brand, #d4af5f);
+  border-radius: 6px;
+  background: var(--color-brand, #d4af5f);
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.approveBtn:hover {
+  filter: brightness(1.05);
+}
+
+.reopenBtn {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reopenBtn:hover {
+  border-color: var(--color-brand, #d4af5f);
+  color: var(--color-brand, #d4af5f);
+}

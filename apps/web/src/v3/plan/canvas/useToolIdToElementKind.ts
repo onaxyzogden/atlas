@@ -50,6 +50,17 @@ export function toolIdToElementKind(toolId: MapToolId | null): string | null {
     case 'plan.zone-circulation.bridge':     return 'bridge';
     case 'plan.machinery.turnaround':        return 'turnaround';
     case 'plan.livestock.paddock':           return 'paddock';
+    // 2026-05-21 — Habitat-feature unification. The 7 habitat-only kinds
+    // dispatch through `habitat-allocation`; hedgerow / shrub / pond / wildlife
+    // pond reuse their existing plant-systems / water-management tool ids
+    // since the catalog kind is shared.
+    case 'plan.habitat-allocation.owl-box':         return 'owl-box';
+    case 'plan.habitat-allocation.raptor-perch':    return 'raptor-perch';
+    case 'plan.habitat-allocation.nest-box':        return 'nest-box';
+    case 'plan.habitat-allocation.brush-pile':      return 'brush-pile';
+    case 'plan.habitat-allocation.snag':            return 'snag';
+    case 'plan.habitat-allocation.insectary-strip': return 'insectary-strip';
+    case 'plan.habitat-allocation.wetland-edge':    return 'wetland-edge';
     default:                                  return null;
   }
 }

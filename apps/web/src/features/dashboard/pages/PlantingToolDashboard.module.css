@@ -108,8 +108,8 @@
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
 }
 .verdictBandPill_good { color: rgb(74,222,128); border-color: rgba(21,128,61,0.45); }
 .verdictBandPill_caution { color: rgb(250,204,21); border-color: rgba(202,138,4,0.5); }
@@ -139,8 +139,8 @@
   gap: 2px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
 }
 .verdictMetricLabel {
   font-size: 9px;
@@ -204,8 +204,8 @@
   align-items: center;
   padding: 8px 10px;
   border-radius: 6px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--color-inset-well);
+  border: 1px solid var(--color-hairline);
   font-size: 12px;
 }
 .blockerLabel { font-weight: 600; color: rgba(255,255,255,0.85); }
@@ -228,8 +228,8 @@
   gap: 14px;
   padding: 16px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
 }
 .railSection { display: flex; flex-direction: column; gap: 4px; }
 .railLabel {
@@ -251,7 +251,7 @@
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.04);
+  background: var(--color-hover-overlay);
   color: rgba(255,255,255,0.7);
 }
 .railChip_good { color: rgb(74,222,128); background: rgba(21,128,61,0.15); }
@@ -261,7 +261,7 @@
 /* ── Methodology drawer ───────────────────────────────────────────── */
 .methodology {
   margin-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--color-hairline);
   padding-top: 12px;
 }
 .methodologySummary {
@@ -293,7 +293,7 @@
   flex-direction: column;
   gap: 6px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--color-hairline);
   margin-top: 6px;
 }
 .cockpitSectionTitle {
@@ -376,8 +376,8 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   transition: background 120ms;
 }
 .speciesActive {
@@ -420,7 +420,7 @@
 .metricBox {
   padding: 18px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
 }
 .metricBoxWide {
@@ -448,8 +448,8 @@
 .spacingCard {
   padding: 20px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .spacingRow {
   display: flex;
@@ -473,7 +473,7 @@
   position: relative;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255,255,255,0.08);
+  background: var(--color-active-overlay);
   margin-bottom: 18px;
 }
 .spacingFill {
@@ -551,8 +551,8 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   margin-bottom: 6px;
   font-size: 13px;
   color: var(--color-success-50);
@@ -578,7 +578,7 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--color-hairline);
 }
 .yieldSpecies {
   font-family: 'Fira Sans', sans-serif;
@@ -603,7 +603,7 @@
   font-size: 11px;
   color: rgba(255,255,255,0.35);
   padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--color-hairline);
 }
 .excludedReason {
   font-size: 10px;

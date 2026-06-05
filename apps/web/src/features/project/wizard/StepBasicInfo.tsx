@@ -151,7 +151,7 @@ export default function StepBasicInfo({ data, updateData, onNext, onBack, isFirs
                 fontSize: 13,
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-md)',
-                background: selectedTemplateId ? 'var(--color-earth-600)' : 'var(--color-surface)',
+                background: selectedTemplateId ? 'var(--color-neutral-600)' : 'var(--color-surface)',
                 color: selectedTemplateId ? '#fff' : 'var(--color-text-muted)',
                 cursor: selectedTemplateId && !instantiating ? 'pointer' : 'not-allowed',
                 whiteSpace: 'nowrap',

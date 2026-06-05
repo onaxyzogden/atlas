@@ -19,6 +19,13 @@
       "files": 1996,
       "mode": "incremental-update",
       "tokens_estimated": true
+    },
+    {
+      "date": "2026-05-26T03:24:24.066146+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 1768,
+      "mode": "code-only AST update"
     }
   ],
   "total_input_tokens": 814273,

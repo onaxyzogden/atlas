@@ -41,6 +41,13 @@ redis:
   ports: ["6379:6379"]
 ```
 
+## Local dev gotcha — two Postgres on 5432 (2026-05-25)
+This dev machine runs **two** Postgres instances that both want host port 5432:
+- **Native Windows service `postgresql-x64-17`** (auto-start) wins the bind, so `localhost:5432` → this instance. `DATABASE_URL` and `pnpm migrate` connect here; it is the source of truth (migrated through 042).
+- **Docker container `ogden-postgres`** shows `0.0.0.0:5432->5432` and reports "healthy", but its published port is shadowed by the native service. Its *internal* DB is stale. `docker exec ogden-postgres psql …` reads the stale internal DB — **not** what the app sees.
+
+When inspecting migration state / data, query over TCP via `DATABASE_URL` (e.g. `node --env-file=.env --import=tsx src/db/migrate.ts`), never `docker exec`. The discrepancy (docker showed 037 while the real DB was 042) cost a diagnostic cycle during the 2026-05-25 login fix.
+
 ## Notes
 - No ORM — raw SQL via `postgres` template literals
 - All geometry stored as SRID 4326 (WGS84)

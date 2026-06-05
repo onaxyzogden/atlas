@@ -46,9 +46,15 @@ const TONE_BORDER: Record<OpsTone, string> = {
 };
 
 function buildPin(flag: FieldFlag): HTMLDivElement {
+  // Outer element: MapLibre owns its inline `transform` for positioning, so we
+  // must never write `transform` here — doing so wipes the translate and snaps
+  // the marker to the map origin. The hover scale lives on the inner pin.
   const el = document.createElement("div");
   el.setAttribute("aria-label", `${flag.kind} flag: ${flag.label}`);
-  el.style.cssText = [
+  el.style.cssText = ["cursor:pointer", "user-select:none", "line-height:0"].join(";");
+
+  const pin = document.createElement("div");
+  pin.style.cssText = [
     "width:30px",
     "height:30px",
     "border-radius:50%",
@@ -61,16 +67,16 @@ function buildPin(flag: FieldFlag): HTMLDivElement {
     "color:#f6efe1",
     "font-size:14px",
     "font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif",
-    "cursor:pointer",
-    "user-select:none",
     "transition:transform 120ms ease",
   ].join(";");
-  el.textContent = KIND_GLYPH[flag.kind];
+  pin.textContent = KIND_GLYPH[flag.kind];
+  el.appendChild(pin);
+
   el.addEventListener("mouseenter", () => {
-    el.style.transform = "scale(1.12)";
+    pin.style.transform = "scale(1.12)";
   });
   el.addEventListener("mouseleave", () => {
-    el.style.transform = "scale(1)";
+    pin.style.transform = "scale(1)";
   });
   return el;
 }

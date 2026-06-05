@@ -1,0 +1,218 @@
+/**
+ * Design Map generator — orchestrator.
+ *
+ * Pure-function service that emits candidate design features for a parcel
+ * (orchards, swales, paddocks, habitat corridors) given baseline geospatial
+ * inputs already produced by the terrain / watershed pipelines. The
+ * generator is deliberately decoupled from persistence: it returns plain
+ * `CreateDesignFeatureInput` records; the API route layer decides whether
+ * to write them.
+ *
+ * **Status (B.1):** scaffolding only — no algorithms are registered yet.
+ * Each algorithm lands in its own per-algorithm commit (B.2.orchard,
+ * B.2.swale, B.2.paddock, B.2.corridor) and the orchestrator wires them
+ * in incrementally.
+ */
+
+import type { CreateDesignFeatureInput } from '@ogden/shared';
+import type { LineString, LonLat, Ring } from './geometry.js';
+import {
+  generateOrchardOnContour,
+  type OrchardOnContourOptions,
+} from './algorithms/orchardOnContour.js';
+import {
+  generateKeylineSwales,
+  type KeylineSwalesOptions,
+} from './algorithms/keylineSwales.js';
+import {
+  generatePaddockGrid,
+  type PaddockGridOptions,
+} from './algorithms/paddockGrid.js';
+import {
+  generateHabitatCorridors,
+  type HabitatCorridorsOptions,
+} from './algorithms/habitatCorridors.js';
+
+// ── Input types ────────────────────────────────────────────────────────────
+
+export interface ParcelInput {
+  /** Exterior ring of the parcel boundary in GeoJSON `[lon, lat]` order. */
+  boundary: Ring;
+}
+
+export interface ContourInput {
+  /** Polyline along a constant elevation line. */
+  line: LineString;
+  /** Elevation of the contour, metres above sea level. */
+  elevationM?: number;
+  /** Mean slope on the contour, percent rise/run. */
+  meanSlopePct?: number;
+}
+
+/**
+ * Swale candidate shape from `WatershedRefinementProcessor`
+ * (`summary_data.swaleCandidates.candidates[]`). Field names match the
+ * stored JSON so the route layer can pass them through unchanged.
+ */
+export interface SwaleCandidateInput {
+  start: LonLat;
+  end: LonLat;
+  lengthCells: number;
+  meanSlope: number;
+  elevation: number;
+  suitabilityScore: number;
+}
+
+/**
+ * Enterprise enum — matches the `EnterpriseType` union in
+ * `apps/web/src/features/financial/types.ts`. The generator filters
+ * algorithms by the caller-provided subset; default is `['orchard',
+ * 'livestock']`.
+ */
+export type EnterpriseKind =
+  | 'livestock'
+  | 'orchard'
+  | 'market_garden'
+  | 'retreat'
+  | 'education'
+  | 'agritourism'
+  | 'carbon'
+  | 'grants';
+
+export const DEFAULT_ENTERPRISES: readonly EnterpriseKind[] = [
+  'orchard',
+  'livestock',
+];
+
+export interface GenerateDesignMapInput {
+  parcel: ParcelInput;
+  acres: number;
+  contours?: ContourInput[];
+  swaleCandidates?: SwaleCandidateInput[];
+  /**
+   * Optional centreline polylines for waterways / drainage spines.
+   * Initial pass (B.5.1) passes `undefined` here because the
+   * `drainage_divide` features in `watershed_derived.geojson_data` are
+   * polygons from `binaryMaskToGeoJSON`, not LineStrings. A dedicated
+   * line extraction task may populate this later.
+   */
+  riparianLines?: LineString[];
+  enterprises?: EnterpriseKind[];
+  /** Per-algorithm tuning. Each key is optional; algorithm defaults apply. */
+  options?: {
+    orchard?: OrchardOnContourOptions;
+    swale?: KeylineSwalesOptions;
+    paddock?: PaddockGridOptions;
+    corridor?: HabitatCorridorsOptions;
+  };
+}
+
+// ── Output types ───────────────────────────────────────────────────────────
+
+export interface DesignMapSummary {
+  orchardRows: number;
+  swales: number;
+  paddocks: number;
+  corridors: number;
+  totalSpongeCapacityM3: number;
+  estimatedTreeCount: number;
+  totalPaddockAuDays: number;
+  totalCorridorAcres: number;
+}
+
+export interface GenerateDesignMapOutput {
+  features: CreateDesignFeatureInput[];
+  summary: DesignMapSummary;
+  warnings: string[];
+}
+
+export function emptySummary(): DesignMapSummary {
+  return {
+    orchardRows: 0,
+    swales: 0,
+    paddocks: 0,
+    corridors: 0,
+    totalSpongeCapacityM3: 0,
+    estimatedTreeCount: 0,
+    totalPaddockAuDays: 0,
+    totalCorridorAcres: 0,
+  };
+}
+
+// ── Orchestrator ───────────────────────────────────────────────────────────
+
+export function generateDesignMap(
+  input: GenerateDesignMapInput,
+): GenerateDesignMapOutput {
+  const warnings: string[] = [];
+
+  if (!input.parcel || input.parcel.boundary.length < 3) {
+    warnings.push('parcel boundary missing or invalid');
+    return { features: [], summary: emptySummary(), warnings };
+  }
+  if (!(input.acres > 0)) {
+    warnings.push('parcel acres must be positive');
+    return { features: [], summary: emptySummary(), warnings };
+  }
+
+  const enterprises = input.enterprises ?? DEFAULT_ENTERPRISES;
+  const features: CreateDesignFeatureInput[] = [];
+  const summary = emptySummary();
+
+  if (enterprises.includes('orchard')) {
+    const orchard = generateOrchardOnContour({
+      parcel: input.parcel,
+      contours: input.contours ?? [],
+      ...(input.options?.orchard ? { options: input.options.orchard } : {}),
+    });
+    features.push(...orchard.features);
+    summary.orchardRows = orchard.rowCount;
+    summary.estimatedTreeCount = orchard.estimatedTreeCount;
+    warnings.push(...orchard.warnings);
+  }
+
+  // Swales are infrastructure, not an enterprise — run them whenever
+  // candidates are present, regardless of the enterprise mix.
+  if (input.swaleCandidates && input.swaleCandidates.length > 0) {
+    const swales = generateKeylineSwales({
+      parcel: input.parcel,
+      candidates: input.swaleCandidates,
+      ...(input.options?.swale ? { options: input.options.swale } : {}),
+    });
+    features.push(...swales.features);
+    summary.swales = swales.swaleCount;
+    summary.totalSpongeCapacityM3 = swales.totalSpongeCapacityM3;
+    warnings.push(...swales.warnings);
+  }
+
+  if (enterprises.includes('livestock')) {
+    const paddocks = generatePaddockGrid({
+      parcel: input.parcel,
+      acres: input.acres,
+      ...(input.options?.paddock ? { options: input.options.paddock } : {}),
+    });
+    features.push(...paddocks.features);
+    summary.paddocks = paddocks.paddockCount;
+    summary.totalPaddockAuDays = paddocks.totalPaddockAuDays;
+    warnings.push(...paddocks.warnings);
+  }
+
+  // Habitat corridors are ecological infrastructure — run unconditionally
+  // (the perimeter buffer is always emitted; riparian buffers only when
+  // `riparianLines` is provided).
+  {
+    const corridors = generateHabitatCorridors({
+      parcel: input.parcel,
+      ...(input.riparianLines ? { riparianLines: input.riparianLines } : {}),
+      ...(input.options?.corridor
+        ? { options: input.options.corridor }
+        : {}),
+    });
+    features.push(...corridors.features);
+    summary.corridors = corridors.corridorCount;
+    summary.totalCorridorAcres = corridors.totalCorridorAcres;
+    warnings.push(...corridors.warnings);
+  }
+
+  return { features, summary, warnings };
+}

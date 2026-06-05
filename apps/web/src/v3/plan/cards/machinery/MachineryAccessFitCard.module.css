@@ -4,8 +4,8 @@
   margin-bottom: 16px;
   padding: 18px 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 
 .cardHead {
@@ -20,13 +20,13 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
 .cardHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -35,16 +35,16 @@
   margin: 0 0 14px 0;
   font-size: 12px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .empty {
   padding: 18px;
   text-align: center;
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-hover-overlay);
 }
 
 .verdicts {
@@ -64,9 +64,9 @@
   border-radius: 8px;
   font-size: 12px;
   line-height: 1.5;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  color: rgba(220, 210, 190, 0.85);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text);
 }
 
 .dot {

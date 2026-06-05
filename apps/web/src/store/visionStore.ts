@@ -7,6 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -36,27 +38,49 @@ export interface Milestone {
 }
 
 /**
- * Steward profile — Phase 4a of the OBSERVE-stage restructure
- * (plan few-concerns-shiny-quokka.md). All fields optional so an in-flight
- * survey can save mid-fill. Read by ObserveHub Module 1 (Human Context) and
- * by the Diagnosis Report export.
+ * Domain relationship of a steward to the land/project. Distinct from the
+ * app-permission `ProjectRole` (owner/designer/reviewer/viewer) carried by
+ * `project_members`. A person can be a project `owner` and a `co-steward`,
+ * or a `viewer` who is the `lead` steward — the two axes are independent.
+ */
+export type StewardRelationship = 'lead' | 'co-steward' | 'family' | 'ally' | 'contributor';
+
+/**
+ * Per-steward profile OVERLAY — keyed by member `userId` in
+ * `VisionData.stewardProfiles`. Identity (name/email/app-role) is NOT stored
+ * here; it comes from `memberStore` (the live `project_members` roster). These
+ * are the rich human-context fields layered on top per steward. All optional so
+ * an in-flight survey can save mid-fill.
  */
 export interface StewardProfile {
-  name?: string;
+  /** Domain relationship to the project (distinct from app ProjectRole). */
+  relationship?: StewardRelationship;
   age?: number;
   occupation?: string;
   lifestyle?: 'active' | 'sedentary';
-  /** Hours/week the steward expects to invest during initial establishment. */
+  /** Hours/week this steward expects to invest during initial establishment. */
   maintenanceHrsInitial?: number;
-  /** Hours/week the steward expects to invest after establishment. */
+  /** Hours/week this steward expects to invest after establishment. */
   maintenanceHrsOngoing?: number;
   /** Free-form budget label (e.g. "$15k/yr", "self-funded"). */
   budget?: string;
   skills?: string[];
-  /** Steward's vision in their own words. */
-  vision?: string;
-  /** Vision panel string-list fields — added v3. Default to []. */
+  /** Hybrid model: this steward's vision in their own words (personal). */
+  personalVision?: string;
+  /** Hybrid model: this steward's own experience goals (personal). */
+  personalExperienceGoals?: string[];
+}
+
+/**
+ * SHARED, project-level vision package. The land has one collective vision;
+ * individual stewards record their *personal* vision/goals on their
+ * StewardProfile (hybrid model). Extracted from the old single-steward shape.
+ */
+export interface SharedVision {
+  /** Collective vision statement in the project's own words. */
+  statement?: string;
   coreFunctions?: string[];
+  /** Shared experience goals (vs each steward's personalExperienceGoals). */
   experienceGoals?: string[];
   successMetrics?: string[];
   principles?: string[];
@@ -74,8 +98,11 @@ export interface MoodboardImage {
   caption?: string;
 }
 
-export type StewardStringListField =
-  | 'skills'
+/** Per-steward string-list fields editable via setStewardProfileList. */
+export type StewardProfileListField = 'skills' | 'personalExperienceGoals';
+
+/** Shared-vision string-list fields editable via setSharedVisionList. */
+export type SharedVisionListField =
   | 'coreFunctions'
   | 'experienceGoals'
   | 'successMetrics'
@@ -101,9 +128,16 @@ export interface VisionData {
   moontranceIdentity: MoontranceIdentity | null;
   conceptOverlayVisible: boolean;
   milestones: Milestone[];
-  /** Phase 4a additions — optional, populated by Steward Survey / Regional cards. */
-  steward?: StewardProfile;
+  /** Phase 4a additions — optional, populated by Regional cards. */
   regional?: RegionalContext;
+  /**
+   * Multi-steward overlays, keyed by member `userId`. The roster (who the
+   * stewards are) lives in `memberStore`; this map holds the rich profile
+   * fields per steward. Use `useStewardRoster` to join the two.
+   */
+  stewardProfiles: Record<string, StewardProfile>;
+  /** Project-level shared vision package (hybrid model). */
+  sharedVision: SharedVision;
 }
 
 const DEFAULT_PHASE_NOTES: Omit<VisionPhaseNote, 'notes'>[] = [
@@ -144,14 +178,19 @@ interface VisionState {
   updateMilestone: (projectId: string, milestoneId: string, updates: Partial<Omit<Milestone, 'id'>>) => void;
   deleteMilestone: (projectId: string, milestoneId: string) => void;
 
-  // Phase 4a — steward & regional context
-  updateSteward: (projectId: string, patch: Partial<StewardProfile>) => void;
+  // Multi-steward overlays (keyed by member userId)
+  updateStewardProfile: (projectId: string, userId: string, patch: Partial<StewardProfile>) => void;
+  removeStewardProfile: (projectId: string, userId: string) => void;
+  setStewardProfileList: (projectId: string, userId: string, field: StewardProfileListField, items: string[]) => void;
+
+  // Regional context
   updateRegional: (projectId: string, patch: Partial<RegionalContext>) => void;
   addNetworkContact: (projectId: string, contact: { id: string; name: string; type: string; contact?: string }) => void;
   removeNetworkContact: (projectId: string, contactId: string) => void;
 
-  // v3 additions — vision lists, moodboard, concept image
-  setStewardList: (projectId: string, field: StewardStringListField, items: string[]) => void;
+  // Shared vision package (project-level) — lists, moodboard, concept image
+  updateSharedVision: (projectId: string, patch: Partial<SharedVision>) => void;
+  setSharedVisionList: (projectId: string, field: SharedVisionListField, items: string[]) => void;
   addMoodboardImage: (projectId: string, image: MoodboardImage) => void;
   removeMoodboardImage: (projectId: string, imageId: string) => void;
   setConceptImage: (projectId: string, dataUrl: string | undefined) => void;
@@ -177,6 +216,8 @@ export const useVisionStore = create<VisionState>()(
               moontranceIdentity: null,
               conceptOverlayVisible: false,
               milestones: [],
+              stewardProfiles: {},
+              sharedVision: {},
             },
           ],
         }));
@@ -262,11 +303,42 @@ export const useVisionStore = create<VisionState>()(
           ),
         })),
 
-      updateSteward: (projectId, patch) =>
+      updateStewardProfile: (projectId, userId, patch) =>
         set((s) => ({
           visions: s.visions.map((v) =>
             v.projectId === projectId
-              ? { ...v, steward: { ...(v.steward ?? {}), ...patch } }
+              ? {
+                  ...v,
+                  stewardProfiles: {
+                    ...v.stewardProfiles,
+                    [userId]: { ...(v.stewardProfiles[userId] ?? {}), ...patch },
+                  },
+                }
+              : v,
+          ),
+        })),
+
+      removeStewardProfile: (projectId, userId) =>
+        set((s) => ({
+          visions: s.visions.map((v) => {
+            if (v.projectId !== projectId) return v;
+            const next = { ...v.stewardProfiles };
+            delete next[userId];
+            return { ...v, stewardProfiles: next };
+          }),
+        })),
+
+      setStewardProfileList: (projectId, userId, field, items) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? {
+                  ...v,
+                  stewardProfiles: {
+                    ...v.stewardProfiles,
+                    [userId]: { ...(v.stewardProfiles[userId] ?? {}), [field]: items },
+                  },
+                }
               : v,
           ),
         })),
@@ -303,11 +375,20 @@ export const useVisionStore = create<VisionState>()(
           }),
         })),
 
-      setStewardList: (projectId, field, items) =>
+      updateSharedVision: (projectId, patch) =>
         set((s) => ({
           visions: s.visions.map((v) =>
             v.projectId === projectId
-              ? { ...v, steward: { ...(v.steward ?? {}), [field]: items } }
+              ? { ...v, sharedVision: { ...v.sharedVision, ...patch } }
+              : v,
+          ),
+        })),
+
+      setSharedVisionList: (projectId, field, items) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, sharedVision: { ...v.sharedVision, [field]: items } }
               : v,
           ),
         })),
@@ -316,10 +397,10 @@ export const useVisionStore = create<VisionState>()(
         set((s) => ({
           visions: s.visions.map((v) => {
             if (v.projectId !== projectId) return v;
-            const list = v.steward?.moodboardImages ?? [];
+            const list = v.sharedVision.moodboardImages ?? [];
             return {
               ...v,
-              steward: { ...(v.steward ?? {}), moodboardImages: [...list, image] },
+              sharedVision: { ...v.sharedVision, moodboardImages: [...list, image] },
             };
           }),
         })),
@@ -327,12 +408,12 @@ export const useVisionStore = create<VisionState>()(
       removeMoodboardImage: (projectId, imageId) =>
         set((s) => ({
           visions: s.visions.map((v) => {
-            if (v.projectId !== projectId || !v.steward?.moodboardImages) return v;
+            if (v.projectId !== projectId || !v.sharedVision.moodboardImages) return v;
             return {
               ...v,
-              steward: {
-                ...v.steward,
-                moodboardImages: v.steward.moodboardImages.filter((m) => m.id !== imageId),
+              sharedVision: {
+                ...v.sharedVision,
+                moodboardImages: v.sharedVision.moodboardImages.filter((m) => m.id !== imageId),
               },
             };
           }),
@@ -342,32 +423,46 @@ export const useVisionStore = create<VisionState>()(
         set((s) => ({
           visions: s.visions.map((v) =>
             v.projectId === projectId
-              ? { ...v, steward: { ...(v.steward ?? {}), conceptImageDataUrl: dataUrl } }
+              ? { ...v, sharedVision: { ...v.sharedVision, conceptImageDataUrl: dataUrl } }
               : v,
           ),
         })),
     }),
     {
       name: 'ogden-vision',
-      version: 3,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
+      version: 4,
       partialize: (state) => ({ visions: state.visions }),
       migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as { visions: VisionData[] };
+        const state = persistedState as { visions: Array<Record<string, unknown>> };
         if (version < 2) {
           state.visions = state.visions.map((v) => ({
             ...v,
-            milestones: (v as VisionData).milestones ?? [],
+            milestones: (v.milestones as Milestone[]) ?? [],
           }));
         }
         if (version < 3) {
           // No structural change — new optional fields default to undefined.
-          // Touching nothing keeps existing payloads valid.
         }
-        return state;
+        if (version < 4) {
+          // Multi-steward reshape. The old single `steward` object is
+          // disposable (per the "no migration" decision); we drop it and
+          // initialise the new roster-overlay + shared-vision containers.
+          state.visions = state.visions.map((v) => {
+            const { steward: _drop, ...rest } = v;
+            return {
+              ...rest,
+              stewardProfiles: (v.stewardProfiles as Record<string, StewardProfile>) ?? {},
+              sharedVision: (v.sharedVision as SharedVision) ?? {},
+            };
+          });
+        }
+        return state as unknown as { visions: VisionData[] };
       },
     },
   ),
 );
 
 // Hydrate from localStorage (Zustand v5)
-useVisionStore.persist.rehydrate();
+rehydrateWithLogging(useVisionStore);

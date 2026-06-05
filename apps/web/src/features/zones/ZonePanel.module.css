@@ -1,4 +1,4 @@
-/* ZonePanel â€” component-specific styles */
+/* ZonePanel — component-specific styles */
 
 .root {
   pointer-events: auto;
@@ -60,11 +60,11 @@
 }
 
 .formCard {
-  border: 1px solid rgba(var(--color-earth-600-rgb), 0.4);
+  border: 1px solid rgba(var(--color-neutral-600-rgb), 0.4);
   border-radius: var(--radius-md);
   padding: 10px;
   margin-bottom: 10px;
-  background: rgba(var(--color-earth-600-rgb), 0.1);
+  background: rgba(var(--color-neutral-600-rgb), 0.1);
 }
 
 .formTitle {
@@ -141,7 +141,7 @@
   gap: 6px;
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-hairline);
   font-size: var(--text-xs);
 }
 
@@ -166,7 +166,7 @@
 }
 
 .editBtn {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-hover-overlay);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-panel-muted);
   cursor: pointer;
@@ -178,7 +178,7 @@
   border-radius: 4px;
 }
 .editBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-active-overlay);
   color: var(--color-panel-text);
 }
 

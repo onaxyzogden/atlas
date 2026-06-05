@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Move, Pencil, Trash2 } from 'lucide-react';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import {
@@ -26,6 +26,10 @@ import {
   getAnnotationRow,
   removeAnnotation,
 } from './AnnotationRegistry.js';
+import {
+  LINESTRING_KINDS,
+  POLYGON_KINDS,
+} from './draw/annotationGeometryRegistry.js';
 import css from './draw/AnnotationFormSlideUp.module.css';
 
 interface Props {
@@ -70,6 +74,9 @@ export default function AnnotationDetailPanel({ projectId }: Props) {
     return null;
   }
 
+  const canEditVertices =
+    POLYGON_KINDS.has(active.kind) || LINESTRING_KINDS.has(active.kind);
+
   const onEdit = () => {
     if (!projectId) return;
     close();
@@ -80,6 +87,13 @@ export default function AnnotationDetailPanel({ projectId }: Props) {
       existingId: active.id,
       projectId,
     });
+  };
+
+  const onEditVertices = () => {
+    const { set, setMoveMode } = useObserveSelectionStore.getState();
+    set([{ kind: active.kind, id: active.id }]);
+    setMoveMode(true);
+    closeStore();
   };
 
   const onDelete = () => {
@@ -130,6 +144,15 @@ export default function AnnotationDetailPanel({ projectId }: Props) {
           <button type="button" className={css.btn} onClick={onDelete}>
             <Trash2 size={14} aria-hidden="true" /> Delete
           </button>
+          {canEditVertices && (
+            <button
+              type="button"
+              className={css.btn}
+              onClick={onEditVertices}
+            >
+              <Move size={14} aria-hidden="true" /> Edit vertices
+            </button>
+          )}
           <button
             type="button"
             className={`${css.btn} ${css.btnPrimary}`}

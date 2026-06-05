@@ -1,0 +1,53 @@
+/* AnswerRecap.module.css
+ *
+ * Read-only recap row for a checklist item whose answer was already captured in
+ * the wizard / Vision Builder / team step. Sits in the Act tier-shell Checklist
+ * in place of the bare checkbox row, so it shares that row's surface (bg/border/
+ * radius from ActTierExecutionPanel.module.css .execCheckRow) but lays out a
+ * heading line (check + label + edit link) over a typed value display.
+ * Theme-token surfaces (no hardcoded light colors) so the card adapts to the
+ * active data-theme (dark/light) instead of rendering a light card on dark. */
+
+.recap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.recapHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The item is auto-satisfied from source data, so a static check stands in for
+ * the (now absent) interactive checkbox. */
+.recapCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.recapLabel {
+  flex: 1 1 auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.35;
+}
+
+/* Value display container. The typed value pills/chips themselves now live in
+ * AnswerValue.module.css (shared with the Vision forms modal recap tab). */
+.recapValue {
+  padding-left: 24px; /* align under the label, past the check */
+}

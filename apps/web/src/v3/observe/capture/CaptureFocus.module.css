@@ -1,0 +1,128 @@
+/*
+ * ObjectiveFocus — chrome for Objective Focus Mode: the top-of-canvas banner
+ * and the pulsing map highlight at the objective's target. Tokens-only,
+ * matching the biophilic register of the rest of the Observe stage.
+ */
+
+/* Rendered as a DiagnoseMap overlay child, so it positions against the map
+   wrap (top-centre, clear of the global chrome) rather than the viewport. */
+.banner {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(680px, calc(100% - var(--space-6)));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-bg);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.18));
+}
+
+.backBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  appearance: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-card);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-base) var(--ease-default);
+}
+.backBtn:hover {
+  background: var(--color-panel-hover, var(--color-panel-card));
+}
+
+.bannerDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.bannerModule {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.bannerTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+.bannerStatus {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  background: var(--color-panel-card);
+}
+.status_in_progress {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+}
+.status_evidence_submitted {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+}
+.status_complete {
+  color: var(--color-success, #4caf7d);
+  border-color: color-mix(in srgb, var(--color-success, #4caf7d) 50%, var(--color-border));
+}
+.status_needs_review {
+  color: var(--color-warning, #e6c34a);
+  border-color: color-mix(in srgb, var(--color-warning, #e6c34a) 50%, var(--color-border));
+}
+
+/* Pulsing ring dropped at the objective's target centre. `--focus-color` is
+   set per-objective (module dot colour) on the marker element. */
+.focusHighlight {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--focus-color, #5dd39e) 30%, transparent);
+  border: 2px solid var(--focus-color, #5dd39e);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--focus-color, #5dd39e) 55%, transparent);
+  animation: focusPulse 1800ms ease-out infinite;
+  pointer-events: none;
+}
+@keyframes focusPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--focus-color, #5dd39e) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 18px color-mix(in srgb, var(--focus-color, #5dd39e) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--focus-color, #5dd39e) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focusHighlight {
+    animation: none;
+  }
+}

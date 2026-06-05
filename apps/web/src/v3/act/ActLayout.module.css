@@ -1,0 +1,27 @@
+/*
+ * ActLayout — right-rail stacking.
+ *
+ * StageShell's `.right` aside is `display: flex` (row) with one child
+ * assumed (`.right > * { flex: 1 1 auto }`). The Act stage root renders
+ * TWO children into that slot — the ActReadyCue plus the checklist/ops
+ * aside — which would lay out side-by-side and squish the cue into a
+ * sliver. This wrapper makes them a single `.right` child that stacks its
+ * own children vertically: the cue takes its natural height on top, and
+ * the checklist below grows to fill the remaining rail height and keeps
+ * its own internal scroll (preserving StageShell's scroll discipline).
+ */
+.rightStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* The checklist/ops aside is always the last child; let it fill the
+   remaining height and own its scroll. The cue (when present) keeps its
+   default natural height above it. */
+.rightStack > :last-child {
+  flex: 1 1 auto;
+  min-height: 0;
+}

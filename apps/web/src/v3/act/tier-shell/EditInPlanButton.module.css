@@ -1,0 +1,27 @@
+/* EditInPlanButton.module.css
+ *
+ * Deep-link affordance to where a prefilled answer is authored (wizard vision/
+ * team step, or the Plan header's project-type modals). Styled with dark
+ * BentoBox gold tokens for the Vision forms modal context (the previous beige
+ * `.editLink` in AnswerRecap was light-on-light for the sidebar card). */
+
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gold-brand, #c4a265);
+  background: transparent;
+  border: 1px solid var(--color-gold-brand, #c4a265);
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.editLink:hover {
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1611;
+}

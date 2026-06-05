@@ -104,3 +104,119 @@ export function parcelAreaM2(
     return null;
   }
 }
+
+/**
+ * Extract a polygon/multipolygon geometry from a stored boundary, regardless
+ * of which of the three shapes the persistence layer captured.
+ *
+ * `ParcelBoundaryGeojson` is a Zod union of `FeatureCollection | Feature |
+ * Polygon` (see `packages/shared/src/schemas/project.schema.ts`). Wizard +
+ * Observe write paths normalize to `FeatureCollection` via `parseGeoFile` /
+ * `toFeatureCollection`, but stored values from older sessions or alternate
+ * draft paths can be bare `Feature` or raw `Polygon`. Readers that assume
+ * `.features[0].geometry` crash on the latter two shapes — this helper
+ * normalizes on the read side so callers don't have to.
+ */
+export function extractBoundaryGeometry(
+  boundary:
+    | GeoJSON.Polygon
+    | GeoJSON.MultiPolygon
+    | GeoJSON.Feature
+    | GeoJSON.FeatureCollection
+    | undefined
+    | null,
+): GeoJSON.Polygon | GeoJSON.MultiPolygon | undefined {
+  if (!boundary) return undefined;
+  if (boundary.type === 'FeatureCollection') {
+    return boundary.features[0]?.geometry as
+      | GeoJSON.Polygon
+      | GeoJSON.MultiPolygon
+      | undefined;
+  }
+  if (boundary.type === 'Feature') {
+    return boundary.geometry as
+      | GeoJSON.Polygon
+      | GeoJSON.MultiPolygon
+      | undefined;
+  }
+  if (boundary.type === 'Polygon' || boundary.type === 'MultiPolygon') {
+    return boundary;
+  }
+  return undefined;
+}
+
+/** True only for a real, finite number (excludes NaN / +-Infinity). */
+function isFiniteCoord(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+/** Outer rings of a Polygon or MultiPolygon as a flat list of rings. */
+function outerRings(
+  geom: GeoJSON.Polygon | GeoJSON.MultiPolygon,
+): GeoJSON.Position[][] {
+  if (geom.type === 'Polygon') {
+    const ring = geom.coordinates[0];
+    return ring ? [ring] : [];
+  }
+  // MultiPolygon: coordinates is Position[][][] — one [rings] per polygon.
+  return geom.coordinates
+    .map((poly) => poly[0])
+    .filter((ring): ring is GeoJSON.Position[] => Array.isArray(ring));
+}
+
+/**
+ * Vertex-average centroid of a Polygon OR MultiPolygon, averaging every outer
+ * ring's finite `[lng, lat]` vertices. Hardens `polygonCentroid` (Polygon-only;
+ * its `typeof === 'number'` check lets `NaN` through, since `typeof NaN ===
+ * 'number'`) by requiring `Number.isFinite`. Returns `null` when no finite
+ * vertex exists — callers must fall back to a known-finite center.
+ *
+ * Returned as `[lng, lat]`. Accepts `undefined` (returns `null`) so callers can
+ * pass an unresolved boundary straight through to a `?? fallbackCenter`.
+ */
+export function boundaryCentroid(
+  geom: GeoJSON.Polygon | GeoJSON.MultiPolygon | undefined,
+): [number, number] | null {
+  if (!geom) return null;
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  for (const ring of outerRings(geom)) {
+    for (const pt of ring) {
+      if (!Array.isArray(pt) || pt.length < 2) continue;
+      const lng = pt[0];
+      const lat = pt[1];
+      if (!isFiniteCoord(lng) || !isFiniteCoord(lat)) continue;
+      sx += lng;
+      sy += lat;
+      n += 1;
+    }
+  }
+  if (n === 0) return null;
+  return [sx / n, sy / n];
+}
+
+/**
+ * Normalize a boundary to a single render-safe `GeoJSON.Polygon` whose outer
+ * ring has at least 4 positions that are ALL finite `[lng, lat]` pairs. For a
+ * MultiPolygon, the first polygon is chosen. Returns `undefined` when nothing
+ * valid exists, so map consumers (e.g. `DiagnoseMap`) simply draw no outline
+ * and center on their finite centroid prop instead of crashing on NaN.
+ *
+ * Guards the case where `extractBoundaryGeometry` yields a MultiPolygon (or a
+ * Polygon with non-finite vertices) that downstream code mis-treats as a plain
+ * single-ring Polygon.
+ */
+export function renderablePolygon(
+  geom: GeoJSON.Polygon | GeoJSON.MultiPolygon | undefined,
+): GeoJSON.Polygon | undefined {
+  if (!geom) return undefined;
+  const ring =
+    geom.type === 'Polygon' ? geom.coordinates[0] : geom.coordinates[0]?.[0];
+  if (!Array.isArray(ring) || ring.length < 4) return undefined;
+  for (const pt of ring) {
+    if (!Array.isArray(pt) || pt.length < 2) return undefined;
+    if (!isFiniteCoord(pt[0]) || !isFiniteCoord(pt[1])) return undefined;
+  }
+  return { type: 'Polygon', coordinates: [ring] };
+}

@@ -13,7 +13,7 @@
  *    0-39  → Not Recommended
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   computeAssessmentScores,
   computeOverallScore,
@@ -24,6 +24,9 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
 import type { MockLayerResult } from '../../lib/mockLayerData.js';
 import { ScoreCircle } from '../../components/panels/sections/_shared.js';
+import EvidenceSection from '../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
+import { emitEvidenceAudit } from '../../lib/evidence/auditEmit.js';
 import css from './LandVerdictCard.module.css';
 
 const EMPTY_LAYERS: MockLayerResult[] = [];
@@ -71,6 +74,12 @@ interface LandVerdictCardProps {
   onViewConstraints?: () => void;
   onOpenDesignMap?: () => void;
   onGenerateBrief?: () => void;
+  /**
+   * Phase E.4 mobile guard — when true, the Tier-2 Evidence section is
+   * suppressed so mobile Overview keeps its flat <30s glance.
+   * Honors [[feedback-mobile-overview-stack]].
+   */
+  compactMode?: boolean;
 }
 
 export default function LandVerdictCard({
@@ -78,6 +87,7 @@ export default function LandVerdictCard({
   onViewConstraints,
   onOpenDesignMap,
   onGenerateBrief,
+  compactMode = false,
 }: LandVerdictCardProps) {
   const siteData = useSiteData(project.id);
   const layers = siteData?.layers ?? EMPTY_LAYERS;
@@ -109,6 +119,44 @@ export default function LandVerdictCard({
   }, [opportunities]);
 
   const verdict = VERDICT_META[bandFor(overallScore)];
+
+  const evidenceInputs = useMemo(() => {
+    // Top contributing flags (highest priority first), risks before
+    // opportunities so the Evidence roster mirrors the card body.
+    const topFlags = [...risks, ...opportunities]
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
+      .slice(0, 3);
+    const layerInputs = layers.map((l) => ({
+      layerType: l.layerType,
+      confidence: (l.confidence ?? undefined) as 'low' | 'medium' | 'high' | undefined,
+    }));
+    return {
+      overallScore,
+      layers: layerInputs,
+      topFlags,
+      country: project.country ?? undefined,
+    };
+  }, [overallScore, layers, risks, opportunities, project.country]);
+
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'land-verdict', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+
+  // F.4 — passive reproducibility-ledger write. Fire-and-forget; the
+  // emit helper hashes inputs internally and the dependency-array gate
+  // means React only re-fires when the inputs object identity changes
+  // (useMemo above stabilises this).
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'LandVerdictCard',
+      selectorName: 'selectEvidenceFor(land-verdict)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   return (
     <section
@@ -180,6 +228,12 @@ export default function LandVerdictCard({
             Generate Brief
           </button>
         </div>
+
+        <EvidenceSection
+          item={evidenceItem}
+          compactMode={compactMode}
+          projectId={project.id}
+        />
       </div>
     </section>
   );

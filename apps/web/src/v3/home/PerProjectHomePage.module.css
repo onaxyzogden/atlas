@@ -1,0 +1,317 @@
+/* Per-Project Home (Slice 5.4) — Next Up + Attention Rail + Stage Status Row */
+
+.scrollHost {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-6);
+}
+
+.empty {
+  margin: var(--space-6) var(--space-3);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLink {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.headerLink:hover {
+  border-color: var(--color-accent, #c9a05a);
+  color: var(--color-accent, #c9a05a);
+}
+
+.finishSetupPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #c9a05a 18%, transparent);
+  color: #c9a05a;
+  border: 1px solid color-mix(in srgb, #c9a05a 35%, transparent);
+  border-radius: var(--radius-full, 999px);
+}
+
+/* Page body grid: stacks on mobile, two-column with side rail at >=900px. */
+.body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sideRail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* --- Next Up card -------------------------------------------------------- */
+
+.nextUpCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.nextUpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nextUpLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.nextUpKind {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.nextUpBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nextUpTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.nextUpDescription {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.nextUpCta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-accent, #c9a05a);
+  color: #0f172a;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.nextUpCta:hover {
+  filter: brightness(1.05);
+}
+
+.nextUpCta:focus-visible {
+  outline: 2px solid var(--color-accent, #c9a05a);
+  outline-offset: 2px;
+}
+
+.nextUpEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* --- Attention Rail ------------------------------------------------------ */
+
+.railHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.railCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full, 999px);
+  padding: 2px 8px;
+}
+
+.railList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.railChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.railChip-critical {
+  border-color: color-mix(in srgb, #e88aa4 45%, var(--color-border));
+  background: color-mix(in srgb, #e88aa4 12%, var(--color-bg));
+  color: color-mix(in srgb, #e88aa4 75%, var(--color-text));
+}
+
+.railChip-high {
+  border-color: color-mix(in srgb, #e6c34a 45%, var(--color-border));
+  background: color-mix(in srgb, #e6c34a 12%, var(--color-bg));
+  color: color-mix(in srgb, #e6c34a 75%, var(--color-text));
+}
+
+.railChip-foundation {
+  border-color: color-mix(in srgb, #5dd39e 45%, var(--color-border));
+  background: color-mix(in srgb, #5dd39e 12%, var(--color-bg));
+  color: color-mix(in srgb, #5dd39e 75%, var(--color-text));
+}
+
+.railChip-cadence {
+  border-color: color-mix(in srgb, #c9a05a 45%, var(--color-border));
+  background: color-mix(in srgb, #c9a05a 12%, var(--color-bg));
+  color: color-mix(in srgb, #c9a05a 75%, var(--color-text));
+}
+
+.railChip-info {
+  /* inherits neutral .railChip tones */
+}
+
+.railClear {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* --- Stage Status Row ---------------------------------------------------- */
+
+.stageRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .stageRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stageCard {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.stageCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+.stageCard:focus-visible {
+  outline: 2px solid var(--color-accent, #c9a05a);
+  outline-offset: 2px;
+}
+
+.stageEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stageTitle {
+  margin: 2px 0 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stageMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.stageMetric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-text);
+  gap: 8px;
+}
+
+.stageMetricLabel {
+  color: var(--color-text-muted);
+}
+
+.stageMetricValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

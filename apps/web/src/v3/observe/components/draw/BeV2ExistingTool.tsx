@@ -32,6 +32,7 @@ import {
   type DrawMode,
   type DrawGeometry,
 } from './useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
 import DrawLengthReadout from './DrawLengthReadout.js';
 import {
@@ -49,6 +50,14 @@ interface Props {
   kind: string;
   /** Default 'existing' (Observe). Plan rail passes 'proposed'. */
   state?: BuiltEnvironmentState;
+  /**
+   * Opt-in vertex/edge snapping for line/polygon kinds. Driven by the host
+   * (PlanDrawHost supplies project-global snap targets; ObserveDrawHost omits
+   * both props, so Observe stays snap-off). Inert for point kinds.
+   */
+  snap?: boolean;
+  /** Snap-target source builder; only consulted when `snap` is true. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 const GEOM_TO_MODE: Readonly<Record<BuiltEnvironmentGeometryType, DrawMode>> = {
@@ -69,6 +78,8 @@ export default function BeV2ExistingTool({
   projectId,
   kind,
   state = 'existing',
+  snap,
+  getSnapTargets,
 }: Props) {
   const spec = getBuiltEnvironmentKind(kind);
 
@@ -107,6 +118,8 @@ export default function BeV2ExistingTool({
     mode,
     enabled: isPoint || dimMode === 'freehand',
     onComplete: place,
+    snap,
+    getSnapTargets,
   });
 
   useDimensionDrawTool({

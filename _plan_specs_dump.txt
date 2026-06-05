@@ -1,0 +1,3078 @@
+==== C:\Users\MY OWN AXIS\Downloads\OLOS_Plan_Stage_Developer_Spec.docx ====
+
+OLOS Plan Stage Developer Specification
+
+OLOS Plan Stage Developer Specification
+
+Domain → Objective → Decision Checklist → Map Overlays → Plan Output → Act Handoff
+
+
+
+Purpose of this document
+
+This specification defines the Plan stage of OLOS as a developer-ready workflow. It keeps Plan focused on translating observed evidence into design decisions, sequencing, suitability judgments, scoped work packages, and approval-ready handoffs. It prevents Observe-stage data collection and Act-stage execution from leaking into Plan.
+
+Core principle:
+
+Observe records reality. Plan makes decisions. Act coordinates execution.
+
+Prepared for developer implementation of the task-focused OLOS map view component.
+
+
+
+
+Contents
+
+1. Executive Summary
+
+2. Product Architecture
+
+3. Plan Stage Boundary Rules
+
+4. Map View Behavior
+
+5. Universal Overlays
+
+6. Overlay Bundles by Domain
+
+7. Universal Planning Objective Template
+
+8. Plan Domain Specifications
+
+9. Developer Acceptance Criteria
+
+
+
+
+1. Executive Summary
+
+OLOS is organized around three main stages: Observe, Plan, and Act. Each stage uses the same land-based Domains, but the user’s relationship to each Domain changes by stage. Plan is where observed reality becomes intentional design. It is not for gathering raw baseline evidence and it is not for assigning field execution. Plan is for deciding what should happen, where it should happen, why it should happen there, in what sequence, under what conditions, and what must be handed to Act for coordinated completion.
+
+Developer takeaway
+
+When the user selects Plan + Domain + Objective, the map view should load only the overlays, decision checklist, supporting Observe inputs, alternatives, constraints, and approval fields required for that planning task. The user should not see every property layer at once.
+
+2. Product Architecture
+
+Concept
+
+Role in OLOS
+
+Stage
+
+Defines the user’s mode of work: Observe, Plan, or Act.
+
+Domain
+
+Defines the area of land intelligence: Hydrology, Soil, Ecology, Infrastructure, People, Economics, etc.
+
+Objective
+
+Defines the focused planning job to be completed inside a selected Domain.
+
+Decision checklist
+
+Breaks the planning objective into verifiable decisions and review steps.
+
+Map overlays
+
+Load only the spatial layers required for the active planning decision.
+
+Observe inputs
+
+Evidence, observations, constraints, flags, and unknowns produced by Observe and used as planning inputs.
+
+Plan output
+
+A structured decision record: selected option, rejected options, rationale, assumptions, dependencies, risks, prerequisites, and approval status.
+
+Act handoff
+
+A scoped work package or stewardship protocol ready for scheduling, assignment, execution, verification, and monitoring in Act.
+
+Recommended object model
+
+Object
+
+Suggested fields
+
+Stage
+
+id, name, description, allowed_verbs, prohibited_verbs
+
+Domain
+
+id, name, description, default_plan_overlay_bundle, objective_ids
+
+Objective
+
+id, domain_id, stage_id, title, planning_question, required_observe_inputs, checklist_ids, output_schema
+
+Overlay
+
+id, name, description, geometry_type, map_visibility_rules, default_style
+
+DecisionChecklistItem
+
+id, objective_id, instruction, linked_overlay_id, required_input_type, required_boolean
+
+PlanDecisionRecord
+
+id, project_id, domain_id, objective_id, selected_option, rejected_options, rationale, assumptions, constraints, dependencies, risk_flags, approval_status, timestamp, steward_id
+
+ActHandoffPackage
+
+id, plan_decision_id, work_scope, location_geometry, prerequisites, sequence, materials, success_criteria, verification_requirements, monitoring_requirements
+
+3. Plan Stage Boundary Rules
+
+Plan definition
+
+Plan is the decision-making and design stage of OLOS. Its purpose is to convert Observe-stage evidence into selected strategies, spatial layouts, system designs, phasing decisions, dependencies, prerequisites, constraints, and approval-ready Act handoff packages.
+
+Allowed Plan verbs
+
+Decide
+
+Design
+
+Compare
+
+Select
+
+Reject
+
+Prioritize
+
+Sequence
+
+Phase
+
+Estimate
+
+Approve
+
+Define
+
+Specify
+
+Constrain
+
+Resolve
+
+Defer
+
+Avoid in Plan
+
+Collect raw baseline observations without reference to a decision
+
+Treat unknowns as solved
+
+Assign workers to field execution
+
+Mark tasks complete
+
+Perform construction
+
+Manage daily operations
+
+Verify physical completion
+
+Replace legal, engineering, ecological, or professional review when required
+
+Plan outputs instead of premature execution
+
+When Plan reaches a decision, it should produce a status such as Approved for Act, Needs More Observation, Needs Professional Review, Redesign Required, Deferred, or Rejected. Act should only receive approved or conditionally approved handoff packages.
+
+4. Map View Behavior
+
+The Plan map view should be a decision workspace. It should show the selected Domain, the specific Objective, relevant Observe inputs, possible design options, the overlays needed to compare them, and a side-panel checklist that moves the user toward an approval-ready plan.
+
+Step
+
+Action
+
+Developer Behavior
+
+1
+
+User selects Stage
+
+Example: Plan
+
+2
+
+User selects Domain
+
+Example: Hydrology & Water
+
+3
+
+User selects Objective
+
+Example: Decide water storage and infiltration strategy
+
+4
+
+Map loads overlay bundle
+
+Water Flow, Contours/Landform, Soil Conditions, Suitability, Risk/Compliance, Timeline/Phasing
+
+5
+
+Observe inputs appear
+
+Runoff paths, wet/dry areas, erosion notes, water infrastructure, unknowns, evidence links.
+
+6
+
+Decision checklist appears
+
+Compare options, test constraints, select strategy, record rationale, identify prerequisites.
+
+7
+
+User creates plan output
+
+Selected option, rejected options, assumptions, dependencies, risk flags, phasing, success criteria.
+
+8
+
+OLOS generates Act handoff
+
+Scoped work package or stewardship protocol with location, sequence, prerequisites, materials, verification, and monitoring requirements.
+
+5. Universal Overlays
+
+Overlay
+
+Purpose in Plan
+
+Zones
+
+Frequency of human attention and maintenance intensity by area. Used to place systems according to how often people must interact with them.
+
+Sectors
+
+Incoming external forces such as sun, wind, storms, wildfire path, wildlife corridors, noise, road exposure, smoke, odour, views, and neighboring influence.
+
+Contours / Landform
+
+Slope, aspect, elevation, high points, low points, ridgelines, valleys, depressions, and erosion paths.
+
+Water Flow
+
+Runoff, water entry/exit points, wet areas, dry areas, drainage, ponds, wells, springs, roof catchment, and flood-prone areas.
+
+Soil Conditions
+
+Soil type, compaction, infiltration, erosion, contamination, organic matter, test zones, and visible soil health indicators.
+
+Ecology / Habitat
+
+Vegetation communities, wildlife corridors, invasive species, sensitive habitat, pollinator areas, wetlands, and restoration areas.
+
+Access / Movement
+
+Roads, paths, gates, parking, emergency access, equipment routes, animal lanes, delivery points, and harvest routes.
+
+Infrastructure / Utilities
+
+Buildings, fences, greenhouses, barns, storage, utilities, water lines, power, compost areas, and other physical assets.
+
+Resource Flows
+
+Energy, water, compost, manure, mulch, feed, greywater, waste, materials, and storage flows.
+
+Roles / Responsibility
+
+Stewards, owners, workers, volunteers, decision rights, permissions, accountability zones, and reporting responsibilities.
+
+Risk / Compliance
+
+Zoning, setbacks, permits, easements, fire risk, flood risk, contamination, protected areas, safety hazards, and legal constraints.
+
+Suitability
+
+Suitability or constraint status for uses such as dwelling, growing, grazing, building, access, restoration, water storage, or retreat use.
+
+Stewardship Intensity
+
+Care frequency: daily, weekly, monthly, seasonal, annual, passive/self-regulating, or unknown.
+
+Monitoring / Records
+
+Observation points, photo points, seasonal logs, tests, sensor readings, previous records, evidence, and before/after documentation.
+
+Timeline / Phasing
+
+Existing condition, immediate constraints, Year 0 setup, Year 1 establishment, Year 3 maturity, full vision, and ongoing stewardship.
+
+6. Overlay Bundles by Domain
+
+These are the default overlays that should load when a user selects Plan + Domain before selecting a more specific objective. Individual objectives may add or remove overlays.
+
+Domain
+
+Default Plan Overlays
+
+Vision & Project Intent
+
+Suitability; Risk / Compliance; Timeline / Phasing; Economics & Capacity indicators; Monitoring / Records
+
+Land Base & Legal Context
+
+Risk / Compliance; Suitability; Access / Movement; Infrastructure / Utilities; Timeline / Phasing
+
+Climate & Microclimate
+
+Sectors; Zones; Suitability; Timeline / Phasing; Stewardship Intensity
+
+Topography & Landform
+
+Contours / Landform; Water Flow; Access / Movement; Suitability; Risk / Compliance; Timeline / Phasing
+
+Hydrology & Water
+
+Water Flow; Contours / Landform; Sectors; Soil Conditions; Suitability; Risk / Compliance; Timeline / Phasing
+
+Soil & Subsurface
+
+Soil Conditions; Water Flow; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records
+
+Ecology & Biodiversity
+
+Ecology / Habitat; Sectors; Zones; Risk / Compliance; Suitability; Timeline / Phasing; Stewardship Intensity
+
+Plants, Crops & Food Systems
+
+Zones; Sectors; Soil Conditions; Water Flow; Suitability; Stewardship Intensity; Timeline / Phasing
+
+Animals, Livestock & Wildlife Interaction
+
+Zones; Access / Movement; Water Flow; Infrastructure / Utilities; Ecology / Habitat; Risk / Compliance; Stewardship Intensity; Timeline / Phasing
+
+Built Infrastructure
+
+Infrastructure / Utilities; Access / Movement; Suitability; Risk / Compliance; Timeline / Phasing; Sectors; Water Flow
+
+Access, Circulation & Logistics
+
+Access / Movement; Zones; Contours / Landform; Infrastructure / Utilities; Risk / Compliance; Water Flow; Timeline / Phasing
+
+Energy, Materials & Resource Flows
+
+Resource Flows; Infrastructure / Utilities; Access / Movement; Zones; Stewardship Intensity; Timeline / Phasing; Suitability
+
+People, Roles & Governance
+
+Roles / Responsibility; Zones; Access / Movement; Stewardship Intensity; Timeline / Phasing; Monitoring / Records
+
+Economics & Capacity
+
+Timeline / Phasing; Suitability; Stewardship Intensity; Infrastructure / Utilities; Resource Flows; Risk / Compliance
+
+Risk, Compliance & Suitability
+
+Risk / Compliance; Suitability; Sectors; Water Flow; Infrastructure / Utilities; Access / Movement; Timeline / Phasing
+
+Monitoring, Records & Feedback
+
+Monitoring / Records; Timeline / Phasing; Stewardship Intensity; plus active domain-specific overlays
+
+7. Universal Planning Objective Template
+
+Field
+
+Purpose
+
+Plan objective
+
+The focused planning decision the user is trying to complete.
+
+Planning question
+
+The decision question the objective answers.
+
+Required Observe inputs
+
+The evidence, observations, constraints, unknowns, and baseline records that must be available before planning can proceed.
+
+Default map overlays
+
+The overlays shown by default for this planning task.
+
+Decision checklist
+
+The step-by-step actions needed to compare, select, reject, sequence, phase, or approve decisions.
+
+Decision inputs / evidence
+
+The supporting data, documents, calculations, photos, estimates, professional reviews, or assumptions used in the decision.
+
+Completion criteria
+
+The condition that makes the planning objective complete.
+
+Act handoff output
+
+The scoped work package, stewardship protocol, or approval packet sent into Act.
+
+Allowed outputs
+
+Approved for Act, Conditionally Approved, Needs More Observation, Needs Professional Review, Redesign Required, Deferred, Rejected.
+
+8. Plan Domain Specifications
+
+1. Vision & Project Intent
+
+Converts the Stage Zero vision and Observe-stage feasibility evidence into a clear, constrained project direction.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Define the project direction and confirm which parts of the vision are feasible, conditional, deferred, or rejected.
+
+Planning question
+
+Given the observed conditions, what version of the intended land project should be planned?
+
+Required Observe inputs
+
+Stage Zero vision; project type; non-negotiables; disqualifying feature flags; land suitability observations; legal/risk flags; capacity baseline
+
+Default map overlays
+
+Suitability; Risk / Compliance; Timeline / Phasing; Economics & Capacity indicators; Monitoring / Records
+
+Checklist items
+
+Review stated vision and non-negotiables
+
+Review all Observe-stage disqualifier flags
+
+Classify vision elements as feasible, conditional, deferred, or rejected
+
+Identify minimum viable project scope
+
+Define success criteria for the first planning cycle
+
+Record assumptions and unresolved questions
+
+Approve a bounded planning direction
+
+Decision inputs / evidence
+
+Stage Zero answers; Observe handoff packets; feasibility notes; capacity evidence; legal/risk documents; stakeholder constraints
+
+Completion criteria
+
+A bounded, evidence-informed project direction is approved or sent back for more observation/review.
+
+Act handoff output
+
+Project Direction Brief: approved scope, deferred elements, rejected elements, assumptions, constraints, and first-cycle success criteria.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+2. Land Base & Legal Context
+
+Turns property boundaries and legal constraints into a usable land framework for all later planning decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Define usable, restricted, conditional, and no-go areas for the project.
+
+Planning question
+
+Where can the project legally and physically happen, and what areas must be avoided or reviewed?
+
+Required Observe inputs
+
+Parcel boundaries; easements; setbacks; protected areas; access rights; legal documents; Observe-stage land base flags
+
+Default map overlays
+
+Risk / Compliance; Suitability; Access / Movement; Infrastructure / Utilities; Timeline / Phasing
+
+Checklist items
+
+Confirm boundary and parcel data used for planning
+
+Classify areas as usable, restricted, conditional, protected, or unknown
+
+Identify planning implications of setbacks, easements, and access rights
+
+Define required legal or professional reviews
+
+Link each restriction to evidence or source document
+
+Approve the usable land framework
+
+Decision inputs / evidence
+
+Survey documents; GIS/property records; municipal/zoning notes; easement documents; Observe map markings; professional review notes
+
+Completion criteria
+
+A map of usable and restricted land areas is approved for downstream planning.
+
+Act handoff output
+
+Land Use Constraint Map: usable zones, restricted zones, review-required areas, legal assumptions, and development limits.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Needs More Observation; Rejected
+
+
+
+3. Climate & Microclimate
+
+Uses climate, sector, and microclimate observations to guide placement and protection decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide how sun, wind, frost, heat, shade, and seasonal exposure should influence project layout.
+
+Planning question
+
+How should the plan receive, block, avoid, or take advantage of site climate forces?
+
+Required Observe inputs
+
+Sun/shade observations; wind sectors; frost pockets; heat/cold pockets; seasonal photos; weather records; shelter/exposure notes
+
+Default map overlays
+
+Sectors; Zones; Suitability; Timeline / Phasing; Stewardship Intensity
+
+Checklist items
+
+Review climate and sector observations
+
+Identify areas best suited for sun-loving, shade-tolerant, sheltered, or frost-sensitive uses
+
+Decide where windbreaks, shade structures, thermal mass, or protected microclimates may be needed
+
+Flag climate-sensitive systems that require further observation
+
+Record rationale for placement and protection decisions
+
+Decision inputs / evidence
+
+Climate normals; local weather data; Observe notes/photos; sun/shade maps; wind exposure evidence; crop/livestock sensitivity assumptions
+
+Completion criteria
+
+Climate-informed planning recommendations are recorded with spatial rationale and unresolved uncertainty flags.
+
+Act handoff output
+
+Climate Design Guidance: placement guidance, protection needs, sector responses, and climate-related prerequisites for Act.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Deferred
+
+
+
+4. Topography & Landform
+
+Uses slope, aspect, ridges, valleys, and erosion observations to guide water, access, infrastructure, and production placement.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide how landform should constrain or enable the layout of systems.
+
+Planning question
+
+What should be placed, avoided, slowed, redirected, or reviewed based on land shape?
+
+Required Observe inputs
+
+Contours; slope data; ridge/valley markings; erosion observations; flatter areas; steep/unsafe areas; survey or LiDAR data if available
+
+Default map overlays
+
+Contours / Landform; Water Flow; Access / Movement; Suitability; Risk / Compliance; Timeline / Phasing
+
+Checklist items
+
+Review slope and landform observations
+
+Classify areas by slope suitability for building, access, planting, grazing, or restoration
+
+Identify where earthworks may be considered or avoided
+
+Identify erosion-sensitive planning constraints
+
+Define design dependencies between landform, water, roads, and structures
+
+Flag areas needing engineering or survey review
+
+Decision inputs / evidence
+
+Topographic data; field photos; slope categories; water flow overlays; erosion notes; access constraints
+
+Completion criteria
+
+Landform-informed placement rules and constraints are approved for downstream design.
+
+Act handoff output
+
+Landform Planning Map: slope suitability, avoid areas, conditional areas, key dependencies, and review requirements.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Needs More Observation; Deferred
+
+
+
+5. Hydrology & Water
+
+Turns water observations into water design decisions without jumping directly into construction.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide water management strategy for movement, storage, infiltration, drainage, protection, and demand.
+
+Planning question
+
+How should water be slowed, spread, stored, directed, protected, tested, or avoided?
+
+Required Observe inputs
+
+Runoff paths; wet/dry areas; water entry/exit points; wells/ponds/springs/tanks; erosion notes; flood flags; post-rain photos; water test needs
+
+Default map overlays
+
+Water Flow; Contours / Landform; Sectors; Soil Conditions; Suitability; Risk / Compliance; Timeline / Phasing
+
+Checklist items
+
+Review observed water behavior and constraints
+
+Compare water strategy options: passive infiltration, storage, drainage, irrigation, protection, or avoidance
+
+Select preferred water interventions by area
+
+Reject unsuitable or high-risk water interventions
+
+Define prerequisites such as tests, permits, surveys, or engineering review
+
+Sequence water work before dependent plant, animal, or infrastructure work
+
+Record rationale and success criteria
+
+Decision inputs / evidence
+
+Observe hydrology packet; contour data; soil/infiltration data; water demand estimates; compliance constraints; professional advice if needed
+
+Completion criteria
+
+A water strategy is selected, justified, phased, and ready for Act handoff or further review.
+
+Act handoff output
+
+Water Plan Package: selected interventions, locations, rejected options, prerequisites, phasing, materials assumptions, success criteria, and monitoring requirements.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+6. Soil & Subsurface
+
+Uses soil and subsurface evidence to guide production, remediation, infrastructure, and stewardship decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide soil improvement, protection, remediation, and suitability strategy by area.
+
+Planning question
+
+What can each soil area support now, what needs improvement, and what should be avoided until reviewed?
+
+Required Observe inputs
+
+Soil samples; compaction/infiltration tests; texture/structure notes; lab results; contamination flags; erosion areas; groundwater/bedrock notes
+
+Default map overlays
+
+Soil Conditions; Water Flow; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records
+
+Checklist items
+
+Review soil condition zones
+
+Classify areas for production, grazing, infrastructure, restoration, remediation, or avoidance
+
+Select soil improvement strategies such as cover, compost, rest, grazing, mulch, reduced disturbance, or testing
+
+Identify contamination or subsurface issues requiring professional review
+
+Define monitoring indicators and reassessment timing
+
+Sequence soil improvement before dependent systems where necessary
+
+Decision inputs / evidence
+
+Soil tests; field observations; contamination documents; intended land uses; productivity goals; remediation guidance if available
+
+Completion criteria
+
+Soil suitability and improvement decisions are recorded with clear prerequisites and monitoring requirements.
+
+Act handoff output
+
+Soil Plan Package: area classifications, improvement strategies, restricted areas, tests/reviews required, phasing, and monitoring indicators.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred
+
+
+
+7. Ecology & Biodiversity
+
+Turns ecological observations into protection, restoration, enhancement, and coexistence decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide which ecological assets to protect, which pressures to address, and which areas should be restored or left undisturbed.
+
+Planning question
+
+How should the project support existing life systems while reducing ecological harm?
+
+Required Observe inputs
+
+Habitat maps; species notes; invasive patches; wildlife corridors; wetlands; forest edges; sensitive areas; pollinator areas; ecological risk flags
+
+Default map overlays
+
+Ecology / Habitat; Sectors; Zones; Risk / Compliance; Suitability; Timeline / Phasing; Stewardship Intensity
+
+Checklist items
+
+Review ecological assets and pressures
+
+Classify areas as protect, restore, enhance, productive integration, monitor, or avoid
+
+Decide how access, infrastructure, crops, and animals should avoid or support sensitive areas
+
+Select invasive species or habitat interventions only when evidence supports them
+
+Identify seasonal observation gaps
+
+Define ecological success indicators and monitoring rhythm
+
+Decision inputs / evidence
+
+Observe ecology packet; species lists/photos; regulatory constraints; habitat maps; expert notes if available; project objectives
+
+Completion criteria
+
+Ecological planning decisions are recorded without erasing uncertainty or over-designing sensitive areas.
+
+Act handoff output
+
+Ecology Plan Package: protection zones, restoration areas, enhancement strategies, avoid areas, seasonal constraints, and monitoring indicators.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Deferred; Rejected
+
+
+
+8. Plants, Crops & Food Systems
+
+Uses observed site conditions to decide what plant systems belong where, in what sequence, and with what care requirements.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Design plant production areas and decide crop, perennial, orchard, food forest, nursery, or support planting strategy.
+
+Planning question
+
+Which plant systems should be placed where, when, and under what conditions?
+
+Required Observe inputs
+
+Existing plant systems; plant health observations; soil condition zones; water availability; sun/shade sectors; access routes; stewardship intensity capacity
+
+Default map overlays
+
+Zones; Sectors; Soil Conditions; Water Flow; Suitability; Stewardship Intensity; Timeline / Phasing
+
+Checklist items
+
+Review site suitability for each plant system
+
+Compare candidate locations for gardens, orchards, food forests, nurseries, windbreaks, or perennial systems
+
+Select preferred locations and reject poor-fit locations
+
+Define required soil, water, access, protection, and maintenance prerequisites
+
+Sequence establishment by season and dependency
+
+Define plant-system success criteria and monitoring needs
+
+Decision inputs / evidence
+
+Plant inventory; soil/water/climate overlays; crop goals; labor capacity; seasonal windows; nursery/material availability; existing records
+
+Completion criteria
+
+Plant system layout and establishment sequence are approved or flagged for more observation/review.
+
+Act handoff output
+
+Plant Systems Plan: selected locations, system type, prerequisites, establishment phase, stewardship intensity, monitoring indicators, and Act-ready work scopes.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred
+
+
+
+9. Animals, Livestock & Wildlife Interaction
+
+Turns animal observations into movement, shelter, water, fencing, welfare, and coexistence decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Design animal integration, grazing, housing, movement, wildlife coexistence, or exclusion strategy.
+
+Planning question
+
+How should animals move through, benefit, be protected from, or be protected within the land system?
+
+Required Observe inputs
+
+Animal inventory; wildlife observations; predator pressure; existing fences/shelters/water; manure/impact zones; soil/forage condition; bylaw/risk flags
+
+Default map overlays
+
+Zones; Access / Movement; Water Flow; Infrastructure / Utilities; Ecology / Habitat; Risk / Compliance; Stewardship Intensity; Timeline / Phasing
+
+Checklist items
+
+Review animal-related observations and constraints
+
+Compare candidate locations for shelters, rotations, water points, fencing, corridors, or exclusion zones
+
+Select movement pattern or animal-use areas
+
+Define stocking, timing, welfare, biosecurity, and predator-risk assumptions
+
+Identify infrastructure prerequisites
+
+Sequence animal integration after water, fencing, access, and shelter prerequisites
+
+Define monitoring and response triggers
+
+Decision inputs / evidence
+
+Animal records; forage/soil observations; predator/risk evidence; legal/bylaw constraints; water and access data; welfare requirements
+
+Completion criteria
+
+Animal system decisions are scoped, sequenced, and constrained by welfare, land capacity, water, access, and risk.
+
+Act handoff output
+
+Animal Systems Plan: movement layout, shelter/water/fencing needs, prerequisites, care rhythm, monitoring triggers, and Act-ready work scopes.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+10. Built Infrastructure
+
+Turns existing asset conditions and site constraints into placement, repair, upgrade, removal, and build decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Plan built infrastructure locations, upgrades, repairs, removals, and dependencies.
+
+Planning question
+
+What structures or utilities should exist, where should they go, and what must be true before they are built or changed?
+
+Required Observe inputs
+
+Existing structures; utility maps; condition records; access routes; setbacks; water/soil/topography constraints; climate sectors; permit flags
+
+Default map overlays
+
+Infrastructure / Utilities; Access / Movement; Suitability; Risk / Compliance; Timeline / Phasing; Sectors; Water Flow
+
+Checklist items
+
+Review existing infrastructure and condition issues
+
+Compare candidate locations or repair/upgrade options
+
+Check access, utilities, water, slope, sector exposure, and compliance constraints
+
+Select preferred infrastructure plan or reject unsuitable options
+
+Define permit/professional review prerequisites
+
+Sequence infrastructure before dependent systems
+
+Define verification criteria for Act
+
+Decision inputs / evidence
+
+Asset inventory; photos; inspections; utility data; zoning/setback notes; cost/capacity estimates; professional reviews if available
+
+Completion criteria
+
+Infrastructure decisions are approved, conditional, deferred, or rejected with clear prerequisites and Act handoff requirements.
+
+Act handoff output
+
+Infrastructure Plan Package: selected locations/scopes, prerequisites, compliance checks, phasing, materials assumptions, and verification requirements.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+11. Access, Circulation & Logistics
+
+Uses current movement data to design calm, efficient, safe movement through the property.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Plan access routes, circulation patterns, gates, parking, delivery zones, emergency access, equipment routes, and animal lanes.
+
+Planning question
+
+How should people, animals, vehicles, harvests, tools, and materials move without damaging the land or creating operational chaos?
+
+Required Observe inputs
+
+Existing roads/paths/gates; bottlenecks; slope/wet area flags; infrastructure locations; emergency access needs; animal/harvest/material movement observations
+
+Default map overlays
+
+Access / Movement; Zones; Contours / Landform; Infrastructure / Utilities; Risk / Compliance; Water Flow; Timeline / Phasing
+
+Checklist items
+
+Review current movement patterns and friction points
+
+Compare route options based on slope, wetness, safety, frequency, and destination
+
+Select primary, secondary, emergency, animal, equipment, and visitor routes as needed
+
+Reject routes that damage sensitive areas or fail safety/compliance needs
+
+Define gate, parking, signage, and material drop-zone needs
+
+Sequence access work before dependent builds or operations
+
+Decision inputs / evidence
+
+Route observations; topography/water overlays; infrastructure plan; visitor/worker needs; equipment requirements; emergency requirements
+
+Completion criteria
+
+Movement plan is approved with clear route hierarchy, constraints, and implementation prerequisites.
+
+Act handoff output
+
+Access Plan Package: route map, route types, gates/parking/drop zones, constraints, phasing, safety notes, and Act-ready work scopes.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred
+
+
+
+12. Energy, Materials & Resource Flows
+
+Turns resource-flow observations into circular, efficient systems for inputs, outputs, storage, reuse, and waste reduction.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Plan energy, material, fertility, compost, waste, greywater, fuel, feed, and storage flows.
+
+Planning question
+
+How should resources move through the site so outputs become inputs wherever possible?
+
+Required Observe inputs
+
+Existing resource flows; storage areas; compost/manure/waste locations; utilities; access routes; plant/animal/infrastructure needs; capacity constraints
+
+Default map overlays
+
+Resource Flows; Infrastructure / Utilities; Access / Movement; Zones; Stewardship Intensity; Timeline / Phasing; Suitability
+
+Checklist items
+
+Map proposed resource flow loops
+
+Compare storage and processing locations based on access, zones, water sensitivity, odour, safety, and stewardship intensity
+
+Select locations for compost, materials, firewood/fuel, feed, tools, waste, or energy systems
+
+Define closed-loop opportunities and unavoidable exports
+
+Identify compliance or safety reviews needed
+
+Sequence resource-flow infrastructure before dependent operations
+
+Decision inputs / evidence
+
+Resource inventory; flow observations; utility data; waste/greywater constraints; labor capacity; material estimates; safety/compliance notes
+
+Completion criteria
+
+Resource-flow plan is approved with locations, loops, storage points, and stewardship requirements.
+
+Act handoff output
+
+Resource Flow Plan: flow map, storage/processing sites, circular-use opportunities, exports, risk controls, phasing, and Act-ready work scopes.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Redesign Required; Deferred
+
+
+
+13. People, Roles & Governance
+
+Turns human-system observations into clear decision rights, responsibilities, permissions, communication rhythms, and accountability structure.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Define governance, roles, permissions, communication flows, stewardship areas, and responsibility boundaries.
+
+Planning question
+
+Who decides, who maintains, who reports, who approves, and how do people coordinate around the land?
+
+Required Observe inputs
+
+Owner/resident/worker/volunteer list; current responsibilities; conflict pathways; communication gaps; access permissions; stewardship intensity needs; project scope
+
+Default map overlays
+
+Roles / Responsibility; Zones; Access / Movement; Stewardship Intensity; Timeline / Phasing; Monitoring / Records
+
+Checklist items
+
+Review existing human roles and gaps
+
+Define decision rights by domain or area
+
+Define stewardship responsibilities and reporting rhythm
+
+Define permissions for access, tools, animals, records, and approvals
+
+Identify unresolved governance risks or conflict pathways
+
+Create role definitions that Act can assign to specific people later
+
+Define what must be escalated or approved before execution
+
+Decision inputs / evidence
+
+Stakeholder list; role notes; governance agreements; access needs; stewardship intensity map; communication requirements
+
+Completion criteria
+
+Governance plan is clear enough for Act to assign tasks without ambiguity or power struggles.
+
+Act handoff output
+
+Governance Plan Package: role definitions, decision rights, permissions, reporting rhythm, escalation rules, and responsibility zones.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Redesign Required; Deferred
+
+
+
+14. Economics & Capacity
+
+Turns baseline resources and constraints into realistic phasing, budget, labor, procurement, and capacity decisions.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Plan what the project can afford, staff, maintain, phase, defer, or reject.
+
+Planning question
+
+What is financially and operationally realistic given the project ambition and available capacity?
+
+Required Observe inputs
+
+Budget baseline; labor capacity; equipment inventory; cost flags; infrastructure needs; stewardship intensity; revenue/funding options; risk constraints
+
+Default map overlays
+
+Timeline / Phasing; Suitability; Stewardship Intensity; Infrastructure / Utilities; Resource Flows; Risk / Compliance
+
+Checklist items
+
+Review available budget, labor, equipment, and operating capacity
+
+Estimate planning-level cost and labor by major system
+
+Compare phasing options against capacity
+
+Classify initiatives as now, next, later, dependent, or rejected
+
+Identify funding/procurement prerequisites
+
+Flag systems that exceed maintenance capacity
+
+Approve a realistic phase plan
+
+Decision inputs / evidence
+
+Budget notes; estimates; labor availability; equipment list; vendor/professional inputs; revenue assumptions; maintenance requirements
+
+Completion criteria
+
+Capacity-informed phase plan is approved or project scope is reduced/deferred.
+
+Act handoff output
+
+Capacity Plan Package: budget/labor assumptions, phase priorities, deferred/rejected items, procurement needs, maintenance burden, and Act-ready phase scopes.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+15. Risk, Compliance & Suitability
+
+Turns constraints and hazards into explicit planning decisions that protect the project from avoidable failure.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Decide how to respond to risks, compliance issues, suitability limits, and project-killing constraints.
+
+Planning question
+
+Which areas or ideas are safe, legal, suitable, conditional, restricted, or disqualified?
+
+Required Observe inputs
+
+Zoning/setback/easement data; fire/flood/contamination hazards; protected areas; safety concerns; legal review flags; suitability observations
+
+Default map overlays
+
+Risk / Compliance; Suitability; Sectors; Water Flow; Infrastructure / Utilities; Access / Movement; Timeline / Phasing
+
+Checklist items
+
+Review all risk and compliance flags
+
+Classify each issue as acceptable, conditional, review-required, redesign-required, or disqualifying
+
+Define mitigations, buffers, permits, inspections, or professional reviews
+
+Reject plan elements that fail risk or compliance gates
+
+Record evidence, assumptions, and decision rationale
+
+Prevent Act handoff for blocked or unresolved high-risk items
+
+Decision inputs / evidence
+
+Legal documents; municipal/zoning notes; hazard maps; photos; inspection reports; professional reviews; Observe flags; insurance constraints
+
+Completion criteria
+
+Risk decisions are explicit, defensible, and connected to plan approvals or blocks.
+
+Act handoff output
+
+Risk & Suitability Decision Packet: approved/conditional/rejected areas, required reviews, mitigation prerequisites, blocked items, and Act approval gates.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs Professional Review; Redesign Required; Deferred; Rejected
+
+
+
+16. Monitoring, Records & Feedback
+
+Designs the feedback system that will prove whether the plan is working after Act begins.
+
+Field
+
+Developer Specification
+
+Plan objective
+
+Plan monitoring points, records, success metrics, review cycles, and feedback triggers.
+
+Planning question
+
+How will OLOS know whether planned actions are working, failing, or needing adjustment?
+
+Required Observe inputs
+
+Existing monitoring records; baseline observations; domain-specific evidence; photo points; soil/water tests; stewardship intensity; success criteria from other plans
+
+Default map overlays
+
+Monitoring / Records; Timeline / Phasing; Stewardship Intensity; plus active domain-specific overlays
+
+Checklist items
+
+Select monitoring locations and record types
+
+Define baseline metrics and comparison rhythm
+
+Define photo points, tests, logs, sensors, or inspection requirements
+
+Link monitoring to specific plan decisions and Act work packages
+
+Define thresholds that trigger review, adjustment, escalation, or new observation
+
+Define who receives feedback and where it appears in OLOS
+
+Decision inputs / evidence
+
+Baseline records; domain plans; success criteria; sensor/test needs; photo points; stewardship responsibilities; review schedule assumptions
+
+Completion criteria
+
+Monitoring plan is linked to plan decisions and ready for Act-stage verification and ongoing stewardship.
+
+Act handoff output
+
+Monitoring Plan Package: indicators, locations, record types, review rhythm, thresholds, responsible role, and feedback loop into Observe/Plan.
+
+Allowed outputs
+
+Approved for Act; Conditionally Approved; Needs More Observation; Needs Professional Review; Deferred
+
+
+
+9. Developer Acceptance Criteria
+
+Product rule
+
+When a user selects Plan + Domain + Objective, OLOS should load only the overlay bundle required to complete that planning decision. The Domain determines the default overlay bundle. The Objective can add or remove overlays from that bundle.
+
+Functional acceptance criteria
+
+Each Plan objective must declare required Observe inputs before the planning checklist can be completed.
+
+If required Observe inputs are missing, the objective should show Needs More Observation rather than pretending the decision is ready.
+
+Each checklist item should link to at least one relevant overlay, evidence input, decision field, or rationale field.
+
+Every selected option must allow rejected alternatives and rationale to be recorded.
+
+Every Plan output must include assumptions, constraints, dependencies, risks, prerequisites, and approval status.
+
+Act handoff packages should only be generated from Approved or Conditionally Approved Plan outputs.
+
+No Act assignment, completion, or verification action should occur inside the Plan stage.
+
+Plan should support professional-review gates for legal, engineering, ecological, safety, animal welfare, and compliance-sensitive decisions.
+
+UX acceptance criteria
+
+The map should open with a focused overlay bundle, not every project layer.
+
+The side panel should show the active Domain, Objective, decision checklist, required inputs, and approval status.
+
+The user should be able to compare at least two candidate options where the objective requires selection.
+
+The user should be able to mark selected, rejected, conditional, and review-required areas directly on the map.
+
+Unknowns should be visible as unknowns, not silently hidden.
+
+Plan outputs should be understandable by someone entering the project later.
+
+The Act handoff should read like a scoped package, not a vague idea.
+
+Clean boundary statement
+
+Observe answers: What is happening? Plan answers: What should happen, where, why, and in what sequence? Act answers: Who does it, when, with what proof, and what happens next?
+
+Prepared for OLOS product development
+
+==== C:\Users\MY OWN AXIS\Downloads\OLOS_Plan_Navigation_Spec_v1 (1).docx ====
+
+OLOS
+
+Plan Stage Navigation
+
+UX Specification — v1.0
+
+
+
+Field
+
+Value
+
+Document type
+
+UX Specification
+
+Status
+
+Ready for implementation
+
+Covers
+
+Plan stage — Command Center navigation shell
+
+Does not cover
+
+Act Command Center, Observe dashboard, Map view internals
+
+Next document
+
+OLOS Act Command Center UX Specification
+
+
+
+
+1. Context & architectural decisions
+
+
+
+1.1 The three-stage cycle
+
+OLOS organises all land stewardship work around three stages: Plan, Act, and Observe.
+
+
+
+Stage
+
+Role
+
+Plan
+
+Determines what needs to be known and done. The entry point for any new project. Sequences objectives by dependency, generates Act tasks, and gates downstream decisions behind genuine prerequisite completion.
+
+Act
+
+Executes all field work — both survey/observation tasks and physical implementation tasks. These feel identical in the UI. Completed Act tasks feed data into Observe.
+
+Observe
+
+A read-only intelligence layer. Surfaces synthesised data produced by Act tasks. The user never 'does' Observe — they read it. It grows richer as Act tasks complete.
+
+
+
+Key architectural principle
+
+Observe is not the entry point. Plan is. The cycle is: Plan (decide what to learn or do) → Act (execute it) → Observe (read what was learned). A new project always begins in Plan.
+
+
+
+1.2 Objectives as the primary navigation unit
+
+The previous navigation model used Domain as the entry point (Stage → Domain → Objective). This has been replaced.
+
+
+
+The problem with domain-first navigation:
+
+Objectives routinely cross domain boundaries. “Map water movement” requires Topography, Hydrology, Soil, and Climate data simultaneously. Forcing it into a single domain produced incomplete decisions.
+
+Free domain selection allowed users to plan in the wrong order — e.g. designing planting systems before water strategy was resolved — producing expensive rework.
+
+Domain was an organisational lens for data, not a unit of work. Objectives are the actual unit of work.
+
+
+
+The new model:
+
+Stage → Objective (domain overlays load automatically based on what the objective requires)
+
+The user never selects a domain. They select what they are trying to understand or decide.
+
+Each objective carries its required overlays, prerequisite objectives, parallelisable peers, and completion gate as first-class data.
+
+
+
+1.3 Dependency-gated sequencing
+
+Regenerative land design has hard dependencies that, if violated, produce rework. The Plan stage enforces these as a tier-based dependency graph. A user cannot access Tier N until Tier N-1 is complete (with parallelism within tiers where applicable).
+
+
+
+The dependency graph is not paternalistic — it reflects real ecological and design logic:
+
+Water movement cannot be correctly read without terrain data.
+
+Zone allocation requires terrain, water, sectors, and access observations.
+
+Planting system design without resolved water strategy produces redesign.
+
+
+
+Locked objectives are informative, not punitive. Clicking a locked tier reveals a plain-language explanation of which prerequisite must complete first.
+
+
+
+
+2. Plan stage tier structure
+
+
+
+The Plan stage is organised into seven tiers. Each tier groups objectives by dependency level. Tiers unlock sequentially; objectives within a tier can run in parallel unless noted.
+
+
+
+Tier 0 — Project Foundation
+
+No prerequisites. Entry point for all new projects. Must be complete before any land reading begins.
+
+
+
+Objective
+
+Purpose
+
+Define vision, goals & stewardship capacity
+
+Establishes what the steward is trying to achieve, on what timeline, and with what resources. Records hard constraints: labour, budget, skills, access.
+
+Establish site boundaries & legal constraints
+
+Sets the spatial anchor for all future overlays. Records title, easements, zoning, setbacks, watercourse buffers, and protected areas.
+
+
+
+Unlocks
+
+Completion of both Tier 0 objectives unlocks Tier 1 — Land Reading.
+
+
+
+Tier 1 — Land Reading
+
+Requires: Tier 0 complete. All four objectives are parallelisable — any order.
+
+
+
+Objective
+
+Unlocks
+
+Survey terrain & topography
+
+Tier 2: Water Movement Survey, Tier 2: Soil Survey
+
+Survey climate & sectors
+
+Tier 3: Zone Allocation
+
+Survey existing ecology & habitat
+
+Tier 4: Ecology & Guild Design, Tier 5: Animal Integration
+
+Survey existing infrastructure & access
+
+Tier 4: Access & Circulation Design, Tier 4: Infrastructure Design
+
+
+
+Parallelism note
+
+All four Tier 1 surveys can run simultaneously. A steward can begin ecology and infrastructure surveys before terrain is complete. However, Tier 2 will not unlock until Terrain Survey specifically is complete, regardless of other Tier 1 progress.
+
+
+
+Tier 2 — Systems Reading
+
+Requires: Terrain Survey (Tier 1) complete. Water and soil cannot be correctly read without slope and drainage data.
+
+
+
+Objective
+
+Unlocks
+
+Survey water movement & hydrology
+
+Tier 3: Water Strategy
+
+Survey soil conditions & subsurface
+
+Tier 4: Soil Improvement Design, Tier 4: Planting Systems Design
+
+
+
+Tier 3 — Foundation Decisions
+
+Requires: All of Tier 1 and Tier 2 complete. These are the load-bearing decisions of the Plan stage — zone framework and water strategy constrain almost everything downstream. The name is cycle-neutral by design: in every subsequent Plan cycle these remain the foundational decisions to revisit and revise, not merely the ‘first’ ones made.
+
+
+
+Objective
+
+Depends on
+
+Establish zone framework
+
+Terrain, water, sectors, access, ecology surveys
+
+Define water strategy
+
+Water movement survey + terrain + zone framework draft
+
+
+
+Tier 4 — System Design
+
+Requires: Tier 3 complete. Parallelisable within tier with soft intra-tier dependencies noted.
+
+
+
+Objective
+
+Soft dependency within tier
+
+Design access & circulation
+
+Zones + water strategy
+
+Design soil improvement programme
+
+Soil survey + zones
+
+Design planting systems
+
+Zones + water + soil (benefits from access draft)
+
+Design built infrastructure
+
+Zones + water + access
+
+
+
+Tier 5 — Integration Design
+
+Requires: All Tier 4 approved.
+
+
+
+Objective
+
+Depends on
+
+Design animal integration
+
+Zones + water + planting + ecology
+
+Design energy & resource flows
+
+Infrastructure + zones
+
+Design people, roles & governance
+
+Zones + all Tier 4 designs
+
+
+
+Tier 6 — Phasing & Resourcing
+
+Requires: All Tier 5 approved. Only possible once all designs are resolved.
+
+
+
+Objective
+
+Purpose
+
+Phase & sequence implementation
+
+Order all Act work packages by ecological and operational dependency across a multi-year timeline.
+
+Budget & resource planning
+
+Assign costs, labour, and materials to each phase. Project-level tracking only — not capital formation (see covenant boundary, section 5).
+
+
+
+
+2.8 The Plan–Act–Observe spiral & two-mode gate logic
+
+
+
+2.8.1 The cycle is a spiral, not a sequence
+
+Plan → Act → Observe is not a one-time linear sequence. It is a recurring spiral. Act execution changes the land. Observe surfaces what changed. Plan must then revisit prior decisions in light of new evidence and adapt.
+
+
+
+This has a direct consequence for the tier structure: the gate logic that governs Tier access must behave differently depending on whether the user is in their initial pass or a subsequent cycle.
+
+
+
+2.8.2 Two gate modes
+
+
+
+Mode
+
+When it applies
+
+Gate behaviour
+
+Initial completion
+
+First time through the Plan stage on a new project
+
+Hard gates. A tier is inaccessible until all prerequisite objectives are genuinely complete. The user cannot skip or bypass.
+
+Cyclical review
+
+Any subsequent Plan cycle after Act has executed and Observe has updated
+
+Soft gates. Completed tiers become review checkpoints rather than locked barriers. The user can open any previously completed tier to reassess and revise decisions in light of new Observe data.
+
+
+
+Why this matters
+
+In year 3 of a project, a steward should not be forced to re-complete a Terrain Survey before they can revise their Water Strategy. The terrain is known. What has changed is what Observe has surfaced since the last cycle. The gate should ask: has anything changed that affects this tier? — not: have you completed all prerequisites from scratch?
+
+
+
+2.8.3 UX expression of review mode
+
+In cyclical review mode, the tier spine communicates the shift:
+
+
+
+Tier state
+
+Initial cycle
+
+Cyclical review
+
+Previously completed tier
+
+Complete (green check)
+
+Review (amber refresh icon) — signals that new Observe data may affect this tier’s decisions
+
+Active tier
+
+Blue dot
+
+Blue dot (unchanged)
+
+Locked tier
+
+Lock icon + hard gate
+
+No locked tiers in review mode — all previously completed tiers are accessible
+
+Tier not yet reached
+
+Locked as normal
+
+Locked as normal — tiers the user has never completed remain hard-gated
+
+
+
+When a user opens a tier in review mode, the objective cards show their last-completed state with a “Review” callout noting the Observe data that has changed since the last cycle. The user can update decisions and re-approve objectives without re-completing the full checklist from scratch.
+
+
+
+2.8.4 Cyclical review UI — entry and confirmation screens
+
+The two-mode gate logic described in sections 2.8.1–2.8.3 requires two distinct UI screens to make the review flow legible to stewards.
+
+
+
+Screen 1 — Review entry state
+
+When Observe data has updated enough to trigger a Plan revision signal, and the steward enters a tier in cyclical review mode, a modal or banner appears before the tier’s objectives are shown. It explains in plain language what changed and what may be affected.
+
+
+
+Element
+
+Specification
+
+What Observe detected
+
+One or two sentences stating the specific data change. Example: “Soil pH at Zone 2 has dropped from 6.4 to 5.8 since your last review.” Not a generic alert — always specific to the actual data.
+
+Which objectives are flagged
+
+A compact list of the affected objectives with their tier and a one-line reason each is flagged. Each item is tappable.
+
+Primary CTA
+
+‘Begin Review’ — blue filled button. Opens the tier with all flagged objectives highlighted in amber.
+
+Secondary CTA
+
+‘Dismiss for now’ — text link. Closes the modal and opens the tier in normal review mode without amber highlights. The Plan revision banner remains visible in Observe.
+
+
+
+Screen 2 — Review confirmation state
+
+After a steward reviews a flagged objective and either confirms the existing decision or updates it, the right detail panel updates to reflect the outcome.
+
+
+
+Element
+
+Specification
+
+Review badge
+
+The amber ‘Review’ badge on the objective card is replaced with either: (a) a green ‘Decision confirmed’ badge if the steward confirmed the existing decision, or (b) a blue ‘Decision updated’ badge if they made a change.
+
+Confirmation summary
+
+A compact one-line summary in the detail panel below the objective title: ‘Confirmed on [date]: [decision summary]’ or ‘Updated on [date]: [what changed]’.
+
+Downstream effects
+
+If the decision update affects downstream objectives, a compact list of affected objectives appears below the summary with a ‘Review now’ link each.
+
+Plan revision banner
+
+Once all flagged objectives in the tier are reviewed, the Plan revision banner in Observe clears for this tier.
+
+
+
+Review mode feels different from first-cycle mode
+
+In cyclical review, the steward is not completing things for the first time. They are assessing whether prior decisions still hold. The UI must communicate this difference — amber review badges, confirmation language, and the Observe data context panel all signal that this is a revision session, not initial planning.
+
+
+
+2.8.4 Tier 3 naming rationale
+
+Tier 3 is named “Foundation Decisions” rather than “First Design Decisions” precisely because of the spiral. The zone framework and water strategy are the foundational decisions in every cycle — they are the ones everything else depends on whether you are making them for the first time or revising them in year 5. The word “first” would become incorrect and confusing on every cycle after the initial one.
+
+
+
+
+3. UI architecture
+
+
+
+3.1 Three-panel shell
+
+The Plan Command Center uses a fixed three-panel layout. All panels are always visible on desktop. Panels do not collapse or stack at desktop viewport widths.
+
+
+
+Panel
+
+Role
+
+Left — Tier Spine (210px)
+
+Shows all seven tiers with status, progress count, and sequential position. Primary project orientation surface.
+
+Centre — Objective Cards (flexible)
+
+Shows the objectives within the selected tier. The 'next up' affordance lives here. Cards are the selection surface.
+
+Right — Objective Detail (300px)
+
+Shows the active objective's checklist, map activation strip, and supporting context. The primary work surface.
+
+
+
+Mobile / Act note
+
+This three-panel layout is appropriate for the Plan stage (primary action: deciding) on desktop and tablet. The Act Command Center requires a fundamentally different treatment: fewer panels, larger touch targets, camera and GPS front and centre. Do not apply this shell to Act.
+
+
+
+3.2 Progress bar
+
+A full-width bar spans all three panels at the top of the shell. It provides project-level orientation above the tier-level detail of the spine.
+
+
+
+Element
+
+Behaviour
+
+Stage pills (Plan / Act / Observe)
+
+Indicates current stage. Non-active stages are clickable navigation targets to their respective command centers.
+
+Progress label
+
+Static label: “Project progress”
+
+Progress track
+
+Fills proportionally to decisions made across all tiers. Updates live as checklist items are completed and objectives are gated. Label reads: ‘Design Decisions: N of N made’
+
+Percentage readout
+
+Rounds to nearest integer. Updates live.
+
+Objectives counter
+
+Format: “N / N objectives complete”. Updates live.
+
+
+
+3.3 Tier spine (left panel)
+
+The spine is the project’s sequencing backbone. It must always show the user where they are in the full Plan stage at a glance.
+
+
+
+Tier states
+
+State
+
+Visual treatment
+
+Complete
+
+Green dot with check icon. Green connector line to next tier.
+
+Active
+
+Blue dot with tier number. Blue left border on the row. Blue text.
+
+Available
+
+Gray dot with tier number. No border. Muted text.
+
+Locked
+
+Gray dot with lock icon. Muted text. Cursor: pointer (not blocked).
+
+
+
+Locked tier interaction — popover + bypass
+
+Clicking a locked tier opens a small popover anchored to the tier row — not a full modal. The popover is informative, not punitive. No red colours or warning iconography. Use the existing amber/gold palette throughout.
+
+
+
+Popover element
+
+Specification
+
+Lock reason
+
+Plain language. Example: “Requires: Water Movement Survey + Soil Survey complete”
+
+Progress indicator
+
+Shows how many prerequisites are met. Example: “1 of 2 requirements met” with a small progress bar or pip row in amber.
+
+Bypass link
+
+A subtle secondary link at the bottom of the popover in small muted text: “I understand the dependencies — open anyway”. Not a button — a text link, intentionally low affordance.
+
+
+
+Bypass confirmation state
+
+If the user clicks “Open anyway”, the popover transitions to a minimal acknowledgment prompt:
+
+Text: “You’re entering this tier out of sequence. Some decisions may lack the data they need. Continue?”
+
+Two actions: Confirm (amber filled button) and Cancel (text link). No destructive red styling.
+
+On Confirm: the tier opens in a visually distinct ‘out of sequence’ state — a subtle amber left border on the tier row and an amber banner at the top of the centre panel reading: “You’re reviewing this tier out of sequence. Decisions made here may need revisiting once prerequisites are complete.”
+
+The banner is dismissible. It does not prevent any action.
+
+
+
+Tone principle
+
+The bypass exists because experienced stewards sometimes need to explore downstream tiers before prerequisites are technically complete — for scoping, estimation, or familiarity. The system must not punish this. The amber out-of-sequence state is a reminder, not a gate.
+
+
+
+3.4 Objective cards (centre panel)
+
+Next up affordance
+
+The first element in the centre panel (above the card list) is the “Next up” card. This is the most important single element in the entire Plan navigation shell.
+
+
+
+If an objective is in progress (status: active), the card shows: “Continue where you left off” with the objective title and a count of completed checklist steps.
+
+If no objective is in progress but one is available (status: available), the card shows: “Start here” with the objective title.
+
+Clicking the card selects the objective and loads its detail in the right panel.
+
+This card answers the question: “What do I do right now?” without requiring the user to scan the full card list.
+
+
+
+Project home screen note
+
+The “Next up” logic must also exist at the project home screen level — above the Plan Command Center entirely. A returning user who has been in the field for two weeks should see their next action on the home screen without having to navigate into Plan first.
+
+
+
+Parallel callout
+
+When a tier contains parallelisable objectives, a callout card appears above the objective list (below the Next Up card if present). It states:
+
+Primary line: “These can be done in any order”
+
+Secondary line: The specific condition that must be met before the next tier unlocks (e.g. “All four needed before Tier 2 unlocks”)
+
+This callout replaces the generic group label that would otherwise appear. It answers the anxiety of “Am I doing this wrong?” before it arises.
+
+
+
+Card states
+
+Status
+
+Badge label
+
+Badge colour
+
+complete
+
+Complete
+
+Green
+
+active
+
+Active inquiry
+
+Blue
+
+available
+
+Ready to enter
+
+Amber
+
+locked
+
+Not yet reached
+
+Gray (muted)
+
+
+
+Ready to enter must be visually distinct from Not yet reached. Amber/yellow communicates availability. Gray communicates inaccessibility.
+
+
+
+Card metadata
+
+Each objective card shows three metadata chips below the description:
+
+Checklist step count (e.g. “4 steps”)
+
+Field action count (e.g. “3 field actions”)
+
+Overlay count (e.g. “4 overlays”)
+
+
+
+If the objective unlocks downstream objectives, an inline unlock row appears at the bottom of the card: “Unlocks: [objective name] · [objective name]”
+
+
+
+3.4b Tier unlock transition state
+
+When the final prerequisite objective in a tier completes and the next tier unlocks, the centre panel displays a full-width unlock transition state before returning to the normal objective card view. This is the primary moment of felt progress in the system.
+
+
+
+Element
+
+Specification
+
+Celebration banner
+
+Full-width card across the centre panel. Displays: tier number, tier name (e.g. ‘Tier 1 Unlocked — Land Reading’), and a one-sentence description of what this tier means for the project. Background: subtle blue fill. Not a toast — a full-width persistent card until dismissed or acted on.
+
+Tier spine update
+
+Tier 0 transitions to the Complete state (green check). Tier 1 transitions from Locked to Active state (blue circle). The lock icon animates away — a 300ms fade and scale-down. The new active circle fades in.
+
+What just became possible
+
+Below the banner, a compact section lists 2–3 downstream objectives that are now accessible. Label: ‘What just became possible’. Each item shows objective title and a brief one-line description. Tapping an item selects it and loads its detail panel.
+
+Dismiss behaviour
+
+The banner auto-dismisses after 8 seconds or on any user interaction (clicking an objective card, advancing to the new tier, etc.). It does not block interaction.
+
+
+
+This moment earns the system trust
+
+A steward who completes two surveys and sees the system respond with ‘Tier 1 Unlocked’ and a clear picture of what just became possible has experienced the dependency logic as a reward, not a constraint. This transition is small in code but significant in felt experience.
+
+
+
+3.5 Objective detail (right panel)
+
+The detail panel is the primary work surface. It is organised into four explicit sections separated by subtle dividers. The sections are visually distinct so a new user immediately knows to start at section 3 (Your Decisions) and work downward. The section structure is:
+
+
+
+Section
+
+Content
+
+Default state
+
+1. OBJECTIVE
+
+Title and planning question. Unchanged from current spec. Stays prominent.
+
+Always visible
+
+2. MAP ACTIVATION
+
+Overlay pill row with green pulse dot and overlay count. Unchanged from current spec.
+
+Always visible
+
+3. YOUR DECISIONS
+
+The decision list with feeds-into consequence tags. Primary content. Highest visual weight.
+
+Always visible and expanded
+
+4. REFERENCE
+
+Field actions, Feeds Observe, Completion gate, Unlocks. Supporting context only.
+
+Collapsed by default. Expandable via ‘Reference’ toggle.
+
+
+
+Section 3 is the entry point
+
+A new user scanning the detail panel for the first time should land on ‘Your Decisions’ automatically. Sections 1 and 2 are orientation; Section 3 is action; Section 4 is reference. The visual weight and vertical position must reinforce this reading order.
+
+
+
+Header (fixed)
+
+Element
+
+Content
+
+Eyebrow
+
+“Active objective” — static label
+
+Title
+
+Objective title
+
+Planning question
+
+The core question this objective answers. Displayed as italic secondary text.
+
+
+
+Map activation strip (fixed, below header)
+
+Sits between the header and the scrollable body. Makes explicit that selecting an objective is a map action, not just a task selection.
+
+
+
+Green pulse dot
+
+Text: “N overlays will activate on the map”
+
+First two overlay names shown as chips, with a +N chip if more than two
+
+
+
+Why this element matters
+
+Without the map activation strip, the detail panel reads as a standalone task manager disconnected from the map. The strip makes the panel feel like a map control — which is what it is. This is one of the most load-bearing UX decisions in the spec.
+
+
+
+Your Decisions (scrollable body, primary)
+
+The decision list is the primary content of the detail panel. It must look and feel like the most important thing on the screen when the panel is open. The section is labelled ‘Your Decisions’ — not ‘Checklist’ or ‘Steps’. This is a thinking and deciding process, not a task completion process.
+
+
+
+Section label: “Your Decisions” with a right-aligned count (“N / N decisions made”)
+
+Checkboxes are 15×15px with clear hit targets
+
+Unchecked item text: primary text colour, full weight
+
+Checked item text: tertiary text colour, strikethrough
+
+Checking an item updates the progress bar and done count live
+
+
+
+Hierarchy rule
+
+Your Decisions is what the user does right now. All other content in the detail panel is supporting context. The decision list must have higher visual weight than everything below it. Labels reinforce that this is a methodology — not a to-do list.
+
+
+
+Details toggle (scrollable body, secondary)
+
+Below the checklist, a collapsible “Details” toggle reveals supporting context. It is collapsed by default.
+
+
+
+The toggle label is “Details” — not “Context & dependencies” or any other abstract phrase. The user should not have to interpret what is inside.
+
+
+
+Contents when expanded:
+
+Field actions — the field tasks this objective generates, shown as a list with a shovel icon
+
+Feeds Observe — a description of what Observe data this objective’s Act tasks will populate
+
+Completion gate — the specific criteria that mark this objective as done
+
+Completing this unlocks — shown only when the objective has downstream dependencies
+
+
+
+Footer (fixed)
+
+A single outlined button: “Launch Act Command Center”.
+
+
+
+Outlined (not filled) — it is a navigation action, not the primary CTA for the screen
+
+Pinned to the bottom of the panel so it is always reachable without scrolling
+
+Passes the active objective’s context to the Act Command Center on click
+
+Label is “Launch Act Command Center” — not “Generate Act Tasks” (tasks are already shown in the Details section)
+
+
+
+
+4. Objective data model
+
+
+
+Each objective in the Plan stage carries the following fields as first-class data. Domain is a tag on the objective, not a navigation gate.
+
+
+
+Field
+
+Type and description
+
+id
+
+string — unique identifier
+
+tier_id
+
+integer — which tier this objective belongs to (0–6)
+
+title
+
+string — short display name
+
+planning_question
+
+string — the core question this objective answers
+
+description
+
+string — one-sentence description for the card view
+
+status
+
+enum: complete | active | available | locked
+
+domain_ids[]
+
+string[] — which domains this objective draws on (plural, not singular)
+
+overlay_ids[]
+
+string[] — map overlays that activate when this objective is selected
+
+prerequisite_objective_ids[]
+
+string[] — objectives that must be complete before this unlocks
+
+parallel_with_ids[]
+
+string[] — objectives in the same tier that can run concurrently
+
+checklist_items[]
+
+ChecklistItem[] — ordered decisions with completion state. Each item carries: text, is_methodology boolean, and feeds_into string (the downstream consequence displayed as muted helper text).
+
+act_task_ids[]
+
+string[] — Act tasks generated by this objective
+
+observe_feeds
+
+string — description of what Observe data this objective produces
+
+completion_gate
+
+string — criteria that mark this objective complete
+
+unlocks_objective_ids[]
+
+string[] — objectives that unlock when this completes
+
+
+
+4.1 Status resolution rules
+
+Objective status is computed, not manually set. The resolution order is:
+
+
+
+If all checklist items are done and the completion gate is met: status = complete
+
+Else if any checklist item is done: status = active
+
+Else if all prerequisite_objective_ids are complete: status = available
+
+Else: status = locked
+
+
+
+
+5. Stage boundary rules & covenant constraints
+
+
+
+5.1 What belongs in Plan
+
+Plan objectives are decision-making surfaces. Allowed verbs: decide, design, compare, select, reject, prioritise, sequence, phase, estimate, approve, define, specify, constrain, resolve, defer.
+
+
+
+Plan must not:
+
+Collect raw baseline observations without reference to a decision
+
+Assign workers to field execution
+
+Mark Act tasks complete
+
+Perform construction or physical implementation
+
+Replace legal, engineering, ecological, or professional review when required
+
+
+
+5.2 Plan outputs
+
+When a Plan objective reaches a decision, it produces one of the following statuses:
+
+Approved for Act
+
+Conditionally Approved (with named conditions)
+
+Needs More Observation (flags a gap in Observe data)
+
+Needs Professional Review
+
+Redesign Required
+
+Deferred
+
+Rejected
+
+
+
+Act should only receive Approved or Conditionally Approved handoff packages.
+
+
+
+5.3 Covenant boundary — Plan vs Economics
+
+Covenant constraint
+
+Tier 6 (Phasing & Resourcing) covers project cost and budget tracking only. Capital formation, financing, advance-purchase agreements, investor or equity structures, and yield-as-return framing are explicitly excluded from Plan and fall under Sub-project C (Economics), which is governed by Scholar Council review. No riba or gharar framing in any Plan surface.
+
+
+
+
+6. Developer acceptance criteria
+
+
+
+6.1 Navigation
+
+A new project enters at Tier 0. No other tier is accessible until Tier 0 is complete.
+
+Clicking a locked tier reveals an inline callout explaining the prerequisite. Clicking again dismisses it. The tier row is never blocked or inert.
+
+Clicking an unlocked tier switches the centre panel to that tier’s objectives without page reload.
+
+Selecting an objective populates the detail panel without navigating away from the Command Center.
+
+
+
+6.2 Next up affordance
+
+The Next Up card always reflects the current project state — it is not static.
+
+If an active objective exists, Next Up shows “Continue where you left off” with correct step count.
+
+If no active objective but an available one exists, Next Up shows “Start here.”
+
+If all objectives in the current tier are complete, Next Up does not show (the tier is complete; user should advance to the next tier).
+
+
+
+6.3 Progress bar
+
+Progress percentage and objective count update immediately on checklist item interaction — no page reload.
+
+Progress reflects completed objectives across all tiers, not just the active tier.
+
+Stage pills correctly indicate current stage and navigate to other stage command centers on click.
+
+
+
+6.4 Detail panel
+
+Map activation strip shows the correct overlay count and first two overlay names for the selected objective.
+
+Checklist items persist state within the session. Checked items show strikethrough.
+
+Done count in the checklist label updates live.
+
+Details toggle is collapsed by default. State persists within the session (if user expanded it, it stays expanded when they return to the same objective).
+
+Launch Act Command Center button passes the active objective ID and title to the Act Command Center.
+
+
+
+6.5 Objective status
+
+Status is computed from checklist state and prerequisite completion — it is never manually set.
+
+Completing the final checklist item of an objective does not automatically mark it complete — the completion gate must also be met.
+
+When an objective completes, dependent objectives in downstream tiers update their lock state immediately.
+
+
+
+
+6b. Visual language — land methodology aesthetic
+
+
+
+The visual design of the Plan Command Center should feel native to land and methodology work — not generic SaaS. The following visual language shifts are specified for implementation. Layout and information architecture remain unchanged.
+
+
+
+Element
+
+Specification
+
+Active tier circle
+
+Replace the flat blue filled circle with a circle that has a slightly irregular, organic edge — achieved via an SVG path or border-radius variation rather than a perfect geometric circle. The effect is subtle: land, not software.
+
+Decision checkboxes
+
+Replace square checkboxes with circular marks. An unchecked item shows an empty circle outline. A checked item shows a filled circle with a checkmark. This small change shifts the component from task-list to methodology-marker.
+
+Centre panel background
+
+Apply a very subtle topographic line texture at 5% opacity to the centre panel background. The texture is present but not dominant — visible on close inspection, not attention-seeking. SVG pattern or CSS background-image.
+
+Objective title typography
+
+Objective titles in the detail panel header and objective cards use a serif typeface (e.g. the Lora typeface established in earlier OLOS design work). UI chrome (labels, counts, badges, navigation) remains in the system sans-serif. The distinction signals: this content is methodology, not interface.
+
+Tier unlock celebration banner
+
+Uses the same organic circle motif from the active tier — the newly unlocked tier number rendered large in the organic circle, centre-aligned in the banner.
+
+
+
+The goal is felt difference, not visual noise
+
+Every visual language change should pass this test: does it make the product feel more like it was designed for land? If the answer is no, or if the change adds visual noise rather than meaning, do not implement it. Subtle and intentional outperforms decorative every time.
+
+
+
+
+7. Out of scope for this document
+
+
+
+The following are explicitly deferred to separate specifications:
+
+
+
+Topic
+
+Notes
+
+Act Command Center
+
+Requires fundamentally different UX: mobile-first, fewer panels, camera/GPS primary. See next spec.
+
+Observe dashboard
+
+Read-only intelligence layer. Populated by Act task completion. Separate spec.
+
+Map view internals
+
+Overlay rendering, drawing tools, and layer controls are covered in the Map View spec.
+
+Project home screen
+
+Must surface the Next Up affordance at the project level. See Project Home spec.
+
+Tier 3–6 objective detail
+
+Full checklist, overlays, and Act tasks for Tiers 3–6 objectives to be authored in a subsequent session.
+
+Sub-project C (Economics)
+
+Capital formation, financing, and yield structures. Scholar Council gated. Separate covenant process.
+
+
+
+
+
+OLOS Plan Stage Navigation — UX Specification v1.0
+
+Ready for implementation
+
+==== C:\Users\MY OWN AXIS\Downloads\OLOS_Spec_Suite_Handoff_Index_v1.docx ====
+
+OLOS
+
+UX Spec Suite
+
+Development Handoff Index — v1.0
+
+
+
+This document is the master index for the OLOS UX specification suite. It defines the build sequence, maps cross-spec dependencies, documents all resolved architectural decisions, and lists the engineering specs that must be produced before implementation begins.
+
+
+
+Field
+
+Value
+
+Spec suite status
+
+Complete — all UX specs ready for implementation
+
+UX specs in suite
+
+6
+
+Engineering specs outstanding
+
+3 (Offline sync, Authentication, Push infrastructure)
+
+Recommended build start
+
+Project Creation Wizard → Plan Navigation
+
+System complexity target
+
+Apricot Lane Farms — full operational complexity without external PM tools
+
+
+
+
+1. System overview
+
+
+
+1.1 What OLOS is
+
+OLOS is the full operating system for regenerative land development. Its success is measured by whether it can independently guide a project through observation, design, phased implementation, daily management, ecological monitoring, and adaptive stewardship at the complexity level of Apricot Lane Farms — without requiring external project management systems or personnel to hold the work together.
+
+
+
+1.2 The three-stage cycle
+
+All work in OLOS moves through a recurring spiral of three stages:
+
+
+
+Stage
+
+Role in the system
+
+Plan
+
+Determines what needs to be known and done. Sequences objectives by dependency. The entry point for every new project and every new cycle. Generates Act tasks.
+
+Act
+
+Executes all field work — survey tasks and implementation tasks are treated identically in the UI. Collects proof. Feeds verified data into Observe. The primary mobile surface.
+
+Observe
+
+Read-only intelligence layer. Surfaces synthesised data produced by Act. Grows richer across cycles. Feeds back into Plan when conditions change enough to warrant revision.
+
+
+
+The cycle is a spiral, not a sequence
+
+Plan → Act → Observe repeats. Each cycle produces ground truth that informs the next Plan revision. The system is designed for this from the data model up — every data point carries a cycle ID, every Plan objective has a review mode for subsequent cycles, and the Observe Plan revision banner closes the loop automatically.
+
+
+
+1.3 Five capabilities the system must hold
+
+Capability
+
+Current state in OLOS
+
+1. Observe the land deeply
+
+Specced: Observe Dashboard UX Spec v1.0. Populated by Act task verification.
+
+2. Turn observation into a complete land plan
+
+Specced: Plan Stage Navigation UX Spec v1.0. Objective-first, dependency-gated, tier-structured.
+
+3. Break the vision into phased implementation
+
+Specced: Plan Stage Navigation UX Spec v1.0 (Tier 6 — Phasing & Resourcing).
+
+4. Manage implementation without external PM tools
+
+Specced: Act Command Center UX Spec v1.0. Two-view dashboard, proof schema, divergence path, verification model.
+
+5. Adapt through feedback
+
+Specced: Observe Dashboard UX Spec v1.0 (Temporal Layer, Plan revision banner) + Notification Architecture UX Spec v1.0.
+
+
+
+
+2. Spec suite index
+
+
+
+2.1 UX specs — complete
+
+
+
+Document
+
+Covers
+
+Build priority
+
+Project Creation Wizard UX Spec v1.0
+
+Three-step spatial-first wizard. Seeds Tier 0 Plan objectives. Walk-the-boundary GPS mode. Draft recovery.
+
+1 — Entry point to the entire system
+
+Plan Stage Navigation UX Spec v1.0
+
+Objective-first navigation, seven-tier dependency graph, two-mode gate logic with cyclical review entry + confirmation screens, three-panel shell, Next Up affordance, tier unlock transition state, locked tier bypass mechanism (popover + open-anyway flow), four-section detail panel with feeds-into consequence tags, visual language spec (organic circles, circular checkmarks, topographic texture, serif objective titles).
+
+2 — First meaningful session after project creation
+
+Act Command Center UX Spec v1.0
+
+View B (all-tasks dashboard), View A (objective execution), Launch Act Command Center transition state (collapsed toolbar, pre-activated overlays, floating back-to-plan card), proof schema by task type, feeds-into tags on sub-steps, reality diverges path, verification model, act map view with GPS walk, proof pins, clustering.
+
+3 — First field execution session
+
+Observe Dashboard UX Spec v1.0
+
+Unified land state, domain detail views, temporal layer, data freshness model, Plan revision banner with tier priority, presentation mode, supersession model.
+
+4 — After first Act tasks are verified
+
+Project Home UX Spec v1.0
+
+Portfolio home (multi-project), per-project home, Next Up synthesis across all stages, attention rail, stage status row, four role-based views, urgency scoring with tiebreaker.
+
+5 — Parallel with or after Plan
+
+Notification Architecture UX Spec v1.0
+
+Three-tier model (Critical/Action Required/Informational), 29-event catalogue, deduplication with escalation rules, three channels, two-layer preference model, role-based delivery, safety override.
+
+6 — Parallel with all other specs
+
+
+
+2.2 Engineering specs — outstanding
+
+These three specs must be produced by the engineering team before implementation of the dependent features can begin. They are infrastructure concerns, not UX concerns.
+
+
+
+Engineering spec needed
+
+Blocks
+
+Offline sync infrastructure
+
+Act proof capture, GPS walk mode, task submission in the field. Act Command Center spec section 3.4 defines the UX requirements the sync layer must satisfy.
+
+Authentication & role invitation flow
+
+Project Creation Wizard Step 3 (team invites), all role-based views in Project Home, contractor access scoping in Act.
+
+Push notification infrastructure (APNs/FCM)
+
+Critical-tier mobile push delivery. Notification Architecture spec section 3.3 defines the UX requirements.
+
+
+
+
+3. Ratified architectural decisions
+
+
+
+The following decisions were made during spec development and are binding for implementation. They resolve questions that would otherwise be re-litigated during build.
+
+
+
+Navigation & information architecture
+
+Tier unlock transitions display a full-width celebration banner in the centre panel with a ‘What just became possible’ section. The lock icon animates away on unlock. This is the primary moment of felt progress.
+
+Locked tiers open a popover (not a modal) with lock reason, prerequisite progress indicator, and a subtle ‘open anyway’ bypass link. An amber out-of-sequence banner appears if the user proceeds.
+
+Domain is a tag on an objective, not a navigation gate. The user never selects a domain. Overlays load automatically based on what the objective requires.
+
+Stage navigation is Stage → Objective, not Stage → Domain → Objective.
+
+The 7-stage lifecycle is deprecated. The 3-stage cycle (Plan / Act / Observe) is the forward IA.
+
+Tier 3 is named ‘Foundation Decisions’, not ‘First Design Decisions’. The name is cycle-neutral by design.
+
+
+
+Plan stage
+
+The detail panel is organised into four explicit sections: OBJECTIVE, MAP ACTIVATION, YOUR DECISIONS (with feeds-into tags), and REFERENCE (collapsed by default).
+
+Each decision item carries a ‘feeds into →’ tag showing its downstream consequence. Tags are authored per item via the feeds_into field on ChecklistItem. When checked, the tag briefly highlights green.
+
+Cyclical review entry shows a modal explaining what Observe detected and which objectives are flagged. Confirmation shows a ‘Decision confirmed’ or ‘Decision updated’ badge and a summary line.
+
+Tier gate logic has two modes: initial completion (hard gates) and cyclical review (soft gates — previously completed tiers become review checkpoints).
+
+Objective status is computed, not manually set. Resolution order: complete → active → available → locked.
+
+Plan outputs are one of: Approved for Act, Conditionally Approved, Needs More Observation, Needs Professional Review, Redesign Required, Deferred, Rejected.
+
+
+
+Act stage
+
+The Launch Act Command Center transition collapses the left sidebar to objective-relevant tools only, pre-activates overlays on the map, and shows a floating bottom-right card with objective name, decision progress, and a Back to Plan button.
+
+Survey tasks and implementation tasks are treated identically in the UI. The distinction matters for data routing only.
+
+Proof schemas are task-type specific. A universal catch-all schema is explicitly rejected.
+
+Checklist steps in survey tasks are proof methodology (is_methodology: true) and carry evidential weight. In implementation tasks they are operational guidance.
+
+Act is mobile-first. The three-panel Plan layout must not be applied to Act.
+
+View A (objective execution) must ship with the Act map view. They are a single unit.
+
+Objective overlays are the default active set on map open. The full project overlay library remains accessible via the layers control.
+
+Reality diverges is a first-class action available on every task. It is not an error state.
+
+Divergence evidence routes to Observe unconditionally and permanently, regardless of Plan revision status.
+
+
+
+Observe stage
+
+Observe is read-only. It is populated exclusively by verified Act tasks and divergence captures.
+
+No health scores, traffic-light ratings, or aggregated wellness indices. Observe shows evidence; it does not evaluate it.
+
+Observe data is never edited or deleted from within the Observe surface. Corrections require a new verified Act task that supersedes the prior data point.
+
+Superseded data points remain visible and accessible. They are never hidden.
+
+The Plan revision banner triggers are tiered: Critical (undismissable), High (dismissible with reminder), Informational (summary row only).
+
+Presentation mode excludes all internal planning state. It surfaces verified evidence only.
+
+
+
+Project Home
+
+The Next Up card surfaces exactly one item. Showing multiple items hands the prioritisation decision back to the steward, defeating the card’s purpose.
+
+Urgency score is never displayed as a number.
+
+Contractor access is enforced at the data layer. It is not a UI-only restriction.
+
+Contractor access expires under three conditions: all tasks verified, manual revocation, or 90-day time fallback.
+
+
+
+Notifications
+
+Interrupt only when the cost of delay is concrete.
+
+Critical-tier notifications cannot be opted out of. Only delivery address can be changed.
+
+Informational notifications never trigger email or push.
+
+Safety divergence and protected species discovery notifications are delivered to all project team members regardless of role — the safety override crosses all role boundaries.
+
+Escalation updates the existing notification in-place rather than creating a new entry.
+
+The 14-day inactivity notification defaults to email on for primary stewards. It is the one Informational event with email default-on.
+
+
+
+
+3b. Methodology terminology standard
+
+
+
+The following terminology applies across all six UX specs. These replacements were made to reinforce that OLOS is a thinking and deciding process, not a task completion process. Every label should feel like it belongs to a methodology, not a project management tool.
+
+
+
+Replaced term
+
+Correct term
+
+Steps
+
+Decisions
+
+Act tasks
+
+Field actions
+
+Objectives complete
+
+Decisions made
+
+Not started
+
+Not yet reached
+
+In progress
+
+Active inquiry
+
+Ready to start
+
+Ready to enter
+
+Plan Stage Progress [progress bar label]
+
+Design Decisions: N of N made
+
+Checklist [section label in detail panel]
+
+Your Decisions
+
+N / N done [count label]
+
+N / N decisions made
+
+
+
+Apply to all surfaces
+
+These terms apply to all six UX specs and all implementation surfaces. When in doubt, ask: does this label describe completing a task, or making a decision? Choose the latter.
+
+
+
+
+4. Cross-spec dependency map
+
+
+
+The following table maps every significant cross-spec dependency. Build teams working on one spec in isolation must be aware of these connections.
+
+
+
+Dependency
+
+From spec → To spec
+
+Next Up logic at project level
+
+Project Home spec → Plan spec (objective status) + Act spec (task status) + Observe spec (revision triggers)
+
+Plan revision banner
+
+Observe spec → Plan spec (revision flag, tier review mode)
+
+Launch Act Command Center
+
+Plan spec → Act spec (View A, objective context passed)
+
+Feeds Observe
+
+Act spec → Observe spec (verified task → data point)
+
+Divergence → Plan flag
+
+Act spec → Plan spec (revision flag on parent objective)
+
+Divergence → Observe
+
+Act spec → Observe spec (divergence record, unconditional)
+
+Completion gate
+
+Plan spec (defined per objective) → Act spec (determines when objective is verified complete)
+
+Tier 0 seeding
+
+Wizard spec → Plan spec (Tier 0 checklist items pre-filled)
+
+First-entry Next Up
+
+Wizard spec → Project Home spec (first-entry logic distinct from standard Next Up)
+
+Notification: Plan revision flag
+
+Notification spec → Plan spec (revision flag raised from Act)
+
+Notification: task submitted for review
+
+Notification spec → Act spec (verification model)
+
+Notification: critical Observe trigger
+
+Notification spec → Observe spec (revision trigger tiers)
+
+Notification: contractor expiry
+
+Notification spec → Project Home spec (contractor access rules)
+
+Urgency scoring inputs
+
+Project Home spec → Act spec (task status, divergence age) + Observe spec (freshness state) + Plan spec (revision flags)
+
+Role-based views
+
+Project Home spec → Act spec (contractor scoping) + Observe spec (presentation mode)
+
+Cycle IDs
+
+Observe spec (cycle tracking) → Act spec (cycle_id on every task) → Plan spec (cycle review mode)
+
+
+
+
+5. Recommended build sequence
+
+
+
+The following sequence minimises blocked work and surfaces value to real users at each milestone.
+
+
+
+Phase
+
+Build targets
+
+User value delivered
+
+Phase 1
+
+Authentication (engineering) + Project Creation Wizard + Plan Navigation (Tiers 0–2 only)
+
+A steward can create a project, draw their boundary, and begin the first four land surveys. The system is usable for the first time.
+
+Phase 2
+
+Plan Navigation (Tiers 3–6) + Act Command Center View B + Act Command Center View A (without map)
+
+A steward can complete full Plan stage and execute Act tasks with proof capture. The core work loop exists.
+
+Phase 3
+
+Act map view + offline sync (engineering) + Observe Dashboard (Unified + Domain Detail)
+
+Field execution is fully spatial. Observe begins populating. The system reflects reality.
+
+Phase 4
+
+Observe Temporal Layer + Presentation mode + Project Home (primary steward view)
+
+Ecological trajectory visible. External stakeholders can be shown outcomes. The project home synthesises all three stages.
+
+Phase 5
+
+Project Home (role-based views) + Notification Architecture + Push infrastructure (engineering)
+
+Team collaboration, contractor management, and proactive signals. The system operates without the steward having to check it.
+
+Phase 6
+
+Portfolio Home + Plan cyclical review mode + Observe plan revision banner
+
+Multi-project management. The spiral closes — Observe feeds back into Plan across cycles.
+
+
+
+Phase 1 is the make-or-break phase
+
+If a steward can create a project by walking their boundary, name their land, and see their first four survey objectives ready to start — all in under 10 minutes — the system has earned trust. Every subsequent phase builds on that trust. If Phase 1 feels slow, bureaucratic, or spatially disconnected, later phases will not recover it.
+
+
+
+
+6. Open questions for implementation team
+
+
+
+The following questions were intentionally left to the implementation team. They are infrastructure or product decisions that fall outside UX spec scope.
+
+
+
+Question
+
+Context
+
+What is the offline sync conflict resolution strategy?
+
+Act spec requires local-first data model. When two team members modify the same task offline simultaneously, which write wins? Last-write-wins is simplest but may discard proof items.
+
+What map tile provider is used?
+
+Act map view and wizard boundary drawing depend on a tile provider. Provider affects offline caching strategy, usage costs, and available satellite imagery quality.
+
+What is the GPS accuracy threshold for walk-the-boundary mode?
+
+Act spec notes an accuracy threshold for GPS walk traces but defers the specific value. Recommend ±10m for boundaries, ±5m for survey traces.
+
+How are cycle IDs generated and scoped?
+
+Observe spec defines cycle IDs as immutable once assigned. The triggering condition for a new cycle (steward initiates a new Plan stage after Act completion?) needs engineering definition.
+
+What is the maximum project site area supported?
+
+No upper bound is defined. Very large stations (50,000+ ha) may require tile caching strategies different from small holdings.
+
+How are measurement units handled globally?
+
+Act proof schema uses measurements with units. The system should respect locale defaults (metric vs imperial) but allow per-project override.
+
+
+
+
+
+OLOS UX Spec Suite — Development Handoff Index v1.0
+
+Six specs. All cross-references resolved. Ready for implementation.
+

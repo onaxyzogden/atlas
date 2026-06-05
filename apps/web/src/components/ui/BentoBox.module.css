@@ -1,0 +1,132 @@
+/*
+ * BentoBox — OLOS/Atlas canonical surface primitive.
+ *
+ * The outer `.bento` is the panel shell (color-mix surface 96%/white +
+ * hairline border + soft shadow + --radius-lg). Inner `.group` cards are
+ * quieter insets on var(--color-bg) with --radius-md so a rail reads as a
+ * single bento containing N inner cards.
+ *
+ * Values lifted verbatim from PlanTools.module.css `.toolbox`/`.group`
+ * (the canonical implementation cited by the Observe Command Centre ADR).
+ * Three pre-existing byte-identical clones in ObserveTools, PlanTools, and
+ * CommandCentreShell will be rewired to consume this primitive (Phase 2
+ * of the bento canonicalisation plan).
+ *
+ * Cross-link: atlas/wiki/decisions/2026-05-27-atlas-bento-box-canonical-surface.md
+ *
+ * ── Slice 4e audit (2026-05-27) ─────────────────────────────────────────────
+ * 194 surfaces under apps/web/src/features/** carry a `.card` class. They
+ * follow the bento *contract* (border + radius + bg) but use a separate
+ * legacy palette — literal `rgba(232, 220, 200, …)` rather than the
+ * `--color-surface`/`--color-border` tokens this primitive resolves to —
+ * because they predate the canonical bento and target a darker cream
+ * register. A mass token migration would be a visual change (different
+ * palette) and is therefore out of scope for the pure-presentation
+ * canonicalisation. Per the ADR, the catalog is recorded here and the
+ * mechanical sweep is deferred to Phase 6 (a future lint rule that can
+ * either token-migrate them or accept the literal-palette as a documented
+ * "legacy-feature-card" variant). New surfaces under features/** should
+ * import this primitive instead of declaring a new local `.card`.
+ */
+
+/*
+ * .bento-shell — the surface treatment ONLY (bg + hairline border + radius).
+ * Composable by consumers that need to keep their own flex direction / gap /
+ * padding (e.g. CommandCentreShell's horizontal .tabs strip). Outer-variant
+ * box-shadows (.outer-default | .outer-flat | .outer-elevated) compose on
+ * top.
+ */
+.bento-shell {
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+}
+
+/*
+ * .bento — the full default outer: shell + vertical flex column with the
+ * canonical 10px gap. Most consumers compose this; the few that need a
+ * different layout compose .bento-shell instead.
+ */
+.bento {
+  composes: bento-shell;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- outer variants ----------------------------------------------------- */
+
+.outer-default {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.outer-flat {
+  box-shadow: none;
+}
+
+.outer-elevated {
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+/* --- padding scale ------------------------------------------------------ */
+
+.padding-none { padding: 0; }
+.padding-sm   { padding: 8px; }
+.padding-md   { padding: 12px; } /* canonical */
+.padding-lg   { padding: 16px; }
+
+/* --- inner group (recessed inset) -------------------------------------- */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  --group-dot: var(--color-text-muted);
+  transition: border-color 120ms ease, box-shadow 120ms ease,
+    filter 150ms ease, opacity 150ms ease, background 120ms ease;
+}
+
+/* --- group accents (mirrors the --group-dot mechanism abstractly) ----- */
+
+.accent-gold    { --group-dot: #c9a05a; }
+.accent-sage    { --group-dot: #5dd39e; }
+.accent-warning { --group-dot: #e6c34a; }
+.accent-danger  { --group-dot: #e88aa4; }
+
+.accent-gold,
+.accent-sage,
+.accent-warning,
+.accent-danger {
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--group-dot) 25%, transparent);
+}
+
+/* --- Card-parity slots ------------------------------------------------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle, var(--color-border));
+}

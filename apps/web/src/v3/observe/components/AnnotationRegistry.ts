@@ -70,7 +70,10 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   contourLine: 'Contour',
   highPoint: 'Elevation point',
   drainageLine: 'Drainage line',
+  erosionFlag: 'Erosion flag',
+  runoffPath: 'Runoff path',
   watercourse: 'Watercourse',
+  waterbody: 'Waterbody',
   vegetation: 'Vegetation & cover',
   pasture: 'Pasture / paddock',
   conventionalCrop: 'Conventional crop',
@@ -195,6 +198,30 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.createdAt,
         }));
     }
+    case 'erosionFlag': {
+      return useTopographyStore
+        .getState()
+        .erosionFlags.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: 'Erosion flag',
+          subtitle: `${r.severity} · ${r.type}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'runoffPath': {
+      return useTopographyStore
+        .getState()
+        .runoffPaths.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: 'Runoff path',
+          subtitle: `${r.flowCondition}${r.from || r.to ? ` · ${r.from ?? '?'} → ${r.to ?? '?'}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
     case 'watercourse': {
       return useWaterSystemsStore
         .getState()
@@ -204,6 +231,20 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           id: r.id,
           title: `${r.kind.charAt(0).toUpperCase()}${r.kind.slice(1)}`,
           subtitle: `${r.perennial ? 'Perennial' : 'Seasonal'}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'waterbody': {
+      return useWaterSystemsStore
+        .getState()
+        .waterbodies.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title:
+            r.name ||
+            `${r.kind.charAt(0).toUpperCase()}${r.kind.slice(1)}`,
+          subtitle: r.notes || undefined,
           createdAt: r.createdAt,
         }));
     }
@@ -381,6 +422,8 @@ export function useAnnotationsForKinds(
   const contours = useTopographyStore((s) => s.contours);
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
+  const erosionFlags = useTopographyStore((s) => s.erosionFlags);
+  const runoffPaths = useTopographyStore((s) => s.runoffPaths);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
@@ -419,6 +462,8 @@ export function useAnnotationsForKinds(
     contours,
     highPoints,
     drainageLines,
+    erosionFlags,
+    runoffPaths,
     watercourses,
     vegetationPatches,
     pastures,
@@ -520,6 +565,28 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
+    case 'erosionFlag': {
+      const r = useTopographyStore.getState().erosionFlags.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: 'Erosion flag',
+        subtitle: `${r.severity} · ${r.type}`,
+        createdAt: r.createdAt,
+      };
+    }
+    case 'runoffPath': {
+      const r = useTopographyStore.getState().runoffPaths.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: 'Runoff path',
+        subtitle: r.flowCondition,
+        createdAt: r.createdAt,
+      };
+    }
     case 'watercourse': {
       const r = useWaterSystemsStore.getState().watercourses.find((x) => x.id === id);
       if (!r) return null;
@@ -527,6 +594,17 @@ export function getAnnotationRow(
         kind,
         id,
         title: r.kind,
+        subtitle: r.notes,
+        createdAt: r.createdAt,
+      };
+    }
+    case 'waterbody': {
+      const r = useWaterSystemsStore.getState().waterbodies.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: r.name || r.kind,
         subtitle: r.notes,
         createdAt: r.createdAt,
       };
@@ -667,8 +745,17 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
     case 'drainageLine':
       useTopographyStore.getState().removeDrainageLine(id);
       return;
+    case 'erosionFlag':
+      useTopographyStore.getState().removeErosionFlag(id);
+      return;
+    case 'runoffPath':
+      useTopographyStore.getState().removeRunoffPath(id);
+      return;
     case 'watercourse':
       useWaterSystemsStore.getState().removeWatercourse(id);
+      return;
+    case 'waterbody':
+      useWaterSystemsStore.getState().removeWaterbody(id);
       return;
     case 'vegetation':
       useVegetationStore.getState().removePatch(id);

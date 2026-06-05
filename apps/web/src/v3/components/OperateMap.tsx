@@ -101,6 +101,7 @@ export default function OperateMap({
       transformRequest: maptilerTransformRequest,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    m.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     setMap(m);
     return () => {
       setMap(null);

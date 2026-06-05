@@ -398,6 +398,199 @@ export const SUBSTITUTION_CATALOG: Substitution[] = [
       'all from a hole in the ground sited on contour.',
     principles: ['P2 Catch & store energy', 'P5 Use & value renewable resources & services'],
   },
+
+  // ── v2 expansion (Rec #5 deferred queue, 2026-05-25) ──────────────────────
+  // Five additional cited pairs, each mapped to a fence/path/utility/crop enum
+  // value not already claimed above so the matcher resolves them independently.
+
+  // 9. Electric / temporary fence → coppice living-post fence
+  {
+    id: 'electric-fence-to-coppice-living-post',
+    originalLabel: 'Electric / temporary perimeter fencing',
+    matcher: { sourceType: 'paddock', fencing: ['electric', 'temporary'] },
+    alternative: {
+      label: 'Coppice living-post fence',
+      description:
+        'Willow or hazel (Salix / Corylus) posts driven green at 2 m ' +
+        'spacing; they root and resprout, becoming living anchor posts that ' +
+        'self-renew on a coppice cycle. Wire is strung between the living ' +
+        'posts, eliminating the rot-and-replace cost of dead timber while ' +
+        'yielding coppice rods, bee forage, and windbreak structure.',
+      costMultiplier: { low: 0.35, mid: 0.45, high: 0.60 },
+      establishmentMonths: 24,
+      missionUpliftEstimate: 0.09,
+    },
+    citations: [
+      {
+        source: 'Crawford, M. (2010). Creating a Forest Garden: Working with Nature to Grow Edible Crops. Green Books. pp. 118–121.',
+        year: 2010,
+        kind: 'book',
+        note: 'Coppice species selection and living-post establishment.',
+      },
+      {
+        source: 'Hart, R. A. de J. (1996). Forest Gardening: Cultivating an Edible Landscape. Chelsea Green Publishing. pp. 64–67.',
+        year: 1996,
+        kind: 'book',
+        note: 'Coppice rotation as a renewable structural resource.',
+      },
+    ],
+    scholarRationale:
+      'A dead post begins decaying the day it is set; a living post grows ' +
+      'stronger each season and pays a coppice yield besides. The fence ' +
+      'stops being a depreciating asset and becomes a regenerating one.',
+    principles: ['P5 Use & value renewable resources & services', 'P9 Use small & slow solutions'],
+  },
+
+  // 10. Livestock high-traffic lane → mycelium wood-chip heavy-use pad
+  {
+    id: 'livestock-lane-to-mycelium-woodchip-pad',
+    originalLabel: 'Compacted livestock corridor / loafing lane',
+    matcher: { sourceType: 'path', pathType: ['animal_corridor', 'grazing_route'] },
+    alternative: {
+      label: 'Mycelium wood-chip heavy-use pad',
+      description:
+        'A deep hardwood-chip pad inoculated with wine-cap (Stropharia ' +
+        'rugosoannulata) over the high-traffic corridor. The mycelial mat ' +
+        'binds the chip into a firm, free-draining surface that resists ' +
+        'pugging, filters runoff, and digests manure in place — refreshed ' +
+        'with new chip rather than re-graded.',
+      costMultiplier: { low: 0.20, mid: 0.30, high: 0.45 },
+      establishmentMonths: 6,
+      missionUpliftEstimate: 0.07,
+    },
+    citations: [
+      {
+        source: 'Stamets, P. (2005). Mycelium Running: How Mushrooms Can Help Save the World. Ten Speed Press. pp. 195–203.',
+        year: 2005,
+        kind: 'book',
+        note: 'Wine-cap colonisation of chip beds; mycofiltration of runoff.',
+      },
+      {
+        source: 'USDA NRCS. Conservation Practice Standard 561: Heavy Use Area Protection. Natural Resources Conservation Service.',
+        year: 2010,
+        kind: 'standard',
+        note: 'Heavy-use-area surfacing spec; organic surfacing permitted.',
+      },
+    ],
+    scholarRationale:
+      'A graded lane sheds compacted, manure-laden runoff; a mycelial chip ' +
+      'pad turns the same traffic load into a self-firming surface that ' +
+      'filters water and builds soil under hoof.',
+    principles: ['P5 Use & value renewable resources & services', 'P6 Produce no waste'],
+  },
+
+  // 11. Hard rain-catchment / greywater drain → swale infiltration earthwork
+  {
+    id: 'hard-drainage-to-swale-infiltration',
+    originalLabel: 'Piped rain-catchment / greywater drainage',
+    matcher: { sourceType: 'utility', utilityType: ['rain_catchment', 'greywater'] },
+    alternative: {
+      label: 'Swale infiltration earthwork',
+      description:
+        'An on-contour swale (level-sill infiltration basin) planted on its ' +
+        'berm, replacing piped conveyance. Captures roof and surface water, ' +
+        'sinks it to the root zone, and recharges the soil profile rather ' +
+        'than exporting it. Overflow steps to the next swale down-slope.',
+      costMultiplier: { low: 0.25, mid: 0.40, high: 0.60 },
+      establishmentMonths: 12,
+      missionUpliftEstimate: 0.11,
+    },
+    citations: [
+      {
+        source: 'Lancaster, B. (2008). Rainwater Harvesting for Drylands and Beyond, Vol. 2: Water-Harvesting Earthworks. Rainsource Press. ch. 2–3.',
+        year: 2008,
+        kind: 'book',
+        note: 'Swale geometry, level-sill design, infiltration math.',
+      },
+      {
+        source: 'Yeomans, P. A. (1973, rev. 1981). Water for Every Farm: The Yeomans Keyline Plan. Murray Books.',
+        year: 1981,
+        kind: 'book',
+        note: 'Contour water-spreading as soil-recharge over conveyance.',
+      },
+    ],
+    scholarRationale:
+      'A pipe moves water away as a problem; a swale holds it as an asset. ' +
+      'The same drainage footprint becomes soil-moisture storage and a ' +
+      'planted production line on the berm.',
+    principles: ['P2 Catch & store energy', 'P5 Use & value renewable resources & services'],
+  },
+
+  // 12. Bare orchard floor (sprayed) → insectary understory
+  {
+    id: 'orchard-floor-to-insectary-understory',
+    originalLabel: 'Sprayed / bare orchard floor',
+    matcher: { sourceType: 'crop', cropType: ['orchard', 'food_forest'] },
+    alternative: {
+      label: 'Insectary understory polyculture',
+      description:
+        'A flowering insectary understory (yarrow, alyssum, fennel, ' +
+        'buckwheat) sown beneath the canopy to host predatory and ' +
+        'parasitoid insects. Replaces the spray-and-mow regime with a ' +
+        'standing reservoir of beneficials that suppresses pest outbreaks ' +
+        'biologically and feeds pollinators across the season.',
+      costMultiplier: { low: 0.15, mid: 0.25, high: 0.40 },
+      establishmentMonths: 12,
+      missionUpliftEstimate: 0.10,
+    },
+    citations: [
+      {
+        source: "Mollison, B. (1988). Permaculture: A Designer's Manual. Tagari Publications. pp. 94–96 (guild & insectary).",
+        year: 1988,
+        kind: 'book',
+        note: 'Insectary guild design and beneficial-insect habitat.',
+      },
+      {
+        source: 'Bowles, T. M., et al. (2017). "Long-term evidence shows that crop-rotation diversification increases agricultural resilience to adverse growing conditions in North America." Agronomy Journal, 109(4), 1359–1372.',
+        year: 2017,
+        kind: 'journal',
+        note: 'Quantifies diversification resilience gains; peer-reviewed.',
+      },
+    ],
+    scholarRationale:
+      'A sprayed floor buys pest control by the can; an insectary understory ' +
+      'grows a permanent predator workforce that arrives before the pest ' +
+      'does and pollinates the crop on the same visit.',
+    principles: ['P5 Use & value renewable resources & services', 'P8 Integrate rather than segregate'],
+  },
+
+  // 13. Irrigated market-garden / nursery bed → hugelkultur bed
+  {
+    id: 'market-garden-bed-to-hugelkultur',
+    originalLabel: 'Conventional irrigated market-garden / nursery bed',
+    matcher: { sourceType: 'crop', cropType: ['market_garden', 'nursery'] },
+    alternative: {
+      label: 'Hugelkultur raised bed',
+      description:
+        'A raised bed built over buried, decomposing wood. The wood core ' +
+        'acts as a slow-release sponge — storing rainfall and releasing it ' +
+        'to roots through dry spells — cutting irrigation demand sharply ' +
+        'while the rotting mass feeds soil biology for years from a single ' +
+        'build.',
+      costMultiplier: { low: 0.20, mid: 0.30, high: 0.50 },
+      establishmentMonths: 6,
+      missionUpliftEstimate: 0.08,
+    },
+    citations: [
+      {
+        source: 'Holzer, S. (2011). Permaculture: A Practical Guide for Beginners to Advanced Practitioners. Permanent Publications. pp. 78–83.',
+        year: 2011,
+        kind: 'book',
+        note: 'Hugelkultur construction, wood core, water-retention behaviour.',
+      },
+      {
+        source: "Hemenway, T. (2009). Gaia's Garden: A Guide to Home-Scale Permaculture (2nd ed.). Chelsea Green Publishing. pp. 84–86.",
+        year: 2009,
+        kind: 'book',
+        note: 'Home-scale hugelkultur and irrigation-demand reduction.',
+      },
+    ],
+    scholarRationale:
+      'An irrigated bed buys water every dry week; a hugel bed stores the ' +
+      'wet weeks in a buried wood sponge and spends them slowly — the ' +
+      'irrigation line becomes a one-time wood haul.',
+    principles: ['P2 Catch & store energy', 'P6 Produce no waste', 'P9 Use small & slow solutions'],
+  },
 ];
 
 // ── Match resolution ─────────────────────────────────────────────────────

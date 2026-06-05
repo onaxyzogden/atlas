@@ -1,0 +1,115 @@
+/*
+ * Shared chrome for the Plan formula result widgets (formulaCatalog).
+ * Calm, structural — visual sibling to DetailsExpander's body surface so a
+ * widget mounted in the ObjectiveDetailPanel reads as part of the same shell.
+ * Strictly ecological readouts (AU / forage / head / water) — never financial.
+ */
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text, #f2ede3);
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
+
+.empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 4%, transparent);
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.statValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 3%, transparent);
+  font-size: 12px;
+}
+
+.rowName {
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+}
+
+.rowValue {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  font-variant-numeric: tabular-nums;
+}
+
+.tagOk {
+  color: var(--color-success, #8a9a74);
+}
+.tagTight {
+  color: var(--color-warning, #c4a265);
+}
+.tagOver {
+  color: var(--color-danger, #c97b6a);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+}

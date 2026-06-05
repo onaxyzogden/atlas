@@ -33,7 +33,7 @@
   border: none;
   border-radius: 9999px;
   padding: 0;
-  background-color: var(--color-earth-200, #e4d9c6);
+  background-color: var(--color-neutral-200, #dde1e5);
   cursor: pointer;
   transition:
     background-color var(--duration-base, 200ms) ease;

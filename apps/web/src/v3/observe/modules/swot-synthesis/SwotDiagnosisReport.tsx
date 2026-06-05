@@ -104,7 +104,7 @@ export default function SwotDiagnosisReport() {
 
   const evidence = [
     'Water flows & erosion on lower slope',
-    'Soil tests â€” low OM in Zone 2',
+    'Soil tests — low OM in Zone 2',
     'Access mapping & constraints',
   ];
 
@@ -127,7 +127,7 @@ export default function SwotDiagnosisReport() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generatingâ€¦' : 'Export report'}
+          {exporting ? 'Generating…' : 'Export report'}
         </button>
       </div>
 
@@ -144,7 +144,7 @@ export default function SwotDiagnosisReport() {
           {quadrants.map(([label, count, note]) => (
             <div key={label} className={obsx.kpiBlock}>
               <span className={obsx.label}>{label}</span>
-              <span className={obsx.value}>{count > 0 ? count : 'â€”'}</span>
+              <span className={obsx.value}>{count > 0 ? count : '—'}</span>
               <span className={obsx.note}>{note}</span>
             </div>
           ))}

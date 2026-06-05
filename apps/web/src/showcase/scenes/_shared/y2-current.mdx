@@ -1,0 +1,34 @@
+---
+id: y2-current
+title: Year 2 — The soil begins to breathe
+tiers: [dreaming, transitioning, stewarding]
+mapState:
+  activeLayers: [soils, watershed]
+  features: []
+  view: { center: [-79.91, 43.56], zoom: 14 }
+---
+
+import { MapThumbnail } from '../../components/MapThumbnail';
+import { MetricChart } from '../../components/MetricChart';
+
+## Year 2 — The soil begins to breathe
+
+Two years after the first cover crop went in, the eastern field's organic matter has climbed from **1.65% to 2.25%**. Earthworm counts have multiplied — anecic worms are now present in the cropped half for the first time. The first hedgerow whips are establishing along the north boundary. The three Sixteen Mile Creek tributaries that give the farm its name still run after summer rain — the keyline swales are slowing the water long enough for the land to drink.
+
+<MetricChart
+  metric="soil_organic_matter"
+  unit="% OM"
+  events={props.snapshot.regenerationEvents}
+  title="Cropped-field organic matter (Y0 → Y2)"
+/>
+
+<MapThumbnail
+  sceneId="y2-current"
+  alt="Three Streams Farm at Year 2 — soils + watershed layers"
+  mapProps={{
+    boundary: props.snapshot.project.parcel_boundary,
+    layers: props.snapshot.layers,
+    features: props.snapshot.designFeatures,
+    activeLayerIds: ['soils', 'watershed'],
+  }}
+/>

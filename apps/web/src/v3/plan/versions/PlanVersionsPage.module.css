@@ -1,0 +1,325 @@
+/*
+ * Bento page — mirrors apps/web/src/components/ui/BentoBox.module.css
+ * .bento-shell + .outer-default. The centered document now reads as a
+ * single bento containing header + sections. Padding/gap unchanged.
+ */
+.page {
+  max-width: 880px;
+  margin: var(--space-4) auto;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+.lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 64ch;
+}
+
+.captureBar {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.captureLabel {
+  flex: 1 1 240px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.captureLabel:focus {
+  outline: none;
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.captureBtn {
+  padding: 8px 14px;
+  border: 1px solid var(--color-brand, #d4af5f);
+  border-radius: 6px;
+  background: var(--color-brand, #d4af5f);
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.captureBtn:hover {
+  filter: brightness(1.05);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.cardList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-border);
+}
+
+.card[data-status='draft'] {
+  border-left-color: #d4af5f;
+}
+
+.card[data-status='approved'] {
+  border-left-color: #6ba47a;
+}
+
+.card[data-status='superseded'] {
+  border-left-color: var(--color-border);
+  opacity: 0.85;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.labelInput {
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.labelInput:focus {
+  outline: none;
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.statusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusBadge[data-status='draft'] {
+  background: rgba(212, 175, 95, 0.16);
+  color: #c79a3e;
+}
+
+.statusBadge[data-status='approved'] {
+  background: rgba(107, 164, 122, 0.16);
+  color: #4f8a64;
+}
+
+.statusBadge[data-status='superseded'] {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.noteInput {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: var(--color-brand, #d4af5f);
+}
+
+.noteRecorded {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.summary {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.approvedBy {
+  color: #4f8a64;
+  font-weight: 600;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.restoreBtn {
+  padding: 5px 12px;
+  border: 1px solid var(--color-brand, #d4af5f);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-brand, #d4af5f);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.restoreBtn:hover {
+  background: rgba(212, 175, 95, 0.12);
+}
+
+.secondaryBtn {
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  border-color: var(--color-brand, #d4af5f);
+  color: var(--color-brand, #d4af5f);
+}
+
+.deleteBtn {
+  margin-left: auto;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: #b5564a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteBtn:hover {
+  border-color: #b5564a;
+  background: rgba(181, 86, 74, 0.1);
+}

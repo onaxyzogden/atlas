@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   // Project schemas
   Country, ProjectStatus, ProjectType, CreateProjectInput, ProjectSummary,
+  PROJECT_TYPE_IDS,
   // Collaboration schemas
   ProjectRole, OrgRole, CreateCommentInput, InviteMemberInput,
   CreateOrganizationInput, ActivityAction, CreateSuggestedEditInput,
@@ -49,10 +50,26 @@ describe('ProjectStatus enum', () => {
 
 describe('ProjectType enum', () => {
   it('accepts all project types', () => {
-    const types = ['regenerative_farm', 'retreat_center', 'homestead',
-      'educational_farm', 'conservation', 'multi_enterprise', 'moontrance'];
+    const types = ['homestead', 'regenerative_farm', 'market_garden',
+      'orchard_food_forest', 'silvopasture', 'ecovillage', 'agritourism',
+      'education', 'conservation', 'off_grid', 'wellness', 'nursery',
+      'residential', 'moontrance'];
     for (const t of types) {
       expect(ProjectType.parse(t)).toBe(t);
+    }
+  });
+  it('is a superset of the 13-value ProjectTypeId taxonomy', () => {
+    // Every catalogue type id must be a valid ProjectType. The enum also
+    // carries the `moontrance` sentinel, which is intentionally not a
+    // ProjectTypeId (never offered in the wizard).
+    for (const id of PROJECT_TYPE_IDS) {
+      expect(ProjectType.safeParse(id).success).toBe(true);
+    }
+    expect(ProjectType.options).toContain('moontrance');
+  });
+  it('rejects the legacy values backfilled by migration 046', () => {
+    for (const legacy of ['retreat_center', 'educational_farm', 'multi_enterprise']) {
+      expect(ProjectType.safeParse(legacy).success).toBe(false);
     }
   });
 });

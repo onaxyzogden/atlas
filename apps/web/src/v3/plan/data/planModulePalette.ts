@@ -1,29 +1,30 @@
 /**
- * Per-module dot colour palette for the Plan stage.
- *
- * Lifted from PlanChecklistAside so PlanProjectTypeCard can reuse the same
- * hues for its per-item module-jump chips. Both consumers set the colour
- * inline via a CSS custom property (`--group-dot` on the GuidanceCard,
- * `--module-dot` on the project-type chip) and the module-key → hex map
- * is single-sourced here.
+ * Per-domain dot colour palette for the Plan stage (slice 3b+3c — rebased
+ * onto UniversalDomain). First-wins from the legacy PlanModule palette
+ * via PLAN_MODULE_TO_DOMAIN; unauthored domains fall back to a neutral
+ * grey (`#9CA3AF`). See ADR
+ * 2026-05-26-atlas-universal-domain-step3-cutover.
  */
 
-import type { PlanModule } from '../types.js';
+import type { UniversalDomain } from '@ogden/shared';
 
-export const PLAN_MODULE_DOT: Record<PlanModule, string> = {
-  'goal-compass': '#e2c075',
-  'dynamic-layering': '#7aabca',
-  'water-management': '#5fc7d4',
-  'zone-circulation': '#d68bd0',
-  'structures-subsystems': '#a06b48',
-  machinery: '#6a6a6a',
-  livestock: '#c9a05a',
-  'plant-systems': '#5dd39e',
-  'soil-fertility': '#8bd16a',
-  'cross-section-solar': '#e6c34a',
-  'phasing-budgeting': '#c4a265',
-  'principle-verification': '#e88aa4',
-  'regeneration-monitor': '#79c98a',
-  'habitat-allocation': '#4fb0a5',
-  'biodiversity-monitor': '#6fc2a0',
+const FALLBACK_DOT = '#9CA3AF';
+
+export const PLAN_MODULE_DOT: Record<UniversalDomain, string> = {
+  'vision-intent':        '#e2c075', // ← goal-compass
+  'land-base':            FALLBACK_DOT,
+  'climate':              '#e6c34a', // ← cross-section-solar
+  'topography':           FALLBACK_DOT,
+  'hydrology':            '#5fc7d4', // ← water-management
+  'soil':                 '#8bd16a', // ← soil-fertility
+  'ecology':              '#79c98a', // ← regeneration-monitor (first)
+  'plants-food':          '#5dd39e', // ← plant-systems
+  'animals-livestock':    '#c9a05a', // ← livestock
+  'built-infrastructure': '#a06b48', // ← structures-subsystems (first)
+  'access-circulation':   '#7aabca', // ← dynamic-layering (first)
+  'energy-resources':     FALLBACK_DOT,
+  'people-governance':    FALLBACK_DOT,
+  'economics-capacity':   '#c4a265', // ← phasing-budgeting
+  'risk-compliance':      '#e88aa4', // ← principle-verification
+  'monitoring-records':   FALLBACK_DOT,
 };

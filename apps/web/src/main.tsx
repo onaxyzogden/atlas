@@ -5,53 +5,41 @@ import { RouterProvider } from '@tanstack/react-router';
 import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
+import SessionExpiredBanner from './components/SessionExpiredBanner.js';
+import ApiReachabilityWatcher from './components/ApiReachabilityWatcher.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
+// Collapse infinite animations under the Claude Code preview window so the
+// MCP screenshot tool can settle a frame (the capture renderer waits for
+// paint to quiesce, which never happens with an endless animation).
+// See wiki ADR 2026-05-19-atlas-preview-screenshot-verification-standard.
+if (typeof navigator !== 'undefined' && /Claude\//.test(navigator.userAgent)) {
+  document.documentElement.classList.add('reduce-motion');
+}
+
 // One-time migrator: legacy `ogden-site-annotations` v3 blob → 7
-// Scholar-aligned namespace stores. Must run BEFORE any of the new stores
-// rehydrate (they live under `apps/web/src/store/` and are reached via
-// the side-effect imports below). Idempotent.
-// See ADR 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md.
+// Scholar-aligned namespace stores. Cheap (localStorage-only, early-exits
+// when no legacy blob is present) and data-safety-critical — runs for every
+// path including showcase. Idempotent.
+// See ADR 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md
+// and 2026-04-30-archive-v3-blob-cleanup.md.
 import { migrateLegacyBlob, cleanupArchivedV3 } from './store/site-annotations-migrate.js';
 migrateLegacyBlob();
-// Remove the `ogden-site-annotations.archived-v3` rollback hatch on every
-// boot — obsolete now that the namespace consolidation has shipped.
-// See ADR 2026-04-30-archive-v3-blob-cleanup.md.
 cleanupArchivedV3();
 
-// Import projectStore to trigger seed-on-hydration (side-effect import)
-import './store/projectStore.js';
-// Import siteDataSync to bridge project boundaries → site-data fetches
-// independently of which UI surface (legacy / v3 / mobile) is mounted.
-// Must come AFTER projectStore so its top-level subscribe sees a fully-
-// constructed store; rehydration that follows still fires the subscriber
-// when boundaries land via IndexedDB-restore setState calls.
-import './store/siteDataSync.js';
-// Import connectivityStore to register online/offline listeners (side-effect import)
-import './store/connectivityStore.js';
-// Register window.__ogdenSeedFertilitySample dev handle for Plan-stage
-// zoneThresholds smoke-testing. Function reference only; no auto-execution.
-import './dev/seedFertilitySample.js';
-// Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
-import { useAuthStore } from './store/authStore.js';
-import { syncService } from './lib/syncService.js';
+// Route-aware bootstrap (Phase 3.5 Prong A). The authed-app store graph
+// (projectStore + 4 seeders + connectivityStore + bootAuth + siteDataSync +
+// syncService) is dead weight for cold visitors on `/showcase/*`. Gate the
+// heavy boot behind a path prefix check so the showcase chunk graph stays
+// clean. See wiki ADR 2026-05-21-atlas-showcase-bundle-split.
+const isShowcase =
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/showcase/');
 
-// Boot auth, then start sync if authenticated
-useAuthStore.getState().initFromStorage().then(() => {
-  if (useAuthStore.getState().token) {
-    syncService.start();
-  }
-});
-
-// React to auth changes: start sync on login, stop on logout
-useAuthStore.subscribe((state, prev) => {
-  if (state.token && !prev.token) {
-    syncService.start();
-  } else if (!state.token && prev.token) {
-    syncService.stop();
-  }
-});
+if (!isShowcase) {
+  const { bootAuthedShell } = await import('./app/bootAuthed.js');
+  await bootAuthedShell();
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +54,15 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        {/* SessionExpiredBanner subscribes to sessionExpiredStore, which is
+            never triggered on the showcase path; mounting it is free. */}
+        <SessionExpiredBanner />
+        {/* ApiReachabilityWatcher is the headless global self-heal (online
+            listener + reachability poll); it renders null. It reads connectivity
+            + auth stores, which stay at their defaults on the showcase path, so
+            mounting it is free. The visible warning is the header chip
+            ApiReachabilityStatus, mounted in AppShell. */}
+        <ApiReachabilityWatcher />
         <RouterProvider router={router} />
         <ToastContainer />
       </QueryClientProvider>

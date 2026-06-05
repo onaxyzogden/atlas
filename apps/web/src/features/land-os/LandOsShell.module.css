@@ -108,7 +108,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(232, 220, 200, 0.7);
+  color: var(--color-text);
   pointer-events: none;
   transition: color 120ms ease, border-color 120ms ease, background-image 120ms ease;
   padding: 0;
@@ -116,7 +116,7 @@
 }
 .colEdge:hover .colEdgeToggle,
 .colEdge:focus-visible .colEdgeToggle {
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   border-color: rgba(196, 162, 101, 0.55);
   background-image: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04));
 }

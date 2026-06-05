@@ -1,0 +1,19 @@
+/* TrueNorthCompassWheel — host wrapper only. The wheel itself is the shared
+   @ogden/ui-components `MaqasidComparisonWheel` (`mcw-*` styles). Sizing, the
+   quiet wedge register, and the proportional center overlay are the global
+   wheel standard, composed from `components/wheel-shared/wheelFit.module.css`
+   (identical to the Observe compass). */
+
+.wheelHost {
+  composes: fillHost quiet from '../../components/wheel-shared/wheelFit.module.css';
+}
+
+/* Center-unlock overlay — transparent circle over the hub; ready-state accent
+   ring and the hover-revealed hint come from the shared standard. */
+.centerHotspot {
+  composes: hotspot from '../../components/wheel-shared/wheelFit.module.css';
+}
+
+.centerHint {
+  composes: hint from '../../components/wheel-shared/wheelFit.module.css';
+}

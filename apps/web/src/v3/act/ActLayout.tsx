@@ -19,28 +19,53 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
-import { parcelAcreage } from '../../lib/geo.js';
+import {
+  useProjectStore,
+  MTC_SEED,
+  getActShellMode,
+} from '../../store/projectStore.js';
+import {
+  parcelAcreage,
+  extractBoundaryGeometry,
+  boundaryCentroid,
+  renderablePolygon,
+} from '../../lib/geo.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../observe/components/overlays/SectorCompassOverlay.js';
 import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ActTools from './ActTools.js';
 import ActChecklistAside from './ActChecklistAside.js';
+import ActObjectiveCompletePrompt from './compass/ActObjectiveCompletePrompt.js';
 import ActModuleBar from './ActModuleBar.js';
 import ActModuleSlideUp from './ActModuleSlideUp.js';
 import ActDrawHost from './draw/ActDrawHost.js';
 import ActDataLayers from './layers/ActDataLayers.js';
 import ActStructureClickHandler from './layers/ActStructureClickHandler.js';
 import ActStructurePopover from './ActStructurePopover.js';
+import ActFeatureClickHandler from './layers/ActFeatureClickHandler.js';
+import ActAsBuiltPopover from './asBuilt/ActAsBuiltPopover.js';
+import ActAsBuiltDrawHandler from './asBuilt/ActAsBuiltDrawHandler.js';
+import ActFlowConnectorPopover from './asBuilt/ActFlowConnectorPopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
+import StageGateOverlay from './StageGateOverlay.js';
+import ActReadyCue from './components/ActReadyCue.js';
+// ADR 7 headline: the live field-action surface is now map-first
+// (ActMapFirstLayout). The legacy rail-with-map ActFieldActionLayout is
+// preserved on disk as a reversible fallback (swap the import below to
+// restore it) per the no-deletion-in-revamps rule.
+import ActMapFirstLayout from './field-action/ActMapFirstLayout.js';
+// tier-shell: the promoted map-centric 4-rail Act shell (default mode).
+import ActTierShell from './tier-shell/ActTierShell.js';
+import css from './ActLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -65,15 +90,29 @@ export default function ActLayout() {
     [projects, id],
   );
 
-  const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
-    | GeoJSON.Polygon
-    | undefined;
+  const actShellMode = getActShellMode(project);
+
+  // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon. Casting it to
+  // Polygon and handing a MultiPolygon to DiagnoseMap poisons the bounds with
+  // NaN and crashes maplibre ("Invalid LngLat object: (NaN, NaN)"). Normalize to
+  // a render-safe single Polygon (or undefined).
+  const boundaryGeom = extractBoundaryGeometry(project.parcelBoundaryGeojson);
+  const safeBoundary = useMemo(
+    () => renderablePolygon(boundaryGeom),
+    [boundaryGeom],
+  );
 
   // Coords-only fallback (no boundary): prefer the parcel's intake center
   // (via the v2→v3 adapter seam) over the hard-coded stage centroid.
-  // DiagnoseMap still fits to `boundary` when one exists.
+  // DiagnoseMap still fits to `safeBoundary` when one exists.
   const v3Project = useV3Project(params.projectId);
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
+  // Finite-guarded, MultiPolygon-aware centroid so a MultiPolygon parcel still
+  // centers sensibly even when its outline cannot render.
+  const mapCenter = useMemo<[number, number]>(
+    () => boundaryCentroid(boundaryGeom) ?? fallbackCenter,
+    [boundaryGeom, fallbackCenter],
+  );
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
@@ -135,6 +174,24 @@ export default function ActLayout() {
     });
   };
 
+  const moduleBar = (
+    <ActModuleBar
+      activeModule={validModule}
+      onSelectModule={handleSelectModule}
+      slideUpOpen={slideUpOpen && validModule !== null}
+      onOpenSlideUp={() => setSlideUpOpen(true)}
+      onCloseSlideUp={() => setSlideUpOpen(false)}
+    />
+  );
+
+  if (actShellMode === 'tier-shell') {
+    return <ActTierShell />;
+  }
+
+  if (actShellMode === 'field-action') {
+    return <ActMapFirstLayout />;
+  }
+
   return (
     <StageShell
       canvasLabel="Act canvas"
@@ -148,16 +205,17 @@ export default function ActLayout() {
         />
       }
       canvas={
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <DiagnoseMap
-          centroid={fallbackCenter}
-          boundary={boundary}
+          centroid={mapCenter}
+          boundary={safeBoundary}
         >
           {({ map }) => (
             <>
               <MapToolbar
                 map={map}
                 projectId={params.projectId ?? null}
-                boundary={boundary ?? null}
+                boundary={safeBoundary ?? null}
                 onBoundaryDrawn={handleBoundaryDrawn}
                 showBoundary={false}
               />
@@ -177,40 +235,60 @@ export default function ActLayout() {
                 <ActStructureClickHandler map={map} projectId={params.projectId} />
               ) : null}
               {params.projectId ? (
-                <ActDataLayers map={map} projectId={params.projectId} />
+                <ActFeatureClickHandler map={map} projectId={params.projectId} />
+              ) : null}
+              {params.projectId ? (
+                <ActDataLayers
+                  map={map}
+                  projectId={params.projectId}
+                  activeModule={validModule}
+                />
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
+              <SectorCompassOverlay projectId={id} map={map} />
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
+              <ActAsBuiltPopover map={map} projectId={params.projectId ?? null} />
+              <ActAsBuiltDrawHandler map={map} />
+              <ActFlowConnectorPopover projectId={params.projectId ?? null} />
+              <ActObjectiveCompletePrompt
+                projectId={params.projectId ?? null}
+                module={validModule}
+              />
             </>
           )}
         </DiagnoseMap>
+        <StageGateOverlay projectId={params.projectId ?? null} />
+        </div>
       }
       rightRail={
-        <ActChecklistAside
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        <div className={css.rightStack}>
+          {/* Project-level readiness cue only when no objective is focused;
+              once an objective is selected the rail belongs to that objective's
+              workspace, so the generic Act-essentials cue is hidden. The cue
+              stacks above the checklist/ops aside (column layout) instead of
+              squishing beside it. */}
+          {validModule === null && (
+            <ActReadyCue projectId={params.projectId ?? null} />
+          )}
+          <ActChecklistAside
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        </div>
       }
-      bottomTray={
-        <ActModuleBar
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
-      }
+      bottomTray={moduleBar}
       overlay={
         <ActModuleSlideUp
           module={validModule}
           open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
+          topBar={moduleBar}
         />
       }
     />

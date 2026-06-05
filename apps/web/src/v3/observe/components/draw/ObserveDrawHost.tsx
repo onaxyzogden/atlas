@@ -23,7 +23,10 @@ import HazardZoneTool from './HazardZoneTool.js';
 import ContourLineTool from './ContourLineTool.js';
 import HighPointTool from './HighPointTool.js';
 import DrainageLineTool from './DrainageLineTool.js';
+import ErosionFlagTool from './ErosionFlagTool.js';
+import RunoffPathTool from './RunoffPathTool.js';
 import WatercourseTool from './WatercourseTool.js';
+import AdoptBasemapWaterTool from './AdoptBasemapWaterTool.js';
 import SoilSampleTool from './SoilSampleTool.js';
 import VegetationTool from './VegetationTool.js';
 import PastureTool from './PastureTool.js';
@@ -98,8 +101,17 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
     case 'observe.topography.drainage-line':
       tool = <DrainageLineTool map={map} projectId={projectId} />;
       break;
+    case 'observe.topography.erosion-flag':
+      tool = <ErosionFlagTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.topography.runoff-path':
+      tool = <RunoffPathTool map={map} projectId={projectId} />;
+      break;
     case 'observe.earth-water-ecology.watercourse':
       tool = <WatercourseTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.earth-water-ecology.adopt-water':
+      tool = <AdoptBasemapWaterTool map={map} projectId={projectId} />;
       break;
     case 'observe.earth-water-ecology.soil-sample':
       tool = <SoilSampleTool map={map} projectId={projectId} />;

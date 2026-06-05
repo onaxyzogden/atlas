@@ -1,0 +1,133 @@
+/* WizardStep1Site — split layout: left-third form, right two-thirds map. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 2fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.form {
+  padding: 28px 28px 24px;
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* min-height:0 lets this grid child actually scroll instead of stretching
+     the row past the viewport (which would scroll the whole page). */
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+
+.bento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-gold-brand);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.18);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.chip:hover {
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
+}
+.chip[data-selected='true'] {
+  background: rgba(var(--color-primary-rgb), 0.16);
+  color: var(--color-gold-brand);
+  border-color: var(--color-gold-brand);
+}
+
+.mapHost {
+  position: relative;
+  min-height: 480px;
+  background: var(--color-bg);
+}
+
+/* Stack on narrow screens — Step 1 is desktop-first but stays usable on tablet. */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    /* Stacked (form above map): scroll the whole column as one, since there
+       is no side-by-side map to keep fixed. */
+    overflow-y: auto;
+  }
+  .form {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    overflow-y: visible;
+  }
+  .mapHost {
+    min-height: 360px;
+  }
+}

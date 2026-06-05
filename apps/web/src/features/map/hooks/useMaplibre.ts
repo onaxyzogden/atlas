@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import { useMapStore } from '../../../store/mapStore.js';
-import { map as mapTokens, group, earth } from '../../../lib/tokens.js';
+import { map as mapTokens, group, neutral } from '../../../lib/tokens.js';
 
 interface UseMapboxOptions {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -55,7 +55,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
           paint: {
             'fill-color': mapTokens.boundary,
-            'fill-outline-color': earth[800],
+            'fill-outline-color': neutral[800],
             'fill-opacity': 0.25,
           },
         },
@@ -64,7 +64,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           type: 'line',
           filter: ['all', ['==', '$type', 'Polygon']],
           paint: {
-            'line-color': earth[800],
+            'line-color': neutral[800],
             'line-width': 2,
           },
         },

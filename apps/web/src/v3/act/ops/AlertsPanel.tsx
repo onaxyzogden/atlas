@@ -45,7 +45,7 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
 
   const { effectiveType } = useEffectivePlanProjectType(projectId);
 
-  const harvestMode = activeModule === 'harvest';
+  const harvestMode = activeModule === 'plants-food';
 
   const recentHarvests = useMemo(() => {
     if (!projectId) return [];
@@ -66,7 +66,7 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
     const hazards =
       hazardsByProject.find((p) => p.projectId === projectId)?.hazards ?? [];
 
-    const wantReview = activeModule === null || activeModule === 'review';
+    const wantReview = activeModule === null || activeModule === 'monitoring-records';
     if (wantReview) {
       for (const h of hazards) {
         if (h.status === 'mitigated') continue;
@@ -77,12 +77,12 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
           meta: `${h.kind} · ${h.mitigationPct}% mitigated`,
           severity: h.risk === 'high' ? 'high' : 'medium',
           icon: <AlertTriangle size={14} strokeWidth={1.7} />,
-          module: 'review',
+          module: 'monitoring-records',
         });
       }
     }
 
-    const wantLivestock = activeModule === null || activeModule === 'livestock';
+    const wantLivestock = activeModule === null || activeModule === 'animals-livestock';
     if (wantLivestock) {
       for (const p of paddocks) {
         if (p.projectId !== projectId) continue;
@@ -93,7 +93,7 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
             meta: 'No water note recorded for paddock',
             severity: 'medium',
             icon: <Droplet size={14} strokeWidth={1.7} />,
-            module: 'livestock',
+            module: 'animals-livestock',
           });
         }
         if (p.fencing === 'none') {
@@ -103,13 +103,13 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
             meta: 'Stock cannot be confined',
             severity: 'high',
             icon: <Beef size={14} strokeWidth={1.7} />,
-            module: 'livestock',
+            module: 'animals-livestock',
           });
         }
       }
     }
 
-    const wantBuild = activeModule === null || activeModule === 'build';
+    const wantBuild = activeModule === null || activeModule === 'built-infrastructure';
     if (wantBuild) {
       // Budget-vs-actuals overruns left as a future wire — actualsStore
       // join requires phaseStore tasks; surface only when a real overrun
@@ -145,7 +145,7 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
     if (hash === lastHashRef.current) return;
     lastHashRef.current = hash;
     record({
-      module: activeModule ?? 'review',
+      module: activeModule ?? 'monitoring-records',
       eventType: 'panel_row_visible',
       payload: {
         panel: 'alerts',
@@ -197,7 +197,7 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
     <section className={css.panel}>
       <header className={css.panelHeader}>
         <h3 className={css.panelTitle}>
-          {activeModule === 'livestock' ? 'Animal / Water Alerts' : 'Alerts'}
+          {activeModule === 'animals-livestock' ? 'Animal / Water Alerts' : 'Alerts'}
         </h3>
         {alerts.length > 0 ? (
           <span className={css.panelSubtitle}>

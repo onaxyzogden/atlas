@@ -14,6 +14,7 @@ import { computeWindSectors } from '../../../../lib/sectors/wind.js';
 import { computeSolarSectors } from '../../../../lib/sectors/solar.js';
 import type { SectorWedge } from '../../../../lib/sectors/types.js';
 import type { SectorArrow } from '../../../../store/externalForcesStore.js';
+import styles from './SectorCompassDiagram.module.css';
 
 const CX = 150;
 const CY = 150;
@@ -33,6 +34,10 @@ const MANUAL_COLORS: Record<string, string> = {
   wildlife:        '#6a9a6a',
   view:            '#4a8a7a',
 };
+
+/** Manual sector types that read as solar — rendered as an edge rim band
+ *  (matching the auto-computed solar arcs) rather than an interior wedge. */
+const SOLAR_SECTOR_TYPES = new Set<string>(['sun_summer', 'sun_winter']);
 
 function bearingToXY(bearingDeg: number, r: number): [number, number] {
   const rad = ((bearingDeg - 90) * Math.PI) / 180;
@@ -121,8 +126,6 @@ export default function SectorCompassDiagram({
     return computeSolarSectors(centroid);
   }, [centroid]);
 
-  const manualWedges = useMemo(() => sectors.map(arrowToWedge), [sectors]);
-
   const size = compact ? 180 : 300;
 
   return (
@@ -135,18 +138,18 @@ export default function SectorCompassDiagram({
       role="img"
     >
       {/* Background circle */}
-      <circle cx={CX} cy={CY} r={R_OUTER} fill="#1a2a1a" opacity={0.3} />
-      <circle cx={CX} cy={CY} r={R_OUTER} fill="none" stroke="#4a6a4a" strokeWidth={1} />
+      <circle className={styles.disc} cx={CX} cy={CY} r={R_OUTER} opacity={0.3} />
+      <circle className={styles.grid} cx={CX} cy={CY} r={R_OUTER} fill="none" strokeWidth={1} />
 
       {/* Grid rings */}
       {[0.33, 0.66].map((f) => (
         <circle
           key={f}
+          className={styles.grid}
           cx={CX}
           cy={CY}
           r={R_OUTER * f}
           fill="none"
-          stroke="#4a6a4a"
           strokeWidth={0.5}
           opacity={0.4}
         />
@@ -159,11 +162,11 @@ export default function SectorCompassDiagram({
         return (
           <line
             key={bearing}
+            className={styles.grid}
             x1={CX}
             y1={CY}
             x2={x2}
             y2={y2}
-            stroke="#4a6a4a"
             strokeWidth={0.5}
             opacity={0.5}
           />
@@ -195,13 +198,45 @@ export default function SectorCompassDiagram({
         />
       ))}
 
-      {/* Layer 3 — Manual sector arrows */}
-      {manualWedges.map((w) => (
-        <WedgePath key={w.id} wedge={w} rOuter={R_OUTER * 0.78} rInner={12} opacity={0.7} />
-      ))}
+      {/* Layer 3 — Manual sector arrows. Solar types hug the outer rim as a
+          thin band (like the auto-computed solar arcs); all others stay
+          interior wedges. */}
+      {sectors.map((a) => {
+        const w = arrowToWedge(a);
+        return SOLAR_SECTOR_TYPES.has(a.type) ? (
+          <WedgePath key={w.id} wedge={w} rOuter={R_OUTER} rInner={R_OUTER * 0.82} opacity={0.7} />
+        ) : (
+          <WedgePath key={w.id} wedge={w} rOuter={R_OUTER * 0.78} rInner={12} opacity={0.7} />
+        );
+      })}
 
       {/* Centre dot */}
-      <circle cx={CX} cy={CY} r={5} fill="#7aaa7a" />
+      <circle className={styles.centre} cx={CX} cy={CY} r={5} />
+
+      {/* North indicator — gold triangle just outside the outer ring,
+          drawn last so it sits above wind/solar/manual wedges. Visible
+          in both compact and full modes so the compass orientation is
+          always legible. */}
+      <polygon
+        className={styles.north}
+        points={`${CX},${CY - R_OUTER - 8} ${CX - 7},${CY - R_OUTER + 6} ${CX + 7},${CY - R_OUTER + 6}`}
+        strokeWidth={0.75}
+        strokeLinejoin="round"
+      />
+      {compact && (
+        <text
+          className={styles.northLabel}
+          x={CX}
+          y={CY - R_OUTER - 12}
+          textAnchor="middle"
+          dominantBaseline="alphabetic"
+          fontSize={11}
+          fontWeight={700}
+          fontFamily="system-ui, sans-serif"
+        >
+          N
+        </text>
+      )}
 
       {/* Cardinal labels (hidden in compact mode) */}
       {!compact &&
@@ -210,12 +245,12 @@ export default function SectorCompassDiagram({
           return (
             <text
               key={label}
+              className={styles.label}
               x={lx}
               y={ly}
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize={10}
-              fill="#8aaa8a"
               fontFamily="system-ui, sans-serif"
             >
               {label}
@@ -226,11 +261,11 @@ export default function SectorCompassDiagram({
       {/* Empty state overlay when no centroid and no manual sectors */}
       {!centroid && sectors.length === 0 && (
         <text
+          className={styles.empty}
           x={CX}
           y={CY + 20}
           textAnchor="middle"
           fontSize={9}
-          fill="#5a7a5a"
           fontFamily="system-ui, sans-serif"
         >
           {compact ? '' : 'Add sectors from the toolbar'}

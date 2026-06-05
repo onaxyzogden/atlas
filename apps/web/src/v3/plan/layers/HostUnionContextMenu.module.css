@@ -1,0 +1,74 @@
+/* HostUnionContextMenu — small floating menu opened by right-click /
+   long-press on the guild-host-canopy-union-fill layer. Slice M of the
+   B4 tooltip remaining-deferrals roadmap.
+
+   Dark-glass palette mirrors HostCanopyUnionTooltip + InlineFeaturePopover
+   so the three map-overlay surfaces read as one design family. Fade
+   tokens reused from --motion-overlay-* (Slice I) for cross-surface
+   consistency.
+
+   Unlike the tooltip this surface IS pointer-events: auto — its only
+   job is to capture the steward's click on the "Open detail" item. The
+   Slice K invariant (tooltip pointer-events: none) is preserved because
+   the menu is a separate portal sibling, not a tooltip modification. */
+.menu {
+  position: absolute;
+  z-index: 7;
+  pointer-events: auto;
+  min-width: 160px;
+  padding: 4px;
+  box-sizing: border-box;
+  background: rgba(20, 25, 31, 0.96);
+  color: var(--color-text);
+  border: 1px solid rgba(242, 237, 227, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-out),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-out);
+}
+
+.menu[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.menu[data-exiting='true'] {
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-in),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-in);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .menu[data-exiting='true'] {
+    transition: none;
+  }
+}
+
+.item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  border-radius: 5px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover,
+.item:focus-visible {
+  background: rgba(212, 182, 99, 0.18);
+  color: rgba(245, 225, 170, 0.95);
+  outline: none;
+}

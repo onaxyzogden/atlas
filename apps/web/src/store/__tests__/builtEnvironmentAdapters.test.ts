@@ -147,6 +147,43 @@ describe('useBuiltEnvironmentStore facade', () => {
     expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(8);
   });
 
+  it('round-trips widthM through the facade for all four line kinds', () => {
+    const baseLine: GeoJSON.LineString = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+    const t = '2026-05-10T00:00:00.000Z';
+    const api = useBuiltEnvironmentStore.getState();
+
+    api.addPowerLine({ id: 'p', projectId: PROJECT, geometry: baseLine, placement: 'overhead', lengthM: 50, widthM: 0.4, createdAt: t });
+    api.addBuriedUtility({ id: 'u', projectId: PROJECT, geometry: baseLine, kind: 'water_main', lengthM: 30, widthM: 0.6, createdAt: t });
+    api.addFence({ id: 'f', projectId: PROJECT, geometry: baseLine, kind: 'barbed', lengthM: 100, widthM: 0.2, createdAt: t });
+    api.addExistingDriveway({ id: 'd', projectId: PROJECT, geometry: baseLine, surface: 'gravel', lengthM: 80, widthM: 5, createdAt: t });
+
+    // persisted into the V2 existing block
+    const byKind = (k: string) =>
+      useBuiltEnvironmentStoreV2.getState().entities.find((e) => e.kind === k);
+    expect(byKind('power-line')?.existing?.widthM).toBe(0.4);
+    expect(byKind('buried-utility')?.existing?.widthM).toBe(0.6);
+    expect(byKind('fence')?.existing?.widthM).toBe(0.2);
+    expect(byKind('driveway')?.existing?.widthM).toBe(5);
+
+    // surfaces back through the V1 projection
+    const s = useBuiltEnvironmentStore.getState();
+    expect(s.powerLines[0]?.widthM).toBe(0.4);
+    expect(s.buriedUtilities[0]?.widthM).toBe(0.6);
+    expect(s.fences[0]?.widthM).toBe(0.2);
+    expect(s.existingDriveways[0]?.widthM).toBe(5);
+  });
+
+  it('updatePowerLine patches widthM through to V2', () => {
+    const baseLine: GeoJSON.LineString = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+    useBuiltEnvironmentStore.getState().addPowerLine({
+      id: 'p', projectId: PROJECT, geometry: baseLine, placement: 'overhead', lengthM: 50, createdAt: '2026-05-10T00:00:00.000Z',
+    });
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    useBuiltEnvironmentStore.getState().updatePowerLine(id, { widthM: 0.9 });
+    expect(useBuiltEnvironmentStoreV2.getState().entities[0]?.existing?.widthM).toBe(0.9);
+    expect(useBuiltEnvironmentStore.getState().powerLines[0]?.widthM).toBe(0.9);
+  });
+
   it('updateBuilding patches subtype + areaM2 in v2 metadata', () => {
     const b: Building = {
       id: 'b2',

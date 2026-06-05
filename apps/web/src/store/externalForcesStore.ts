@@ -10,6 +10,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 // ── Hazards ──────────────────────────────────────────────────────────────────
@@ -116,10 +118,12 @@ export const useExternalForcesStore = create<ExternalForcesState>()(
     }), { limit: 200 }),
     {
       name: 'ogden-external-forces',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted) => persisted as ExternalForcesState,
     },
   ),
 );
 
-useExternalForcesStore.persist.rehydrate();
+rehydrateWithLogging(useExternalForcesStore);

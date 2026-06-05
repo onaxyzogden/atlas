@@ -1,0 +1,39 @@
+.scroll {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  background: var(--color-bg, #14191f);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.emptyFiltered {
+  padding: 14px 16px;
+  background: rgba(20, 25, 31, 0.5);
+  border: 1px dashed rgba(242, 237, 227, 0.22);
+  border-radius: 10px;
+  color: rgba(242, 237, 227, 0.75);
+  font-size: 12px;
+}
+
+.inlineClear {
+  margin-left: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-gold-brand, #c4a265);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}

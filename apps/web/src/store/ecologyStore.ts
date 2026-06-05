@@ -10,6 +10,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type TrophicLevel =
@@ -77,6 +79,8 @@ export const useEcologyStore = create<EcologyState>()(
     }), { limit: 200 }),
     {
       name: 'ogden-ecology',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       migrate: (persisted) => {
         // v3: `ecologyZones` removed (absorbed by vegetationStore on
@@ -89,4 +93,4 @@ export const useEcologyStore = create<EcologyState>()(
   ),
 );
 
-useEcologyStore.persist.rehydrate();
+rehydrateWithLogging(useEcologyStore);

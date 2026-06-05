@@ -1,5 +1,5 @@
 /**
- * CommandPalette â€” quick search and action bar (Cmd+K / Ctrl+K).
+ * CommandPalette — quick search and action bar (Cmd+K / Ctrl+K).
  *
  * P1 features from Section 0h:
  *   - Search bar
