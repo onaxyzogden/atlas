@@ -64,6 +64,7 @@ import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
+import MapSheetExportControl from '../../plan/MapSheetExportControl.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanDataLayers from '../../plan/layers/PlanDataLayers.js';
@@ -760,6 +761,11 @@ export default function ActTierShell() {
                       projectId={params.projectId ?? null}
                       boundary={safeBoundary ?? null}
                       showBoundary={false}
+                    />
+                    <MapSheetExportControl
+                      map={map}
+                      projectId={id}
+                      anchor="top-right"
                     />
                     <ObserveAnnotationLayers map={map} projectId={id} />
                     <PlanDataLayers map={map} projectId={id} editable={false} />

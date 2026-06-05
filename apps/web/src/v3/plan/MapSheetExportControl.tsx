@@ -38,6 +38,10 @@ type Captured = Awaited<ReturnType<typeof captureMapImage>>;
 interface MapSheetExportControlProps {
   map: maplibregl.Map;
   projectId: string;
+  /** Which top corner of the relatively-positioned map container the floating
+   *  pill anchors to. Default `top-left` (Plan/DesignPage). Act mounts it
+   *  `top-right` to clear the top-left BaseMapCard. */
+  anchor?: "top-left" | "top-right";
 }
 
 export const SHEET_EXPORTS: { type: SheetExportType; label: string }[] = [
@@ -210,6 +214,7 @@ export function buildPlantingPlanPayload(
 export default function MapSheetExportControl({
   map,
   projectId,
+  anchor = "top-left",
 }: MapSheetExportControlProps) {
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === projectId);
   const guilds = usePolycultureStore((s) => s.guilds).filter((g) => g.projectId === projectId);
@@ -257,12 +262,12 @@ export default function MapSheetExportControl({
       style={{
         position: "absolute",
         top: 12,
-        left: 12,
+        ...(anchor === "top-right" ? { right: 12 } : { left: 12 }),
         zIndex: 5,
         display: "flex",
         flexDirection: "column",
         gap: 6,
-        alignItems: "flex-start",
+        alignItems: anchor === "top-right" ? "flex-end" : "flex-start",
       }}
     >
       <button
