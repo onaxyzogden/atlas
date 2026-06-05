@@ -19,6 +19,7 @@ import '../../plan/spine/spine-theme.css';
 import ProtocolLibraryCard from '../../plan/strata/ProtocolLibraryCard.js';
 import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
 import { useProtocolStore } from '../../../store/protocolStore.js';
+import ActProtocolThresholdEditor from './ActProtocolThresholdEditor.js';
 
 interface Props {
   projectId: string;
@@ -49,7 +50,7 @@ export default function ActProtocolDetailPane({
   secondaryTypeIds,
   templateId,
 }: Props) {
-  const { templates, statusByTemplate, outputs } = useProtocolLibrary(
+  const { templates, statusByTemplate, outputsFor } = useProtocolLibrary(
     projectId,
     primaryTypeId,
     secondaryTypeIds,
@@ -123,9 +124,13 @@ export default function ActProtocolDetailPane({
         <ProtocolLibraryCard
           template={template}
           status={status}
-          outputs={outputs}
+          outputs={outputsFor(template.id)}
           emphasis="normal"
         />
+
+        {/* Threshold editor — adjust the protocol's `[token]` condition
+            thresholds (per-protocol, live-substituting into the card above). */}
+        <ActProtocolThresholdEditor projectId={projectId} template={template} />
 
         {/* Activation controls — wired straight to protocolStore (mirrors the
             §10.1 ProtocolApprovalOverlay handlers). */}

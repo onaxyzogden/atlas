@@ -81,7 +81,7 @@ export default function ProtocolLayerPanel({
   selectedProtocolId = null,
   bulkActivation = false,
 }: Props) {
-  const { templates, groups, statusByTemplate, outputs } =
+  const { templates, groups, statusByTemplate, outputsFor } =
     useProtocolLibrary(projectId, primaryTypeId, secondaryTypeIds);
 
   const isAct = variant === 'act';
@@ -477,7 +477,7 @@ export default function ProtocolLayerPanel({
                     key={t.id}
                     template={t}
                     status={statusByTemplate[t.id]}
-                    outputs={outputs}
+                    outputs={outputsFor(t.id)}
                     emphasis={
                       !isAct ? 'normal' : triggered ? 'triggered' : 'dimmed'
                     }

@@ -22,6 +22,7 @@ import { useProtocolStore } from '../../../store/protocolStore.js';
 import {
   usePlanStratumProgressStore,
   selectParameterValues,
+  selectProjectProtocolOverrides,
 } from '../../../store/planStratumStore.js';
 import { type RecordStatus } from './ProtocolLibraryCard.js';
 
@@ -62,6 +63,14 @@ export interface ProtocolLibrary {
   statusByTemplate: Record<string, RecordStatus>;
   /** Derived token-substitution outputs from the steward's S6 parameter values. */
   outputs: Record<string, string>;
+  /**
+   * Per-protocol token-substitution outputs: the base `outputs` merged with this
+   * project's Act-stage threshold overrides for ONE template (overrides win).
+   * The Act surfaces (detail pane + rail list) render conditions through this so a
+   * `[token]` reflects the steward's per-protocol bound. Falls back to base
+   * `outputs` for any template with no overrides. Stable identity per call args.
+   */
+  outputsFor: (templateId: string) => Record<string, string>;
   /** Count of templates currently in the `active` lifecycle state. */
   activeCount: number;
 }
@@ -107,6 +116,23 @@ export function useProtocolLibrary(
       ),
     [s6Values],
   );
+
+  // Act-stage per-protocol threshold overrides for THIS project (templateId ->
+  // token -> value). Reference-stable selector returning a frozen {} when empty
+  // (NEVER an inline derive — Zustand v5 loop hazard). `outputsFor(templateId)`
+  // merges this template's overrides on top of the base `outputs` so a `[token]`
+  // in that protocol's condition renders the steward's bound; templates without
+  // overrides fall back to the shared `outputs` identity (no churn).
+  const protocolOverrides = usePlanStratumProgressStore((s) =>
+    selectProjectProtocolOverrides(s, projectId),
+  );
+  const outputsFor = useMemo(() => {
+    return (templateId: string): Record<string, string> => {
+      const overrides = protocolOverrides[templateId];
+      if (!overrides) return outputs;
+      return { ...outputs, ...overrides };
+    };
+  }, [outputs, protocolOverrides]);
 
   // Reference-stable selector + useMemo (NEVER an inline `.filter()` selector —
   // Zustand v5 infinite-loop hazard). Build a templateId → status map for THIS
@@ -161,5 +187,5 @@ export function useProtocolLibrary(
     [templates, statusByTemplate],
   );
 
-  return { templates, groups, statusByTemplate, outputs, activeCount };
+  return { templates, groups, statusByTemplate, outputs, outputsFor, activeCount };
 }
