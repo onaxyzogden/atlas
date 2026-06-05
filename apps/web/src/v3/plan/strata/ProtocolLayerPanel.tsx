@@ -11,13 +11,14 @@
 // columns share one source. This panel's output is byte-identical to before the
 // extraction — the Act rail and the ProtocolLayerPanel test prove parity.
 
-import { useMemo, useState } from 'react';
+import { type KeyboardEvent, useMemo, useRef, useState } from 'react';
 import {
   type ProjectTypeId,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import { C, F, CA } from '../spine/tokens.js';
 import { useProtocolStore } from '../../../store/protocolStore.js';
+import { toast } from '../../../components/Toast.js';
 import ProtocolBulkConfirmOverlay, {
   type BulkAction,
 } from './ProtocolBulkConfirmOverlay.js';
@@ -114,6 +115,7 @@ export default function ProtocolLayerPanel({
   const activateProtocols = useProtocolStore((s) => s.activateProtocols);
   const suspendProtocols = useProtocolStore((s) => s.suspendProtocols);
   const deactivateProtocols = useProtocolStore((s) => s.deactivateProtocols);
+  const restoreProtocolRecords = useProtocolStore((s) => s.restoreProtocolRecords);
   const [selectMode, setSelectMode] = useState(false);
   const [bulkAction, setBulkAction] = useState<BulkAction>('activate');
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
@@ -158,6 +160,39 @@ export default function ProtocolLayerPanel({
   const exitSelectMode = () => {
     setSelectMode(false);
     setSelectedIds([]);
+  };
+
+  // ── Verb selector keyboard nav (radiogroup, mirrors components/ui/Tabs) ────
+  // Arrow keys move focus across the verb radios (wrapping) and, per WAI-ARIA
+  // single-select semantics, check the focused verb as they go. Home/End jump to
+  // the ends; Escape (while focus is inside the group) leaves select-mode.
+  const verbGroupRef = useRef<HTMLDivElement>(null);
+  const onVerbKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      exitSelectMode();
+      return;
+    }
+    const group = verbGroupRef.current;
+    if (!group) return;
+    const radios = Array.from(
+      group.querySelectorAll<HTMLButtonElement>('button[role="radio"]'),
+    );
+    const idx = radios.indexOf(document.activeElement as HTMLButtonElement);
+    if (idx === -1) return;
+    const n = radios.length;
+    let next: HTMLButtonElement | undefined;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = radios[(idx + 1) % n];
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+      next = radios[(idx - 1 + n) % n];
+    else if (e.key === 'Home') next = radios[0];
+    else if (e.key === 'End') next = radios[n - 1];
+    if (next) {
+      e.preventDefault();
+      next.focus();
+      const key = next.dataset.verb as BulkAction | undefined;
+      if (key) setBulkAction(key);
+    }
   };
 
   return (
@@ -239,9 +274,11 @@ export default function ProtocolLayerPanel({
                 {/* Verb selector — picks the bulk action; "Apply" buttons
                     below compute their counts against this verb's eligibility. */}
                 <div
+                  ref={verbGroupRef}
                   data-testid="protocol-bulk-verb-group"
-                  role="group"
+                  role="radiogroup"
                   aria-label="Bulk action"
+                  onKeyDown={onVerbKeyDown}
                   style={{ display: 'inline-flex', gap: 4 }}
                 >
                   {BULK_VERBS.map(({ key, label, accent }) => {
@@ -250,8 +287,11 @@ export default function ProtocolLayerPanel({
                       <button
                         key={key}
                         type="button"
+                        role="radio"
                         data-testid={`protocol-bulk-verb-${key}`}
-                        aria-pressed={active}
+                        data-verb={key}
+                        aria-checked={active}
+                        tabIndex={active ? 0 : -1}
                         onClick={() => setBulkAction(key)}
                         style={{
                           padding: '5px 10px',
@@ -470,12 +510,38 @@ export default function ProtocolLayerPanel({
           onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
             const ids = pending.map((t) => t.id);
+            // Snapshot the affected templates' prior records BEFORE mutating so
+            // the Undo toast can faithfully reverse this action. `ids` is the
+            // full applied set; `priorRecords` is the subset that already had a
+            // record (point-in-time closure — last-write-wins if the steward
+            // mutates again before clicking Undo).
+            const priorRecords = useProtocolStore
+              .getState()
+              .records.filter(
+                (r) => r.projectId === projectId && ids.includes(r.templateId),
+              );
             if (bulkAction === 'activate') activateProtocols(projectId, ids);
             else if (bulkAction === 'suspend')
               suspendProtocols(projectId, ids);
             else deactivateProtocols(projectId, ids);
             setConfirmOpen(false);
             exitSelectMode();
+            const verbPast =
+              bulkAction === 'activate'
+                ? 'Activated'
+                : bulkAction === 'suspend'
+                  ? 'Suspended'
+                  : 'Deactivated';
+            toast.action(
+              'success',
+              `${verbPast} ${ids.length} protocol${ids.length !== 1 ? 's' : ''}`,
+              {
+                label: 'Undo',
+                onClick: () =>
+                  restoreProtocolRecords(projectId, ids, priorRecords),
+              },
+              8000,
+            );
           }}
         />
       )}

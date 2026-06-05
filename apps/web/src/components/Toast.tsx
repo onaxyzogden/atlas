@@ -17,26 +17,38 @@ import { zIndex } from '../lib/tokens.js';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+/** Optional action button rendered inside a toast (e.g. "Undo"). */
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface ToastItem {
   id: string;
   type: ToastType;
   message: string;
   duration: number;
+  action?: ToastAction;
 }
 
 interface ToastState {
   toasts: ToastItem[];
-  add: (type: ToastType, message: string, duration?: number) => void;
+  add: (
+    type: ToastType,
+    message: string,
+    duration?: number,
+    action?: ToastAction,
+  ) => void;
   dismiss: (id: string) => void;
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
 
-const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
-  add: (type, message, duration = 4000) => {
+  add: (type, message, duration = 4000, action) => {
     const id = crypto.randomUUID();
-    set((s) => ({ toasts: [...s.toasts, { id, type, message, duration }] }));
+    set((s) => ({ toasts: [...s.toasts, { id, type, message, duration, action }] }));
   },
   dismiss: (id) =>
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
@@ -49,6 +61,9 @@ export const toast = {
   error: (msg: string, duration?: number) => useToastStore.getState().add('error', msg, duration ?? 6000),
   info: (msg: string, duration?: number) => useToastStore.getState().add('info', msg, duration),
   warning: (msg: string, duration?: number) => useToastStore.getState().add('warning', msg, duration ?? 5000),
+  /** Toast with an action button (e.g. Undo). Defaults to a longer 8s window. */
+  action: (type: ToastType, msg: string, action: ToastAction, duration = 8000) =>
+    useToastStore.getState().add(type, msg, duration, action),
 };
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -100,6 +115,34 @@ function ToastItem({ item }: { item: ToastItem }) {
     >
       <span style={{ fontSize: 16, flexShrink: 0 }}>{ICON[item.type]}</span>
       <span>{item.message}</span>
+      {item.action && (
+        <button
+          type="button"
+          data-testid="toast-action"
+          onClick={(e) => {
+            // Don't let the click bubble to the toast's dismiss handler — run
+            // the action exactly once, then dismiss ourselves.
+            e.stopPropagation();
+            item.action?.onClick();
+            dismiss(item.id);
+          }}
+          style={{
+            flexShrink: 0,
+            marginLeft: 4,
+            padding: '3px 10px',
+            borderRadius: 'var(--radius-sm, 6px)',
+            border: '1px solid rgba(255,255,255,0.55)',
+            background: 'transparent',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+          }}
+        >
+          {item.action.label}
+        </button>
+      )}
     </div>
   );
 }

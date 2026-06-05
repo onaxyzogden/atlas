@@ -145,6 +145,26 @@ export interface ProtocolState {
     templateIds: readonly string[],
   ) => void;
 
+  /**
+   * Reverse a bulk action by restoring a captured pre-mutation snapshot in a
+   * single state commit — backs the bulk toolbar's "Undo" toast.
+   *
+   * `affectedTemplateIds` is the FULL set of ids the bulk action applied to;
+   * `priorRecords` is the subset of those that HAD a record before, captured
+   * verbatim (status + activatedAt + deferredUntil + lastLoggedAt). Every
+   * affected id is first removed for this project, then `priorRecords` are
+   * re-appended. This reverses all three verbs uniformly:
+   *  • activate of a new id (no prior record) → removed, not re-added → deleted.
+   *  • activate/suspend of an existing id → restored to its prior status.
+   *  • deactivate (record removed) → re-inserted with its full prior shape.
+   * Project-scoped; an empty `affectedTemplateIds` is a no-op.
+   */
+  restoreProtocolRecords: (
+    projectId: string,
+    affectedTemplateIds: readonly string[],
+    priorRecords: readonly ActivatedProtocolRecord[],
+  ) => void;
+
   /** Mark a protocol as triggered (condition has fired). */
   markTriggered: (projectId: string, templateId: string) => void;
 
@@ -355,6 +375,20 @@ export const useProtocolStore = create<ProtocolState>()(
                 : r,
             ),
           };
+        }),
+
+      restoreProtocolRecords: (projectId, affectedTemplateIds, priorRecords) =>
+        set((s) => {
+          if (affectedTemplateIds.length === 0) return {}; // no-op
+          const affected = new Set(affectedTemplateIds);
+          // Drop every affected id for this project, then re-append the captured
+          // prior records. Ids that had no prior record stay dropped (reverses
+          // an activate-of-new); ids whose record was changed/removed come back
+          // exactly as snapshotted (reverses suspend / deactivate).
+          const kept = s.records.filter(
+            (r) => !(r.projectId === projectId && affected.has(r.templateId)),
+          );
+          return { records: [...kept, ...priorRecords] };
         }),
 
       markTriggered: (projectId, templateId) =>

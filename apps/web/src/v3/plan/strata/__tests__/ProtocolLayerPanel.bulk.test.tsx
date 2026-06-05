@@ -15,6 +15,8 @@
  *   6. Suspend verb: eligibility recomputes (active/triggered only); Apply →
  *      confirm (no Amanah) → records become 'suspended'.
  *   7. Deactivate verb: Apply selected → confirm → matching records removed.
+ *   8. Verb selector is a keyboard radiogroup: Arrow/Home/End move + check.
+ *   9. Applying a bulk action raises an Undo toast that reverses it.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -26,6 +28,7 @@ import {
 } from '@testing-library/react';
 import { resolveProjectProtocols } from '@ogden/shared';
 import { useProtocolStore } from '../../../../store/protocolStore.js';
+import { useToastStore } from '../../../../components/Toast.js';
 import ProtocolLayerPanel from '../ProtocolLayerPanel.js';
 
 const PROJECT_ID = 'proj-bulk';
@@ -39,6 +42,7 @@ const S6_COUNT = resolveProjectProtocols({ primaryTypeId: 'silvopasture' })
 
 beforeEach(() => {
   useProtocolStore.setState({ records: [] });
+  useToastStore.setState({ toasts: [] });
   window.localStorage.clear();
 });
 afterEach(() => cleanup());
@@ -91,12 +95,17 @@ describe('ProtocolLayerPanel (Act bulk toolbar)', () => {
 
     fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
 
-    // Verb group present, defaulting to Activate (aria-pressed).
+    // Verb group is a radiogroup defaulting to Activate (aria-checked).
     expect(screen.getByTestId('protocol-bulk-verb-activate')).toBeTruthy();
     expect(
       screen
+        .getByTestId('protocol-bulk-verb-group')
+        .getAttribute('role'),
+    ).toBe('radiogroup');
+    expect(
+      screen
         .getByTestId('protocol-bulk-verb-activate')
-        .getAttribute('aria-pressed'),
+        .getAttribute('aria-checked'),
     ).toBe('true');
     expect(
       screen.getByTestId('protocol-bulk-apply-all').textContent,
@@ -207,5 +216,104 @@ describe('ProtocolLayerPanel (Act bulk toolbar)', () => {
       .getState()
       .records.filter((r) => r.projectId === PROJECT_ID);
     expect(recs.map((r) => r.templateId)).toEqual([ID_B]);
+  });
+
+  // ── Keyboard: verb selector is a roving-tabIndex radiogroup ───────────────
+  it('verb radios use roving tabIndex (checked=0, others=-1) and radio role', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    const activate = screen.getByTestId('protocol-bulk-verb-activate');
+    const suspend = screen.getByTestId('protocol-bulk-verb-suspend');
+    expect(activate.getAttribute('role')).toBe('radio');
+    expect(activate.getAttribute('tabindex')).toBe('0');
+    expect(suspend.getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('ArrowRight moves focus to the next verb and checks it (recomputes counts)', () => {
+    // Seed actives so the Suspend eligibility (2) differs from Activate (S6_COUNT).
+    useProtocolStore.getState().activateProtocols(PROJECT_ID, [ID_A, ID_B]);
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    const activate = screen.getByTestId('protocol-bulk-verb-activate');
+    activate.focus();
+    fireEvent.keyDown(screen.getByTestId('protocol-bulk-verb-group'), {
+      key: 'ArrowRight',
+    });
+    const suspend = screen.getByTestId('protocol-bulk-verb-suspend');
+    expect(suspend.getAttribute('aria-checked')).toBe('true');
+    expect(activate.getAttribute('aria-checked')).toBe('false');
+    // Eligibility recomputed for the Suspend verb (2 active records).
+    expect(
+      screen.getByTestId('protocol-bulk-apply-all').textContent,
+    ).toContain('Apply to all (2)');
+  });
+
+  it('ArrowLeft wraps from the first verb to the last (Deactivate)', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    screen.getByTestId('protocol-bulk-verb-activate').focus();
+    fireEvent.keyDown(screen.getByTestId('protocol-bulk-verb-group'), {
+      key: 'ArrowLeft',
+    });
+    expect(
+      screen.getByTestId('protocol-bulk-verb-deactivate').getAttribute('aria-checked'),
+    ).toBe('true');
+  });
+
+  it('Home/End jump to the first/last verb', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    const group = screen.getByTestId('protocol-bulk-verb-group');
+    screen.getByTestId('protocol-bulk-verb-activate').focus();
+    fireEvent.keyDown(group, { key: 'End' });
+    expect(
+      screen.getByTestId('protocol-bulk-verb-deactivate').getAttribute('aria-checked'),
+    ).toBe('true');
+    fireEvent.keyDown(group, { key: 'Home' });
+    expect(
+      screen.getByTestId('protocol-bulk-verb-activate').getAttribute('aria-checked'),
+    ).toBe('true');
+  });
+
+  it('Escape inside the verb group exits select-mode', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    screen.getByTestId('protocol-bulk-verb-activate').focus();
+    fireEvent.keyDown(screen.getByTestId('protocol-bulk-verb-group'), {
+      key: 'Escape',
+    });
+    // Select-mode collapsed → verb group + apply buttons gone.
+    expect(screen.queryByTestId('protocol-bulk-verb-group')).toBeNull();
+    expect(screen.queryByTestId('protocol-bulk-apply-all')).toBeNull();
+  });
+
+  // ── Undo toast ────────────────────────────────────────────────────────────
+  it('Deactivate → Undo toast re-inserts removed records with prior shape', () => {
+    useProtocolStore.getState().activateProtocols(PROJECT_ID, [ID_A, ID_B]);
+    const before = useProtocolStore
+      .getState()
+      .records.filter((r) => r.projectId === PROJECT_ID)
+      .map((r) => ({ ...r }));
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-verb-deactivate'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
+    // Records gone; an Undo toast is queued.
+    expect(
+      useProtocolStore.getState().records.filter((r) => r.projectId === PROJECT_ID),
+    ).toHaveLength(0);
+    const t = useToastStore.getState().toasts.at(-1)!;
+    expect(t.message).toContain('Deactivated 2 protocols');
+    expect(t.action?.label).toBe('Undo');
+    // Fire the undo → records restored exactly.
+    t.action!.onClick();
+    const after = useProtocolStore
+      .getState()
+      .records.filter((r) => r.projectId === PROJECT_ID);
+    expect(after.map((r) => r.templateId).sort()).toEqual(
+      before.map((r) => r.templateId).sort(),
+    );
+    expect(after.every((r) => r.status === 'active')).toBe(true);
   });
 });
