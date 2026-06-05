@@ -17,6 +17,8 @@
  *   7. Deactivate verb: Apply selected → confirm → matching records removed.
  *   8. Verb selector is a keyboard radiogroup: Arrow/Home/End move + check.
  *   9. Applying a bulk action raises an Undo toast that reverses it.
+ *  10. Rapid successive applies STACK their own point-in-time Undo toasts
+ *      (last-write-wins on the final fired undo).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -315,5 +317,67 @@ describe('ProtocolLayerPanel (Act bulk toolbar)', () => {
       before.map((r) => r.templateId).sort(),
     );
     expect(after.every((r) => r.status === 'active')).toBe(true);
+  });
+
+  it('rapid successive applies stack their own Undo toasts (point-in-time, last-write-wins)', () => {
+    // Each bulk apply captures its OWN pre-mutation snapshot at confirm time and
+    // queues its OWN Undo toast — the toasts STACK, they do not replace. Because
+    // every snapshot is a point-in-time closure, firing the undos reverses each
+    // to the state THAT apply saw; the LAST undo fired wins (last-write-wins).
+    useProtocolStore.getState().activateProtocols(PROJECT_ID, [ID_A, ID_B]);
+    renderBulk();
+
+    // ── Apply 1: Suspend all (snapshot sees A,B ACTIVE) ──────────────────────
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-verb-suspend'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
+    expect(
+      useProtocolStore
+        .getState()
+        .records.filter((r) => r.projectId === PROJECT_ID)
+        .every((r) => r.status === 'suspended'),
+    ).toBe(true);
+
+    // ── Apply 2: Deactivate all (snapshot sees A,B SUSPENDED) ────────────────
+    // Re-enter select-mode (exitSelectMode does not reset the verb) and switch
+    // to Deactivate; both suspended records are eligible.
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-verb-deactivate'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
+    expect(
+      useProtocolStore.getState().records.filter((r) => r.projectId === PROJECT_ID),
+    ).toHaveLength(0);
+
+    // ── Both Undo toasts are queued (stack, not replace) ─────────────────────
+    const toasts = useToastStore.getState().toasts;
+    expect(toasts).toHaveLength(2);
+    const suspendToast = toasts.find((t) =>
+      t.message.includes('Suspended 2 protocols'),
+    )!;
+    const deactivateToast = toasts.find((t) =>
+      t.message.includes('Deactivated 2 protocols'),
+    )!;
+    expect(suspendToast.action?.label).toBe('Undo');
+    expect(deactivateToast.action?.label).toBe('Undo');
+
+    // ── Fire the undos in apply-order; the LAST one fired wins ───────────────
+    // Undo #2 (deactivate) first → re-inserts A,B at their SUSPENDED snapshot.
+    deactivateToast.action!.onClick();
+    let recs = useProtocolStore
+      .getState()
+      .records.filter((r) => r.projectId === PROJECT_ID);
+    expect(recs).toHaveLength(2);
+    expect(recs.every((r) => r.status === 'suspended')).toBe(true);
+
+    // Undo #1 (suspend) last → removes A,B then re-appends its ACTIVE snapshot.
+    // Last-write-wins: the final state is the suspend-undo's point-in-time view.
+    suspendToast.action!.onClick();
+    recs = useProtocolStore
+      .getState()
+      .records.filter((r) => r.projectId === PROJECT_ID);
+    expect(recs.map((r) => r.templateId).sort()).toEqual([ID_A, ID_B].sort());
+    expect(recs.every((r) => r.status === 'active')).toBe(true);
   });
 });
