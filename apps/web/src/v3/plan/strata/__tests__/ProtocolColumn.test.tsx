@@ -111,6 +111,65 @@ describe('ProtocolColumn', () => {
     expect(screen.getByTestId('protocol-column-empty')).toBeTruthy();
   });
 
+  // ── Bulk select/deselect-all toggle ──
+  it('does NOT render the toggle-all button when onToggleAll is omitted', () => {
+    render(
+      <ProtocolColumn
+        groups={GROUPS}
+        statusByTemplate={{}}
+        selectedIds={[]}
+        onToggle={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('protocol-select-all-toggle')).toBeNull();
+  });
+
+  it('reads "Select all" and fires onToggleAll when not all are selected', () => {
+    const onToggleAll = vi.fn();
+    render(
+      <ProtocolColumn
+        groups={GROUPS}
+        statusByTemplate={{}}
+        selectedIds={[TEMPLATES[0]!.id]}
+        onToggle={vi.fn()}
+        onToggleAll={onToggleAll}
+      />,
+    );
+    const toggle = screen.getByTestId('protocol-select-all-toggle');
+    expect(toggle.textContent).toBe('Select all');
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(toggle);
+    expect(onToggleAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads "Deselect all" when every visible template is selected', () => {
+    render(
+      <ProtocolColumn
+        groups={GROUPS}
+        statusByTemplate={{}}
+        selectedIds={TEMPLATES.map((t) => t.id)}
+        onToggle={vi.fn()}
+        onToggleAll={vi.fn()}
+      />,
+    );
+    const toggle = screen.getByTestId('protocol-select-all-toggle');
+    expect(toggle.textContent).toBe('Deselect all');
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('does NOT render the toggle-all button in the empty state', () => {
+    render(
+      <ProtocolColumn
+        groups={[]}
+        statusByTemplate={{}}
+        selectedIds={[]}
+        onToggle={vi.fn()}
+        onToggleAll={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('protocol-select-all-toggle')).toBeNull();
+  });
+
   // ── Secondary-type conflict surfacing (DesignTension banner, read-only) ──
   const TENSIONS: readonly DesignTension[] = [
     {

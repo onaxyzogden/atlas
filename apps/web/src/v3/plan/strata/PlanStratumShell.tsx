@@ -488,6 +488,21 @@ export default function PlanStratumShell() {
     () => filterProtocolGroups(protocolLib.groups, activeStratumId),
     [protocolLib.groups, activeStratumId],
   );
+  // The ids the column actually shows (stratum-scoped) — the universe the bulk
+  // select/deselect-all toggle operates over.
+  const visibleProtocolIds = useMemo(
+    () => stratumProtocolGroups.flatMap((g) => g.items.map((t) => t.id)),
+    [stratumProtocolGroups],
+  );
+  // Bulk toggle: select every visible protocol, or clear if all are already
+  // selected. Functional updater keeps it free of a stale selection closure.
+  const toggleAllProtocols = () =>
+    setSelectedProtocolIds((prev) =>
+      visibleProtocolIds.length > 0 &&
+      visibleProtocolIds.every((id) => prev.includes(id))
+        ? []
+        : visibleProtocolIds,
+    );
   // Tensions reconciled AT the open stratum get highlighted in the banner
   // ("this stratum reconciles these"); the rest are still listed for context.
   const protocolHighlightTensionIds = useMemo(
@@ -972,6 +987,7 @@ export default function PlanStratumShell() {
           statusByTemplate={protocolLib.statusByTemplate}
           selectedIds={selectedProtocolIds}
           onToggle={toggleProtocol}
+          onToggleAll={toggleAllProtocols}
           tensions={activeTensions}
           highlightTensionIds={protocolHighlightTensionIds}
         />

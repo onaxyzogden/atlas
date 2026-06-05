@@ -29,6 +29,13 @@ interface Props {
   /** Toggle a template into / out of the selection. */
   onToggle: (templateId: string) => void;
   /**
+   * Select every visible template at once, or clear the selection if all are
+   * already selected. Optional — when omitted the bulk toggle button is hidden
+   * (keeps presentational tests back-compatible). The shell owns the actual
+   * all-vs-none decision; this column only reflects `allSelected` in the label.
+   */
+  onToggleAll?: () => void;
+  /**
    * Secondary-type design conflicts for this project (from the resolver's
    * `activeTensions`). When present, a read-only DesignTensionBanner surfaces
    * them above the list — "surface conflicts," not navigation, so no
@@ -44,11 +51,16 @@ export default function ProtocolColumn({
   statusByTemplate,
   selectedIds,
   onToggle,
+  onToggleAll,
   tensions,
   highlightTensionIds,
 }: Props) {
   const templateCount = groups.reduce((n, g) => n + g.items.length, 0);
   const selected = new Set(selectedIds);
+  // All visible templates already selected? Drives the bulk toggle label/aria.
+  const allSelected =
+    templateCount > 0 &&
+    groups.every((g) => g.items.every((t) => selected.has(t.id)));
   const tensionList = tensions ?? [];
   // Read-only banner: local collapse state, default expanded so conflicts are
   // visible on entry. (No per-project persistence — this surface only displays
@@ -83,23 +95,58 @@ export default function ProtocolColumn({
         />
       )}
 
-      {/* Eyebrow + count */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span
-          style={{
-            fontSize: 12,
-            color: C.textTertiary,
-            fontFamily: F.sans,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-          }}
-        >
-          Protocols
-        </span>
-        <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
-          {templateCount} template{templateCount !== 1 ? 's' : ''}
-        </span>
+      {/* Eyebrow + count, with the bulk select/deselect-all toggle on the right */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span
+            style={{
+              fontSize: 12,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}
+          >
+            Protocols
+          </span>
+          <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
+            {templateCount} template{templateCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {onToggleAll && templateCount > 0 && (
+          <button
+            type="button"
+            data-testid="protocol-select-all-toggle"
+            aria-pressed={allSelected}
+            onClick={onToggleAll}
+            style={{
+              flexShrink: 0,
+              fontSize: 11,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: allSelected ? C.gold : C.textSecondary,
+              background: allSelected ? CA('gold', 0.1) : 'transparent',
+              border: `1px solid ${allSelected ? C.gold : C.border}`,
+              borderRadius: 4,
+              padding: '4px 9px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {allSelected ? 'Deselect all' : 'Select all'}
+          </button>
+        )}
       </div>
 
       {templateCount === 0 ? (
