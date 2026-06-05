@@ -23,6 +23,13 @@ export default defineConfig({
     // becomes a multi-day zombie. Forks + a bounded teardown guarantee exit.
     pool: 'forks',
     teardownTimeout: 10_000,
+    // Even with forks + a bounded teardown, vitest 2.1.x still hangs at exit
+    // after all files pass: tinypool's graceful pool.close() waits on a handle
+    // a happy-dom worker leaves alive and never returns (a multi-minute zombie
+    // on CI). The force-exit reporter ends the run from onFinished — which
+    // vitest awaits after results aggregate but before pool.close() — with the
+    // correct pass/fail code. 'default' is kept for the run summary.
+    reporters: ['default', './scripts/force-exit-reporter.mjs'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     // Inline zustand so its bare `react` import is rewritten by the
     // resolve.alias below (externalized deps bypass the alias and pull
