@@ -329,7 +329,8 @@ export default function PlanStratumShell() {
     navigate({
       to: '/v3/project/$projectId/plan/stratum/$stratumId',
       params: { projectId, stratumId: stratum.id },
-    });
+      search: (prev: Record<string, unknown>) => prev,
+    } as never);
   };
 
   const navigateToObjective = (objectiveId: string, stratumId: string) => {
