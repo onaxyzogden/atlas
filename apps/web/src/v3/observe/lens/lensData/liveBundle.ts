@@ -461,6 +461,13 @@ export interface LiveBundleInput {
   parcelBoundary?: GeoJSON.FeatureCollection | null;
   /** True when boundary/points came from a builtin seed (drives the badge). */
   isDemoGeometry?: boolean;
+  /**
+   * Read-side declared-intent projection (from buildDeclaredIntentPoint), or null
+   * when the project has no declared vision. Surfaced ONLY in the vision-intent
+   * domain's keyData value + subdomain row; never counted as a field observation
+   * (lens.observations, project.totalDataPoints, freshness all ignore it).
+   */
+  declaredIntent?: DataPoint | null;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -469,6 +476,12 @@ const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
   { id: 'obs', label: 'Observe', color: '#5AAF72', startPct: 72, endPct: 100, days: 50 },
 ];
 const NOMINAL_TOTAL_DAYS = 180;
+
+// Live row-icon table: the mock TYPE_ICON plus a glyph for the read-side
+// 'declaration' type (declared intent). mockData.ts stays byte-untouched; this
+// live-only extension is returned as the bundle's typeIcon so DataPointRow can
+// resolve the declared-intent row. Filled diamond pairs with the Human lens '◇'.
+const LIVE_TYPE_ICON: Record<string, string> = { ...TYPE_ICON, declaration: '◆' };
 
 /**
  * Pure mapper: live ObserveDataPoint[] -> LensDataBundle. No React, no stores.
@@ -516,6 +529,16 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
 
     const keyData: KeyDatum[] = lens.domains.map((d): KeyDatum => {
       const s = rollups.get(d)!;
+      // A declared vision surfaces as "Declared" in the vision-intent row ONLY
+      // when that domain has no real observations -- observed status always wins,
+      // and the declaration never touches any count.
+      if (d === 'vision-intent' && s.observationCount === 0 && input.declaredIntent) {
+        return {
+          label: UNIVERSAL_DOMAIN_LABELS[d],
+          value: 'Declared',
+          confidence: 'low',
+        };
+      }
       return {
         label: UNIVERSAL_DOMAIN_LABELS[d],
         value: s.observationCount > 0 ? statusLabel(s.latestStatus) : 'Not yet observed',
@@ -571,7 +594,14 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
 
     // domainDetail entry (one subdomain per lens domain).
     const subdomains: Subdomain[] = lens.domains.map((d): Subdomain => {
-      const pts = (activeByDomain.get(d) ?? []).map(toDataPoint);
+      const observed = (activeByDomain.get(d) ?? []).map(toDataPoint);
+      // The declared-intent row is prepended to the vision-intent slide-up as a
+      // declaration; it is NOT a field observation, so it is excluded from every
+      // count above (obsCount, observed.length still drive totals/freshness).
+      const pts =
+        d === 'vision-intent' && input.declaredIntent
+          ? [input.declaredIntent, ...observed]
+          : observed;
       return {
         id: d,
         label: UNIVERSAL_DOMAIN_LABELS[d],
@@ -704,7 +734,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     ),
     cycle,
     freshness: FRESHNESS,
-    typeIcon: TYPE_ICON,
+    typeIcon: LIVE_TYPE_ICON,
   };
 }
 
@@ -834,6 +864,9 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   const projectTypeLabel = resolveProjectTypeLabel(project);
   const parcelBoundary = project?.parcelBoundaryGeojson ?? null;
   const isDemoGeometry = project?.isBuiltin ?? false;
+  // Memoized on the project ref (stable from the store selector) so the derived
+  // point keeps a stable identity and does not force the bundle to rebuild.
+  const declaredIntent = useMemo(() => buildDeclaredIntentPoint(project), [project]);
 
   return useMemo(
     () =>
@@ -845,7 +878,8 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         getSlot: getMeasurementSlot,
         parcelBoundary,
         isDemoGeometry,
+        declaredIntent,
       }),
-    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry],
+    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry, declaredIntent],
   );
 }

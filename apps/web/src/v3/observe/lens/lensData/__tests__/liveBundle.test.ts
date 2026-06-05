@@ -322,3 +322,89 @@ describe('buildDeclaredIntentPoint', () => {
     expect(pt!.notes).toBe('Vision: Just a vision');
   });
 });
+
+describe('buildLiveLensBundle -- declaredIntent injection (vision-intent only)', () => {
+  const VISION_LABEL = UNIVERSAL_DOMAIN_LABELS['vision-intent'];
+  const declared = buildDeclaredIntentPoint(
+    { metadata: { visionProfile: { landIdentity: ['A regenerative homestead'] } } } as unknown as LocalProject,
+  )!;
+
+  const baseInput = {
+    nowMs: NOW_MS,
+    projectName: 'Greenfield',
+    projectTypeLabel: 'Homestead',
+    getSlot: getMeasurementSlot,
+  } as const;
+
+  // A project with ZERO observe points -- the real-world case the feature targets.
+  const emptyWith = buildLiveLensBundle({ ...baseInput, points: [], declaredIntent: declared });
+  const emptyNull = buildLiveLensBundle({ ...baseInput, points: [], declaredIntent: null });
+
+  const humanKeyDatum = (b: typeof emptyWith) =>
+    b.lenses.find((l) => l.id === 'human')!.keyData.find((k) => k.label === VISION_LABEL)!;
+  const visionSub = (b: typeof emptyWith) =>
+    b.domainDetail['human']!.subdomains.find((s) => s.label === VISION_LABEL)!;
+
+  it('surfaces "Declared" in the vision-intent keyData row when 0 real observations', () => {
+    expect(humanKeyDatum(emptyWith).value).toBe('Declared');
+    expect(humanKeyDatum(emptyWith).confidence).toBe('low');
+    // Without a declaration the same row honestly reads "Not yet observed".
+    expect(humanKeyDatum(emptyNull).value).toBe('Not yet observed');
+  });
+
+  it('prepends the declared-intent row into the vision-intent slide-up and clears the empty note', () => {
+    const sub = visionSub(emptyWith);
+    expect(sub.points).toHaveLength(1);
+    expect(sub.points[0]!.id).toBe('declared-intent');
+    expect(sub.points[0]!.type).toBe('declaration');
+    expect(sub.emptyNote).toBeUndefined();
+    // The null build keeps the honest empty state.
+    expect(visionSub(emptyNull).points).toHaveLength(0);
+    expect(visionSub(emptyNull).emptyNote).toBeTruthy();
+  });
+
+  it('exposes a row glyph for the declaration type via the live typeIcon table', () => {
+    expect(emptyWith.typeIcon.declaration).toBe('◆');
+  });
+
+  it('HONESTY: the declaration inflates no observation count', () => {
+    // Every count-bearing field is byte-identical to the declaredIntent:null build.
+    expect(emptyWith.project.totalDataPoints).toBe(emptyNull.project.totalDataPoints);
+    expect(emptyWith.project.totalDataPoints).toBe(0);
+    expect(emptyWith.project.domainsMissingCount).toBe(emptyNull.project.domainsMissingCount);
+    expect(emptyWith.project.domainsCurrentCount).toBe(emptyNull.project.domainsCurrentCount);
+    expect(emptyWith.project.domainsAgeingCount).toBe(emptyNull.project.domainsAgeingCount);
+    // Per-lens observation badges + freshness unchanged.
+    for (const id of OBSERVE_LENS_IDS) {
+      const w = emptyWith.lenses.find((l) => l.id === id)!;
+      const n = emptyNull.lenses.find((l) => l.id === id)!;
+      expect(w.observations).toBe(n.observations);
+      expect(w.observations).toBe(0);
+      expect(w.freshness).toBe(n.freshness);
+      expect(w.summary).toBe(n.summary);
+    }
+  });
+
+  it('does not override an observed status: real observations win the keyData headline', () => {
+    // The MTC seed carries a real vision-intent observation; a declaration must
+    // not replace its observed status, but still appears in the slide-up.
+    const withDecl = buildLiveLensBundle({
+      points: POINTS,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+      getSlot: getMeasurementSlot,
+      declaredIntent: declared,
+    });
+    const kd = withDecl.lenses.find((l) => l.id === 'human')!.keyData.find((k) => k.label === VISION_LABEL)!;
+    expect(kd.value).not.toBe('Declared');
+    // Observation count is unchanged from the no-declaration build.
+    expect(withDecl.lenses.find((l) => l.id === 'human')!.observations).toBe(
+      bundle.lenses.find((l) => l.id === 'human')!.observations,
+    );
+    // The slide-up shows the declaration prepended ahead of the real observation.
+    const sub = withDecl.domainDetail['human']!.subdomains.find((s) => s.label === VISION_LABEL)!;
+    expect(sub.points[0]!.id).toBe('declared-intent');
+    expect(sub.points.length).toBeGreaterThanOrEqual(2);
+  });
+});
