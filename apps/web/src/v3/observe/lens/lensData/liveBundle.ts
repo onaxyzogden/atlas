@@ -46,6 +46,7 @@ import {
   type LocalProject,
 } from '../../../../store/projectStore.js';
 import { FRESHNESS, TYPE_ICON } from '../mockData.js';
+import { VISION_QUESTIONS } from '../../../stage-zero/data/visionBuilderQuestions.js';
 import {
   buildSpecialisedForLens,
   type SlotResolver,
@@ -727,6 +728,94 @@ export function resolveProjectTypeLabel(project: LocalProject | undefined): stri
     if (def) return def.label;
   }
   return project.projectType ?? 'Project';
+}
+
+// ── declared-intent (read-side projection of metadata.visionProfile) ──────────
+//
+// A project's declared vision lives in `metadata.visionProfile` (written by the
+// Phase-2 Project Creation Wizard: a free-text statement plus structured land-use
+// goals / budget / timeline / labour). The Observe "Vision & Project Intent"
+// domain otherwise reads ONLY persisted ObserveDataPoint records, so a real
+// project shows "Not yet observed" even when it has a stated vision. This pure
+// composer projects that declaration into a single synthetic DataPoint, framed
+// as a DECLARATION (confidence 'low', a dedicated 'declaration' type) -- it is
+// never persisted and never counted as a field observation (see buildLiveLensBundle).
+
+// Flat id -> human label over every Vision Builder option (authoritative source).
+const VISION_OPTION_LABELS: ReadonlyMap<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const q of VISION_QUESTIONS) {
+    for (const o of q.options) {
+      if (!m.has(o.id)) m.set(o.id, o.label);
+    }
+  }
+  return m;
+})();
+
+// "snake_case" / "kebab-case" id -> "Snake case" fallback for ids not in the
+// option vocabulary (e.g. wizard-local labour ids).
+function humanizeOptionId(id: string): string {
+  const s = id.replace(/[_-]+/g, ' ').trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : id;
+}
+
+function labelForOptionId(id: string): string {
+  return VISION_OPTION_LABELS.get(id) ?? humanizeOptionId(id);
+}
+
+/**
+ * Compose the read-side "declared intent" DataPoint from a project's structured
+ * visionProfile, or null when the project carries no surfaceable vision content.
+ * Pure + store-free (mirrors resolveProjectTypeLabel); unit-tested.
+ */
+export function buildDeclaredIntentPoint(
+  project: LocalProject | undefined,
+): DataPoint | null {
+  const vp = project?.metadata?.visionProfile;
+  if (!vp) return null;
+
+  const statement = vp.landIdentity
+    ?.find((s) => typeof s === 'string' && s.trim().length > 0)
+    ?.trim();
+  const outcomes = (vp.primaryOutcomes ?? []).map(labelForOptionId);
+  const budget = vp.budgetRange ? labelForOptionId(vp.budgetRange) : undefined;
+  const timeline = vp.timelineProgress
+    ? labelForOptionId(vp.timelineProgress)
+    : undefined;
+  const labour = vp.resourceConstraints?.[0]
+    ? labelForOptionId(vp.resourceConstraints[0])
+    : undefined;
+
+  const hasContent =
+    Boolean(statement) ||
+    outcomes.length > 0 ||
+    Boolean(budget) ||
+    Boolean(timeline) ||
+    Boolean(labour);
+  if (!hasContent) return null;
+
+  const value = statement ?? (outcomes.length > 0 ? outcomes.join(', ') : 'Declared');
+
+  const noteLines: string[] = [];
+  if (statement) noteLines.push(`Vision: ${statement}`);
+  if (outcomes.length > 0) noteLines.push(`Goals: ${outcomes.join(', ')}`);
+  if (budget) noteLines.push(`Budget: ${budget}`);
+  if (timeline) noteLines.push(`Timeline: ${timeline}`);
+  if (labour) noteLines.push(`Labour: ${labour}`);
+  const notes = noteLines.length > 0 ? noteLines.join('\n') : undefined;
+
+  const when = calendarDate(vp.updatedAt ?? vp.completedAt);
+
+  return {
+    id: 'declared-intent',
+    type: 'declaration',
+    label: 'Declared project intent',
+    value,
+    notes,
+    observedAt: when,
+    recordedAt: when,
+    confidence: 'low',
+  };
 }
 
 // ── the hook ──────────────────────────────────────────────────────────────────

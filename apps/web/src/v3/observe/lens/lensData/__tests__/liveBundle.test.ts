@@ -30,8 +30,10 @@ import {
 import {
   buildLiveLensBundle,
   buildObservationPins,
+  buildDeclaredIntentPoint,
   computeDomainRollups,
 } from '../liveBundle.js';
+import type { LocalProject } from '../../../../../store/projectStore.js';
 
 // Fixed baseline so freshness / ages are deterministic (matches the seed era).
 const NOW_MS = Date.parse('2026-06-03T12:00:00.000Z');
@@ -253,5 +255,70 @@ describe('buildLiveLensBundle -- specialised from seed captures', () => {
     )!;
     expect(econSub.points).toHaveLength(0);
     expect(econSub.emptyNote).toBeTruthy();
+  });
+});
+
+describe('buildDeclaredIntentPoint', () => {
+  // The composer only touches project.metadata.visionProfile; a partial cast
+  // keeps the fixtures minimal without standing up a full LocalProject.
+  const projectWith = (visionProfile: unknown): LocalProject =>
+    ({ metadata: { visionProfile } }) as unknown as LocalProject;
+
+  it('returns null when the project carries no visionProfile', () => {
+    expect(buildDeclaredIntentPoint(undefined)).toBeNull();
+    expect(
+      buildDeclaredIntentPoint({ metadata: {} } as unknown as LocalProject),
+    ).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith(undefined))).toBeNull();
+  });
+
+  it('returns null when the visionProfile has no surfaceable content', () => {
+    expect(buildDeclaredIntentPoint(projectWith({}))).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith({ landIdentity: ['   '] }))).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith({ primaryOutcomes: [] }))).toBeNull();
+  });
+
+  it('composes a low-confidence declaration point from a full visionProfile', () => {
+    const pt = buildDeclaredIntentPoint(
+      projectWith({
+        landIdentity: ['A quiet regenerative homestead for the family'],
+        primaryOutcomes: ['soil_regeneration', 'food_for_community'],
+        budgetRange: 'over_500k', // known id (ASCII label)
+        timelineProgress: 'immediately', // known id
+        resourceConstraints: ['part_time_solo'], // wizard-local id -> humanized
+        updatedAt: '2026-05-20T10:00:00.000Z',
+      }),
+    );
+    expect(pt).not.toBeNull();
+    expect(pt!.type).toBe('declaration');
+    expect(pt!.confidence).toBe('low');
+    expect(pt!.label).toBe('Declared project intent');
+    // The free-text statement wins as the headline value.
+    expect(pt!.value).toBe('A quiet regenerative homestead for the family');
+    // Notes compose known-id labels + a humanized fallback, omitting absent fields.
+    expect(pt!.notes).toContain('Vision: A quiet regenerative homestead for the family');
+    expect(pt!.notes).toContain('Goals: Soil regeneration, Food for family / community');
+    expect(pt!.notes).toContain('Budget: $500,000+');
+    expect(pt!.notes).toContain('Timeline: Immediately');
+    expect(pt!.notes).toContain('Labour: Part time solo');
+    expect(pt!.recordedAt).toBe('20 May 2026');
+    expect(pt!.observedAt).toBe('20 May 2026');
+  });
+
+  it('falls back to outcome labels for the value when no statement exists', () => {
+    const pt = buildDeclaredIntentPoint(
+      projectWith({ primaryOutcomes: ['soil_regeneration'] }),
+    );
+    expect(pt).not.toBeNull();
+    expect(pt!.value).toBe('Soil regeneration');
+    expect(pt!.notes).toBe('Goals: Soil regeneration');
+    // No date fields when the profile has no updatedAt/completedAt.
+    expect(pt!.recordedAt).toBeUndefined();
+  });
+
+  it('surfaces a statement-only profile', () => {
+    const pt = buildDeclaredIntentPoint(projectWith({ landIdentity: ['Just a vision'] }));
+    expect(pt!.value).toBe('Just a vision');
+    expect(pt!.notes).toBe('Vision: Just a vision');
   });
 });
