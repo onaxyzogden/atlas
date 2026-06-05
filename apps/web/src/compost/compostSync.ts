@@ -17,7 +17,7 @@
  */
 
 import { api, ApiError } from '../lib/apiClient.js';
-import { useConnectivityStore } from '../store/connectivityStore.js';
+import { COMPOST_SYNC_KEY, useConnectivityStore } from '../store/connectivityStore.js';
 import { useCompostStore } from './useCompostStore.js';
 import {
   pileCreateFromPlanRecipe,
@@ -78,7 +78,9 @@ function isPermanent(err: unknown): boolean {
 
 function markSynced(): void {
   const conn = useConnectivityStore.getState();
-  conn.setLastSyncedAt(new Date().toISOString());
+  // Compost is org-scoped and does no project changed-since pull, so this is a
+  // display-only value parked under a synthetic key (never a real projectId).
+  conn.setLastSyncedAt(COMPOST_SYNC_KEY, new Date().toISOString());
   conn.setPendingChanges(useCompostStore.getState().queue.length);
 }
 

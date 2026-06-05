@@ -76,7 +76,7 @@ beforeEach(() => {
   getAllMock.mockReset();
   getAllMock.mockResolvedValue([]); // no pending ops unless a test says so
   changedSinceMock.mockReset();
-  useConnectivityStore.setState({ lastSyncedAt: null });
+  useConnectivityStore.setState({ lastSyncedAt: {} });
   useProjectStore.setState({
     projects: [{ id: 'local-1', serverId: 'srv-1', name: 'P', attachments: [] } as never],
   });
@@ -161,7 +161,7 @@ describe('applyIncomingRecord — guarded server→local apply (Phase 2)', () =>
 
 describe('pullActRecordDelta — reconnect catch-up (Phase 2 Problem B)', () => {
   it('applies changed-since rows and advances the watermark to the newest server updatedAt', async () => {
-    useConnectivityStore.setState({ lastSyncedAt: '2026-06-01T00:00:00.000Z' });
+    useConnectivityStore.setState({ lastSyncedAt: { 'local-1': '2026-06-01T00:00:00.000Z' } });
     changedSinceMock.mockResolvedValue({
       data: [
         { storeKey: STORE_KEY, recordId: 'd1', rev: 1, schemaVersion: 2, payload: { id: 'd1' }, updatedAt: '2026-06-02T00:00:00.000Z' },
@@ -174,13 +174,14 @@ describe('pullActRecordDelta — reconnect catch-up (Phase 2 Problem B)', () => 
     );
 
     expect(applied).toBe(2);
+    // `since` is read per-project from getLastSyncedAt('local-1').
     expect(changedSinceMock).toHaveBeenCalledWith('srv-1', '2026-06-01T00:00:00.000Z');
-    // Newest SERVER updatedAt, not client wall-clock → skew-immune.
-    expect(useConnectivityStore.getState().lastSyncedAt).toBe('2026-06-03T00:00:00.000Z');
+    // Newest SERVER updatedAt, not client wall-clock → skew-immune; keyed per-project.
+    expect(useConnectivityStore.getState().lastSyncedAt['local-1']).toBe('2026-06-03T00:00:00.000Z');
   });
 
   it('leaves the watermark untouched when nothing changed', async () => {
-    useConnectivityStore.setState({ lastSyncedAt: '2026-06-01T00:00:00.000Z' });
+    useConnectivityStore.setState({ lastSyncedAt: { 'local-1': '2026-06-01T00:00:00.000Z' } });
     changedSinceMock.mockResolvedValue({ data: [] });
 
     const applied = await pullActRecordDelta(
@@ -188,12 +189,45 @@ describe('pullActRecordDelta — reconnect catch-up (Phase 2 Problem B)', () => 
     );
 
     expect(applied).toBe(0);
-    expect(useConnectivityStore.getState().lastSyncedAt).toBe('2026-06-01T00:00:00.000Z');
+    expect(useConnectivityStore.getState().lastSyncedAt['local-1']).toBe('2026-06-01T00:00:00.000Z');
   });
 
   it('does nothing for a project with no serverId (never pushed)', async () => {
     const applied = await pullActRecordDelta({ id: 'local-1', name: 'P' } as never);
     expect(applied).toBe(0);
     expect(changedSinceMock).not.toHaveBeenCalled();
+  });
+
+  it("one project's pull does not clobber another project's watermark", async () => {
+    // A already caught up to 06-03; B has never synced (no map entry).
+    useConnectivityStore.setState({ lastSyncedAt: { 'local-1': '2026-06-03T00:00:00.000Z' } });
+    useProjectStore.setState({
+      projects: [
+        { id: 'local-1', serverId: 'srv-1', name: 'A', attachments: [] } as never,
+        { id: 'local-2', serverId: 'srv-2', name: 'B', attachments: [] } as never,
+      ],
+    });
+    changedSinceMock.mockResolvedValue({
+      data: [
+        { storeKey: STORE_KEY, recordId: 'b1', rev: 1, schemaVersion: 2, payload: { id: 'b1' }, updatedAt: '2026-05-20T00:00:00.000Z' },
+      ],
+    });
+
+    await pullActRecordDelta({ id: 'local-2', serverId: 'srv-2', name: 'B' } as never);
+
+    // B had no watermark → full epoch re-pull (since undefined).
+    expect(changedSinceMock).toHaveBeenCalledWith('srv-2', undefined);
+    // B advances to its own newest row; A is untouched (no cross-project clobber).
+    expect(useConnectivityStore.getState().lastSyncedAt['local-2']).toBe('2026-05-20T00:00:00.000Z');
+    expect(useConnectivityStore.getState().lastSyncedAt['local-1']).toBe('2026-06-03T00:00:00.000Z');
+  });
+
+  it('sends since=undefined (full epoch re-pull) when the project has no watermark', async () => {
+    useConnectivityStore.setState({ lastSyncedAt: {} });
+    changedSinceMock.mockResolvedValue({ data: [] });
+
+    await pullActRecordDelta({ id: 'local-1', serverId: 'srv-1', name: 'P' } as never);
+
+    expect(changedSinceMock).toHaveBeenCalledWith('srv-1', undefined);
   });
 });

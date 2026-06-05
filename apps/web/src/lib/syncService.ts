@@ -1843,7 +1843,7 @@ export async function applyIncomingRecord(
 export async function pullActRecordDelta(project: LocalProject): Promise<number> {
   if (!project.serverId) return 0;
   const conn = useConnectivityStore.getState();
-  const since = conn.lastSyncedAt ?? undefined;
+  const since = conn.getLastSyncedAt(project.id);
   let rows: SyncedRecord[];
   try {
     const res = await api.actRecords.changedSince(project.serverId, since);
@@ -1866,8 +1866,9 @@ export async function pullActRecordDelta(project: LocalProject): Promise<number>
     if (ok) applied += 1;
     if (row.updatedAt > newestUpdatedAt) newestUpdatedAt = row.updatedAt;
   }
-  // Advance the watermark only when rows came back, using the server clock.
-  if (rows.length > 0 && newestUpdatedAt) conn.setLastSyncedAt(newestUpdatedAt);
+  // Advance the watermark only when rows came back, using the server clock,
+  // keyed per-project so another project's pull can't clobber this one.
+  if (rows.length > 0 && newestUpdatedAt) conn.setLastSyncedAt(project.id, newestUpdatedAt);
   if (applied > 0) {
     console.info(
       `[SYNC] delta-pull applied ${applied}/${rows.length} record(s) for "${project.name}"`,
@@ -2383,7 +2384,10 @@ async function onOnline() {
     await syncQueue.flush(executeQueuedOp, handleExhaustedOp);
     const remaining = await syncQueue.getPendingCount();
     conn.setPendingChanges(remaining);
-    conn.setLastSyncedAt(new Date().toISOString());
+    // No client-clock watermark write here: pullActRecordDelta above already
+    // advanced the per-project watermark from the server clock. Writing the
+    // client wall clock would clobber it and could skip rows stamped in any
+    // clock-skew window on the next changed-since.
     conn.setSyncStatus('idle');
   } catch (err) {
     console.warn('[SYNC] Queue flush failed:', err);
@@ -2491,9 +2495,11 @@ export const syncService = {
     // re-pushing every hydrated record. No-op when record sync is disabled.
     if (FLAGS.SYNC_STATE_BLOBS) reseedTypedRecordSnapshots();
 
-    // Report sync completion to connectivity store
+    // Connectivity store: no client-clock watermark write here. The per-project
+    // watermark is advanced only by the server-clock delta-pull; if initialSync
+    // pulled nothing new the map stays empty and the next changed-since does a
+    // full (rev-idempotent) epoch re-pull — safe, and skew-immune.
     const conn = useConnectivityStore.getState();
-    conn.setLastSyncedAt(new Date().toISOString());
 
     // Pre-cache map tiles for the active project's bounding box (fire-and-forget)
     if (FLAGS.OFFLINE_MODE) {
@@ -2524,7 +2530,7 @@ export const syncService = {
         .then(async () => {
           const remaining = await syncQueue.getPendingCount();
           conn.setPendingChanges(remaining);
-          conn.setLastSyncedAt(new Date().toISOString());
+          // No client-clock watermark write (see onOnline / pullActRecordDelta).
           conn.setSyncStatus('idle');
         })
         .catch((err) => {
