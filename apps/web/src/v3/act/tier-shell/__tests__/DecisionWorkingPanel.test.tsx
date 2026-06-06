@@ -65,6 +65,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
   type DecisionWorkingPanelProps,
 } from '../DecisionWorkingPanel.js';
+import { decode, summariseLabour } from '../LabourInventoryCapture.js';
 
 const SUCCESS_OPTIONS: readonly CriterionOption[] = [
   { text: 'Infiltration rate doubles on surveyed zones', domain: 'ecological' },
@@ -346,6 +347,102 @@ describe('DecisionWorkingPanel -- feeds callout', () => {
       decision: makeDecision({ isSuccessCriteria: true, feedsLabel: null }),
     });
     expect(screen.queryByText(/these criteria feed/i)).toBeNull();
+  });
+});
+
+describe('DecisionWorkingPanel -- labour inventory', () => {
+  // A complete flat FormValue for a labour decision: who-small + 20 hrs + 1 skill.
+  const COMPLETE_LABOUR: import('../actToolCatalog.js').FormValue = {
+    who: 'who-small',
+    hours: '20',
+    spring: '25',
+    summer: '20',
+    autumn: '30',
+    winter: '10',
+    skills: ['Fencing & earthworks::capable'],
+  };
+
+  it('renders LabourInventoryCapture (not VisionFormFields/textarea/success-criteria) when isLabourInventory is true', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-labour',
+        label: 'Inventory available labour',
+        isLabourInventory: true,
+      }),
+    });
+    // Stable bit of the labour UI: a WHO card label + a section heading.
+    expect(screen.getByText('Small paid team')).toBeTruthy();
+    expect(screen.getByText(/who is the stewardship team/i)).toBeTruthy();
+    // Not the success-criteria surface.
+    expect(screen.queryByText(/suggested criteria/i)).toBeNull();
+  });
+
+  it('disables Record when the labour draft is invalid', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-labour',
+        label: 'Inventory available labour',
+        isLabourInventory: true,
+      }),
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+  });
+
+  it('enables Record with a complete labour value and emits flat value + summariseLabour summary on click', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-labour',
+        label: 'Inventory available labour',
+        isLabourInventory: true,
+      }),
+      initialValue: COMPLETE_LABOUR,
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
+    expect(value.who).toBe('who-small');
+    expect(value.skills).toContain('Fencing & earthworks::capable');
+    expect(summary).toBe(summariseLabour(decode(COMPLETE_LABOUR)));
+    expect(summary).toBe('Small paid team, 20 hrs/wk, 1 skill');
+  });
+
+  it('gate note names the missing requirements for an invalid labour draft', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-labour',
+        label: 'Inventory available labour',
+        isLabourInventory: true,
+      }),
+      initialValue: {},
+    });
+    // who '' -> team; skills empty -> at least one skill (hours falls back to a
+    // display default of 20 in the component, but decode of {} yields 0, so the
+    // panel-side gate -- computed from decode -- names hours too).
+    const gate = screen.getByText(/before recording/i);
+    expect(gate.textContent).toMatch(/team/i);
+    expect(gate.textContent).toMatch(/skill/i);
+  });
+
+  it('surfaces labourSkillSuggestions passed through the panel prop', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-labour',
+        label: 'Inventory available labour',
+        isLabourInventory: true,
+      }),
+      labourSkillSuggestions: ['Fencing & earthworks'],
+    });
+    expect(screen.getByText('Fencing & earthworks')).toBeTruthy();
   });
 });
 
