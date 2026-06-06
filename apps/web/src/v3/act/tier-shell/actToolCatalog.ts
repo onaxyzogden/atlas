@@ -118,10 +118,27 @@ export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
   { id: 'field-logs', label: 'Field logs' },
 ] as const;
 
+export type FormLeafField =
+  | { kind: 'hybrid'; key?: string; label?: string; optionSetId?: string; placeholder?: string }
+  | { kind: 'text'; key?: string; label?: string; placeholder?: string; multiline?: boolean };
+
+export type FormFieldSpec =
+  | (FormLeafField & { required?: boolean })
+  | {
+      kind: 'repeatable';
+      key: string;
+      label: string;
+      min: number;
+      max: number;
+      addLabel?: string;
+      itemLabel?: string;
+      item: FormLeafField;
+    };
+
 export type ActToolArm =
   | { kind: 'map'; mapToolId: MapToolId }
   | { kind: 'log'; quickLogId: string }
-  | { kind: 'form'; formId: string; prompt: string; placeholder?: string }
+  | { kind: 'form'; formId: string; prompt: string; placeholder?: string; fields?: readonly FormFieldSpec[] }
   // Opens the Act-owned <ActFlowConnectorPopover> (list-capture of a source->sink
   // material flow into closedLoopStore). No spatial/draw arm: the popover renders
   // through the reusable Modal, not a map host.
@@ -154,6 +171,16 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'State the primary purpose of this land project in plain language',
       placeholder:
         'Describe the land project in 2-4 sentences. What is it for? Who does it serve? What does success look like in plain terms?',
+      fields: [
+        {
+          kind: 'text',
+          key: 'purpose',
+          label: 'Primary purpose',
+          multiline: true,
+          required: true,
+          placeholder: 'Describe the land project in 2-4 sentences.',
+        },
+      ],
     },
   },
   'success-criteria': {
@@ -167,6 +194,22 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Define 3-5 measurable success criteria for the first planning cycle',
       placeholder:
         'List each criterion on its own line. Make them specific and measurable -- e.g. "10mm/hr infiltration rate on all surveyed zones by end of year 1."',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'criteria',
+          label: 'Success criterion',
+          min: 3,
+          max: 5,
+          addLabel: 'Add criterion',
+          itemLabel: 'Criterion',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'successCriteriaByType',
+            placeholder: 'Pick a suggestion or type your own',
+          },
+        },
+      ],
     },
   },
   'labour-inventory': {
@@ -180,6 +223,43 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Inventory available labour -- hours per week, seasonal variation, skill level',
       placeholder:
         'Who is available? How many hours per week? Does availability change by season? Note relevant skills (earthworks, fencing, irrigation, etc.).',
+      fields: [
+        {
+          kind: 'text',
+          key: 'hoursPerWeek',
+          label: 'Hours available per week',
+          required: true,
+          placeholder: 'e.g. 20',
+        },
+        {
+          kind: 'hybrid',
+          key: 'seasonalVariation',
+          label: 'Seasonal variation',
+          optionSetId: 'laborSeasonality',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'repeatable',
+          key: 'skills',
+          label: 'Relevant skills',
+          min: 0,
+          max: 6,
+          addLabel: 'Add skill',
+          itemLabel: 'Skill',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'laborSkillsByType',
+            placeholder: 'Pick a skill or type your own',
+          },
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is available, named helpers, constraints.',
+        },
+      ],
     },
   },
   'capital-budget': {
@@ -193,6 +273,28 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Inventory available capital -- initial budget and estimated annual operating budget',
       placeholder:
         'State the initial capital available and an estimated annual operating budget. Note any restrictions on how funds can be used.',
+      fields: [
+        {
+          kind: 'text',
+          key: 'initialBudget',
+          label: 'Initial capital budget',
+          required: true,
+          placeholder: 'e.g. $25,000',
+        },
+        {
+          kind: 'text',
+          key: 'annualOperating',
+          label: 'Estimated annual operating budget',
+          placeholder: 'e.g. $8,000 / year',
+        },
+        {
+          kind: 'text',
+          key: 'restrictions',
+          label: 'Restrictions on use of funds',
+          multiline: true,
+          placeholder: 'Any grant conditions, earmarks, or limits.',
+        },
+      ],
     },
   },
   constraints: {
@@ -206,6 +308,22 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Identify non-negotiables and hard constraints',
       placeholder:
         'What cannot change? Include legal, financial, physical, or personal constraints. List each on its own line.',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'constraints',
+          label: 'Constraint',
+          min: 1,
+          max: 8,
+          addLabel: 'Add constraint',
+          itemLabel: 'Constraint',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'constraintsByType',
+            placeholder: 'Pick a common constraint or type your own',
+          },
+        },
+      ],
     },
   },
   'vision-classify': {
@@ -219,6 +337,36 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Classify vision elements as committed vs. aspirational',
       placeholder:
         'Committed: things you will definitely do regardless of cost or effort.\nAspirational: things you want to do if resources allow.',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'committed',
+          label: 'Committed (will do regardless)',
+          min: 1,
+          max: 8,
+          addLabel: 'Add committed element',
+          itemLabel: 'Committed',
+          item: {
+            kind: 'text',
+            placeholder: 'Something you will definitely do',
+            key: 'value',
+          },
+        },
+        {
+          kind: 'repeatable',
+          key: 'aspirational',
+          label: 'Aspirational (if resources allow)',
+          min: 0,
+          max: 8,
+          addLabel: 'Add aspirational element',
+          itemLabel: 'Aspirational',
+          item: {
+            kind: 'text',
+            placeholder: 'Something you want to do if resources allow',
+            key: 'value',
+          },
+        },
+      ],
     },
   },
   assumptions: {
@@ -232,6 +380,22 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
       prompt: 'Record assumptions and known unknowns',
       placeholder:
         'What are you assuming to be true that you have not yet verified? What do you know you do not know? List each on its own line.',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'assumptions',
+          label: 'Assumption / known unknown',
+          min: 1,
+          max: 8,
+          addLabel: 'Add assumption',
+          itemLabel: 'Assumption',
+          item: {
+            kind: 'text',
+            placeholder: 'Something you are assuming but have not verified',
+            key: 'value',
+          },
+        },
+      ],
     },
   },
 
