@@ -136,6 +136,21 @@ is **design-only** this phase, recorded in the consolidated plan.
   keying bespoke children on itemId -- same class as the I-2 rationale-flush fix;
   N-3 aria-pressed parity on the own-role toggle; a precedence-ordering test for
   fields + isVisionClassify).
+- **Deferred nice-to-haves CLOSED -- polish pass `1e2b5607`**
+  (`refactor(act-tier0): close vision-classify review nits`): all three landed
+  TDD-first (RED confirmed before GREEN). **N-1** -- `VisionClassifyCapture` and
+  `LabourInventoryCapture` are now keyed on `decision.itemId` in
+  `DecisionWorkingPanel`, so their transient non-persisted UI state (Unclassified
+  staging / skill composer) resets on a decision switch-and-return; two new panel
+  tests assert the reset. **N-3** -- `aria-pressed` added to the Committed/
+  Aspirational own-role buttons (was `data-active`-only), matching the labour
+  skill-toggle pressed semantics; new a11y test. **Precedence** -- a new panel test
+  locks the load-bearing arm ordering: a target carrying BOTH `fields` AND
+  `isVisionClassify` renders the bespoke surface, not the generic field labels.
+  Re-verified bounded `vitest --pool=forks --testTimeout=20000`:
+  `DecisionWorkingPanel` (28), `VisionClassifyCapture` (15), `LabourInventoryCapture`
+  (32) all green; shared + web `tsc --noEmit` clean. Explicit-pathspec commit (no
+  BOM, Co-Authored-By trailer); foreign WIP untouched; not pushed.
 - **Live smoke: PASS** (2026-06-06, dev `web`:5200 + `api`:3001, API health 200
   DB-backed; no-screenshot-no-claim honored -- two screenshots captured). Route
   `/v3/project/mtc/act/tier-shell/s1-vision` on Moontrance Creek (regenerative

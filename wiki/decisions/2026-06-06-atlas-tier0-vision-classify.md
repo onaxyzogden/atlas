@@ -180,6 +180,14 @@ Clean.
   APPROVED -- no Critical/Important defects; contract verified honored; three
   nice-to-haves deferred (reset transient staging on decision switch, aria-pressed
   parity on the own-role toggle, a precedence-ordering test).
+- Deferred nice-to-haves CLOSED in polish pass `1e2b5607` (TDD-first, RED before
+  GREEN): the bespoke children are keyed on `decision.itemId` so transient
+  non-persisted UI state (Unclassified staging / Labour skill composer) resets on a
+  decision switch; `aria-pressed` added to the own-role buttons; and a precedence
+  test locks the body-router arm ordering (a target with BOTH `fields` and
+  `isVisionClassify` renders the bespoke surface, not generic fields). Re-verified
+  bounded vitest (`DecisionWorkingPanel` 28, `VisionClassifyCapture` 15,
+  `LabourInventoryCapture` 32) green; shared + web `tsc --noEmit` clean.
 - Live smoke (2026-06-06): PASS. `/v3/project/mtc/act/tier-shell/s1-vision`
   (Moontrance Creek, regenerative farm) renders the non-map 3-pane Tier-0
   workbench; `VisionClassifyCapture` shows type-aware regen-farm suggestion chips,
