@@ -102,6 +102,12 @@ describe('VisionClassifyCapture -- decodeClassify', () => {
       aspirational: ['b'],
     });
   });
+
+  it('filters non-string elements within an array (total over garbage)', () => {
+    expect(
+      decodeClassify({ committed: [1, null, 'x'] as unknown as string[], aspirational: [] }),
+    ).toEqual({ committed: ['x'], aspirational: [] });
+  });
 });
 
 // --------------------------------------------------------------------------
@@ -184,6 +190,12 @@ describe('VisionClassifyCapture -- classified cards', () => {
     const { onChange } = renderCapture({ committed: ['Keep'], aspirational: [] });
     fireEvent.click(screen.getByTestId('delete-committed-Keep'));
     expect(onChange).toHaveBeenCalledWith({ committed: [], aspirational: [] });
+  });
+
+  it('switching a committed card moves it to aspirational', () => {
+    const { onChange } = renderCapture({ committed: ['Move me'], aspirational: [] });
+    fireEvent.click(screen.getByTestId('switch-committed-Move me'));
+    expect(onChange).toHaveBeenCalledWith({ committed: [], aspirational: ['Move me'] });
   });
 });
 
