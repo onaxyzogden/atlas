@@ -85,8 +85,17 @@ the progress / dependency-gate engine (defer is display-only this phase).
   `effectiveProgress.byObjective` as `progressByObjective`) vs the unchanged
   `<StageShell>`; trailing `<VisionFormsTabsModal>` suppressed when the workbench
   shows. Existing locals reused verbatim; map render path untouched.
-- **PB8** -- this docs entry + the ADR + index/log updates (explicit-path wiki
+- **PB8 `6f901aed`** -- this docs entry + the ADR + index/log updates (explicit-path wiki
   commit).
+- **I-2 fix `d41a3ce6`** -- `fix(act): flush decision rationale on switch/unmount`.
+  Final-review finding I-2: rationale persisted only onBlur, so a draft typed then
+  abandoned by clicking another decision (no blur) was silently dropped.
+  `DecisionWorkingPanel.tsx` now holds the latest draft in a `useRef` and the
+  `[itemId]` effect cleanup flushes it via the OUTGOING render's `onSaveRationale`
+  (effect-cleanup closure semantics bind the save to the decision being left). The
+  existing idempotent onBlur save is kept. Regression tests added at both panel
+  (flush-on-switch-without-blur, no-save-when-unchanged, flush-on-unmount; 17) and
+  workbench (save lands on the outgoing item id; 11) levels.
 
 ## Verification
 
@@ -101,13 +110,26 @@ the progress / dependency-gate engine (defer is display-only this phase).
   no-prop router/map/multi-store integration component never unit-tested today; the
   swap reuses `handleFormDataSave` verbatim as `onRecord`. Coverage rests on tsc +
   the manual smoke.
-- **Live preview smoke: NOT YET RUN** -- the one remaining manual gate (open a
-  project's Act tier-shell on `s1-vision`; confirm the non-map 3-pane workbench
-  renders; success-criteria chips seed rows; min-3 gate blocks Record; rows cap at
-  5; Record ticks the decision + advances the count; reopen rehydrates rows +
-  rationale; defer marks "needs observation"; a non-success-criteria decision shows
-  the multi-field form; a SPATIAL objective still shows the map shell). Disclosed,
-  not claimed ([[project-screenshot-hang]]).
+- **Live preview smoke: ATTEMPTED, BLOCKED by the documented headless-renderer
+  hang ([[project-screenshot-hang]]) -- NOT claimed working.** Dev server (web 5200
+  + api 3001 + native postgres 5432) up; authenticated; 11 seeded projects.
+  Navigated by deep link to
+  `/v3/project/7f87442e.../act/tier-shell/s1-vision` across three fresh browser
+  restarts with rapid polling. **Root cause** (read from `ActTierShell.tsx:768`):
+  `showTierZeroWorkbench = selectedObjective != null && isTierZeroObjective(...)`
+  is *false* until `objectives` finish async hydration, so the shell transiently
+  mounts `<StageShell>` -> `<DiagnoseMap>` (MapboxGL/WebGL); WebGL init wedges the
+  headless renderer permanently (~2-3 s after navigation) BEFORE the workbench can
+  swap in. Confirmed environmental, not a Phase-B defect: vite builds clean (no
+  compile errors), zero console errors, the renderer is responsive on the
+  s1-vision URL with `hasMap:false` during the early boot window, and wedges only
+  at the transient-map mount. No `/v3/components` gallery route exists in this
+  codebase to use as the map-free escape hatch. Per the no-screenshot-no-claim
+  rule, the workbench's runtime behavior is therefore asserted by the unit/component
+  suite (82/82 incl. the I-2 regressions) + tsc + render-branch source review, NOT
+  by a live screenshot. The manual smoke remains the one open verification gate;
+  recommended re-run path: a non-headless browser, or guard the transient map mount
+  during objectives hydration so the deep link never momentarily mounts WebGL.
 
 ## Hygiene and Amanah
 
@@ -134,5 +156,15 @@ channel, advance purchase, or financing instrument; no CSRA/salam framing
   `data-objective-row` / `criterion-row` testid reconsideration -- to be judged at
   the visual smoke.
 - Finalizing domain-tagged option content (ships REVIEW-flagged).
-- The live preview smoke (the one remaining manual verification gate).
-- Final whole-implementation review (SDD requirement after all tasks).
+- The live preview smoke (the one remaining manual verification gate) -- attempted
+  this session, blocked by the headless-renderer hang; needs a non-headless re-run.
+- **Transient map flash on the `s1-vision` deep link** -- because
+  `showTierZeroWorkbench` is false until `objectives` hydrate, a cold deep-link to
+  the Tier-0 objective momentarily mounts `<StageShell>`/`<DiagnoseMap>` (WebGL)
+  before swapping to the workbench. Harmless in a normal browser (a brief flicker)
+  but it is what wedges the headless preview. Follow-up: gate the StageShell branch
+  on objectives-loaded (or treat an unresolved-but-known-Tier-0 objectiveId as
+  Tier-0) so the deep link never mounts the map.
+- Final whole-implementation review (SDD requirement after all tasks) -- DONE this
+  session (APPROVE-WITH-NITS; I-2 the one actionable finding, now fixed in
+  `d41a3ce6`).
