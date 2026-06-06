@@ -99,6 +99,7 @@ export default function VisionClassifyCapture({
         <span className={css.colCount}>{value[col].length}</span>
       </div>
       <div className={css.colList}>
+        {/* key by text -- inUse() enforces text is unique across all three lists. */}
         {value[col].map((text) => (
           <div key={text} className={css.card} data-col={col}>
             <span className={css.cardText}>{text}</span>
@@ -202,7 +203,7 @@ export default function VisionClassifyCapture({
                   <button
                     type="button"
                     className={css.cardDel}
-                    aria-label={`Discard ${text}`}
+                    aria-label={`Remove "${text}" from staging`}
                     onClick={() => dropUnclassified(text)}
                   >
                     <X size={13} />
