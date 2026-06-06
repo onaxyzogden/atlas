@@ -16,6 +16,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   resolveFieldOptions,
+  resolveLabourSkills,
   FIELD_OPTION_SETS,
   resolveSuccessCriteriaOptions,
   SUCCESS_CRITERIA_OPTIONS,
@@ -76,6 +77,67 @@ describe('resolveFieldOptions', () => {
     const base = FIELD_OPTION_SETS.laborSeasonality!._base ?? [];
     expect(withType).toEqual([...base]);
     expect(withoutType).toEqual([...base]);
+  });
+});
+
+describe('resolveLabourSkills', () => {
+  it('unions _base, then primary, then secondaries in dedup first-seen order', () => {
+    const result = resolveLabourSkills('homestead', ['market_garden']);
+    const set = FIELD_OPTION_SETS.laborSkillsByType!;
+    const base = set._base ?? [];
+    const primary = set.homestead ?? [];
+    const secondary = set.market_garden ?? [];
+
+    const expected: string[] = [];
+    for (const v of [...base, ...primary, ...secondary]) {
+      if (!expected.includes(v)) expected.push(v);
+    }
+    expect(result).toEqual(expected);
+  });
+
+  it('includes the reconciled _base general skills for a primary type', () => {
+    const result = resolveLabourSkills('homestead');
+    const generalSkills = [
+      'General land maintenance',
+      'Fencing & earthworks',
+      'Planting & propagation',
+      'Animal husbandry',
+      'Water systems & irrigation',
+      'Design & survey',
+      'Equipment operation',
+    ];
+    for (const skill of generalSkills) {
+      expect(result).toContain(skill);
+    }
+  });
+
+  it('string parity: equals resolveFieldOptions("laborSkillsByType", ...)', () => {
+    const combos: Array<
+      [Parameters<typeof resolveLabourSkills>[0], string[]]
+    > = [
+      [undefined, []],
+      ['homestead', []],
+      ['regenerative_farm', ['market_garden']],
+      ['silvopasture', ['livestock_operation']],
+    ];
+    for (const [primary, secondaries] of combos) {
+      const viaWrapper = resolveLabourSkills(
+        primary,
+        secondaries as Parameters<typeof resolveLabourSkills>[1],
+      );
+      const viaResolver = resolveFieldOptions(
+        'laborSkillsByType',
+        primary,
+        secondaries as Parameters<typeof resolveFieldOptions>[2],
+      );
+      expect(viaWrapper).toEqual(viaResolver);
+    }
+  });
+
+  it('an unknown/missing primary contributes nothing beyond _base', () => {
+    const base = FIELD_OPTION_SETS.laborSkillsByType!._base ?? [];
+    // `undefined` primary with no secondaries resolves to exactly _base.
+    expect(resolveLabourSkills(undefined)).toEqual([...base]);
   });
 });
 
