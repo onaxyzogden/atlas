@@ -38,6 +38,11 @@ import LabourInventoryCapture, {
   summariseLabour,
   type LabourModel,
 } from './LabourInventoryCapture.js';
+import VisionClassifyCapture, {
+  decodeClassify,
+  isVisionClassifyValid,
+  summariseVisionClassify,
+} from './VisionClassifyCapture.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -60,6 +65,8 @@ export interface DecisionPanelTarget {
   isSuccessCriteria?: boolean;
   /** true => render LabourInventoryCapture (bespoke labour surface) over the draft. */
   isLabourInventory?: boolean;
+  /** true => render VisionClassifyCapture over { committed, aspirational }. */
+  isVisionClassify?: boolean;
 }
 
 export interface DecisionWorkingPanelProps {
@@ -71,6 +78,8 @@ export interface DecisionWorkingPanelProps {
   successCriteriaOptions: readonly CriterionOption[];
   /** resolved skill suggestions for LabourInventoryCapture (LC4 populates; default []). */
   labourSkillSuggestions?: readonly string[];
+  /** suggestions for VisionClassifyCapture chips. */
+  visionClassifySuggestions?: readonly string[];
   /** persisted structured value for this formId ({} => seed via initialFormValue(fields)). */
   initialValue: FormValue;
   /** persisted rationale text. */
@@ -123,6 +132,7 @@ export default function DecisionWorkingPanel({
   resolveOptions,
   successCriteriaOptions,
   labourSkillSuggestions,
+  visionClassifySuggestions = [],
   initialValue,
   initialRationale,
   deferred,
@@ -196,7 +206,9 @@ export default function DecisionWorkingPanel({
 
   // ---------- Validity ----------
   let valid: boolean;
-  if (decision.isLabourInventory) {
+  if (decision.isVisionClassify) {
+    valid = isVisionClassifyValid(decodeClassify(draft));
+  } else if (decision.isLabourInventory) {
     valid = isLabourValid(labourModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
@@ -208,7 +220,13 @@ export default function DecisionWorkingPanel({
   // ---------- Gate note ----------
   let gateNote: JSX.Element | null = null;
   if (invalid) {
-    if (decision.isLabourInventory && labourModel) {
+    if (decision.isVisionClassify) {
+      gateNote = (
+        <div className={css.gateNote}>
+          Classify at least one element before recording
+        </div>
+      );
+    } else if (decision.isLabourInventory && labourModel) {
       const missing: string[] = [];
       if (labourModel.who === '') missing.push('team');
       if (labourModel.hours <= 0) missing.push('weekly hours');
@@ -241,7 +259,9 @@ export default function DecisionWorkingPanel({
   const handleRecord = () => {
     if (invalid) return;
     let summary: string;
-    if (decision.isLabourInventory) {
+    if (decision.isVisionClassify) {
+      summary = summariseVisionClassify(decodeClassify(draft));
+    } else if (decision.isLabourInventory) {
       summary = summariseLabour(labourModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
@@ -277,7 +297,19 @@ export default function DecisionWorkingPanel({
 
       {/* ---------- Body router ---------- */}
       <div className={css.body}>
-        {decision.isSuccessCriteria ? (
+        {decision.isVisionClassify ? (
+          <VisionClassifyCapture
+            value={decodeClassify(draft)}
+            onChange={(next) =>
+              setDraft((d) => ({
+                ...d,
+                committed: next.committed,
+                aspirational: next.aspirational,
+              }))
+            }
+            suggestions={visionClassifySuggestions}
+          />
+        ) : decision.isSuccessCriteria ? (
           <SuccessCriteriaCapture
             value={{ criteria: asArray(draft.criteria) }}
             onChange={(next) =>

@@ -29,7 +29,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import type { CriterionOption } from '@ogden/shared';
 import type { FormFieldSpec } from '../actToolCatalog.js';
 
@@ -443,6 +443,66 @@ describe('DecisionWorkingPanel -- labour inventory', () => {
       labourSkillSuggestions: ['Fencing & earthworks'],
     });
     expect(screen.getByText('Fencing & earthworks')).toBeTruthy();
+  });
+});
+
+describe('DecisionWorkingPanel -- vision classify', () => {
+  it('routes a vision-classify decision to VisionClassifyCapture', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-classify',
+        label: 'Classify vision elements',
+        isVisionClassify: true,
+      }),
+      visionClassifySuggestions: ['Grow food', 'Restore soil'],
+      initialValue: { committed: [], aspirational: [] },
+    });
+    expect(screen.getByText('Suggested vision elements')).toBeTruthy();
+    // Not the success-criteria surface.
+    expect(screen.queryByText(/suggested criteria/i)).toBeNull();
+  });
+
+  it('disables Record until at least one element is classified, then emits the summary', () => {
+    // Empty -> invalid.
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-classify',
+        label: 'Classify',
+        isVisionClassify: true,
+      }),
+      visionClassifySuggestions: ['Grow food'],
+      initialValue: { committed: [], aspirational: [] },
+    });
+    const btnEmpty = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btnEmpty.disabled).toBe(true);
+    expect(btnEmpty.getAttribute('data-locked')).toBe('true');
+    expect(onRecord).not.toHaveBeenCalled();
+
+    // The panel re-seeds only on itemId change, so a fresh render with a
+    // populated initialValue exercises the valid path.
+    cleanup();
+    const { onRecord: onRecord2 } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-classify',
+        label: 'Classify',
+        isVisionClassify: true,
+      }),
+      visionClassifySuggestions: ['Grow food'],
+      initialValue: { committed: ['Grow food'], aspirational: [] },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord2).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord2.mock.calls[0]!;
+    expect(value.committed).toEqual(['Grow food']);
+    expect(value.aspirational).toEqual([]);
+    expect(summary).toBe('1 committed, 0 aspirational');
   });
 });
 
