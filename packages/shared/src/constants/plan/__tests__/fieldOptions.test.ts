@@ -20,6 +20,8 @@ import {
   FIELD_OPTION_SETS,
   resolveSuccessCriteriaOptions,
   SUCCESS_CRITERIA_OPTIONS,
+  resolveVisionClassifyOptions,
+  VISION_CLASSIFY_OPTIONS,
 } from '../fieldOptions.js';
 
 describe('resolveFieldOptions', () => {
@@ -226,5 +228,25 @@ describe('resolveSuccessCriteriaOptions', () => {
       ).map((o) => o.text);
       expect(strings).toEqual(fromCriteria);
     }
+  });
+});
+
+describe('resolveVisionClassifyOptions', () => {
+  it('unions _base + primary + secondaries, dedup first-seen, order-stable', () => {
+    const base = VISION_CLASSIFY_OPTIONS._base ?? [];
+    const result = resolveVisionClassifyOptions('homestead', ['regenerative_farm']);
+    expect(result.slice(0, base.length)).toEqual([...base]);
+    expect(new Set(result).size).toBe(result.length);
+  });
+
+  it('includes the reconciled _base list for a known primary', () => {
+    const base = VISION_CLASSIFY_OPTIONS._base ?? [];
+    const result = resolveVisionClassifyOptions('homestead');
+    for (const item of base) expect(result).toContain(item);
+  });
+
+  it('unknown/missing primary contributes nothing beyond _base', () => {
+    const base = VISION_CLASSIFY_OPTIONS._base ?? [];
+    expect(resolveVisionClassifyOptions(undefined)).toEqual([...base]);
   });
 });

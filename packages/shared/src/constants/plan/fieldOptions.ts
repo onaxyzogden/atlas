@@ -288,3 +288,59 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
     ],
   },
 };
+
+// REVIEW: starter vision-element suggestions, operator to confirm/extend.
+// Plain strings (not domain-tagged) -- a vision element is classified
+// committed-vs-aspirational by the steward, not pre-bucketed here.
+export const VISION_CLASSIFY_OPTIONS: Partial<
+  Record<ProjectTypeId | '_base', readonly string[]>
+> = {
+  _base: [
+    'Grow food for our household',
+    'Restore degraded soil',
+    'Create habitat for wildlife',
+    'Build long-term financial resilience',
+    'Leave the land in better condition than we found it',
+    'Share surplus with the wider community',
+  ],
+  homestead: [
+    'Become largely self-sufficient in food',
+    'Keep small livestock',
+    'Establish a home orchard',
+  ],
+  regenerative_farm: [
+    'Reach commercial production volumes',
+    'Build diverse income streams',
+    'Sequester carbon in pasture and trees',
+  ],
+};
+
+/**
+ * Resolve the vision-element suggestions for a project's type(s): union of
+ * `_base` + primary + each secondary, dedup by string (first-seen),
+ * order-stable. Unknown / missing type ids contribute nothing.
+ *
+ * Order: `_base`, then `primary` (if present), then each `secondary` in array
+ * order. `secondaries` defaults to `[]`.
+ */
+export function resolveVisionClassifyOptions(
+  primary: ProjectTypeId | undefined,
+  secondaries: readonly ProjectTypeId[] = [],
+): string[] {
+  const ordered: readonly (readonly string[])[] = [
+    VISION_CLASSIFY_OPTIONS._base ?? [],
+    primary ? (VISION_CLASSIFY_OPTIONS[primary] ?? []) : [],
+    ...secondaries.map((id) => VISION_CLASSIFY_OPTIONS[id] ?? []),
+  ];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const list of ordered) {
+    for (const s of list) {
+      if (!seen.has(s)) {
+        seen.add(s);
+        result.push(s);
+      }
+    }
+  }
+  return result;
+}
