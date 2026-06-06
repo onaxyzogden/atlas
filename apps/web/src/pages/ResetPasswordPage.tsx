@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
     try {
       await resetPassword(search.token, password);
       // No auto-login — send them to sign in with their new password.
-      navigate({ to: '/login', search: { redirect: '/home' } as never });
+      navigate({ to: '/login', search: { redirect: '/' } as never });
     } catch {
       // Error is in the store (invalid/expired token, or a network failure).
     } finally {
@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
           <button
             type="button"
             className={styles.hintLink}
-            onClick={() => navigate({ to: '/login', search: { redirect: '/home' } as never })}
+            onClick={() => navigate({ to: '/login', search: { redirect: '/' } as never })}
           >
             Back to sign in
           </button>

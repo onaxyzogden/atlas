@@ -93,7 +93,7 @@ export default function RegisterPage() {
         // "check your email" note briefly before landing on /home so the
         // verification email isn't a surprise.
         setStageNote(`We've sent a verification link to ${email}. You can verify anytime — taking you to your projects…`);
-        setTimeout(() => navigate({ to: '/home' }), 1600);
+        setTimeout(() => navigate({ to: '/' }), 1600);
         return;
       }
 
@@ -172,7 +172,7 @@ export default function RegisterPage() {
             onClick={() =>
               navigate({
                 to: '/login',
-                search: { redirect: '/home' } as never,
+                search: { redirect: '/' } as never,
               })
             }
           >
@@ -271,7 +271,7 @@ export default function RegisterPage() {
             onClick={() =>
               navigate({
                 to: '/login',
-                search: { redirect: '/home' } as never,
+                search: { redirect: '/' } as never,
               })
             }
           >

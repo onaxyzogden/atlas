@@ -43,9 +43,9 @@ export default function LoginPage() {
       } else {
         await register(email, password, displayName || undefined);
       }
-      // Success — navigate to requested page or home
-      const dest = search.redirect ?? '/home';
-      navigate({ to: dest as '/home' });
+      // Success — navigate to requested page or let the landing route dispatch
+      const dest = search.redirect ?? '/';
+      navigate({ to: dest as '/' });
     } catch {
       // Error is already in the store — just re-enable the form
     } finally {

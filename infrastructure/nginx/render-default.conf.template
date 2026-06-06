@@ -47,8 +47,10 @@ server {
         proxy_send_timeout 60s;
 
         # WebSocket upgrade support (required for /api/v1/ws/*)
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        # $connection_upgrade comes from the map block in nginx.conf — sends
+        # 'upgrade' only for real WebSocket requests, 'close' for plain HTTP.
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
 
         # CORS handled by Fastify — don't duplicate headers
     }

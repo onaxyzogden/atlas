@@ -40,7 +40,7 @@ export default function VerifyEmailPage() {
       .then(() => {
         setStatus('success');
         // Brief pause so the success state is visible before the redirect.
-        setTimeout(() => navigate({ to: '/home' }), 1200);
+        setTimeout(() => navigate({ to: '/' }), 1200);
       })
       .catch(() => {
         setStatus('error');
@@ -82,7 +82,7 @@ export default function VerifyEmailPage() {
               <button
                 type="button"
                 className={styles.hintLink}
-                onClick={() => navigate({ to: '/login', search: { redirect: '/home' } as never })}
+                onClick={() => navigate({ to: '/login', search: { redirect: '/' } as never })}
               >
                 Back to sign in
               </button>
@@ -100,7 +100,7 @@ export default function VerifyEmailPage() {
               <button
                 type="button"
                 className={styles.hintLink}
-                onClick={() => navigate({ to: '/login', search: { redirect: '/home' } as never })}
+                onClick={() => navigate({ to: '/login', search: { redirect: '/' } as never })}
               >
                 Sign in
               </button>

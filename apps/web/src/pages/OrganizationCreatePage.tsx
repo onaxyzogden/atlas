@@ -197,7 +197,7 @@ export default function OrganizationCreatePage() {
         return;
       }
 
-      navigate({ to: '/home' });
+      navigate({ to: '/' });
     } catch (err) {
       const msg =
         err instanceof ApiError
