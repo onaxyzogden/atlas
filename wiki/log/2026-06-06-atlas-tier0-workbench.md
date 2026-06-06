@@ -110,8 +110,9 @@ the progress / dependency-gate engine (defer is display-only this phase).
   no-prop router/map/multi-store integration component never unit-tested today; the
   swap reuses `handleFormDataSave` verbatim as `onRecord`. Coverage rests on tsc +
   the manual smoke.
-- **Live preview smoke: ATTEMPTED, BLOCKED by the documented headless-renderer
-  hang ([[project-screenshot-hang]]) -- NOT claimed working.** Dev server (web 5200
+- **Live preview smoke: RESOLVED 2026-06-06 -- now PASSES after fix `a842f3f2`,
+  see [[log/2026-06-06-atlas-tier0-cold-load-map-flicker-fix]].** (Original
+  blocked attempt retained below for the record.) Dev server (web 5200
   + api 3001 + native postgres 5432) up; authenticated; 11 seeded projects.
   Navigated by deep link to
   `/v3/project/7f87442e.../act/tier-shell/s1-vision` across three fresh browser
@@ -156,15 +157,15 @@ channel, advance purchase, or financing instrument; no CSRA/salam framing
   `data-objective-row` / `criterion-row` testid reconsideration -- to be judged at
   the visual smoke.
 - Finalizing domain-tagged option content (ships REVIEW-flagged).
-- The live preview smoke (the one remaining manual verification gate) -- attempted
-  this session, blocked by the headless-renderer hang; needs a non-headless re-run.
-- **Transient map flash on the `s1-vision` deep link** -- because
-  `showTierZeroWorkbench` is false until `objectives` hydrate, a cold deep-link to
-  the Tier-0 objective momentarily mounts `<StageShell>`/`<DiagnoseMap>` (WebGL)
-  before swapping to the workbench. Harmless in a normal browser (a brief flicker)
-  but it is what wedges the headless preview. Follow-up: gate the StageShell branch
-  on objectives-loaded (or treat an unresolved-but-known-Tier-0 objectiveId as
-  Tier-0) so the deep link never mounts the map.
+- ~~The live preview smoke (the one remaining manual verification gate)~~ --
+  **DONE 2026-06-06: smoke PASSES after fix `a842f3f2`**
+  ([[log/2026-06-06-atlas-tier0-cold-load-map-flicker-fix]]).
+- ~~**Transient map flash on the `s1-vision` deep link**~~ -- **FIXED 2026-06-06
+  (`a842f3f2`):** `showTierZeroWorkbench` now short-circuits on the URL-synchronous
+  `objectiveId` (the "treat an unresolved-but-known-Tier-0 objectiveId as Tier-0"
+  option), so the cold deep-link never mounts `<StageShell>`/`<DiagnoseMap>`; a
+  non-map placeholder covers the pre-hydration window. See
+  [[log/2026-06-06-atlas-tier0-cold-load-map-flicker-fix]].
 - Final whole-implementation review (SDD requirement after all tasks) -- DONE this
   session (APPROVE-WITH-NITS; I-2 the one actionable finding, now fixed in
   `d41a3ce6`).
