@@ -165,6 +165,31 @@ const PURPOSE_FIELDS: readonly FormFieldSpec[] = [
   },
 ];
 
+// Multi-leaf, no-repeatable form (shape mirrors the real capital-budget tool:
+// initialBudget + annualOperating + restrictions). A flat label list has no
+// unambiguous target here, so preSeedFromLabels must keep initialFormValue
+// defaults (every leaf empty) rather than dumping joined labels into one field.
+const CAPITAL_BUDGET_FIELDS: readonly FormFieldSpec[] = [
+  {
+    kind: 'text',
+    key: 'initialBudget',
+    label: 'Initial capital budget',
+    placeholder: 'Enter the initial budget',
+  },
+  {
+    kind: 'text',
+    key: 'annualOperating',
+    label: 'Annual operating budget',
+    placeholder: 'Enter the annual operating budget',
+  },
+  {
+    kind: 'text',
+    key: 'restrictions',
+    label: 'Restrictions',
+    placeholder: 'Note any restrictions',
+  },
+];
+
 function renderFieldsModal(
   overrides: Partial<React.ComponentProps<typeof VisionFormsTabsModal>> = {},
 ) {
@@ -337,5 +362,45 @@ describe('VisionFormsTabsModal -- structured fields', () => {
     // The single text leaf is pre-seeded from the resolved label (non-empty).
     const input = screen.getByRole('textbox') as HTMLInputElement;
     expect(input.value.trim().length).toBeGreaterThan(0);
+  });
+
+  it('does NOT pre-seed any leaf of a multi-leaf, no-repeatable form from an answerSpec recap', () => {
+    // Regression for final-review finding I-1: a multi-leaf form (capital-budget:
+    // initialBudget + annualOperating + restrictions) has no unambiguous target
+    // for a flat label list, so the resolved band labels must NOT be joined into
+    // the first leaf. All leaves stay empty (the answered values still live in
+    // Plan). Mirrors the single-leaf positive test above, asserting the negative.
+    const capitalTool = mkFieldsTool(
+      's1-vision-c3',
+      'Capital budget',
+      'Inventory available capital',
+      CAPITAL_BUDGET_FIELDS,
+    );
+    renderFieldsModal({
+      tools: [capitalTool],
+      activeFormId: 's1-vision-c3',
+      initialData: {},
+      checklistItems: [
+        {
+          id: 's1-vision-c3',
+          label: 'Capital budget',
+          answerSpec: {
+            fieldType: 'single_select',
+            sourceField: 'projectTypeRecord.primaryTypeId',
+            optionSetId: 'projectPrimaryType',
+            editRoute: 'vision',
+          },
+        },
+      ] as unknown as React.ComponentProps<
+        typeof VisionFormsTabsModal
+      >['checklistItems'],
+      metadata: {
+        projectTypeRecord: { primaryTypeId: 'homestead', secondaryTypeIds: [] },
+      } as unknown as ProjectMetadata,
+    });
+    // Every leaf input renders empty -- no joined labels leaked into any field.
+    const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
+    expect(inputs.length).toBe(3);
+    expect(inputs.every((i) => i.value === '')).toBe(true);
   });
 });

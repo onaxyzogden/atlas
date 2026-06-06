@@ -111,8 +111,8 @@ function formValueHasContent(value: FormValue | undefined): boolean {
  * the structured form supersedes the recap. Rule (no heuristics beyond this):
  *  - exactly ONE repeatable and NO other repeatable -> that repeatable's array
  *    is set to the labels (truncated to `max`; padded with '' up to `min`).
- *  - NO repeatable + at least one text/hybrid leaf -> the FIRST leaf value is
- *    set to `labels.join(", ")`.
+ *  - NO repeatable + EXACTLY ONE text/hybrid leaf -> that leaf value is set to
+ *    `labels.join(", ")`.
  *  - otherwise (multiple repeatables, or multi-leaf mix) -> no pre-seed.
  * Returns a NEW FormValue; never mutates `base`.
  */
@@ -132,11 +132,17 @@ function preSeedFromLabels(
   }
 
   if (repeatables.length === 0) {
-    const firstLeaf = fields.find(
+    // Only pre-seed when the form is a SINGLE text/hybrid leaf. A multi-leaf
+    // form (e.g. capital-budget: initialBudget + annualOperating + restrictions)
+    // has no unambiguous target for a flat label list, so joining the labels
+    // into the first leaf would surface wrong, cross-axis content -- keep the
+    // initialFormValue defaults instead (the answered values still live in Plan).
+    const leaves = fields.filter(
       (f) => (f.kind === 'text' || f.kind === 'hybrid') && !!f.key,
     );
-    if (firstLeaf && firstLeaf.kind !== 'repeatable' && firstLeaf.key) {
-      return { ...base, [firstLeaf.key]: labels.join(', ') };
+    const only = leaves[0];
+    if (leaves.length === 1 && only && only.kind !== 'repeatable' && only.key) {
+      return { ...base, [only.key]: labels.join(', ') };
     }
   }
 
