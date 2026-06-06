@@ -249,6 +249,31 @@ describe('ActTierZeroWorkbench -- success criteria', () => {
   });
 });
 
+describe('ActTierZeroWorkbench -- rationale flush on switch', () => {
+  it('flushes the typed rationale to the OUTGOING item id when a different decision is clicked', () => {
+    const { onSaveRationale } = renderWorkbench();
+    // Default selection is the first checklist item (s1-vision-c1).
+    const ta = screen.getByLabelText(/rationale/i);
+    fireEvent.change(ta, {
+      target: { value: 'Reasoning bound to the first decision.' },
+    });
+    expect(onSaveRationale).not.toHaveBeenCalled();
+    // Click a DIFFERENT decision row WITHOUT blurring the textarea.
+    const rows = screen.getAllByTestId('decision-item');
+    const sc = rows.find(
+      (r) => r.getAttribute('data-item-id') === 's1-vision-c2',
+    )!;
+    fireEvent.click(sc);
+    // The save must land on the OUTGOING item id (s1-vision-c1), not the
+    // newly-selected one.
+    expect(onSaveRationale).toHaveBeenCalledTimes(1);
+    expect(onSaveRationale).toHaveBeenCalledWith(
+      's1-vision-c1',
+      'Reasoning bound to the first decision.',
+    );
+  });
+});
+
 describe('ActTierZeroWorkbench -- recorded badge', () => {
   it('shows the "Recorded" badge when the selected item is in progress', () => {
     renderWorkbench({

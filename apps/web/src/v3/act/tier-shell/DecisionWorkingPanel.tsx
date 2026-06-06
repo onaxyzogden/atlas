@@ -22,7 +22,7 @@
  * only: all glyphs are lucide icons.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Check, Clock, MousePointerClick } from 'lucide-react';
 import type { CriterionOption } from '@ogden/shared';
 import type { FormFieldSpec, FormValue } from './actToolCatalog.js';
@@ -129,13 +129,31 @@ export default function DecisionWorkingPanel({
 
   const itemId = decision?.itemId ?? null;
 
+  // Always holds the LATEST typed rationale so the effect cleanup can flush the
+  // freshest value rather than a stale closure capture. Assigned on every render.
+  const rationaleDraftRef = useRef<string>(rationaleDraft);
+  rationaleDraftRef.current = rationaleDraft;
+
   // Re-seed the draft + rationale whenever the selected decision changes. Keyed
   // on itemId so switching decisions (or returning to one) reloads its persisted
   // value rather than carrying the previous decision's edits.
+  //
+  // The cleanup flushes the OUTGOING decision's rationale before re-seeding (and
+  // on unmount). `initialRationale` and `onSaveRationale` here are the closure
+  // values from the render that CREATED this effect -- i.e. bound to the OUTGOING
+  // item -- which is exactly what we want. This covers switches that never blur
+  // the textarea (e.g. programmatic selection); the onBlur save remains as a
+  // complementary, idempotent path. Saving only when the value actually changed
+  // avoids spurious writes and keeps the flush off the keystroke path.
   useEffect(() => {
     if (!decision) return;
     setDraft(seedDraft(decision, initialValue));
     setRationaleDraft(initialRationale);
+    return () => {
+      if (rationaleDraftRef.current !== initialRationale) {
+        onSaveRationale(rationaleDraftRef.current);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
 
