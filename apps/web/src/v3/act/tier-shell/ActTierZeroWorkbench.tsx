@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Layers } from 'lucide-react';
 import type {
   PlanStratumObjective,
   PlanDecisionChecklistItem,
@@ -34,6 +35,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
+import { boundaryModeFor } from './BoundaryCapture.js';
 import css from './ActTierZeroWorkbench.module.css';
 
 // ---------------------------------------------------------------------------
@@ -100,6 +102,11 @@ export function buildDecisionTarget(
   // generic fields/textarea fallback) takes precedence over any matched form.
   const isVisionClassify = item.id === 's1-vision-classify';
 
+  // Boundary items are detected by id prefix; the panel's isBoundary body-router
+  // arm (BoundaryCapture self-routes on itemId) takes precedence over any
+  // matched generic form. False for every non-boundary id (e.g. s1-vision-*).
+  const isBoundary = item.id.startsWith('s1-boundaries-');
+
   const feedsLabel = item.feedsInto.length
     ? 'Feeds ' +
       item.feedsInto
@@ -117,6 +124,7 @@ export function buildDecisionTarget(
     isSuccessCriteria,
     isLabourInventory,
     isVisionClassify,
+    isBoundary,
   };
 }
 
@@ -171,6 +179,10 @@ export default function ActTierZeroWorkbench({
   }
 
   const completedForActive = progressByObjective[activeObjective.id] ?? [];
+
+  // Boundary objective drives the center-list mode badges + the static
+  // map-activation strip. Neither renders for any other objective (e.g. vision).
+  const isBoundaryObjective = activeObjective.id === 's1-boundaries';
 
   const selectedItem =
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
@@ -232,11 +244,28 @@ export default function ActTierZeroWorkbench({
 
       {/* ---------- CENTER: decision list ---------- */}
       <section className={css.center}>
+        {isBoundaryObjective ? (
+          <div className={css.mapStrip} data-testid="boundary-map-strip">
+            <Layers size={15} className={css.mapStripIcon} aria-hidden="true" />
+            <span>
+              2 overlays will activate on the map: Risk / Compliance, Site
+              Boundary
+            </span>
+          </div>
+        ) : null}
         <DecisionList
           objective={activeObjective}
           completedItemIds={completedForActive}
           selectedItemId={selectedItemId}
           onSelectItem={setSelectedItemId}
+          modeFor={
+            isBoundaryObjective
+              ? (itemId) =>
+                  itemId.startsWith('s1-boundaries-')
+                    ? boundaryModeFor(itemId)
+                    : null
+              : undefined
+          }
         />
       </section>
 

@@ -140,6 +140,29 @@
   background: var(--color-surface, #ffffff);
 }
 
+/* ---------- Boundary map-activation strip (center, above DecisionList) ---------- */
+
+.mapStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-stage-act, #d9a036) 40%, transparent);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text, #1b1e22);
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+}
+
+.mapStripIcon {
+  flex: none;
+  color: var(--color-stage-act, #d9a036);
+}
+
 .right {
   min-width: 0;
   padding: 16px;

@@ -205,6 +205,73 @@ describe('DecisionList -- per-item state', () => {
   });
 });
 
+describe('DecisionList -- mode badges', () => {
+  it('renders a mode badge with the human label when modeFor returns a mode', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => (itemId === 'item-criteria' ? 'mapEntry' : null)}
+      />,
+    );
+    const badge = screen.getByTestId('mode-badge-item-criteria');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toMatch(/map \+ entry/i);
+    // Other rows get no badge.
+    expect(screen.queryByTestId('mode-badge-item-purpose')).toBeNull();
+  });
+
+  it('maps each raw mode key to its human label', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 'm-doc', label: 'Doc row', feedsInto: [], optional: false },
+        { id: 'm-map', label: 'Map row', feedsInto: [], optional: false },
+        { id: 'm-mapEntry', label: 'Map+entry row', feedsInto: [], optional: false },
+        { id: 'm-decision', label: 'Decision row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    const modes: Record<string, string> = {
+      'm-doc': 'doc',
+      'm-map': 'map',
+      'm-mapEntry': 'mapEntry',
+      'm-decision': 'decision',
+    };
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => modes[itemId] ?? null}
+      />,
+    );
+    expect(screen.getByTestId('mode-badge-m-doc').textContent).toMatch(/^Document$/);
+    expect(screen.getByTestId('mode-badge-m-map').textContent).toMatch(/^Map$/);
+    expect(screen.getByTestId('mode-badge-m-mapEntry').textContent).toMatch(
+      /^Map \+ entry$/,
+    );
+    expect(screen.getByTestId('mode-badge-m-decision').textContent).toMatch(
+      /^Decision$/,
+    );
+  });
+
+  it('renders NO mode badge for any row when modeFor is absent', () => {
+    renderList();
+    expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
+    // sanity: queryAllByTestId with a regex returns an empty array.
+    const all = screen
+      .getAllByTestId('decision-item')
+      .map((r) => r.getAttribute('data-item-id'));
+    for (const id of all) {
+      expect(screen.queryByTestId(`mode-badge-${id}`)).toBeNull();
+    }
+  });
+});
+
 describe('DecisionList -- selection', () => {
   it('calls onSelectItem with the item id when a row is clicked', () => {
     const { onSelectItem } = renderList();

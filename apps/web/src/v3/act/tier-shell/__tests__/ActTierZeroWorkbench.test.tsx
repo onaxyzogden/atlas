@@ -381,6 +381,80 @@ describe('buildDecisionTarget -- vision-classify detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- boundary detection', () => {
+  it('flags isBoundary for an s1-boundaries-* decision', () => {
+    const boundaryItem: PlanDecisionChecklistItem = {
+      id: 's1-boundaries-c3',
+      label: 'Identify easements and rights of way',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(boundaryItem);
+    expect(target.isBoundary).toBe(true);
+  });
+
+  it('does NOT flag isBoundary for a vision decision', () => {
+    const classifyItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-classify',
+      label: 'Classify committed vs aspirational vision',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(classifyItem);
+    expect(target.isBoundary).toBe(false);
+  });
+});
+
+describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
+  const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
+    ...ACTIVE_OBJECTIVE,
+    id: 's1-boundaries',
+    title: 'Establish legal & physical boundaries',
+    checklist: [
+      {
+        id: 's1-boundaries-c1',
+        label: 'Confirm title and deed',
+        feedsInto: [],
+        optional: false,
+      },
+      {
+        id: 's1-boundaries-c3',
+        label: 'Identify easements and rights of way',
+        feedsInto: [],
+        optional: false,
+      },
+    ],
+  } as PlanStratumObjective;
+
+  it('renders the map-activation strip when the active objective is s1-boundaries', () => {
+    renderWorkbench({
+      objectives: [BOUNDARY_OBJECTIVE],
+      activeObjectiveId: BOUNDARY_OBJECTIVE.id,
+    });
+    const strip = screen.getByTestId('boundary-map-strip');
+    expect(strip).toBeTruthy();
+    expect(strip.textContent).toMatch(/2 overlays will activate on the map/i);
+    expect(strip.textContent).toMatch(/Risk \/ Compliance/i);
+    expect(strip.textContent).toMatch(/Site Boundary/i);
+  });
+
+  it('renders a mode badge on a boundary decision row', () => {
+    renderWorkbench({
+      objectives: [BOUNDARY_OBJECTIVE],
+      activeObjectiveId: BOUNDARY_OBJECTIVE.id,
+    });
+    // c3 is mapEntry -> "Map + entry".
+    const badge = screen.getByTestId('mode-badge-s1-boundaries-c3');
+    expect(badge.textContent).toMatch(/map \+ entry/i);
+  });
+
+  it('does NOT render the strip or any mode badge for s1-vision', () => {
+    renderWorkbench();
+    expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
+    expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
+  });
+});
+
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
     // Use an objective whose FIRST checklist item is the vision-classify
