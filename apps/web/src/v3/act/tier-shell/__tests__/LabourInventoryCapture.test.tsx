@@ -149,6 +149,19 @@ describe('LabourInventoryCapture -- encode/decode', () => {
     });
   });
 
+  it('round-trips a skill name containing "::" by splitting on the last "::"', () => {
+    // "A::B" at expert encodes to "A::B::expert"; decode must split on the
+    // LAST "::" so the name is preserved and the level is read off the tail.
+    const fv = encode({
+      who: '',
+      hours: 0,
+      seasonal: { spring: 0, summer: 0, autumn: 0, winter: 0 },
+      skills: [{ name: 'A::B', level: 'expert' }],
+    });
+    expect(fv.skills).toEqual(['A::B::expert']);
+    expect(decode(fv).skills).toEqual([{ name: 'A::B', level: 'expert' }]);
+  });
+
   it('decode coerces garbage: NaN hours -> 0, unknown level -> beginner, missing :: -> beginner', () => {
     const fv: FormValue = {
       who: 'who-family',
@@ -354,6 +367,75 @@ describe('LabourInventoryCapture -- skills', () => {
     const rows = screen.getAllByTestId('skill-row');
     expect(rows.length).toBe(SKILLS.length + 1);
     expect(screen.getByText('Hand-built shelters')).toBeTruthy();
+  });
+});
+
+// --------------------------------------------------------------------------
+// default-baking (display defaults baked into the model on first edit)
+// --------------------------------------------------------------------------
+
+describe('LabourInventoryCapture -- default baking from an empty value', () => {
+  it('increasing hours on an empty value bakes the default 20 + step 5 = 25', () => {
+    // {} cast to FormValue mirrors an unset decision: decode yields hours 0,
+    // the component substitutes DEFAULT_HOURS (20) for display, so the first
+    // increase emits 25 (20 + 5), NOT 5.
+    const { onChange } = renderCapture({} as FormValue);
+    fireEvent.click(screen.getByRole('button', { name: /increase hours/i }));
+    expect((onChange.mock.calls[0]![0] as FormValue).hours).toBe('25');
+  });
+
+  it('the same emit bakes the seasonal display defaults (25/20/30/10)', () => {
+    const { onChange } = renderCapture({} as FormValue);
+    fireEvent.click(screen.getByRole('button', { name: /increase hours/i }));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.spring).toBe('25');
+    expect(arg.summer).toBe('20');
+    expect(arg.autumn).toBe('30');
+    expect(arg.winter).toBe('10');
+  });
+
+  it('increasing a season on an empty value bakes default(25) + step 5 = 30 for spring', () => {
+    const { onChange } = renderCapture({} as FormValue);
+    fireEvent.click(screen.getByRole('button', { name: /increase spring/i }));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    // spring default 25 + 5 = 30; the other unset seasonal stay at their bake.
+    expect(arg.spring).toBe('30');
+    expect(arg.summer).toBe('20');
+    expect(arg.autumn).toBe('30');
+    expect(arg.winter).toBe('10');
+    // hours default is baked too.
+    expect(arg.hours).toBe('20');
+  });
+});
+
+// --------------------------------------------------------------------------
+// capacity band boundaries (getCapBand uses h <= b.max at 8/15/25/40/60/999)
+// --------------------------------------------------------------------------
+
+describe('LabourInventoryCapture -- capacity band boundaries', () => {
+  it('hours exactly 25 -> Medium band (max 25)', () => {
+    renderCapture(fullValue({ hours: '25' }));
+    expect(screen.getByText(/Medium -- 1-2 major tasks per week/i)).toBeTruthy();
+  });
+
+  it('hours exactly 40 -> Good band (next band, max 40)', () => {
+    renderCapture(fullValue({ hours: '40' }));
+    expect(screen.getByText(/Good -- solid delivery pace/i)).toBeTruthy();
+  });
+
+  it('hours exactly 8 -> Very light band (max 8)', () => {
+    renderCapture(fullValue({ hours: '8' }));
+    expect(screen.getByText(/Very light -- 1 small task per week/i)).toBeTruthy();
+  });
+
+  it('hours exactly 15 -> Light band (max 15)', () => {
+    renderCapture(fullValue({ hours: '15' }));
+    expect(screen.getByText(/Light -- foundational tasks only/i)).toBeTruthy();
+  });
+
+  it('hours exactly 60 -> Strong band (max 60)', () => {
+    renderCapture(fullValue({ hours: '60' }));
+    expect(screen.getByText(/Strong -- full implementation possible/i)).toBeTruthy();
   });
 });
 
