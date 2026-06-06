@@ -20,12 +20,13 @@
  * derives objective completion from that same store. Act and Plan share one
  * source of truth for checklist progress.
  *
- * Persist key: 'ogden-act-evidence', version 1.
+ * Persist key: 'ogden-act-evidence', version 2.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import type { FormValue } from '../v3/act/tier-shell/actToolCatalog.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,6 +68,8 @@ interface ActEvidenceState {
   byProject: Record<string, ByObjective>;
   /** Vision form text values keyed projectId -> formId -> text. */
   visionForms: Record<string, Record<string, string>>;
+  /** Structured vision form values keyed projectId -> formId -> FormValue. */
+  visionFormData: Record<string, Record<string, FormValue>>;
 
   /**
    * Increment the photo count for a descriptor, capped at maxTarget.
@@ -116,6 +119,18 @@ interface ActEvidenceState {
    * Overwrites any previous value for that formId.
    */
   saveVisionForm(projectId: string, formId: string, text: string): void;
+
+  /**
+   * Persist a structured vision form value AND mirror a human-readable
+   * summary string into visionForms[projectId][formId] (so the existing
+   * "captured" / text readers keep working). Overwrites both for that formId.
+   */
+  saveVisionFormData(
+    projectId: string,
+    formId: string,
+    value: FormValue,
+    summaryText: string,
+  ): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,6 +172,7 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
     (set, get) => ({
       byProject: {},
       visionForms: {},
+      visionFormData: {},
 
       addPhoto: (projectId, objectiveId, descriptorId, maxTarget) => {
         const current = readCapture(
@@ -217,14 +233,38 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
             },
           },
         })),
+
+      saveVisionFormData: (projectId, formId, value, summaryText) =>
+        set((s) => ({
+          visionFormData: {
+            ...s.visionFormData,
+            [projectId]: {
+              ...(s.visionFormData[projectId] ?? {}),
+              [formId]: value,
+            },
+          },
+          // Mirror a readable summary into the legacy string map so the
+          // existing "captured" / text readers keep working unchanged.
+          visionForms: {
+            ...s.visionForms,
+            [projectId]: {
+              ...(s.visionForms[projectId] ?? {}),
+              [formId]: summaryText,
+            },
+          },
+        })),
     }),
     {
       name: 'ogden-act-evidence',
-      version: 1,
+      version: 2,
+      // Passthrough migrate: a v1 blob has no visionFormData; zustand merges
+      // the persisted object over the store creator's defaults, so the field
+      // backfills to {} via the initializer when absent.
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({
         byProject: state.byProject,
         visionForms: state.visionForms,
+        visionFormData: state.visionFormData,
       }),
     },
   ),

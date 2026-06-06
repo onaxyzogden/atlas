@@ -118,6 +118,13 @@ export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
   { id: 'field-logs', label: 'Field logs' },
 ] as const;
 
+// A filled form field value. A text/hybrid field stores a string; a
+// repeatable field stores a string[] (one entry per item). Keyed by the
+// field spec's `key` in FormValue below.
+export type FormFieldValue = string | string[];
+// The structured output of one filled form: field key -> value.
+export type FormValue = Record<string, FormFieldValue>;
+
 export type FormLeafField =
   | { kind: 'hybrid'; key?: string; label?: string; optionSetId?: string; placeholder?: string }
   | { kind: 'text'; key?: string; label?: string; placeholder?: string; multiline?: boolean };
