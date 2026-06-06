@@ -1,0 +1,293 @@
+/**
+ * @vitest-environment happy-dom
+ *
+ * DecisionWorkingPanel -- the RIGHT pane of the Tier-0 workbench: the working
+ * surface for the currently-selected decision. Presentational + locally-drafted;
+ * all persistence is lifted to the parent via callbacks. It owns a local working
+ * draft seeded from persisted values and re-seeded when the selected decision
+ * changes.
+ *
+ * Verified behaviours (PB5 TDD checklist):
+ *   1. decision === null -> empty-state text, no Record button.
+ *   2. isSuccessCriteria -> renders SuccessCriteriaCapture ("Suggested criteria").
+ *   3. fields present (not success-criteria) -> renders that field's label
+ *      (VisionFormFields path); no SuccessCriteriaCapture chips.
+ *   4. no fields -> renders a <textarea> fallback (queried by aria-label).
+ *   5. Record disabled when invalid; enabled when valid; click emits value +
+ *      non-empty summary.
+ *   6. editing the rationale textarea + blur -> onSaveRationale with typed text.
+ *   7. defer button click -> onToggleDefer with !deferred; data-deferred reflects
+ *      the prop.
+ *   8. feeds callout renders feedsLabel when provided; absent when null.
+ *   9. recorded -> a "Recorded" badge appears.
+ *
+ * Lucide forwardRef icons are replaced with clean <svg> stubs (established
+ * pattern; mirrors DecisionList.test). The mock is a generic catch-all so the
+ * children (SuccessCriteriaCapture, VisionFormFields) that import their own
+ * icons render without error.
+ */
+
+import { describe, it, expect, vi } from 'vitest';
+import * as React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import type { CriterionOption } from '@ogden/shared';
+import type { FormFieldSpec } from '../actToolCatalog.js';
+
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const stubbed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(actual)) {
+    const isComponent =
+      (typeof value === 'object' &&
+        value !== null &&
+        '$$typeof' in (value as object)) ||
+      typeof value === 'function';
+    if (isComponent) {
+      const Stub = React.forwardRef<SVGSVGElement, Record<string, unknown>>(
+        function LucideStub(_props, ref) {
+          return React.createElement('svg', {
+            ref,
+            'data-lucide-icon': key,
+            'aria-hidden': 'true',
+          });
+        },
+      );
+      Stub.displayName = `LucideStub(${key})`;
+      stubbed[key] = Stub;
+    } else {
+      stubbed[key] = value;
+    }
+  }
+  return stubbed;
+});
+
+import DecisionWorkingPanel, {
+  type DecisionPanelTarget,
+  type DecisionWorkingPanelProps,
+} from '../DecisionWorkingPanel.js';
+
+const SUCCESS_OPTIONS: readonly CriterionOption[] = [
+  { text: 'Infiltration rate doubles on surveyed zones', domain: 'ecological' },
+  { text: 'Operating budget breaks even by year 2', domain: 'economic' },
+  { text: 'Steward logs weekly observations', domain: 'stewardship' },
+];
+
+const TEXT_FIELDS: readonly FormFieldSpec[] = [
+  { kind: 'text', key: 'purpose', label: 'Primary purpose', required: true },
+];
+
+// The real success-criteria form tool (formId 's1-vision-c2') carries a
+// repeatable `criteria` leaf min3/max5; isFormValueValid + summariseFormValue
+// run against it. The fixture mirrors that so the panel's validity/summary
+// derivation is exercised faithfully.
+const CRITERIA_FIELDS: readonly FormFieldSpec[] = [
+  {
+    kind: 'repeatable',
+    key: 'criteria',
+    label: 'Success criteria',
+    min: 3,
+    max: 5,
+    item: { kind: 'text', label: 'Criterion' },
+  },
+];
+
+function makeDecision(
+  overrides: Partial<DecisionPanelTarget> = {},
+): DecisionPanelTarget {
+  const base: DecisionPanelTarget = {
+    itemId: 's1-vision-c2',
+    label: 'Define 3-5 measurable success criteria',
+    ...overrides,
+  };
+  // A success-criteria decision carries its repeatable criteria fields (as in
+  // the real catalogue) unless the caller supplied explicit fields.
+  if (base.isSuccessCriteria && base.fields === undefined) {
+    return { ...base, fields: CRITERIA_FIELDS };
+  }
+  return base;
+}
+
+function renderPanel(
+  overrides: Partial<DecisionWorkingPanelProps> = {},
+): {
+  onRecord: ReturnType<typeof vi.fn>;
+  onSaveRationale: ReturnType<typeof vi.fn>;
+  onToggleDefer: ReturnType<typeof vi.fn>;
+} {
+  const onRecord = vi.fn();
+  const onSaveRationale = vi.fn();
+  const onToggleDefer = vi.fn();
+  const props: DecisionWorkingPanelProps = {
+    decision: makeDecision(),
+    resolveOptions: () => [],
+    successCriteriaOptions: SUCCESS_OPTIONS,
+    initialValue: {},
+    initialRationale: '',
+    deferred: false,
+    recorded: false,
+    onRecord,
+    onSaveRationale,
+    onToggleDefer,
+    ...overrides,
+  };
+  render(<DecisionWorkingPanel {...props} />);
+  return { onRecord, onSaveRationale, onToggleDefer };
+}
+
+describe('DecisionWorkingPanel -- empty state', () => {
+  it('renders the empty-state prompt and no Record button when decision is null', () => {
+    renderPanel({ decision: null });
+    expect(
+      screen.getByText(/select a decision from the list to work through it here/i),
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /record this decision/i })).toBeNull();
+  });
+});
+
+describe('DecisionWorkingPanel -- body router', () => {
+  it('renders SuccessCriteriaCapture for an isSuccessCriteria decision', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+    });
+    expect(screen.getByText(/suggested criteria/i)).toBeTruthy();
+  });
+
+  it('renders VisionFormFields (field label) for a fielded, non-success-criteria decision', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-c1',
+        label: 'State the primary purpose',
+        fields: TEXT_FIELDS,
+      }),
+    });
+    expect(screen.getByText('Primary purpose')).toBeTruthy();
+    // No success-criteria chips on this path.
+    expect(screen.queryByText(/suggested criteria/i)).toBeNull();
+  });
+
+  it('renders a textarea fallback when there are no fields', () => {
+    const label = 'Confirm the primary steward';
+    renderPanel({
+      decision: makeDecision({ itemId: 's1-vision-steward', label }),
+    });
+    expect(screen.getByLabelText(label)).toBeTruthy();
+  });
+});
+
+describe('DecisionWorkingPanel -- record gate', () => {
+  it('disables Record when the success-criteria draft is invalid', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+      initialValue: { criteria: ['only one'] },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+  });
+
+  it('enables Record with 3 success criteria and emits value + summary on click', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+      initialValue: { criteria: ['alpha', 'beta', 'gamma'] },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
+    expect(value.criteria).toEqual(['alpha', 'beta', 'gamma']);
+    expect(typeof summary).toBe('string');
+    expect(summary.length).toBeGreaterThan(0);
+  });
+
+  it('disables Record for an empty textarea and enables it once text is entered', () => {
+    const label = 'Confirm the primary steward';
+    const { onRecord } = renderPanel({
+      decision: makeDecision({ itemId: 's1-vision-steward', label }),
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    const ta = screen.getByLabelText(label);
+    fireEvent.change(ta, { target: { value: 'Aisha is the primary steward' } });
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
+    expect(value.text).toBe('Aisha is the primary steward');
+    expect(summary).toBe('Aisha is the primary steward');
+  });
+});
+
+describe('DecisionWorkingPanel -- rationale', () => {
+  it('calls onSaveRationale with the typed text on blur', () => {
+    const { onSaveRationale } = renderPanel();
+    const ta = screen.getByLabelText(/rationale/i);
+    fireEvent.change(ta, { target: { value: 'These reflect the dryland baseline.' } });
+    fireEvent.blur(ta);
+    expect(onSaveRationale).toHaveBeenCalledWith('These reflect the dryland baseline.');
+  });
+});
+
+describe('DecisionWorkingPanel -- defer', () => {
+  it('calls onToggleDefer with !deferred and reflects the prop in data-deferred', () => {
+    const { onToggleDefer } = renderPanel({ deferred: false });
+    const btn = screen.getByRole('button', { name: /needs (more )?observation/i });
+    expect(btn.getAttribute('data-deferred')).toBe('false');
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(btn);
+    expect(onToggleDefer).toHaveBeenCalledWith(true);
+  });
+
+  it('reflects deferred=true in data-deferred and toggles back to false', () => {
+    const { onToggleDefer } = renderPanel({ deferred: true });
+    const btn = screen.getByRole('button', { name: /needs (more )?observation/i });
+    expect(btn.getAttribute('data-deferred')).toBe('true');
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(btn);
+    expect(onToggleDefer).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('DecisionWorkingPanel -- feeds callout', () => {
+  it('renders the feedsLabel text when provided', () => {
+    renderPanel({
+      decision: makeDecision({
+        isSuccessCriteria: true,
+        feedsLabel:
+          'These criteria feed Observe: Planning Cycle Baseline -- the first read.',
+      }),
+    });
+    expect(
+      screen.getByText(/these criteria feed observe: planning cycle baseline/i),
+    ).toBeTruthy();
+  });
+
+  it('omits the feeds callout when feedsLabel is null', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true, feedsLabel: null }),
+    });
+    expect(screen.queryByText(/these criteria feed/i)).toBeNull();
+  });
+});
+
+describe('DecisionWorkingPanel -- recorded badge', () => {
+  it('shows a "Recorded" badge when recorded is true', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+      recorded: true,
+    });
+    expect(screen.getByText(/^recorded$/i)).toBeTruthy();
+  });
+
+  it('does not show a "Recorded" badge when recorded is false', () => {
+    renderPanel({ decision: makeDecision({ isSuccessCriteria: true }) });
+    expect(screen.queryByText(/^recorded$/i)).toBeNull();
+  });
+});
