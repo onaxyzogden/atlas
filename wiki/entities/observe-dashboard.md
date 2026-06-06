@@ -511,6 +511,37 @@ canvas swap was absorbed into the foreign WIP `0276a484` (verified by diff, secu
 ancestor, re-apply if dropped); not pushed. `mockData.ts` intact; CSRA untouched
 ([[fiqh-csra-erased-2026-05-04]]).
 
+## Declared-intent read-side projection (2026-06-05)
+
+The Human Systems lens **Vision & Project Intent** domain is fed only by persisted
+`ObserveDataPoint`s, so real (non-builtin) projects -- which get zero seeded observe
+points -- showed "Not yet observed" there even though their declared vision sits in
+`metadata.visionProfile` (the Phase-2 wizard writes `landIdentity` statement,
+`primaryOutcomes`, `budgetRange`, `timelineProgress`, `resourceConstraints`). A pure,
+store-free `buildDeclaredIntentPoint(project)` (`liveBundle.ts`) now projects that
+declaration into a single synthetic `DataPoint` (`type:'declaration'`,
+`id:'declared-intent'`, `confidence:'low'`), framed as a DECLARATION, not a field
+observation -- composed from the structured profile via the authoritative
+`VISION_QUESTIONS` `id->label` vocabulary with a `humanizeOptionId` fallback.
+`useLiveLensBundle` passes it (memoised on the project ref) into `LiveBundleInput`; in
+the per-lens loop the `vision-intent` `keyData` value becomes "Declared" ONLY when that
+domain has zero real observations (observed status always wins the headline), and the
+point is prepended to the subdomain slide-up with the empty note cleared. A live-only
+`LIVE_TYPE_ICON = { ...TYPE_ICON, declaration:<filled-diamond> }` is returned as
+`typeIcon` (`mockData.ts` untouched).
+
+**Honesty invariant (pinned by tests):** the declaration moves NO count -- lens
+`observations`, `project.totalDataPoints`, `domainsMissingCount`/`CurrentCount`/
+`AgeingCount`, per-lens `summary`/freshness all stay sourced from real points and are
+byte-identical to the `declaredIntent:null` build. Projects with no vision keep the
+honest "Not yet observed". tsc EXIT 0; bounded `liveBundle.test.ts` 29/29. Live
+render-DOM proof blocked by the no-network sandbox renderer hang on the Observe mount
+([[project-screenshot-hang]]) -- disclosed; the change adds no new component/branch
+(generic renderers), so the unit-test proof over the real builder stands in. Commits
+`4d55419d` (Phase 1) + `c05bdcf5` (Phase 2); not pushed. See
+[[decisions/2026-06-05-atlas-observe-declared-intent]],
+[[log/2026-06-05-atlas-observe-declared-intent]].
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
