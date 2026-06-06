@@ -66,6 +66,10 @@ import DecisionWorkingPanel, {
   type DecisionWorkingPanelProps,
 } from '../DecisionWorkingPanel.js';
 import { decode, summariseLabour } from '../LabourInventoryCapture.js';
+import {
+  decodeBoundary,
+  summariseBoundary,
+} from '../BoundaryCapture.js';
 
 const SUCCESS_OPTIONS: readonly CriterionOption[] = [
   { text: 'Infiltration rate doubles on surveyed zones', domain: 'ecological' },
@@ -581,6 +585,155 @@ describe('DecisionWorkingPanel -- bespoke child remount on decision switch', () 
     expect(
       screen.getByRole('button', { name: /Add a skill not listed/i }),
     ).toBeTruthy();
+  });
+});
+
+describe('DecisionWorkingPanel -- boundary', () => {
+  it('routes a boundary decision to BoundaryCapture (doc mode) and not the generic body', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Confirm legal boundaries',
+        isBoundary: true,
+      }),
+      resolveOptions: (id) =>
+        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      initialValue: {},
+    });
+    // BoundaryCapture-specific surface (doc mode: the upload zone testid).
+    expect(screen.getByTestId('doc-upload')).toBeTruthy();
+    // Not the success-criteria surface, and no generic textarea fallback.
+    expect(screen.queryByText(/suggested criteria/i)).toBeNull();
+    expect(
+      screen.queryByLabelText('Confirm legal boundaries'),
+    ).toBeNull();
+  });
+
+  it('renders BoundaryCapture (not generic fields) when a target carries BOTH fields and isBoundary', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Boundary with stray fields',
+        fields: TEXT_FIELDS,
+        isBoundary: true,
+      }),
+      resolveOptions: (id) =>
+        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      initialValue: {},
+    });
+    expect(screen.getByTestId('doc-upload')).toBeTruthy();
+    // The generic VisionFormFields label from TEXT_FIELDS must not render.
+    expect(screen.queryByText('Primary purpose')).toBeNull();
+  });
+
+  it('disables Record and shows a gate note for an invalid boundary draft', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Confirm legal boundaries',
+        isBoundary: true,
+      }),
+      resolveOptions: (id) =>
+        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(screen.getByText(/document status to record/i)).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
+  it('enables Record with a valid boundary draft and emits summariseBoundary summary on click', () => {
+    const VALID: import('../actToolCatalog.js').FormValue = {
+      docName: 'Title document.pdf',
+      docStatus: 'Held',
+      notes: '',
+    };
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Confirm legal boundaries',
+        isBoundary: true,
+      }),
+      resolveOptions: (id) =>
+        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      initialValue: VALID,
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
+    expect(value.docStatus).toBe('Held');
+    expect(summary).toBe(
+      summariseBoundary('s1-boundaries-c1', decodeBoundary('s1-boundaries-c1', VALID)),
+    );
+  });
+
+  it('still saves rationale on blur and toggles defer for a boundary target', () => {
+    const { onSaveRationale, onToggleDefer } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Confirm legal boundaries',
+        isBoundary: true,
+      }),
+      resolveOptions: () => [],
+      initialValue: {},
+    });
+    const ta = screen.getByLabelText(/rationale/i);
+    fireEvent.change(ta, { target: { value: 'Deed on file.' } });
+    fireEvent.blur(ta);
+    expect(onSaveRationale).toHaveBeenCalledWith('Deed on file.');
+    const deferBtn = screen.getByRole('button', {
+      name: /needs (more )?observation/i,
+    });
+    fireEvent.click(deferBtn);
+    expect(onToggleDefer).toHaveBeenCalledWith(true);
+  });
+
+  it('re-seeds the boundary draft when the selected itemId changes (key reset)', () => {
+    const decisionValid = makeDecision({
+      itemId: 's1-boundaries-c1',
+      label: 'Boundary A',
+      isBoundary: true,
+    });
+    const decisionEmpty = makeDecision({
+      itemId: 's1-boundaries-c2',
+      label: 'Boundary B',
+      isBoundary: true,
+    });
+    const props: DecisionWorkingPanelProps = {
+      decision: decisionValid,
+      resolveOptions: (id) =>
+        id === 'boundaryDocStatus' ? ['Held', 'Pending'] : [],
+      successCriteriaOptions: SUCCESS_OPTIONS,
+      initialValue: { docName: '', docStatus: 'Held', notes: '' },
+      initialRationale: '',
+      deferred: false,
+      recorded: false,
+      onRecord: vi.fn(),
+      onSaveRationale: vi.fn(),
+      onToggleDefer: vi.fn(),
+    };
+    const { rerender } = render(<DecisionWorkingPanel {...props} />);
+    // Doc mode body present for c1.
+    expect(screen.getByTestId('doc-upload')).toBeTruthy();
+    // Switch to c2 (map mode) with empty value -> different body, draft re-seeded.
+    rerender(
+      <DecisionWorkingPanel
+        {...props}
+        decision={decisionEmpty}
+        initialValue={{}}
+      />,
+    );
+    expect(screen.queryByTestId('doc-upload')).toBeNull();
+    expect(screen.getByTestId('ack-toggle')).toBeTruthy();
   });
 });
 
