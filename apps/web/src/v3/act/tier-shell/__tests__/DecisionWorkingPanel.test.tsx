@@ -233,6 +233,78 @@ describe('DecisionWorkingPanel -- rationale', () => {
     fireEvent.blur(ta);
     expect(onSaveRationale).toHaveBeenCalledWith('These reflect the dryland baseline.');
   });
+
+  it('flushes the typed rationale when the decision switches without a blur', () => {
+    const onSaveRationale = vi.fn();
+    const decisionA = makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true });
+    const decisionB = makeDecision({ itemId: 's1-vision-c2', isSuccessCriteria: true });
+    const props: DecisionWorkingPanelProps = {
+      decision: decisionA,
+      resolveOptions: () => [],
+      successCriteriaOptions: SUCCESS_OPTIONS,
+      initialValue: {},
+      initialRationale: '',
+      deferred: false,
+      recorded: false,
+      onRecord: vi.fn(),
+      onSaveRationale,
+      onToggleDefer: vi.fn(),
+    };
+    const { rerender } = render(<DecisionWorkingPanel {...props} />);
+    const ta = screen.getByLabelText(/rationale/i);
+    // Type but deliberately do NOT blur.
+    fireEvent.change(ta, { target: { value: 'Drafted for decision A.' } });
+    expect(onSaveRationale).not.toHaveBeenCalled();
+    // Switch to decision B (different itemId) without moving focus.
+    rerender(<DecisionWorkingPanel {...props} decision={decisionB} />);
+    expect(onSaveRationale).toHaveBeenCalledTimes(1);
+    expect(onSaveRationale).toHaveBeenCalledWith('Drafted for decision A.');
+  });
+
+  it('does not save when the rationale is unchanged across a decision switch', () => {
+    const onSaveRationale = vi.fn();
+    const decisionA = makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true });
+    const decisionB = makeDecision({ itemId: 's1-vision-c2', isSuccessCriteria: true });
+    const props: DecisionWorkingPanelProps = {
+      decision: decisionA,
+      resolveOptions: () => [],
+      successCriteriaOptions: SUCCESS_OPTIONS,
+      initialValue: {},
+      initialRationale: 'keep',
+      deferred: false,
+      recorded: false,
+      onRecord: vi.fn(),
+      onSaveRationale,
+      onToggleDefer: vi.fn(),
+    };
+    const { rerender } = render(<DecisionWorkingPanel {...props} />);
+    // Do not type; switch decisions.
+    rerender(<DecisionWorkingPanel {...props} decision={decisionB} />);
+    expect(onSaveRationale).not.toHaveBeenCalled();
+  });
+
+  it('flushes the typed rationale on unmount without a blur', () => {
+    const onSaveRationale = vi.fn();
+    const props: DecisionWorkingPanelProps = {
+      decision: makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true }),
+      resolveOptions: () => [],
+      successCriteriaOptions: SUCCESS_OPTIONS,
+      initialValue: {},
+      initialRationale: '',
+      deferred: false,
+      recorded: false,
+      onRecord: vi.fn(),
+      onSaveRationale,
+      onToggleDefer: vi.fn(),
+    };
+    const { unmount } = render(<DecisionWorkingPanel {...props} />);
+    const ta = screen.getByLabelText(/rationale/i);
+    fireEvent.change(ta, { target: { value: 'Drafted then unmounted.' } });
+    expect(onSaveRationale).not.toHaveBeenCalled();
+    unmount();
+    expect(onSaveRationale).toHaveBeenCalledTimes(1);
+    expect(onSaveRationale).toHaveBeenCalledWith('Drafted then unmounted.');
+  });
 });
 
 describe('DecisionWorkingPanel -- defer', () => {
