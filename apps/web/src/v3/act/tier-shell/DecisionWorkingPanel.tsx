@@ -56,6 +56,13 @@ import VisionClassifyCapture, {
   summariseVisionClassify,
   type ClassifyValue,
 } from './VisionClassifyCapture.js';
+import BoundaryCapture, {
+  boundaryModeFor,
+  decodeBoundary,
+  isBoundaryValid,
+  summariseBoundary,
+  type BoundaryModel,
+} from './BoundaryCapture.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -80,6 +87,8 @@ export interface DecisionPanelTarget {
   isLabourInventory?: boolean;
   /** true => render VisionClassifyCapture over { committed, aspirational }. */
   isVisionClassify?: boolean;
+  /** true => render BoundaryCapture (self-routing on itemId) over the draft. */
+  isBoundary?: boolean;
 }
 
 export interface DecisionWorkingPanelProps {
@@ -223,10 +232,19 @@ export default function DecisionWorkingPanel({
     ? decodeClassify(draft)
     : null;
 
+  // Decode the draft into the boundary model once -- reused by validity, the
+  // gate note, the record summary, and the body renderer (mirrors the labour /
+  // classify patterns above). BoundaryCapture self-routes on itemId internally.
+  const boundaryModel: BoundaryModel | null = decision.isBoundary
+    ? decodeBoundary(decision.itemId, draft)
+    : null;
+
   // ---------- Validity ----------
   let valid: boolean;
   if (decision.isVisionClassify) {
     valid = isVisionClassifyValid(classifyModel!);
+  } else if (decision.isBoundary) {
+    valid = isBoundaryValid(decision.itemId, boundaryModel!);
   } else if (decision.isLabourInventory) {
     valid = isLabourValid(labourModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
@@ -245,6 +263,17 @@ export default function DecisionWorkingPanel({
           Classify at least one element before recording
         </div>
       );
+    } else if (decision.isBoundary) {
+      const mode = boundaryModeFor(decision.itemId);
+      const note =
+        mode === 'doc'
+          ? 'Set a document status to record.'
+          : mode === 'map'
+            ? 'Acknowledge the boundaries to record.'
+            : mode === 'mapEntry'
+              ? 'Add at least one easement (or mark no implications) to record.'
+              : 'Complete the required fields to record.';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLabourInventory && labourModel) {
       const missing: string[] = [];
       if (labourModel.who === '') missing.push('team');
@@ -280,6 +309,8 @@ export default function DecisionWorkingPanel({
     let summary: string;
     if (decision.isVisionClassify) {
       summary = summariseVisionClassify(classifyModel!);
+    } else if (decision.isBoundary) {
+      summary = summariseBoundary(decision.itemId, boundaryModel!);
     } else if (decision.isLabourInventory) {
       summary = summariseLabour(labourModel!);
     } else if (fields) {
@@ -343,6 +374,14 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             skillSuggestions={labourSkillSuggestions ?? []}
+          />
+        ) : decision.isBoundary ? (
+          <BoundaryCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
           />
         ) : hasFields ? (
           <VisionFormFields
