@@ -144,8 +144,26 @@ const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
 // non-map decision workbench instead of the map shell. Scoped to 's1-vision'
 // by id for now; designed to widen later (e.g. a foundation-stratum check)
 // when more non-spatial objectives convert.
+const TIER_ZERO_OBJECTIVE_ID = 's1-vision';
+
+/**
+ * Tier-0 by resolved-objective identity. Used once the per-project objective
+ * set has hydrated and `selectedObjective` is non-null.
+ */
 function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
-  return objective?.id === 's1-vision';
+  return objective?.id === TIER_ZERO_OBJECTIVE_ID;
+}
+
+/**
+ * Tier-0 by route identity — keys off the synchronous URL `objectiveId` so the
+ * map shell is never mounted on a cold deep-link to the vision route while the
+ * objective set is still hydrating (`selectedObjective` lags a tick behind the
+ * route). Matches the same id the resolved-objective predicate checks, so the
+ * two converge once hydration completes; mirrors isTierZeroObjective for the
+ * planned widening to a foundation-stratum check.
+ */
+function isTierZeroObjectiveId(objectiveId: string | null): boolean {
+  return objectiveId === TIER_ZERO_OBJECTIVE_ID;
 }
 
 type RightMode = 'dashboard' | 'detail';
@@ -765,8 +783,14 @@ export default function ActTierShell() {
 
   // Phase B swap flag: render the inline Tier-0 decision workbench in place of
   // the map shell when the selected objective is the universal s1-vision one.
+  // Keyed off the URL-synchronous objectiveId first (not only the resolved
+  // selectedObjective) so a cold deep-link to the vision route never transiently
+  // mounts <StageShell>/<DiagnoseMap> (WebGL) during the tick before objectives
+  // hydrate. Falls back to the resolved-objective check so an in-app selection
+  // whose route change hasn't landed yet still swaps.
   const showTierZeroWorkbench =
-    selectedObjective != null && isTierZeroObjective(selectedObjective);
+    isTierZeroObjectiveId(objectiveId) ||
+    (selectedObjective != null && isTierZeroObjective(selectedObjective));
 
   return (
     <div className={styles.tierShell}>
@@ -780,7 +804,8 @@ export default function ActTierShell() {
         projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
-        {showTierZeroWorkbench && selectedObjective ? (
+        {showTierZeroWorkbench ? (
+          selectedObjective ? (
           <ActTierZeroWorkbench
             projectId={id}
             objectives={stratumObjectives}
@@ -796,6 +821,22 @@ export default function ActTierShell() {
             onSaveRationale={handleSaveRationale}
             onToggleDefer={handleToggleDefer}
           />
+          ) : (
+            // Tier-0 route resolved before its objective set hydrated: hold a
+            // lightweight non-map placeholder rather than falling through to the
+            // map shell (which would mount WebGL and wedge the headless preview).
+            // s1-vision is universal across every resolved set, so
+            // selectedObjective always arrives — this state is strictly transient.
+            <div
+              className={styles.tierZeroLoading}
+              role="status"
+              aria-live="polite"
+            >
+              <span className={styles.tierZeroLoadingText}>
+                Loading decision workbench…
+              </span>
+            </div>
+          )
         ) : (
         <StageShell
           bottomPlacement="between-rails"
