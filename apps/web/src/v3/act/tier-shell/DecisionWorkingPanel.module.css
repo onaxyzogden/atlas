@@ -1,0 +1,344 @@
+/* DecisionWorkingPanel.module.css
+ *
+ * Styles for the Tier-0 workbench RIGHT pane: the working surface for the
+ * currently-selected decision. Converts the mockup's right column into project
+ * design tokens (var() with literal fallbacks). ASCII-only: every glyph (check,
+ * clock, arrow, finger) is a lucide icon rendered by the component, not a
+ * Unicode character here.
+ *
+ * Token substitution notes (mockup -> project token):
+ *   amber Record accent / locked bar -> --color-stage-act; amber tint fill ->
+ *   --color-stage-act-glow-bg. green recorded badge / valid -> --color-success.
+ *   info/teal feeds callout -> --color-info. No exact token names were missing.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ---------- Empty state ---------- */
+
+.empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.emptyTxt {
+  max-width: 22ch;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.10));
+}
+
+.eyebrowRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.recordedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-success, #6b8f6b) 45%,
+    transparent
+  );
+  background: var(--color-success-muted, rgba(107, 143, 107, 0.15));
+  color: var(--color-success-700, #3e5c3e);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.title {
+  font-family: var(--font-serif, 'Cormorant Garamond', serif);
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.25;
+  color: var(--color-text, #1b1e22);
+}
+
+.optBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-alt, #f3efe6);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  vertical-align: middle;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+/* ---------- Body ---------- */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.fallbackTextarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #1b1e22);
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.fallbackTextarea:focus-visible {
+  outline: 2px solid var(--color-stage-act, #d9a036);
+  outline-offset: 1px;
+  border-color: color-mix(
+    in srgb,
+    var(--color-stage-act, #d9a036) 45%,
+    transparent
+  );
+}
+
+/* ---------- Footer ---------- */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.10));
+}
+
+/* Feeds callout (info/teal). */
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-info, #5b8eaf) 35%,
+    transparent
+  );
+  background: var(--color-info-muted, rgba(61, 127, 158, 0.15));
+}
+
+.feedsIcon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-info, #5b8eaf);
+}
+
+.feedsTxt {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+/* Rationale block. */
+.ratBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.secLbl {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.secOptional {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.ratTa {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #1b1e22);
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.ratTa:focus-visible {
+  outline: 2px solid var(--color-stage-act, #d9a036);
+  outline-offset: 1px;
+}
+
+/* Gate note (shown only when invalid). */
+.gateNote {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.gateNote strong {
+  color: var(--color-stage-act, #d9a036);
+  font-weight: 700;
+}
+
+/* Action buttons. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recordBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-stage-act, #d9a036) 55%,
+    transparent
+  );
+  background: var(--color-stage-act, #d9a036);
+  color: #2a2207;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  cursor: pointer;
+  transition: background 120ms ease, opacity 120ms ease;
+}
+
+.recordBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 88%, #000000);
+}
+
+.recordBtn:focus-visible {
+  outline: 2px solid var(--color-stage-act, #d9a036);
+  outline-offset: 2px;
+}
+
+.recordBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.deferBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-muted, #565c63);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.deferBtn:hover {
+  background: var(--color-surface-raised, #faf7ef);
+}
+
+.deferBtn:focus-visible {
+  outline: 2px solid var(--color-stage-act, #d9a036);
+  outline-offset: 1px;
+}
+
+.deferBtn[data-deferred='true'] {
+  border-color: color-mix(
+    in srgb,
+    var(--color-info, #5b8eaf) 45%,
+    transparent
+  );
+  background: var(--color-info-muted, rgba(61, 127, 158, 0.15));
+  color: var(--color-info-700, #365c7c);
+  font-weight: 600;
+}
+
+.deferIcon {
+  flex: none;
+}
