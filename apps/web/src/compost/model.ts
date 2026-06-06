@@ -352,3 +352,188 @@ export function fToC(f: number): number {
 export function fToCStr(f: number): string {
   return `${fToC(f)}°C`;
 }
+
+// ─── Recipe Maker — data + pure helpers (ported from prototype) ────────────────
+// An interactive recipe builder for the Plan stage's "recipe" section. This is a
+// LOCAL planning calculator: nothing here touches the store or API. Values are in
+// 5-gallon buckets (1 bucket ≈ 18.9 L). 35 buckets = a standard 1 m³ hand-turned
+// pile. Two templates sourced from Doug Weatherbee / the-compost-gardener.com.
+
+export type RecipeTemplateKey = 'bacteria' | 'fungi';
+
+export interface RecipeTemplate {
+  highN: number;
+  green: number;
+  brown: number;
+  label: string;
+  color: string;
+}
+
+export interface PlantType {
+  id: string;
+  label: string;
+  icon: string;
+  desc: string;
+  cnMin: number;
+  cnMax: number;
+  recipe: RecipeTemplateKey;
+  note: string;
+}
+
+export type FeedstockCategory = 'highN' | 'green' | 'brown';
+
+export interface Feedstock {
+  id: string;
+  name: string;
+  /** C:N ratio (dry-weight basis, NRAES-54 mid-range). cn === 999 = no nitrogen. */
+  cn: number;
+  /** Bulk density kg/L (as-received, per NRAES-54 / CREF). */
+  bd: number;
+  /** Moisture fraction 0–1 (typical, per NRAES-54). */
+  mf: number;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+  note: string;
+}
+
+export interface RatioBreakdown {
+  highN: number;
+  green: number;
+  brown: number;
+  total: number;
+  highNPct: number;
+  greenPct: number;
+  brownPct: number;
+}
+
+export type MaterialInputs = Record<string, number>;
+
+/** 35 buckets = standard 1 m³ hand-turned pile. */
+export const TARGET_BUCKETS = 35;
+/** 1 five-gallon bucket ≈ 18.9 L. */
+export const BUCKET_L = 18.9;
+
+export const TEMPLATES: Record<RecipeTemplateKey, RecipeTemplate> = {
+  bacteria: { highN: 0.2, green: 0.45, brown: 0.35, label: 'Bacteria-Dominant', color: '#4A8FD4' },
+  fungi: { highN: 0.15, green: 0.35, brown: 0.5, label: 'Fungi-Dominant', color: '#5AAF72' },
+};
+
+// Plant types — the recipe field pre-selects the appropriate template.
+export const PLANT_TYPES: PlantType[] = [
+  { id: 'leafy_veg', label: 'Leafy Vegetables', icon: '🥬', desc: 'Lettuce, spinach, chard, kale', cnMin: 12, cnMax: 18, recipe: 'bacteria', note: 'High-N demand; bacteria-dominant compost drives rapid leaf growth.' },
+  { id: 'brassicas', label: 'Brassicas', icon: '🥦', desc: 'Cabbage, broccoli, cauliflower', cnMin: 15, cnMax: 20, recipe: 'bacteria', note: 'Heavy feeders; bacteria-dominant recipe suits their high N demands.' },
+  { id: 'lawn', label: 'Lawn / Turf', icon: '🌱', desc: 'Ornamental or sports turf', cnMin: 20, cnMax: 30, recipe: 'bacteria', note: 'Bacteria-dominant topdress improves water retention and turf density.' },
+  { id: 'fruiting_veg', label: 'Fruiting Vegetables', icon: '🍅', desc: 'Tomatoes, peppers, squash', cnMin: 20, cnMax: 25, recipe: 'fungi', note: 'Balanced compost; avoid excess N at fruiting stage.' },
+  { id: 'root_veg', label: 'Root Vegetables', icon: '🥕', desc: 'Carrots, beets, parsnips', cnMin: 20, cnMax: 28, recipe: 'fungi', note: 'Lower N encourages root development over leafy growth.' },
+  { id: 'fruit_trees', label: 'Fruit Trees', icon: '🍎', desc: 'Apple, pear, cherry, plum', cnMin: 20, cnMax: 28, recipe: 'fungi', note: 'Fungi-dominant compost supports mycorrhizal networks under orchard canopy.' },
+  { id: 'berry_shrubs', label: 'Berry Shrubs', icon: '🫐', desc: 'Raspberry, blueberry, currant', cnMin: 22, cnMax: 30, recipe: 'fungi', note: 'Fungi-dominant suits perennial root systems; blueberries prefer slightly acidic.' },
+  { id: 'grains', label: 'Grains & Cereals', icon: '🌾', desc: 'Wheat, oats, corn, rye', cnMin: 25, cnMax: 35, recipe: 'fungi', note: 'Carbon-heavy compost mimics natural grassland soil inputs.' },
+  { id: 'perennial_pasture', label: 'Perennial Pasture', icon: '🌿', desc: 'Grass, clover, meadow mixes', cnMin: 25, cnMax: 35, recipe: 'fungi', note: 'High C:N builds humus and supports long-term soil structure.' },
+  { id: 'trees_shrubs', label: 'Trees & Shrubs', icon: '🌳', desc: 'Ornamentals, hedgerows, woodland edge', cnMin: 28, cnMax: 40, recipe: 'fungi', note: 'Woody plants benefit from fungi-dominant compost. Apply as mulch.' },
+];
+
+// Feedstock library in 5-gallon buckets. cn:999 = no nitrogen (excluded from C:N calc).
+export const FEEDSTOCK_LIBRARY: Record<FeedstockCategory, Feedstock[]> = {
+  highN: [
+    { id: 'blood_meal', name: 'Blood meal', cn: 3, bd: 0.56, mf: 0.12, unit: 'bkt', min: 0, max: 2, step: 0.5, note: 'Very high N — max 1–2 buckets per batch' },
+    { id: 'fish_meal', name: 'Fish meal', cn: 5, bd: 0.64, mf: 0.1, unit: 'bkt', min: 0, max: 2, step: 0.5, note: 'Fast-release N; can attract pests' },
+    { id: 'chicken_manure', name: 'Chicken manure (fresh)', cn: 7, bd: 0.56, mf: 0.65, unit: 'bkt', min: 0, max: 6, step: 0.5, note: 'Hot and fast; excellent activator' },
+    { id: 'rabbit_manure', name: 'Rabbit manure', cn: 10, bd: 0.45, mf: 0.55, unit: 'bkt', min: 0, max: 5, step: 0.5, note: 'Cool manure; safe to add without burning' },
+    { id: 'cow_manure', name: 'Cow manure', cn: 17, bd: 0.88, mf: 0.8, unit: 'bkt', min: 0, max: 10, step: 0.5, note: 'Slow steady N; ideal volume manure' },
+    { id: 'horse_manure', name: 'Horse manure', cn: 25, bd: 0.5, mf: 0.7, unit: 'bkt', min: 0, max: 10, step: 0.5, note: 'Common and plentiful; may contain weed seeds' },
+  ],
+  green: [
+    { id: 'grass_clippings', name: 'Grass clippings', cn: 17, bd: 0.27, mf: 0.82, unit: 'bkt', min: 0, max: 12, step: 0.5, note: 'Mat if thick; mix well with browns' },
+    { id: 'kitchen_scraps', name: 'Kitchen scraps', cn: 15, bd: 0.48, mf: 0.73, unit: 'bkt', min: 0, max: 8, step: 0.5, note: 'Mixed fruit & veg; excludes meat/dairy' },
+    { id: 'veg_garden_waste', name: 'Vegetable garden waste', cn: 19, bd: 0.22, mf: 0.78, unit: 'bkt', min: 0, max: 8, step: 0.5, note: 'Stalks, leaves, pulled plants' },
+    { id: 'coffee_grounds', name: 'Coffee grounds', cn: 20, bd: 0.56, mf: 0.63, unit: 'bkt', min: 0, max: 3, step: 0.5, note: 'Slightly acidic; worms love it' },
+    { id: 'seaweed', name: 'Seaweed / kelp', cn: 19, bd: 0.4, mf: 0.78, unit: 'bkt', min: 0, max: 4, step: 0.5, note: 'Rich in trace minerals' },
+    { id: 'alfalfa', name: 'Alfalfa hay', cn: 25, bd: 0.14, mf: 0.1, unit: 'bkt', min: 0, max: 6, step: 0.5, note: 'Good activator; high in N and growth hormones' },
+  ],
+  brown: [
+    { id: 'straw', name: 'Wheat / oat straw', cn: 75, bd: 0.05, mf: 0.12, unit: 'bkt', min: 0, max: 16, step: 0.5, note: 'Classic bulking agent; aeration channels' },
+    { id: 'dry_leaves', name: 'Dried leaves (shredded)', cn: 50, bd: 0.08, mf: 0.35, unit: 'bkt', min: 0, max: 12, step: 0.5, note: 'Shred for faster breakdown' },
+    { id: 'wood_chips', name: 'Wood chips (fine)', cn: 400, bd: 0.24, mf: 0.4, unit: 'bkt', min: 0, max: 6, step: 0.5, note: 'Very slow breakdown; use sparingly' },
+    { id: 'cardboard', name: 'Cardboard (torn, wet)', cn: 350, bd: 0.08, mf: 0.2, unit: 'bkt', min: 0, max: 4, step: 0.5, note: 'Remove tape; soak before adding' },
+    { id: 'corn_stalks', name: 'Corn stalks (chopped)', cn: 60, bd: 0.11, mf: 0.12, unit: 'bkt', min: 0, max: 8, step: 0.5, note: 'Chop finely; bulky if left whole' },
+    { id: 'straw_bedding', name: 'Animal bedding / straw', cn: 80, bd: 0.1, mf: 0.25, unit: 'bkt', min: 0, max: 8, step: 0.5, note: 'Often mixed with manure — check blend' },
+    { id: 'dry_bracken', name: 'Bracken / dried ferns', cn: 45, bd: 0.07, mf: 0.2, unit: 'bkt', min: 0, max: 6, step: 0.5, note: 'Good middle-ground carbon source' },
+    { id: 'wood_ash', name: 'Wood ash', cn: 999, bd: 0.72, mf: 0.05, unit: 'bkt', min: 0, max: 1, step: 0.5, note: 'No nitrogen; raises pH. Max 1 bucket.' },
+  ],
+};
+
+export const ALL_MATERIALS: Feedstock[] = [
+  ...FEEDSTOCK_LIBRARY.highN,
+  ...FEEDSTOCK_LIBRARY.green,
+  ...FEEDSTOCK_LIBRARY.brown,
+];
+
+export const ZERO_INPUTS: MaterialInputs = Object.fromEntries(
+  ALL_MATERIALS.map((m) => [m.id, 0]),
+);
+
+export function buildTemplateInputs(templateKey: RecipeTemplateKey): MaterialInputs {
+  const t = TEMPLATES[templateKey];
+  const targets = {
+    highN: Math.round(TARGET_BUCKETS * t.highN * 2) / 2,
+    green: Math.round(TARGET_BUCKETS * t.green * 2) / 2,
+    brown: Math.round(TARGET_BUCKETS * t.brown * 2) / 2,
+  };
+  const spread = (catKey: FeedstockCategory, total: number): MaterialInputs => {
+    const mats = FEEDSTOCK_LIBRARY[catKey];
+    const perMat = Math.round((total / mats.length) * 2) / 2;
+    return Object.fromEntries(
+      mats.map((m, i) => {
+        const val =
+          i === mats.length - 1
+            ? Math.round((total - perMat * (mats.length - 1)) * 2) / 2
+            : perMat;
+        return [m.id, Math.min(Math.max(val, m.min), m.max)];
+      }),
+    );
+  };
+  return {
+    ...ZERO_INPUTS,
+    ...spread('highN', targets.highN),
+    ...spread('green', targets.green),
+    ...spread('brown', targets.brown),
+  };
+}
+
+// Dry-mass weighted harmonic mean — Cornell Waste Management Institute formula.
+// D_i = buckets × 18.9 L × bd (kg/L) × (1 − mf); R_mix = ΣD_i / Σ(D_i / cn_i).
+// Simple arithmetic averaging is a documented error (compost.tools methodology).
+export function calcBlendedCN(inputs: MaterialInputs): number | null {
+  let sumDryMass = 0;
+  let sumDryMassOverCN = 0;
+  Object.entries(inputs).forEach(([id, qty]) => {
+    if (!qty || qty <= 0) return;
+    const mat = ALL_MATERIALS.find((m) => m.id === id);
+    if (!mat || mat.cn === 999) return;
+    const dryMass = qty * BUCKET_L * mat.bd * (1 - mat.mf);
+    sumDryMass += dryMass;
+    sumDryMassOverCN += dryMass / mat.cn;
+  });
+  if (sumDryMassOverCN === 0) return null;
+  return Math.round(sumDryMass / sumDryMassOverCN);
+}
+
+export function calcRatios(inputs: MaterialInputs): RatioBreakdown {
+  const sum = (cat: FeedstockCategory): number =>
+    FEEDSTOCK_LIBRARY[cat].reduce((s, m) => s + (inputs[m.id] || 0), 0);
+  const highN = sum('highN');
+  const green = sum('green');
+  const brown = sum('brown');
+  const total = highN + green + brown;
+  return {
+    highN,
+    green,
+    brown,
+    total,
+    highNPct: total > 0 ? highN / total : 0,
+    greenPct: total > 0 ? green / total : 0,
+    brownPct: total > 0 ? brown / total : 0,
+  };
+}
