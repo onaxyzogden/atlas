@@ -9,12 +9,17 @@
  * parent via callbacks (onRecord / onSaveRationale / onToggleDefer); this
  * component never touches the store.
  *
- * Body router (in order):
- *   1. decision.isSuccessCriteria -> SuccessCriteriaCapture over { criteria }.
- *   2. decision.fields (non-empty)  -> VisionFormFields over the draft.
- *   3. otherwise                    -> a single textarea bound to draft.text.
+ * Body router (in order -- bespoke arms first, generic fallbacks last):
+ *   1. decision.isVisionClassify  -> VisionClassifyCapture over { committed,
+ *                                    aspirational }.
+ *   2. decision.isLabourInventory -> LabourInventoryCapture over the labour model.
+ *   3. decision.isSuccessCriteria -> SuccessCriteriaCapture over { criteria }.
+ *   4. decision.fields (non-empty) -> VisionFormFields over the draft.
+ *   5. otherwise                   -> a single textarea bound to draft.text.
  *
  * Validity drives the Record button + the gate note:
+ *   - isVisionClassify:  isVisionClassifyValid (>=1 element classified).
+ *   - isLabourInventory: isLabourValid (>=1 labour row).
  *   - fields / success-criteria: isFormValueValid(decision.fields ?? [], draft).
  *   - textarea: draft.text trimmed is non-empty.
  *
@@ -42,6 +47,7 @@ import VisionClassifyCapture, {
   decodeClassify,
   isVisionClassifyValid,
   summariseVisionClassify,
+  type ClassifyValue,
 } from './VisionClassifyCapture.js';
 import css from './DecisionWorkingPanel.module.css';
 
@@ -204,10 +210,16 @@ export default function DecisionWorkingPanel({
     ? decode(draft)
     : null;
 
+  // Decode the draft into the classify model once -- reused by validity, the
+  // record summary, and the body renderer (mirrors the labour pattern above).
+  const classifyModel: ClassifyValue | null = decision.isVisionClassify
+    ? decodeClassify(draft)
+    : null;
+
   // ---------- Validity ----------
   let valid: boolean;
   if (decision.isVisionClassify) {
-    valid = isVisionClassifyValid(decodeClassify(draft));
+    valid = isVisionClassifyValid(classifyModel!);
   } else if (decision.isLabourInventory) {
     valid = isLabourValid(labourModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
@@ -260,7 +272,7 @@ export default function DecisionWorkingPanel({
     if (invalid) return;
     let summary: string;
     if (decision.isVisionClassify) {
-      summary = summariseVisionClassify(decodeClassify(draft));
+      summary = summariseVisionClassify(classifyModel!);
     } else if (decision.isLabourInventory) {
       summary = summariseLabour(labourModel!);
     } else if (fields) {
@@ -299,7 +311,7 @@ export default function DecisionWorkingPanel({
       <div className={css.body}>
         {decision.isVisionClassify ? (
           <VisionClassifyCapture
-            value={decodeClassify(draft)}
+            value={classifyModel!}
             onChange={(next) =>
               setDraft((d) => ({
                 ...d,

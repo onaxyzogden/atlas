@@ -29,7 +29,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { CriterionOption } from '@ogden/shared';
 import type { FormFieldSpec } from '../actToolCatalog.js';
 
@@ -462,8 +462,7 @@ describe('DecisionWorkingPanel -- vision classify', () => {
     expect(screen.queryByText(/suggested criteria/i)).toBeNull();
   });
 
-  it('disables Record until at least one element is classified, then emits the summary', () => {
-    // Empty -> invalid.
+  it('disables Record and shows the gate note when nothing is classified', () => {
     const { onRecord } = renderPanel({
       decision: makeDecision({
         itemId: 's1-vision-classify',
@@ -478,12 +477,12 @@ describe('DecisionWorkingPanel -- vision classify', () => {
     }) as HTMLButtonElement;
     expect(btnEmpty.disabled).toBe(true);
     expect(btnEmpty.getAttribute('data-locked')).toBe('true');
+    expect(screen.getByText(/classify at least one element/i)).toBeTruthy();
     expect(onRecord).not.toHaveBeenCalled();
+  });
 
-    // The panel re-seeds only on itemId change, so a fresh render with a
-    // populated initialValue exercises the valid path.
-    cleanup();
-    const { onRecord: onRecord2 } = renderPanel({
+  it('enables Record once an element is classified and emits the summary', () => {
+    const { onRecord } = renderPanel({
       decision: makeDecision({
         itemId: 's1-vision-classify',
         label: 'Classify',
@@ -498,8 +497,8 @@ describe('DecisionWorkingPanel -- vision classify', () => {
     expect(btn.disabled).toBe(false);
     expect(btn.getAttribute('data-locked')).toBe('false');
     fireEvent.click(btn);
-    expect(onRecord2).toHaveBeenCalledTimes(1);
-    const [value, summary] = onRecord2.mock.calls[0]!;
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
     expect(value.committed).toEqual(['Grow food']);
     expect(value.aspirational).toEqual([]);
     expect(summary).toBe('1 committed, 0 aspirational');
