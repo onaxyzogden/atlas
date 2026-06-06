@@ -108,6 +108,7 @@ import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
   type ActTool,
+  type FormValue,
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
@@ -124,6 +125,9 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 // new object literal, which would trigger an infinite React re-render loop
 // under Zustand v5 (getSnapshot result must be referentially stable).
 const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
+// Stable empty fallback for the visionFormData selector so it never returns a
+// fresh object (which would re-render every store update).
+const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
 // noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
@@ -367,6 +371,12 @@ export default function ActTierShell() {
     (s) => s.visionForms[id] ?? EMPTY_FORMS,
   );
 
+  // Structured form values (the SF capture engine) keyed by formId under this
+  // project. Falls back to a stable empty record when nothing is saved yet.
+  const visionFormData = useActEvidenceStore(
+    (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
+  );
+
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -543,6 +553,22 @@ export default function ActTierShell() {
       // Intentionally do NOT close the popup: saving one tab leaves the tabbed
       // popup open so the steward can fill the remaining fields. Esc /
       // click-outside / the X close it (handled by Modal).
+    },
+    [id, objectiveId],
+  );
+
+  const handleFormDataSave = useCallback(
+    (formId: string, value: FormValue, summary: string) => {
+      useActEvidenceStore.getState().saveVisionFormData(id, formId, value, summary);
+      // The formId IS the checklist item id (1:1 per actToolCatalog design).
+      // Mark it complete (add-only) so the execution-panel checklist reflects
+      // the structured capture, exactly as handleFormSave does for text.
+      if (objectiveId) {
+        usePlanStratumProgressStore
+          .getState()
+          .setItemComplete(id, objectiveId, formId);
+      }
+      // Do NOT close the popup -- the steward continues with other tabs.
     },
     [id, objectiveId],
   );
@@ -951,6 +977,7 @@ export default function ActTierShell() {
         tools={openFormGroup?.tools ?? []}
         activeFormId={openFormGroup?.activeFormId ?? ''}
         initialValues={visionForms}
+        initialData={visionFormData}
         projectId={id}
         metadata={project.metadata ?? null}
         checklistItems={selectedObjective?.checklist ?? []}
@@ -958,6 +985,7 @@ export default function ActTierShell() {
           setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
         }
         onSave={handleFormSave}
+        onSaveData={handleFormDataSave}
         onClose={() => setOpenFormGroup(null)}
       />
     </div>
