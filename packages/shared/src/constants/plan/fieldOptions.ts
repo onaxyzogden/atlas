@@ -63,6 +63,25 @@ export function resolveFieldOptions(
 }
 
 /**
+ * Resolve the ordered, deduplicated labour-skill suggestion list for a
+ * project's chosen type(s). A thin, type-aware named wrapper over
+ * `resolveFieldOptions('laborSkillsByType', ...)` so the labour capture UI has
+ * a single, discoverable source of truth for skill suggestions. Returns
+ * exactly the same array as the underlying resolver (string parity by
+ * construction).
+ *
+ * Order: `_base`, then `primary` (if present), then each `secondary` in array
+ * order. Duplicates removed first-seen. Unknown/missing entries contribute
+ * nothing. `secondaries` defaults to `[]`.
+ */
+export function resolveLabourSkills(
+  primary: ProjectTypeId | undefined,
+  secondaries: readonly ProjectTypeId[] = [],
+): string[] {
+  return resolveFieldOptions('laborSkillsByType', primary, secondaries);
+}
+
+/**
  * Triple-bottom-line domain tag for a success criterion. Used by the Act
  * tier-0 success-criteria capture UI to balance ecological, economic, and
  * stewardship outcomes when an operator selects/curates criteria.
@@ -212,10 +231,22 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
     ],
   },
 
+  // REVIEW: `_base` reconciled with the labour-inventory mockup's general
+  // skills (General land maintenance, Fencing & earthworks, Planting &
+  // propagation, Animal husbandry, Water systems & irrigation, Design &
+  // survey, Equipment operation). Pre-existing generic entries are preserved;
+  // mockup skills not already present were folded in, deduped first-seen.
+  // Operator to confirm/extend before treating as authoritative.
   laborSkillsByType: {
     _base: [
-      'General manual labor',
+      'General land maintenance',
+      'Fencing & earthworks',
+      'Planting & propagation',
+      'Animal husbandry',
+      'Water systems & irrigation',
+      'Design & survey',
       'Equipment operation',
+      'General manual labor',
       'Record keeping',
       'Composting',
       'Basic carpentry',
