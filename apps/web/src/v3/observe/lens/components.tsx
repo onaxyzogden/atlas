@@ -7,6 +7,7 @@
 // identity originates in @ogden/shared via OBSERVE_LENSES.
 
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ObserveLensId } from '@ogden/shared';
 import { C, F } from './tokens.js';
 import { useLensData } from './lensData/LensDataContext.js';
@@ -228,6 +229,16 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
 }) {
   const { domainDetail: DOMAIN_DETAIL, project: PROJECT } = useLensData();
   const detail = DOMAIN_DETAIL[activeLens as ObserveLensId];
+  // Router-sourced projectId: present on the project-scoped Observe mounts
+  // (/v3/project/$projectId/observe/...), absent on the standalone mock
+  // prototype route. The "Review in Plan" CTA only navigates when scoped to a
+  // real project; in the mock prototype it stays inert.
+  const navigate = useNavigate();
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const handleReviewInPlan = () => {
+    if (!projectId) return;
+    navigate({ to: '/v3/project/$projectId/plan', params: { projectId } });
+  };
   return (
     <div>
       {PROJECT.planRevision.active && (
@@ -241,7 +252,7 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
               <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 1 }}>{t.detail}</div>
             </div>
           ))}
-          <button style={{ marginTop: 8, width: '100%', padding: '6px 0', background: C.amber + '20', border: `1px solid ${C.amber}40`, borderRadius: 6, color: C.amber, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>Review in Plan →</button>
+          <button type="button" onClick={handleReviewInPlan} disabled={!projectId} style={{ marginTop: 8, width: '100%', padding: '6px 0', background: C.amber + '20', border: `1px solid ${C.amber}40`, borderRadius: 6, color: C.amber, fontSize: 12, fontWeight: 600, cursor: projectId ? 'pointer' : 'default', fontFamily: F.sans }}>Review in Plan →</button>
         </div>
       )}
       <div style={{ padding: '12px 12px 0' }}>
