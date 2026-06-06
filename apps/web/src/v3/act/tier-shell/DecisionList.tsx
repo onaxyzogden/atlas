@@ -37,13 +37,31 @@ export interface DecisionListProps {
   selectedItemId: string | null;
   /** Lift selection to the parent (which owns the right working panel). */
   onSelectItem: (itemId: string) => void;
+  /**
+   * OPTIONAL capture-mode resolver. When provided AND it returns a non-null
+   * RAW mode key for a row, a small mode badge renders on that row (next to the
+   * label / optional badge). DecisionList maps the raw key to a human label
+   * (see MODE_LABELS). When absent, NO badge renders -- existing behaviour.
+   */
+  modeFor?: (itemId: string) => string | null;
 }
+
+// Raw boundary-mode key -> human label. The keys mirror BoundaryMode
+// ('doc' | 'map' | 'mapEntry' | 'decision'); unknown keys fall back to the raw
+// string so the badge still renders something legible.
+const MODE_LABELS: Record<string, string> = {
+  doc: 'Document',
+  map: 'Map',
+  mapEntry: 'Map + entry',
+  decision: 'Decision',
+};
 
 export default function DecisionList({
   objective,
   completedItemIds,
   selectedItemId,
   onSelectItem,
+  modeFor,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
   const items = objective.checklist;
@@ -77,6 +95,8 @@ export default function DecisionList({
           const feedNames = item.feedsInto.map(
             (targetId) => findObjectiveGlobally(targetId)?.title ?? targetId,
           );
+          const rawMode = modeFor ? modeFor(item.id) : null;
+          const modeLabel = rawMode ? (MODE_LABELS[rawMode] ?? rawMode) : null;
           return (
             <div
               key={item.id}
@@ -108,6 +128,14 @@ export default function DecisionList({
                   {item.label}
                   {item.optional ? (
                     <span className={css.dOptBadge}>optional</span>
+                  ) : null}
+                  {modeLabel ? (
+                    <span
+                      className={css.dModeBadge}
+                      data-testid={`mode-badge-${item.id}`}
+                    >
+                      {modeLabel}
+                    </span>
                   ) : null}
                 </div>
                 {feedNames.length > 0 ? (
