@@ -22,7 +22,11 @@ import type {
   PlanDecisionChecklistItem,
   ProjectTypeId,
 } from '@ogden/shared';
-import { resolveFieldOptions, resolveSuccessCriteriaOptions } from '@ogden/shared';
+import {
+  resolveFieldOptions,
+  resolveSuccessCriteriaOptions,
+  resolveLabourSkills,
+} from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 import DecisionList from './DecisionList.js';
 import DecisionWorkingPanel, {
@@ -82,6 +86,13 @@ export function buildDecisionTarget(
     ),
   );
 
+  // Labour inventory is detected via the matched form tool's formId. Since the
+  // tool is joined by `formId === item.id`, this is true exactly for the labour
+  // decision (mirrors the existing form-tool join above).
+  const isLabourInventory = Boolean(
+    tool && tool.arm.kind === 'form' && tool.arm.formId === 's1-vision-labour',
+  );
+
   const feedsLabel = item.feedsInto.length
     ? 'Feeds ' +
       item.feedsInto
@@ -97,6 +108,7 @@ export function buildDecisionTarget(
     fields,
     feedsLabel,
     isSuccessCriteria,
+    isLabourInventory,
   };
 }
 
@@ -140,6 +152,7 @@ export default function ActTierZeroWorkbench({
   const primary = primaryTypeId ?? undefined;
   const secondaries = secondaryTypeIds ?? [];
   const scOptions = resolveSuccessCriteriaOptions(primary, secondaries);
+  const labourSkills = resolveLabourSkills(primary, secondaries);
   const resolveOptions = (optionSetId: string) =>
     resolveFieldOptions(optionSetId, primary, secondaries);
 
@@ -224,6 +237,7 @@ export default function ActTierZeroWorkbench({
           decision={target}
           resolveOptions={resolveOptions}
           successCriteriaOptions={scOptions}
+          labourSkillSuggestions={labourSkills}
           initialValue={selectedItem ? (formValues[selectedItem.id] ?? {}) : {}}
           initialRationale={
             selectedItem ? (rationales[selectedItem.id] ?? '') : ''
