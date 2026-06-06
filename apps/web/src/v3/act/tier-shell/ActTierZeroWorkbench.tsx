@@ -16,7 +16,7 @@
  * are project var()s with literal fallbacks (see ActTierZeroWorkbench.module.css).
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   PlanStratumObjective,
   PlanDecisionChecklistItem,
@@ -133,18 +133,15 @@ export default function ActTierZeroWorkbench({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeObjectiveId]);
 
-  // Pure option resolution from the project type ids (null -> undefined).
+  // Pure option resolution from the project type ids (null -> undefined). The
+  // resolvers are pure and cheap; we intentionally do NOT useMemo them because
+  // `secondaryTypeIds ?? []` mints a fresh array each render, which would defeat
+  // memo stabilization anyway -- computing inline keeps code and intent aligned.
   const primary = primaryTypeId ?? undefined;
   const secondaries = secondaryTypeIds ?? [];
-  const scOptions = useMemo(
-    () => resolveSuccessCriteriaOptions(primary, secondaries),
-    [primary, secondaries],
-  );
-  const resolveOptions = useMemo(
-    () => (optionSetId: string) =>
-      resolveFieldOptions(optionSetId, primary, secondaries),
-    [primary, secondaries],
-  );
+  const scOptions = resolveSuccessCriteriaOptions(primary, secondaries);
+  const resolveOptions = (optionSetId: string) =>
+    resolveFieldOptions(optionSetId, primary, secondaries);
 
   // ---------- Empty container ----------
   if (!activeObjective) {
