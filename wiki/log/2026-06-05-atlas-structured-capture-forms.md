@@ -115,6 +115,29 @@ legacy string map so all existing "captured" / text readers keep working.
   tool still shows the textarea fallback). Disclosed, not claimed
   ([[project-screenshot-hang]]).
 
+## Post-review fix (final code review: APPROVE-WITH-NITS)
+
+A whole-implementation review (superpowers code-reviewer) verified web `tsc`
+EXIT 0 + 34/34 bounded tests and returned **APPROVE-WITH-NITS** with one
+Important finding:
+
+- **`c1c80fad`** `fix(act): only pre-seed structured form from recap when single leaf`
+  -- finding I-1: `preSeedFromLabels` pre-seeded the FIRST leaf with the joined
+  answerSpec labels whenever a form had zero repeatables, even multi-leaf forms.
+  For `capital-budget` (initialBudget + annualOperating + restrictions, no
+  repeatable; `band` answerSpec) this dumped joined cross-axis band labels into
+  the single numeric "Initial capital budget" field. Restricted the no-repeatable
+  pre-seed to forms with EXACTLY ONE keyed text/hybrid leaf; multi-leaf forms keep
+  `initialFormValue` defaults (answered values still live in Plan). Added a
+  regression test (multi-leaf form leaves every leaf empty on recap). Bounded
+  vitest 16/16; web `tsc` clean.
+
+Deferred Minors (noted, not actioned): array-index React `key` on repeatable
+rows (cosmetic; value is source of truth, free-mode flags explicitly compacted);
+`purpose-statement` pre-seeds the bare project-type label into its prose field
+(editable, harmless); structured-tab captured-dot does not reflect a
+wizard-answered-but-unsaved tab until first save.
+
 ## Hygiene and Amanah
 
 Explicit-pathspec `git commit -F` per task (here-string avoided where the message
