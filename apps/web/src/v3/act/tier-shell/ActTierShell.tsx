@@ -140,30 +140,29 @@ const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // known S1 id literal so the derived stratum id stays a plain string.
 const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
 
-// Phase B Tier-0 swap: the universal vision objective renders the inline
-// non-map decision workbench instead of the map shell. Scoped to 's1-vision'
-// by id for now; designed to widen later (e.g. a foundation-stratum check)
-// when more non-spatial objectives convert.
-const TIER_ZERO_OBJECTIVE_ID = 's1-vision';
+// Phase B/C Tier-0 swap: non-spatial foundation objectives render the inline
+// non-map decision workbench instead of the map shell. Widened incrementally
+// from a single id to a membership set as more objectives convert (Phase C
+// part 3 adds 's1-boundaries' alongside the universal 's1-vision').
+const TIER_ZERO_OBJECTIVE_IDS = new Set<string>(['s1-vision', 's1-boundaries']);
 
 /**
  * Tier-0 by resolved-objective identity. Used once the per-project objective
  * set has hydrated and `selectedObjective` is non-null.
  */
 function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
-  return objective?.id === TIER_ZERO_OBJECTIVE_ID;
+  return objective != null && TIER_ZERO_OBJECTIVE_IDS.has(objective.id);
 }
 
 /**
  * Tier-0 by route identity — keys off the synchronous URL `objectiveId` so the
- * map shell is never mounted on a cold deep-link to the vision route while the
+ * map shell is never mounted on a cold deep-link to a Tier-0 route while the
  * objective set is still hydrating (`selectedObjective` lags a tick behind the
- * route). Matches the same id the resolved-objective predicate checks, so the
- * two converge once hydration completes; mirrors isTierZeroObjective for the
- * planned widening to a foundation-stratum check.
+ * route). Tests the same membership set the resolved-objective predicate uses,
+ * so the two converge once hydration completes.
  */
 function isTierZeroObjectiveId(objectiveId: string | null): boolean {
-  return objectiveId === TIER_ZERO_OBJECTIVE_ID;
+  return objectiveId != null && TIER_ZERO_OBJECTIVE_IDS.has(objectiveId);
 }
 
 type RightMode = 'dashboard' | 'detail';
