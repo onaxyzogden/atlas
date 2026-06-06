@@ -126,10 +126,34 @@ is **design-only** this phase, recorded in the consolidated plan.
   nits folded into `63724014`; VC3 Important (derive-once memoization) + nits
   folded into `6b5ab59c`; VC4 approved with two optional nice-to-haves (left as-is,
   non-gating).
-- **Final whole-implementation review (Part 1 + Part 2) + live smoke** are tracked
-  next under the consolidated Phase-C plan. The Phase-B headless-map flicker was
-  fixed in `a842f3f2`, so the live smoke is viable -- see
-  [[log/2026-06-06-atlas-tier0-workbench]].
+- **Final whole-implementation review (Part 1 LC1-LC5 + Part 2 VC1-VC5):**
+  PASSED -- APPROVED, no Critical/Important defects; architectural contract
+  (unchanged FormValue, no-deletion fallback, ordered bespoke arms with
+  isVisionClassify first, resolver idiom, inline no-memo suggestions, ASCII-only)
+  verified honored; labour/vision-classify surfaces mirror appropriately and
+  diverge only on the justified encode-vs-no-encode axis. Three nice-to-haves
+  recorded as deferred (N-1 reset transient staging state on decision switch by
+  keying bespoke children on itemId -- same class as the I-2 rationale-flush fix;
+  N-3 aria-pressed parity on the own-role toggle; a precedence-ordering test for
+  fields + isVisionClassify).
+- **Live smoke: PASS** (2026-06-06, dev `web`:5200 + `api`:3001, API health 200
+  DB-backed; no-screenshot-no-claim honored -- two screenshots captured). Route
+  `/v3/project/mtc/act/tier-shell/s1-vision` on Moontrance Creek (regenerative
+  farm) renders the **non-map 3-pane Tier-0 workbench** (no MapboxGL). Selecting
+  **Classify vision elements as committed vs. aspirational** shows the bespoke
+  `VisionClassifyCapture`: type-aware suggestion chips (regen-farm: "Grow food for
+  our household" / "Restore degraded soil" / "Create habitat for wildlife"), the
+  "Show 6 more suggestions" toggle, Committed/Aspirational columns rehydrated from
+  the persisted flat `FormValue`, the own-role toggle + write-your-own input.
+  Interaction verified end-to-end: clicking a chip marked it used/disabled and
+  staged an Unclassified card; sorting it to Aspirational moved it (Committed 1 ->
+  Aspirational 1, staging cleared) and kept Record enabled. Selecting **Inventory
+  available labour** renders the Part-1 `LabourInventoryCapture` (team-size,
+  weekly-hours capacity band + "Medium" capacity-signal narration, seasonal
+  variation + annual-rhythm sparkline, type-aware regen-farm skills, Beginner/
+  Capable/Expert). The screenshot tool's cold-load `UnknownVizError` was the
+  transient hang ([[project-screenshot-hang]]); a web-preview restart after the API
+  was healthy resolved it.
 
 ## Hygiene and Amanah
 

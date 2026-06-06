@@ -176,9 +176,20 @@ Clean.
   into `65b3ef2a`, VC2 Important (discard-label collision) + nits into `63724014`,
   VC3 Important (derive-once memoization) + nits into `6b5ab59c`; VC4 approved with
   two optional non-gating nice-to-haves.
-- Final whole-implementation review (Part 1 + Part 2) + live smoke tracked next
-  under the consolidated Phase-C plan; the Phase-B map-flicker fix `a842f3f2` makes
-  the live smoke viable ([[log/2026-06-06-atlas-tier0-workbench]]).
+- Final whole-implementation review (Part 1 LC1-LC5 + Part 2 VC1-VC5): PASSED,
+  APPROVED -- no Critical/Important defects; contract verified honored; three
+  nice-to-haves deferred (reset transient staging on decision switch, aria-pressed
+  parity on the own-role toggle, a precedence-ordering test).
+- Live smoke (2026-06-06): PASS. `/v3/project/mtc/act/tier-shell/s1-vision`
+  (Moontrance Creek, regenerative farm) renders the non-map 3-pane Tier-0
+  workbench; `VisionClassifyCapture` shows type-aware regen-farm suggestion chips,
+  rehydrated Committed/Aspirational columns, and the staging->sort flow works
+  end-to-end (chip -> Unclassified card -> sort to Aspirational; Committed 1 ->
+  Aspirational 1, Record enabled); the sibling labour decision renders
+  `LabourInventoryCapture`. No-screenshot-no-claim honored (two screenshots);
+  cold-load screenshot `UnknownVizError` was the transient hang
+  ([[project-screenshot-hang]]), resolved by a web-preview restart once the API was
+  healthy.
 
 ## Alternatives considered
 
