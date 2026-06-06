@@ -185,7 +185,10 @@ export function decode(value: FormValue): LabourModel {
   const skills = rawSkills
     .filter((s): s is string => typeof s === 'string' && s.length > 0)
     .map((entry) => {
-      const idx = entry.indexOf('::');
+      // Split on the LAST '::' so a custom name containing '::' round-trips
+      // losslessly: the level token is always one of LEVELS (no '::'), so it
+      // parses off the tail while any '::' inside the name is preserved.
+      const idx = entry.lastIndexOf('::');
       if (idx === -1) return { name: entry, level: 'beginner' as SkillLevel };
       return {
         name: entry.slice(0, idx),
