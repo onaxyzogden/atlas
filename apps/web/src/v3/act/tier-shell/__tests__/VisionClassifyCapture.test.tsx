@@ -182,6 +182,25 @@ describe('VisionClassifyCapture -- write-your-own', () => {
 });
 
 // --------------------------------------------------------------------------
+// own-role selector accessibility
+// --------------------------------------------------------------------------
+
+describe('VisionClassifyCapture -- own-role selector a11y', () => {
+  it('communicates the active own-role via aria-pressed and toggles it on click', () => {
+    renderCapture();
+    const committed = screen.getByTestId('own-role-committed');
+    const aspirational = screen.getByTestId('own-role-aspirational');
+    // Default role is committed.
+    expect(committed.getAttribute('aria-pressed')).toBe('true');
+    expect(aspirational.getAttribute('aria-pressed')).toBe('false');
+    // Selecting aspirational flips the pressed state.
+    fireEvent.click(aspirational);
+    expect(committed.getAttribute('aria-pressed')).toBe('false');
+    expect(aspirational.getAttribute('aria-pressed')).toBe('true');
+  });
+});
+
+// --------------------------------------------------------------------------
 // classified cards
 // --------------------------------------------------------------------------
 

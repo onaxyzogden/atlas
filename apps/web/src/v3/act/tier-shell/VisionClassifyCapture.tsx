@@ -226,6 +226,7 @@ export default function VisionClassifyCapture({
             type="button"
             className={css.ownRole}
             data-active={ownRole === 'committed' ? 'true' : 'false'}
+            aria-pressed={ownRole === 'committed'}
             data-testid="own-role-committed"
             onClick={() => setOwnRole('committed')}
           >
@@ -235,6 +236,7 @@ export default function VisionClassifyCapture({
             type="button"
             className={css.ownRole}
             data-active={ownRole === 'aspirational' ? 'true' : 'false'}
+            aria-pressed={ownRole === 'aspirational'}
             data-testid="own-role-aspirational"
             onClick={() => setOwnRole('aspirational')}
           >
