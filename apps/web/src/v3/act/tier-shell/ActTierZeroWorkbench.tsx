@@ -26,6 +26,7 @@ import {
   resolveFieldOptions,
   resolveSuccessCriteriaOptions,
   resolveLabourSkills,
+  resolveVisionClassifyOptions,
 } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 import DecisionList from './DecisionList.js';
@@ -93,6 +94,12 @@ export function buildDecisionTarget(
     tool && tool.arm.kind === 'form' && tool.arm.formId === 's1-vision-labour',
   );
 
+  // Vision-classify is detected directly by item id. Its value shape
+  // { committed, aspirational } is byte-compatible with the existing form
+  // tool, so the panel's isVisionClassify body-router arm (checked before the
+  // generic fields/textarea fallback) takes precedence over any matched form.
+  const isVisionClassify = item.id === 's1-vision-classify';
+
   const feedsLabel = item.feedsInto.length
     ? 'Feeds ' +
       item.feedsInto
@@ -109,6 +116,7 @@ export function buildDecisionTarget(
     feedsLabel,
     isSuccessCriteria,
     isLabourInventory,
+    isVisionClassify,
   };
 }
 
@@ -153,6 +161,7 @@ export default function ActTierZeroWorkbench({
   const secondaries = secondaryTypeIds ?? [];
   const scOptions = resolveSuccessCriteriaOptions(primary, secondaries);
   const labourSkills = resolveLabourSkills(primary, secondaries);
+  const vcSuggestions = resolveVisionClassifyOptions(primary, secondaries);
   const resolveOptions = (optionSetId: string) =>
     resolveFieldOptions(optionSetId, primary, secondaries);
 
@@ -238,6 +247,7 @@ export default function ActTierZeroWorkbench({
           resolveOptions={resolveOptions}
           successCriteriaOptions={scOptions}
           labourSkillSuggestions={labourSkills}
+          visionClassifySuggestions={vcSuggestions}
           initialValue={selectedItem ? (formValues[selectedItem.id] ?? {}) : {}}
           initialRationale={
             selectedItem ? (rationales[selectedItem.id] ?? '') : ''

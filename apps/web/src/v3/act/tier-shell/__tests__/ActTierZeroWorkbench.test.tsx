@@ -30,7 +30,7 @@ import type {
   PlanStratumObjective,
   PlanDecisionChecklistItem,
 } from '@ogden/shared';
-import { resolveLabourSkills } from '@ogden/shared';
+import { resolveLabourSkills, resolveVisionClassifyOptions } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -343,5 +343,74 @@ describe('ActTierZeroWorkbench -- labour skill threading', () => {
     // hardcoded string, so the test stays green through operator content
     // revisions of the REVIEW-flagged _base labour-skill list.
     expect(screen.getAllByText(firstSkill).length).toBeGreaterThan(0);
+  });
+});
+
+describe('buildDecisionTarget -- vision-classify detection', () => {
+  it('flags isVisionClassify for the s1-vision-classify decision', () => {
+    const classifyItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-classify',
+      label: 'Classify committed vs aspirational vision',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(classifyItem);
+    expect(target.isVisionClassify).toBe(true);
+  });
+
+  it('does NOT flag isVisionClassify for the labour decision', () => {
+    const labourItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-labour',
+      label: 'Inventory available labour',
+      feedsInto: [],
+      optional: true,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(labourItem);
+    expect(target.isVisionClassify).toBe(false);
+  });
+
+  it('does NOT flag isVisionClassify for the success-criteria decision', () => {
+    const scItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-c2',
+      label: 'Define measurable success criteria',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(scItem);
+    expect(target.isVisionClassify).toBe(false);
+  });
+});
+
+describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
+  it('threads type-aware resolved vision-classify suggestions into the panel', () => {
+    // Use an objective whose FIRST checklist item is the vision-classify
+    // decision so default selection lands on it (mirrors the labour threading
+    // test, but seeds the item via the objectives override).
+    const classifyObjective: PlanStratumObjective = {
+      ...ACTIVE_OBJECTIVE,
+      checklist: [
+        {
+          id: 's1-vision-classify',
+          label: 'Classify committed vs aspirational vision',
+          feedsInto: [],
+          optional: false,
+        },
+      ],
+    } as PlanStratumObjective;
+    renderWorkbench({
+      objectives: [classifyObjective],
+      activeObjectiveId: classifyObjective.id,
+      primaryTypeId: 'homestead',
+      secondaryTypeIds: [],
+    });
+    // The suggestions the panel should offer == resolveVisionClassifyOptions.
+    const expected = resolveVisionClassifyOptions('homestead', []);
+    expect(expected.length).toBeGreaterThan(0);
+    const firstSuggestion = expected[0]!;
+    // The resolved suggestions must render as chip labels in the surface.
+    // Assert the FIRST resolved entry (computed from the resolver) rather than
+    // a hardcoded string, so the test stays green through operator content
+    // revisions of the _base vision-element list.
+    expect(screen.getAllByText(firstSuggestion).length).toBeGreaterThan(0);
   });
 });
