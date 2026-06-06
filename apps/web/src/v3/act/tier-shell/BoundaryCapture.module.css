@@ -286,3 +286,70 @@
   border-color: var(--color-success, #2f9e44);
   background: color-mix(in srgb, var(--color-success, #2f9e44) 16%, transparent);
 }
+
+/* ---------- easement list (mapEntry / c3) ---------- */
+
+.easeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.easeInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+  font: inherit;
+  font-size: 12px;
+}
+
+.easeInput:focus {
+  outline: none;
+  border-color: var(--color-accent, #2f80ed);
+}
+
+.easeRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border-subtle, #e6e9ee);
+  border-radius: 7px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.easeRemove:hover {
+  border-color: var(--color-accent, #2f80ed);
+  background: var(--color-surface-alt, #f6f7f9);
+  color: var(--color-text, #1b1e22);
+}
+
+.easeAdd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px dashed var(--color-border, #d4d8de);
+  border-radius: 8px;
+  background: var(--color-surface-alt, #f6f7f9);
+  color: var(--color-text-muted, #565b63);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.easeAdd:hover {
+  border-color: var(--color-accent, #2f80ed);
+  color: var(--color-text, #1b1e22);
+}

@@ -27,8 +27,10 @@ import {
   Check,
   FileText,
   Map as MapIcon,
+  MapPin,
   Plus,
   ShieldCheck,
+  Trash2,
   UploadCloud,
   X,
 } from 'lucide-react';
@@ -55,8 +57,17 @@ export interface MapModel {
   acknowledged: boolean;
   notes: string;
 } // c2
-// NOTE: c3 (mapEntry), c4/c5/c7 (decision) models are added in later tasks.
-export type BoundaryModel = TitleDeedModel | CovenantModel | MapModel;
+export interface EasementModel {
+  kind: 'mapEntry';
+  easements: string[];
+  implications: string[];
+} // c3
+// NOTE: c4/c5/c7 (decision) models are added in later tasks.
+export type BoundaryModel =
+  | TitleDeedModel
+  | CovenantModel
+  | MapModel
+  | EasementModel;
 
 const TITLE_DEED_DOC = 'Title document.pdf';
 const COVENANT_DOC = 'Covenant document.pdf';
@@ -121,8 +132,14 @@ export function decodeBoundary(itemId: string, value: FormValue): BoundaryModel 
         acknowledged: asString(value.acknowledged) === 'true',
         notes: asString(value.notes),
       };
+    case 's1-boundaries-c3':
+      return {
+        kind: 'mapEntry',
+        easements: asArray(value.easements),
+        implications: asArray(value.implications),
+      };
     default:
-      // TEMPORARY -- replaced by later tasks (c3 mapEntry; c4/c5/c7 decision).
+      // TEMPORARY -- replaced by later tasks (c4/c5/c7 decision).
       return { kind: 'map', acknowledged: false, notes: '' };
   }
 }
@@ -145,6 +162,8 @@ function encodeBoundary(model: BoundaryModel): FormValue {
         acknowledged: model.acknowledged ? 'true' : '',
         notes: model.notes,
       };
+    case 'mapEntry':
+      return { easements: model.easements, implications: model.implications };
   }
 }
 
@@ -160,6 +179,11 @@ export function isBoundaryValid(_itemId: string, model: BoundaryModel): boolean 
       return model.obligationTypes.length >= 1;
     case 'map':
       return model.acknowledged === true;
+    case 'mapEntry':
+      return (
+        model.easements.length >= 1 ||
+        model.implications.includes('No implications')
+      );
     default:
       return false;
   }
@@ -177,6 +201,8 @@ export function summariseBoundary(_itemId: string, model: BoundaryModel): string
       )}`;
     case 'map':
       return model.acknowledged ? 'Boundaries acknowledged' : 'Not acknowledged';
+    case 'mapEntry':
+      return `${model.easements.length} easement(s); ${model.implications.length} implication(s)`;
     default:
       return '';
   }
@@ -347,6 +373,31 @@ function CovenantBody({
   );
 }
 
+function MapPreview(): JSX.Element {
+  return (
+    <div className={css.mapPreview}>
+      <svg
+        className={css.mapSvg}
+        viewBox="0 0 240 120"
+        aria-hidden="true"
+        role="presentation"
+      >
+        <ellipse cx="120" cy="60" rx="96" ry="40" className={css.topoLine} />
+        <ellipse cx="120" cy="60" rx="66" ry="26" className={css.topoLine} />
+        <ellipse cx="120" cy="60" rx="36" ry="13" className={css.topoLine} />
+        <polygon
+          points="28,86 92,22 168,30 214,78 150,102 70,98"
+          className={css.boundaryLine}
+        />
+      </svg>
+      <div className={css.mapCaption}>
+        <MapIcon size={13} className={css.mapCaptionIcon} />
+        <span>Base layer preview</span>
+      </div>
+    </div>
+  );
+}
+
 function MapBody({
   model,
   onChange,
@@ -358,26 +409,7 @@ function MapBody({
 
   return (
     <div className={css.root}>
-      <div className={css.mapPreview}>
-        <svg
-          className={css.mapSvg}
-          viewBox="0 0 240 120"
-          aria-hidden="true"
-          role="presentation"
-        >
-          <ellipse cx="120" cy="60" rx="96" ry="40" className={css.topoLine} />
-          <ellipse cx="120" cy="60" rx="66" ry="26" className={css.topoLine} />
-          <ellipse cx="120" cy="60" rx="36" ry="13" className={css.topoLine} />
-          <polygon
-            points="28,86 92,22 168,30 214,78 150,102 70,98"
-            className={css.boundaryLine}
-          />
-        </svg>
-        <div className={css.mapCaption}>
-          <MapIcon size={13} className={css.mapCaptionIcon} />
-          <span>Base layer preview</span>
-        </div>
-      </div>
+      <MapPreview />
 
       <button
         type="button"
@@ -416,6 +448,135 @@ function MapBody({
   );
 }
 
+function EasementBody({
+  model,
+  options,
+  onChange,
+}: {
+  model: EasementModel;
+  options: readonly string[];
+  onChange: (next: FormValue) => void;
+}): JSX.Element {
+  const emit = (next: EasementModel) => onChange(encodeBoundary(next));
+
+  const editEasement = (index: number, text: string) => {
+    const easements = model.easements.map((e, i) => (i === index ? text : e));
+    emit({ ...model, easements });
+  };
+
+  const removeEasement = (index: number) => {
+    const easements = model.easements.filter((_, i) => i !== index);
+    emit({ ...model, easements });
+  };
+
+  const addEasement = () => {
+    emit({ ...model, easements: [...model.easements, ''] });
+  };
+
+  const toggleImplication = (opt: string) => {
+    const has = model.implications.includes(opt);
+    const implications = has
+      ? model.implications.filter((t) => t !== opt)
+      : [...model.implications, opt];
+    emit({ ...model, implications });
+  };
+
+  return (
+    <div className={css.root}>
+      <MapPreview />
+
+      <div className={css.optionRow}>
+        <button
+          type="button"
+          className={css.openMapBtn}
+          data-testid="open-map"
+          disabled
+        >
+          <MapIcon size={15} />
+          <span>Open map -- coming soon</span>
+        </button>
+        <button
+          type="button"
+          className={css.openMapBtn}
+          data-testid="pin-easement"
+          disabled
+        >
+          <MapPin size={15} />
+          <span>Pin easement</span>
+        </button>
+        <button
+          type="button"
+          className={css.openMapBtn}
+          data-testid="draw-row"
+          disabled
+        >
+          <MapIcon size={15} />
+          <span>Draw ROW line</span>
+        </button>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Easements identified</span>
+        {model.easements.map((easement, index) => (
+          <div className={css.easeRow} key={index}>
+            <input
+              type="text"
+              className={css.easeInput}
+              data-testid={`easement-input-${index}`}
+              aria-label={`Easement ${index + 1}`}
+              value={easement}
+              onChange={(e) => editEasement(index, e.target.value)}
+            />
+            <button
+              type="button"
+              className={css.easeRemove}
+              data-testid={`easement-remove-${index}`}
+              aria-label={`Remove easement ${index + 1}`}
+              onClick={() => removeEasement(index)}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={css.easeAdd}
+          data-testid="easement-add"
+          onClick={addEasement}
+        >
+          <Plus size={14} />
+          <span>Add another easement</span>
+        </button>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Planning implications</span>
+        <div className={css.optionRow}>
+          {options.map((opt) => {
+            const active = model.implications.includes(opt);
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={css.flagBtn}
+                data-testid={`implication-${opt}`}
+                data-active={active ? 'true' : 'false'}
+                aria-pressed={active}
+                onClick={() => toggleImplication(opt)}
+              >
+                <span className={css.flagIcon}>
+                  {active ? <Check size={13} /> : <ShieldCheck size={13} />}
+                </span>
+                <span>{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BoundaryCapture({
   itemId,
   value,
@@ -438,6 +599,14 @@ export default function BoundaryCapture({
         <CovenantBody
           model={model}
           options={resolveOptions('boundaryCovenantTypes')}
+          onChange={onChange}
+        />
+      );
+    case 'mapEntry':
+      return (
+        <EasementBody
+          model={model}
+          options={resolveOptions('boundaryEasementImplications')}
           onChange={onChange}
         />
       );
