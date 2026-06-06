@@ -24,6 +24,7 @@
  * placeholder filename only; no file is read or stored.
  */
 import {
+  AlertTriangle,
   Check,
   FileText,
   Map as MapIcon,
@@ -62,12 +63,35 @@ export interface EasementModel {
   easements: string[];
   implications: string[];
 } // c3
-// NOTE: c4/c5/c7 (decision) models are added in later tasks.
+// c4/c5/c7 are all `decision` mode but carry DISTINCT shapes -- each gets
+// its own model kind.
+export interface ZoningModel {
+  kind: 'zoning';
+  zoning: string;
+  permittedUses: string[];
+  reviewFlag: string;
+  notes: string;
+} // c4
+export interface WaterModel {
+  kind: 'water';
+  sources: string[];
+  entitlement: string;
+  unit: string;
+  status: string;
+} // c5
+export interface PermitsModel {
+  kind: 'permits';
+  activities: string[];
+  notes: string;
+} // c7
 export type BoundaryModel =
   | TitleDeedModel
   | CovenantModel
   | MapModel
-  | EasementModel;
+  | EasementModel
+  | ZoningModel
+  | WaterModel
+  | PermitsModel;
 
 const TITLE_DEED_DOC = 'Title document.pdf';
 const COVENANT_DOC = 'Covenant document.pdf';
@@ -138,8 +162,31 @@ export function decodeBoundary(itemId: string, value: FormValue): BoundaryModel 
         easements: asArray(value.easements),
         implications: asArray(value.implications),
       };
+    case 's1-boundaries-c4':
+      return {
+        kind: 'zoning',
+        zoning: asString(value.zoning),
+        permittedUses: asArray(value.permittedUses),
+        reviewFlag: asString(value.reviewFlag),
+        notes: asString(value.notes),
+      };
+    case 's1-boundaries-c5':
+      return {
+        kind: 'water',
+        sources: asArray(value.sources),
+        entitlement: asString(value.entitlement),
+        unit: asString(value.unit),
+        status: asString(value.status),
+      };
+    case 's1-boundaries-c7':
+      return {
+        kind: 'permits',
+        activities: asArray(value.activities),
+        notes: asString(value.notes),
+      };
     default:
-      // TEMPORARY -- replaced by later tasks (c4/c5/c7 decision).
+      // Safe total fallback for unknown ids (every s1-boundaries id is
+      // handled above).
       return { kind: 'map', acknowledged: false, notes: '' };
   }
 }
@@ -164,6 +211,22 @@ function encodeBoundary(model: BoundaryModel): FormValue {
       };
     case 'mapEntry':
       return { easements: model.easements, implications: model.implications };
+    case 'zoning':
+      return {
+        zoning: model.zoning,
+        permittedUses: model.permittedUses,
+        reviewFlag: model.reviewFlag,
+        notes: model.notes,
+      };
+    case 'water':
+      return {
+        sources: model.sources,
+        entitlement: model.entitlement,
+        unit: model.unit,
+        status: model.status,
+      };
+    case 'permits':
+      return { activities: model.activities, notes: model.notes };
   }
 }
 
@@ -184,6 +247,13 @@ export function isBoundaryValid(_itemId: string, model: BoundaryModel): boolean 
         model.easements.length >= 1 ||
         model.implications.includes('No implications')
       );
+    case 'zoning':
+      return model.zoning !== '' && model.reviewFlag !== '';
+    case 'water':
+      return model.sources.length >= 1 && model.status !== '';
+    case 'permits':
+      // Zero permits is a valid answer.
+      return true;
     default:
       return false;
   }
@@ -203,6 +273,16 @@ export function summariseBoundary(_itemId: string, model: BoundaryModel): string
       return model.acknowledged ? 'Boundaries acknowledged' : 'Not acknowledged';
     case 'mapEntry':
       return `${model.easements.length} easement(s); ${model.implications.length} implication(s)`;
+    case 'zoning':
+      return `Zoning: ${model.zoning || 'unset'}; ${model.permittedUses.length} use(s); ${model.reviewFlag || 'no flag'}`;
+    case 'water':
+      return `${model.sources.length} source(s); ${
+        model.entitlement
+          ? (model.entitlement + ' ' + (model.unit || '')).trim()
+          : 'no entitlement'
+      }; ${model.status || 'no status'}`;
+    case 'permits':
+      return `${model.activities.length} permit-required activity(ies)`;
     default:
       return '';
   }
@@ -577,6 +657,269 @@ function EasementBody({
   );
 }
 
+function ZoningBody({
+  model,
+  resolveOptions,
+  onChange,
+}: {
+  model: ZoningModel;
+  resolveOptions: (optionSetId: string) => readonly string[];
+  onChange: (next: FormValue) => void;
+}): JSX.Element {
+  const emit = (next: ZoningModel) => onChange(encodeBoundary(next));
+
+  const zoningOptions = resolveOptions('boundaryZoning');
+  const useOptions = resolveOptions('boundaryPermittedUses');
+  const reviewOptions = resolveOptions('boundaryZoningReview');
+
+  const toggleUse = (opt: string) => {
+    const has = model.permittedUses.includes(opt);
+    const permittedUses = has
+      ? model.permittedUses.filter((u) => u !== opt)
+      : [...model.permittedUses, opt];
+    emit({ ...model, permittedUses });
+  };
+
+  return (
+    <div className={css.root}>
+      <div className={css.field}>
+        <span className={css.label}>Primary zoning classification</span>
+        <select
+          className={css.selectInput}
+          data-testid="zoning-select"
+          aria-label="Primary zoning classification"
+          value={model.zoning}
+          onChange={(e) => emit({ ...model, zoning: e.target.value })}
+        >
+          <option value="">Select a classification</option>
+          {zoningOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Permitted uses confirmed</span>
+        <div className={css.checkRow}>
+          {useOptions.map((opt) => (
+            <label key={opt} className={css.checkLabel}>
+              <input
+                type="checkbox"
+                data-testid={`use-${opt}`}
+                checked={model.permittedUses.includes(opt)}
+                onChange={() => toggleUse(opt)}
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Anything requiring further review?</span>
+        <div className={css.optionRow}>
+          {reviewOptions.map((opt) => {
+            const active = model.reviewFlag === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={css.flagBtn}
+                data-testid={`review-${opt}`}
+                data-active={active ? 'true' : 'false'}
+                aria-pressed={active}
+                onClick={() =>
+                  emit({ ...model, reviewFlag: active ? '' : opt })
+                }
+              >
+                <span className={css.flagIcon}>
+                  {active ? <Check size={13} /> : <ShieldCheck size={13} />}
+                </span>
+                <span>{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Notes (optional)</span>
+        <textarea
+          className={css.textarea}
+          aria-label="Notes"
+          value={model.notes}
+          onChange={(e) => emit({ ...model, notes: e.target.value })}
+        />
+      </div>
+    </div>
+  );
+}
+
+function WaterBody({
+  model,
+  resolveOptions,
+  onChange,
+}: {
+  model: WaterModel;
+  resolveOptions: (optionSetId: string) => readonly string[];
+  onChange: (next: FormValue) => void;
+}): JSX.Element {
+  const emit = (next: WaterModel) => onChange(encodeBoundary(next));
+
+  const sourceOptions = resolveOptions('boundaryWaterSources');
+  const unitOptions = resolveOptions('boundaryWaterUnit');
+  const statusOptions = resolveOptions('boundaryWaterStatus');
+
+  const toggleSource = (opt: string) => {
+    const has = model.sources.includes(opt);
+    const sources = has
+      ? model.sources.filter((s) => s !== opt)
+      : [...model.sources, opt];
+    emit({ ...model, sources });
+  };
+
+  return (
+    <div className={css.root}>
+      <div className={css.field}>
+        <span className={css.label}>Water sources available on the land</span>
+        <div className={css.checkRow}>
+          {sourceOptions.map((opt) => (
+            <label key={opt} className={css.checkLabel}>
+              <input
+                type="checkbox"
+                data-testid={`source-${opt}`}
+                checked={model.sources.includes(opt)}
+                onChange={() => toggleSource(opt)}
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Annual entitlement (if licenced)</span>
+        <div className={css.numRow}>
+          <input
+            type="number"
+            className={css.numInput}
+            data-testid="water-entitlement"
+            aria-label="Annual entitlement"
+            placeholder="Volume"
+            value={model.entitlement}
+            onChange={(e) => emit({ ...model, entitlement: e.target.value })}
+          />
+          <select
+            className={css.unitSelect}
+            data-testid="water-unit"
+            aria-label="Unit"
+            value={model.unit}
+            onChange={(e) => emit({ ...model, unit: e.target.value })}
+          >
+            <option value="">Unit</option>
+            {unitOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+        <span className={css.fieldNote}>
+          Leave blank if unknown -- flag for investigation
+        </span>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Status</span>
+        <div className={css.optionRow}>
+          {statusOptions.map((opt) => {
+            const active = model.status === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={css.flagBtn}
+                data-testid={`waterstatus-${opt}`}
+                data-active={active ? 'true' : 'false'}
+                aria-pressed={active}
+                onClick={() => emit({ ...model, status: active ? '' : opt })}
+              >
+                <span className={css.flagIcon}>
+                  {active ? <Check size={13} /> : <ShieldCheck size={13} />}
+                </span>
+                <span>{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PermitsBody({
+  model,
+  resolveOptions,
+  onChange,
+}: {
+  model: PermitsModel;
+  resolveOptions: (optionSetId: string) => readonly string[];
+  onChange: (next: FormValue) => void;
+}): JSX.Element {
+  const emit = (next: PermitsModel) => onChange(encodeBoundary(next));
+
+  const activityOptions = resolveOptions('boundaryPermitActivities');
+
+  const toggleActivity = (opt: string) => {
+    const has = model.activities.includes(opt);
+    const activities = has
+      ? model.activities.filter((a) => a !== opt)
+      : [...model.activities, opt];
+    emit({ ...model, activities });
+  };
+
+  return (
+    <div className={css.root}>
+      <div className={css.field}>
+        <span className={css.label}>Activities that will need a permit</span>
+        <div className={css.checkRow}>
+          {activityOptions.map((opt) => (
+            <label key={opt} className={css.checkLabel}>
+              <input
+                type="checkbox"
+                data-testid={`activity-${opt}`}
+                checked={model.activities.includes(opt)}
+                onChange={() => toggleActivity(opt)}
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className={css.field}>
+        <span className={css.label}>Any additional permit notes</span>
+        <textarea
+          className={css.textarea}
+          aria-label="Notes"
+          value={model.notes}
+          onChange={(e) => emit({ ...model, notes: e.target.value })}
+        />
+      </div>
+
+      <div className={css.advisory}>
+        <AlertTriangle size={15} className={css.advisoryIcon} />
+        <span>
+          Permit-required activities cannot receive an Act handoff approval
+          until the permit is obtained and attached as a document.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function BoundaryCapture({
   itemId,
   value,
@@ -607,6 +950,30 @@ export default function BoundaryCapture({
         <EasementBody
           model={model}
           options={resolveOptions('boundaryEasementImplications')}
+          onChange={onChange}
+        />
+      );
+    case 'zoning':
+      return (
+        <ZoningBody
+          model={model}
+          resolveOptions={resolveOptions}
+          onChange={onChange}
+        />
+      );
+    case 'water':
+      return (
+        <WaterBody
+          model={model}
+          resolveOptions={resolveOptions}
+          onChange={onChange}
+        />
+      );
+    case 'permits':
+      return (
+        <PermitsBody
+          model={model}
+          resolveOptions={resolveOptions}
           onChange={onChange}
         />
       );

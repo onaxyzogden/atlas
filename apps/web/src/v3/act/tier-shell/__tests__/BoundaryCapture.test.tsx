@@ -54,6 +54,9 @@ import BoundaryCapture, {
   type CovenantModel,
   type MapModel,
   type EasementModel,
+  type ZoningModel,
+  type WaterModel,
+  type PermitsModel,
 } from '../BoundaryCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
@@ -70,12 +73,37 @@ const EASEMENT_IMPLICATIONS = [
   'Access required',
   'No implications',
 ] as const;
+const ZONING = ['Agricultural', 'Residential', 'Mixed use'] as const;
+const PERMITTED_USES = ['Grazing', 'Cropping', 'Dwelling'] as const;
+const ZONING_REVIEW = [
+  'None',
+  'Change of use',
+  'Planning permission',
+  'Unsure',
+] as const;
+const WATER_SOURCES = ['Mains', 'Borehole', 'River', 'Rainwater'] as const;
+const WATER_UNIT = ['m3', 'litres'] as const;
+const WATER_STATUS = ['Licenced', 'Unlicenced', 'Exempt'] as const;
+const PERMIT_ACTIVITIES = [
+  'Abstraction',
+  'Discharge',
+  'Burning',
+  'Felling',
+  'Construction',
+] as const;
 
 function resolveOptions(optionSetId: string): readonly string[] {
   if (optionSetId === 'boundaryDocStatus') return DOC_STATUS;
   if (optionSetId === 'boundaryCovenantTypes') return COVENANT_TYPES;
   if (optionSetId === 'boundaryEasementImplications')
     return EASEMENT_IMPLICATIONS;
+  if (optionSetId === 'boundaryZoning') return ZONING;
+  if (optionSetId === 'boundaryPermittedUses') return PERMITTED_USES;
+  if (optionSetId === 'boundaryZoningReview') return ZONING_REVIEW;
+  if (optionSetId === 'boundaryWaterSources') return WATER_SOURCES;
+  if (optionSetId === 'boundaryWaterUnit') return WATER_UNIT;
+  if (optionSetId === 'boundaryWaterStatus') return WATER_STATUS;
+  if (optionSetId === 'boundaryPermitActivities') return PERMIT_ACTIVITIES;
   return [];
 }
 
@@ -367,5 +395,180 @@ describe('BoundaryCapture -- mapEntry mode (c3)', () => {
   });
 });
 
+// --------------------------------------------------------------------------
+// decision modes (c4/c5/c7)
+// --------------------------------------------------------------------------
+
+describe('decision modes (c4/c5/c7)', () => {
+  it('temporary default fallback is gone -- c4 decodes to zoning, not map', () => {
+    const m = decodeBoundary('s1-boundaries-c4', {});
+    expect(m.kind).toBe('zoning');
+  });
+
+  // ---- c4 zoning ----
+  describe('c4 zoning model', () => {
+    it('empty value decodes invalid', () => {
+      const m = decodeBoundary('s1-boundaries-c4', {});
+      expect(m.kind).toBe('zoning');
+      expect(isBoundaryValid('s1-boundaries-c4', m)).toBe(false);
+    });
+
+    it('zoning + reviewFlag makes it valid', () => {
+      const m = decodeBoundary('s1-boundaries-c4', {
+        zoning: 'Agricultural',
+        reviewFlag: 'None',
+      });
+      expect(isBoundaryValid('s1-boundaries-c4', m)).toBe(true);
+    });
+
+    it('missing reviewFlag is invalid', () => {
+      const m = decodeBoundary('s1-boundaries-c4', { zoning: 'Agricultural' });
+      expect(isBoundaryValid('s1-boundaries-c4', m)).toBe(false);
+    });
+
+    it('missing zoning is invalid', () => {
+      const m = decodeBoundary('s1-boundaries-c4', { reviewFlag: 'None' });
+      expect(isBoundaryValid('s1-boundaries-c4', m)).toBe(false);
+    });
+
+    it('summary contains the zoning', () => {
+      const m = decodeBoundary('s1-boundaries-c4', {
+        zoning: 'Agricultural',
+        permittedUses: ['Grazing'],
+        reviewFlag: 'None',
+      });
+      const s = summariseBoundary('s1-boundaries-c4', m);
+      expect(s).toMatch(/Agricultural/);
+    });
+
+    it('changing zoning-select emits zoning', () => {
+      const { onChange } = renderCapture('s1-boundaries-c4', {});
+      fireEvent.change(screen.getByTestId('zoning-select'), {
+        target: { value: 'Agricultural' },
+      });
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.zoning).toBe('Agricultural');
+    });
+
+    it('toggling a use checkbox emits permittedUses', () => {
+      const { onChange } = renderCapture('s1-boundaries-c4', {});
+      fireEvent.click(screen.getByTestId('use-Grazing'));
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.permittedUses).toEqual(['Grazing']);
+    });
+
+    it('clicking a review button emits reviewFlag', () => {
+      const { onChange } = renderCapture('s1-boundaries-c4', {});
+      fireEvent.click(screen.getByTestId('review-None'));
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.reviewFlag).toBe('None');
+    });
+  });
+
+  // ---- c5 water ----
+  describe('c5 water model', () => {
+    it('empty value decodes invalid', () => {
+      const m = decodeBoundary('s1-boundaries-c5', {});
+      expect(m.kind).toBe('water');
+      expect(isBoundaryValid('s1-boundaries-c5', m)).toBe(false);
+    });
+
+    it('sources>=1 AND status set makes it valid', () => {
+      const m = decodeBoundary('s1-boundaries-c5', {
+        sources: ['Mains'],
+        status: 'Licenced',
+      });
+      expect(isBoundaryValid('s1-boundaries-c5', m)).toBe(true);
+    });
+
+    it('sources>=1 but no status is invalid', () => {
+      const m = decodeBoundary('s1-boundaries-c5', { sources: ['Mains'] });
+      expect(isBoundaryValid('s1-boundaries-c5', m)).toBe(false);
+    });
+
+    it('summary reflects counts', () => {
+      const m = decodeBoundary('s1-boundaries-c5', {
+        sources: ['Mains', 'Borehole'],
+        entitlement: '500',
+        unit: 'm3',
+        status: 'Licenced',
+      });
+      const s = summariseBoundary('s1-boundaries-c5', m);
+      expect(s).toMatch(/2 source/);
+      expect(s).toMatch(/Licenced/);
+    });
+
+    it('toggling a source checkbox emits sources', () => {
+      const { onChange } = renderCapture('s1-boundaries-c5', {});
+      fireEvent.click(screen.getByTestId('source-Mains'));
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.sources).toEqual(['Mains']);
+    });
+
+    it('typing in water-entitlement emits entitlement string', () => {
+      const { onChange } = renderCapture('s1-boundaries-c5', {});
+      fireEvent.change(screen.getByTestId('water-entitlement'), {
+        target: { value: '500' },
+      });
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.entitlement).toBe('500');
+    });
+
+    it('selecting water-unit emits unit', () => {
+      const { onChange } = renderCapture('s1-boundaries-c5', {});
+      fireEvent.change(screen.getByTestId('water-unit'), {
+        target: { value: 'm3' },
+      });
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.unit).toBe('m3');
+    });
+
+    it('clicking a waterstatus button emits status', () => {
+      const { onChange } = renderCapture('s1-boundaries-c5', {});
+      fireEvent.click(screen.getByTestId('waterstatus-Licenced'));
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.status).toBe('Licenced');
+    });
+  });
+
+  // ---- c7 permits ----
+  describe('c7 permits model', () => {
+    it('empty value decodes ALWAYS valid', () => {
+      const m = decodeBoundary('s1-boundaries-c7', {});
+      expect(m.kind).toBe('permits');
+      expect(isBoundaryValid('s1-boundaries-c7', m)).toBe(true);
+    });
+
+    it('summary reflects activity count', () => {
+      const m = decodeBoundary('s1-boundaries-c7', {
+        activities: ['Abstraction', 'Burning'],
+      });
+      const s = summariseBoundary('s1-boundaries-c7', m);
+      expect(s).toMatch(/2 permit-required/);
+    });
+
+    it('toggling an activity checkbox emits activities', () => {
+      const { onChange } = renderCapture('s1-boundaries-c7', {});
+      fireEvent.click(screen.getByTestId('activity-Abstraction'));
+      const arg = onChange.mock.calls[0]![0] as FormValue;
+      expect(arg.activities).toEqual(['Abstraction']);
+    });
+
+    it('the advisory text is present', () => {
+      renderCapture('s1-boundaries-c7', {});
+      expect(
+        screen.getByText(/cannot receive an Act handoff approval/i),
+      ).toBeTruthy();
+    });
+  });
+});
+
 // satisfy unused-type lints in strict configs
-export type { TitleDeedModel, CovenantModel, EasementModel };
+export type {
+  TitleDeedModel,
+  CovenantModel,
+  EasementModel,
+  ZoningModel,
+  WaterModel,
+  PermitsModel,
+};
