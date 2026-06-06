@@ -104,6 +104,7 @@ import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
+import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
@@ -128,11 +129,24 @@ const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
 // Stable empty fallback for the visionFormData selector so it never returns a
 // fresh object (which would re-render every store update).
 const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
+// Stable empty fallbacks for the decision-rationale / deferred-decisions
+// selectors so they never return a fresh object literal (which would trigger
+// an infinite re-render under Zustand v5), matching the EMPTY_FORMS pattern.
+const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
+const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
 // noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
 // known S1 id literal so the derived stratum id stays a plain string.
 const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
+
+// Phase B Tier-0 swap: the universal vision objective renders the inline
+// non-map decision workbench instead of the map shell. Scoped to 's1-vision'
+// by id for now; designed to widen later (e.g. a foundation-stratum check)
+// when more non-spatial objectives convert.
+function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
+  return objective?.id === 's1-vision';
+}
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -377,6 +391,16 @@ export default function ActTierShell() {
     (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
   );
 
+  // Decision rationale + deferral state for the Tier-0 workbench, keyed by
+  // itemId under this project. Stable empty fallbacks (see above) keep the
+  // selector referentially stable under Zustand v5.
+  const decisionRationales = useActEvidenceStore(
+    (s) => s.decisionRationale[id] ?? EMPTY_RATIONALES,
+  );
+  const deferredDecisions = useActEvidenceStore(
+    (s) => s.deferredDecisions[id] ?? EMPTY_DEFERRED,
+  );
+
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -573,6 +597,19 @@ export default function ActTierShell() {
     [id, objectiveId],
   );
 
+  const handleSaveRationale = useCallback(
+    (itemId: string, text: string) => {
+      useActEvidenceStore.getState().saveDecisionRationale(id, itemId, text);
+    },
+    [id],
+  );
+  const handleToggleDefer = useCallback(
+    (itemId: string, deferred: boolean) => {
+      useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
+    },
+    [id],
+  );
+
   const handleActivateTool = useCallback(
     // `formObjective` overrides which objective's sibling form-tools populate the
     // tabbed popup. It defaults to the URL-selected objective for normal rail
@@ -726,6 +763,11 @@ export default function ActTierShell() {
     [revealObjective, handleActivateTool, clearSearch],
   );
 
+  // Phase B swap flag: render the inline Tier-0 decision workbench in place of
+  // the map shell when the selected objective is the universal s1-vision one.
+  const showTierZeroWorkbench =
+    selectedObjective != null && isTierZeroObjective(selectedObjective);
+
   return (
     <div className={styles.tierShell}>
       <ActTierSpine
@@ -738,6 +780,23 @@ export default function ActTierShell() {
         projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
+        {showTierZeroWorkbench && selectedObjective ? (
+          <ActTierZeroWorkbench
+            projectId={id}
+            objectives={stratumObjectives}
+            activeObjectiveId={selectedObjective.id}
+            onSelectObjective={handleSelectObjective}
+            primaryTypeId={primaryTypeId}
+            secondaryTypeIds={secondaryTypeIds}
+            progressByObjective={effectiveProgress.byObjective}
+            formValues={visionFormData}
+            rationales={decisionRationales}
+            deferredItems={deferredDecisions}
+            onRecord={handleFormDataSave}
+            onSaveRationale={handleSaveRationale}
+            onToggleDefer={handleToggleDefer}
+          />
+        ) : (
         <StageShell
           bottomPlacement="between-rails"
           symmetricRails
@@ -970,7 +1029,9 @@ export default function ActTierShell() {
             />
           }
         />
+        )}
       </div>
+      {!showTierZeroWorkbench && (
       <VisionFormsTabsModal
         open={openFormGroup !== null}
         title={openFormGroup?.title ?? ''}
@@ -988,6 +1049,7 @@ export default function ActTierShell() {
         onSaveData={handleFormDataSave}
         onClose={() => setOpenFormGroup(null)}
       />
+      )}
     </div>
   );
 }
