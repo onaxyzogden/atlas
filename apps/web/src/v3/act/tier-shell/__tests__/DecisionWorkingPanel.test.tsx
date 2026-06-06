@@ -505,6 +505,106 @@ describe('DecisionWorkingPanel -- vision classify', () => {
   });
 });
 
+describe('DecisionWorkingPanel -- bespoke child remount on decision switch', () => {
+  // The bespoke children hold transient component-local UI state that is NOT
+  // persisted (VisionClassifyCapture's `unclassified` staging; LabourInventory's
+  // `composerOpen`/`customName`). Keying them on decision.itemId forces a fresh
+  // mount on switch so that staged-but-unsorted items / open composers never bleed
+  // across a decision switch-and-return (consistent with the itemId-keyed draft
+  // re-seed and the I-2 rationale flush).
+  function baseProps(
+    decision: DecisionPanelTarget,
+  ): DecisionWorkingPanelProps {
+    return {
+      decision,
+      resolveOptions: () => [],
+      successCriteriaOptions: SUCCESS_OPTIONS,
+      initialValue: {},
+      initialRationale: '',
+      deferred: false,
+      recorded: false,
+      onRecord: vi.fn(),
+      onSaveRationale: vi.fn(),
+      onToggleDefer: vi.fn(),
+    };
+  }
+
+  it('resets VisionClassify staging when the selected decision changes', () => {
+    const decisionA = makeDecision({
+      itemId: 's1-vision-classify-a',
+      label: 'Classify A',
+      isVisionClassify: true,
+    });
+    const decisionB = makeDecision({
+      itemId: 's1-vision-classify-b',
+      label: 'Classify B',
+      isVisionClassify: true,
+    });
+    const props: DecisionWorkingPanelProps = {
+      ...baseProps(decisionA),
+      visionClassifySuggestions: ['Grow food'],
+      initialValue: { committed: [], aspirational: [] },
+    };
+    const { rerender } = render(<DecisionWorkingPanel {...props} />);
+    // Stage a suggestion -> a transient Unclassified card appears.
+    fireEvent.click(screen.getByRole('button', { name: /Grow food/ }));
+    expect(screen.getByTestId('unclassified-card-Grow food')).toBeTruthy();
+    // Switch to a different decision: the keyed remount must clear the staging.
+    rerender(<DecisionWorkingPanel {...props} decision={decisionB} />);
+    expect(screen.queryByTestId('unclassified-card-Grow food')).toBeNull();
+    // Returning to A must NOT carry the prior staging either (fresh mount).
+    rerender(<DecisionWorkingPanel {...props} decision={decisionA} />);
+    expect(screen.queryByTestId('unclassified-card-Grow food')).toBeNull();
+  });
+
+  it('resets the Labour skill composer when the selected decision changes', () => {
+    const decisionA = makeDecision({
+      itemId: 's1-vision-labour-a',
+      label: 'Labour A',
+      isLabourInventory: true,
+    });
+    const decisionB = makeDecision({
+      itemId: 's1-vision-labour-b',
+      label: 'Labour B',
+      isLabourInventory: true,
+    });
+    const props = baseProps(decisionA);
+    const { rerender } = render(<DecisionWorkingPanel {...props} />);
+    // Open the "add a skill not listed" composer -> its input appears.
+    fireEvent.click(
+      screen.getByRole('button', { name: /Add a skill not listed/i }),
+    );
+    expect(screen.getByPlaceholderText(/name the skill/i)).toBeTruthy();
+    // Switch decisions: the keyed remount must close the composer.
+    rerender(<DecisionWorkingPanel {...props} decision={decisionB} />);
+    expect(screen.queryByPlaceholderText(/name the skill/i)).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /Add a skill not listed/i }),
+    ).toBeTruthy();
+  });
+});
+
+describe('DecisionWorkingPanel -- body-router precedence', () => {
+  it('renders VisionClassifyCapture (not generic fields) when a target carries BOTH fields and isVisionClassify', () => {
+    // Load-bearing arm ordering: the bespoke isVisionClassify arm precedes the
+    // generic `fields` fallback. A target carrying both must route to the bespoke
+    // surface; the generic field label must NOT appear.
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-classify-fielded',
+        label: 'Classify with stray fields',
+        fields: TEXT_FIELDS,
+        isVisionClassify: true,
+      }),
+      visionClassifySuggestions: ['Grow food', 'Restore soil'],
+      initialValue: { committed: [], aspirational: [] },
+    });
+    expect(screen.getByText('Suggested vision elements')).toBeTruthy();
+    // The generic VisionFormFields label from TEXT_FIELDS must not render.
+    expect(screen.queryByText('Primary purpose')).toBeNull();
+  });
+});
+
 describe('DecisionWorkingPanel -- recorded badge', () => {
   it('shows a "Recorded" badge when recorded is true', () => {
     renderPanel({

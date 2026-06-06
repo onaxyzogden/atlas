@@ -17,6 +17,13 @@
  *   4. decision.fields (non-empty) -> VisionFormFields over the draft.
  *   5. otherwise                   -> a single textarea bound to draft.text.
  *
+ * The two bespoke children that hold transient, non-persisted UI state
+ * (VisionClassifyCapture's Unclassified staging; LabourInventoryCapture's skill
+ * composer) are KEYED on decision.itemId so a decision switch remounts them and
+ * resets that state -- the persistence-free analogue of the itemId-keyed draft
+ * re-seed below, so staged-but-unsorted items / open composers never bleed across
+ * a switch-and-return.
+ *
  * Validity drives the Record button + the gate note:
  *   - isVisionClassify:  isVisionClassifyValid (>=1 element classified).
  *   - isLabourInventory: isLabourValid (>=1 labour row).
@@ -311,6 +318,7 @@ export default function DecisionWorkingPanel({
       <div className={css.body}>
         {decision.isVisionClassify ? (
           <VisionClassifyCapture
+            key={decision.itemId}
             value={classifyModel!}
             onChange={(next) =>
               setDraft((d) => ({
@@ -331,6 +339,7 @@ export default function DecisionWorkingPanel({
           />
         ) : decision.isLabourInventory ? (
           <LabourInventoryCapture
+            key={decision.itemId}
             value={draft}
             onChange={setDraft}
             skillSuggestions={labourSkillSuggestions ?? []}
