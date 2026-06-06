@@ -236,6 +236,8 @@ describe('resolveVisionClassifyOptions', () => {
     const base = VISION_CLASSIFY_OPTIONS._base ?? [];
     const result = resolveVisionClassifyOptions('homestead', ['regenerative_farm']);
     expect(result.slice(0, base.length)).toEqual([...base]);
+    const homestead = VISION_CLASSIFY_OPTIONS.homestead ?? [];
+    expect(result.slice(base.length, base.length + homestead.length)).toEqual([...homestead]);
     expect(new Set(result).size).toBe(result.length);
   });
 
@@ -248,5 +250,11 @@ describe('resolveVisionClassifyOptions', () => {
   it('unknown/missing primary contributes nothing beyond _base', () => {
     const base = VISION_CLASSIFY_OPTIONS._base ?? [];
     expect(resolveVisionClassifyOptions(undefined)).toEqual([...base]);
+  });
+
+  it('dedups a secondary that overlaps the primary', () => {
+    expect(resolveVisionClassifyOptions('homestead', ['homestead'])).toEqual(
+      resolveVisionClassifyOptions('homestead'),
+    );
   });
 });

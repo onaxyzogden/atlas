@@ -292,9 +292,7 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
 // Plain strings (not domain-tagged) -- a vision element is classified
 // committed-vs-aspirational by the steward, not pre-bucketed here.
-export const VISION_CLASSIFY_OPTIONS: Partial<
-  Record<ProjectTypeId | '_base', readonly string[]>
-> = {
+export const VISION_CLASSIFY_OPTIONS: FieldOptionSet = {
   _base: [
     'Grow food for our household',
     'Restore degraded soil',
@@ -335,10 +333,10 @@ export function resolveVisionClassifyOptions(
   const seen = new Set<string>();
   const result: string[] = [];
   for (const list of ordered) {
-    for (const s of list) {
-      if (!seen.has(s)) {
-        seen.add(s);
-        result.push(s);
+    for (const entry of list) {
+      if (!seen.has(entry)) {
+        seen.add(entry);
+        result.push(entry);
       }
     }
   }
