@@ -353,3 +353,89 @@
   border-color: var(--color-accent, #2f80ed);
   color: var(--color-text, #1b1e22);
 }
+
+/* ---------- decision modes (c4 zoning / c5 water / c7 permits) ---------- */
+
+.selectInput,
+.unitSelect {
+  padding: 8px 11px;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.selectInput:focus,
+.unitSelect:focus {
+  outline: none;
+  border-color: var(--color-accent, #2f80ed);
+}
+
+.checkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  cursor: pointer;
+}
+
+.numRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.numInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+  font: inherit;
+  font-size: 12px;
+}
+
+.numInput:focus {
+  outline: none;
+  border-color: var(--color-accent, #2f80ed);
+}
+
+.unitSelect {
+  flex: none;
+}
+
+.fieldNote {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.advisory {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--color-warning, #e8a33d) 40%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--color-warning, #e8a33d) 10%, transparent);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #1b1e22);
+}
+
+.advisoryIcon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-warning, #e8a33d);
+}
