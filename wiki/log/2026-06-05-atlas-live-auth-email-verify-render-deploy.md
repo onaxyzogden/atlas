@@ -62,6 +62,8 @@ forgot/reset**. ADR: [[decisions/2026-06-05-atlas-live-auth-and-render-deploy]].
   reference with a header explaining the swap).
 - `render.yaml` validates as YAML. **Docker image builds NOT run** — Docker
   Desktop daemon down; operator validates on first Render deploy.
+  *(Superseded — see the addendum below: both images now build, boot, and serve
+  locally.)*
 
 ## Phase 4 — Operator runbook
 - **`infrastructure/DEPLOY-RENDER.md`**: services table, secrets table (incl.
@@ -70,15 +72,28 @@ forgot/reset**. ADR: [[decisions/2026-06-05-atlas-live-auth-and-render-deploy]].
   migrations, add the `atlas` CNAME, keep the API non-suspending, end-to-end
   verification, troubleshooting + rollback + a Railway cost-down note.
 
+## Addendum — Docker build gate closed + e2e auth (later, 2026-06-05)
+With a live Docker daemon + local Postgres, the two deferred gates are now
+**closed** — surfacing 6 latent build defects (none would have built on Render).
+Full detail in the ADR amendment ([[decisions/2026-06-05-atlas-live-auth-and-render-deploy]]).
+- **e2e auth vs real Postgres:** register→verify→forgot→reset→login + all
+  negatives (400 `INVALID_TOKEN`, 422, generic-200) ✓.
+- **API image:** fixed `.dockerignore` (node_modules symlink), `@types/geojson`
+  + `fastify-plugin` + `@types/ws` phantom deps, `tsconfig.base.json` context
+  copy; **adopted esbuild bundling** (`apps/api/esbuild.mjs`) so `node dist`
+  resolves `@ogden/shared` (was `ERR_UNKNOWN_FILE_EXTENSION` on its `.ts`
+  source). Boots; `node dist/db/migrate.js` vs real DB → exit 0 (preDeploy path).
+- **nginx image:** fixed the same `tsconfig.base.json` copy + declared
+  `react-router-dom@^7.15.0` (undeclared, hoist-only). Builds (125 MB), serves
+  `/healthz` 200, SPA index, deep-link fallback; `/api` proxy wired. ⚠ nginx
+  resolves the `atlas-api` upstream at boot — fine on Render, flagged for runbook.
+
 ## Deferred / next
 - **Operator:** run `DEPLOY-RENDER.md` (provision Render, fill secrets, verify
   Resend domain, point DNS). Claude cannot provision.
-- **Local end-to-end auth walkthrough** (register→stdout link→verify→forgot→
-  reset→login) not yet run here — needs a running Postgres + dev servers; covered
-  by the 22 backend + 11 web tests in the meantime.
-- **Docker build gate** unverified locally (daemon down).
 - Optional: hard/per-feature verification gate; S3/R2 creds to avoid ephemeral
-  upload storage.
+  upload storage; nginx request-time `resolver` hardening for the upstream
+  cold-start hazard.
 
 **Amanah:** auth + transactional email + infra only; no sales/finance
 instrument, no CSRA surface — clean.

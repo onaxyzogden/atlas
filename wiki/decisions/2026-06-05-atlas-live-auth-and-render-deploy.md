@@ -124,3 +124,86 @@ validates on Render's first deploy. Local end-to-end auth walkthrough deferred
 
 Related: [[2026-06-05-olos-watermark-and-record-rev-parity]] (same-day sync work,
 unrelated surface).
+
+---
+
+## Amendment — 2026-06-05 (later): Docker build gate closed + esbuild decision
+
+The two items left unverified above ("Docker builds NOT run", "e2e auth
+deferred") are now **both closed**, with a real Postgres and a live Docker
+daemon. Doing so surfaced **6 latent build defects** — none of which would have
+built on Render either — plus one architectural choice.
+
+**End-to-end auth (real Postgres):** register → verify-email/confirm (auto
+sign-in) → forgot-password → reset-password → login all pass against a live DB;
+negatives confirmed: bad/reused/consumed tokens → **400 `INVALID_TOKEN`** (never
+401), short password → 422, request endpoints → generic `200 { sent: true }`.
+
+**API image (`Dockerfile.api`) — 5 defects fixed:**
+1. **`COPY apps/api apps/api` failed** ("cannot copy to non-directory
+   …/node_modules/ioredis") — host pnpm symlinks. Fixed by a new repo-root
+   **`.dockerignore`** (`**/node_modules`, `**/dist`, `.git`, `**/.env*` with a
+   `!**/.env.example` re-include, etc.); also shrinks the Render build context.
+2. **Phantom type dep** — `@ogden/shared` uses the `GeoJSON` namespace but never
+   declared `@types/geojson`; resolved only via host hoisting. Declared
+   `@types/geojson@^7946.0.16` in `packages/shared`.
+3. **Missing `tsconfig.base.json` in context** → `tsc` silently fell back to
+   non-strict defaults, changing zod inference and erroring
+   `geometry.schema.ts` (TS2322). Fixed by `COPY tsconfig.base.json ./` in the
+   build stage. (Same root cause later hit the nginx build — see below.)
+4. **Undeclared runtime dep `fastify-plugin`** (used by 6 source plugins) —
+   would have crashed the prod container at boot, not just the build. Added to
+   `apps/api` **dependencies**.
+5. **Type-only `ws` import** in `websocket.ts` — added `@types/ws` devDep.
+
+**Architectural decision (via AskUserQuestion) — bundle the API with esbuild.**
+The image built but could not **boot**: `@ogden/shared`'s package `exports`
+resolve to TypeScript *source* (`./src/index.ts`), fine under `tsx`/dev but fatal
+under `node dist` (`ERR_UNKNOWN_FILE_EXTENSION` on `.ts`). Rather than change the
+shared package's publish shape or add a runtime TS loader, the operator chose to
+**bundle**: new `apps/api/esbuild.mjs` bundles the API entry + `@ogden/shared`
+(and subpath exports) into a self-contained flat dist, marking every real npm
+dependency external. `build` is now `tsc --noEmit && node esbuild.mjs`. The
+output is exactly the layout the Dockerfile/`render.yaml` already assumed —
+`dist/index.js` (CMD) and `dist/db/migrate.js` (preDeployCommand) — so no
+Dockerfile path change was needed; the prior migrations COPY to
+`dist/db/migrations` and `CMD ["node","dist/index.js"]` became correct as-is.
+Verified in-image: boots past module load; **`node dist/db/migrate.js` against a
+real Postgres → exit 0**, "All migrations already applied" (idempotent; 054 was
+present) — proving the Render `preDeployCommand` path.
+
+**nginx image (`Dockerfile.nginx`) — 2 defects fixed:**
+1. **Same missing `tsconfig.base.json`** — both `packages/shared/tsconfig.json`
+   and `apps/web/tsconfig.json` `extends "../../tsconfig.base.json"`; absent, the
+   shared `tsc` failed (TS5083) and `vite-plugin-pwa` couldn't resolve the
+   extends → "0 modules transformed". Fixed by `COPY tsconfig.base.json ./` in
+   the build stage.
+2. **Undeclared runtime dep `react-router-dom`** — 5 web source files import it
+   (a shared OGDEN UI wheel calls `useNavigate` internally; Atlas, which uses
+   `@tanstack/react-router`, wraps it in `MemoryRouter` to supply context). It
+   resolved only as a peer of the `ogden-ui-components` tarball via hoisting.
+   Declared `react-router-dom@^7.15.0` in `apps/web` **dependencies**.
+   *(`mapbox-gl` and `geojson` also showed as undeclared in a phantom-dep scan
+   but are non-blocking: `mapbox-gl` only appears in a `.d.ts` shim comment, and
+   all `geojson` imports are `import type` — erased by esbuild before rollup.)*
+
+**nginx runtime check:** image is 125 MB (alpine + baked SPA). Boots; `/healthz`
+→ 200 `ok`; `/` serves the baked SPA (`<title>OGDEN Land Design Atlas</title>`);
+deep links (`/projects/x`) → 200 history fallback; `/api/*` proxy is wired (502
+only because the test upstream is empty). **Operational note:** nginx resolves
+the `atlas-api` upstream **at boot** and `[emerg]`-exits if the name doesn't
+resolve — fine on Render (private-service DNS exists) but a possible cold-start
+ordering hazard; flagged for the runbook. A request-time `resolver` + variable
+`proxy_pass` is the documented hardening if it ever bites.
+
+**Lockfile/consistency:** every dep addition was followed by
+`pnpm install --lockfile-only`; `pnpm install --frozen-lockfile` re-verified
+exit 0 (so Render's frozen install will succeed). Files touched by this
+amendment: `.dockerignore` (new), `apps/api/esbuild.mjs` (new),
+`apps/api/package.json`, `packages/shared/package.json`, `apps/web/package.json`,
+`infrastructure/Dockerfile.api`, `infrastructure/Dockerfile.nginx`,
+`pnpm-lock.yaml`.
+
+**Net status:** auth e2e ✓, API image builds + boots + migrate path ✓, nginx
+image builds + serves ✓. The remaining work is operator-only Render provisioning
+(`DEPLOY-RENDER.md`).

@@ -29,6 +29,11 @@ ENV VITE_MAPTILER_KEY=$VITE_MAPTILER_KEY
 ENV VITE_CESIUM_ION_TOKEN=$VITE_CESIUM_ION_TOKEN
 # Cesium/MapLibre bundling is memory-hungry; match the CI heap ceiling.
 ENV NODE_OPTIONS=--max-old-space-size=7168
+# Both packages/shared/tsconfig.json and apps/web/tsconfig.json `extends`
+# "../../tsconfig.base.json". Without it in the context, the shared `tsc` fails
+# (TS5083) and vite-plugin-pwa cannot resolve the extends → "0 modules
+# transformed" build failure. Copy it to the WORKDIR root first.
+COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter @ogden/shared build 2>/dev/null || true
