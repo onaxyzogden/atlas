@@ -1,9 +1,9 @@
 # ADR: The Observe Human-Systems lens surfaces a project's declared vision as a read-side "Declared" Vision & Project Intent entry, without inflating any observation count
 
 **Date:** 2026-06-05
-**Status:** accepted (Phases 1-2 complete + committed; pure logic + honesty invariant
-pinned by 29 bounded unit tests over the real builder; tsc EXIT 0; live render-DOM
-proof blocked by the no-network sandbox renderer hang -- disclosed below)
+**Status:** accepted + live verified (Phases 1-2 complete + committed; pure logic + honesty
+invariant pinned by 29 bounded unit tests over the real builder; tsc EXIT 0; live
+render-DOM confirmed via Chrome browser MCP -- see Verification section below)
 **Branch:** `merge/atlas-permaculture-to-main-2026-06-05` (formerly
 `feat/atlas-permaculture`; commits `4d55419d`, `c05bdcf5`; **not pushed**)
 Plan: `C:\Users\MY OWN AXIS\.claude\plans\c-users-my-own-axis-downloads-olos-obse-sunny-mitten.md`.
@@ -125,17 +125,24 @@ lens outline-diamond icon.
   `budgetRange`, `timelineProgress`, `resourceConstraints`) -- validating the core plan
   assumption against real persisted state. A synthetic zero-observation clone was
   injected and its `/v3/project/.../observe` route URL resolved.
-- **Live render-DOM proof blocked -- disclosed, not papered over.** The no-network
-  preview sandbox renderer hangs on the Observe dashboard mount (dead API at
-  `localhost:3000` retry storm + a Vite HMR reconnect loop), recurring across two clean
-  server restarts; `preview_eval` and `preview_screenshot` both time out once the route
-  mounts ([[project-screenshot-hang]]). This is an environment limitation, not a code
-  defect. Because the change introduces NO new component and NO new render branch -- only
-  data-shape changes to fields the existing, already-shipped `DataPointRow` + `keyData`
-  renderers consume generically -- the deterministic unit-test proof over the real
-  builder plus the render-path analysis stand in for the live paint, following the
-  precedent set by [[decisions/2026-06-04-atlas-observe-live-map]] (same sandbox wall,
-  same disclosure).
+- **Live render-DOM proof confirmed via Chrome browser MCP (2026-06-06).** The
+  previously-blocked live render was completed in a follow-up session using the Chrome
+  browser MCP tool against port 5200. Procedure: (1) completed Stage Zero for "351 House
+  -- Atlas Sample" (6-question vision builder, autosaved `visionProfile` via
+  `useVisionBuilder.ts`); (2) navigated to Observe -> Module bar -> Human Systems lens;
+  (3) opened the "Vision & Project Intent" slide-up. Screenshot + DOM eval confirmed:
+  -- Slide-up header: "Vision & Project Intent -- 2 points"
+  -- First entry: "Declared project intent" with filled-diamond glyph (the
+     `LIVE_TYPE_ICON.declaration` character), outcomes composed as "Household
+     self-sufficiency, Food for family / community, Soil regeneration", date 5 Jun 2026
+  -- Second entry: "Carolinian homestead vision set" (real observation, 29 Feb 2024)
+  -- Filter tabs: "All types | Declaration | Observation Note | Divergence" (new
+     Declaration chip confirmed live)
+  -- Honesty invariant held: Human Systems badge stayed "3 OBS"; total project counts
+     (10 obs, 2 current, 7 ageing, 7 not yet observed) unchanged
+  Note: initial orientation revealed that the Project Creation Wizard does NOT write
+  `visionProfile` (`WizardStep2Vision.tsx` writes `projectTypeRecord` only); Stage Zero
+  is the sole writer. This is the activation prerequisite for the feature.
 
 ## Process / covenant
 
@@ -151,14 +158,13 @@ clean.
 
 ## Deferred
 
-- Live render-DOM (or screenshot) re-verification of the "Declared" row + slide-up entry
-  in a network-capable preview environment.
+- ~~Live render-DOM re-verification~~ -- COMPLETED 2026-06-06 via Chrome browser MCP
+  (see Verification above).
 - Optional: when a vision-intent domain has zero observations but a declaration exists,
   set the Human lens `summary` to "Intent declared; no field observations yet." so the
-  card copy reads coherently (still zero count change). Not implemented this session.
-- A residual preview-only synthetic project "Declared Intent Live Check"
-  (`live-declared-check`) was injected into the sandbox browser localStorage for the
-  (hung) live check; it is browser-local, non-builtin, clearly labelled, and never
-  committed -- cleared on the next preview hard reset.
+  card copy reads coherently (still zero count change). Not implemented.
+- Wizard does not write `visionProfile` -- `WizardStep2Vision.tsx` writes
+  `projectTypeRecord` only; Stage Zero is the sole writer. The Stage Zero banner claiming
+  "This setup has moved to the Project Creation Wizard" is inaccurate. Tracked separately.
 
 Entity: [[entities/observe-dashboard]]. Log: [[log/2026-06-05-atlas-observe-declared-intent]].
