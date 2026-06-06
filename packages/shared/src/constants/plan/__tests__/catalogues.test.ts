@@ -641,8 +641,8 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes exactly 5 additive objectives and 3 patches', () => {
-    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(5);
+  it('contributes exactly 8 additive objectives and 3 patches', () => {
+    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(8);
     expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(3);
   });
 
@@ -658,7 +658,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     }
   });
 
-  it('resolves silvopasture onto a regen primary as +5 additive', () => {
+  it('resolves silvopasture onto a regen primary as +8 additive', () => {
     const base = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: [],
@@ -667,7 +667,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
     });
-    expect(withSilv.objectives.length).toBe(base.objectives.length + 5);
+    expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
   it('applies all 3 patches to universal targets, none skipped', () => {

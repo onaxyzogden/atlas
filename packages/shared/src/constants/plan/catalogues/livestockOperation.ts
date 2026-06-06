@@ -1075,7 +1075,10 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Marketing, sales-channel, and processing logistics defined and confirmed compliant.',
     actHandoff: 'Marketing & Sales-Channel Plan',
     scopeNotes:
-      'Amanah Gate - flag, do not omit: meat-share / herd-share / CSA-style advance-subscription channels (c3) entail the advance sale of animals or yield the steward does not yet possess (bay` ma laysa `indak). The channel is surfaced, never silently dropped, but it is flagged for Scholar Council review before adoption, must not be presented as a default or recommended model, and no CSRA / salam advance-purchase framing is used. Permissible analogues without the flag: farmgate/spot sale of stock on hand, and processor/wholesale contracts settled on delivered animals.',
+      'Amanah Gate - flag, do not omit: meat-share / herd-share / CSA-style advance-subscription channels (c3) entail the advance sale of animals or yield the steward does not yet possess (bay` ma laysa `indak). The channel is surfaced, never silently dropped, but it is flagged for Scholar Council review before adoption, must not be presented as a default or recommended model, and no CSRA / salam advance-purchase framing is used. ' +
+      'Permissible models that carry no advance-sale exposure: (1) farmgate / spot sale of stock on hand; (2) processor or wholesale contracts settled on delivered animals - no prepayment; (3) halal-certified abattoir gate sales; (4) buyers-club spot purchases at delivery. ' +
+      'If a subscription or membership model is under consideration, design it as a membership benefit (entitlement to a share of yield as a benefit of belonging, not a return on advance purchase) and submit the full structure for Scholar Council review before any public offering. ' +
+      'Reference: CSRA model erased 2026-05-04 on fiqh grounds - see wiki/decisions/.',
   }),
 ];
 
@@ -1448,6 +1451,12 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Manure and nutrient flows mapped and the livestock-to-land fertility balance assessed. Safe-handling, overgrazing, and nutrient-loading guards set. Fertility loop closed back into the host.',
     actHandoff: 'Closed-Loop Nutrient & Fertility Integration Brief',
   }),
+  // ---------------------------------------------------------------- S7 intentionally absent
+  // The host primary owns marketing, economics, and financial phasing.
+  // DO NOT add S7 additive objectives here. Any sales-channel, break-even, or
+  // herd-buildup-timeline design belongs in the host primary plan, not in this
+  // secondary overlay. See preamble comment above for full rationale.
+  // ----------------------------------------------------------------
 ];
 
 // ---------------------------------------------------------------------------
