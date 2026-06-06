@@ -80,10 +80,34 @@ declared vision into a read-only lens -- clean.
 
 ## Deferred
 
-- Live render-DOM (or screenshot) re-verification of the "Declared" row + slide-up in a
-  network-capable preview environment.
+- ~~Live render-DOM re-verification~~ -- COMPLETED 2026-06-06 (see below).
 - Optional Human-lens `summary` copy "Intent declared; no field observations yet." for
   the zero-observation-with-declaration case (zero count change) -- not implemented.
-- Residual preview-only synthetic project "Declared Intent Live Check"
-  (`live-declared-check`) in the sandbox browser localStorage (browser-local,
-  non-builtin, never committed; cleared on the next hard reset).
+- Wizard does not write `visionProfile`; Stage Zero is the sole writer. Separate task
+  spawned to fix the inaccurate Stage Zero "setup moved" banner.
+
+## 2026-06-06 -- Live verification (Chrome browser MCP)
+
+Continued from context-compacted session. User confirmed the sample project ("351 House
+-- Atlas Sample", not the live 1178 County Road project). Procedure: completed Stage Zero
+6-question vision builder for the sample project (autosaved `visionProfile` via
+`useVisionBuilder.ts`); navigated to Observe -> Module bar -> Human Systems lens; opened
+Vision & Project Intent slide-up.
+
+Chrome screenshot + DOM eval confirmed:
+- Slide-up: "Vision & Project Intent -- 2 points"
+- Row 1: filled-diamond glyph + "Declared project intent"; outcomes composed as
+  "Household self-sufficiency, Food for family / community, Soil regeneration";
+  date 5 Jun 2026
+- Row 2: "Carolinian homestead vision set" (real observation, 29 Feb 2024)
+- Filter tabs: All types | Declaration | Observation Note | Divergence
+- Honesty invariant held: Human Systems "3 OBS" badge unchanged; project totals
+  (10 obs, 2 current, 7 ageing, 7 not yet observed) unchanged
+
+Discovery: `WizardStep2Vision.tsx` writes `projectTypeRecord` (project type only), NOT
+`visionProfile`. The Stage Zero vision builder is the ONLY code path that writes
+`metadata.visionProfile`. Wizard-created projects without a completed Stage Zero will not
+trigger the declared-intent feature -- this is the activation prerequisite. A background
+task was spawned to correct the inaccurate "setup moved" banner on the Stage Zero page.
+
+Branch `merge/atlas-permaculture-to-main-2026-06-05` NOT pushed (explicit constraint).
