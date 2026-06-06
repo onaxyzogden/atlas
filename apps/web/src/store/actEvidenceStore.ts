@@ -20,7 +20,7 @@
  * derives objective completion from that same store. Act and Plan share one
  * source of truth for checklist progress.
  *
- * Persist key: 'ogden-act-evidence', version 2.
+ * Persist key: 'ogden-act-evidence', version 3.
  */
 
 import { create } from 'zustand';
@@ -70,6 +70,10 @@ interface ActEvidenceState {
   visionForms: Record<string, Record<string, string>>;
   /** Structured vision form values keyed projectId -> formId -> FormValue. */
   visionFormData: Record<string, Record<string, FormValue>>;
+  /** Optional "why these?" rationale per decision/checklist item. Keyed projectId -> itemId -> text. Display + persistence only; does NOT feed the progress/dependency-gate engine. */
+  decisionRationale: Record<string, Record<string, string>>;
+  /** Lightweight "needs more observation" defer annotation per decision. Keyed projectId -> itemId -> true. Display-only re: gating (TODO: true per-item status lives in planStratumStore). */
+  deferredDecisions: Record<string, Record<string, true>>;
 
   /**
    * Increment the photo count for a descriptor, capped at maxTarget.
@@ -131,6 +135,12 @@ interface ActEvidenceState {
     value: FormValue,
     summaryText: string,
   ): void;
+
+  /** Persist (overwrite) the rationale text for one decision item. */
+  saveDecisionRationale(projectId: string, itemId: string, text: string): void;
+
+  /** Set or clear the defer annotation for one decision item. Setting false deletes the key so the map stays sparse. */
+  setDecisionDeferred(projectId: string, itemId: string, deferred: boolean): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +183,8 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
       byProject: {},
       visionForms: {},
       visionFormData: {},
+      decisionRationale: {},
+      deferredDecisions: {},
 
       addPhoto: (projectId, objectiveId, descriptorId, maxTarget) => {
         const current = readCapture(
@@ -253,18 +265,58 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
             },
           },
         })),
+
+      saveDecisionRationale: (projectId, itemId, text) =>
+        set((s) => ({
+          decisionRationale: {
+            ...s.decisionRationale,
+            [projectId]: {
+              ...(s.decisionRationale[projectId] ?? {}),
+              [itemId]: text,
+            },
+          },
+        })),
+
+      setDecisionDeferred: (projectId, itemId, deferred) =>
+        set((s) => {
+          if (deferred) {
+            return {
+              deferredDecisions: {
+                ...s.deferredDecisions,
+                [projectId]: {
+                  ...(s.deferredDecisions[projectId] ?? {}),
+                  [itemId]: true,
+                },
+              },
+            };
+          }
+          // Clearing: drop the itemId key so the map stays sparse. Safe no-op
+          // when the project or item key is absent.
+          const projectMap = s.deferredDecisions[projectId];
+          if (!projectMap || !(itemId in projectMap)) return s;
+          const { [itemId]: _removed, ...rest } = projectMap;
+          return {
+            deferredDecisions: {
+              ...s.deferredDecisions,
+              [projectId]: rest,
+            },
+          };
+        }),
     }),
     {
       name: 'ogden-act-evidence',
-      version: 2,
-      // Passthrough migrate: a v1 blob has no visionFormData; zustand merges
-      // the persisted object over the store creator's defaults, so the field
-      // backfills to {} via the initializer when absent.
+      version: 3,
+      // Passthrough migrate: a v1 blob has no visionFormData and a v2 blob has
+      // no decisionRationale/deferredDecisions; zustand merges the persisted
+      // object over the store creator's defaults, so missing fields backfill to
+      // {} via the initializer (v1->v2 and v2->v3) when absent.
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({
         byProject: state.byProject,
         visionForms: state.visionForms,
         visionFormData: state.visionFormData,
+        decisionRationale: state.decisionRationale,
+        deferredDecisions: state.deferredDecisions,
       }),
     },
   ),
