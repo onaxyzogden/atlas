@@ -287,6 +287,74 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Variable / weather-dependent',
     ],
   },
+
+  // REVIEW: Boundary surface option sets -- content transcribed verbatim from the
+  // operator's olos_boundaries_legal_mixed_surface.html mockup; operator to
+  // confirm/extend before treating as authoritative.
+  boundaryDocStatus: {
+    _base: ['Current & verified', 'Pending review', 'Not yet obtained'],
+  },
+  boundaryZoning: {
+    _base: [
+      'Rural - General agriculture',
+      'Rural - Small lots',
+      'Rural - Conservation',
+      'Rural - Landscape',
+      'Mixed rural / residential',
+      'Peri-urban / green belt',
+      'Other / unknown - needs investigation',
+    ],
+  },
+  boundaryPermittedUses: {
+    _base: [
+      'Agriculture & horticulture',
+      'Livestock & grazing',
+      'Farm stay / agritourism',
+      'Educational programs',
+    ],
+  },
+  boundaryZoningReview: {
+    _base: ['All clear', 'Permit needed', 'Conditional use', 'Needs legal review'],
+  },
+  boundaryWaterSources: {
+    _base: [
+      'Rainwater harvesting (no licence required)',
+      'Groundwater bore (licenced)',
+      'Surface water - creek or dam',
+      'Irrigation scheme / water grid',
+    ],
+  },
+  boundaryWaterUnit: {
+    _base: ['ML', 'kL', 'm3'],
+  },
+  boundaryWaterStatus: {
+    _base: ['Confirmed', 'Needs verification', 'Restricted - review needed'],
+  },
+  boundaryEasementImplications: {
+    _base: [
+      'Limits building zones',
+      'Affects access routes',
+      'Requires legal review',
+      'No implications',
+    ],
+  },
+  boundaryCovenantTypes: {
+    _base: [
+      'Conservation covenant',
+      'Heritage overlay',
+      'None identified',
+      'Under investigation',
+    ],
+  },
+  boundaryPermitActivities: {
+    _base: [
+      'Earthworks (dam, swale, cut >1m)',
+      'New building or structure',
+      'Water harvesting / dam construction',
+      'Vegetation clearing',
+      'Agritourism or on-farm events',
+    ],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.

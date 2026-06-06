@@ -258,3 +258,58 @@ describe('resolveVisionClassifyOptions', () => {
     );
   });
 });
+
+describe('boundary option sets', () => {
+  const BOUNDARY_IDS = [
+    'boundaryDocStatus',
+    'boundaryZoning',
+    'boundaryPermittedUses',
+    'boundaryZoningReview',
+    'boundaryWaterSources',
+    'boundaryWaterUnit',
+    'boundaryWaterStatus',
+    'boundaryEasementImplications',
+    'boundaryCovenantTypes',
+    'boundaryPermitActivities',
+  ] as const;
+
+  it('all 10 boundary ids exist as keys in FIELD_OPTION_SETS', () => {
+    for (const id of BOUNDARY_IDS) {
+      expect(Object.prototype.hasOwnProperty.call(FIELD_OPTION_SETS, id)).toBe(true);
+    }
+  });
+
+  it('each boundary id resolves to a non-empty array via resolveFieldOptions', () => {
+    for (const id of BOUNDARY_IDS) {
+      const result = resolveFieldOptions(id, undefined);
+      expect(result.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('resolveFieldOptions("boundaryZoning", undefined) returns the exact 7-item list', () => {
+    expect(resolveFieldOptions('boundaryZoning', undefined)).toEqual([
+      'Rural - General agriculture',
+      'Rural - Small lots',
+      'Rural - Conservation',
+      'Rural - Landscape',
+      'Mixed rural / residential',
+      'Peri-urban / green belt',
+      'Other / unknown - needs investigation',
+    ]);
+  });
+
+  it('resolveFieldOptions("boundaryWaterUnit", undefined) returns ["ML","kL","m3"]', () => {
+    expect(resolveFieldOptions('boundaryWaterUnit', undefined)).toEqual(['ML', 'kL', 'm3']);
+  });
+
+  it('unknown boundary id returns []', () => {
+    expect(resolveFieldOptions('boundaryNope', undefined)).toEqual([]);
+  });
+
+  it('base-only: passing a primaryTypeId to boundaryDocStatus still returns exactly the _base list', () => {
+    const withType = resolveFieldOptions('boundaryDocStatus', 'homestead');
+    const withoutType = resolveFieldOptions('boundaryDocStatus', undefined);
+    expect(withType).toEqual(withoutType);
+    expect(withType).toEqual(['Current & verified', 'Pending review', 'Not yet obtained']);
+  });
+});
