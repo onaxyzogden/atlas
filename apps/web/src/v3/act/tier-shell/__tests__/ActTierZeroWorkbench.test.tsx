@@ -337,8 +337,10 @@ describe('ActTierZeroWorkbench -- labour skill threading', () => {
     // The skills the panel should offer == resolveLabourSkills(primary, secs).
     const expected = resolveLabourSkills('homestead', []);
     expect(expected.length).toBeGreaterThan(0);
-    // A stable _base entry must render as a skill-row label in the surface.
-    expect(expected).toContain('Fencing & earthworks');
-    expect(screen.getByText('Fencing & earthworks')).toBeTruthy();
+    // The resolved skills must render as skill-row labels in the surface. Assert
+    // the FIRST resolved entry (computed from the resolver) rather than a
+    // hardcoded string, so the test stays green through operator content
+    // revisions of the REVIEW-flagged _base labour-skill list.
+    expect(screen.getAllByText(expected[0]).length).toBeGreaterThan(0);
   });
 });
