@@ -12,6 +12,11 @@ RUN pnpm install --frozen-lockfile --prod=false
 
 # ── Build ─────────────────────────────────────────────────────────────────
 FROM deps AS build
+# Root tsconfig the workspace packages extend ("../../tsconfig.base.json").
+# Without it, tsc silently falls back to compiler defaults (strict off), which
+# changes type inference (e.g. zod schema annotations in @ogden/shared) and
+# breaks the build only inside the image. Must land before the package builds.
+COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
 RUN pnpm --filter @ogden/shared build 2>/dev/null || true
