@@ -14,7 +14,12 @@
 //   - base-only set: a set with only _base ignores a passed primaryTypeId
 
 import { describe, it, expect } from 'vitest';
-import { resolveFieldOptions, FIELD_OPTION_SETS } from '../fieldOptions.js';
+import {
+  resolveFieldOptions,
+  FIELD_OPTION_SETS,
+  resolveSuccessCriteriaOptions,
+  SUCCESS_CRITERIA_OPTIONS,
+} from '../fieldOptions.js';
 
 describe('resolveFieldOptions', () => {
   it('unions _base, then primary, then secondaries in order', () => {
@@ -71,5 +76,93 @@ describe('resolveFieldOptions', () => {
     const base = FIELD_OPTION_SETS.laborSeasonality!._base ?? [];
     expect(withType).toEqual([...base]);
     expect(withoutType).toEqual([...base]);
+  });
+});
+
+describe('resolveSuccessCriteriaOptions', () => {
+  it('returns the _base CriterionOptions in order when no primary', () => {
+    const result = resolveSuccessCriteriaOptions(undefined);
+    const base = SUCCESS_CRITERIA_OPTIONS._base ?? [];
+    expect(result).toEqual([...base]);
+  });
+
+  it('unknown/no-primary with empty secondaries equals _base', () => {
+    const result = resolveSuccessCriteriaOptions(undefined, []);
+    const base = SUCCESS_CRITERIA_OPTIONS._base ?? [];
+    expect(result).toEqual([...base]);
+  });
+
+  it('unions _base then primary options in order', () => {
+    const result = resolveSuccessCriteriaOptions('homestead');
+    const base = SUCCESS_CRITERIA_OPTIONS._base ?? [];
+    const primary = SUCCESS_CRITERIA_OPTIONS.homestead ?? [];
+    // Reconstruct dedup-by-text order.
+    const expected: typeof result = [];
+    const seen = new Set<string>();
+    for (const o of [...base, ...primary]) {
+      if (!seen.has(o.text)) {
+        seen.add(o.text);
+        expected.push(o);
+      }
+    }
+    expect(result).toEqual(expected);
+  });
+
+  it('dedups by text when the same type is passed as primary and secondary', () => {
+    const once = resolveSuccessCriteriaOptions('homestead');
+    const twice = resolveSuccessCriteriaOptions('homestead', ['homestead']);
+    expect(twice).toEqual(once);
+    const texts = twice.map((o) => o.text);
+    expect(new Set(texts).size).toBe(texts.length);
+  });
+
+  it('unions _base, primary, then each secondary in array order', () => {
+    const result = resolveSuccessCriteriaOptions('homestead', [
+      'market_garden',
+    ]);
+    const base = SUCCESS_CRITERIA_OPTIONS._base ?? [];
+    const primary = SUCCESS_CRITERIA_OPTIONS.homestead ?? [];
+    const secondary = SUCCESS_CRITERIA_OPTIONS.market_garden ?? [];
+    const expected: typeof result = [];
+    const seen = new Set<string>();
+    for (const o of [...base, ...primary, ...secondary]) {
+      if (!seen.has(o.text)) {
+        seen.add(o.text);
+        expected.push(o);
+      }
+    }
+    expect(result).toEqual(expected);
+  });
+
+  it('every option domain is one of the three literals', () => {
+    const domains = new Set(['ecological', 'economic', 'stewardship']);
+    for (const list of Object.values(SUCCESS_CRITERIA_OPTIONS)) {
+      for (const option of list ?? []) {
+        expect(domains.has(option.domain)).toBe(true);
+      }
+    }
+  });
+
+  it('string parity: resolveFieldOptions equals resolveSuccessCriteriaOptions texts', () => {
+    const combos: Array<
+      [Parameters<typeof resolveSuccessCriteriaOptions>[0], string[]]
+    > = [
+      [undefined, []],
+      ['homestead', []],
+      ['regenerative_farm', ['market_garden']],
+      ['silvopasture', ['livestock_operation']],
+    ];
+    for (const [primary, secondaries] of combos) {
+      const strings = resolveFieldOptions(
+        'successCriteriaByType',
+        primary,
+        secondaries as Parameters<typeof resolveFieldOptions>[2],
+      );
+      const fromCriteria = resolveSuccessCriteriaOptions(
+        primary,
+        secondaries as Parameters<typeof resolveSuccessCriteriaOptions>[1],
+      ).map((o) => o.text);
+      expect(strings).toEqual(fromCriteria);
+    }
   });
 });

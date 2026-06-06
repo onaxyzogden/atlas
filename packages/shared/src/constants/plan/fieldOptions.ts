@@ -62,46 +62,119 @@ export function resolveFieldOptions(
   return result;
 }
 
+/**
+ * Triple-bottom-line domain tag for a success criterion. Used by the Act
+ * tier-0 success-criteria capture UI to balance ecological, economic, and
+ * stewardship outcomes when an operator selects/curates criteria.
+ */
+export type CriterionDomain = 'ecological' | 'economic' | 'stewardship';
+
+/**
+ * A single domain-tagged success-criterion option. `text` is the display string
+ * (and the legacy dedup key); `domain` is its triple-bottom-line classification.
+ */
+export interface CriterionOption {
+  text: string;
+  domain: CriterionDomain;
+}
+
+// REVIEW: operator to confirm/extend -- BOTH the domain assignments AND the
+// content below are non-authoritative drafts. Domain tags follow a triple-
+// bottom-line heuristic (budget/margin/cost/volume/turnover/losses -> economic;
+// soil/water/cover-crop/tree/forage/browse/stocking/animal-health/paddock-rest
+// -> ecological; documentation/sign-off/safety/chore-rhythm/timeline ->
+// stewardship). Per-type lists are authored only for a few representative types
+// (homestead, regenerative_farm, market_garden, silvopasture,
+// livestock_operation); all other types resolve to `_base` only.
+export const SUCCESS_CRITERIA_OPTIONS: Partial<
+  Record<ProjectTypeId | '_base', readonly CriterionOption[]>
+> = {
+  _base: [
+    { text: 'Objective documented and shared with the team', domain: 'stewardship' },
+    { text: 'Baseline conditions recorded', domain: 'stewardship' },
+    { text: 'Steward sign-off obtained', domain: 'stewardship' },
+    { text: 'Budget within approved range', domain: 'economic' },
+    { text: 'Timeline milestone met', domain: 'stewardship' },
+    { text: 'No outstanding safety concerns', domain: 'stewardship' },
+  ],
+  homestead: [
+    { text: 'Household food needs met for target months', domain: 'economic' },
+    { text: 'Water catchment covers dry-season demand', domain: 'ecological' },
+    { text: 'Family chore rhythm sustainable', domain: 'stewardship' },
+  ],
+  regenerative_farm: [
+    { text: 'Soil organic matter trending upward', domain: 'ecological' },
+    { text: 'Cover-crop establishment confirmed', domain: 'ecological' },
+    { text: 'Field operating margin positive', domain: 'economic' },
+  ],
+  market_garden: [
+    { text: 'Weekly harvest volume meets demand', domain: 'economic' },
+    { text: 'Bed turnover schedule on track', domain: 'economic' },
+    { text: 'Post-harvest losses below target', domain: 'economic' },
+  ],
+  silvopasture: [
+    { text: 'Tree survival rate above threshold', domain: 'ecological' },
+    { text: 'Forage available across rotation', domain: 'ecological' },
+    { text: 'Animal browse damage within limits', domain: 'ecological' },
+  ],
+  livestock_operation: [
+    { text: 'Stocking rate matches carrying capacity', domain: 'ecological' },
+    { text: 'Animal health indicators stable', domain: 'ecological' },
+    { text: 'Paddock rest periods honored', domain: 'ecological' },
+  ],
+};
+
+/**
+ * Resolve the ordered, deduplicated list of domain-tagged success-criterion
+ * options given a project's chosen type(s). Mirrors `resolveFieldOptions`
+ * ordering/dedup semantics exactly, but operates on `CriterionOption` objects
+ * and dedups by `.text` (case-sensitive exact match), keeping first-seen.
+ *
+ * Order: `_base`, then `primary` (if present), then each `secondary` in array
+ * order. Unknown/missing entries contribute nothing.
+ */
+export function resolveSuccessCriteriaOptions(
+  primary: ProjectTypeId | undefined,
+  secondaries: readonly ProjectTypeId[] = [],
+): CriterionOption[] {
+  const ordered: readonly (readonly CriterionOption[])[] = [
+    SUCCESS_CRITERIA_OPTIONS._base ?? [],
+    primary ? (SUCCESS_CRITERIA_OPTIONS[primary] ?? []) : [],
+    ...secondaries.map((id) => SUCCESS_CRITERIA_OPTIONS[id] ?? []),
+  ];
+
+  const seen = new Set<string>();
+  const result: CriterionOption[] = [];
+  for (const list of ordered) {
+    for (const option of list) {
+      if (!seen.has(option.text)) {
+        seen.add(option.text);
+        result.push(option);
+      }
+    }
+  }
+  return result;
+}
+
+// Derive the legacy plain-string success-criteria list from the single
+// domain-tagged source of truth above, so `resolveFieldOptions(
+// 'successCriteriaByType', ...)` returns exactly
+// `resolveSuccessCriteriaOptions(...).map(o => o.text)`.
+const successCriteriaByTypeStrings: FieldOptionSet = Object.fromEntries(
+  (
+    Object.entries(SUCCESS_CRITERIA_OPTIONS) as [
+      ProjectTypeId | '_base',
+      readonly CriterionOption[],
+    ][]
+  ).map(([key, options]) => [key, options.map((o) => o.text)]),
+) as FieldOptionSet;
+
 // REVIEW: Draft starter option lists - operator to confirm/extend before these
 // are treated as authoritative. Per-type lists are authored only for a few
 // representative types (homestead, regenerative_farm, market_garden,
 // silvopasture, livestock_operation); all other types resolve to `_base` only.
 export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
-  successCriteriaByType: {
-    _base: [
-      'Objective documented and shared with the team',
-      'Baseline conditions recorded',
-      'Steward sign-off obtained',
-      'Budget within approved range',
-      'Timeline milestone met',
-      'No outstanding safety concerns',
-    ],
-    homestead: [
-      'Household food needs met for target months',
-      'Water catchment covers dry-season demand',
-      'Family chore rhythm sustainable',
-    ],
-    regenerative_farm: [
-      'Soil organic matter trending upward',
-      'Cover-crop establishment confirmed',
-      'Field operating margin positive',
-    ],
-    market_garden: [
-      'Weekly harvest volume meets demand',
-      'Bed turnover schedule on track',
-      'Post-harvest losses below target',
-    ],
-    silvopasture: [
-      'Tree survival rate above threshold',
-      'Forage available across rotation',
-      'Animal browse damage within limits',
-    ],
-    livestock_operation: [
-      'Stocking rate matches carrying capacity',
-      'Animal health indicators stable',
-      'Paddock rest periods honored',
-    ],
-  },
+  successCriteriaByType: successCriteriaByTypeStrings,
 
   constraintsByType: {
     _base: [
