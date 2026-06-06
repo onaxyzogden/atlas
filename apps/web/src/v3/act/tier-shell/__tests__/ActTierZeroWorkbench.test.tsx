@@ -26,7 +26,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import type { PlanStratumObjective } from '@ogden/shared';
+import type {
+  PlanStratumObjective,
+  PlanDecisionChecklistItem,
+} from '@ogden/shared';
+import { resolveLabourSkills } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -57,6 +61,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 });
 
 import ActTierZeroWorkbench, {
+  buildDecisionTarget,
   type ActTierZeroWorkbenchProps,
 } from '../ActTierZeroWorkbench.js';
 
@@ -281,5 +286,59 @@ describe('ActTierZeroWorkbench -- recorded badge', () => {
     });
     // Default selection is the first item (s1-vision-c1), which is complete.
     expect(screen.getByText(/^recorded$/i)).toBeTruthy();
+  });
+});
+
+describe('buildDecisionTarget -- labour detection', () => {
+  it('flags isLabourInventory for the s1-vision-labour decision (and not SC)', () => {
+    const labourItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-labour',
+      label: 'Inventory available labour',
+      feedsInto: [],
+      optional: true,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(labourItem);
+    expect(target.isLabourInventory).toBe(true);
+    expect(target.isSuccessCriteria).toBe(false);
+  });
+
+  it('does NOT flag isLabourInventory for a non-labour decision', () => {
+    const purposeItem: PlanDecisionChecklistItem = {
+      id: 's1-vision-c1',
+      label: 'State the primary purpose',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(purposeItem);
+    expect(target.isLabourInventory).toBe(false);
+  });
+
+  it('does NOT flag isLabourInventory for a synthetic unmatched id', () => {
+    const syntheticItem: PlanDecisionChecklistItem = {
+      id: 'not-a-real-form-id',
+      label: 'Synthetic',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(syntheticItem);
+    expect(target.isLabourInventory).toBe(false);
+  });
+});
+
+describe('ActTierZeroWorkbench -- labour skill threading', () => {
+  it('threads type-aware resolved labour skills into the labour surface', () => {
+    renderWorkbench({ primaryTypeId: 'homestead', secondaryTypeIds: [] });
+    // Select the labour decision in the center list.
+    const rows = screen.getAllByTestId('decision-item');
+    const labour = rows.find(
+      (r) => r.getAttribute('data-item-id') === 's1-vision-labour',
+    )!;
+    fireEvent.click(labour);
+    // The skills the panel should offer == resolveLabourSkills(primary, secs).
+    const expected = resolveLabourSkills('homestead', []);
+    expect(expected.length).toBeGreaterThan(0);
+    // A stable _base entry must render as a skill-row label in the surface.
+    expect(expected).toContain('Fencing & earthworks');
+    expect(screen.getByText('Fencing & earthworks')).toBeTruthy();
   });
 });
