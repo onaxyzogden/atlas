@@ -1,0 +1,323 @@
+/* SuccessCriteriaCapture.module.css
+ *
+ * Styles for the chip-to-seed success-criteria capture component. Converts the
+ * mockup's two relevant blocks ("Suggested criteria" chips + "Your criteria"
+ * editable rows) into project design tokens (var() with literal fallbacks).
+ * Mirrors the token vocabulary used by VisionFormFields.module.css. ASCII-only:
+ * domain markers are CSS dots driven by [data-domain]; all glyphs are lucide
+ * icons rendered by the component (no Unicode shapes here).
+ *
+ * Token substitution note: the mockup's "green / filled / used / ecological"
+ * accents all map to --color-success; "amber accent" -> --color-stage-act;
+ * "blue/teal stewardship" -> --color-info. No exact token names were missing.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Suggested criteria (chips) ---------- */
+
+.optsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optsHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.optsLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  letter-spacing: 0.01em;
+}
+
+.optsSub {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.optsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optChip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text, #1b1e22);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.optChip:hover:not(:disabled) {
+  border-color: var(--color-stage-act, #d9a036);
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+/* Used: text already present in value.criteria -- dimmed + non-interactive. */
+.optChip[data-used='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 55%, transparent);
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* At max (disabled but not used) -- appear inert. */
+.optChip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.optIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.optChip[data-used='true'] .optIcon {
+  color: var(--color-success, #6b8f6b);
+}
+
+.optBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.optText {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text, #1b1e22);
+}
+
+.optDomain {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.optDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--color-text-subtle, #7a808a);
+}
+
+/* Domain color map: ecological -> success (green); economic -> act (amber);
+   stewardship -> info (blue/teal). Applied to both the dot and the label. */
+.optDot[data-domain='ecological'] {
+  background: var(--color-success, #6b8f6b);
+}
+.optDot[data-domain='economic'] {
+  background: var(--color-stage-act, #d9a036);
+}
+.optDot[data-domain='stewardship'] {
+  background: var(--color-info, #5b8eaf);
+}
+
+.optDomain[data-domain='ecological'] {
+  color: var(--color-success, #6b8f6b);
+}
+.optDomain[data-domain='economic'] {
+  color: var(--color-stage-act, #d9a036);
+}
+.optDomain[data-domain='stewardship'] {
+  color: var(--color-info, #5b8eaf);
+}
+
+.optsToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.optsToggle:hover {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.optsArrow {
+  transition: transform 150ms ease;
+}
+
+.optsToggle[data-open='true'] .optsArrow {
+  transform: rotate(180deg);
+}
+
+/* ---------- Your criteria (rows) ---------- */
+
+.rowsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.secLabel {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  letter-spacing: 0.01em;
+}
+
+.secNote {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  transition: border-color 120ms ease;
+}
+
+.row:focus-within {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+/* Filled rows get a green-tinted border to echo the mockup. */
+.row[data-filled='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 45%, transparent);
+}
+
+.rowNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  border-radius: 50%;
+  border: 1px solid var(--color-stage-act, #d9a036);
+  background: transparent;
+  color: var(--color-stage-act, #d9a036);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.rowNum[data-filled='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: var(--color-success, #6b8f6b);
+  color: var(--color-surface, #ffffff);
+}
+
+.rowTextarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text, #1b1e22);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.rowTextarea::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.rowDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.row:hover .rowDelete,
+.row:focus-within .rowDelete {
+  opacity: 1;
+}
+
+.rowDelete:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+.addRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.addRow:hover {
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+}
