@@ -53,6 +53,7 @@ import BoundaryCapture, {
   type TitleDeedModel,
   type CovenantModel,
   type MapModel,
+  type EasementModel,
 } from '../BoundaryCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
@@ -63,10 +64,18 @@ const COVENANT_TYPES = [
   'Water rights',
   'Tenancy',
 ] as const;
+const EASEMENT_IMPLICATIONS = [
+  'Restricts building',
+  'Maintenance duty',
+  'Access required',
+  'No implications',
+] as const;
 
 function resolveOptions(optionSetId: string): readonly string[] {
   if (optionSetId === 'boundaryDocStatus') return DOC_STATUS;
   if (optionSetId === 'boundaryCovenantTypes') return COVENANT_TYPES;
+  if (optionSetId === 'boundaryEasementImplications')
+    return EASEMENT_IMPLICATIONS;
   return [];
 }
 
@@ -275,5 +284,88 @@ describe('BoundaryCapture -- render c2 (map)', () => {
   });
 });
 
+// --------------------------------------------------------------------------
+// c3 mapEntry -- decode / valid / summary / render
+// --------------------------------------------------------------------------
+
+describe('BoundaryCapture -- mapEntry mode (c3)', () => {
+  it('boundaryModeFor c3 is mapEntry', () => {
+    expect(boundaryModeFor('s1-boundaries-c3')).toBe('mapEntry');
+  });
+
+  it('empty value decodes empty arrays -> invalid', () => {
+    const m = decodeBoundary('s1-boundaries-c3', {});
+    expect(m.kind).toBe('mapEntry');
+    expect((m as EasementModel).easements).toEqual([]);
+    expect((m as EasementModel).implications).toEqual([]);
+    expect(isBoundaryValid('s1-boundaries-c3', m)).toBe(false);
+  });
+
+  it('one easement makes it valid', () => {
+    const m = decodeBoundary('s1-boundaries-c3', {
+      easements: ['Utility ROW'],
+    });
+    expect(isBoundaryValid('s1-boundaries-c3', m)).toBe(true);
+  });
+
+  it('"No implications" makes it valid even with zero easements', () => {
+    const m = decodeBoundary('s1-boundaries-c3', {
+      implications: ['No implications'],
+    });
+    expect((m as EasementModel).easements).toEqual([]);
+    expect(isBoundaryValid('s1-boundaries-c3', m)).toBe(true);
+  });
+
+  it('summary reflects counts', () => {
+    const m = decodeBoundary('s1-boundaries-c3', {
+      easements: ['Utility ROW', 'Footpath'],
+      implications: ['Access required'],
+    });
+    const s = summariseBoundary('s1-boundaries-c3', m);
+    expect(s).toMatch(/2 easement/);
+    expect(s).toMatch(/1 implication/);
+  });
+
+  it('clicking easement-add appends an empty easement', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {});
+    fireEvent.click(screen.getByTestId('easement-add'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.easements).toEqual(['']);
+  });
+
+  it('editing easement-input-0 emits the new text', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {
+      easements: ['Utility ROW'],
+    });
+    fireEvent.change(screen.getByTestId('easement-input-0'), {
+      target: { value: 'Drainage easement' },
+    });
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.easements).toEqual(['Drainage easement']);
+  });
+
+  it('clicking easement-remove-0 removes that entry', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {
+      easements: ['Utility ROW'],
+    });
+    fireEvent.click(screen.getByTestId('easement-remove-0'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.easements).toEqual([]);
+  });
+
+  it('clicking an implication button toggles it into implications', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {});
+    fireEvent.click(screen.getByTestId('implication-Access required'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.implications).toEqual(['Access required']);
+  });
+
+  it('open-map button is rendered disabled', () => {
+    renderCapture('s1-boundaries-c3', {});
+    const btn = screen.getByTestId('open-map') as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+  });
+});
+
 // satisfy unused-type lints in strict configs
-export type { TitleDeedModel, CovenantModel };
+export type { TitleDeedModel, CovenantModel, EasementModel };
