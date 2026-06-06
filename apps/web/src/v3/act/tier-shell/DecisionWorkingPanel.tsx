@@ -32,6 +32,12 @@ import VisionFormFields, {
   summariseFormValue,
 } from './VisionFormFields.js';
 import SuccessCriteriaCapture from './SuccessCriteriaCapture.js';
+import LabourInventoryCapture, {
+  decode,
+  isLabourValid,
+  summariseLabour,
+  type LabourModel,
+} from './LabourInventoryCapture.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -52,6 +58,8 @@ export interface DecisionPanelTarget {
   feedsLabel?: string | null;
   /** true => render SuccessCriteriaCapture over the { criteria } value. */
   isSuccessCriteria?: boolean;
+  /** true => render LabourInventoryCapture (bespoke labour surface) over the draft. */
+  isLabourInventory?: boolean;
 }
 
 export interface DecisionWorkingPanelProps {
@@ -61,6 +69,8 @@ export interface DecisionWorkingPanelProps {
   resolveOptions: (optionSetId: string) => readonly string[];
   /** for SuccessCriteriaCapture chips. */
   successCriteriaOptions: readonly CriterionOption[];
+  /** resolved skill suggestions for LabourInventoryCapture (LC4 populates; default []). */
+  labourSkillSuggestions?: readonly string[];
   /** persisted structured value for this formId ({} => seed via initialFormValue(fields)). */
   initialValue: FormValue;
   /** persisted rationale text. */
@@ -112,6 +122,7 @@ export default function DecisionWorkingPanel({
   decision,
   resolveOptions,
   successCriteriaOptions,
+  labourSkillSuggestions,
   initialValue,
   initialRationale,
   deferred,
@@ -176,9 +187,18 @@ export default function DecisionWorkingPanel({
   const fields = decision.fields;
   const hasFields = Boolean(fields && fields.length > 0);
 
+  // Decode the draft into the labour model once -- reused by validity, the gate
+  // note, and the record summary so labour never routes through the generic
+  // FormValue engine.
+  const labourModel: LabourModel | null = decision.isLabourInventory
+    ? decode(draft)
+    : null;
+
   // ---------- Validity ----------
   let valid: boolean;
-  if (decision.isSuccessCriteria || hasFields) {
+  if (decision.isLabourInventory) {
+    valid = isLabourValid(labourModel!);
+  } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
     valid = asString(draft.text).trim() !== '';
@@ -188,7 +208,17 @@ export default function DecisionWorkingPanel({
   // ---------- Gate note ----------
   let gateNote: JSX.Element | null = null;
   if (invalid) {
-    if (decision.isSuccessCriteria) {
+    if (decision.isLabourInventory && labourModel) {
+      const missing: string[] = [];
+      if (labourModel.who === '') missing.push('team');
+      if (labourModel.hours <= 0) missing.push('weekly hours');
+      if (labourModel.skills.length < 1) missing.push('at least one skill');
+      gateNote = (
+        <div className={css.gateNote}>
+          Add <strong>{missing.join(', ')}</strong> before recording
+        </div>
+      );
+    } else if (decision.isSuccessCriteria) {
       const filled = asArray(draft.criteria).filter(
         (c) => c.trim() !== '',
       ).length;
@@ -210,9 +240,14 @@ export default function DecisionWorkingPanel({
   // ---------- Record ----------
   const handleRecord = () => {
     if (invalid) return;
-    const summary = fields
-      ? summariseFormValue(fields, draft)
-      : asString(draft.text);
+    let summary: string;
+    if (decision.isLabourInventory) {
+      summary = summariseLabour(labourModel!);
+    } else if (fields) {
+      summary = summariseFormValue(fields, draft);
+    } else {
+      summary = asString(draft.text);
+    }
     onRecord(draft, summary);
   };
 
@@ -249,6 +284,12 @@ export default function DecisionWorkingPanel({
               setDraft((d) => ({ ...d, criteria: next.criteria }))
             }
             options={successCriteriaOptions}
+          />
+        ) : decision.isLabourInventory ? (
+          <LabourInventoryCapture
+            value={draft}
+            onChange={setDraft}
+            skillSuggestions={labourSkillSuggestions ?? []}
           />
         ) : hasFields ? (
           <VisionFormFields
