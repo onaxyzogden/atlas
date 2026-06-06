@@ -1,12 +1,16 @@
 // @vitest-environment happy-dom
 /**
- * actEvidenceStore -- structured vision form-value slice (SF3).
+ * actEvidenceStore -- structured capture slices.
  *
- * Covers the additive `visionFormData` map and the `saveVisionFormData`
- * action, which persists a structured FormValue AND mirrors a human-readable
- * summary string into the legacy `visionForms` map (back-compat with the
- * existing "captured dot" / text readers). Also verifies a v1 persisted blob
- * (no `visionFormData`) rehydrates without error and yields {}.
+ * Covers the additive `visionFormData` map and `saveVisionFormData`, which
+ * persists a structured FormValue AND mirrors a human-readable summary string
+ * into the legacy `visionForms` map (back-compat with the existing "captured
+ * dot" / text readers). Also covers the decision slices: `decisionRationale`
+ * (per-item rationale text) and `deferredDecisions` plus `setDecisionDeferred`,
+ * where clearing a flag immutably rest-spread deletes the itemId key while
+ * preserving sibling items. Persist coverage verifies a v1 blob (no
+ * `visionFormData`) and a v2 blob (no decision maps) each rehydrate without
+ * error, defaulting absent maps to {} while leaving existing fields intact.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -164,6 +168,19 @@ describe('actEvidenceStore.setDecisionDeferred', () => {
 
     const s = useActEvidenceStore.getState();
     expect(s.deferredDecisions['proj-A']?.['item-1']).toBeUndefined();
+  });
+
+  it('clearing one deferred item preserves a sibling under the same project', () => {
+    const st = useActEvidenceStore.getState();
+    st.setDecisionDeferred('proj-A', 'item-1', true);
+    useActEvidenceStore.getState().setDecisionDeferred('proj-A', 'item-2', true);
+    useActEvidenceStore
+      .getState()
+      .setDecisionDeferred('proj-A', 'item-1', false);
+
+    const s = useActEvidenceStore.getState();
+    expect(s.deferredDecisions['proj-A']?.['item-1']).toBeUndefined();
+    expect(s.deferredDecisions['proj-A']!['item-2']).toBe(true);
   });
 
   it('does not throw when set to false on an absent key', () => {
