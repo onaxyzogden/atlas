@@ -93,6 +93,11 @@ import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
+import AnnotationDragHandler from '../../observe/components/draw/AnnotationDragHandler.js';
+import AnnotationVertexEditHandler from '../../observe/components/draw/AnnotationVertexEditHandler.js';
+import AnnotationFormSlideUp from '../../observe/components/draw/AnnotationFormSlideUp.js';
+import SelectionFloater from '../../observe/components/SelectionFloater.js';
+import AnnotationDetailPanel from '../../observe/components/AnnotationDetailPanel.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
@@ -1020,6 +1025,21 @@ export default function ActTierShell() {
                       decisions.
                     */}
                     <ObserveDrawHost map={map} projectId={id} />
+                    {/*
+                      Observe annotation interaction cluster — mirrors what
+                      ObserveLayout pairs with ObserveDrawHost. Without these the
+                      Act surface places a pin (store flips to `active`) but never
+                      renders the lab-values form and never reacts to selection,
+                      so Act-placed soil samples were neither presented nor
+                      editable. All are store-/selection-driven singletons that
+                      portal out, so they compose with the Act handlers (which
+                      bind disjoint layers).
+                    */}
+                    <AnnotationDragHandler map={map} />
+                    <AnnotationVertexEditHandler map={map} />
+                    <AnnotationFormSlideUp />
+                    <SelectionFloater projectId={id} />
+                    <AnnotationDetailPanel projectId={id} />
                     <PlanDrawHost
                       map={map}
                       projectId={id}
