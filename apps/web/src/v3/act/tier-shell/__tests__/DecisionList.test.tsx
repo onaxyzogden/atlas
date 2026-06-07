@@ -290,17 +290,23 @@ describe('DecisionList -- mode badges', () => {
     expect(screen.getByTestId('mode-badge-s-annotate').textContent).toMatch(/^Annotate register$/);
   });
 
-  it('BR8: maps boundary re-decompose mode keys to their human labels', () => {
+  it('BR9: maps all 5 boundary re-decompose mode keys to their human labels', () => {
     const onSelectItem = vi.fn();
     const obj = makeObjective({
       checklist: [
-        { id: 'b-titleRestrictionChecker', label: 'Title checker row', feedsInto: [], optional: false },
         { id: 'b-boundaryRegister', label: 'Boundary register row', feedsInto: [], optional: false },
+        { id: 'b-rowRegister', label: 'Rights of way row', feedsInto: [], optional: false },
+        { id: 'b-tenancyRegister', label: 'Tenancy register row', feedsInto: [], optional: false },
+        { id: 'b-titleRestrictionChecker', label: 'Title checker row', feedsInto: [], optional: false },
+        { id: 'b-landHistoryRegister', label: 'Land history row', feedsInto: [], optional: false },
       ],
     } as Partial<PlanStratumObjective>);
     const modes: Record<string, string> = {
-      'b-titleRestrictionChecker': 'titleRestrictionChecker',
       'b-boundaryRegister': 'boundaryRegister',
+      'b-rowRegister': 'rowRegister',
+      'b-tenancyRegister': 'tenancyRegister',
+      'b-titleRestrictionChecker': 'titleRestrictionChecker',
+      'b-landHistoryRegister': 'landHistoryRegister',
     };
     render(
       <DecisionList
@@ -311,11 +317,18 @@ describe('DecisionList -- mode badges', () => {
         modeFor={(itemId) => modes[itemId] ?? null}
       />,
     );
+    expect(screen.getByTestId('mode-badge-b-boundaryRegister').textContent).toMatch(
+      /^Boundary register$/,
+    );
+    expect(screen.getByTestId('mode-badge-b-rowRegister').textContent).toMatch(/^Rights of way$/);
+    expect(screen.getByTestId('mode-badge-b-tenancyRegister').textContent).toMatch(
+      /^Tenancy register$/,
+    );
     expect(screen.getByTestId('mode-badge-b-titleRestrictionChecker').textContent).toMatch(
       /^Title conditions$/,
     );
-    expect(screen.getByTestId('mode-badge-b-boundaryRegister').textContent).toMatch(
-      /^Boundary register$/,
+    expect(screen.getByTestId('mode-badge-b-landHistoryRegister').textContent).toMatch(
+      /^Land history$/,
     );
   });
 
