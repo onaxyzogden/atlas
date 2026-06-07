@@ -316,9 +316,9 @@ describe('boundary option sets', () => {
 
 describe('stakeholder option sets', () => {
   const STAKEHOLDER_IDS = [
-    'stakeholderType',
+    'stakeholderNeighbourType',
+    'stakeholderCommunityType',
     'stakeholderRelationship',
-    'stakeholderContactMethod',
     'stakeholderCommsChannel',
   ] as const;
 
@@ -335,22 +335,34 @@ describe('stakeholder option sets', () => {
     }
   });
 
-  it('resolveFieldOptions("stakeholderType", undefined) returns the exact 5-item list', () => {
-    expect(resolveFieldOptions('stakeholderType', undefined)).toEqual([
-      'Neighbour',
-      'Local authority',
-      'Community member',
-      'Indigenous / cultural',
-      'Other',
+  it('resolveFieldOptions("stakeholderNeighbourType", undefined) returns the exact mockup list', () => {
+    expect(resolveFieldOptions('stakeholderNeighbourType', undefined)).toEqual([
+      'Shares boundary',
+      'Shares water access',
+      'Shares road access',
+      'Downstream',
+      'Adjacent dwelling',
     ]);
   });
 
-  it('resolveFieldOptions("stakeholderRelationship", undefined) returns the exact 4-item list', () => {
+  it('resolveFieldOptions("stakeholderRelationship", undefined) returns the exact 5-item mockup list', () => {
     expect(resolveFieldOptions('stakeholderRelationship', undefined)).toEqual([
-      'Goodwill',
       'Conflict',
-      'Partnership',
+      'Tension',
       'Neutral',
+      'Goodwill',
+      'Partnership',
+    ]);
+  });
+
+  it('resolveFieldOptions("stakeholderCommsChannel", undefined) returns the exact 6-item mockup list', () => {
+    expect(resolveFieldOptions('stakeholderCommsChannel', undefined)).toEqual([
+      'Email',
+      'Phone',
+      'SMS',
+      'Post',
+      'In-person',
+      'Community mtg',
     ]);
   });
 
@@ -358,9 +370,9 @@ describe('stakeholder option sets', () => {
     expect(resolveFieldOptions('stakeholderNope', undefined)).toEqual([]);
   });
 
-  it('base-only: passing a primaryTypeId to stakeholderType returns the same as passing undefined', () => {
-    const withType = resolveFieldOptions('stakeholderType', 'homestead');
-    const withoutType = resolveFieldOptions('stakeholderType', undefined);
+  it('base-only: passing a primaryTypeId to stakeholderCommunityType returns the same as passing undefined', () => {
+    const withType = resolveFieldOptions('stakeholderCommunityType', 'homestead');
+    const withoutType = resolveFieldOptions('stakeholderCommunityType', undefined);
     expect(withType).toEqual(withoutType);
   });
 });

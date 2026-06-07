@@ -356,34 +356,40 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
     ],
   },
 
-  // REVIEW: Stakeholder surface option sets -- PLACEHOLDER content pending the
-  // operator's olos_stakeholders_mixed_surface.html mockup; content, labels, and
-  // enum-vs-string single-source-of-truth are all non-authoritative drafts to be
-  // confirmed/extended before treating as authoritative.
-  stakeholderType: {
+  // Stakeholder surface option sets -- reconciled with the operator's
+  // olos_stakeholders_mixed_surface.html mockup (Phase C Part 3, sub-project 2).
+  // Flat sets resolved via the already-threaded resolveOptions prop. The grouped
+  // authority categories and the 5 Indigenous/cultural status cards are richer
+  // (label/full-name/category, title/desc/consequence) than a flat string list
+  // can express, so they live as co-located constants in StakeholderCapture.tsx.
+  // c1 neighbour relationship types (chip-to-row builder).
+  stakeholderNeighbourType: {
     _base: [
-      'Neighbour',
-      'Local authority',
-      'Community member',
-      'Indigenous / cultural',
-      'Other',
+      'Shares boundary',
+      'Shares water access',
+      'Shares road access',
+      'Downstream',
+      'Adjacent dwelling',
     ],
   },
+  // c4 community stakeholder types (chip-to-row builder).
+  stakeholderCommunityType: {
+    _base: [
+      'Local farming network',
+      'Landcare group',
+      'Downstream water user',
+      'School / education',
+      'Farmers market',
+      'Recreation user',
+    ],
+  },
+  // c5 relationship quality (single-select pill per stakeholder), mockup order.
   stakeholderRelationship: {
-    _base: ['Goodwill', 'Conflict', 'Partnership', 'Neutral'],
+    _base: ['Conflict', 'Tension', 'Neutral', 'Goodwill', 'Partnership'],
   },
-  stakeholderContactMethod: {
-    _base: ['Phone', 'Email', 'In person', 'Post', 'Other'],
-  },
+  // c6 preferred communication channels (multi-select pills per stakeholder).
   stakeholderCommsChannel: {
-    _base: [
-      'Phone',
-      'Email',
-      'Letter',
-      'Community meeting',
-      'Social media',
-      'Other',
-    ],
+    _base: ['Email', 'Phone', 'SMS', 'Post', 'In-person', 'Community mtg'],
   },
 };
 
