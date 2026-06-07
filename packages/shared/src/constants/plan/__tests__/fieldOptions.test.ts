@@ -313,3 +313,54 @@ describe('boundary option sets', () => {
     expect(withType).toEqual(['Current & verified', 'Pending review', 'Not yet obtained']);
   });
 });
+
+describe('stakeholder option sets', () => {
+  const STAKEHOLDER_IDS = [
+    'stakeholderType',
+    'stakeholderRelationship',
+    'stakeholderContactMethod',
+    'stakeholderCommsChannel',
+  ] as const;
+
+  it('all 4 stakeholder ids exist as keys in FIELD_OPTION_SETS', () => {
+    for (const id of STAKEHOLDER_IDS) {
+      expect(Object.prototype.hasOwnProperty.call(FIELD_OPTION_SETS, id)).toBe(true);
+    }
+  });
+
+  it('each stakeholder id resolves to a non-empty array via resolveFieldOptions', () => {
+    for (const id of STAKEHOLDER_IDS) {
+      const result = resolveFieldOptions(id, undefined);
+      expect(result.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('resolveFieldOptions("stakeholderType", undefined) returns the exact 5-item list', () => {
+    expect(resolveFieldOptions('stakeholderType', undefined)).toEqual([
+      'Neighbour',
+      'Local authority',
+      'Community member',
+      'Indigenous / cultural',
+      'Other',
+    ]);
+  });
+
+  it('resolveFieldOptions("stakeholderRelationship", undefined) returns the exact 4-item list', () => {
+    expect(resolveFieldOptions('stakeholderRelationship', undefined)).toEqual([
+      'Goodwill',
+      'Conflict',
+      'Partnership',
+      'Neutral',
+    ]);
+  });
+
+  it('unknown stakeholder id returns []', () => {
+    expect(resolveFieldOptions('stakeholderNope', undefined)).toEqual([]);
+  });
+
+  it('base-only: passing a primaryTypeId to stakeholderType returns the same as passing undefined', () => {
+    const withType = resolveFieldOptions('stakeholderType', 'homestead');
+    const withoutType = resolveFieldOptions('stakeholderType', undefined);
+    expect(withType).toEqual(withoutType);
+  });
+});

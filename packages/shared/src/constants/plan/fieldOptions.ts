@@ -355,6 +355,36 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Agritourism or on-farm events',
     ],
   },
+
+  // REVIEW: Stakeholder surface option sets -- PLACEHOLDER content pending the
+  // operator's olos_stakeholders_mixed_surface.html mockup; content, labels, and
+  // enum-vs-string single-source-of-truth are all non-authoritative drafts to be
+  // confirmed/extended before treating as authoritative.
+  stakeholderType: {
+    _base: [
+      'Neighbour',
+      'Local authority',
+      'Community member',
+      'Indigenous / cultural',
+      'Other',
+    ],
+  },
+  stakeholderRelationship: {
+    _base: ['Goodwill', 'Conflict', 'Partnership', 'Neutral'],
+  },
+  stakeholderContactMethod: {
+    _base: ['Phone', 'Email', 'In person', 'Post', 'Other'],
+  },
+  stakeholderCommsChannel: {
+    _base: [
+      'Phone',
+      'Email',
+      'Letter',
+      'Community meeting',
+      'Social media',
+      'Other',
+    ],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
