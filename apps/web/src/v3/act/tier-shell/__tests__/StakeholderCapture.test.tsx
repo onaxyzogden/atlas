@@ -62,12 +62,12 @@ function resolveOptions(id: string): readonly string[] {
 
 function makeRow(overrides: Partial<StakeholderRecord> = {}): StakeholderRecord {
   return {
-    id: overrides.id ?? 'row-1',
+    id: 'row-1',
     projectId: PROJECT_ID,
-    name: overrides.name ?? 'Test Person',
-    type: overrides.type ?? '',
-    role: overrides.role ?? '',
-    createdAt: overrides.createdAt ?? new Date().toISOString(),
+    name: 'Test Person',
+    type: '',
+    role: '',
+    createdAt: '2026-06-06T00:00:00.000Z',
     ...overrides,
   };
 }

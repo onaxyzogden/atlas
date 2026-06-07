@@ -154,15 +154,21 @@ export default function StakeholderCapture(props: StakeholderCaptureProps): JSX.
   const rows = useMemo(() => Object.values(rowsById), [rowsById]);
 
   // --- store actions (stable references) ---
-  const createStakeholder = useStakeholderRegisterStore((s) => s.createStakeholder);
-  const updateStakeholder = useStakeholderRegisterStore((s) => s.updateStakeholder);
-  const deleteStakeholder = useStakeholderRegisterStore((s) => s.deleteStakeholder);
+  // Actions are stable in Zustand v5 -- getState() avoids three unnecessary subscriptions.
+  const { createStakeholder, updateStakeholder, deleteStakeholder } =
+    useStakeholderRegisterStore.getState();
 
   const mode = stakeholderModeFor(itemId);
 
   // --- marker helpers ---
   const setMarkerFlag = (key: string, value: boolean) => {
-    onMarkerChange({ ...markerValue, [key]: value ? 'true' : 'false' });
+    if (value) {
+      onMarkerChange({ ...markerValue, [key]: 'true' });
+    } else {
+      const next = { ...markerValue };
+      delete next[key];
+      onMarkerChange(next);
+    }
   };
 
   // ---------- builder modes (mapContact / contact) ----------
