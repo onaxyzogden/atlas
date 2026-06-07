@@ -86,6 +86,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright browsers (Chromium)
+        run: pnpm --filter @ogden/web exec playwright install --with-deps chromium
+
       - name: Build @ogden/web (tsc && vite build + prerender)
         env:
           NODE_OPTIONS: --max-old-space-size=7168

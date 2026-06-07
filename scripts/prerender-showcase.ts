@@ -108,6 +108,11 @@ function spawnPreview(): ChildProcess {
   // collide with a running dev server on 5200/5201/5202.
   //
   // `shell: true` is required on Windows to resolve `pnpm.cmd` from PATH.
+  // `detached` on POSIX puts the shell + its `vite preview` grandchild in their
+  // own process group so killPreview can signal the whole group (negative PID).
+  // Without it, SIGTERM hits only the shell wrapper, the real node preview
+  // survives, and its live stdio pipes keep this process's event loop alive —
+  // the prerender postbuild then never exits and the CI job hangs to timeout.
   const child = spawn(
     'pnpm',
     ['--filter', '@ogden/web', 'exec', 'vite', 'preview', '--port', String(PORT), '--strictPort'],
@@ -115,6 +120,7 @@ function spawnPreview(): ChildProcess {
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
       cwd: REPO_ROOT,
+      detached: process.platform !== 'win32',
     },
   );
   child.stdout?.on('data', (buf) => process.stdout.write(`[preview] ${buf}`));
@@ -135,6 +141,14 @@ async function killPreview(child: ChildProcess): Promise<void> {
       killer.on('exit', () => resolveKill());
       killer.on('error', () => resolveKill());
     });
+  } else if (child.pid) {
+    // Negative PID signals the whole process group (see `detached` above), so
+    // the real `vite preview` node process dies, not just the shell wrapper.
+    try {
+      process.kill(-child.pid, 'SIGTERM');
+    } catch {
+      child.kill('SIGTERM');
+    }
   } else {
     child.kill('SIGTERM');
   }
@@ -200,6 +214,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(`[prerender] OK — ${ROUTES.length} routes prerendered into ${DIST_DIR}`);
+  // Force-exit even on the success path: if a stray child handle or pipe
+  // survives teardown it would keep the event loop alive and hang the build
+  // job. Files are already written, so a clean exit(0) is safe here.
+  process.exit(0);
 }
 
 main().catch((err) => {
