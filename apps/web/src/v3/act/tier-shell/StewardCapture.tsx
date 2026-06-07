@@ -71,7 +71,8 @@ interface StewardRoleMeta {
   label: string;
   description: string;
   accessChips: AccessChip[];
-  colorClass: string;
+  // css-module class lookups are string | undefined under noUncheckedIndexedAccess
+  colorClass: string | undefined;
   hint: string;
 }
 
@@ -221,13 +222,13 @@ export interface StewardCaptureProps {
   resolveOptions: (optionSetId: string) => readonly string[];
 }
 
-const ROLE_AVATAR_CLASS: Record<StewardRole, string> = {
+const ROLE_AVATAR_CLASS: Record<StewardRole, string | undefined> = {
   team_member: css.avatarSteward,
   contractor: css.avatarContractor,
   landowner: css.avatarReviewer,
 };
 
-const ROLE_BADGE_CLASS: Record<StewardRole, string> = {
+const ROLE_BADGE_CLASS: Record<StewardRole, string | undefined> = {
   team_member: css.badgeSteward,
   contractor: css.badgeContractor,
   landowner: css.badgeReviewer,
@@ -463,7 +464,7 @@ export default function StewardCapture({
           </div>
 
           <div className={css.roleHint} data-testid="role-hint">
-            {selectedMeta.hint}
+            {selectedMeta?.hint}
           </div>
 
           <button
