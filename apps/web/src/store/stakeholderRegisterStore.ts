@@ -12,10 +12,14 @@
  * (local-only this pass). Production code may use crypto.randomUUID() /
  * new Date().toISOString() (the Date.now()/Math.random() ban is scripts-only).
  *
- * REVIEW: StakeholderType / RelationshipStatus enums are PLACEHOLDER drafts
- * pending the operator's olos_stakeholders_mixed_surface.html mockup; the
- * enum-vs-option-string single-source-of-truth is unresolved (see ST1 review
- * flag R8).
+ * Reconciled with the operator's olos_stakeholders_mixed_surface.html mockup
+ * (Phase C Part 3, sub-project 2): RelationshipStatus carries the mockup's five
+ * qualities (incl. 'tension'); comms channels are MULTI-select per stakeholder
+ * (commsChannels: string[]); the Indigenous/cultural item (c3) records a
+ * single-select status + notes as a per-item completion marker (in
+ * StakeholderCapture), NOT register rows -- so this store no longer creates
+ * cultural rows. The legacy single commsChannel string is migrated to the
+ * array at persist version 2.
  */
 
 import { create } from 'zustand';
@@ -30,10 +34,11 @@ export type StakeholderType =
   | 'other';
 
 export type RelationshipStatus =
-  | 'goodwill'
   | 'conflict'
-  | 'partnership'
-  | 'neutral';
+  | 'tension'
+  | 'neutral'
+  | 'goodwill'
+  | 'partnership';
 
 export interface StakeholderRecord {
   id: string;
@@ -45,8 +50,10 @@ export interface StakeholderRecord {
   contactDetail?: string;
   isIndigenousOrCultural?: boolean;
   culturalContext?: string;
+  /** c5 annotate: a single relationship quality per stakeholder. */
   relationshipStatus?: RelationshipStatus;
-  commsChannel?: string;
+  /** c6 annotate: zero or more preferred communication channels. */
+  commsChannels?: string[];
   notes?: string;
   createdAt: string;
 }
@@ -168,8 +175,30 @@ export const useStakeholderRegisterStore = create<StakeholderRegisterState>()(
     },
     {
       name: PERSIST_KEY,
-      version: 1,
+      version: 2,
       partialize: (state) => ({ byProject: state.byProject }),
+      // v1 -> v2: the legacy single `commsChannel` string became the multi-select
+      // `commsChannels` array (c6 mockup reconciliation). Coerce any persisted
+      // record so older snapshots rehydrate without losing the chosen channel.
+      migrate: (persisted, version) => {
+        const state = persisted as { byProject?: Record<string, StakeholdersById> };
+        if (version >= 2 || !state?.byProject) return state;
+        const byProject: Record<string, StakeholdersById> = {};
+        for (const [projectId, rows] of Object.entries(state.byProject)) {
+          const migratedRows: StakeholdersById = {};
+          for (const [id, row] of Object.entries(rows ?? {})) {
+            const legacy = row as StakeholderRecord & { commsChannel?: string };
+            const { commsChannel, ...rest } = legacy;
+            migratedRows[id] = {
+              ...rest,
+              commsChannels:
+                rest.commsChannels ?? (commsChannel ? [commsChannel] : undefined),
+            };
+          }
+          byProject[projectId] = migratedRows;
+        }
+        return { ...state, byProject };
+      },
     },
   ),
 );

@@ -259,9 +259,36 @@ describe('persistence config', () => {
     expect(opts.name).toBe('ogden-stakeholder-register');
   });
 
-  it('has version === 1', () => {
+  it('has version === 2', () => {
     const opts = useStakeholderRegisterStore.persist.getOptions();
-    expect(opts.version).toBe(1);
+    expect(opts.version).toBe(2);
+  });
+
+  it('migrate v1 -> v2 coerces legacy commsChannel string into commsChannels array', () => {
+    const opts = useStakeholderRegisterStore.persist.getOptions();
+    const migrate = opts.migrate as unknown as (
+      persisted: unknown,
+      version: number,
+    ) => { byProject: Record<string, Record<string, StakeholderRecord & { commsChannel?: string }>> };
+    const v1 = {
+      byProject: {
+        [P]: {
+          'stakeholder-1': {
+            id: 'stakeholder-1',
+            projectId: P,
+            name: 'Alice',
+            type: 'neighbour',
+            role: 'Shares boundary',
+            commsChannel: 'Email',
+            createdAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      },
+    };
+    const out = migrate(v1, 1);
+    const row = out.byProject[P]!['stakeholder-1']!;
+    expect(row.commsChannels).toEqual(['Email']);
+    expect('commsChannel' in row).toBe(false);
   });
 
   it('partialize returns only byProject (no extra keys)', () => {

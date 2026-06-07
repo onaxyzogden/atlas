@@ -3,7 +3,9 @@
  *
  * StakeholderCapture -- store-direct stakeholder register capture.
  * Mirrors BoundaryCapture.test.tsx setup (happy-dom + testing-library +
- * lucide-react stub). Covers pure helpers (no render) and component behaviour.
+ * lucide-react stub). Covers pure helpers (no render) and component behaviour
+ * for the pixel-faithful mixed-surface rewrite (c1 neighbours, c2 authority,
+ * c3 cultural, c4 community, c5 relationships, c6 channels).
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -54,9 +56,14 @@ import type { FormValue } from '../actToolCatalog.js';
 const PROJECT_ID = 'proj-test';
 
 function resolveOptions(id: string): readonly string[] {
-  if (id === 'stakeholderRelationship') return ['Goodwill', 'Conflict'];
-  if (id === 'stakeholderCommsChannel') return ['Phone', 'Email'];
-  if (id === 'stakeholderType') return ['Neighbour', 'Other'];
+  if (id === 'stakeholderNeighbourType')
+    return ['Shares boundary', 'Downstream'];
+  if (id === 'stakeholderCommunityType')
+    return ['Local farming network', 'Landcare group'];
+  if (id === 'stakeholderRelationship')
+    return ['Conflict', 'Tension', 'Neutral', 'Goodwill', 'Partnership'];
+  if (id === 'stakeholderCommsChannel')
+    return ['Email', 'Phone', 'SMS', 'Post', 'In-person', 'Community mtg'];
   return [];
 }
 
@@ -109,112 +116,76 @@ describe('stakeholderModeFor', () => {
 // --------------------------------------------------------------------------
 
 describe('isStakeholderValid', () => {
-  // --- builder (contact) ---
-  describe('contact mode (c2)', () => {
-    it('false when 0 rows and no marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c2', [], {})).toBe(false);
-    });
-
-    it('true when at least 1 row', () => {
-      expect(isStakeholderValid('s1-stakeholders-c2', [makeRow()], {})).toBe(true);
-    });
-
-    it('true with none marker even when rows is empty', () => {
-      expect(isStakeholderValid('s1-stakeholders-c2', [], { none: 'true' })).toBe(true);
-    });
-
-    it('false when none marker is "false"', () => {
-      expect(isStakeholderValid('s1-stakeholders-c2', [], { none: 'false' })).toBe(false);
-    });
-  });
-
-  // --- mapContact ---
-  describe('mapContact mode (c1)', () => {
-    it('true with at least 1 row', () => {
-      expect(isStakeholderValid('s1-stakeholders-c1', [makeRow()], {})).toBe(true);
-    });
-
-    it('true with none marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c1', [], { none: 'true' })).toBe(true);
-    });
-
-    it('false with no rows and no marker', () => {
+  // --- c1 mapContact: requires >=1 neighbour row ---
+  describe('c1 (neighbours)', () => {
+    it('false with no rows', () => {
       expect(isStakeholderValid('s1-stakeholders-c1', [], {})).toBe(false);
     });
-  });
 
-  // --- cultural ---
-  describe('cultural mode (c3)', () => {
-    it('false with a non-cultural row only', () => {
+    it('false when the only row is not a neighbour', () => {
       expect(
-        isStakeholderValid('s1-stakeholders-c3', [makeRow({ isIndigenousOrCultural: false })], {}),
+        isStakeholderValid(
+          's1-stakeholders-c1',
+          [makeRow({ type: 'authority' })],
+          {},
+        ),
       ).toBe(false);
     });
 
-    it('true with an isIndigenousOrCultural=true row', () => {
+    it('true with at least one neighbour row', () => {
       expect(
         isStakeholderValid(
-          's1-stakeholders-c3',
-          [makeRow({ isIndigenousOrCultural: true })],
+          's1-stakeholders-c1',
+          [makeRow({ type: 'neighbour' })],
           {},
         ),
-      ).toBe(true);
-    });
-
-    it('true with culturalNone marker even with no rows', () => {
-      expect(
-        isStakeholderValid('s1-stakeholders-c3', [], { culturalNone: 'true' }),
       ).toBe(true);
     });
   });
 
-  // --- annotate c5 ---
-  describe('annotate mode (c5)', () => {
-    it('false with no rows and no marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c5', [], {})).toBe(false);
+  // --- c2 contact: requires >=1 authority row ---
+  describe('c2 (authority)', () => {
+    it('false with no rows', () => {
+      expect(isStakeholderValid('s1-stakeholders-c2', [], {})).toBe(false);
     });
 
-    it('true when a row has relationshipStatus', () => {
+    it('false when the only row is not an authority', () => {
       expect(
         isStakeholderValid(
-          's1-stakeholders-c5',
-          [makeRow({ relationshipStatus: 'goodwill' })],
+          's1-stakeholders-c2',
+          [makeRow({ type: 'neighbour' })],
+          {},
+        ),
+      ).toBe(false);
+    });
+
+    it('true with at least one authority row', () => {
+      expect(
+        isStakeholderValid(
+          's1-stakeholders-c2',
+          [makeRow({ type: 'authority' })],
           {},
         ),
       ).toBe(true);
-    });
-
-    it('true with none marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c5', [], { none: 'true' })).toBe(true);
-    });
-
-    it('false when row has no relationshipStatus and no marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c5', [makeRow()], {})).toBe(false);
     });
   });
 
-  // --- annotate c6 ---
-  describe('annotate mode (c6)', () => {
-    it('false with no rows and no marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c6', [], {})).toBe(false);
+  // --- always-valid items ---
+  describe('always-valid items (c3/c4/c5/c6)', () => {
+    it('c3 is always valid (default cultural status)', () => {
+      expect(isStakeholderValid('s1-stakeholders-c3', [], {})).toBe(true);
     });
 
-    it('true when a row has commsChannel', () => {
-      expect(
-        isStakeholderValid(
-          's1-stakeholders-c6',
-          [makeRow({ commsChannel: 'Phone' })],
-          {},
-        ),
-      ).toBe(true);
+    it('c4 is always valid (can record with none)', () => {
+      expect(isStakeholderValid('s1-stakeholders-c4', [], {})).toBe(true);
     });
 
-    it('true with none marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c6', [], { none: 'true' })).toBe(true);
+    it('c5 is always valid', () => {
+      expect(isStakeholderValid('s1-stakeholders-c5', [], {})).toBe(true);
     });
 
-    it('false when row has no commsChannel and no marker', () => {
-      expect(isStakeholderValid('s1-stakeholders-c6', [makeRow()], {})).toBe(false);
+    it('c6 is always valid', () => {
+      expect(isStakeholderValid('s1-stakeholders-c6', [], {})).toBe(true);
     });
   });
 });
@@ -224,117 +195,98 @@ describe('isStakeholderValid', () => {
 // --------------------------------------------------------------------------
 
 describe('summariseStakeholder', () => {
-  describe('contact mode (c2)', () => {
-    it('acknowledged copy when 0 rows and none marker', () => {
-      const s = summariseStakeholder('s1-stakeholders-c2', [], { none: 'true' });
-      expect(s).toMatch(/No stakeholders in this category - acknowledged/);
-    });
-
-    it('singular count when 1 row', () => {
-      const s = summariseStakeholder('s1-stakeholders-c2', [makeRow()], {});
-      expect(s).toMatch(/1 stakeholder recorded/);
-    });
-
-    it('plural count when 2 rows', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c2',
-        [makeRow({ id: 'a' }), makeRow({ id: 'b' })],
-        {},
-      );
-      expect(s).toMatch(/2 stakeholders recorded/);
-    });
+  it('c1: counts neighbour rows (plural)', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c1',
+      [
+        makeRow({ id: 'a', type: 'neighbour' }),
+        makeRow({ id: 'b', type: 'neighbour' }),
+        makeRow({ id: 'c', type: 'authority' }),
+      ],
+      {},
+    );
+    expect(s).toBe('2 neighbours recorded');
   });
 
-  describe('cultural mode (c3)', () => {
-    it('acknowledged copy when no cultural rows', () => {
-      const s = summariseStakeholder('s1-stakeholders-c3', [], {});
-      expect(s).toMatch(/No Indigenous relationships identified/);
-    });
-
-    it('count for cultural rows', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c3',
-        [makeRow({ isIndigenousOrCultural: true })],
-        {},
-      );
-      expect(s).toMatch(/1 Indigenous\/cultural relationship recorded/);
-    });
-
-    it('plural for multiple cultural rows', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c3',
-        [
-          makeRow({ id: 'a', isIndigenousOrCultural: true }),
-          makeRow({ id: 'b', isIndigenousOrCultural: true }),
-        ],
-        {},
-      );
-      expect(s).toMatch(/2 Indigenous\/cultural relationships recorded/);
-    });
+  it('c1: singular for one neighbour', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c1',
+      [makeRow({ type: 'neighbour' })],
+      {},
+    );
+    expect(s).toBe('1 neighbour recorded');
   });
 
-  describe('annotate mode (c5)', () => {
-    it('acknowledged copy when no rows have relationshipStatus', () => {
-      const s = summariseStakeholder('s1-stakeholders-c5', [makeRow()], {});
-      expect(s).toMatch(/No relationships to annotate - acknowledged/);
-    });
-
-    it('singular count when 1 row has relationshipStatus', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c5',
-        [makeRow({ relationshipStatus: 'goodwill' })],
-        {},
-      );
-      expect(s).toMatch(/1 relationship status recorded/);
-    });
-
-    it('plural count', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c5',
-        [
-          makeRow({ id: 'a', relationshipStatus: 'goodwill' }),
-          makeRow({ id: 'b', relationshipStatus: 'conflict' }),
-        ],
-        {},
-      );
-      expect(s).toMatch(/2 relationship statuses recorded/);
-    });
+  it('c2: counts authority rows', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c2',
+      [makeRow({ type: 'authority' })],
+      {},
+    );
+    expect(s).toBe('1 authority contact recorded');
   });
 
-  describe('annotate mode (c6)', () => {
-    it('acknowledged copy when no rows have commsChannel', () => {
-      const s = summariseStakeholder('s1-stakeholders-c6', [makeRow()], {});
-      expect(s).toMatch(/No comms channels to annotate - acknowledged/);
-    });
+  it('c4: zero -> "No community stakeholders recorded"', () => {
+    const s = summariseStakeholder('s1-stakeholders-c4', [], {});
+    expect(s).toBe('No community stakeholders recorded');
+  });
 
-    it('singular count when 1 row has commsChannel', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c6',
-        [makeRow({ commsChannel: 'Phone' })],
-        {},
-      );
-      expect(s).toMatch(/1 comms channel recorded/);
-    });
+  it('c4: counts community rows (plural)', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c4',
+      [
+        makeRow({ id: 'a', type: 'community' }),
+        makeRow({ id: 'b', type: 'community' }),
+      ],
+      {},
+    );
+    expect(s).toBe('2 community stakeholders recorded');
+  });
 
-    it('plural count', () => {
-      const s = summariseStakeholder(
-        's1-stakeholders-c6',
-        [
-          makeRow({ id: 'a', commsChannel: 'Phone' }),
-          makeRow({ id: 'b', commsChannel: 'Email' }),
-        ],
-        {},
-      );
-      expect(s).toMatch(/2 comms channels recorded/);
+  it('c3: default status title when marker unset', () => {
+    const s = summariseStakeholder('s1-stakeholders-c3', [], {});
+    expect(s).toBe('Cultural status: Not yet investigated');
+  });
+
+  it('c3: selected status title from marker', () => {
+    const s = summariseStakeholder('s1-stakeholders-c3', [], {
+      culturalStatus: 'formal-protocol',
     });
+    expect(s).toBe(
+      'Cultural status: Formal protocol, agreement, or recognition in place',
+    );
+  });
+
+  it('c5: counts rows with relationshipStatus', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c5',
+      [
+        makeRow({ id: 'a', relationshipStatus: 'goodwill' }),
+        makeRow({ id: 'b' }),
+      ],
+      {},
+    );
+    expect(s).toBe('1 relationship characterised');
+  });
+
+  it('c6: counts rows with non-empty commsChannels', () => {
+    const s = summariseStakeholder(
+      's1-stakeholders-c6',
+      [
+        makeRow({ id: 'a', commsChannels: ['Email'] }),
+        makeRow({ id: 'b', commsChannels: [] }),
+        makeRow({ id: 'c' }),
+      ],
+      {},
+    );
+    expect(s).toBe('1 stakeholder with preferred channels');
   });
 });
 
 // --------------------------------------------------------------------------
-// Component tests
+// Component harness
 // --------------------------------------------------------------------------
 
-// Minimal wrapper that holds marker state
 function ControlledCapture({
   itemId,
   initialMarker = {},
@@ -360,80 +312,130 @@ function ControlledCapture({
 }
 
 // --------------------------------------------------------------------------
-// builder -- contact (c2)
+// c1 neighbours
 // --------------------------------------------------------------------------
 
-describe('StakeholderCapture -- builder (c2 contact)', () => {
-  it('typing a name and clicking stakeholder-add creates a row in the store', () => {
-    render(<ControlledCapture itemId="s1-stakeholders-c2" />);
-
-    fireEvent.change(screen.getByTestId('stakeholder-name'), {
-      target: { value: 'Alice' },
-    });
-    fireEvent.click(screen.getByTestId('stakeholder-add'));
-
-    const rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.name).toBe('Alice');
-  });
-
-  it('does not create a row if name is empty', () => {
-    render(<ControlledCapture itemId="s1-stakeholders-c2" />);
-    fireEvent.click(screen.getByTestId('stakeholder-add'));
-    const rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
-    expect(rows).toHaveLength(0);
-  });
-
-  it('clicking stakeholder-none-toggle calls onMarkerChange with none:true', () => {
-    const onMarkerChange = vi.fn();
-    render(
-      <ControlledCapture
-        itemId="s1-stakeholders-c2"
-        onMarkerChange={onMarkerChange}
-      />,
-    );
-    fireEvent.click(screen.getByTestId('stakeholder-none-toggle'));
-    expect(onMarkerChange).toHaveBeenCalledWith(
-      expect.objectContaining({ none: 'true' }),
-    );
-  });
-});
-
-// --------------------------------------------------------------------------
-// builder -- mapContact (c1)
-// --------------------------------------------------------------------------
-
-describe('StakeholderCapture -- mapContact (c1)', () => {
-  it('renders the stakeholder-open-map button as disabled', () => {
+describe('StakeholderCapture -- c1 neighbours (mapContact)', () => {
+  it('renders the open-map button disabled', () => {
     render(<ControlledCapture itemId="s1-stakeholders-c1" />);
     const btn = screen.getByTestId('stakeholder-open-map') as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
   });
+
+  it('add-neighbour flow creates a neighbour row', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c1" />);
+
+    fireEvent.click(screen.getByTestId('stakeholder-add-neighbour'));
+    fireEvent.change(screen.getByTestId('stakeholder-name'), {
+      target: { value: 'Sarah Mathews' },
+    });
+    fireEvent.click(screen.getByTestId('stakeholder-add'));
+
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.type).toBe('neighbour');
+    expect(rows[0]!.name).toBe('Sarah Mathews');
+    // role defaults to first option when no chip chosen
+    expect(rows[0]!.role).toBe('Shares boundary');
+  });
+
+  it('empty name falls back to "Unknown neighbour"', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c1" />);
+    fireEvent.click(screen.getByTestId('stakeholder-add-neighbour'));
+    fireEvent.click(screen.getByTestId('stakeholder-add'));
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows[0]!.name).toBe('Unknown neighbour');
+  });
+
+  it('clicking stakeholder-remove deletes a neighbour row', () => {
+    useStakeholderRegisterStore
+      .getState()
+      .createStakeholder(PROJECT_ID, {
+        name: 'Bob',
+        type: 'neighbour',
+        role: 'Shares boundary',
+      });
+
+    render(<ControlledCapture itemId="s1-stakeholders-c1" />);
+    fireEvent.click(screen.getByTestId('stakeholder-remove'));
+
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows).toHaveLength(0);
+  });
 });
 
 // --------------------------------------------------------------------------
-// cultural (c3)
+// c2 authority
 // --------------------------------------------------------------------------
 
-describe('StakeholderCapture -- cultural (c3)', () => {
-  it('adding via cultural-add creates a row with isIndigenousOrCultural=true', () => {
-    render(<ControlledCapture itemId="s1-stakeholders-c3" />);
+describe('StakeholderCapture -- c2 authority (contact)', () => {
+  it('clicking an authority button creates an authority row', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c2" />);
+    const buttons = screen.getAllByTestId('stakeholder-auth-btn');
+    expect(buttons.length).toBe(8);
+    fireEvent.click(buttons[0]!);
 
-    fireEvent.change(screen.getByTestId('cultural-name'), {
-      target: { value: 'Elder Group' },
-    });
-    fireEvent.change(screen.getByTestId('cultural-context'), {
-      target: { value: 'Custodians of the river' },
-    });
-    fireEvent.click(screen.getByTestId('cultural-add'));
-
-    const rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.isIndigenousOrCultural).toBe(true);
-    expect(rows[0]!.name).toBe('Elder Group');
+    expect(rows[0]!.type).toBe('authority');
+    expect(rows[0]!.name).toBe('Local Council - Planning');
+    expect(rows[0]!.role).toBe('Authority contact');
+  });
+});
+
+// --------------------------------------------------------------------------
+// c4 community
+// --------------------------------------------------------------------------
+
+describe('StakeholderCapture -- c4 community (contact)', () => {
+  it('clicking a community chip creates a community row', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c4" />);
+    const chips = screen.getAllByTestId('stakeholder-community-chip');
+    fireEvent.click(chips[0]!);
+
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.type).toBe('community');
+    expect(rows[0]!.name).toBe('Local farming network');
+    expect(rows[0]!.role).toBe('Community member');
   });
 
-  it('cultural-none-toggle calls onMarkerChange with culturalNone:true', () => {
+  it('add-another creates a generic community row', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c4" />);
+    fireEvent.click(screen.getByTestId('stakeholder-add-another'));
+
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.type).toBe('community');
+    expect(rows[0]!.name).toBe('Community member');
+  });
+});
+
+// --------------------------------------------------------------------------
+// c3 cultural
+// --------------------------------------------------------------------------
+
+describe('StakeholderCapture -- c3 cultural', () => {
+  it('renders five status cards and no defer/none toggle', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c3" />);
+    expect(screen.getAllByTestId('cultural-status-card')).toHaveLength(5);
+    expect(screen.queryByTestId('cultural-none-toggle')).toBeNull();
+    expect(screen.queryByTestId('stakeholder-none-toggle')).toBeNull();
+  });
+
+  it('selecting a card calls onMarkerChange with culturalStatus', () => {
     const onMarkerChange = vi.fn();
     render(
       <ControlledCapture
@@ -441,51 +443,95 @@ describe('StakeholderCapture -- cultural (c3)', () => {
         onMarkerChange={onMarkerChange}
       />,
     );
-    fireEvent.click(screen.getByTestId('cultural-none-toggle'));
+    const cards = screen.getAllByTestId('cultural-status-card');
+    const teal = cards.find(
+      (c) => c.getAttribute('data-status-id') === 'active-consultation',
+    )!;
+    fireEvent.click(teal);
     expect(onMarkerChange).toHaveBeenCalledWith(
-      expect.objectContaining({ culturalNone: 'true' }),
+      expect.objectContaining({ culturalStatus: 'active-consultation' }),
+    );
+  });
+
+  it('typing in notes calls onMarkerChange with culturalNotes', () => {
+    const onMarkerChange = vi.fn();
+    render(
+      <ControlledCapture
+        itemId="s1-stakeholders-c3"
+        onMarkerChange={onMarkerChange}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('cultural-notes'), {
+      target: { value: 'Contacted the council on 1 June.' },
+    });
+    expect(onMarkerChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        culturalNotes: 'Contacted the council on 1 June.',
+      }),
     );
   });
 });
 
 // --------------------------------------------------------------------------
-// annotate (c5)
+// c5 relationships
 // --------------------------------------------------------------------------
 
-describe('StakeholderCapture -- annotate (c5)', () => {
-  it('changing annotate-relationship select updates relationshipStatus on the row', () => {
-    // Seed one row directly via the store
+describe('StakeholderCapture -- c5 relationships (annotate)', () => {
+  it('shows the empty note when register is empty', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c5" />);
+    expect(
+      screen.getByText(/Add stakeholders in items 1-4 first/),
+    ).toBeTruthy();
+  });
+
+  it('clicking a relationship pill sets lowercased relationshipStatus', () => {
     useStakeholderRegisterStore
       .getState()
-      .createStakeholder(PROJECT_ID, { name: 'A', type: '', role: '' });
+      .createStakeholder(PROJECT_ID, { name: 'A', type: 'neighbour', role: '' });
 
     render(<ControlledCapture itemId="s1-stakeholders-c5" />);
 
-    fireEvent.change(screen.getByTestId('annotate-relationship'), {
-      target: { value: 'Goodwill' },
-    });
+    const pills = screen.getAllByTestId('annotate-relationship-pill');
+    const goodwill = pills.find((p) => p.getAttribute('data-value') === 'Goodwill')!;
+    fireEvent.click(goodwill);
 
-    const rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.relationshipStatus).toBe('Goodwill');
+    const rows = useStakeholderRegisterStore
+      .getState()
+      .listForProject(PROJECT_ID);
+    expect(rows[0]!.relationshipStatus).toBe('goodwill');
   });
 });
 
 // --------------------------------------------------------------------------
-// remove
+// c6 channels
 // --------------------------------------------------------------------------
 
-describe('StakeholderCapture -- remove (c2)', () => {
-  it('clicking stakeholder-remove deletes the row from the store', () => {
+describe('StakeholderCapture -- c6 channels (annotate)', () => {
+  it('shows the empty note when register is empty', () => {
+    render(<ControlledCapture itemId="s1-stakeholders-c6" />);
+    expect(
+      screen.getByText(/Add stakeholders in items 1-4 first/),
+    ).toBeTruthy();
+  });
+
+  it('toggling a channel pill adds then removes the value', () => {
     useStakeholderRegisterStore
       .getState()
-      .createStakeholder(PROJECT_ID, { name: 'Bob', type: '', role: '' });
+      .createStakeholder(PROJECT_ID, { name: 'A', type: 'community', role: '' });
 
-    render(<ControlledCapture itemId="s1-stakeholders-c2" />);
+    render(<ControlledCapture itemId="s1-stakeholders-c6" />);
 
-    fireEvent.click(screen.getByTestId('stakeholder-remove'));
+    const getPill = () =>
+      screen
+        .getAllByTestId('annotate-channel-pill')
+        .find((p) => p.getAttribute('data-value') === 'Email')!;
 
-    const rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
-    expect(rows).toHaveLength(0);
+    fireEvent.click(getPill());
+    let rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
+    expect(rows[0]!.commsChannels).toEqual(['Email']);
+
+    fireEvent.click(getPill());
+    rows = useStakeholderRegisterStore.getState().listForProject(PROJECT_ID);
+    expect(rows[0]!.commsChannels).toEqual([]);
   });
 });
