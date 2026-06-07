@@ -116,8 +116,46 @@ which IS the resolution of REVIEW flags R1-R8):
 - **Two-stage SDD review** (spec then code-quality) PASSED per task; SR-B verified
   twice (controller Read + spec-compliance reviewer) before commit -- both
   confirmed full mockup compliance, c3 Amanah-correct, Zustand trap avoided.
-- **Final whole-implementation review (ST8) + live smoke:** pending -- recorded
-  here on completion.
+- **Final whole-implementation review (ST8): READY TO MERGE.** A background
+  code-reviewer read all 9 in-scope source files + 5 test files + the reference
+  `proofRecordStore.ts` and consumer `ActTierShell.tsx`, and CONFIRMED all 7
+  design decisions: (1) Option A store-direct capture with the panel marker
+  flowing through `actEvidenceStore`; (2) the Zustand v5 stable-snapshot pattern
+  in ALL THREE reactive consumers (`DecisionWorkingPanel`, `ActTierZeroWorkbench`,
+  `StakeholderCapture`) -- no `listForProject` inside any selector; (3) c3
+  non-deferrable + always-completable (Amanah safeguard genuine); (4) per-item
+  modes via `stakeholderModeFor`; (5) completion decoupled from register row
+  counts; (6) store mirrors proofRecordStore minus api/sync incl. v1->v2 migrate
+  (`commsChannel` -> `commsChannels[]`); (7) `_base`-only option sets via the
+  threaded `resolveOptions`. No Critical/Important issues; a few Minor/Nit notes
+  (annotate row order is insertion-order not `createdAt`-sorted; c4 "Add another"
+  yields generic duplicate community rows per the mockup; `getState()` action
+  read at render is intentional). In-scope suites re-ran green: 152 web tests
+  (StakeholderCapture 40, ActTierZeroWorkbench 34, DecisionWorkingPanel 39,
+  DecisionList 16, stakeholderRegisterStore 23) + 33 shared (fieldOptions).
+  ASCII-clean across all in-scope files. (Full-monorepo `tsc` OOM'd -- an
+  environment memory limit, not a code error; the per-package web tsc passed
+  EXIT 0 earlier under the 8GB heap.)
+- **Live preview smoke (ST8): PASSED.** Driven against project
+  `4adc26e9-55ab-426d-bd48-8d793ce18c30` (the running preview's project; the API
+  was at 503 "Server unreachable" but the Tier-0 stakeholders workbench is
+  self-contained -- local-persisted register, no map, no API -- so it renders and
+  functions fully). Screenshot captured (no-screenshot-no-claim satisfied).
+  Confirmed: non-map 3-pane workbench (0 canvases / 0 mapbox elements); both
+  strips render ("2 overlays active on map" + live "stakeholders in register"
+  count with the ASCII note); all 6 mode badges (Map + contact / Contact entry /
+  Cultural / Contact entry / Annotate register / Annotate register); **c3 has NO
+  defer button** (`deferPresent: false`) yet is recordable (default
+  "not-investigated"; all 5 cultural-status cards render verbatim) -- the Amanah
+  safeguard, verified live; c1 builder add -> "Add to register" -> reactive
+  reg-strip count 1 (proves the stable-snapshot reactive path) + localStorage
+  `ogden-stakeholder-register` row persisted -> Record -> tick ("1 / 6 decisions
+  made"); c5 annotate wrote `relationshipStatus: "goodwill"` onto the SAME c1 row
+  (update, not a new row), with all 5 relationship tones incl. `tension`
+  rendering; register PRESERVED across c1 <-> c5 <-> c3 switches (count stays 1,
+  row + completion intact); s1-vision and s1-boundaries still render their
+  workbenches (0 canvases); a spatial S2 stratum objective still mounts the map
+  shell (1 canvas, no workbench) -- the predicate widening is purely additive.
 
 ## Hygiene and Amanah
 
