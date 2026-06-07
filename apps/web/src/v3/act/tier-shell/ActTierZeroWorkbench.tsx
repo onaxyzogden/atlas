@@ -133,6 +133,7 @@ export function buildDecisionTarget(
 // ---------------------------------------------------------------------------
 
 export default function ActTierZeroWorkbench({
+  projectId,
   objectives,
   activeObjectiveId,
   onSelectObjective,
@@ -273,6 +274,7 @@ export default function ActTierZeroWorkbench({
       <section className={css.right}>
         <DecisionWorkingPanel
           decision={target}
+          projectId={projectId}
           resolveOptions={resolveOptions}
           successCriteriaOptions={scOptions}
           labourSkillSuggestions={labourSkills}

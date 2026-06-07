@@ -34,7 +34,7 @@
  * only: all glyphs are lucide icons.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, Clock, MousePointerClick } from 'lucide-react';
 import type { CriterionOption } from '@ogden/shared';
 import type { FormFieldSpec, FormValue } from './actToolCatalog.js';
@@ -63,6 +63,15 @@ import BoundaryCapture, {
   summariseBoundary,
   type BoundaryModel,
 } from './BoundaryCapture.js';
+import StakeholderCapture, {
+  stakeholderModeFor,
+  isStakeholderValid,
+  summariseStakeholder,
+} from './StakeholderCapture.js';
+import {
+  useStakeholderRegisterStore,
+  EMPTY_STAKEHOLDERS_BY_ID,
+} from '../../../store/stakeholderRegisterStore.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -89,9 +98,15 @@ export interface DecisionPanelTarget {
   isVisionClassify?: boolean;
   /** true => render BoundaryCapture (self-routing on itemId) over the draft. */
   isBoundary?: boolean;
+  /** true => render StakeholderCapture (self-routing on itemId, store-direct). */
+  isStakeholder?: boolean;
+  /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
+  deferrable?: boolean;
 }
 
 export interface DecisionWorkingPanelProps {
+  /** owning project id; required by the stakeholder register subscription. */
+  projectId: string;
   /** null => empty state. */
   decision: DecisionPanelTarget | null;
   /** for VisionFormFields hybrids. */
@@ -150,6 +165,7 @@ const MIN_CRITERIA = 3;
 // ---------------------------------------------------------------------------
 
 export default function DecisionWorkingPanel({
+  projectId,
   decision,
   resolveOptions,
   successCriteriaOptions,
@@ -200,6 +216,19 @@ export default function DecisionWorkingPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
 
+  // Reactive read of THIS project's stakeholder register, used only by the
+  // stakeholder arm for validity / summary / gate-note. Stable-snapshot pattern:
+  // select the raw byProject bucket (a stable ref) or the frozen empty constant,
+  // and derive the array via useMemo. NEVER call listForProject in the selector
+  // (it mints a fresh array each call -> infinite re-render under Zustand v5).
+  const stakeholderRowsById = useStakeholderRegisterStore(
+    (s) => s.byProject[projectId] ?? EMPTY_STAKEHOLDERS_BY_ID,
+  );
+  const stakeholderRows = useMemo(
+    () => Object.values(stakeholderRowsById),
+    [stakeholderRowsById],
+  );
+
   // ---------- Empty state ----------
   if (!decision) {
     return (
@@ -247,6 +276,8 @@ export default function DecisionWorkingPanel({
     valid = isBoundaryValid(decision.itemId, boundaryModel!);
   } else if (decision.isLabourInventory) {
     valid = isLabourValid(labourModel!);
+  } else if (decision.isStakeholder) {
+    valid = isStakeholderValid(decision.itemId, stakeholderRows, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -273,6 +304,15 @@ export default function DecisionWorkingPanel({
             : mode === 'mapEntry'
               ? 'Add at least one easement (or mark no implications) to record.'
               : 'Complete the required fields to record.';
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isStakeholder) {
+      const mode = stakeholderModeFor(decision.itemId);
+      const note =
+        mode === 'cultural'
+          ? 'Record an Indigenous/cultural relationship, or acknowledge none identified.'
+          : mode === 'annotate'
+            ? 'Annotate at least one stakeholder, or acknowledge none to annotate.'
+            : 'Add at least one stakeholder, or acknowledge none in this category.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLabourInventory && labourModel) {
       const missing: string[] = [];
@@ -313,6 +353,8 @@ export default function DecisionWorkingPanel({
       summary = summariseBoundary(decision.itemId, boundaryModel!);
     } else if (decision.isLabourInventory) {
       summary = summariseLabour(labourModel!);
+    } else if (decision.isStakeholder) {
+      summary = summariseStakeholder(decision.itemId, stakeholderRows, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -383,6 +425,15 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             resolveOptions={resolveOptions}
           />
+        ) : decision.isStakeholder ? (
+          <StakeholderCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            projectId={projectId}
+            resolveOptions={resolveOptions}
+            markerValue={draft}
+            onMarkerChange={setDraft}
+          />
         ) : hasFields ? (
           <VisionFormFields
             fields={fields ?? []}
@@ -440,18 +491,20 @@ export default function DecisionWorkingPanel({
             <Check size={15} />
             Record this decision
           </button>
-          <button
-            type="button"
-            className={css.deferBtn}
-            data-deferred={deferred ? 'true' : 'false'}
-            aria-pressed={deferred}
-            onClick={() => onToggleDefer(!deferred)}
-          >
-            <Clock size={14} className={css.deferIcon} />
-            {deferred
-              ? 'Deferred -- needs observation'
-              : 'Not ready -- needs more observation'}
-          </button>
+          {decision.deferrable === false ? null : (
+            <button
+              type="button"
+              className={css.deferBtn}
+              data-deferred={deferred ? 'true' : 'false'}
+              aria-pressed={deferred}
+              onClick={() => onToggleDefer(!deferred)}
+            >
+              <Clock size={14} className={css.deferIcon} />
+              {deferred
+                ? 'Deferred -- needs observation'
+                : 'Not ready -- needs more observation'}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -27,9 +27,9 @@
  * icons render without error.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import type { CriterionOption } from '@ogden/shared';
 import type { FormFieldSpec } from '../actToolCatalog.js';
 
@@ -70,6 +70,7 @@ import {
   decodeBoundary,
   summariseBoundary,
 } from '../BoundaryCapture.js';
+import { useStakeholderRegisterStore } from '../../../../store/stakeholderRegisterStore.js';
 
 const SUCCESS_OPTIONS: readonly CriterionOption[] = [
   { text: 'Infiltration rate doubles on surveyed zones', domain: 'ecological' },
@@ -123,6 +124,7 @@ function renderPanel(
   const onSaveRationale = vi.fn();
   const onToggleDefer = vi.fn();
   const props: DecisionWorkingPanelProps = {
+    projectId: 'proj-test',
     decision: makeDecision(),
     resolveOptions: () => [],
     successCriteriaOptions: SUCCESS_OPTIONS,
@@ -244,6 +246,7 @@ describe('DecisionWorkingPanel -- rationale', () => {
     const decisionA = makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true });
     const decisionB = makeDecision({ itemId: 's1-vision-c2', isSuccessCriteria: true });
     const props: DecisionWorkingPanelProps = {
+      projectId: 'proj-test',
       decision: decisionA,
       resolveOptions: () => [],
       successCriteriaOptions: SUCCESS_OPTIONS,
@@ -271,6 +274,7 @@ describe('DecisionWorkingPanel -- rationale', () => {
     const decisionA = makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true });
     const decisionB = makeDecision({ itemId: 's1-vision-c2', isSuccessCriteria: true });
     const props: DecisionWorkingPanelProps = {
+      projectId: 'proj-test',
       decision: decisionA,
       resolveOptions: () => [],
       successCriteriaOptions: SUCCESS_OPTIONS,
@@ -291,6 +295,7 @@ describe('DecisionWorkingPanel -- rationale', () => {
   it('flushes the typed rationale on unmount without a blur', () => {
     const onSaveRationale = vi.fn();
     const props: DecisionWorkingPanelProps = {
+      projectId: 'proj-test',
       decision: makeDecision({ itemId: 's1-vision-c1', isSuccessCriteria: true }),
       resolveOptions: () => [],
       successCriteriaOptions: SUCCESS_OPTIONS,
@@ -520,6 +525,7 @@ describe('DecisionWorkingPanel -- bespoke child remount on decision switch', () 
     decision: DecisionPanelTarget,
   ): DecisionWorkingPanelProps {
     return {
+      projectId: 'proj-test',
       decision,
       resolveOptions: () => [],
       successCriteriaOptions: SUCCESS_OPTIONS,
@@ -709,6 +715,7 @@ describe('DecisionWorkingPanel -- boundary', () => {
       isBoundary: true,
     });
     const props: DecisionWorkingPanelProps = {
+      projectId: 'proj-test',
       decision: decisionValid,
       resolveOptions: (id) =>
         id === 'boundaryDocStatus' ? ['Held', 'Pending'] : [],
@@ -755,6 +762,99 @@ describe('DecisionWorkingPanel -- body-router precedence', () => {
     expect(screen.getByText('Suggested vision elements')).toBeTruthy();
     // The generic VisionFormFields label from TEXT_FIELDS must not render.
     expect(screen.queryByText('Primary purpose')).toBeNull();
+  });
+});
+
+describe('DecisionWorkingPanel -- stakeholder arm', () => {
+  beforeEach(() => {
+    useStakeholderRegisterStore.setState({ byProject: {} });
+    localStorage.clear();
+  });
+
+  it('routes isStakeholder to StakeholderCapture before the generic fields engine', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-stakeholders-c2',
+        label: 'Map and contact stakeholders',
+        isStakeholder: true,
+        fields: TEXT_FIELDS,
+      }),
+    });
+    // StakeholderCapture-specific surface present.
+    expect(screen.getByTestId('stakeholder-none-toggle')).toBeTruthy();
+    // The generic VisionFormFields label from TEXT_FIELDS must NOT render.
+    expect(screen.queryByText('Primary purpose')).toBeNull();
+  });
+
+  it('disables Record until a store row (or marker) makes it valid -- reactive', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-stakeholders-c2',
+        label: 'Map and contact stakeholders',
+        isStakeholder: true,
+      }),
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    // Adding a stakeholder row to the register flips validity reactively.
+    act(() => {
+      useStakeholderRegisterStore
+        .getState()
+        .createStakeholder('proj-test', { name: 'A', type: '', role: '' });
+    });
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+  });
+
+  it('emits the marker draft + a non-empty summary on Record', () => {
+    act(() => {
+      useStakeholderRegisterStore
+        .getState()
+        .createStakeholder('proj-test', { name: 'A', type: '', role: '' });
+    });
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-stakeholders-c2',
+        label: 'Map and contact stakeholders',
+        isStakeholder: true,
+      }),
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [value, summary] = onRecord.mock.calls[0]!;
+    expect(typeof value).toBe('object');
+    expect(typeof summary).toBe('string');
+    expect(summary.length).toBeGreaterThan(0);
+  });
+
+  it('hides the defer button when deferrable is false (c3)', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-stakeholders-c3',
+        label: 'Indigenous/cultural relationships',
+        isStakeholder: true,
+        deferrable: false,
+      }),
+    });
+    expect(
+      screen.queryByRole('button', { name: /needs (more )?observation/i }),
+    ).toBeNull();
+  });
+
+  it('shows the defer button for a normal (deferrable) target', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+    });
+    expect(
+      screen.getByRole('button', { name: /needs (more )?observation/i }),
+    ).toBeTruthy();
   });
 });
 
