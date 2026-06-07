@@ -455,6 +455,107 @@ describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   });
 });
 
+describe('buildDecisionTarget -- stakeholder detection', () => {
+  function makeStakeholderItem(id: string): PlanDecisionChecklistItem {
+    return {
+      id,
+      label: `Stakeholder item ${id}`,
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+  }
+
+  it('flags isStakeholder for s1-stakeholders-c1 through c6', () => {
+    for (const id of [
+      's1-stakeholders-c1',
+      's1-stakeholders-c2',
+      's1-stakeholders-c3',
+      's1-stakeholders-c4',
+      's1-stakeholders-c5',
+      's1-stakeholders-c6',
+    ]) {
+      const target = buildDecisionTarget(makeStakeholderItem(id));
+      expect(target.isStakeholder).toBe(true);
+    }
+  });
+
+  it('does NOT flag isStakeholder for a non-stakeholder id', () => {
+    const visionTarget = buildDecisionTarget({
+      id: 's1-vision-classify',
+      label: 'Classify committed vs aspirational vision',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem);
+    expect(visionTarget.isStakeholder).toBe(false);
+
+    const boundaryTarget = buildDecisionTarget({
+      id: 's1-boundaries-c3',
+      label: 'Identify easements and rights of way',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem);
+    expect(boundaryTarget.isStakeholder).toBe(false);
+  });
+
+  it('sets deferrable === false ONLY for s1-stakeholders-c3', () => {
+    expect(buildDecisionTarget(makeStakeholderItem('s1-stakeholders-c3')).deferrable).toBe(false);
+  });
+
+  it('sets deferrable === undefined for other stakeholder items and non-stakeholder ids', () => {
+    expect(buildDecisionTarget(makeStakeholderItem('s1-stakeholders-c1')).deferrable).toBeUndefined();
+    expect(buildDecisionTarget(makeStakeholderItem('s1-stakeholders-c5')).deferrable).toBeUndefined();
+    expect(buildDecisionTarget({
+      id: 's1-vision-classify',
+      label: 'Classify',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem).deferrable).toBeUndefined();
+  });
+});
+
+describe('ActTierZeroWorkbench -- stakeholder objective (no boundary strip)', () => {
+  const STAKEHOLDER_OBJECTIVE: PlanStratumObjective = {
+    ...ACTIVE_OBJECTIVE,
+    id: 's1-stakeholders',
+    title: 'Map stakeholders & relationships',
+    checklist: [
+      {
+        id: 's1-stakeholders-c1',
+        label: 'Identify adjacent landowners',
+        feedsInto: [],
+        optional: false,
+      },
+      {
+        id: 's1-stakeholders-c3',
+        label: 'Identify Indigenous land relationships',
+        feedsInto: [],
+        optional: false,
+      },
+    ],
+  } as PlanStratumObjective;
+
+  it('does NOT render the boundary-map-strip for s1-stakeholders', () => {
+    renderWorkbench({
+      objectives: [STAKEHOLDER_OBJECTIVE],
+      activeObjectiveId: STAKEHOLDER_OBJECTIVE.id,
+    });
+    expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
+  });
+
+  it('renders stakeholder mode badges on decision rows', () => {
+    renderWorkbench({
+      objectives: [STAKEHOLDER_OBJECTIVE],
+      activeObjectiveId: STAKEHOLDER_OBJECTIVE.id,
+    });
+    // c1 => mapContact => "Map + contact"
+    const c1Badge = screen.getByTestId('mode-badge-s1-stakeholders-c1');
+    expect(c1Badge.textContent).toMatch(/map \+ contact/i);
+    // c3 => cultural => "Cultural"
+    const c3Badge = screen.getByTestId('mode-badge-s1-stakeholders-c3');
+    expect(c3Badge.textContent).toMatch(/cultural/i);
+  });
+});
+
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
     // Use an objective whose FIRST checklist item is the vision-classify

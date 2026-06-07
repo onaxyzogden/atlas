@@ -46,14 +46,20 @@ export interface DecisionListProps {
   modeFor?: (itemId: string) => string | null;
 }
 
-// Raw boundary-mode key -> human label. The keys mirror BoundaryMode
-// ('doc' | 'map' | 'mapEntry' | 'decision'); unknown keys fall back to the raw
-// string so the badge still renders something legible.
+// Raw mode key -> human label. The keys mirror BoundaryMode
+// ('doc' | 'map' | 'mapEntry' | 'decision') AND StakeholderMode
+// ('mapContact' | 'contact' | 'cultural' | 'annotate'); unknown keys fall back
+// to the raw string so the badge still renders something legible.
 const MODE_LABELS: Record<string, string> = {
   doc: 'Document',
   map: 'Map',
   mapEntry: 'Map + entry',
   decision: 'Decision',
+  // Stakeholder modes (REVIEW R6 -- labels placeholder pending the operator mockup).
+  mapContact: 'Map + contact',
+  contact: 'Contact',
+  cultural: 'Cultural',
+  annotate: 'Annotate',
 };
 
 export default function DecisionList({

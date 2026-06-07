@@ -36,6 +36,7 @@ import DecisionWorkingPanel, {
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import { boundaryModeFor } from './BoundaryCapture.js';
+import { stakeholderModeFor } from './StakeholderCapture.js';
 import css from './ActTierZeroWorkbench.module.css';
 
 // ---------------------------------------------------------------------------
@@ -107,6 +108,16 @@ export function buildDecisionTarget(
   // matched generic form. False for every non-boundary id (e.g. s1-vision-*).
   const isBoundary = item.id.startsWith('s1-boundaries-');
 
+  // Stakeholder items are detected by id prefix; the panel's isStakeholder
+  // body-router arm (StakeholderCapture, store-direct) takes precedence over any
+  // matched generic form. False for every non-stakeholder id.
+  const isStakeholder = item.id.startsWith('s1-stakeholders-');
+
+  // c3 (Indigenous land relationships / cultural obligations) is mandatory and
+  // NON-deferrable (Amanah): hide the defer button. undefined => deferrable for
+  // every other item, including the other stakeholder items.
+  const deferrable = item.id === 's1-stakeholders-c3' ? false : undefined;
+
   const feedsLabel = item.feedsInto.length
     ? 'Feeds ' +
       item.feedsInto
@@ -125,6 +136,8 @@ export function buildDecisionTarget(
     isLabourInventory,
     isVisionClassify,
     isBoundary,
+    isStakeholder,
+    deferrable,
   };
 }
 
@@ -184,6 +197,11 @@ export default function ActTierZeroWorkbench({
   // Boundary objective drives the center-list mode badges + the static
   // map-activation strip. Neither renders for any other objective (e.g. vision).
   const isBoundaryObjective = activeObjective.id === 's1-boundaries';
+
+  // Stakeholder objective drives the center-list mode badges. No map strip
+  // is rendered (REVIEW R7: a stakeholder-specific strip, if any, awaits the
+  // operator mockup; intentionally not rendered for s1-stakeholders this pass).
+  const isStakeholderObjective = activeObjective.id === 's1-stakeholders';
 
   const selectedItem =
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
@@ -265,7 +283,12 @@ export default function ActTierZeroWorkbench({
                   itemId.startsWith('s1-boundaries-')
                     ? boundaryModeFor(itemId)
                     : null
-              : undefined
+              : isStakeholderObjective
+                ? (itemId) =>
+                    itemId.startsWith('s1-stakeholders-')
+                      ? stakeholderModeFor(itemId)
+                      : null
+                : undefined
           }
         />
       </section>

@@ -259,6 +259,37 @@ describe('DecisionList -- mode badges', () => {
     );
   });
 
+  it('maps each stakeholder mode key to its human label', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 's-mapContact', label: 'MapContact row', feedsInto: [], optional: false },
+        { id: 's-contact', label: 'Contact row', feedsInto: [], optional: false },
+        { id: 's-cultural', label: 'Cultural row', feedsInto: [], optional: false },
+        { id: 's-annotate', label: 'Annotate row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    const modes: Record<string, string> = {
+      's-mapContact': 'mapContact',
+      's-contact': 'contact',
+      's-cultural': 'cultural',
+      's-annotate': 'annotate',
+    };
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => modes[itemId] ?? null}
+      />,
+    );
+    expect(screen.getByTestId('mode-badge-s-mapContact').textContent).toMatch(/^Map \+ contact$/);
+    expect(screen.getByTestId('mode-badge-s-contact').textContent).toMatch(/^Contact$/);
+    expect(screen.getByTestId('mode-badge-s-cultural').textContent).toMatch(/^Cultural$/);
+    expect(screen.getByTestId('mode-badge-s-annotate').textContent).toMatch(/^Annotate$/);
+  });
+
   it('renders NO mode badge for any row when modeFor is absent', () => {
     renderList();
     expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
