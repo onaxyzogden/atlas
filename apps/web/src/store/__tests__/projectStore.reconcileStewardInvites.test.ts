@@ -70,6 +70,21 @@ describe('reconcileStewardInvites', () => {
     expect(getProject(id).metadata?.team?.queuedInvites).toEqual([inv('b@b.com')]);
   });
 
+  it('writes queuedInvites when looked up by serverId', () => {
+    // ActTierShell resolves the active project with `p.id === id ||
+    // p.serverId === id`, so the in-scope `id` it passes to
+    // reconcileStewardInvites can be a serverId for synced projects. The
+    // reconcile must honour the same id-or-serverId convention.
+    const id = createProject('Synced');
+    useProjectStore.setState((s) => ({
+      projects: s.projects.map((p) =>
+        p.id === id ? { ...p, serverId: 'srv-123' } : p,
+      ),
+    }));
+    useProjectStore.getState().reconcileStewardInvites('srv-123', [inv('a@b.com')]);
+    expect(getProject(id).metadata?.team?.queuedInvites).toEqual([inv('a@b.com')]);
+  });
+
   it('no-op for unknown projectId', () => {
     const before = useProjectStore.getState().projects;
     expect(() =>

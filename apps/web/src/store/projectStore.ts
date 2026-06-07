@@ -861,10 +861,17 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       reconcileStewardInvites: (projectId, queuedInvites) => {
-        const project = get().projects.find((p) => p.id === projectId);
+        // Match the id-or-serverId lookup convention used everywhere the Act
+        // shells resolve the active project (e.g. ActTierShell), so a serverId
+        // route key reconciles correctly instead of silently no-op-ing.
+        const project = get().projects.find(
+          (p) => p.id === projectId || p.serverId === projectId,
+        );
         if (!project) return;
         const existingTeam = project.metadata?.team ?? {};
-        get().updateProject(projectId, {
+        // updateProject matches strictly on `p.id`, so write through the
+        // canonical local id (projectId may have been a serverId).
+        get().updateProject(project.id, {
           metadata: {
             ...(project.metadata ?? {}),
             team: { ...existingTeam, queuedInvites },
