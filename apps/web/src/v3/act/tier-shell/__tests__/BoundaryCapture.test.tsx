@@ -272,6 +272,81 @@ describe('BoundaryCapture -- c5 landHistoryRegister (BR4)', () => {
   });
 });
 
+describe('BoundaryCapture -- render c1 (boundaryRegister) (BR5)', () => {
+  it('add-section appends an empty section', () => {
+    const { onChange } = renderCapture('s1-boundaries-c1', {});
+    fireEvent.click(screen.getByTestId('section-add'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.secTypes as string[])).toEqual(['']);
+  });
+  it('selecting a section type emits it at row 0', () => {
+    const { onChange } = renderCapture('s1-boundaries-c1', {
+      directions: ['N'],
+      secTypes: [''],
+      names: [''],
+      obligations: [''],
+      disputes: [''],
+    });
+    fireEvent.change(screen.getByTestId('section-type-0'), {
+      target: { value: 'Creek / natural boundary' },
+    });
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.secTypes as string[])[0]).toBe('Creek / natural boundary');
+  });
+  it('toggling the dispute flag on row 0 emits "true"', () => {
+    const { onChange } = renderCapture('s1-boundaries-c1', {
+      directions: ['N'],
+      secTypes: ['Shared / dividing fence'],
+      names: [''],
+      obligations: [''],
+      disputes: [''],
+    });
+    fireEvent.click(screen.getByTestId('section-dispute-0'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.disputes as string[])[0]).toBe('true');
+  });
+  it('remove-section-0 deletes the row', () => {
+    const { onChange } = renderCapture('s1-boundaries-c1', {
+      directions: ['N'],
+      secTypes: ['Shared / dividing fence'],
+      names: [''],
+      obligations: [''],
+      disputes: [''],
+    });
+    fireEvent.click(screen.getByTestId('section-remove-0'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.secTypes as string[])).toEqual([]);
+  });
+  it('the map button is rendered disabled', () => {
+    renderCapture('s1-boundaries-c1', {});
+    expect((screen.getByTestId('open-map') as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('BoundaryCapture -- render c2 (rowRegister) (BR5)', () => {
+  it('add-row appends an empty right of way', () => {
+    const { onChange } = renderCapture('s1-boundaries-c2', {});
+    fireEvent.click(screen.getByTestId('row-add'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.rowTypes as string[])).toEqual(['']);
+  });
+  it('selecting an impact emits it at row 0', () => {
+    const { onChange } = renderCapture('s1-boundaries-c2', {
+      rowTypes: ['Utility easement'],
+      names: [''],
+      impacts: [''],
+      holders: [''],
+      widths: [''],
+      details: [''],
+    });
+    fireEvent.change(screen.getByTestId('row-impact-0'), {
+      target: { value: 'Restricts' },
+    });
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.impacts as string[])[0]).toBe('Restricts');
+  });
+});
+
 describe('encode/decode round-trip via emitBoundary', () => {
   it('c1 boundaryRegister: emitBoundary reproduces canonical input exactly', () => {
     const input: FormValue = {

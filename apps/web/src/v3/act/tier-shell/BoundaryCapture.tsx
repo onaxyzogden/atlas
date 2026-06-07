@@ -1,5 +1,6 @@
 import * as React from 'react';
 import css from './BoundaryCapture.module.css';
+import { Plus, Trash2, Flag, MapPin } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
 
 // ---------------------------------------------------------------------------
@@ -389,13 +390,255 @@ export interface BoundaryCaptureProps {
   resolveOptions: (optionSetId: string) => readonly string[];
 }
 
-export default function BoundaryCapture(
-  props: BoundaryCaptureProps,
-): JSX.Element {
-  // BR5-BR7 replace this stub with the per-mode bodies. The stub keeps the
-  // module compiling and the helper tests green.
-  const model = decodeBoundary(props.itemId, props.value);
+export default function BoundaryCapture({
+  itemId,
+  value,
+  onChange,
+  resolveOptions,
+}: BoundaryCaptureProps): JSX.Element {
+  const model = decodeBoundary(itemId, value);
+  const emit = (next: BoundaryModel) => emitBoundary(onChange, next);
+
+  if (model.kind === 'boundaryRegister') {
+    const directions = resolveOptions('boundaryDirection');
+    const types = resolveOptions('boundarySectionType');
+    const set = (i: number, patch: Partial<BoundarySection>) =>
+      emit({
+        ...model,
+        sections: model.sections.map((s, j) => (j === i ? { ...s, ...patch } : s)),
+      });
+    return (
+      <div className={css.root} data-boundary-mode="boundaryRegister">
+        <MapStrip resolveOptions={resolveOptions} />
+        <div className={css.regHead}>
+          <span className={css.regTitle}>Boundary register</span>
+          <span className={css.regCount}>
+            {model.sections.length} sections
+          </span>
+        </div>
+        {model.sections.map((s, i) => (
+          <div
+            key={i}
+            className={css.row}
+            data-dispute={s.disputeFlag ? 'true' : 'false'}
+          >
+            <select
+              className={css.sel}
+              data-testid={`section-dir-${i}`}
+              aria-label={`Boundary ${i + 1} direction`}
+              value={s.direction}
+              onChange={(e) => set(i, { direction: e.target.value })}
+            >
+              <option value="">Direction</option>
+              {directions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <select
+              className={css.sel}
+              data-testid={`section-type-${i}`}
+              aria-label={`Boundary ${i + 1} type`}
+              value={s.type}
+              onChange={(e) => set(i, { type: e.target.value })}
+            >
+              <option value="">Type</option>
+              {types.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              className={css.inp}
+              data-testid={`section-name-${i}`}
+              aria-label={`Boundary ${i + 1} name`}
+              value={s.name}
+              placeholder="Name / description"
+              onChange={(e) => set(i, { name: e.target.value })}
+            />
+            <input
+              className={css.inp}
+              data-testid={`section-obligation-${i}`}
+              aria-label={`Boundary ${i + 1} obligation`}
+              value={s.obligation}
+              placeholder="Obligation"
+              onChange={(e) => set(i, { obligation: e.target.value })}
+            />
+            <button
+              type="button"
+              className={css.flagBtn}
+              data-testid={`section-dispute-${i}`}
+              aria-pressed={s.disputeFlag}
+              onClick={() => set(i, { disputeFlag: !s.disputeFlag })}
+            >
+              <Flag size={13} aria-hidden="true" />
+              {s.disputeFlag ? 'Dispute flagged' : 'Flag dispute'}
+            </button>
+            <button
+              type="button"
+              className={css.delBtn}
+              data-testid={`section-remove-${i}`}
+              aria-label={`Remove boundary ${i + 1}`}
+              onClick={() =>
+                emit({
+                  ...model,
+                  sections: model.sections.filter((_, j) => j !== i),
+                })
+              }
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={css.addBtn}
+          data-testid="section-add"
+          onClick={() =>
+            emit({
+              ...model,
+              sections: [
+                ...model.sections,
+                { direction: '', type: '', name: '', obligation: '', disputeFlag: false },
+              ],
+            })
+          }
+        >
+          <Plus size={14} aria-hidden="true" /> Add boundary section
+        </button>
+      </div>
+    );
+  }
+
+  if (model.kind === 'rowRegister') {
+    const types = resolveOptions('boundaryRowType');
+    const impacts = resolveOptions('boundaryRowImpact');
+    const set = (i: number, patch: Partial<RowOfWay>) =>
+      emit({
+        ...model,
+        rows: model.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)),
+      });
+    return (
+      <div className={css.root} data-boundary-mode="rowRegister">
+        <MapStrip resolveOptions={resolveOptions} />
+        <div className={css.regHead}>
+          <span className={css.regTitle}>Rights of way register</span>
+          <span className={css.regCount}>{model.rows.length} rights</span>
+        </div>
+        {model.rows.map((r, i) => (
+          <div key={i} className={css.row}>
+            <select
+              className={css.sel}
+              data-testid={`row-type-${i}`}
+              aria-label={`Right of way ${i + 1} type`}
+              value={r.type}
+              onChange={(e) => set(i, { type: e.target.value })}
+            >
+              <option value="">Type</option>
+              {types.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              className={css.inp}
+              data-testid={`row-name-${i}`}
+              aria-label={`Right of way ${i + 1} name`}
+              value={r.name}
+              placeholder="Name / description"
+              onChange={(e) => set(i, { name: e.target.value })}
+            />
+            <select
+              className={css.sel}
+              data-testid={`row-impact-${i}`}
+              aria-label={`Right of way ${i + 1} impact`}
+              value={r.impact}
+              onChange={(e) => set(i, { impact: e.target.value })}
+            >
+              <option value="">Impact</option>
+              {impacts.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <input
+              className={css.inp}
+              data-testid={`row-holder-${i}`}
+              aria-label={`Right of way ${i + 1} holder`}
+              value={r.holder}
+              placeholder="Holder"
+              onChange={(e) => set(i, { holder: e.target.value })}
+            />
+            <input
+              className={css.inp}
+              data-testid={`row-width-${i}`}
+              aria-label={`Right of way ${i + 1} width`}
+              value={r.width}
+              placeholder="Width / route"
+              onChange={(e) => set(i, { width: e.target.value })}
+            />
+            <button
+              type="button"
+              className={css.delBtn}
+              data-testid={`row-remove-${i}`}
+              aria-label={`Remove right of way ${i + 1}`}
+              onClick={() =>
+                emit({ ...model, rows: model.rows.filter((_, j) => j !== i) })
+              }
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={css.addBtn}
+          data-testid="row-add"
+          onClick={() =>
+            emit({
+              ...model,
+              rows: [
+                ...model.rows,
+                { type: '', name: '', impact: '', holder: '', width: '', detail: '' },
+              ],
+            })
+          }
+        >
+          <Plus size={14} aria-hidden="true" /> Add right of way
+        </button>
+      </div>
+    );
+  }
+
+  // c3/c4/c5 bodies land in BR6/BR7. Temporary placeholder keeps the router total.
   return <div className={css.root} data-boundary-mode={model.kind} />;
+}
+
+// Decorative, disabled map affordance (deferred rich I/O; boundary precedent).
+function MapStrip({
+  resolveOptions: _resolveOptions,
+}: {
+  resolveOptions: (id: string) => readonly string[];
+}): JSX.Element {
+  return (
+    <div className={css.mapPreview}>
+      <svg className={css.mapSvg} viewBox="0 0 320 90" aria-hidden="true">
+        <rect x="6" y="6" width="308" height="78" rx="8" />
+      </svg>
+      <button
+        type="button"
+        className={css.mapBtn}
+        data-testid="open-map"
+        disabled
+      >
+        <MapPin size={13} aria-hidden="true" /> Open map - coming soon
+      </button>
+    </div>
+  );
 }
 
 // emit helper used by the bodies in BR5-BR7
