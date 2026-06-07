@@ -51,6 +51,8 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
   const existingRef = useRef(existing);
 
   useEffect(() => {
+    const canvas = map.getCanvas();
+    const prevCursor = canvas.style.cursor;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
@@ -58,6 +60,12 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
     });
     map.addControl(draw);
     const seed = existingRef.current;
+    // Crosshair only when drawing a fresh boundary. Editing an existing parcel
+    // opens in direct_select (vertex editing), which keeps the default move/grab
+    // cursor. mapbox-gl-draw's own mode-class cursor never lands under MapLibre,
+    // so set it directly on the canvas (WizardDrawRectangleTool precedent) and
+    // restore on teardown.
+    let drawingFresh = false;
     if (seed) {
       const ids = draw.add({
         type: 'Feature',
@@ -69,10 +77,13 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
         draw.changeMode('direct_select', { featureId });
       } else {
         draw.changeMode('draw_polygon');
+        drawingFresh = true;
       }
     } else {
       draw.changeMode('draw_polygon');
+      drawingFresh = true;
     }
+    if (drawingFresh) canvas.style.cursor = 'crosshair';
     drawRef.current = draw;
 
     const onChange = () => {

@@ -14,6 +14,8 @@ export default function AreaTool({ map }: Props) {
   const [m2, setM2] = useState<number | null>(null);
 
   useEffect(() => {
+    const canvas = map.getCanvas();
+    const prevCursor = canvas.style.cursor;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
@@ -21,6 +23,10 @@ export default function AreaTool({ map }: Props) {
     });
     map.addControl(draw);
     draw.changeMode('draw_polygon');
+    // Crosshair for the draw session. mapbox-gl-draw's own mode-class cursor
+    // never lands under MapLibre, so set it directly on the canvas (the
+    // WizardDrawRectangleTool precedent) and restore on teardown.
+    canvas.style.cursor = 'crosshair';
     drawRef.current = draw;
 
     const onChange = () => {
@@ -38,6 +44,7 @@ export default function AreaTool({ map }: Props) {
     map.on('draw.delete', onChange);
 
     return () => {
+      canvas.style.cursor = prevCursor;
       map.off('draw.create', onChange);
       map.off('draw.update', onChange);
       map.off('draw.delete', onChange);
