@@ -53,6 +53,31 @@
   border-radius: 2px;
 }
 
+/*
+ * Recipe Maker range sliders — the prototype overlays a transparent native
+ * <input type=range> on a custom-drawn track + thumb. Strip the native
+ * appearance and hide the native thumb so only the custom thumb renders.
+ * (Ported from the prototype's global <style>, scoped to `.workspace`.)
+ */
+.workspace input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.workspace input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+}
+
+.workspace input[type='range']::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border: none;
+  background: transparent;
+}
+
 /* Stage body — the flex row the active stage fills. */
 .body {
   flex: 1;
