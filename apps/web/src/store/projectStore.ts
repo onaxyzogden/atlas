@@ -17,6 +17,7 @@ import {
   findProjectType,
   type CreateProjectInput,
   type ProjectMetadata,
+  type QueuedTeamInvite,
   type ProjectTypeId,
   type ProjectTypeRecord,
   type ProjectTypeVersion,
@@ -392,6 +393,17 @@ interface ProjectState {
    * `updatedAt` stamping apply). Returns `true` when applied.
    */
   setPrimaryType: (projectId: string, primaryTypeId: ProjectTypeId) => boolean;
+  /**
+   * Reconcile the steward-capture invite queue into the canonical
+   * metadata.team.queuedInvites. Replaces the queue wholesale (the steward
+   * FormValue is the source of truth) while preserving primarySteward /
+   * coStewards. Local-only: updateProject persists to IndexedDB; syncService
+   * does not push metadata. No-op when the project is missing.
+   */
+  reconcileStewardInvites: (
+    projectId: string,
+    queuedInvites: QueuedTeamInvite[],
+  ) => void;
   /**
    * Add a secondary project type to an active project mid-project (OLOS
    * Plan Navigation Spec v1.1 §9). Returns `true` when applied, `false`
@@ -846,6 +858,18 @@ export const useProjectStore = create<ProjectState>()(
           metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
         });
         return true;
+      },
+
+      reconcileStewardInvites: (projectId, queuedInvites) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return;
+        const existingTeam = project.metadata?.team ?? {};
+        get().updateProject(projectId, {
+          metadata: {
+            ...(project.metadata ?? {}),
+            team: { ...existingTeam, queuedInvites },
+          },
+        });
       },
 
       addSecondaryType: (projectId, secondaryTypeId, opts) => {
