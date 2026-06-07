@@ -50,6 +50,7 @@ import StewardCapture, {
   decodeSteward,
   isStewardValid,
   summariseSteward,
+  stewardInvitesToQueued,
   type StewardModel,
 } from '../StewardCapture.js';
 import { useAuthStore } from '../../../../store/authStore.js';
@@ -207,6 +208,50 @@ describe('summariseSteward', () => {
     expect(summariseSteward(model)).toBe(
       'Primary steward + 1 invited (1 reviewer)',
     );
+  });
+});
+
+// --------------------------------------------------------------------------
+// Pure mapper: stewardInvitesToQueued
+// --------------------------------------------------------------------------
+
+describe('stewardInvitesToQueued', () => {
+  const NOW = '2026-06-07T00:00:00.000Z';
+
+  it('maps invites to canonical queued shape with the given timestamp', () => {
+    const model = {
+      invites: [{ name: 'Amina', email: 'a@b.com', role: 'team_member' as const }],
+    };
+    expect(stewardInvitesToQueued(model, NOW)).toEqual([
+      { name: 'Amina', email: 'a@b.com', role: 'team_member', queuedAt: NOW },
+    ]);
+  });
+
+  it('returns [] for an empty model', () => {
+    expect(stewardInvitesToQueued({ invites: [] }, NOW)).toEqual([]);
+  });
+
+  it('drops invites with a blank email (canonical requires a real email)', () => {
+    const model = {
+      invites: [
+        { name: 'X', email: '', role: 'contractor' as const },
+        { name: 'Y', email: 'y@b.com', role: 'landowner' as const },
+      ],
+    };
+    expect(stewardInvitesToQueued(model, NOW)).toEqual([
+      { name: 'Y', email: 'y@b.com', role: 'landowner', queuedAt: NOW },
+    ]);
+  });
+
+  it('round-trips from a persisted FormValue via decodeSteward', () => {
+    const value = {
+      inviteNames: ['Amina'],
+      inviteEmails: ['a@b.com'],
+      inviteRoles: ['team_member'],
+    };
+    expect(stewardInvitesToQueued(decodeSteward(value), NOW)).toEqual([
+      { name: 'Amina', email: 'a@b.com', role: 'team_member', queuedAt: NOW },
+    ]);
   });
 });
 

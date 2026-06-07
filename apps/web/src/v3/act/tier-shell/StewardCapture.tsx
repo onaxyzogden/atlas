@@ -28,6 +28,7 @@
 import * as React from 'react';
 import { Lock, Plus, Send, Trash2 } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
+import type { QueuedTeamInvite } from '@ogden/shared';
 import { useAuthStore } from '../../../store/authStore.js';
 import css from './StewardCapture.module.css';
 
@@ -196,6 +197,23 @@ export function summariseSteward(model: StewardModel): string {
   }
 
   return `Primary steward + ${n} invited (${clauses.join(', ')})`;
+}
+
+// Pure mapper: local StewardModel -> canonical metadata.team.queuedInvites[].
+// Drops blank-email rows (the canonical schema requires a real email);
+// role is already constrained by decodeSteward. nowIso is injected for purity.
+export function stewardInvitesToQueued(
+  model: StewardModel,
+  nowIso: string,
+): QueuedTeamInvite[] {
+  return model.invites
+    .filter((inv) => inv.email.trim() !== '')
+    .map((inv) => ({
+      name: inv.name,
+      email: inv.email,
+      role: inv.role,
+      queuedAt: nowIso,
+    }));
 }
 
 // --------------------------------------------------------------------------
