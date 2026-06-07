@@ -92,6 +92,63 @@ let isSyncing = false;
 export function setSyncGuard(value: boolean) { isSyncing = value; }
 
 /**
+ * Structural shape of a zustand `persist` store, for hydration gating. Kept
+ * loose so any persisted store hook is assignable regardless of its state type.
+ */
+interface HydratableStore {
+  persist?: {
+    hasHydrated?: () => boolean;
+    onFinishHydration?: (cb: () => void) => () => void;
+  };
+}
+
+/**
+ * Resolve once every given store has finished (re)hydrating.
+ *
+ * Load-bearing for the IndexedDB backend (lib/indexedDBStorage.ts). With the
+ * synchronous localStorage backend `hasHydrated()` is already true at boot, so
+ * this is an immediate no-op. With async IDB, hydration resolves on a later
+ * microtask — and the write-through subscriptions seed their diff baseline at
+ * subscribe time. Attaching them BEFORE hydration would diff the (eventually)
+ * hydrated state against an EMPTY baseline and spuriously enqueue the entire
+ * project as creates on every boot. Awaiting hydration first makes the baseline
+ * the restored state, so a clean boot enqueues nothing.
+ *
+ * A per-store timeout backstops a stalled hydration so it can never hang sync
+ * startup — on timeout we proceed (degraded) rather than block the app forever.
+ */
+async function awaitStoresHydrated(
+  stores: HydratableStore[],
+  timeoutMs = 5000,
+): Promise<void> {
+  await Promise.all(
+    stores.map(
+      (s) =>
+        new Promise<void>((resolve) => {
+          const p = s.persist;
+          // No persist middleware, or already hydrated → nothing to wait for.
+          if (!p?.onFinishHydration || p.hasHydrated?.()) {
+            resolve();
+            return;
+          }
+          let settled = false;
+          const finish = () => {
+            if (settled) return;
+            settled = true;
+            try { unsub?.(); } catch { /* ignore */ }
+            resolve();
+          };
+          const unsub = p.onFinishHydration(finish);
+          // Guard the window between the hasHydrated() check above and the
+          // listener attaching: if hydration completed in between, finish now.
+          if (p.hasHydrated?.()) finish();
+          else setTimeout(finish, timeoutMs);
+        }),
+    ),
+  );
+}
+
+/**
  * In-flight project-create dedup. Keyed by local project id. Guarantees that the
  * store subscription, the boot catch-up, and any explicit `syncProjectNow` caller
  * can never fire two concurrent `POST /projects` for the same local project (the
@@ -188,12 +245,19 @@ export async function resolveRecordConflict(
   if (!active || !serverId) {
     throw new Error('[SYNC] resolveRecordConflict: no active project with a serverId');
   }
-  const { data } = await api.actRecords.resolveConflict(serverId, item.syncLogId, { choice });
+  // Both domains share the sync_log/failed_records surface (so listConflicts
+  // returns them together), but the resolve write dispatches to a different
+  // table set: olos storeKeys go to the olos conflict route (which writes the
+  // olos_* table named by sync_log.store_key), Act storeKeys to act-records.
+  const { data } = isOlosRecordStoreKey(item.storeKey)
+    ? await api.olos.resolveConflict(serverId, item.syncLogId, { choice })
+    : await api.actRecords.resolveConflict(serverId, item.syncLogId, { choice });
   const desc = SYNCED_STORES.find((d) => d.storeKey === data.storeKey);
   // Converge via the existing tested apply path. `active` is a full LocalProject
-  // (narrowed non-undefined above), exactly what hydrateActRecords consumes at
-  // its other call site — no synthesized partial.
-  if (desc) await hydrateActRecords(active, [desc]);
+  // (narrowed non-undefined above), exactly what hydrateTypedRecords consumes at
+  // its other call site — no synthesized partial. The hydrate dispatches its row
+  // source by storeKey, so an olos descriptor converges from the olos snapshot.
+  if (desc) await hydrateTypedRecords(active, [desc]);
   await listRecordConflicts();
   return data;
 }
@@ -1093,7 +1157,9 @@ async function initialSync(): Promise<void> {
       if (FLAGS.SYNC_STATE_BLOBS) {
         await hydrateProjectStateBlobs(project);
         await hydrateTypedTables(project);
-        await hydrateActRecords(project);
+        // One generalised hydrate now covers all 7 typed-record stores (4 Act +
+        // 3 olos); listTypedRecordRows dispatches the row source per storeKey.
+        await hydrateTypedRecords(project);
       }
     }
   } catch (err) {
@@ -1333,6 +1399,14 @@ export interface TypedRecordOpPayload {
  */
 export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
   const p = op.payload as TypedRecordOpPayload;
+  // olos records (observations/proofs/verifications) live in their own olos_*
+  // tables behind domain REST endpoints, not the generic act-records PUT — and
+  // their create path mints a server uuid that must replace the local draft id.
+  // Route them to the dedicated transport (same rev-gate + 409 contract).
+  if (isOlosRecordStoreKey(p.storeKey)) {
+    await executeOlosRecordOp(op);
+    return;
+  }
   const serverId = getProjectServerId(p.projectLocalId);
   if (!serverId) {
     // Throw so the op stays queued and retries once the project gets a
@@ -1367,7 +1441,7 @@ export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
   //    stay QUIET — no badge, no toast. We deliberately do NOT apply the server
   //    payload here: doing so in the flush path would re-enter the store
   //    subscriber and risk a push loop. Convergence to the server copy happens
-  //    on the next hydration (hydrateActRecords); Phase 4 owns immediate adopt.
+  //    on the next hydration (hydrateTypedRecords); Phase 4 owns immediate adopt.
   //  - `escalated` (or any unknown/legacy value): safety could not be proven
   //    (local strictly newer, or a timestamp missing). Surface it for a steward
   //    Keep-mine/Keep-server decision. This is the default, so a 409 from an
@@ -1386,6 +1460,239 @@ export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
       `(server rev ${result.serverRev}; sync_log ${result.syncLogId ?? 'n/a'}); ` +
       `surfaced as conflict (no clobber)`,
   );
+}
+
+// ─── OLOS record transport (Phase 3B) ───────────────────────────────────────
+// The Act typed-record transport assumes a client-stable recordId. olos breaks
+// that assumption: the server mints a uuid on create while local drafts carry a
+// prefix-tagged id (obs-/proof-/verify-). So olos gets its own create/update/
+// rekey path here, but reuses every guard and the never-clobber 409 surface.
+
+const OLOS_RECORD_STORE_KEYS = {
+  observation: 'ogden-olos-observation-records',
+  proof: 'ogden-olos-proof-records',
+  verification: 'ogden-olos-verification-records',
+} as const;
+
+const OLOS_RECORD_STORE_KEY_SET: ReadonlySet<string> = new Set(
+  Object.values(OLOS_RECORD_STORE_KEYS),
+);
+
+/** True for the three olos record storeKeys — they push to the domain REST
+ *  endpoints, not the generic act-records PUT. */
+export function isOlosRecordStoreKey(storeKey: string): boolean {
+  return OLOS_RECORD_STORE_KEY_SET.has(storeKey);
+}
+
+/** A local (un-synced) olos draft id is prefix-tagged per store → POST-create;
+ *  a bare uuid is server-assigned → rev-gated PATCH. */
+function isLocalOlosId(storeKey: string, recordId: string): boolean {
+  switch (storeKey) {
+    case OLOS_RECORD_STORE_KEYS.observation:
+      return recordId.startsWith('obs-');
+    case OLOS_RECORD_STORE_KEYS.proof:
+      return recordId.startsWith('proof-');
+    case OLOS_RECORD_STORE_KEYS.verification:
+      return recordId.startsWith('verify-');
+    default:
+      return false;
+  }
+}
+
+/** Strip server-owned + immutable identity fields from a stored olos record,
+ *  leaving the editable slice a create/update body carries. `taskId` travels as
+ *  a path arg, never in the body; server-stamped timestamps and `rev` are never
+ *  client-authored. */
+function olosWriteBody(rec: Record<string, unknown>): Record<string, unknown> {
+  const {
+    id: _id,
+    projectId: _projectId,
+    taskId: _taskId,
+    rev: _rev,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    recordedAt: _recordedAt,
+    capturedAt: _capturedAt,
+    verifiedAt: _verifiedAt,
+    ...rest
+  } = rec;
+  return rest;
+}
+
+/** POST a new olos record to its domain endpoint; returns the server-canonical
+ *  record (carrying its uuid id + rev=1), or null. */
+async function olosCreate(
+  storeKey: string,
+  serverId: string,
+  rec: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  const body = olosWriteBody(rec);
+  const taskId = String(rec.taskId ?? '');
+  if (storeKey === OLOS_RECORD_STORE_KEYS.observation) {
+    const { data } = await api.olos.observations.create(serverId, body as never);
+    return (data ?? null) as Record<string, unknown> | null;
+  }
+  if (storeKey === OLOS_RECORD_STORE_KEYS.proof) {
+    const { data } = await api.olos.proofs.create(serverId, taskId, body as never);
+    return (data ?? null) as Record<string, unknown> | null;
+  }
+  const { data } = await api.olos.verifications.create(serverId, taskId, body as never);
+  return (data ?? null) as Record<string, unknown> | null;
+}
+
+type OlosUpdateResult =
+  | { status: 'ok'; rev: number }
+  | { status: 'conflict'; serverRev: number | null };
+
+/** Rev-gated PATCH to an olos domain endpoint. Mirrors `pushSyncedRecord`'s
+ *  duck-typed 409 contract: `request()` throws an `ApiError` whose `.status` is
+ *  409 with `.details.{serverRev,...}` when the write is stale; everything else
+ *  re-throws so the queue backs off. olos conflicts always escalate (no
+ *  observed_at auto-resolve tier). */
+async function olosUpdate(
+  storeKey: string,
+  serverId: string,
+  rec: Record<string, unknown>,
+  baseRev: number,
+): Promise<OlosUpdateResult> {
+  const body = { ...olosWriteBody(rec), baseRev };
+  const recordId = String(rec.id ?? '');
+  const taskId = String(rec.taskId ?? '');
+  try {
+    let data: unknown;
+    if (storeKey === OLOS_RECORD_STORE_KEYS.observation) {
+      ({ data } = await api.olos.observations.update(serverId, recordId, body as never));
+    } else if (storeKey === OLOS_RECORD_STORE_KEYS.proof) {
+      ({ data } = await api.olos.proofs.update(serverId, taskId, recordId, body as never));
+    } else {
+      ({ data } = await api.olos.verifications.update(serverId, taskId, recordId, body as never));
+    }
+    return { status: 'ok', rev: Number((data as { rev?: number })?.rev ?? 0) };
+  } catch (err) {
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      (err as { status?: unknown }).status === 409
+    ) {
+      const details = ((err as { details?: unknown }).details ?? {}) as {
+        serverRev?: number | null;
+      };
+      return { status: 'conflict', serverRev: details.serverRev ?? null };
+    }
+    throw err;
+  }
+}
+
+/** Apply a freshly-created server record into its live store, rekeying the local
+ *  draft → server uuid. Runs inside the `isSyncing` guard so the mutation does
+ *  not bounce back out through `subscribeTypedRecords` as a fresh push. For the
+ *  objectiveId-keyed observation store the draft and server copy share one
+ *  objective slot (the apply overwrites it in place, no orphan); for the
+ *  id-keyed proof/verification stores the old local-draft key is removed. */
+function applyOlosCreated(
+  storeKey: string,
+  projectLocalId: string,
+  oldRecordId: string,
+  saved: Record<string, unknown>,
+): void {
+  const d = SYNCED_STORES.find(
+    (x) => x.storeKey === storeKey && x.classification === 'typed-record',
+  );
+  if (!d?.store || !d.applyRecordForProject) return;
+  const handle = d.store as unknown as {
+    getState: () => unknown;
+    setState: (p: unknown) => void;
+  };
+  const wasSyncing = isSyncing;
+  isSyncing = true;
+  try {
+    d.applyRecordForProject(handle, projectLocalId, String(saved.id), saved);
+    // Drop the stale local-draft key (a no-op for the objectiveId-keyed
+    // observation store, whose draft lived under its objectiveId slot and was
+    // just overwritten in place by the apply above).
+    handle.setState((st: unknown) => {
+      const s = (st ?? {}) as {
+        byProject?: Record<string, Record<string, unknown>>;
+      };
+      const project = s.byProject?.[projectLocalId];
+      if (!project || !(oldRecordId in project)) return st as object;
+      const nextProject = { ...project };
+      delete nextProject[oldRecordId];
+      return { byProject: { ...s.byProject, [projectLocalId]: nextProject } };
+    });
+  } finally {
+    isSyncing = wasSyncing;
+  }
+}
+
+/**
+ * Push one queued olos `typed-record` op through the domain REST transport — the
+ * olos analogue of `executeTypedRecordOp`. Create (local draft id) → POST then
+ * rekey the store to the server uuid; update (uuid) → rev-gated PATCH with the
+ * per-record `baseRev`, the same never-clobber 409 surface as the Act path
+ * (olos always escalates — no auto_resolved tier).
+ */
+async function executeOlosRecordOp(op: QueuedOperation): Promise<void> {
+  const p = op.payload as TypedRecordOpPayload;
+  const serverId = getProjectServerId(p.projectLocalId);
+  if (!serverId) {
+    throw new Error(
+      `[SYNC] olos-record "${p.storeKey}/${p.recordId}": project ` +
+        `${p.projectLocalId} has no serverId yet`,
+    );
+  }
+  const rec = (p.payload ?? {}) as Record<string, unknown>;
+
+  if (isLocalOlosId(p.storeKey, p.recordId)) {
+    const saved = await olosCreate(p.storeKey, serverId, rec);
+    if (saved && saved.id != null) {
+      applyOlosCreated(p.storeKey, p.projectLocalId, p.recordId, saved);
+      recordBaseRev.set(
+        recordLocalId(p.storeKey, p.projectLocalId, String(saved.id)),
+        Number((saved as { rev?: number }).rev ?? 1),
+      );
+    }
+    return;
+  }
+
+  const result = await olosUpdate(p.storeKey, serverId, rec, p.baseRev);
+  const key = recordLocalId(p.storeKey, p.projectLocalId, p.recordId);
+  if (result.status === 'ok') {
+    recordBaseRev.set(key, result.rev);
+    return;
+  }
+  // 409: adopt the authoritative rev so we stop re-pushing a stale base, then
+  // surface for the steward keep-mine/keep-server decision. The local record is
+  // NEVER clobbered. olos has no auto_resolved tier, so every 409 escalates.
+  if (typeof result.serverRev === 'number') recordBaseRev.set(key, result.serverRev);
+  surfaceStoreConflict(p.storeKey);
+  console.warn(
+    `[SYNC] olos-record "${p.storeKey}/${p.recordId}" escalated as stale ` +
+      `(server rev ${result.serverRev}); surfaced as conflict (no clobber)`,
+  );
+}
+
+/**
+ * Hydrate-time row source for a typed-record store, dispatched by storeKey: olos
+ * domains expose a project-scoped FULL snapshot via `changed-since` with no
+ * cursor (already in SyncedRecord shape, carrying rev); Act stores use the
+ * generic per-store list. Both yield SyncedRecord[] so `hydrateTypedRecords`
+ * stays storeKey-agnostic.
+ */
+async function listTypedRecordRows(
+  serverId: string,
+  storeKey: string,
+): Promise<SyncedRecord[]> {
+  if (storeKey === OLOS_RECORD_STORE_KEYS.observation) {
+    return ((await api.olos.observations.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  if (storeKey === OLOS_RECORD_STORE_KEYS.proof) {
+    return ((await api.olos.proofs.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  if (storeKey === OLOS_RECORD_STORE_KEYS.verification) {
+    return ((await api.olos.verifications.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  return ((await api.actRecords.list(serverId, storeKey)).data ?? []) as SyncedRecord[];
 }
 
 /**
@@ -1605,20 +1912,27 @@ export async function hydrateTypedTables(
 }
 
 /**
- * Device-B restore for the `typed-record` class (the 4 Act stores). Pulls
- * every server record for each typed-record store and upserts it into the live
- * store via `applyRecordForProject`, recording each record's server `rev` as
- * the next push's baseRev. Per-record analogue of `hydrateProjectStateBlobs`,
- * with the same version-skew guard (a record saved by a newer client is
- * skipped, never downcast). Runs INSIDE `initialSync`'s `isSyncing` window so
- * the writes do not bounce back out through `subscribeTypedRecords`.
+ * Device-B restore for the `typed-record` class (the 4 Act stores + the 3 olos
+ * record domains). Pulls every server record for each typed-record store and
+ * upserts it into the live store via `applyRecordForProject`, recording each
+ * record's server `rev` as the next push's baseRev. Per-record analogue of
+ * `hydrateProjectStateBlobs`, with the same version-skew guard (a record saved
+ * by a newer client is skipped, never downcast). Runs INSIDE `initialSync`'s
+ * `isSyncing` window so the writes do not bounce back out through
+ * `subscribeTypedRecords`.
+ *
+ * The row source is dispatched per storeKey by `listTypedRecordRows` (olos
+ * domains expose a project-scoped full snapshot via changed-since; Act stores
+ * use the generic per-store list) so this one function converges any typed
+ * record — including the single-descriptor convergence `resolveRecordConflict`
+ * runs after an olos or Act conflict is resolved.
  *
  * Upsert-only: Phase 1 has no per-record delete on the wire, so a record
  * deleted on another device is reconciled in a later phase, never silently
  * dropped here. `descriptors` is injectable for tests; production passes
  * `SYNCED_STORES`.
  */
-export async function hydrateActRecords(
+export async function hydrateTypedRecords(
   project: LocalProject,
   descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
 ): Promise<void> {
@@ -1636,8 +1950,7 @@ export async function hydrateActRecords(
     const localVersion = d.schemaVersion ?? 1;
     let rows: SyncedRecord[];
     try {
-      const res = await api.actRecords.list(serverId, d.storeKey);
-      rows = (res.data ?? []) as SyncedRecord[];
+      rows = await listTypedRecordRows(serverId, d.storeKey);
     } catch (err) {
       console.warn(
         `[SYNC] typed-record hydrate list failed for "${d.storeKey}" / "${project.name}":`,
@@ -1687,6 +2000,227 @@ export async function hydrateActRecords(
       }
     }
   }
+}
+
+/**
+ * Apply ONE incoming server record into its live store, owning the per-record
+ * rev bookkeeping so both callers (the live WS `record_upserted` handler and
+ * the reconnect delta-pull) stay thin. Server-wins by rev: a message whose
+ * `rev` is not strictly newer than the rev we already hold is dropped — this is
+ * what makes the author's own broadcast echo and any out-of-order delivery a
+ * no-op. Honours the same two guards as `hydrateTypedRecords`:
+ *  - version-skew: a record saved by a newer client is skipped, never downcast;
+ *  - §6 init-clobber: a record with a pending un-synced local push is never
+ *    overwritten — its own queued push reconciles (or surfaces a 409).
+ * Applies inside the `isSyncing` guard (save/restore, so it nests safely inside
+ * a delta-pull's own window) so `subscribeTypedRecords` does not re-enqueue an
+ * echo. Returns true iff the record was applied. `descriptors` is injectable
+ * for tests; production passes `SYNCED_STORES`.
+ */
+export async function applyIncomingRecord(
+  storeKey: string,
+  projectLocalId: string,
+  recordId: string,
+  rev: number,
+  schemaVersion: number,
+  payload: unknown,
+  descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
+): Promise<boolean> {
+  const d = descriptors.find(
+    (x) => x.storeKey === storeKey && x.classification === 'typed-record',
+  );
+  if (!d || !d.store || !d.applyRecordForProject) return false;
+
+  // Stale / echo: drop anything not strictly newer than what we already hold.
+  if (rev <= getRecordBaseRev(storeKey, projectLocalId, recordId)) return false;
+
+  // Version-skew guard: never downcast a record a newer client wrote.
+  const localVersion = d.schemaVersion ?? 1;
+  if (schemaVersion > localVersion) {
+    if (!blobVersionSkewWarned) {
+      blobVersionSkewWarned = true;
+      toast.warning(
+        'Some synced data was saved by a newer version of Atlas. ' +
+          'Update Atlas to restore it.',
+      );
+    }
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" schemaVersion ` +
+        `${schemaVersion} > local ${localVersion}; dropped (version-skew guard)`,
+    );
+    return false;
+  }
+
+  // §6 init-clobber guard: a pending un-synced local edit must not be
+  // overwritten by the server copy; its queued push reconciles (or 409s).
+  const pending = await pendingLocalIds('typed-record');
+  if (pending.has(recordLocalId(storeKey, projectLocalId, recordId))) {
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" has a pending ` +
+        `un-synced local edit; not applied (its queued push will reconcile)`,
+    );
+    return false;
+  }
+
+  const handle = d.store as unknown as {
+    getState: () => unknown;
+    setState: (p: unknown) => void;
+  };
+  // Synchronous guard window — no `await` between save and restore.
+  const wasSyncing = isSyncing;
+  isSyncing = true;
+  try {
+    d.applyRecordForProject(handle, projectLocalId, recordId, payload);
+    recordBaseRev.set(recordLocalId(storeKey, projectLocalId, recordId), rev);
+  } catch (err) {
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" apply failed:`,
+      err,
+    );
+    return false;
+  } finally {
+    isSyncing = wasSyncing;
+  }
+  return true;
+}
+
+/**
+ * Reconnect delta-pull (Phase 2 Problem B): fetch every record changed on the
+ * server since the device's `lastSyncedAt` watermark and apply it locally. Live
+ * WS broadcasts only reach currently-connected peers, so a device offline for
+ * hours would never learn what teammates changed without this catch-up pull.
+ * Apply-only (server-wins by rev via `applyIncomingRecord`); a 409 can only
+ * arise on THIS device's own queued PUSH (handled in `executeTypedRecordOp`),
+ * never here. Pulls for one project (the active/owned one). On success advances
+ * the watermark to the newest server `updatedAt` seen — server-clock, so the
+ * `changed_at > since` contract is immune to client/server clock skew; when no
+ * rows changed the watermark is left untouched. Returns the count applied.
+ */
+export async function pullActRecordDelta(project: LocalProject): Promise<number> {
+  if (!project.serverId) return 0;
+  const conn = useConnectivityStore.getState();
+  const since = conn.getLastSyncedAt(project.id);
+  let rows: SyncedRecord[];
+  try {
+    const res = await api.actRecords.changedSince(project.serverId, since);
+    rows = (res.data ?? []) as SyncedRecord[];
+  } catch (err) {
+    console.warn(`[SYNC] delta-pull failed for "${project.name}":`, err);
+    return 0;
+  }
+  let applied = 0;
+  let newestUpdatedAt = since ?? '';
+  for (const row of rows) {
+    const ok = await applyIncomingRecord(
+      row.storeKey,
+      project.id,
+      row.recordId,
+      row.rev,
+      row.schemaVersion,
+      row.payload,
+    );
+    if (ok) applied += 1;
+    if (row.updatedAt > newestUpdatedAt) newestUpdatedAt = row.updatedAt;
+  }
+  // Advance the watermark only when rows came back, using the server clock,
+  // keyed per-project so another project's pull can't clobber this one.
+  if (rows.length > 0 && newestUpdatedAt) conn.setLastSyncedAt(project.id, newestUpdatedAt);
+  if (applied > 0) {
+    console.info(
+      `[SYNC] delta-pull applied ${applied}/${rows.length} record(s) for "${project.name}"`,
+    );
+  }
+  return applied;
+}
+
+/**
+ * Thin wrapper for the WS reconnect path: resolve a local project id to its
+ * project and run the delta-pull, gated on record sync being enabled. Keeps the
+ * FLAGS gate and project lookup in syncService so `wsService` stays thin.
+ */
+export async function pullActRecordDeltaForProject(
+  projectLocalId: string,
+): Promise<void> {
+  if (!FLAGS.SYNC_STATE_BLOBS) return;
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectLocalId);
+  if (project?.serverId) {
+    await pullActRecordDelta(project);
+    await pullOlosRecordDelta(project);
+  }
+}
+
+/**
+ * The olos delta-pull keeps its OWN per-project watermark sub-key, distinct from
+ * the Act watermark. The plan called for a single shared scalar, but the Act and
+ * olos `changed-since` streams advance independently from different rows: if the
+ * Act pull pushed a shared watermark past olos rows not yet pulled, the next olos
+ * pull would issue `since` beyond them and silently skip the gap (and vice-versa).
+ * A dedicated sub-key gives each stream a correct "applied everything ≤ W"
+ * frontier. Both keys are ISO timestamps, so `selectMostRecentSync`'s lexicographic
+ * max over the map still answers "device last heard from server at X" correctly.
+ */
+const OLOS_WATERMARK_SUFFIX = '::olos';
+
+function olosWatermarkKey(projectLocalId: string): string {
+  return `${projectLocalId}${OLOS_WATERMARK_SUFFIX}`;
+}
+
+/**
+ * Reconnect delta-pull for the three olos record domains (Phase 3B sibling to
+ * `pullActRecordDelta`). Each domain exposes a project-scoped `changed-since`; we
+ * pull all three from the olos watermark, apply each row via the shared
+ * `applyIncomingRecord` (server-wins by rev), and advance the watermark to the
+ * newest server `updatedAt` seen across all three. Apply-only — a 409 can only
+ * arise on this device's own queued PUSH (handled in `executeOlosRecordOp`).
+ * Returns the count applied.
+ */
+export async function pullOlosRecordDelta(project: LocalProject): Promise<number> {
+  if (!project.serverId) return 0;
+  const serverId = project.serverId;
+  const conn = useConnectivityStore.getState();
+  const since = conn.getLastSyncedAt(olosWatermarkKey(project.id));
+  const fetchers = [
+    () => api.olos.observations.changedSince(serverId, since),
+    () => api.olos.proofs.changedSince(serverId, since),
+    () => api.olos.verifications.changedSince(serverId, since),
+  ];
+  let applied = 0;
+  let newestUpdatedAt = since ?? '';
+  for (const fetchDomain of fetchers) {
+    let rows: SyncedRecord[];
+    try {
+      const res = await fetchDomain();
+      rows = (res.data ?? []) as SyncedRecord[];
+    } catch (err) {
+      console.warn(`[SYNC] olos delta-pull failed for "${project.name}":`, err);
+      continue;
+    }
+    for (const row of rows) {
+      const ok = await applyIncomingRecord(
+        row.storeKey,
+        project.id,
+        row.recordId,
+        row.rev,
+        row.schemaVersion,
+        row.payload,
+      );
+      if (ok) applied += 1;
+      if (row.updatedAt > newestUpdatedAt) newestUpdatedAt = row.updatedAt;
+    }
+  }
+  // Advance only when we saw something strictly newer than the prior frontier
+  // (server clock, per-project, olos sub-key) — empty pulls leave it untouched.
+  if (newestUpdatedAt && newestUpdatedAt !== (since ?? '')) {
+    conn.setLastSyncedAt(olosWatermarkKey(project.id), newestUpdatedAt);
+  }
+  if (applied > 0) {
+    console.info(
+      `[SYNC] olos delta-pull applied ${applied} record(s) for "${project.name}"`,
+    );
+  }
+  return applied;
 }
 
 /**
@@ -2156,6 +2690,23 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
 async function onOnline() {
   console.info('[SYNC] Network restored, flushing queue...');
   const conn = useConnectivityStore.getState();
+
+  // Catch-up delta-pull FIRST, using the existing watermark — an all-day-offline
+  // device must learn what teammates changed even when it has nothing of its own
+  // to push (so this runs BEFORE the no-pending early-return below). Gated on
+  // record sync being enabled, matching the typed-record subscriptions/hydrate.
+  if (FLAGS.SYNC_STATE_BLOBS) {
+    const active = getActiveProject();
+    if (active?.serverId) {
+      try {
+        await pullActRecordDelta(active);
+        await pullOlosRecordDelta(active);
+      } catch (err) {
+        console.warn('[SYNC] delta-pull on reconnect failed:', err);
+      }
+    }
+  }
+
   const count = await syncQueue.getPendingCount();
   if (count === 0) return;
 
@@ -2165,7 +2716,10 @@ async function onOnline() {
     await syncQueue.flush(executeQueuedOp, handleExhaustedOp);
     const remaining = await syncQueue.getPendingCount();
     conn.setPendingChanges(remaining);
-    conn.setLastSyncedAt(new Date().toISOString());
+    // No client-clock watermark write here: pullActRecordDelta above already
+    // advanced the per-project watermark from the server clock. Writing the
+    // client wall clock would clobber it and could skip rows stamped in any
+    // clock-skew window on the next changed-since.
     conn.setSyncStatus('idle');
   } catch (err) {
     console.warn('[SYNC] Queue flush failed:', err);
@@ -2221,6 +2775,27 @@ export const syncService = {
       console.warn('[SYNC] Queue reconcile failed:', err);
     }
 
+    // Gate: wait for persisted stores to (re)hydrate before attaching the
+    // write-through subscriptions below. Their diff baseline is seeded at
+    // subscribe time, so under the async IndexedDB backend an empty
+    // pre-hydration snapshot would re-push the whole project as creates on
+    // every boot. No-op under synchronous localStorage. See awaitStoresHydrated.
+    const gatedStores: HydratableStore[] = [
+      useProjectStore,
+      useZoneStore,
+      useBuiltEnvironmentStoreV2,
+      usePathStore,
+      useUtilityStore,
+    ];
+    if (FLAGS.SYNC_STATE_BLOBS) {
+      gatedStores.push(useVegetationStore, useSuccessionStore);
+      for (const desc of SYNCED_STORES) {
+        const handle = (desc as { store?: HydratableStore }).store;
+        if (handle) gatedStores.push(handle);
+      }
+    }
+    await awaitStoresHydrated(gatedStores);
+
     // Subscribe to store changes for write-through sync
     unsubscribers.push(subscribeToProjects());
     unsubscribers.push(subscribeToZones());
@@ -2252,9 +2827,11 @@ export const syncService = {
     // re-pushing every hydrated record. No-op when record sync is disabled.
     if (FLAGS.SYNC_STATE_BLOBS) reseedTypedRecordSnapshots();
 
-    // Report sync completion to connectivity store
+    // Connectivity store: no client-clock watermark write here. The per-project
+    // watermark is advanced only by the server-clock delta-pull; if initialSync
+    // pulled nothing new the map stays empty and the next changed-since does a
+    // full (rev-idempotent) epoch re-pull — safe, and skew-immune.
     const conn = useConnectivityStore.getState();
-    conn.setLastSyncedAt(new Date().toISOString());
 
     // Pre-cache map tiles for the active project's bounding box (fire-and-forget)
     if (FLAGS.OFFLINE_MODE) {
@@ -2285,7 +2862,7 @@ export const syncService = {
         .then(async () => {
           const remaining = await syncQueue.getPendingCount();
           conn.setPendingChanges(remaining);
-          conn.setLastSyncedAt(new Date().toISOString());
+          // No client-clock watermark write (see onOnline / pullActRecordDelta).
           conn.setSyncStatus('idle');
         })
         .catch((err) => {

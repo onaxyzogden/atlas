@@ -14,7 +14,8 @@
 //   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
 import { useMemo, useState } from 'react';
-import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { Camera, Check, ClipboardCheck, Plus, Sprout } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -23,11 +24,21 @@ import type {
   ObserveDataPoint,
   StandardProtocolTemplate,
   ConfirmationStatus,
+  SeasonName,
+  Season,
+  ProjectMemberRecord,
+  ProjectRole,
+  ActTask,
+  VerificationRecord,
 } from '@ogden/shared';
 import {
   getObjectiveEvidence,
   getPrimaryDomainForObjective,
   resolveSeverityTier,
+  deriveClimateContext,
+  enterprisesForProjectTypes,
+  templatesForEnterprises,
+  UNIVERSAL_PROTOCOL_TEMPLATES,
 } from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
@@ -37,6 +48,7 @@ import { useProtocolStore } from '../../../store/protocolStore.js';
 import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
 import { FEEDS_TO_MODULE } from '../data/protocolFeedsMap.js';
 import TriggerRecognitionSheet from '../protocols/TriggerRecognitionSheet.js';
+import { evaluateAndRaiseFlags } from '../protocols/evaluateAndRaiseFlags.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { resolveAnswerSpec } from '../../strata/resolveAnswerSpec.js';
 import AnswerRecap from './AnswerRecap.js';
@@ -47,6 +59,7 @@ import {
 } from '../../../store/actEvidenceStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
 import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
+import { useReviewFlagStore } from '../../../store/reviewFlagStore.js';
 import {
   readNote,
   formatActyTimestamp,
@@ -59,11 +72,34 @@ import {
 } from '../../observation-needs/observationNeed.js';
 import { useObservationNeeds } from '../../observation-needs/useObservationNeeds.js';
 import type { ObserveModule } from '../../observe/types.js';
+import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
+import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
+import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
+import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
 // array reference when the project has no progress for this objective yet.
 const EMPTY_IDS: readonly string[] = Object.freeze([]);
+
+/**
+ * Map the astronomical Season (which uses 'fall') to the protocol-schema
+ * SeasonName (which uses 'autumn'). Only 'fall' differs; the rest are identical.
+ * Exhaustive switch so a future Season member is a compile error here rather
+ * than a silent passthrough of an out-of-vocabulary value.
+ */
+function toSeasonName(season: Season): SeasonName {
+  switch (season) {
+    case 'fall':
+      return 'autumn';
+    case 'spring':
+      return 'spring';
+    case 'summer':
+      return 'summer';
+    case 'winter':
+      return 'winter';
+  }
+}
 
 /**
  * Is one evidence descriptor satisfied by the persisted capture?
@@ -90,6 +126,15 @@ interface Props {
   tier: PlanStratum | undefined;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
+  // Formal OLOS proof/verification wiring (flag-gated), threaded from
+  // ActTierShell. Optional so the panel renders identically when unprovided
+  // (offline / flag-off): with no serverId the bridge reports 'offline' and the
+  // gated Verification section never mounts, leaving the lightweight
+  // "Record observation" path as the sole completion surface.
+  serverId?: string;
+  members?: ProjectMemberRecord[];
+  currentUserId?: string;
+  myRole?: ProjectRole;
 }
 
 export default function ActTierExecutionPanel({
@@ -97,6 +142,10 @@ export default function ActTierExecutionPanel({
   tier,
   objective,
   status,
+  serverId,
+  members,
+  currentUserId,
+  myRole,
 }: Props) {
   // -------------------------------------------------------------------------
   // Checklist -- wired to planStratumStore (shared with Plan stage).
@@ -127,6 +176,15 @@ export default function ActTierExecutionPanel({
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
 
+  // Plan deep-link (Act "executes" what Plan "decides"): for the guild
+  // objective (legacyCardSectionId 'plan-guild-builder'), surface the existing
+  // Plan multilayer Guild designer rather than re-implementing one in Act.
+  // Navigates to the Plan stratum objective detail, whose REFERENCE section
+  // (DetailsExpander) hosts the GuildSpatialBuilderCard — the designer's only
+  // home in the forward stratum-spine IA. Mirrors PlanRevisionBanner's
+  // navigate-to-objective precedent.
+  const navigate = useNavigate();
+
   // Raise-follow-up-need: opens the shared RaiseNeedForm in a modal and creates
   // a tracked ObservationNeed (surfaces in the Observe Command Centre + the
   // domain needs panels). Mirrors the Command Centre's manual-raise path.
@@ -143,21 +201,45 @@ export default function ActTierExecutionPanel({
   // active protocol library (same source as Plan) and, after a record, surface
   // the Trigger Recognition sheet for the highest-priority ACTIVE RESPOND
   // protocol whose feed maps to this objective's primary Observe domain.
-  const metadata = useProjectStore(
-    (s) => s.projects.find((p) => p.id === projectId)?.metadata,
+  const projectRecord = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId),
   );
+  const metadata = projectRecord?.metadata;
   const typeRecord = metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
-  const { templates, statusByTemplate, outputs } = useProtocolLibrary(
+  // statusByTemplate (per-templateId lifecycle) + outputs (S6 token
+  // substitution) come from the shared library hook; both are independent of
+  // which template list is in hand.
+  const { statusByTemplate, outputs, outputsFor } = useProtocolLibrary(
     projectId,
     primaryTypeId,
     secondaryTypeIds,
   );
+
+  // Trigger Recognition candidates: enterprise-scoped standard templates
+  // (the Act trigger feature's native source) PLUS the universal catalogue
+  // (which has no enterpriseScope and was excluded from templatesForEnterprises).
+  // Universal templates such as u-s5-infrastructure-failure carry feeds like
+  // 'Built Infrastructure' that map via FEEDS_TO_MODULE to Observe domains;
+  // they must be in this set for pickTrigger() to match them.
+  // Memoised on the project-type identity via secondaryKey (stable primitive).
+  const secondaryKey = secondaryTypeIds.join(',');
+  const triggerTemplates = useMemo<readonly StandardProtocolTemplate[]>(() => {
+    const enterprise = primaryTypeId
+      ? templatesForEnterprises(
+          enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
+        )
+      : [];
+    return [...enterprise, ...UNIVERSAL_PROTOCOL_TEMPLATES];
+    // secondaryTypeIds captured via secondaryKey (stable primitive).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryTypeId, secondaryKey]);
   const recordActivation = useProtocolStore((s) => s.recordActivation);
   const markTriggered = useProtocolStore((s) => s.markTriggered);
   const [pendingTrigger, setPendingTrigger] =
     useState<StandardProtocolTemplate | null>(null);
+  const getCurrentCycle = useObserveCycleStore((s) => s.getCurrentCycle);
 
   // Per-objective activity feed. Subscribe to the raw byProject map and
   // useMemo-filter (mirrors useDomainPoints) so the selector never returns a
@@ -206,6 +288,51 @@ export default function ActTierExecutionPanel({
     [evidence, capture],
   );
   const ready = checklistReady && evidenceReady && domainId !== null;
+
+  // -------------------------------------------------------------------------
+  // Formal proof/verification bridge (flag-gated, P1.5).
+  // -------------------------------------------------------------------------
+  // Read-only domain-seam bridge from this PlanStratumObjective to the formal
+  // ActTask(s) seeded by an approved Plan->Act handoff for the same Observe
+  // domain. The hook resolves the universal Act catalogue objective id and
+  // filters actTaskStore by it (never id-equality on sourceObjectiveId, which
+  // lives in a different id space). Offline (no serverId) => status 'offline'
+  // and nothing below mounts.
+  const formalEnabled = isOlosFormalProofEnabled();
+  const bridge = useActObjectiveTaskBridge(projectId, serverId, objective);
+
+  // On a formal PASS, project the verification back into Observe as a
+  // task_verification ObserveDataPoint. Emitted ONLY here (tier-shell), where
+  // the PlanStratumObjective is in hand, so domainId + sourceObjectiveId match
+  // the lightweight path exactly and slot into the existing dashboard/rollup
+  // with no id-space guessing. needs-rework fires nothing (TaskProofPanel only
+  // invokes onVerifiedPass on pass).
+  const emitTaskVerification = (
+    task: ActTask,
+    verification: VerificationRecord,
+  ) => {
+    if (domainId === null) return;
+    const point: ObserveDataPoint = {
+      id: crypto.randomUUID(),
+      projectId,
+      domainId,
+      sourceType: 'task_verification',
+      sourceActionId: task.id,
+      sourceFeedEntryId: null,
+      sourceObjectiveId: objective.id,
+      sourceFeatureRef: null,
+      locationGeometry: null,
+      cycleId: 0,
+      isSuperseded: false,
+      supersededBy: null,
+      statusOutput: 'clear',
+      measurementValue: { label: objective.title, note: verification.notes ?? null },
+      proofItems: [],
+      capturedAt: new Date().toISOString(),
+      capturedBy: 'act-tier-formal',
+    };
+    recordDataPoint(point);
+  };
 
   // Repeat recordings are allowed: the activity feed below is the persistent
   // history, so the Record button stays armed and a new row is the confirmation
@@ -280,7 +407,7 @@ export default function ActTierExecutionPanel({
   function pickTrigger(): StandardProtocolTemplate | null {
     if (domainId === null) return null;
     return (
-      templates.find((t) => {
+      triggerTemplates.find((t) => {
         if (statusByTemplate[t.id] !== 'active') return false;
         if (resolveSeverityTier(t) !== 'respond') return false;
         return t.feeds.some((f) => FEEDS_TO_MODULE[f] === domainId);
@@ -296,6 +423,11 @@ export default function ActTierExecutionPanel({
   function resolveTrigger(confirmationStatus: ConfirmationStatus) {
     const template = pendingTrigger;
     if (!template) return;
+    const season =
+      metadata?.centerLat != null
+        ? toSeasonName(deriveClimateContext(metadata.centerLat, new Date()).season)
+        : undefined;
+    const cycleNumber = domainId ? getCurrentCycle(projectId, domainId) : undefined;
     recordActivation({
       projectId,
       templateId: template.id,
@@ -307,9 +439,25 @@ export default function ActTierExecutionPanel({
         response: template.response,
       },
       triggerContext: 'act_proof_capture',
+      season,
+      cycleNumber,
     });
     if (confirmationStatus === 'confirmed') {
       markTriggered(projectId, template.id);
+      // Read FRESH post-write snapshots: the component's hook values are closed
+      // over the pre-recordActivation render and do NOT include the activation
+      // just appended; getState() returns the post-write snapshot.
+      const { activations: freshActivations, expectationsByProject } =
+        useProtocolStore.getState();
+      const expectedRate = expectationsByProject[projectId]?.[template.id];
+      evaluateAndRaiseFlags({
+        projectId,
+        templateId: template.id,
+        activations: freshActivations,
+        expectedRate,
+        raiseFlag: useReviewFlagStore.getState().raiseFlag,
+        commencementDate: projectRecord?.commencementDate ?? null,
+      });
     }
     setPendingTrigger(null);
   }
@@ -448,6 +596,29 @@ export default function ActTierExecutionPanel({
       </div>
 
       <div className={styles.execBody}>
+      {objective.legacyCardSectionId === 'plan-guild-builder' && (
+        <section className={styles.execSection}>
+          <h4 className={styles.execSectionTitle}>Plan reference</h4>
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={() =>
+              navigate({
+                to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
+                params: {
+                  projectId,
+                  stratumId: objective.stratumId,
+                  objectiveId: objective.id,
+                },
+                search: { expandRef: '1' },
+              })
+            }
+          >
+            <Sprout size={13} aria-hidden="true" />
+            Open guild builder in Plan
+          </button>
+        </section>
+      )}
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Checklist</h4>
         <div className={styles.execChecklist}>
@@ -482,6 +653,33 @@ export default function ActTierExecutionPanel({
         <h4 className={styles.execSectionTitle}>Evidence</h4>
         {evidence.map(renderEvidenceCard)}
       </section>
+
+      {formalEnabled && (bridge.status === 'ready' || bridge.status === 'no-task') && (
+        <section className={styles.execSection}>
+          <h4 className={styles.execSectionTitle}>Verification</h4>
+          {bridge.status === 'no-task' ? (
+            <p className={styles.execEmpty}>
+              No formal task yet. A verification task appears here once this
+              objective&apos;s domain has an approved Plan-to-Act handoff.
+            </p>
+          ) : (
+            bridge.tasks.map((task) => (
+              <TaskProofPanel
+                key={task.id}
+                projectId={projectId}
+                task={task}
+                serverId={serverId}
+                members={members ?? []}
+                currentUserId={currentUserId}
+                myRole={myRole}
+                onVerifiedPass={(verification) =>
+                  emitTaskVerification(task, verification)
+                }
+              />
+            ))
+          )}
+        </section>
+      )}
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>This need&apos;s activity</h4>
@@ -533,7 +731,7 @@ export default function ActTierExecutionPanel({
           projectId={projectId}
           template={pendingTrigger}
           tier={resolveSeverityTier(pendingTrigger)}
-          outputs={outputs}
+          outputs={pendingTrigger ? outputsFor(pendingTrigger.id) : outputs}
           onResolve={resolveTrigger}
           onClose={() => setPendingTrigger(null)}
         />

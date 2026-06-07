@@ -10,6 +10,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type MaintenanceCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
 export type MaintenanceSeason = 'winter' | 'spring' | 'summer' | 'fall';
@@ -55,7 +56,7 @@ export const useMaintenanceStore = create<MaintenanceState>()(
         }));
       },
     }),
-    { name: 'ogden-act-maintenance', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-maintenance', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

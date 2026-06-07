@@ -25,7 +25,15 @@ import {
   useClosedLoopValidation,
   type ClosedLoopNode,
 } from '../../../../features/plan/useClosedLoopValidation.js';
+import {
+  edgeWidth,
+  flowMagnitude,
+  flowPolylinePoints,
+  polylinePointsAttr,
+  dashForFlow,
+} from '../../../../features/plan/closedLoop/flowMapGeometry.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
+import pulse from './ClosedLoopGraphCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -180,6 +188,18 @@ export default function ClosedLoopGraphCard({ project }: Props) {
     return c;
   }, [nodes]);
 
+  // Largest single-flow throughput magnitude across the project, the denominator
+  // for the relative edge-width ramp (A3). 0 when no flow carries throughput, in
+  // which case every edge renders at the minimum width (edgeWidth handles it).
+  const maxMag = useMemo(() => {
+    let max = 0;
+    for (const v of vectors) {
+      const mag = flowMagnitude(v);
+      if (mag > max) max = mag;
+    }
+    return max;
+  }, [vectors]);
+
   return (
     <div className={styles.page}>
       <header className={styles.hero} data-stage="plan">
@@ -251,16 +271,24 @@ export default function ClosedLoopGraphCard({ project }: Props) {
               {vectors.map((v) => {
                 const a = v.sourceId ? positions.get(v.sourceId) : undefined;
                 const b = v.sinkId ? positions.get(v.sinkId) : undefined;
-                if (!a || !b) return null;
+                // Via waypoints: each transformationNodeId resolves to a node
+                // centroid for free; ids without a known position are skipped so
+                // the flow degrades to a straight source -> sink segment.
+                const via = (v.transformationNodeIds ?? []).map((id) =>
+                  positions.get(id),
+                );
+                const pts = flowPolylinePoints(a, via, b);
+                if (pts.length < 2) return null;
+                const width = edgeWidth(flowMagnitude(v), maxMag);
+                const dash = dashForFlow(v);
                 return (
-                  <line
+                  <polyline
                     key={v.id}
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
+                    points={polylinePointsAttr(pts)}
+                    fill="none"
                     stroke="rgba(255,255,255,0.45)"
-                    strokeWidth={1.4}
+                    strokeWidth={width}
+                    strokeDasharray={dash}
                     markerEnd="url(#cl-arrow)"
                   />
                 );
@@ -271,6 +299,14 @@ export default function ClosedLoopGraphCard({ project }: Props) {
                   (n.kind === 'fertility' && (inDeg.get(n.id) ?? 0) === 0 && (outDeg.get(n.id) ?? 0) === 0);
                 return (
                   <g key={n.id}>
+                    {isOrphan && (
+                      <circle
+                        className={pulse.pulseRing}
+                        cx={p.x}
+                        cy={p.y}
+                        r={9}
+                      />
+                    )}
                     <circle
                       cx={p.x}
                       cy={p.y}

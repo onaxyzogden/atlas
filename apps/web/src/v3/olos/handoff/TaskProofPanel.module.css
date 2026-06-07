@@ -1,0 +1,179 @@
+/**
+ * TaskProofPanel.module.css - dedicated, theme-variable-driven styling for the
+ * formal proof/verification surface (OLOS Act completion fork, 2026-06-04 P1.4).
+ *
+ * The panel is mounted in two hosts with different palettes:
+ *   - the Act tier-shell right rail (warm / gold), and
+ *   - the OLOS ObjectiveWorkspace ActFeedbackLoop side panel (cool / blue).
+ *
+ * Rather than hardcode one theme, every rule reads a panel-scoped --tpp-* token
+ * resolved on .packet from a host-variable fallback chain:
+ *   tier-shell tokens (--color-x) -> OLOS tokens (--bg-x, --text-x, --accent-x)
+ *   -> an absolute dark-theme default. Each host therefore themes the panel by
+ *   defining its own variables; neither palette is baked in here.
+ */
+
+.packet {
+  --tpp-surface: var(--color-surface, var(--bg-elevated, rgba(15, 23, 42, 0.55)));
+  --tpp-surface-row: var(--color-surface, var(--bg-elevated, rgba(15, 23, 42, 0.35)));
+  --tpp-border: var(--color-border, var(--border-subtle, #1e293b));
+  --tpp-text: var(--color-text, var(--text-primary, #e2e8f0));
+  --tpp-text-muted: var(--color-text-muted, var(--text-muted, #94a3b8));
+  --tpp-input-bg: var(--color-bg, var(--bg-input, rgba(15, 23, 42, 0.5)));
+  --tpp-accent: var(--accent, var(--color-gold-brand, var(--accent-strong, #38bdf8)));
+  --tpp-radius: var(--radius-md, 10px);
+
+  border: 1px solid var(--tpp-border);
+  border-radius: var(--tpp-radius);
+  padding: 10px 12px;
+  background: var(--tpp-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.packetTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tpp-text-muted);
+}
+
+.packetEmpty {
+  color: var(--tpp-text-muted);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--tpp-accent);
+  background: var(--tpp-accent);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--tpp-accent);
+  background: color-mix(in srgb, var(--tpp-accent) 12%, transparent);
+  color: var(--tpp-accent);
+}
+
+.note {
+  font-size: 11px;
+  color: var(--tpp-text-muted);
+  line-height: 1.45;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.formRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.formRow label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tpp-text-muted);
+  min-width: 88px;
+}
+
+.formInput,
+.formSelect {
+  flex: 1;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--tpp-border);
+  background: var(--tpp-input-bg);
+  color: var(--tpp-text);
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: 2px solid var(--tpp-accent);
+  outline-offset: 1px;
+}
+
+.tasksList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.tasksList li {
+  font-size: 12px;
+  color: var(--tpp-text);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--tpp-surface-row);
+  display: flex;
+  justify-content: space-between;
+}
+
+.tasksList .taskStatus {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tpp-text-muted);
+}
+
+.inspection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inspectionRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btnSecondary {
+  align-self: flex-start;
+  background: transparent;
+  color: var(--tpp-accent);
+  border: 1px solid var(--tpp-border);
+  border-radius: var(--tpp-radius);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

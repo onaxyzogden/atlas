@@ -25,6 +25,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { remapId, remapTierId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-plan-tier-progress';
@@ -34,11 +35,24 @@ type ByObjective = Readonly<Record<string, ItemIds>>;
 type StratumIds = readonly string[];
 /** Per-objective steward-entered parameter values, keyed by parameter item id. */
 type ValuesByObjective = Readonly<Record<string, Readonly<Record<string, string>>>>;
+/**
+ * Per-protocol threshold token overrides, keyed templateId -> token -> value.
+ * The Act-stage override source (per-(project, template, token) scope): a value
+ * here is merged ON TOP of the legacy `buildProtocolOutputs` outputs for one
+ * protocol template, so a `[token]` in that protocol's condition renders the
+ * steward's approved bound instead of a verbatim bracket. Distinct from
+ * `valuesByProject` (which is objective/parameter-item keyed and feeds the
+ * legacy s6 parameterGroup); these never collide.
+ */
+type TokenOverridesByTemplate = Readonly<
+  Record<string, Readonly<Record<string, string>>>
+>;
 
 const EMPTY_ITEM_IDS: ItemIds = Object.freeze([]);
 const EMPTY_BY_OBJECTIVE: ByObjective = Object.freeze({});
 const EMPTY_STRATUM_IDS: StratumIds = Object.freeze([]);
 const EMPTY_VALUES: Readonly<Record<string, string>> = Object.freeze({});
+const EMPTY_TOKEN_OVERRIDES: TokenOverridesByTemplate = Object.freeze({});
 
 interface PlanStratumProgressState {
   byProject: Record<string, ByObjective>;
@@ -61,6 +75,18 @@ interface PlanStratumProgressState {
    * fills the S6 Integration parameter group.
    */
   valuesByProject: Record<string, ValuesByObjective>;
+  /**
+   * Per-protocol Act-stage threshold token overrides, keyed project ->
+   * templateId -> token -> value. The forward override source for adjusting the
+   * `[token]` thresholds embedded in a standing protocol's trigger condition.
+   * Merged on top of the legacy `buildProtocolOutputs` outputs per template by
+   * `useProtocolLibrary.outputsFor`. Empty until a steward edits a threshold in
+   * the Act protocol detail pane. Additive (v5 -> v6) — never touches any other
+   * slice. NOTE: `discardObjectivesProgress` is objective-keyed and does NOT
+   * clear this (template-keyed); a project-type change leaves inert
+   * template-keyed leftovers, acceptable for v1.
+   */
+  protocolTokenOverridesByProject: Record<string, TokenOverridesByTemplate>;
 
   /** Read all completed item ids for one objective in a project. */
   getCompletedItemIds: (projectId: string, objectiveId: string) => ItemIds;
@@ -144,6 +170,26 @@ interface PlanStratumProgressState {
     projectId: string,
     objectiveId: string,
   ) => Readonly<Record<string, string>>;
+
+  /**
+   * Set one Act-stage threshold token override for a protocol template. Stored
+   * as-is (the downstream merge omits nothing; a blank value still wins, which
+   * the editor uses so a cleared field can fall back via `clear`). Per-(project,
+   * template, token) scope so a shared token name holds a different value on
+   * each protocol.
+   */
+  setProtocolTokenOverride: (
+    projectId: string,
+    templateId: string,
+    token: string,
+    value: string,
+  ) => void;
+  /**
+   * Drop ALL token overrides for one protocol template in a project (powers the
+   * editor's Reset — every `[token]` returns to its verbatim bracket). No-op
+   * when the template has no overrides.
+   */
+  clearProtocolTokenOverrides: (projectId: string, templateId: string) => void;
 }
 
 /**
@@ -161,6 +207,9 @@ interface PlanStratumProgressState {
  *  - v4 -> v5: `valuesByProject` was added (§10.1 operating-threshold parameter
  *    values, the protocol token source); backfill `{}`. Purely additive — never
  *    touches `byProject`/`celebratedByProject`/`deferredByProject`.
+ *  - v5 -> v6: `protocolTokenOverridesByProject` was added (Act-stage per-protocol
+ *    threshold token overrides); backfill `{}`. Purely additive — never touches
+ *    any earlier slice.
  * Exported for the round-trip migration test.
  */
 export function migratePlanStratumProgress(
@@ -176,6 +225,10 @@ export function migratePlanStratumProgress(
     safe.deferredByProject ?? {};
   const valuesByProject: Record<string, ValuesByObjective> =
     safe.valuesByProject ?? {};
+  const protocolTokenOverridesByProject: Record<
+    string,
+    TokenOverridesByTemplate
+  > = safe.protocolTokenOverridesByProject ?? {};
 
   if (version < 3) {
     const remappedByProject: Record<string, ByObjective> = {};
@@ -205,6 +258,7 @@ export function migratePlanStratumProgress(
     celebratedByProject,
     deferredByProject,
     valuesByProject,
+    protocolTokenOverridesByProject,
   } as PlanStratumProgressState;
 }
 
@@ -215,6 +269,7 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
       celebratedByProject: {},
       deferredByProject: {},
       valuesByProject: {},
+      protocolTokenOverridesByProject: {},
 
       getCompletedItemIds: (projectId, objectiveId) =>
         get().byProject[projectId]?.[objectiveId] ?? EMPTY_ITEM_IDS,
@@ -316,7 +371,15 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
           const srcCelebrated = s.celebratedByProject[sourceId];
           const srcDeferred = s.deferredByProject[sourceId];
           const srcValues = s.valuesByProject[sourceId];
-          if (!srcBy && !srcCelebrated && !srcDeferred && !srcValues) return s;
+          const srcOverrides = s.protocolTokenOverridesByProject[sourceId];
+          if (
+            !srcBy &&
+            !srcCelebrated &&
+            !srcDeferred &&
+            !srcValues &&
+            !srcOverrides
+          )
+            return s;
 
           // Deep-copy each slice so the clone is independent of the source.
           const next: Partial<PlanStratumProgressState> = {};
@@ -345,6 +408,16 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
               copy[objId] = { ...v };
             }
             next.valuesByProject = { ...s.valuesByProject, [targetId]: copy };
+          }
+          if (srcOverrides) {
+            const copy: Record<string, Readonly<Record<string, string>>> = {};
+            for (const [templateId, v] of Object.entries(srcOverrides)) {
+              copy[templateId] = { ...v };
+            }
+            next.protocolTokenOverridesByProject = {
+              ...s.protocolTokenOverridesByProject,
+              [targetId]: copy,
+            };
           }
           return next;
         }),
@@ -407,15 +480,46 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
 
       getParameterValues: (projectId, objectiveId) =>
         get().valuesByProject[projectId]?.[objectiveId] ?? EMPTY_VALUES,
+
+      setProtocolTokenOverride: (projectId, templateId, token, value) =>
+        set((s) => {
+          const project = s.protocolTokenOverridesByProject[projectId] ?? {};
+          const template = project[templateId] ?? {};
+          return {
+            protocolTokenOverridesByProject: {
+              ...s.protocolTokenOverridesByProject,
+              [projectId]: {
+                ...project,
+                [templateId]: { ...template, [token]: value },
+              },
+            },
+          };
+        }),
+
+      clearProtocolTokenOverrides: (projectId, templateId) =>
+        set((s) => {
+          const project = s.protocolTokenOverridesByProject[projectId];
+          if (!project || !(templateId in project)) return s; // no-op
+          const { [templateId]: _dropped, ...rest } = project;
+          return {
+            protocolTokenOverridesByProject: {
+              ...s.protocolTokenOverridesByProject,
+              [projectId]: rest,
+            },
+          };
+        }),
     }),
     {
       name: PERSIST_KEY,
-      version: 5,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
+      version: 6,
       partialize: (state) => ({
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,
         deferredByProject: state.deferredByProject,
         valuesByProject: state.valuesByProject,
+        protocolTokenOverridesByProject: state.protocolTokenOverridesByProject,
       }),
       migrate: migratePlanStratumProgress,
     },
@@ -471,6 +575,19 @@ export function selectParameterValues(
   objectiveId: string,
 ): Readonly<Record<string, string>> {
   return state.valuesByProject[projectId]?.[objectiveId] ?? EMPTY_VALUES;
+}
+
+/**
+ * Stable accessor for a project's Act-stage protocol token overrides
+ * (templateId -> token -> value). Returns a frozen empty record when the
+ * project has no overrides yet so a hook selector keeps a stable identity
+ * (Zustand v5 — never derive a fresh object inline in a selector).
+ */
+export function selectProjectProtocolOverrides(
+  state: PlanStratumProgressState,
+  projectId: string,
+): TokenOverridesByTemplate {
+  return state.protocolTokenOverridesByProject[projectId] ?? EMPTY_TOKEN_OVERRIDES;
 }
 
 /**

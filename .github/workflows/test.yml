@@ -1,0 +1,37 @@
+name: Test (apps/web)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        # `test` is `node scripts/check-react-resolution.mjs && vitest run`,
+        # so the react-resolution guard runs first as a true server-side gate.
+        run: pnpm --filter @ogden/web test
+        env:
+          NODE_OPTIONS: --max-old-space-size=7168

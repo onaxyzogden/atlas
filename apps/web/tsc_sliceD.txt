@@ -1,0 +1,16 @@
+src/store/__tests__/planTierStore.migrate.test.ts(19,8): error TS2307: Cannot find module '../planTierStore.js' or its corresponding type declarations.
+src/v3/act/field-action/ViewAObjectiveExecution.tsx(36,8): error TS2307: Cannot find module '../../../store/planTierStore.js' or its corresponding type declarations.
+src/v3/act/field-action/ViewAObjectiveExecution.tsx(42,38): error TS2307: Cannot find module '../../plan/tiers/useProjectObjectives.js' or its corresponding type declarations.
+src/v3/act/field-action/ViewAObjectiveExecution.tsx(77,49): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/v3/home/__tests__/useProjectUrgency.test.ts(19,42): error TS2307: Cannot find module '../../../store/planTierStore.js' or its corresponding type declarations.
+src/v3/home/StageStatusRow.tsx(30,8): error TS2307: Cannot find module '../../store/planTierStore.js' or its corresponding type declarations.
+src/v3/home/StageStatusRow.tsx(32,38): error TS2307: Cannot find module '../plan/tiers/useProjectObjectives.js' or its corresponding type declarations.
+src/v3/home/StageStatusRow.tsx(93,6): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/v3/home/useProjectUrgency.ts(43,8): error TS2307: Cannot find module '../../store/planTierStore.js' or its corresponding type declarations.
+src/v3/home/useProjectUrgency.ts(46,45): error TS2307: Cannot find module '../plan/tiers/useProjectObjectives.js' or its corresponding type declarations.
+src/v3/home/useProjectUrgency.ts(83,59): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/v3/observe/dashboard/revision/usePlanRevisionFlagSync.ts(51,38): error TS2307: Cannot find module '../../../plan/tiers/useProjectObjectives.js' or its corresponding type declarations.
+src/v3/project-wizard/WizardCompletionScreen.tsx(27,38): error TS2307: Cannot find module '../plan/tiers/useProjectObjectives.js' or its corresponding type declarations.
+src/v3/project-wizard/WizardCompletionScreen.tsx(29,40): error TS2307: Cannot find module '../plan/tiers/visionProfileToChecklist.js' or its corresponding type declarations.
+src/v3/project-wizard/WizardCompletionScreen.tsx(67,30): error TS7006: Parameter 'o' implicitly has an 'any' type.
+src/v3/project-wizard/WizardCompletionScreen.tsx(83,50): error TS18046: 'item' is of type 'unknown'.

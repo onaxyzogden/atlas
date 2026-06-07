@@ -715,9 +715,17 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'hms-s7-adaptive-management-c4',
         'Define 3-year comprehensive review against Tier 0 self-sufficiency targets',
       ),
+      // c5 added 2026-06-02 to meet Authoring Standards v1.4 (5-item floor); the
+      // v1.1 source authored only 4. Mirrors the failure-response/escalation item
+      // sibling adaptive-management objectives carry (offGrid c3, conservation c3),
+      // adapted to the homestead provision frame. FLAGGED for operator review.
+      ck(
+        'hms-s7-adaptive-management-c5',
+        'Define contingency response for provision shortfalls or system failures - immediate actions when a self-sufficiency target is missed',
+      ),
     ],
     decisionGroups: [
-      dg('hms-s7-adaptive-management-dg1', 'Review process & triggers', ['hms-s7-adaptive-management-c1', 'hms-s7-adaptive-management-c2']),
+      dg('hms-s7-adaptive-management-dg1', 'Review process & triggers', ['hms-s7-adaptive-management-c1', 'hms-s7-adaptive-management-c2', 'hms-s7-adaptive-management-c5']),
       dg('hms-s7-adaptive-management-dg2', 'Documentation & long-cycle review', ['hms-s7-adaptive-management-c3', 'hms-s7-adaptive-management-c4']),
     ],
     completionGate:

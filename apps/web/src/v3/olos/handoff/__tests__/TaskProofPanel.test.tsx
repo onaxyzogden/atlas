@@ -1,0 +1,506 @@
+/**
+ * @vitest-environment happy-dom
+ *
+ * TaskProofPanel - formal proof/verification surface (2026-06-04).
+ * Pins: submitter captures + pushes a proof; reviewer pass -> verification
+ * pushed + task verified-complete; reviewer needs-rework -> task needs-rework;
+ * viewer sees a read-only list.
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type {
+  ActTask,
+  ProofRecord,
+  ProjectMemberRecord,
+  VerificationRecord,
+} from '@ogden/shared';
+
+const h = vi.hoisted(() => ({
+  proofListResp: [] as ProofRecord[],
+  verifyListResp: [] as VerificationRecord[],
+  proofCreateResp: null as ProofRecord | null,
+  verifyCreateResp: null as VerificationRecord | null,
+  taskUpdateResp: null as ActTask | null,
+  proofCreateCalls: [] as Array<{ projectId: string; taskId: string; input: any }>,
+  verifyCreateCalls: [] as Array<{ projectId: string; taskId: string; input: any }>,
+  taskUpdateCalls: [] as Array<{ projectId: string; taskId: string; patch: any }>,
+}));
+
+vi.mock('../../../../lib/apiClient.js', () => ({
+  api: {
+    olos: {
+      proofs: {
+        list: vi.fn(async () => ({ data: h.proofListResp, error: null })),
+        create: vi.fn(
+          async (projectId: string, taskId: string, input: unknown) => {
+            h.proofCreateCalls.push({ projectId, taskId, input });
+            return { data: h.proofCreateResp, error: null };
+          },
+        ),
+      },
+      verifications: {
+        list: vi.fn(async () => ({ data: h.verifyListResp, error: null })),
+        create: vi.fn(
+          async (projectId: string, taskId: string, input: unknown) => {
+            h.verifyCreateCalls.push({ projectId, taskId, input });
+            return { data: h.verifyCreateResp, error: null };
+          },
+        ),
+      },
+      tasks: {
+        list: vi.fn(async () => ({ data: [], error: null })),
+        update: vi.fn(
+          async (projectId: string, taskId: string, patch: unknown) => {
+            h.taskUpdateCalls.push({ projectId, taskId, patch });
+            return { data: h.taskUpdateResp, error: null };
+          },
+        ),
+      },
+    },
+  },
+}));
+
+const uploadProofFileMock = vi.fn();
+vi.mock('../uploadProofFile.js', () => ({
+  uploadProofFile: (...a: unknown[]) => uploadProofFileMock(...a),
+}));
+
+import TaskProofPanel from '../TaskProofPanel';
+import {
+  useProofRecordStore,
+  useVerificationRecordStore,
+  useActTaskStore,
+} from '../../../../store/olos/index.js';
+
+function task(p: Partial<ActTask> = {}): ActTask {
+  return {
+    id: 'uuid-task',
+    projectId: 'local-1',
+    objectiveId: 'obj-1',
+    handoffPackageId: 'pkg-1',
+    title: 'Mulch the swale',
+    description: '',
+    priority: 'normal',
+    status: 'completed-pending-verification',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...p,
+  } as ActTask;
+}
+
+function proof(p: Partial<ProofRecord> = {}): ProofRecord {
+  return {
+    id: 'uuid-proof',
+    projectId: 'srv-1',
+    taskId: 'uuid-task',
+    proofType: 'note',
+    note: 'mulched',
+    capturedAt: '2026-01-01T00:00:00.000Z',
+    verificationStatus: 'pending',
+    ...p,
+  } as ProofRecord;
+}
+
+const OWNER: ProjectMemberRecord = {
+  userId: 'u-owner',
+  email: 'owner@x.io',
+  displayName: 'Owner',
+  role: 'owner',
+  joinedAt: '2026-01-01T00:00:00.000Z',
+};
+
+beforeEach(() => {
+  localStorage.clear();
+  useProofRecordStore.setState({ byProject: {}, syncByProject: {} });
+  useVerificationRecordStore.setState({ byProject: {}, syncByProject: {} });
+  useActTaskStore.setState({ byProject: {}, syncByProject: {} });
+  h.proofListResp = [];
+  h.verifyListResp = [];
+  h.proofCreateResp = null;
+  h.verifyCreateResp = null;
+  h.taskUpdateResp = null;
+  h.proofCreateCalls = [];
+  h.verifyCreateCalls = [];
+  h.taskUpdateCalls = [];
+  uploadProofFileMock.mockReset();
+});
+
+describe('TaskProofPanel - capture', () => {
+  it('submitter captures a proof and pushes it by serverId', async () => {
+    h.proofCreateResp = proof({ id: 'uuid-new', note: 'did the work' });
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof note'), {
+      target: { value: 'did the work' },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() => expect(h.proofCreateCalls).toHaveLength(1));
+    expect(h.proofCreateCalls[0]?.projectId).toBe('srv-1'); // addressed by serverId
+    expect(h.proofCreateCalls[0]?.input.note).toBe('did the work');
+    expect(h.proofCreateCalls[0]?.input.submittedBy).toBe('u-owner');
+  });
+});
+
+describe('TaskProofPanel - verification (two-write)', () => {
+  it('reviewer pass pushes a verification and transitions the task to verified-complete', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()]; // a server-saved proof exists to cite
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'pass',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'verified-complete' });
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() => expect(h.verifyCreateCalls).toHaveLength(1));
+    expect(h.verifyCreateCalls[0]?.input.proofRecordIds).toEqual(['uuid-proof']);
+    await waitFor(() =>
+      expect(
+        h.taskUpdateCalls.some((c) => c.patch.status === 'verified-complete'),
+      ).toBe(true),
+    );
+    expect(
+      useActTaskStore.getState().getTask('local-1', 'uuid-task')?.status,
+    ).toBe('verified-complete');
+  });
+
+  it('invokes onVerifiedPass with the verification after a successful pass', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()];
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'pass',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'verified-complete' });
+    const onVerifiedPass = vi.fn();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+        onVerifiedPass={onVerifiedPass}
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() => expect(onVerifiedPass).toHaveBeenCalledTimes(1));
+    // Fired with the created verification (so the adapter can key Observe off it).
+    const passed = onVerifiedPass.mock.calls[0]?.[0];
+    expect(passed?.taskId).toBe('uuid-task');
+    expect(passed?.outcome).toBe('pass');
+  });
+
+  it('does NOT invoke onVerifiedPass on a needs-rework sign-off', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()];
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'needs-rework',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'needs-rework' });
+    const onVerifiedPass = vi.fn();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+        onVerifiedPass={onVerifiedPass}
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.change(screen.getByLabelText('Verification outcome'), {
+      target: { value: 'needs-rework' },
+    });
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() =>
+      expect(
+        useActTaskStore.getState().getTask('local-1', 'uuid-task')?.status,
+      ).toBe('needs-rework'),
+    );
+    expect(onVerifiedPass).not.toHaveBeenCalled();
+  });
+
+  it('reviewer needs-rework transitions the task to needs-rework', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()];
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'needs-rework',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'needs-rework' });
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.change(screen.getByLabelText('Verification outcome'), {
+      target: { value: 'needs-rework' },
+    });
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() =>
+      expect(
+        useActTaskStore.getState().getTask('local-1', 'uuid-task')?.status,
+      ).toBe('needs-rework'),
+    );
+  });
+});
+
+describe('TaskProofPanel - per-type affordances', () => {
+  it('captures an inspection proof with checklist items in details', async () => {
+    h.proofCreateResp = proof({ id: 'uuid-new', proofType: 'inspection' });
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'inspection' },
+    });
+    fireEvent.click(screen.getByText('Add check'));
+    fireEvent.change(screen.getByLabelText('Check 1 label'), {
+      target: { value: 'Swale holds water' },
+    });
+    fireEvent.change(screen.getByLabelText('Check 1 status'), {
+      target: { value: 'pass' },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() => expect(h.proofCreateCalls).toHaveLength(1));
+    expect(h.proofCreateCalls[0]?.input.proofType).toBe('inspection');
+    expect(h.proofCreateCalls[0]?.input.details).toEqual({
+      kind: 'inspection',
+      items: [{ label: 'Swale holds water', status: 'pass' }],
+    });
+  });
+
+  it('blocks capturing an inspection proof with no checklist items', async () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'inspection' },
+    });
+    // No "Add check" clicked: the items array is empty.
+    const captureBtn = screen.getByText('Capture proof') as HTMLButtonElement;
+    expect(captureBtn.disabled).toBe(true);
+    expect(screen.getByText('Add at least one checklist item')).not.toBeNull();
+
+    fireEvent.click(captureBtn);
+    // The guard short-circuits onCapture, so no proof is created.
+    expect(h.proofCreateCalls).toHaveLength(0);
+  });
+
+  it('captures a photo proof by uploading the picked file into fileUri', async () => {
+    uploadProofFileMock.mockResolvedValue('https://bucket/p.jpg');
+    h.proofCreateResp = proof({ id: 'uuid-new', proofType: 'photo' });
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'photo' },
+    });
+    const file = new File(['x'], 'p.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Proof photo'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() => expect(h.proofCreateCalls).toHaveLength(1));
+    expect(uploadProofFileMock).toHaveBeenCalledWith('srv-1', file);
+    expect(h.proofCreateCalls[0]?.input.proofType).toBe('photo');
+    expect(h.proofCreateCalls[0]?.input.fileUri).toBe('https://bucket/p.jpg');
+  });
+
+  it('surfaces an error and creates no proof when the photo upload fails', async () => {
+    uploadProofFileMock.mockRejectedValue(new Error('upload rejected'));
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'photo' },
+    });
+    const file = new File(['x'], 'p.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Proof photo'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() =>
+      expect(screen.getByText('upload rejected')).not.toBeNull(),
+    );
+    expect(h.proofCreateCalls).toHaveLength(0);
+  });
+
+  it('still renders the generic note+URI fallback for a deferred type (document)', () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'document' },
+    });
+    expect(screen.getByLabelText('Proof file URI')).not.toBeNull();
+    expect(screen.queryByText('Add check')).toBeNull();
+    expect(screen.queryByLabelText('Proof photo')).toBeNull();
+  });
+
+  it('renders nothing new when the flag-off path leaves canCapture false', () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-view"
+      />,
+    );
+
+    expect(screen.queryByText('Capture proof')).toBeNull();
+    expect(screen.queryByText('Add check')).toBeNull();
+    expect(screen.queryByLabelText('Proof photo')).toBeNull();
+  });
+});
+
+describe('TaskProofPanel - read-only', () => {
+  it('a viewer sees the proof list but no capture or sign-off controls', async () => {
+    h.proofListResp = [proof({ note: 'evidence here' })];
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-view"
+        myRole="viewer"
+      />,
+    );
+
+    await screen.findByText(/evidence here/);
+    expect(screen.queryByText('Capture proof')).toBeNull();
+    expect(screen.queryByText('Sign off')).toBeNull();
+  });
+});

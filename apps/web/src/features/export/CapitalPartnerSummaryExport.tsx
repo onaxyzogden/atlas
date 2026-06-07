@@ -96,7 +96,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
       somHasTrajectory: somHorizonYears != null,
       somHorizonYears,
       missionScore: model.missionScore.overall,
-      pdfAssumptionCount: Math.min(model.assumptions.length, 15),
+      pdfAssumptionCount: model.assumptions.length,
     };
   }, [model, siteData, project.acreage, somHorizonYears]);
   const evidenceItem = useMemo(

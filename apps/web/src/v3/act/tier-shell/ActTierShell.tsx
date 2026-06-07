@@ -25,25 +25,33 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutDashboard, Target } from 'lucide-react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { LayoutDashboard, Target, ShieldCheck } from 'lucide-react';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import {
   PLAN_STRATA,
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
   getObjectiveActTools,
+  type PlanStratumObjective,
 } from '@ogden/shared';
 import {
   useProjectStore,
   MTC_SEED,
-  type ActShellMode,
 } from '../../../store/projectStore.js';
 import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
 import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
+import { useZoneStore } from '../../../store/zoneStore.js';
+import { toast } from '../../../components/Toast.js';
+import * as turf from '@turf/turf';
+import {
+  parcelPolygon,
+  clip,
+  type PolyFeature,
+} from '../../plan/engine/zoneGenerators/parcelGeometry.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import {
   extractBoundaryGeometry,
@@ -55,6 +63,8 @@ import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js'
 import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
+import MapToolbar from '../../observe/components/MapToolbar.js';
+import MapSheetExportControl from '../../plan/MapSheetExportControl.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanDataLayers from '../../plan/layers/PlanDataLayers.js';
@@ -64,12 +74,16 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
+import { useActAsBuiltPopoverStore } from '../asBuilt/actAsBuiltPopoverStore.js';
+import SectorsEditorPanel from '../sectors/SectorsEditorPanel.js';
+import { useActSectorsEditorStore } from '../sectors/actSectorsEditorStore.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
+import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
+import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
-import ActShellToggle from '../field-action/ActShellToggle.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
 import { QUICK_LOGS } from '../quickLogs.js';
@@ -81,18 +95,30 @@ import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklis
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
+import ActSearchRail from './ActSearchRail.js';
 import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
+import ActProtocolDetailPane from './ActProtocolDetailPane.js';
+import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
+import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
   type ActTool,
+  type FormValue,
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { useMemberStore } from '../../../store/memberStore.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
+import { resolveActSearchMatches } from '../../search/useStageSearchResults.js';
+import type { ActToolMatch } from '../../search/useStageSearchResults.js';
+import { resolveActStratumId } from './resolveActStratumId.js';
 import styles from './ActTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -100,30 +126,101 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 // new object literal, which would trigger an infinite React re-render loop
 // under Zustand v5 (getSnapshot result must be referentially stable).
 const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
-const DEFAULT_STRATUM_ID = 's2-land-reading';
+// Stable empty fallback for the visionFormData selector so it never returns a
+// fresh object (which would re-render every store update).
+const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
+// Stable empty fallbacks for the decision-rationale / deferred-decisions
+// selectors so they never return a fresh object literal (which would trigger
+// an infinite re-render under Zustand v5), matching the EMPTY_FORMS pattern.
+const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
+const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
+// S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
+// noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
+// known S1 id literal so the derived stratum id stays a plain string.
+const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
+
+// Phase B/C Tier-0 swap: non-spatial foundation objectives render the inline
+// non-map decision workbench instead of the map shell. Widened incrementally
+// from a single id to a membership set as more objectives convert (Phase C
+// part 3 adds 's1-boundaries' alongside the universal 's1-vision').
+const TIER_ZERO_OBJECTIVE_IDS = new Set<string>(['s1-vision', 's1-boundaries']);
+
+/**
+ * Tier-0 by resolved-objective identity. Used once the per-project objective
+ * set has hydrated and `selectedObjective` is non-null.
+ */
+function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
+  return objective != null && TIER_ZERO_OBJECTIVE_IDS.has(objective.id);
+}
+
+/**
+ * Tier-0 by route identity — keys off the synchronous URL `objectiveId` so the
+ * map shell is never mounted on a cold deep-link to a Tier-0 route while the
+ * objective set is still hydrating (`selectedObjective` lags a tick behind the
+ * route). Tests the same membership set the resolved-objective predicate uses,
+ * so the two converge once hydration completes.
+ */
+function isTierZeroObjectiveId(objectiveId: string | null): boolean {
+  return objectiveId != null && TIER_ZERO_OBJECTIVE_IDS.has(objectiveId);
+}
 
 type RightMode = 'dashboard' | 'detail';
 
-interface Props {
-  shellMode: ActShellMode;
-  onShellModeChange: (mode: ActShellMode) => void;
-}
-
-export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
+export default function ActTierShell() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     objectiveId?: string;
+    stratumId?: string;
   };
   const id = params.projectId ?? 'mtc';
   const objectiveId = params.objectiveId ?? null;
   const navigate = useNavigate();
+  // Protocols-mode + protocol selection are URL-derived (deep-linkable, survive
+  // reload) — the ?mode / ?protocol search params on the stratum route. Read
+  // with strict:false so the bare/$objectiveId routes (which don't validate
+  // these keys) yield undefined and fall back to the defaults. Mirrors
+  // ObserveLayout's ?section URL-derived pattern.
+  const search = useSearch({ strict: false }) as {
+    mode?: 'objectives' | 'protocols';
+    protocol?: string;
+  };
 
   const projects = useProjectStore((s) => s.projects);
   const project = useMemo(
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
+
+  // Formal OLOS proof/verification path (flag-gated, off by default) addresses
+  // the API by serverId and mirrors the assignment-substrate RBAC, so it needs
+  // the member roster + the caller's role. Resolved here once and threaded into
+  // ActTierExecutionPanel; the lightweight ObserveDataPoint completion path is
+  // unaffected and remains the offline fallback (no serverId => no formal path).
+  // See wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  const serverId = project.serverId;
+  const members = useMemberStore((s) => s.members);
+  const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const myRoles = useMemberStore((s) => s.myRoles);
+  const fetchMyRoles = useMemberStore((s) => s.fetchMyRoles);
+  const currentUserId = useAuthStore((s) => s.user?.id);
+  // Pull this project's ActTasks on mount so the bridge hook can distinguish
+  // 'no-task' from 'ready'. No-op for local-only projects.
+  useActTaskSync(id, serverId);
+  useEffect(() => {
+    if (serverId && members.length === 0) void fetchMembers(serverId);
+  }, [serverId, members.length, fetchMembers]);
+  // Resolve the current user's role from the project-scoped myRoles map, not
+  // the global `members` array: that array is a single roster shared across
+  // projects (and is pre-seeded with a synthetic demo roster by the builtin
+  // sample), so deriving role from it returns the wrong project's role -- or
+  // undefined for the authenticated user, silently hiding the formal
+  // capture/verify controls. myRoles is keyed by serverId. See
+  // wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  useEffect(() => {
+    if (serverId) void fetchMyRoles();
+  }, [serverId, fetchMyRoles]);
+  const myRole = serverId ? myRoles[serverId] : undefined;
 
   // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon (older/
   // alternate persistence paths). Do NOT cast it to Polygon: a MultiPolygon
@@ -246,12 +343,47 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     secondaryTypeIds,
   );
 
-  // Left-rail view: design objectives (default) vs the standing-protocol library.
-  const [railMode, setRailMode] = useState<RailMode>('objectives');
-  const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
+  // Left-rail view: design objectives (default) vs the standing-protocol
+  // library. URL-derived (?mode=protocols); absence = objectives. Single source
+  // of truth — no local state, so it survives reload and is deep-linkable.
+  const railMode: RailMode =
+    search.mode === 'protocols' ? 'protocols' : 'objectives';
+  // The URL is the single source of truth for the rendered stratum (parity with
+  // Plan's PlanStratumShell — see plan/stratum/$stratumId). Precedence: an
+  // explicit ?$stratumId param (validated against the real strata) → the
+  // selected objective's owning stratum → S1. No local state: switching stratum
+  // navigates, so the stratum survives a Plan→Act stage switch and is
+  // deep-linkable, instead of resetting to a hardcoded default on every mount.
+  const selectedStratumId = useMemo(
+    () =>
+      resolveActStratumId({
+        paramStratumId: params.stratumId,
+        validStratumIds: STRATUM_IDS,
+        objectiveStratumId: selectedObjective?.stratumId,
+        fallbackStratumId: S1_STRATUM_ID,
+      }),
+    [params.stratumId, selectedObjective],
+  );
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
+  // Weather drill-down: a sub-view of Dashboard mode. When true the right-rail
+  // dashboard branch shows ActTierWeatherPanel (full 7-day forecast) instead of
+  // the dashboard cards. Opened by the WeatherStrip buttons; closed by its back
+  // control, the Dashboard tab, or whenever the rail enters objective/protocol
+  // detail (see the reconcile effect below).
+  const [weatherOpen, setWeatherOpen] = useState(false);
+  // Protocols mode: the clicked protocol whose detail shows in the right rail
+  // (mirrors objective selection). URL-derived (?protocol=<templateId>), so it
+  // survives reload and is deep-linkable. A stale id (protocol hidden by the
+  // current stratum) degrades to ActProtocolDetailPane's empty state; it is
+  // dropped from the URL on stratum switch (see goToStratum).
+  const selectedProtocolId: string | null = search.protocol ?? null;
+  // When an as-built deviation is being recorded, the right rail swaps to the
+  // as-built form (panel variant) and hides the dashboard/objective toggle;
+  // closing/saving clears `active` and reverts the rail.
+  const asBuiltActive = useActAsBuiltPopoverStore((s) => s.active != null);
+  const sectorsEditorActive = useActSectorsEditorStore((s) => s.active);
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
   // Form-arm state: which category's tabbed form popup is open (local UI state,
@@ -270,6 +402,22 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     (s) => s.visionForms[id] ?? EMPTY_FORMS,
   );
 
+  // Structured form values (the SF capture engine) keyed by formId under this
+  // project. Falls back to a stable empty record when nothing is saved yet.
+  const visionFormData = useActEvidenceStore(
+    (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
+  );
+
+  // Decision rationale + deferral state for the Tier-0 workbench, keyed by
+  // itemId under this project. Stable empty fallbacks (see above) keep the
+  // selector referentially stable under Zustand v5.
+  const decisionRationales = useActEvidenceStore(
+    (s) => s.decisionRationale[id] ?? EMPTY_RATIONALES,
+  );
+  const deferredDecisions = useActEvidenceStore(
+    (s) => s.deferredDecisions[id] ?? EMPTY_DEFERRED,
+  );
+
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -278,6 +426,13 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   useEffect(() => {
     setRightMode(objectiveId ? 'detail' : 'dashboard');
   }, [objectiveId]);
+
+  // The weather drill-down lives under Dashboard mode only; leaving for any
+  // detail view (objective or protocol) closes it so returning to Dashboard
+  // lands on the cards rather than re-opening the forecast.
+  useEffect(() => {
+    if (rightMode === 'detail') setWeatherOpen(false);
+  }, [rightMode]);
 
   const selectedStratum = useMemo(
     () => PLAN_STRATA.find((s) => s.id === selectedStratumId),
@@ -296,6 +451,25 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [stratumObjectives, actions],
   );
 
+  // Navigate to a stratum's dashboard. The stratum now lives in the URL, so this
+  // both switches the rendered stratum AND clears any selected objective.
+  const goToStratum = useCallback(
+    (stratumId: string) => {
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId },
+        // navigate REPLACES search — carry mode forward (a stratum switch keeps
+        // the steward in Protocols mode) but DROP protocol (the selection may
+        // belong to the stratum we're leaving). Preserves Feature-1 hygiene.
+        search: (prev: { mode?: 'objectives' | 'protocols' }) => ({
+          mode: prev?.mode === 'protocols' ? ('protocols' as const) : undefined,
+        }),
+      });
+    },
+    [navigate, params.projectId],
+  );
+
   const goToObjective = useCallback(
     (nextObjectiveId: string | null) => {
       if (!params.projectId) return;
@@ -303,32 +477,106 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         navigate({
           to: '/v3/project/$projectId/act/tier-shell/$objectiveId',
           params: { projectId: params.projectId, objectiveId: nextObjectiveId },
+          // The objective route is objectives-mode; drop the protocols search
+          // params so a later return to a stratum starts clean.
+          search: {},
         });
       } else {
-        navigate({
-          to: '/v3/project/$projectId/act/tier-shell',
-          params: { projectId: params.projectId },
-        });
+        // Deselect → return to the CURRENT stratum's dashboard (not the bare
+        // tier-shell, which would re-derive S1 and silently lose the stratum).
+        goToStratum(selectedStratumId);
       }
     },
-    [navigate, params.projectId],
+    [navigate, params.projectId, goToStratum, selectedStratumId],
   );
 
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
-      setSelectedStratumId(stratumId);
-      goToObjective(null);
+      goToStratum(stratumId);
     },
-    [goToObjective],
+    [goToStratum],
   );
 
   const handleSelectObjective = useCallback(
     (nextObjectiveId: string) => {
+      // Re-selecting the already-active objective DESELECTS it (back to the
+      // stratum dashboard). Drives both the rail card and the map markers, so a
+      // second click/tap on either toggles the objective off. The rightMode
+      // effect (keyed on objectiveId) flips to 'dashboard' once the route
+      // clears, so no explicit setRightMode is needed on the deselect branch.
+      if (nextObjectiveId === objectiveId) {
+        goToObjective(null);
+        return;
+      }
       setRightMode('detail');
       goToObjective(nextObjectiveId);
     },
-    [goToObjective],
+    [goToObjective, objectiveId],
   );
+
+  // Protocol card click → open its detail in the right rail. Re-clicking the
+  // active protocol deselects it (back to the dashboard), mirroring objectives.
+  // URL-driven: writes ?mode=protocols&protocol=<id> on the current stratum
+  // route (toggle-off clears protocol). `replace` keeps selection churn out of
+  // history. The rightMode reconcile effect (keyed on railMode/selection) flips
+  // the rail to detail/dashboard once the derived selection updates.
+  const handleSelectProtocol = useCallback(
+    (templateId: string) => {
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId: selectedStratumId },
+        search: (prev: { protocol?: string }) => ({
+          mode: 'protocols' as const,
+          protocol: prev?.protocol === templateId ? undefined : templateId,
+        }),
+        replace: true,
+      });
+    },
+    [navigate, params.projectId, selectedStratumId],
+  );
+
+  // Left-rail Objectives/Protocols toggle → write ?mode. Entering Protocols
+  // preserves any held ?protocol; leaving drops it (objectives-mode has no
+  // protocol selection). Routed onto the current stratum so mode is stratum-
+  // scoped and deep-linkable.
+  const handleRailModeChange = useCallback(
+    (next: RailMode) => {
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId: selectedStratumId },
+        search: (prev: { protocol?: string }) => ({
+          mode: next === 'protocols' ? ('protocols' as const) : undefined,
+          protocol: next === 'protocols' ? prev?.protocol : undefined,
+        }),
+        replace: true,
+      });
+    },
+    [navigate, params.projectId, selectedStratumId],
+  );
+
+  // Stratum-change hygiene: the protocol selection is URL-derived and dropped
+  // from the URL on a stratum switch (see goToStratum), so no setter is needed
+  // here. We only reconcile the right rail: in Protocols mode with no selection,
+  // a detail view has nothing to show — fall back to the dashboard.
+  useEffect(() => {
+    if (railMode === 'protocols' && !selectedProtocolId) {
+      setRightMode((m) => (m === 'detail' ? 'dashboard' : m));
+    }
+  }, [selectedStratumId, railMode, selectedProtocolId]);
+
+  // Rail-mode-change hygiene: when entering Protocols mode show the selected
+  // protocol's detail if one is held, else the dashboard; when entering
+  // Objectives mode the objectiveId effect already drives rightMode.
+  useEffect(() => {
+    if (railMode === 'protocols') {
+      setRightMode(selectedProtocolId ? 'detail' : 'dashboard');
+    } else {
+      setRightMode(objectiveId ? 'detail' : 'dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [railMode]);
 
   const handleFormSave = useCallback(
     (formId: string, text: string) => {
@@ -350,8 +598,42 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [id, objectiveId],
   );
 
+  const handleFormDataSave = useCallback(
+    (formId: string, value: FormValue, summary: string) => {
+      useActEvidenceStore.getState().saveVisionFormData(id, formId, value, summary);
+      // The formId IS the checklist item id (1:1 per actToolCatalog design).
+      // Mark it complete (add-only) so the execution-panel checklist reflects
+      // the structured capture, exactly as handleFormSave does for text.
+      if (objectiveId) {
+        usePlanStratumProgressStore
+          .getState()
+          .setItemComplete(id, objectiveId, formId);
+      }
+      // Do NOT close the popup -- the steward continues with other tabs.
+    },
+    [id, objectiveId],
+  );
+
+  const handleSaveRationale = useCallback(
+    (itemId: string, text: string) => {
+      useActEvidenceStore.getState().saveDecisionRationale(id, itemId, text);
+    },
+    [id],
+  );
+  const handleToggleDefer = useCallback(
+    (itemId: string, deferred: boolean) => {
+      useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
+    },
+    [id],
+  );
+
   const handleActivateTool = useCallback(
-    (tool: ActTool) => {
+    // `formObjective` overrides which objective's sibling form-tools populate the
+    // tabbed popup. It defaults to the URL-selected objective for normal rail
+    // clicks; a search-result click passes the tool's OWNING objective so the
+    // form group is gathered correctly even before the navigation settles
+    // selectedObjective (which lags a tick behind the route change).
+    (tool: ActTool, formObjective?: PlanStratumObjective | null) => {
       const arm = tool.arm;
       if (arm.kind === 'map') {
         // Toggle: a second click on the already-armed tool disarms it.
@@ -369,9 +651,10 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
       if (arm.kind === 'form') {
         // Non-spatial checklist item: open ONE tabbed popup holding every
         // kind:'form' tool in this tool's category, focused on the clicked tab.
+        const ownerForForms = formObjective ?? selectedObjective;
         const formTools = (
-          selectedObjective
-            ? resolveActTools(getObjectiveActTools(selectedObjective))
+          ownerForForms
+            ? resolveActTools(getObjectiveActTools(ownerForForms))
             : []
         ).filter((t) => t.arm.kind === 'form' && t.category === tool.category);
         const cat = ACT_TOOL_CATEGORIES.find((c) => c.id === tool.category);
@@ -382,6 +665,62 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         });
         return;
       }
+      if (arm.kind === 'flow') {
+        // Non-spatial material-flow capture: open the Act-owned popover (renders
+        // through Modal; mounted once below). Records a source->sink flow into
+        // closedLoopStore with origin 'list'.
+        useActFlowPopoverStore.getState().openPopover();
+        return;
+      }
+      if (arm.kind === 'zone-action') {
+        // Imperative post-seed actions on the ring-seeded zones. Read the stores
+        // imperatively (no reactive subscription needed); feedback is toast-only,
+        // mirroring the Plan ZoneCirculationOverviewCard actions.
+        const zoneState = useZoneStore.getState();
+        if (arm.action === 'clear') {
+          const removed = zoneState.clearSeededZones(id);
+          if (removed === 0) toast.info('No seeded zones to clear.');
+          else toast.success(`Cleared ${removed} seeded zone(s).`);
+          return;
+        }
+        // trim: clip every ring-seeded zone to the parcel polygon; drop any that
+        // fall fully outside.
+        const project = useProjectStore
+          .getState()
+          .projects.find((p) => p.id === id);
+        const parcel = parcelPolygon(project?.parcelBoundaryGeojson ?? null);
+        if (!parcel) {
+          toast.warning('Draw the parcel boundary first to trim against it.');
+          return;
+        }
+        const seeded = zoneState.zones.filter(
+          (z) => z.projectId === id && z.seedProvenance === 'ring-seed',
+        );
+        let trimmed = 0;
+        let dropped = 0;
+        for (const z of seeded) {
+          const clipped = clip(turf.feature(z.geometry) as PolyFeature, parcel);
+          if (!clipped) {
+            zoneState.deleteZone(z.id);
+            dropped += 1;
+            continue;
+          }
+          zoneState.updateZone(z.id, {
+            geometry: clipped.geometry,
+            areaM2: turf.area(clipped),
+          });
+          trimmed += 1;
+        }
+        if (trimmed === 0 && dropped === 0) {
+          toast.info('No seeded zones to trim.');
+        } else {
+          toast.success(
+            `Trimmed ${trimmed} seeded zone(s) to the parcel` +
+              (dropped > 0 ? `; removed ${dropped} fully outside.` : '.'),
+          );
+        }
+        return;
+      }
       // Field log (harvest / water / livestock) — route through the existing
       // QuickLog path so ActDrawHost handles the click-to-log interaction.
       // `arm` is hoisted to a const so the narrowing survives the closure.
@@ -390,8 +729,67 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
       setActiveModule(log.module);
       if (log.toolId) setActiveTool(log.toolId);
     },
-    [setActiveModule, setActiveTool, selectedObjective],
+    [setActiveModule, setActiveTool, selectedObjective, id],
   );
+
+  // ---- Header Stage Search (Act) ----------------------------------------
+  // While a query is active the left rail broadens to a cross-objective match
+  // list (tools across every objective + objectives by text). Selecting a result
+  // reveals it: switch the rendered stratum to the owning objective's, navigate
+  // to it, and (for a tool) arm the tool on that objective. The query is then
+  // cleared so the rail returns to the normal stratum view.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim() !== '';
+  const actSearch = useMemo(
+    () =>
+      searchActive
+        ? resolveActSearchMatches(objectives, searchQuery)
+        : { objectives: [], tools: [] },
+    [searchActive, objectives, searchQuery],
+  );
+
+  const revealObjective = useCallback(
+    (objective: PlanStratumObjective) => {
+      // The rendered stratum now derives from the selected objective's
+      // stratumId (see selectedStratumId), so navigating to the objective is
+      // enough — no separate stratum state to set.
+      setRightMode('detail');
+      goToObjective(objective.id);
+    },
+    [goToObjective],
+  );
+
+  const handleSelectSearchObjective = useCallback(
+    (objective: PlanStratumObjective) => {
+      revealObjective(objective);
+      clearSearch();
+    },
+    [revealObjective, clearSearch],
+  );
+
+  const handleSelectSearchTool = useCallback(
+    (match: ActToolMatch) => {
+      revealObjective(match.objective);
+      // Pass the owning objective explicitly: the route change above has not yet
+      // refreshed selectedObjective, so a form-arm would otherwise gather the
+      // wrong (stale) sibling-tool group.
+      handleActivateTool(match.tool, match.objective);
+      clearSearch();
+    },
+    [revealObjective, handleActivateTool, clearSearch],
+  );
+
+  // Phase B swap flag: render the inline Tier-0 decision workbench in place of
+  // the map shell when the selected objective is the universal s1-vision one.
+  // Keyed off the URL-synchronous objectiveId first (not only the resolved
+  // selectedObjective) so a cold deep-link to the vision route never transiently
+  // mounts <StageShell>/<DiagnoseMap> (WebGL) during the tick before objectives
+  // hydrate. Falls back to the resolved-objective check so an in-app selection
+  // whose route change hasn't landed yet still swaps.
+  const showTierZeroWorkbench =
+    isTierZeroObjectiveId(objectiveId) ||
+    (selectedObjective != null && isTierZeroObjective(selectedObjective));
 
   return (
     <div className={styles.tierShell}>
@@ -405,26 +803,77 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
+        {showTierZeroWorkbench ? (
+          selectedObjective ? (
+          <ActTierZeroWorkbench
+            projectId={id}
+            objectives={stratumObjectives}
+            activeObjectiveId={selectedObjective.id}
+            onSelectObjective={handleSelectObjective}
+            primaryTypeId={primaryTypeId}
+            secondaryTypeIds={secondaryTypeIds}
+            progressByObjective={effectiveProgress.byObjective}
+            formValues={visionFormData}
+            rationales={decisionRationales}
+            deferredItems={deferredDecisions}
+            onRecord={handleFormDataSave}
+            onSaveRationale={handleSaveRationale}
+            onToggleDefer={handleToggleDefer}
+          />
+          ) : (
+            // Tier-0 route resolved before its objective set hydrated: hold a
+            // lightweight non-map placeholder rather than falling through to the
+            // map shell (which would mount WebGL and wedge the headless preview).
+            // s1-vision is universal across every resolved set, so
+            // selectedObjective always arrives — this state is strictly transient.
+            <div
+              className={styles.tierZeroLoading}
+              role="status"
+              aria-live="polite"
+            >
+              <span className={styles.tierZeroLoadingText}>
+                Loading decision workbench…
+              </span>
+            </div>
+          )
+        ) : (
         <StageShell
           bottomPlacement="between-rails"
+          symmetricRails
           canvasLabel="Act tier canvas"
           leftRailLabel="Stratum objectives"
           rightRailLabel="Dashboard and objective detail"
           leftRail={
-            <ActTierObjectiveRail
-              stratum={selectedStratum}
-              objectives={stratumObjectives}
-              progressByObjective={checklistProgressByObjective}
-              activeObjectiveId={objectiveId}
-              onSelectObjective={handleSelectObjective}
-              mode={railMode}
-              onModeChange={setRailMode}
-              triggeredCount={triggeredCount}
-              triggeredIds={triggeredIds}
-              projectId={id}
-              primaryTypeId={primaryTypeId}
-              secondaryTypeIds={secondaryTypeIds}
-            />
+            searchActive ? (
+              <ActSearchRail
+                query={searchQuery}
+                toolMatches={actSearch.tools}
+                objectiveMatches={actSearch.objectives}
+                progressByObjective={checklistProgressByObjective}
+                activeObjectiveId={objectiveId}
+                onSelectTool={handleSelectSearchTool}
+                onSelectObjective={handleSelectSearchObjective}
+              />
+            ) : (
+              <ActTierObjectiveRail
+                stratum={selectedStratum}
+                objectives={stratumObjectives}
+                progressByObjective={checklistProgressByObjective}
+                activeObjectiveId={objectiveId}
+                onSelectObjective={handleSelectObjective}
+                mode={railMode}
+                onModeChange={handleRailModeChange}
+                triggeredCount={triggeredCount}
+                triggeredIds={triggeredIds}
+                projectId={id}
+                primaryTypeId={primaryTypeId}
+                secondaryTypeIds={secondaryTypeIds}
+                activeStratumId={selectedStratumId}
+                selectedProtocolId={selectedProtocolId}
+                onSelectProtocol={handleSelectProtocol}
+                bulkActivation
+              />
+            )
           }
           canvas={
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -432,6 +881,17 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                 {({ map }) => (
                   <>
                     <BaseMapCard stage="act" />
+                    <MapToolbar
+                      map={map}
+                      projectId={params.projectId ?? null}
+                      boundary={safeBoundary ?? null}
+                      showBoundary={false}
+                    />
+                    <MapSheetExportControl
+                      map={map}
+                      projectId={id}
+                      anchor="top-right"
+                    />
                     <ObserveAnnotationLayers map={map} projectId={id} />
                     <PlanDataLayers map={map} projectId={id} editable={false} />
                     <ActStructureClickHandler map={map} projectId={id} />
@@ -441,10 +901,20 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                       projectId={id}
                       activeModule={activeModule}
                     />
-                    <SectorCompassOverlay projectId={id} map={map} />
+                    <SectorCompassOverlay
+                      projectId={id}
+                      map={map}
+                      onOpenEditor={() => {
+                        // Mutually-exclusive rail takeovers: clear any as-built
+                        // session before arming the sectors editor so the rail
+                        // never has two claimants.
+                        useActAsBuiltPopoverStore.getState().close();
+                        useActSectorsEditorStore.getState().open();
+                      }}
+                    />
                     <ActStructurePopover map={map} projectId={id} />
-                    <ActAsBuiltPopover map={map} projectId={id} />
                     <ActAsBuiltDrawHandler map={map} />
+                    <ActFlowConnectorPopover projectId={id} />
                     <ActTierMapMarkers
                       map={map}
                       positionByObjective={positionByObjective}
@@ -479,54 +949,115 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                   </>
                 )}
               </DiagnoseMap>
-              <div className={styles.toggleFloat}>
-                <ActShellToggle mode={shellMode} onChange={onShellModeChange} />
-              </div>
             </div>
           }
           rightRail={
             <div className={styles.rightRail}>
-              <div
-                className={styles.rightToggle}
-                role="tablist"
-                aria-label="Right rail mode"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightMode === 'dashboard'}
-                  className={styles.rightToggleBtn}
-                  data-active={rightMode === 'dashboard'}
-                  onClick={() => setRightMode('dashboard')}
-                >
-                  <LayoutDashboard size={14} aria-hidden="true" />
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightMode === 'detail'}
-                  className={styles.rightToggleBtn}
-                  data-active={rightMode === 'detail'}
-                  disabled={!objectiveId}
-                  onClick={() => objectiveId && setRightMode('detail')}
-                >
-                  <Target size={14} aria-hidden="true" />
-                  Objective
-                </button>
-              </div>
-              <div className={styles.rightBody}>
-                {rightMode === 'detail' && selectedObjective ? (
-                  <ActTierExecutionPanel
-                    projectId={id}
-                    tier={selectedObjectiveTier}
-                    objective={selectedObjective}
-                    status={selectedObjectiveStatus}
-                  />
-                ) : (
-                  <ActOpsDashboard projectId={id} />
-                )}
-              </div>
+              {asBuiltActive ? (
+                // While an as-built deviation is being recorded the rail is
+                // taken over by the as-built form (panel variant): the
+                // Dashboard/Objective toggle is hidden and reappears when the
+                // store's `active` clears (Record/Cancel).
+                <div className={styles.rightBody}>
+                  <ActAsBuiltPopover variant="panel" projectId={id} />
+                </div>
+              ) : sectorsEditorActive ? (
+                // Clicking the floating SectorCompass HUD takes the rail over
+                // with the sectors editor; the Dashboard/Objective toggle is
+                // hidden and reappears when the editor's Done clears `active`.
+                // (As-built keeps precedence above.)
+                <div className={styles.rightBody}>
+                  <SectorsEditorPanel projectId={id} />
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={styles.rightToggle}
+                    role="tablist"
+                    aria-label="Right rail mode"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={rightMode === 'dashboard'}
+                      className={styles.rightToggleBtn}
+                      data-active={rightMode === 'dashboard'}
+                      onClick={() => {
+                        setRightMode('dashboard');
+                        setWeatherOpen(false);
+                      }}
+                    >
+                      <LayoutDashboard size={14} aria-hidden="true" />
+                      Dashboard
+                    </button>
+                    {railMode === 'protocols' ? (
+                      // Contextual second tab: in Protocols mode the right rail's
+                      // detail slot holds the selected protocol, so the tab reads
+                      // "Protocols" and gates on a protocol selection.
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={rightMode === 'detail'}
+                        className={styles.rightToggleBtn}
+                        data-active={rightMode === 'detail'}
+                        disabled={!selectedProtocolId}
+                        onClick={() =>
+                          selectedProtocolId && setRightMode('detail')
+                        }
+                      >
+                        <ShieldCheck size={14} aria-hidden="true" />
+                        Protocols
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={rightMode === 'detail'}
+                        className={styles.rightToggleBtn}
+                        data-active={rightMode === 'detail'}
+                        disabled={!objectiveId}
+                        onClick={() => objectiveId && setRightMode('detail')}
+                      >
+                        <Target size={14} aria-hidden="true" />
+                        Objective
+                      </button>
+                    )}
+                  </div>
+                  <div className={styles.rightBody}>
+                    {rightMode === 'detail' &&
+                    railMode === 'protocols' &&
+                    selectedProtocolId ? (
+                      <ActProtocolDetailPane
+                        projectId={id}
+                        primaryTypeId={primaryTypeId}
+                        secondaryTypeIds={secondaryTypeIds}
+                        templateId={selectedProtocolId}
+                      />
+                    ) : rightMode === 'detail' && selectedObjective ? (
+                      <ActTierExecutionPanel
+                        projectId={id}
+                        tier={selectedObjectiveTier}
+                        objective={selectedObjective}
+                        status={selectedObjectiveStatus}
+                        serverId={serverId}
+                        members={members}
+                        currentUserId={currentUserId}
+                        myRole={myRole}
+                      />
+                    ) : weatherOpen ? (
+                      <ActTierWeatherPanel
+                        project={project}
+                        onBack={() => setWeatherOpen(false)}
+                      />
+                    ) : (
+                      <ActOpsDashboard
+                        projectId={id}
+                        onOpenWeather={() => setWeatherOpen(true)}
+                      />
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           }
           bottomTray={
@@ -538,13 +1069,16 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
             />
           }
         />
+        )}
       </div>
+      {!showTierZeroWorkbench && (
       <VisionFormsTabsModal
         open={openFormGroup !== null}
         title={openFormGroup?.title ?? ''}
         tools={openFormGroup?.tools ?? []}
         activeFormId={openFormGroup?.activeFormId ?? ''}
         initialValues={visionForms}
+        initialData={visionFormData}
         projectId={id}
         metadata={project.metadata ?? null}
         checklistItems={selectedObjective?.checklist ?? []}
@@ -552,8 +1086,10 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
           setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
         }
         onSave={handleFormSave}
+        onSaveData={handleFormDataSave}
         onClose={() => setOpenFormGroup(null)}
       />
+      )}
     </div>
   );
 }

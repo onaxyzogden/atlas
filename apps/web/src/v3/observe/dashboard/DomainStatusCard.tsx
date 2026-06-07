@@ -20,6 +20,12 @@ import css from './DomainStatusCard.module.css';
 interface Props {
   snapshot: DomainSnapshot;
   projectId: string;
+  /**
+   * Optional side-effect run just before navigation (e.g. clearing an active
+   * header Stage Search query so the dashboard returns to its normal grid once
+   * the steward reveals a domain from the filtered search results).
+   */
+  onNavigate?: () => void;
 }
 
 const FRESHNESS_LABEL: Record<ObserveFreshness, string> = {
@@ -53,7 +59,11 @@ function relativeTime(iso: string | null): string {
   return years === 1 ? '1 year ago' : `${years} years ago`;
 }
 
-export default function DomainStatusCard({ snapshot, projectId }: Props) {
+export default function DomainStatusCard({
+  snapshot,
+  projectId,
+  onNavigate,
+}: Props) {
   const navigate = useNavigate();
   const {
     domainId,
@@ -67,6 +77,7 @@ export default function DomainStatusCard({ snapshot, projectId }: Props) {
   } = snapshot;
 
   const handleOpen = () => {
+    onNavigate?.();
     navigate({
       to: '/v3/project/$projectId/observe/dashboard/domain/$domainId',
       params: { projectId, domainId },

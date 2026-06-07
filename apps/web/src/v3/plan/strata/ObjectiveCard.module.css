@@ -6,7 +6,7 @@
 
 .card {
   --status-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
-  --status-bg: var(--color-bg, #1f1d1a);
+  --status-bg: var(--color-bg, #14191f);
   --status-border: var(--color-border, rgba(242, 237, 227, 0.12));
 
   position: relative;
@@ -94,7 +94,7 @@
   border-radius: 50%;
   border: 1.5px solid var(--status-color);
   color: var(--status-color);
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
 }
 
 .card[data-status='complete'] .icon {
@@ -138,7 +138,7 @@
 .pill {
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -157,7 +157,7 @@
   white-space: nowrap;
   padding: 2px 8px;
   border-radius: var(--radius-full, 999px);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -184,7 +184,7 @@
   padding: 2px 8px;
   border-radius: var(--radius-full, 999px);
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -223,7 +223,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -249,6 +249,27 @@
   outline-offset: 2px;
 }
 
+/* T1.7 -- downstream review flags (amber, static span -- not interactive;
+   resolution happens in ObjectiveDetailPanel). Distinct from the blue
+   .reviewBadge (cyclical review cadence cue) and the interactive
+   .divergencePill (Act field-truth divergence). */
+.reviewFlagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(232, 169, 88, 0.16);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.45);
+  white-space: nowrap;
+}
+
 .card[data-has-divergence='true'] {
   border-color: rgba(232, 169, 88, 0.55);
 }
@@ -262,7 +283,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full, 999px);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;

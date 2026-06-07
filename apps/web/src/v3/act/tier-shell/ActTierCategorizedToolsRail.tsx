@@ -14,7 +14,6 @@
 // now appear only when the selected objective calls for them.
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { getObjectiveActTools } from '@ogden/shared';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
@@ -48,6 +47,16 @@ function isToolArmed(
   if (arm.kind === 'form') {
     return activeFormId === arm.formId;
   }
+  // kind === 'flow': the material-flow tool opens a Modal (no map/log arm), so it
+  // has no persistent "active" highlight state -- never report it active here.
+  if (arm.kind === 'flow') {
+    return false;
+  }
+  // kind === 'zone-action': imperative trim/clear that runs once on click with
+  // no persistent armed state -- never report active.
+  if (arm.kind === 'zone-action') {
+    return false;
+  }
   // kind === 'log': check the toolId the QuickLog arms on the map.
   // Hoisted to a const so the discriminant narrowing survives into the
   // `.find` closure below (TS drops narrowing of a parameter property inside
@@ -63,7 +72,6 @@ export default function ActTierCategorizedToolsRail({
   activeFormId,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Refs + active-page state for the dots navigator. The row is the scroll
   // viewport; each .toolCat is a snap target whose visibility drives activeIndex.
@@ -112,10 +120,6 @@ export default function ActTierCategorizedToolsRail({
     return () => observer.disconnect();
   }, [objectiveId, visibleCount]);
 
-  function toggle(categoryId: string) {
-    setCollapsed((prev) => ({ ...prev, [categoryId]: !prev[categoryId] }));
-  }
-
   if (!objective) {
     return (
       <div className={styles.toolsPanel} aria-label="Objective tools">
@@ -147,66 +151,38 @@ export default function ActTierCategorizedToolsRail({
       </div>
       <div className={styles.toolsBody}>
         <div className={styles.toolsRow} ref={rowRef}>
-          {visibleCats.map(({ category, catTools }, index) => {
-            const isCollapsed = collapsed[category.id] ?? false;
-            return (
-              <section
-                key={category.id}
-                className={styles.toolCat}
-                ref={(el) => {
-                  catRefs.current[index] = el;
-                }}
-              >
-                <button
-                  type="button"
-                  className={styles.toolCatHeader}
-                  aria-expanded={!isCollapsed}
-                  onClick={() => toggle(category.id)}
-                >
-                  {isCollapsed ? (
-                    <ChevronRight size={14} aria-hidden="true" />
-                  ) : (
-                    <ChevronDown size={14} aria-hidden="true" />
-                  )}
-                  <span className={styles.toolCatLabel}>{category.label}</span>
-                  <span className={styles.toolCatCount}>{catTools.length}</span>
-                </button>
-                {!isCollapsed && (
-                  <div className={styles.toolGrid}>
-                    {catTools.map((tool) => {
-                      const Icon = tool.icon;
-                      const isArmed = isToolArmed(
-                        tool,
-                        activeTool,
-                        activeFormId,
-                      );
-                      return (
-                        <button
-                          key={tool.id}
-                          type="button"
-                          className={styles.catTile}
-                          data-active={isArmed}
-                          disabled={disabled}
-                          onClick={() => onActivate(tool)}
-                          title={tool.label}
-                        >
-                          <span
-                            className={styles.catTileIcon}
-                            aria-hidden="true"
-                          >
-                            <Icon size={18} strokeWidth={1.7} />
-                          </span>
-                          <span className={styles.catTileLabel}>
-                            {tool.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            );
-          })}
+          {visibleCats.map(({ category, catTools }, index) => (
+            <section
+              key={category.id}
+              className={styles.toolCat}
+              ref={(el) => {
+                catRefs.current[index] = el;
+              }}
+            >
+              <div className={styles.toolGrid}>
+                {catTools.map((tool) => {
+                  const Icon = tool.icon;
+                  const isArmed = isToolArmed(tool, activeTool, activeFormId);
+                  return (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      className={styles.catTile}
+                      data-active={isArmed}
+                      disabled={disabled}
+                      onClick={() => onActivate(tool)}
+                      title={tool.label}
+                    >
+                      <span className={styles.catTileIcon} aria-hidden="true">
+                        <Icon size={18} strokeWidth={1.7} />
+                      </span>
+                      <span className={styles.catTileLabel}>{tool.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
         {visibleCats.length > 1 && (
           <nav className={styles.toolsDots} aria-label="Tool categories">

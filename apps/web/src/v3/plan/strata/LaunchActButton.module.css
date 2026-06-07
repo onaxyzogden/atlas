@@ -7,19 +7,18 @@
 
 .dock {
   display: flex;
-  justify-content: flex-end;
-  padding: 14px 16px 16px;
   border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
-  background: color-mix(in srgb, var(--color-bg, #14191f) 94%, #ffffff);
 }
 
 .button {
-  display: inline-flex;
+  flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 50%, transparent);
+  padding: 16px;
+  border-radius: 0;
+  border: none;
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
   color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 96%, var(--color-text, #f2ede3));
   font-size: 12px;
@@ -29,13 +28,11 @@
   cursor: pointer;
   transition:
     background 120ms ease,
-    border-color 120ms ease,
     transform 120ms ease;
 }
 
 .button:hover {
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 28%, transparent);
-  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 70%, transparent);
 }
 
 .button:active {
@@ -47,9 +44,8 @@
   outline-offset: 2px;
 }
 
-/* When the objective is `complete`, slightly brighter chip — signals the
+/* When the objective is `complete`, slightly brighter band — signals the
  * decision is ready to hand off, not just in motion. */
 .button[data-status='complete'] {
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 32%, transparent);
-  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 75%, transparent);
 }

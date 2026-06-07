@@ -21,6 +21,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /** Volumes in cubic metres, keyed by the card's feedstock id. */
 export type FeedstockVolumes = Record<string, number>;
@@ -66,7 +67,7 @@ export const useCompostInventoryStore = create<CompostInventoryState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-compost-inventory', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-compost-inventory', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

@@ -115,6 +115,11 @@ export * from './schemas/olos/proofRecord.schema.js';
 export * from './schemas/olos/verificationRecord.schema.js';
 export * from './schemas/olos/escalationRecord.schema.js';
 export * from './schemas/olos/stewardshipRoutine.schema.js';
+// Thermophilic-composting vertical — a distinct lightweight batch instrument,
+// NOT part of the land-use project taxonomy.
+export * from './schemas/compost/compostSite.schema.js';
+export * from './schemas/compost/compostPile.schema.js';
+export * from './schemas/compost/compostReading.schema.js';
 export * from './constants/olos/overlays.js';
 export * from './constants/olos/stageBoundaries.js';
 export * from './constants/olos/objectives.js';
@@ -125,6 +130,7 @@ export * from './constants/olos/objectives.js';
 export * from './schemas/plan/planStratumObjective.schema.js';
 export * from './constants/plan/stratumObjectives.js';
 export * from './constants/plan/remapSlug.js';
+export * from './constants/plan/fieldOptions.js';
 // Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
 export * from './constants/plan/projectTypes.js';
@@ -140,6 +146,16 @@ export {
   type SkippedPatch,
   type SecondaryResolutionFlag,
 } from './relationships/resolveProjectObjectives.js';
+export {
+  resolveProjectProtocols,
+  findProtocolIn,
+  type ResolveProjectProtocolsInput,
+  type ResolveProjectProtocolsDeps,
+  type ResolvedProjectProtocols,
+  type ResolveProtocolProvenance,
+  type SkippedProtocolPatch,
+  type SecondaryProtocolFlag,
+} from './relationships/resolveProjectProtocols.js';
 export {
   computeObjectivesDelta,
   type ObjectivesDelta,
@@ -173,10 +189,18 @@ export {
 // Protocol Layer (OLOS Protocol Layer Spec v1.0 — vertical slice 1: typed
 // foundation + read-only standard-template catalogue; engine/authoring deferred)
 export * from './schemas/protocol/protocol.schema.js';
+export * from './schemas/protocol/reviewFlag.schema.js';
+export * from './schemas/protocol/observationLogRecord.schema.js';
 export * from './constants/protocol/standardTemplates.js';
+export { UNIVERSAL_PROTOCOL_TEMPLATES } from './constants/protocol/catalogues/universal.js';
 export * from './constants/protocol/projectEnterprises.js';
 export * from './constants/protocol/protocolOutputs.js';
 export * from './constants/protocol/severityTierStyle.js';
+export * from './constants/protocol/deviationPolicy.js';
+export * from './constants/protocol/feedsToObjective.js';
+export * from './constants/protocol/coOccurrence.js';
+export * from './constants/protocol/chronicDetection.js';
+export * from './constants/protocol/observationLogRetention.js';
 
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';
@@ -196,10 +220,12 @@ export {
 
 // OLOS Observe Dashboard (Phase 4)
 export * from './schemas/observe/dataPoint.schema.js';
+export * from './schemas/observe/lensMeasurement.schema.js';
 export * from './schemas/observe/supersession.schema.js';
 export * from './schemas/observe/cycle.schema.js';
 export * from './schemas/observe/presentationShare.schema.js';
 export * from './constants/observe/domains.js';
+export * from './constants/observe/lenses.js';
 export {
   computeSupersession,
   restoreFromSupersession,
@@ -232,6 +258,9 @@ export {
   OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
   STRATUM_OBSERVE_DOMAINS_DEFAULT,
 } from './relationships/objectiveObserveDomains.js';
+export {
+  resolveActObjectiveId,
+} from './relationships/actObjectiveTaskBridge.js';
 export {
   AS_BUILT_FEATURE_DOMAIN,
   domainForFeatureKind,

@@ -273,7 +273,9 @@ describe('syncManifest coverage guard', () => {
     // per-record selector + applier, a scope, and the schemaVersion for the
     // version-skew guard. Missing any = that Act store silently never syncs.
     const records = SYNCED_STORES.filter((d) => d.classification === 'typed-record');
-    expect(records.length).toBe(4);
+    // 4 Act stores (ADR 7 P1) + 3 olos record stores (Phase 3B): observations,
+    // proofs, verifications — all on the same per-record transport.
+    expect(records.length).toBe(7);
     const incomplete = records
       .filter(
         (d) =>

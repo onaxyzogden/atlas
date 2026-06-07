@@ -11,6 +11,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type NetworkRole =
   | 'vendor'
@@ -49,7 +50,7 @@ export const useNetworkStore = create<NetworkState>()(
       removeContact: (id) =>
         set((s) => ({ contacts: s.contacts.filter((c) => c.id !== id) })),
     }),
-    { name: 'ogden-act-network', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-network', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

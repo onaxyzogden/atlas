@@ -11,9 +11,14 @@
 // homestead (primary, v1.1 - 15 primary objectives, no base secondary layer),
 // education (primary, v1.0 - 22 primary objectives, no base secondary layer),
 // conservation (primary, v1.0 - 30 primary objectives, no base secondary layer),
-// market_garden (primary, v1.0 - 24 primary objectives, no base secondary layer), and
-// off_grid (primary, v1.0 - 27 primary objectives, no base secondary layer)
-// on the primary side; residential (secondary, v1.0) and wellness (secondary, authored
+// market_garden (primary, v1.0 - 24 primary objectives, no base secondary layer),
+// off_grid (primary, v1.0 - 27 primary objectives, no base secondary layer), and
+// livestock_operation (primary, v1.0 - 23 primary objectives; added 2026-06-03,
+// the dedicated home for the 6 livestock/grazing formula ids - distinct from
+// silvopasture, which integrates trees + forage + livestock; PLUS a secondary
+// layer added 2026-06-03: 7 additive + 3 universal patches, the standalone
+// animal enterprise folded onto a host primary) on the primary side; residential
+// (secondary, v1.0) and wellness (secondary, authored
 // overlay per the 2026-05-30 derive+author ruling) on the secondary side. Every
 // other primary resolves to the universal-only baseline; every other secondary
 // returns undefined (nothing to layer). agritourism canBeSecondary in the
@@ -58,6 +63,11 @@ import { EDUCATION_PRIMARY_OBJECTIVES } from './education.js';
 import { CONSERVATION_PRIMARY_OBJECTIVES } from './conservation.js';
 import { MARKET_GARDEN_PRIMARY_OBJECTIVES } from './marketGarden.js';
 import { OFF_GRID_PRIMARY_OBJECTIVES } from './offGrid.js';
+import {
+  LIVESTOCK_PRIMARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_PATCHES,
+} from './livestockOperation.js';
 
 export {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -81,6 +91,9 @@ export {
   CONSERVATION_PRIMARY_OBJECTIVES,
   MARKET_GARDEN_PRIMARY_OBJECTIVES,
   OFF_GRID_PRIMARY_OBJECTIVES,
+  LIVESTOCK_PRIMARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_PATCHES,
 };
 
 /** The universal baseline plus a primary type's own objectives. */
@@ -128,7 +141,9 @@ export function getPrimaryCatalogue(
                         ? MARKET_GARDEN_PRIMARY_OBJECTIVES
                         : primaryTypeId === 'off_grid'
                           ? OFF_GRID_PRIMARY_OBJECTIVES
-                          : [];
+                          : primaryTypeId === 'livestock_operation'
+                            ? LIVESTOCK_PRIMARY_OBJECTIVES
+                            : [];
   return { universal: UNIVERSAL_PLAN_OBJECTIVES, primary };
 }
 
@@ -169,6 +184,12 @@ export function getSecondaryCatalogue(
       patches: ORCHARD_SECONDARY_PATCHES,
     };
   }
+  if (secondaryTypeId === 'livestock_operation') {
+    return {
+      additive: LIVESTOCK_SECONDARY_OBJECTIVES,
+      patches: LIVESTOCK_SECONDARY_PATCHES,
+    };
+  }
   return undefined;
 }
 
@@ -199,6 +220,8 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...CONSERVATION_PRIMARY_OBJECTIVES,
     ...MARKET_GARDEN_PRIMARY_OBJECTIVES,
     ...OFF_GRID_PRIMARY_OBJECTIVES,
+    ...LIVESTOCK_PRIMARY_OBJECTIVES,
+    ...LIVESTOCK_SECONDARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);
   }

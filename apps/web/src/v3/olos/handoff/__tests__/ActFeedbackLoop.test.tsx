@@ -32,6 +32,9 @@ vi.mock('../../../../lib/apiClient.js', () => ({
           },
         ),
       },
+      // Present so the flag-on render's TaskProofSync pull resolves cleanly.
+      proofs: { list: vi.fn(async () => ({ data: [], error: null })) },
+      verifications: { list: vi.fn(async () => ({ data: [], error: null })) },
     },
     members: { list: vi.fn(async () => ({ data: [], error: null })) },
   },
@@ -94,11 +97,13 @@ beforeEach(() => {
       member('u-me', 'team_member', 'Me'),
     ],
     myRole: null,
-    myRoles: {},
+    // Role is resolved project-scoped from myRoles[serverId] (see ActFeedbackLoop),
+    // not from the legacy global myRole. Tests address serverId 'srv-1'.
+    myRoles: { 'srv-1': 'owner' },
     isLoading: false,
   });
   useAuthStore.setState({
-    user: { id: 'u-owner', email: 'o@x.co', displayName: 'Owner', defaultOrgId: 'org-1' },
+    user: { id: 'u-owner', email: 'o@x.co', displayName: 'Owner', defaultOrgId: 'org-1', emailVerified: true },
   });
 });
 
@@ -130,12 +135,27 @@ describe('ActFeedbackLoop - assignment', () => {
 
   it('a viewer sees no assignee picker', () => {
     useAuthStore.setState({
-      user: { id: 'u-viewer', email: 'v@x.co', displayName: 'V', defaultOrgId: 'org-1' },
+      user: { id: 'u-viewer', email: 'v@x.co', displayName: 'V', defaultOrgId: 'org-1', emailVerified: true },
     });
     useMemberStore.setState((s) => ({
       members: [...s.members, member('u-viewer', 'viewer', 'V')],
+      // Current user is a viewer on srv-1: role resolves viewer -> no picker.
+      myRoles: { 'srv-1': 'viewer' },
     }));
     render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
     expect(screen.queryByLabelText('Assign Mulch the swale')).toBeNull();
+  });
+});
+
+describe('ActFeedbackLoop - formal proof flag', () => {
+  it('does not mount the proof/verification panel when the flag is off (default)', () => {
+    render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
+    expect(screen.queryByText('Proof and verification')).toBeNull();
+  });
+
+  it('mounts the proof/verification panel per task when the flag is on', async () => {
+    localStorage.setItem('ogden-flag-olos-formal-proof', 'true');
+    render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
+    expect(await screen.findByText('Proof and verification')).toBeTruthy();
   });
 });

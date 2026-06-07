@@ -23,7 +23,6 @@ import {
   useProjectStore,
   MTC_SEED,
   getActShellMode,
-  type ActShellMode,
 } from '../../store/projectStore.js';
 import {
   parcelAcreage,
@@ -53,12 +52,12 @@ import ActStructurePopover from './ActStructurePopover.js';
 import ActFeatureClickHandler from './layers/ActFeatureClickHandler.js';
 import ActAsBuiltPopover from './asBuilt/ActAsBuiltPopover.js';
 import ActAsBuiltDrawHandler from './asBuilt/ActAsBuiltDrawHandler.js';
+import ActFlowConnectorPopover from './asBuilt/ActFlowConnectorPopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import ActReadyCue from './components/ActReadyCue.js';
-import ActShellToggle from './field-action/ActShellToggle.js';
 // ADR 7 headline: the live field-action surface is now map-first
 // (ActMapFirstLayout). The legacy rail-with-map ActFieldActionLayout is
 // preserved on disk as a reversible fallback (swap the import below to
@@ -92,9 +91,6 @@ export default function ActLayout() {
   );
 
   const actShellMode = getActShellMode(project);
-  const handleActShellModeChange = (mode: ActShellMode) => {
-    updateProject(project.id, { actShellMode: mode });
-  };
 
   // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon. Casting it to
   // Polygon and handing a MultiPolygon to DiagnoseMap poisons the bounds with
@@ -189,21 +185,11 @@ export default function ActLayout() {
   );
 
   if (actShellMode === 'tier-shell') {
-    return (
-      <ActTierShell
-        shellMode={actShellMode}
-        onShellModeChange={handleActShellModeChange}
-      />
-    );
+    return <ActTierShell />;
   }
 
   if (actShellMode === 'field-action') {
-    return (
-      <ActMapFirstLayout
-        shellMode={actShellMode}
-        onShellModeChange={handleActShellModeChange}
-      />
-    );
+    return <ActMapFirstLayout />;
   }
 
   return (
@@ -220,10 +206,6 @@ export default function ActLayout() {
       }
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <ActShellToggle
-          mode={actShellMode}
-          onChange={handleActShellModeChange}
-        />
         <DiagnoseMap
           centroid={mapCenter}
           boundary={safeBoundary}
@@ -269,6 +251,7 @@ export default function ActLayout() {
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
               <ActAsBuiltPopover map={map} projectId={params.projectId ?? null} />
               <ActAsBuiltDrawHandler map={map} />
+              <ActFlowConnectorPopover projectId={params.projectId ?? null} />
               <ActObjectiveCompletePrompt
                 projectId={params.projectId ?? null}
                 module={validModule}

@@ -132,6 +132,7 @@ export default function DiagnoseMap({
       preserveDrawingBuffer: true,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    m.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
     if (import.meta.env.DEV) (window as unknown as { __atlasMap?: maplibregl.Map }).__atlasMap = m;
     setMap(m);
     return () => {

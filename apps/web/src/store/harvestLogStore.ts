@@ -15,6 +15,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type HarvestUnit = 'kg' | 'lb' | 'count' | 'L';
 export type HarvestQuality = 'A' | 'B' | 'C';
@@ -70,6 +71,8 @@ export const useHarvestLogStore = create<HarvestLogState>()(
     }),
     {
       name: 'ogden-act-harvest-log',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted: unknown, fromVersion: number) => {
         // v1 → v2: stamp legacy entries with sourceKind: 'crop' (the only

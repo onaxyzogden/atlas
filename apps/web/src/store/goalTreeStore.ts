@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { GoalTree, SubGoal, SuccessCriterion } from '../v3/plan/data/goalCompassTypes.js';
 import { HOMESTEAD_GOAL_TREE_TEMPLATE } from '../v3/plan/data/homesteadGoalTree.js';
 import { getGoalTreeTemplate } from '../v3/plan/data/goalTreeTemplates.js';
@@ -189,6 +190,8 @@ export const useGoalTreeStore = create<GoalTreeState>()(
     }),
     {
       name: 'ogden-goal-trees',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({
         goalTreesByProject: state.goalTreesByProject,

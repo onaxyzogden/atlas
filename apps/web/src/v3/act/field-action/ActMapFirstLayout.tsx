@@ -23,11 +23,7 @@
 
 import { useMemo } from 'react';
 import { useParams } from '@tanstack/react-router';
-import {
-  useProjectStore,
-  MTC_SEED,
-  type ActShellMode,
-} from '../../../store/projectStore.js';
+import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
 import { extractBoundaryGeometry } from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
@@ -40,20 +36,11 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActOpsDashboard from './ActOpsDashboard.js';
 import ViewAObjectiveExecution from './ViewAObjectiveExecution.js';
-import ActShellToggle from './ActShellToggle.js';
 import css from './ActMapFirstLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
-interface Props {
-  shellMode: ActShellMode;
-  onShellModeChange: (mode: ActShellMode) => void;
-}
-
-export default function ActMapFirstLayout({
-  shellMode,
-  onShellModeChange,
-}: Props) {
+export default function ActMapFirstLayout() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     objectiveId?: string;
@@ -94,9 +81,6 @@ export default function ActMapFirstLayout({
               </>
             )}
           </DiagnoseMap>
-          <div className={css.toggleFloat}>
-            <ActShellToggle mode={shellMode} onChange={onShellModeChange} />
-          </div>
         </div>
         <aside className={css.panel} aria-label="Field actions">
           <div className={css.panelBody}>

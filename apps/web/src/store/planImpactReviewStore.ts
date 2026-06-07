@@ -14,6 +14,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import {
   emptyPlanReviewRun,
   type PlanReviewDecision,
@@ -94,6 +95,8 @@ export const usePlanImpactReviewStore = create<PlanImpactReviewState>()(
     },
     {
       name: PERSIST_KEY,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({ byProject: state.byProject }),
     },

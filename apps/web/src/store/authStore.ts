@@ -41,8 +41,9 @@ interface AuthState {
   /**
    * True when a stored token exists but `/auth/me` could NOT be verified on
    * boot for a transient reason (server down / still starting / dead origin) —
-   * the token is kept but `user` is null. Drives the ApiReachabilityBanner's
-   * boot-specific message + Retry. Cleared once the session verifies, or on
+   * the token is kept but `user` is null. Drives the ApiReachabilityStatus
+   * chip's boot-specific message + Retry (and the ApiReachabilityWatcher's
+   * self-heal). Cleared once the session verifies, or on
    * an explicit login/register/logout.
    */
   sessionUnverified: boolean;
@@ -58,6 +59,27 @@ interface AuthState {
   register: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+
+  /**
+   * Request a fresh verification email. Resolves on any non-error response —
+   * the server replies generically whether or not the address exists
+   * (anti-enumeration), so callers always show the same confirmation.
+   */
+  resendVerification: (email: string) => Promise<void>;
+
+  /**
+   * Confirm a verification token from an emailed link. On success the server
+   * returns a fresh token + user, so this signs the session in (mirrors login).
+   * A bad/expired/used token throws a 400 INVALID_TOKEN — NOT a 401 — so it
+   * never trips the global session-expiry logout.
+   */
+  confirmVerification: (token: string) => Promise<void>;
+
+  /** Request a password-reset link. Resolves generically (anti-enumeration). */
+  forgotPassword: (email: string) => Promise<void>;
+
+  /** Set a new password from a reset token. No auto-login — caller routes to /login. */
+  resetPassword: (token: string, password: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -87,6 +109,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             email: data.email,
             displayName: data.displayName ?? null,
             defaultOrgId: data.defaultOrgId,
+            emailVerified: data.emailVerified,
           },
           isLoaded: true,
           sessionUnverified: false,
@@ -147,6 +170,54 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(TOKEN_KEY);
     setAuthToken(null);
     set({ token: null, user: null, error: null, sessionUnverified: false });
+  },
+
+  async resendVerification(email) {
+    set({ error: null });
+    try {
+      await api.auth.requestEmailVerification(email);
+    } catch (err) {
+      const msg = authErrorMessage(err, 'Could not send a verification email');
+      set({ error: msg });
+      throw err;
+    }
+  },
+
+  async confirmVerification(token) {
+    set({ error: null });
+    try {
+      const { data } = await api.auth.confirmEmailVerification(token);
+      // Fresh token + verified user — sign the session in, just like login.
+      localStorage.setItem(TOKEN_KEY, data.token);
+      setAuthToken(data.token);
+      set({ token: data.token, user: data.user, error: null, sessionUnverified: false });
+    } catch (err) {
+      const msg = authErrorMessage(err, 'This verification link is invalid or has expired');
+      set({ error: msg });
+      throw err;
+    }
+  },
+
+  async forgotPassword(email) {
+    set({ error: null });
+    try {
+      await api.auth.forgotPassword(email);
+    } catch (err) {
+      const msg = authErrorMessage(err, 'Could not send a reset email');
+      set({ error: msg });
+      throw err;
+    }
+  },
+
+  async resetPassword(token, password) {
+    set({ error: null });
+    try {
+      await api.auth.resetPassword(token, password);
+    } catch (err) {
+      const msg = authErrorMessage(err, 'This reset link is invalid or has expired');
+      set({ error: msg });
+      throw err;
+    }
   },
 
   clearError() {

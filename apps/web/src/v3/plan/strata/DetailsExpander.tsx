@@ -58,19 +58,30 @@ const ClosedLoopGraphCard = lazy(
 const PhasingMatrixCard = lazy(
   () => import('../../../features/plan/PhasingMatrixCard.js'),
 );
+const GuildSpatialBuilderCard = lazy(
+  () => import('../cards/plant-systems/GuildSpatialBuilderCard.js'),
+);
 
 const noop = () => {};
 
 interface Props {
   projectId: string;
   legacyCardSectionId: string;
+  /**
+   * When true, the section starts expanded (and pays its lazy chunk cost) on
+   * mount instead of waiting for a click. Used by the Act → Plan guild
+   * deep-link so the steward lands directly on the designer. Defaults to
+   * collapsed for ordinary navigation, preserving lazy-load-on-demand.
+   */
+  defaultOpen?: boolean;
 }
 
 export default function DetailsExpander({
   projectId,
   legacyCardSectionId,
+  defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   // Look up the LocalProject directly — legacy cards consume the local
   // shape, not the adapted v3 Project. Reading off the store here keeps
   // the parent ObjectiveDetailPanel free of the extra prop.
@@ -144,6 +155,7 @@ const LEGACY_CARD_LABELS: Readonly<Record<string, string>> = {
   'plan-water-network': 'water network',
   'plan-closed-loop-graph': 'closed-loop graph',
   'plan-phasing-matrix': 'phasing matrix',
+  'plan-guild-builder': 'guild builder',
 };
 
 function renderLegacyCard(
@@ -169,6 +181,8 @@ function renderLegacyCard(
       return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-matrix':
       return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
+    case 'plan-guild-builder':
+      return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     default:
       return (
         <p className={css.placeholder}>

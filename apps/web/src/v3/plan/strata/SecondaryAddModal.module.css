@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, transparent);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   animation: secondaryAddFade 160ms ease-out;
@@ -29,7 +29,7 @@
   padding: 28px 24px 22px;
   border-radius: var(--radius-lg, 16px);
   border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
   box-shadow:
     0 18px 48px rgba(0, 0, 0, 0.45),
     0 0 0 3px color-mix(in srgb, var(--color-gold-brand, #c4a265) 14%, transparent);
@@ -57,7 +57,7 @@
 }
 
 .close:hover {
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
   color: var(--color-text, #f2ede3);
 }
 
@@ -106,7 +106,7 @@
 
 .sectionEyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -154,7 +154,7 @@
   background: transparent;
   color: color-mix(in srgb, var(--color-danger, #d9776b) 92%, var(--color-text, #f2ede3));
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -179,7 +179,7 @@
 }
 
 .confirmHint {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
 }
@@ -191,7 +191,7 @@
   background: color-mix(in srgb, var(--color-danger, #d9776b) 26%, transparent);
   color: color-mix(in srgb, var(--color-danger, #d9776b) 96%, var(--color-text, #f2ede3));
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -214,7 +214,7 @@
   background: transparent;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -222,7 +222,7 @@
 }
 
 .confirmCancel:hover {
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
   color: var(--color-text, #f2ede3);
 }
 
@@ -240,12 +240,12 @@
   padding: 12px 14px;
   border-radius: var(--radius-md, 8px);
   border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
 }
 
 .consequencesEyebrow {
   margin: 0 0 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -327,7 +327,7 @@
 }
 
 .secondary:hover {
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
   color: var(--color-text, #f2ede3);
 }
 

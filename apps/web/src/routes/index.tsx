@@ -32,6 +32,9 @@ import ReportSharePage from '../pages/ReportSharePage.js';
 import ObserveShareViewerPage from '../pages/ObserveShareViewerPage.js';
 import LoginPage from '../pages/LoginPage.js';
 import RegisterPage from '../pages/RegisterPage.js';
+import VerifyEmailPage from '../pages/VerifyEmailPage.js';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.js';
+import ResetPasswordPage from '../pages/ResetPasswordPage.js';
 import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
@@ -46,6 +49,8 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
+import CompostWorkspacePage from '../compost/CompostWorkspacePage.js';
+import ObserveLensDashboard from '../v3/observe/lens/ObserveLensDashboard.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import ProtocolsDashboardPage from '../v3/protocols/ProtocolsDashboardPage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
@@ -243,6 +248,26 @@ const v3ComponentsDebugRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/components',
   component: V3ComponentsDebugPage,
+});
+
+// ─── Compost — distinct lightweight vertical (org-scoped, not project-scoped) ─
+// Top-level under appShellRoute (auth-gated) rather than under
+// v3ProjectLayoutRoute: a compost pile is a batch, not a parcel — it has no
+// projectId and must not load the land-use project shell.
+const compostRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/compost',
+  component: CompostWorkspacePage,
+});
+
+// ─── Observe "observational lens" dashboard — chrome-free preview alias ────
+// Mock-backed, no project context. The same component is also the live
+// `module-bar` Observe shell (see apps/web/src/v3/observe/lens/). This path is
+// kept as a no-chrome pixel-inspection surface.
+const observeLensPrototypeRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/prototype/observe-lens',
+  component: ObserveLensDashboard,
 });
 
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────
@@ -485,7 +510,15 @@ const v3PlanCommandCentreRoute = createRoute({
 // the param is omitted (not `=design`) when the steward is in the default mode.
 // Kept on all three plan-shell routes so the mode survives stratum/objective
 // navigation.
-type PlanSearch = { highlightIncomplete?: 's1'; planMode?: 'protocol' };
+type PlanSearch = {
+  highlightIncomplete?: 's1';
+  planMode?: 'protocol';
+  // Deep-link intent flag: when an objective detail is reached from Act's
+  // "Open guild builder in Plan" affordance, expand the REFERENCE section on
+  // arrival so the steward lands directly on the Plan designer rather than a
+  // collapsed toggle. Allowlisted here so the strict validator preserves it.
+  expandRef?: '1';
+};
 
 const validatePlanSearch = (
   search: Record<string, unknown>,
@@ -496,6 +529,9 @@ const validatePlanSearch = (
   }
   if (search.planMode === 'protocol') {
     out.planMode = 'protocol';
+  }
+  if (search.expandRef === '1') {
+    out.expandRef = '1';
   }
   return out;
 };
@@ -623,6 +659,29 @@ const v3ActTierShellObjectiveRoute = createRoute({
   component: ActLayout,
   validateSearch: (search: Record<string, unknown>): { taskId?: string } => ({
     taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
+  }),
+});
+// Stratum-bearing tier shell — URL-param parity with Plan's
+// plan/stratum/$stratumId. Lets a stage-switch into Act preserve the stratum the
+// steward was viewing in Plan (and makes the Act stratum deep-linkable). The
+// `act/tier-shell/stratum/...` static prefix resolves BEFORE `act/$module`;
+// objective deep-links keep riding act/tier-shell/$objectiveId (an objective
+// implies its own stratum). Mounts ActLayout, which branches into ActTierShell.
+const v3ActTierShellStratumRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/tier-shell/stratum/$stratumId',
+  component: ActLayout,
+  // Protocols-mode + protocol selection ride the URL so they survive reload and
+  // are deep-linkable (parity with the ?taskId= pattern above). Default mode is
+  // ABSENCE (we never write ?mode=objectives) so Objectives URLs stay clean.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { mode?: 'protocols'; protocol?: string } => ({
+    mode: search.mode === 'protocols' ? 'protocols' : undefined,
+    protocol:
+      typeof search.protocol === 'string' && search.protocol.length > 0
+        ? search.protocol
+        : undefined,
   }),
 });
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
@@ -804,6 +863,34 @@ const registerRoute = createRoute({
   },
 });
 
+// ─── Email verification + password reset (public, outside AppShell) ──────
+// Siblings of loginRoute under rootRoute (NOT appShellRoute) so the emailed
+// links resolve for signed-out visitors. Each reads an optional `?token=`.
+const tokenSearch = (
+  search: Record<string, unknown>,
+): { token?: string } =>
+  typeof search.token === 'string' && search.token ? { token: search.token } : {};
+
+const verifyEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/verify-email',
+  component: VerifyEmailPage,
+  validateSearch: tokenSearch,
+});
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forgot-password',
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
+  validateSearch: tokenSearch,
+});
+
 // Phase 4.5 — /organizations/new prelude. Sibling-of-appShellRoute so it
 // renders without the authed app shell, but is itself auth-gated: the
 // component redirects to /register if no token is present. Search params
@@ -909,6 +996,8 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    compostRoute,
+    observeLensPrototypeRoute,
     v3ProjectsLandingRoute,
     v3PortfolioHomeRoute,
     v3PortfolioObserveCompareRoute,
@@ -947,6 +1036,7 @@ const routeTree = rootRoute.addChildren([
       v3ActTierPrototypeRoute,
       v3ActTierShellRoute,
       v3ActTierShellObjectiveRoute,
+      v3ActTierShellStratumRoute,
       v3ActFieldActionRoute,
       v3ActFieldActionObjectiveRoute,
       v3ActRoute,
@@ -968,6 +1058,9 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   registerRoute,
+  verifyEmailRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   organizationCreateRoute,
   portalRoute,
   reportShareRoute,

@@ -42,7 +42,7 @@ vi.mock('../syncQueue.js', async (orig) => {
 });
 
 import {
-  hydrateActRecords,
+  hydrateTypedRecords,
   hydrateProjectStateBlobs,
   getRecordBaseRevForTest,
   getBlobBaseRevForTest,
@@ -93,7 +93,7 @@ afterEach(() => {
   warnSpy.mockRestore();
 });
 
-describe('hydrateActRecords — §6 init-clobber guard (typed records)', () => {
+describe('hydrateTypedRecords — §6 init-clobber guard (typed records)', () => {
   it('skips a record with a pending un-synced push and applies the clean ones', async () => {
     const applyRec = vi.fn();
     const d: SyncedStoreDescriptor = {
@@ -111,7 +111,7 @@ describe('hydrateActRecords — §6 init-clobber guard (typed records)', () => {
     });
     getAllMock.mockResolvedValue([recordOp('PA', 'rec-dirty')]);
 
-    await hydrateActRecords({ id: 'PA', serverId: 'srv-PA' } as never, [d]);
+    await hydrateTypedRecords({ id: 'PA', serverId: 'srv-PA' } as never, [d]);
 
     // Only the clean record is applied — the dirty one keeps its local edit.
     const appliedRecordIds = applyRec.mock.calls.map((c) => c[2]);
@@ -140,7 +140,7 @@ describe('hydrateActRecords — §6 init-clobber guard (typed records)', () => {
     });
     getAllMock.mockResolvedValue([]); // nothing dirty
 
-    await hydrateActRecords({ id: 'PB', serverId: 'srv-PB' } as never, [d]);
+    await hydrateTypedRecords({ id: 'PB', serverId: 'srv-PB' } as never, [d]);
 
     expect(applyRec.mock.calls.map((c) => c[2]).sort()).toEqual(['r1', 'r2']);
     expect(getRecordBaseRevForTest(REC_STORE, 'PB', 'r1')).toBe(3);

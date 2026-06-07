@@ -13,15 +13,22 @@
  *      preserving data-template-id / data-protocol-status (still addressable).
  */
 
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
-import { templatesForEnterprises } from '@ogden/shared';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
+import { templatesForEnterprises, resolveProjectProtocols } from '@ogden/shared';
 import ProtocolLibraryCard from '../ProtocolLibraryCard.js';
 
-// A real standard template — the same sheep_beef one the panel parity test uses.
+// A real standard template — a legacy sheep_beef one (no severityTier/scopeNotes,
+// so it exercises the resolveSeverityTier default + the no-caution path).
 const TEMPLATE = templatesForEnterprises(['sheep_beef']).find(
   (t) => t.id === 'paddock-rotation-cover-trigger',
 )!;
+
+// A resolved catalogue protocol carrying a verbatim Amanah scopeNote and an
+// explicit severityTier — the market_garden advance-sale review.
+const SCOPED_TEMPLATE = resolveProjectProtocols({
+  primaryTypeId: 'market_garden',
+}).protocols.find((t) => t.id === 'mg-market-channel-advance-sale')!;
 
 afterEach(() => cleanup());
 
@@ -103,6 +110,56 @@ describe('ProtocolLibraryCard emphasis + collapsed', () => {
     expect(card.getAttribute('data-protocol-status')).toBe('none');
   });
 
+  it('renders a severity-tier badge (default RESPOND when none authored)', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+
+    const card = screen.getByTestId('protocol-template-card');
+    // Legacy template authors no severityTier → resolveSeverityTier defaults RESPOND.
+    expect(card.getAttribute('data-severity')).toBe('respond');
+    const badge = screen.getByTestId('protocol-severity-badge');
+    expect(badge.textContent).toBe('Respond');
+  });
+
+  it('surfaces the verbatim Amanah caution and severity for a scoped protocol', () => {
+    render(
+      <ProtocolLibraryCard template={SCOPED_TEMPLATE} status={undefined} outputs={{}} />,
+    );
+
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('data-has-scope-notes')).toBe('true');
+    expect(card.getAttribute('data-severity')).toBe('respond');
+
+    const caution = screen.getByTestId('protocol-amanah-caution');
+    // Verbatim — the exact authored scopeNotes text, never reworded/truncated.
+    expect(caution.textContent).toContain('Amanah');
+    expect(caution.textContent).toContain(SCOPED_TEMPLATE.scopeNotes!);
+  });
+
+  it('omits the Amanah caution when the template has no scopeNotes', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('data-has-scope-notes')).toBe('false');
+    expect(screen.queryByTestId('protocol-amanah-caution')).toBeNull();
+  });
+
+  it('collapsed hides the Amanah caution along with the body', () => {
+    render(
+      <ProtocolLibraryCard
+        template={SCOPED_TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        emphasis="dimmed"
+        collapsed
+      />,
+    );
+
+    // The caution lives inside the !collapsed body gate.
+    expect(screen.queryByTestId('protocol-amanah-caution')).toBeNull();
+    // The severity badge lives in the (always-rendered) header.
+    expect(screen.getByTestId('protocol-severity-badge')).toBeTruthy();
+  });
+
   it('collapsed + triggered keeps the pill in the header even with the body gone', () => {
     render(
       <ProtocolLibraryCard
@@ -117,5 +174,94 @@ describe('ProtocolLibraryCard emphasis + collapsed', () => {
     expect(screen.getByTestId('protocol-triggered-pill')).toBeTruthy();
     expect(screen.getByText(TEMPLATE.name)).toBeTruthy();
     expect(screen.queryByText('IF')).toBeNull();
+  });
+});
+
+describe('ProtocolLibraryCard source attribution', () => {
+  // A universal protocol (no `source` stamped, or source==='universal') from the
+  // resolved homestead set.
+  const UNIVERSAL = resolveProjectProtocols({ primaryTypeId: 'homestead' })
+    .protocols.find((t) => (t.source ?? 'universal') === 'universal')!;
+
+  // A secondary protocol the resolver attributed to the silvopasture layer when
+  // silvopasture is added as a secondary type to a homestead project.
+  const SECONDARY = resolveProjectProtocols({
+    primaryTypeId: 'homestead',
+    secondaryTypeIds: ['silvopasture'],
+  }).protocols.find(
+    (t) => t.source === 'secondary' && t.sourceTypeId === 'silvopasture',
+  );
+
+  it('renders a "Universal" source badge for a universal protocol', () => {
+    render(<ProtocolLibraryCard template={UNIVERSAL} status={undefined} outputs={{}} />);
+    const badge = screen.getByTestId('protocol-source-badge');
+    expect(badge.getAttribute('data-source')).toBe('universal');
+    expect(badge.textContent).toBe('Universal');
+  });
+
+  it('renders a "Secondary - <type>" source badge for a secondary protocol', () => {
+    // Guard: the homestead+silvopasture pairing must yield at least one secondary
+    // protocol, else this assertion is vacuous. Fail loudly if the catalogue changes.
+    expect(SECONDARY).toBeTruthy();
+    render(<ProtocolLibraryCard template={SECONDARY!} status={undefined} outputs={{}} />);
+    const badge = screen.getByTestId('protocol-source-badge');
+    expect(badge.getAttribute('data-source')).toBe('secondary');
+    expect(badge.textContent).toBe('Secondary - Silvopasture');
+  });
+});
+
+describe('ProtocolLibraryCard onSelect (Act clickable cards)', () => {
+  it('is inert (no button role / data-selected) when onSelect is omitted', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('role')).toBeNull();
+    expect(card.getAttribute('data-selected')).toBeNull();
+  });
+
+  it('becomes a button and fires onSelect on click and Enter/Space', () => {
+    const onSelect = vi.fn();
+    render(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={onSelect}
+      />,
+    );
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('role')).toBe('button');
+    expect(card.getAttribute('tabindex')).toBe('0');
+
+    fireEvent.click(card);
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(card, { key: ' ' });
+    expect(onSelect).toHaveBeenCalledTimes(3);
+  });
+
+  it('reflects the selected flag via data-selected', () => {
+    const { rerender } = render(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={vi.fn()}
+        selected={false}
+      />,
+    );
+    expect(
+      screen.getByTestId('protocol-template-card').getAttribute('data-selected'),
+    ).toBe('false');
+    rerender(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={vi.fn()}
+        selected
+      />,
+    );
+    expect(
+      screen.getByTestId('protocol-template-card').getAttribute('data-selected'),
+    ).toBe('true');
   });
 });

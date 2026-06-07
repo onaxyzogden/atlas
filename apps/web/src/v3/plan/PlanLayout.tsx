@@ -131,7 +131,9 @@ export default function PlanLayout() {
   // bottom-bar nav, or the brief transient before async navigation resolves)
   // routes to a different module and is ignored, falling back to the
   // whole-family highlight.
-  const search = useSearch({ strict: false }) as { section?: string };
+  const search = useSearch({ strict: false }) as {
+    section?: string;
+  };
   const activeSectionId = search.section ?? null;
   const effectiveSectionId =
     activeSectionId && planSectionIdModule(activeSectionId) === validModule

@@ -22,6 +22,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type UtilityRunKind = 'water' | 'septic' | 'power' | 'data';
@@ -82,7 +83,7 @@ export const useUtilityRunStore = create<UtilityRunState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-utility-runs', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-utility-runs', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

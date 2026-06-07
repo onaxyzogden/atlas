@@ -9,21 +9,30 @@ import { type StandardProtocolTemplate } from '@ogden/shared';
 import ProtocolLibraryCard, {
   type RecordStatus,
 } from './ProtocolLibraryCard.js';
+import ProtocolThresholdEditor from './ProtocolThresholdEditor.js';
 import { C, F } from '../spine/tokens.js';
 
 interface Props {
+  /** Project whose per-protocol threshold overrides the editor reads/writes. */
+  projectId: string;
   /** Selected templates, in catalogue/tier order (filtered by the shell). */
   selectedTemplates: readonly StandardProtocolTemplate[];
   /** templateId → lifecycle status, passed straight to each card. */
   statusByTemplate: Record<string, RecordStatus>;
-  /** Token-substitution outputs shared across all cards. */
-  outputs: Record<string, string>;
+  /**
+   * Per-protocol token-substitution outputs: base S6 outputs merged with this
+   * project's threshold overrides for ONE template. Each card renders through
+   * `outputsFor(t.id)` so its IF/THEN substitutes the steward's bound live as
+   * the threshold editor below it is edited.
+   */
+  outputsFor: (templateId: string) => Record<string, string>;
 }
 
 export default function ProtocolDetailColumn({
+  projectId,
   selectedTemplates,
   statusByTemplate,
-  outputs,
+  outputsFor,
 }: Props) {
   const count = selectedTemplates.length;
   return (
@@ -82,12 +91,14 @@ export default function ProtocolDetailColumn({
         ) : (
           <div data-testid="protocol-detail-column">
             {selectedTemplates.map((t) => (
-              <ProtocolLibraryCard
-                key={t.id}
-                template={t}
-                status={statusByTemplate[t.id]}
-                outputs={outputs}
-              />
+              <div key={t.id}>
+                <ProtocolLibraryCard
+                  template={t}
+                  status={statusByTemplate[t.id]}
+                  outputs={outputsFor(t.id)}
+                />
+                <ProtocolThresholdEditor projectId={projectId} template={t} />
+              </div>
             ))}
           </div>
         )}

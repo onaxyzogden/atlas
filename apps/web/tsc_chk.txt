@@ -1,0 +1,7 @@
+> @ogden/web@0.1.0 typecheck
+> node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit
+src/features/project/wizard/StepBoundary.tsx(365,7): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/v3/command/OpenObservationNeedsPanel.tsx(55,7): error TS2741: Property 'auto' is missing in type '{ seed: string; 'follow-up': string; manual: string; }' but required in type 'Record<ObservationNeedOrigin, string>'.
+src/v3/plan/layers/__tests__/HostUnionContextMenu.test.tsx(58,36): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number | bigint'.
+  Type 'undefined' is not assignable to type 'number | bigint'.
+src/v3/plan/layers/__tests__/HostUnionDrilldownCard.test.tsx(25,36): error TS2322: Type '"understory"' is not assignable to type 'GuildLayer'.

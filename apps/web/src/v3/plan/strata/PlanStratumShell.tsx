@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
-import { Layers } from 'lucide-react';
+import { Archive, Layers } from 'lucide-react';
 import {
   PLAN_STRATA,
   computeAllObjectiveStatuses,
@@ -16,8 +16,11 @@ import {
   findPlanStratumObjectiveIn,
   findProjectType,
   getPrimaryDomainForObjective,
+  getTensionConcernObjectiveIds,
+  getTensionConcernsByStratum,
 } from '@ogden/shared';
 import type {
+  DesignTension,
   PlanStratum,
   PlanStratumObjective,
   ProjectTypeId,
@@ -29,15 +32,18 @@ import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { resolvePlanSearchMatches } from '../../search/useStageSearchResults.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import ModeToggle, { type SpinePlanMode } from '../spine/ModeToggle.js';
 import StratumSpine from './StratumSpine.js';
 import StratumLockedPopover from './StratumLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
+import PlanSearchColumn from './PlanSearchColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import ProtocolColumn from './ProtocolColumn.js';
 import ProtocolDetailColumn from './ProtocolDetailColumn.js';
-import { useProtocolLibrary } from './useProtocolLibrary.js';
+import { useProtocolLibrary, filterProtocolGroups } from './useProtocolLibrary.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
@@ -46,7 +52,12 @@ import PrimaryChangeModal from './PrimaryChangeModal.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
+import PruneLedgerModal from './PruneLedgerModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
+import CoOccurrenceVerdictBanner from './CoOccurrenceVerdictBanner.js';
+import ChronicVerdictBanner from './ChronicVerdictBanner.js';
+import { useCoOccurrenceClusters } from '../../../store/reviewFlagStore.js';
+import { useChronicVerdicts } from '../../../store/chronicVerdicts.js';
 import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
 import type { BlockingObjective } from './useSecondaryRemovePreview.js';
 import {
@@ -240,14 +251,40 @@ export default function PlanStratumShell() {
     return () => window.clearTimeout(timer);
   }, [search?.highlightIncomplete]);
 
+  // Plan Nav v1.1 §8 — transient flash on the objective cards a design tension
+  // concerns, fired when the steward clicks a tension row in the banner. Reuses
+  // the same flash machinery as `highlightStratumId` (below), but holds an
+  // explicit id list (authored mapping resolved by getTensionConcernObjectiveIds)
+  // rather than a whole-stratum filter, so it pinpoints the conflicting cards.
+  const [tensionHighlightIds, setTensionHighlightIds] = useState<readonly string[]>(
+    [],
+  );
+  const tensionHighlightTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Clear any pending flash timer on unmount so it never fires into a
+    // torn-down component.
+    return () => {
+      if (tensionHighlightTimerRef.current !== null) {
+        window.clearTimeout(tensionHighlightTimerRef.current);
+      }
+    };
+  }, []);
+
   const highlightObjectiveIds = useMemo<readonly string[]>(() => {
-    if (!highlightStratumId) return [];
-    return objectives.filter(
-      (o) =>
-        o.stratumId === highlightStratumId &&
-        (objectiveStatuses[o.id] ?? 'locked') !== 'complete',
-    ).map((o) => o.id);
-  }, [highlightStratumId, objectives, objectiveStatuses]);
+    const ids = new Set<string>(tensionHighlightIds);
+    if (highlightStratumId) {
+      for (const o of objectives) {
+        if (
+          o.stratumId === highlightStratumId &&
+          (objectiveStatuses[o.id] ?? 'locked') !== 'complete'
+        ) {
+          ids.add(o.id);
+        }
+      }
+    }
+    return Array.from(ids);
+  }, [highlightStratumId, tensionHighlightIds, objectives, objectiveStatuses]);
 
   // Slice 1.10 — StratumUnlockCelebration. Watch stratum states and surface a
   // celebration the first time any stratum (other than S1, which has no
@@ -292,7 +329,8 @@ export default function PlanStratumShell() {
     navigate({
       to: '/v3/project/$projectId/plan/stratum/$stratumId',
       params: { projectId, stratumId: stratum.id },
-    });
+      search: (prev: Record<string, unknown>) => prev,
+    } as never);
   };
 
   const navigateToObjective = (objectiveId: string, stratumId: string) => {
@@ -301,6 +339,96 @@ export default function PlanStratumShell() {
       to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
       params: { projectId, stratumId, objectiveId },
     });
+  };
+
+  // Plan Nav v1.1 §8 — (re-)arm the transient flash for a tension's concerned
+  // objective cards and navigate to a given stratum so they are on screen. The
+  // flash id set is the FULL concern set (it persists for HIGHLIGHT_DURATION_MS
+  // regardless of which stratum is open), but we navigate to a specific stratum
+  // — `resolutionStratumId` for a row click, or a cross-stratum chip's stratum.
+  const flashTensionAtStratum = (
+    tension: DesignTension,
+    stratumId: string,
+  ) => {
+    const ids = getTensionConcernObjectiveIds(tension, objectives);
+    if (tensionHighlightTimerRef.current !== null) {
+      window.clearTimeout(tensionHighlightTimerRef.current);
+    }
+    setTensionHighlightIds(ids);
+    tensionHighlightTimerRef.current = window.setTimeout(() => {
+      setTensionHighlightIds([]);
+      tensionHighlightTimerRef.current = null;
+    }, HIGHLIGHT_DURATION_MS);
+    const target = findPlanStratum(stratumId);
+    if (target) navigateToStratum(target);
+  };
+
+  // A tension banner row was clicked — flash the concern set and go to the
+  // stratum where the tension resolves.
+  const handleSelectTension = (tensionId: string) => {
+    const tension = activeTensions.find((t) => t.id === tensionId);
+    if (!tension) return;
+    flashTensionAtStratum(tension, tension.resolutionStratumId);
+  };
+
+  // An "Also in {Stratum}" chip was clicked — re-arm the flash (so the cards
+  // light up fresh even after a prior window expired) and navigate to that
+  // other stratum, where the tension's cross-stratum concerned cards live.
+  const handleSelectTensionStratum = (tensionId: string, stratumId: string) => {
+    const tension = activeTensions.find((t) => t.id === tensionId);
+    if (!tension) return;
+    flashTensionAtStratum(tension, stratumId);
+  };
+
+  // For each active tension, the strata its concerned objectives live in OTHER
+  // than the one the row navigates to (its `resolutionStratumId`). Surfaced as
+  // clickable "Also in {Stratum} (n)" chips in the banner so cross-stratum
+  // concerns (e.g. tension-3's `con-s5-fencing-exclusion` in S5) are reachable,
+  // not latent. Keyed by tension id; tensions with no cross-stratum concern are
+  // omitted.
+  const tensionStrataHints = useMemo<
+    Record<string, { stratumId: string; label: string; count: number }[]>
+  >(() => {
+    const map: Record<
+      string,
+      { stratumId: string; label: string; count: number }[]
+    > = {};
+    for (const tension of activeTensions) {
+      const groups = getTensionConcernsByStratum(tension, objectives);
+      const hints = groups
+        .filter((g) => g.stratumId !== tension.resolutionStratumId)
+        .map((g) => ({
+          stratumId: g.stratumId,
+          label: findPlanStratum(g.stratumId)?.title ?? g.stratumId,
+          count: g.objectiveIds.length,
+        }));
+      if (hints.length > 0) map[tension.id] = hints;
+    }
+    return map;
+  }, [activeTensions, objectives]);
+
+  // Cross-protocol co-occurrence verdict (shell-level, cross-stratum). When >= 2
+  // distinct protocols each hold an OPEN review flag in the same season:cycle
+  // bucket, the cluster is a single root-cause-collapse signal -- surfaced once
+  // above the strata rather than as N separate single-flag chips.
+  //
+  // We intentionally do NOT pass a currentBucket here. Window-dormancy is keyed
+  // on cycleNumber, which is domain-scoped (getCurrentCycle needs a domainId);
+  // this shell is cross-stratum / cross-domain and has no single cycle to supply.
+  // A season-only bucket would be a verified no-op anyway -- isFlagDormantByWindow
+  // returns false whenever the current cycleNumber is absent -- so window-dormancy
+  // is left to the domain-scoped Act/Observe surfaces, and the shell shows every
+  // currently-open cluster.
+  const coOccurrenceClusters = useCoOccurrenceClusters(projectId || null);
+  const [coOccurrenceExpanded, setCoOccurrenceExpanded] = useState(false);
+  // Slice #3 (chronic): heavier/structural tier mounted ABOVE the single-cycle
+  // co-occurrence banner. Same projectId/no-currentBucket contract as the
+  // co-occurrence hook above (cross-stratum shell has no single cycle to supply).
+  const chronicVerdicts = useChronicVerdicts(projectId || null);
+  const [chronicExpanded, setChronicExpanded] = useState(false);
+  const handleCoOccurrenceSelectObjective = (objectiveId: string) => {
+    const obj = findPlanStratumObjectiveIn(objectives, objectiveId);
+    if (obj) navigateToObjective(obj.id, obj.stratumId);
   };
 
   // Phase B3 (Plan Navigation Spec v1.1 section 9) - mid-project secondary
@@ -352,9 +480,50 @@ export default function PlanStratumShell() {
     [protocolLib.templates, selectedProtocolIds],
   );
 
+  // Protocol Mode is navigated BY stratum (route `…/plan/stratum/$stratumId`),
+  // so show only the open stratum's protocols rather than all 7 at once. The
+  // route param and `protocol.stratumId` share the `PlanStratumId` format, so
+  // the match is exact; a null `activeStratumId` (no open stratum) shows all.
+  const stratumProtocolGroups = useMemo(
+    () => filterProtocolGroups(protocolLib.groups, activeStratumId),
+    [protocolLib.groups, activeStratumId],
+  );
+  // The ids the column actually shows (stratum-scoped) — the universe the bulk
+  // select/deselect-all toggle operates over.
+  const visibleProtocolIds = useMemo(
+    () => stratumProtocolGroups.flatMap((g) => g.items.map((t) => t.id)),
+    [stratumProtocolGroups],
+  );
+  // Bulk toggle: select every visible protocol, or clear if all are already
+  // selected. Functional updater keeps it free of a stale selection closure.
+  const toggleAllProtocols = () =>
+    setSelectedProtocolIds((prev) =>
+      visibleProtocolIds.length > 0 &&
+      visibleProtocolIds.every((id) => prev.includes(id))
+        ? []
+        : visibleProtocolIds,
+    );
+  // Tensions reconciled AT the open stratum get highlighted in the banner
+  // ("this stratum reconciles these"); the rest are still listed for context.
+  const protocolHighlightTensionIds = useMemo(
+    () =>
+      activeStratumId
+        ? activeTensions
+            .filter((t) => t.resolutionStratumId === activeStratumId)
+            .map((t) => t.id)
+        : [],
+    [activeTensions, activeStratumId],
+  );
+  // Selection hygiene: when the open stratum changes, clear protocol selections
+  // so the detail stack never orphans to a now-hidden stratum's protocols.
+  useEffect(() => {
+    setSelectedProtocolIds([]);
+  }, [activeStratumId]);
+
   const [primarySetOpen, setPrimarySetOpen] = useState(false);
   const [primaryChangeOpen, setPrimaryChangeOpen] = useState(false);
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
+  const [pruneOpen, setPruneOpen] = useState(false);
 
   // Mid-project PRIMARY-type change (destructive — re-derives the catalogue).
   // Optionally clones the project under the OLD type first (with its progress)
@@ -509,6 +678,24 @@ export default function PlanStratumShell() {
     navigateToObjective(obj.id, obj.stratumId);
   };
 
+  // Header Stage Search (Phase 2) — while a query is active, the centre column
+  // broadens to a flat, cross-stratum match list (PlanSearchColumn) IN PLACE of
+  // the active stratum's ObjectiveColumn. The query lives in the ephemeral
+  // stageSearchStore and is cleared on stage change by HeaderStageSearch; we
+  // only read it here. Selecting a result navigates to its objective and clears
+  // the query, dropping back to the normal stratum column.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim() !== '';
+  const planSearchMatches = useMemo(
+    () => (searchActive ? resolvePlanSearchMatches(objectives, searchQuery) : []),
+    [searchActive, objectives, searchQuery],
+  );
+  const handleSelectSearchResult = (obj: PlanStratumObjective) => {
+    clearSearch();
+    navigateToObjective(obj.id, obj.stratumId);
+  };
+
   // Plan Spine re-skin Phase 2 — flip the Design ⇄ Protocol mode by rewriting
   // only the `planMode` search param on the CURRENT path (`to: '.'`), preserving
   // the active stratum/objective segments. Design mode omits the param entirely
@@ -603,8 +790,7 @@ export default function PlanStratumShell() {
                 lineHeight: 1.45,
                 color: C.textSecondary,
                 textAlign: 'left',
-                textDecoration: 'underline dotted',
-                textUnderlineOffset: 3,
+                textDecoration: 'none',
                 cursor: 'pointer',
               }}
             >
@@ -668,7 +854,59 @@ export default function PlanStratumShell() {
           <div style={{ marginTop: 8 }}>
             <ModeToggle mode={planMode} onChange={handlePlanModeChange} />
           </div>
+
+          {/* Compact-ledger trigger (B3) - opens the steward-facing prune modal */}
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => setPruneOpen(true)}
+              data-testid="compact-ledger-trigger"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 11px',
+                borderRadius: 999,
+                border: `1px solid ${C.border}`,
+                background: C.bg3,
+                color: C.textSecondary,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontFamily: F.sans,
+              }}
+            >
+              <Archive size={12} aria-hidden />
+              <span>Compact ledger</span>
+            </button>
+          </div>
         </div>
+
+        {/* Chronic structural verdict (heavier tier -- recurs across cycles) */}
+        {chronicVerdicts.length > 0 && (
+          <div style={{ padding: '8px 12px 0' }}>
+            <ChronicVerdictBanner
+              verdicts={chronicVerdicts}
+              expanded={chronicExpanded}
+              onToggle={() => setChronicExpanded((v) => !v)}
+              onSelectObjective={handleCoOccurrenceSelectObjective}
+            />
+          </div>
+        )}
+
+        {/* Cross-protocol co-occurrence verdict (shell-level structural signal) */}
+        {coOccurrenceClusters.length > 0 && (
+          <div style={{ padding: '8px 12px 0' }}>
+            <CoOccurrenceVerdictBanner
+              clusters={coOccurrenceClusters}
+              expanded={coOccurrenceExpanded}
+              onToggle={() => setCoOccurrenceExpanded((v) => !v)}
+              onSelectObjective={handleCoOccurrenceSelectObjective}
+            />
+          </div>
+        )}
 
         {/* Observe-stage data-gap banner (transient, from a mid-project add) */}
         {observeGapCount > 0 && (
@@ -745,10 +983,21 @@ export default function PlanStratumShell() {
            mounts only when a stratum is open) ── */}
       {planMode === 'protocol' ? (
         <ProtocolColumn
-          groups={protocolLib.groups}
+          groups={stratumProtocolGroups}
           statusByTemplate={protocolLib.statusByTemplate}
           selectedIds={selectedProtocolIds}
           onToggle={toggleProtocol}
+          onToggleAll={toggleAllProtocols}
+          tensions={activeTensions}
+          highlightTensionIds={protocolHighlightTensionIds}
+        />
+      ) : searchActive ? (
+        <PlanSearchColumn
+          query={searchQuery}
+          matches={planSearchMatches}
+          objectiveStatuses={objectiveStatuses}
+          activeObjectiveId={activeObjectiveId}
+          onSelectObjective={handleSelectSearchResult}
         />
       ) : activeStratum ? (
         <ObjectiveColumn
@@ -760,6 +1009,9 @@ export default function PlanStratumShell() {
           projectId={projectId}
           tensions={activeTensions}
           activeStratumId={activeStratumId}
+          tensionStrataHints={tensionStrataHints}
+          onSelectTension={handleSelectTension}
+          onSelectTensionStratum={handleSelectTensionStratum}
           onSelectObjective={handleSelectObjective}
           onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}
@@ -779,9 +1031,10 @@ export default function PlanStratumShell() {
       >
         {planMode === 'protocol' ? (
           <ProtocolDetailColumn
+            projectId={projectId}
             selectedTemplates={selectedTemplates}
             statusByTemplate={protocolLib.statusByTemplate}
-            outputs={protocolLib.outputs}
+            outputsFor={protocolLib.outputsFor}
           />
         ) : hasDetailPanel && activeObjective && activeStratum ? (
           <ObjectiveDetailPanel
@@ -895,6 +1148,13 @@ export default function PlanStratumShell() {
           onNavigate={handleReopenNavigate}
           onContinue={handleReopenContinue}
           onDismiss={() => setReopenPayload(null)}
+        />
+      )}
+
+      {pruneOpen && (
+        <PruneLedgerModal
+          projectId={projectId}
+          onClose={() => setPruneOpen(false)}
         />
       )}
     </div>

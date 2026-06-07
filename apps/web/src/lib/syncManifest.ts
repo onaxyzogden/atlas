@@ -54,6 +54,7 @@ import { useWorkItemStore } from '../store/workItemStore.js';
 import { useCrewMemberStore } from '../store/crewMemberStore.js';
 import { useWorkItemBudgetStore } from '../store/workItemBudgetStore.js';
 import { useProofEventStore } from '../store/proofEventStore.js';
+import { useObservationLogStore } from '../store/observationLogStore.js';
 import { useLivestockStore } from '../store/livestockStore.js';
 import { usePolycultureStore } from '../store/polycultureStore.js';
 import { useCropStore } from '../store/cropStore.js';
@@ -113,6 +114,13 @@ import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
 import { useObserveCycleStore } from '../store/observeCycleStore.js';
 import { usePresentationShareStore } from '../store/presentationShareStore.js';
 import { usePlanRevisionDismissalStore } from '../store/planRevisionDismissalStore.js';
+import { useObservationRecordStore } from '../store/olos/observationRecordStore.js';
+import { useProofRecordStore } from '../store/olos/proofRecordStore.js';
+import { useVerificationRecordStore } from '../store/olos/verificationRecordStore.js';
+import { useActEvidenceStore } from '../store/actEvidenceStore.js';
+import { useReviewFlagStore } from '../store/reviewFlagStore.js';
+import { useProtocolStore } from '../store/protocolStore.js';
+import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -401,6 +409,72 @@ const objectiveSummaryShape: BlobShape = {
     }),
 };
 
+/**
+ * act-evidence carries TWO byProject record maps (per-objective evidence
+ * capture + per-form vision text); both slices are owned by the same projectId.
+ * Same pattern as observationNeedsShape / planStratumShape.
+ */
+const actEvidenceShape: BlobShape = {
+  select: (s, pid) => ({
+    byProject: (s as any)?.byProject?.[pid] ?? {},
+    visionForms: (s as any)?.visionForms?.[pid] ?? {},
+  }),
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      return {
+        byProject: { ...((st?.byProject as any) ?? {}), [pid]: inc.byProject ?? {} },
+        visionForms: {
+          ...((st?.visionForms as any) ?? {}),
+          [pid]: inc.visionForms ?? {},
+        },
+      };
+    }),
+};
+
+/**
+ * protocols mixes TWO projectId-tagged arrays (lifecycle `records` + append-only
+ * `activations`) with TWO byProject maps (`expectationsByProject` +
+ * `instantiatedObjectiveIds`). Same mixed-shape pattern as agribusinessSelect:
+ * filter the tagged arrays to this project, pick this project's map rows, and
+ * restore each without disturbing other projects.
+ */
+const protocolShape: BlobShape = {
+  select: (s, pid) => {
+    const st = s as any;
+    const pick = (f: string) =>
+      Array.isArray(st?.[f]) ? st[f].filter((x: any) => x?.projectId === pid) : [];
+    return {
+      records: pick('records'),
+      activations: pick('activations'),
+      expectationsByProject: st?.expectationsByProject?.[pid] ?? {},
+      instantiatedObjectiveIds: st?.instantiatedObjectiveIds?.[pid] ?? [],
+    };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      const repl = (f: string) => {
+        const ex = Array.isArray(st?.[f]) ? st[f] : [];
+        const others = ex.filter((x: any) => x?.projectId !== pid);
+        const i = inc[f];
+        return others.concat(Array.isArray(i) ? i : []);
+      };
+      return {
+        records: repl('records'),
+        activations: repl('activations'),
+        expectationsByProject: {
+          ...((st?.expectationsByProject as any) ?? {}),
+          [pid]: inc.expectationsByProject ?? {},
+        },
+        instantiatedObjectiveIds: {
+          ...((st?.instantiatedObjectiveIds as any) ?? {}),
+          [pid]: inc.instantiatedObjectiveIds ?? [],
+        },
+      };
+    }),
+};
+
 function blob(
   storeKey: string,
   store: { getState: () => unknown; subscribe: (...a: any[]) => any },
@@ -538,6 +612,49 @@ function recordKeyedMap(cycleIdField?: string): RecordShape {
 }
 
 /**
+ * typed-record shape for a `byProject` KEYED-MAP store whose inner key is NOT
+ * the record's sync id — the olos observation store keys
+ * `byProject[pid][objectiveId]`, but the record's stable sync id is `value.id`
+ * (a server uuid, or a local `obs-…` draft id). recordId = `String(value.id)`
+ * so the wire/queue/conflict identity is the row id (matching the server's
+ * uuid PK), while the store stays keyed by `objectiveId` for O(1) workspace
+ * lookup.
+ *
+ * `applyRecord` reconciles by the record id: it replaces whichever inner entry
+ * already carries `.id === recordId` (the in-place update / local-draft→server
+ * rekey case, since the objective slot is stable), else inserts the incoming
+ * record under its own `objectiveId`. The local draft and its server copy share
+ * one `objectiveId` slot, so a rekey never leaves an orphan.
+ */
+function recordByInnerField(innerIdField: string): RecordShape {
+  return {
+    selectRecords: (state, pid) => {
+      const map = (state?.byProject?.[pid] as Record<string, any>) ?? {};
+      return Object.values(map)
+        .filter((value) => value != null && value.id != null)
+        .map((value) => ({
+          recordId: String(value.id),
+          record: value,
+          meta: extractRecordMeta(value),
+        }));
+    },
+    applyRecord: (store, pid, recordId, incoming) =>
+      store.setState((st: any) => {
+        const byProject = { ...((st?.byProject as any) ?? {}) };
+        const project = { ...((byProject[pid] as Record<string, any>) ?? {}) };
+        const existingKey = Object.keys(project).find(
+          (k) => String(project[k]?.id) === recordId,
+        );
+        const key =
+          existingKey ?? String((incoming as any)?.[innerIdField] ?? recordId);
+        project[key] = incoming;
+        byProject[pid] = project;
+        return { byProject };
+      }),
+  };
+}
+
+/**
  * typed-record registration helper — the per-record analogue of `blob()`.
  * `schemaVersion` MUST match the store's persist `version` so the hydrate-side
  * version-skew guard stays correct (e.g. field-actions is persist v3 after the
@@ -659,6 +776,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-crew-members', useCrewMemberStore, 'projectId-tagged', 1, tagged('members')),
   blob('ogden-work-item-actuals', useWorkItemBudgetStore, 'projectId-tagged', 1, tagged('actuals')),
   blob('ogden-work-item-proof', useProofEventStore, 'projectId-tagged', 1, tagged('events')),
+  blob('ogden-observation-log', useObservationLogStore, 'projectId-tagged', 1, tagged('records')),
   blob('ogden-livestock', useLivestockStore, 'projectId-tagged', 1, tagged('paddocks', 'fenceLines'), true),
   blob('ogden-polyculture', usePolycultureStore, 'projectId-tagged', 3, tagged('guilds', 'species'), true),
   blob('ogden-crops', useCropStore, 'projectId-tagged', 3, tagged('cropAreas'), true),
@@ -762,6 +880,45 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // event (capture, divergence, freshness change) arrives. A single
   // string per project fits byKey('byProject', null, '').
   blob('ogden-plan-revision-dismissals', usePlanRevisionDismissalStore, 'byProject', 1, byKey('byProject', null, '')),
+
+  // --- OLOS canonical record substrate (Phase 3B; full rev parity) ---
+  // The three olos record domains join the typed-record transport so they get
+  // real-time broadcast, reconnect delta-pull, and the 409 keep-mine/keep-server
+  // surface (mirroring the Act path). Unlike Act records (opaque synced_records
+  // blobs), the canonical data stays single-sourced in the olos_* tables with a
+  // server `rev` column (migration 053); the push flush in syncService routes
+  // these storeKeys to the domain REST endpoints rather than the generic
+  // synced_records PUT. All gated behind FLAGS.SYNC_STATE_BLOBS (default OFF).
+  //
+  // observation: byProject[pid][objectiveId], but the sync id is record.id (a
+  // server uuid / local `obs-…` draft) → recordByInnerField('objectiveId').
+  // schemaVersion 1 mirrors the store persist version AND OLOS_SCHEMA_VERSION.
+  record('ogden-olos-observation-records', useObservationRecordStore, 'byProject', 1, recordByInnerField('objectiveId')),
+  // proof / verification: byProject[pid][id] keyed by the record id directly →
+  // the existing recordKeyedMap() (recordId = inner key = row id).
+  record('ogden-olos-proof-records', useProofRecordStore, 'byProject', 1, recordKeyedMap()),
+  record('ogden-olos-verification-records', useVerificationRecordStore, 'byProject', 1, recordKeyedMap()),
+
+  // --- Act tier-shell evidence capture + Protocol/Review-flag substrate ---
+  // Per-objective evidence capture (photos/confirms/notes) + per-form vision
+  // text, two byProject maps owned by one project. No server table → opaque
+  // versioned-blob. v1 matches the persist version.
+  blob('ogden-act-evidence', useActEvidenceStore, 'byProject', 1, actEvidenceShape),
+  // ObjectiveReviewFlag records raised by the deviation engine, byProject
+  // Record<projectId, ObjectiveReviewFlag[]>. Records carry ids but have no
+  // dedicated typed-record transport (no server table/endpoint), so the
+  // generic byProject blob is the correct path. v1 matches the persist version.
+  blob('ogden-review-flags', useReviewFlagStore, 'byProject', 1, byKey('byProject', null, [])),
+  // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
+  // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
+  // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4
+  // matches the store's persist version (v1→v4 additive slice migrations).
+  blob('ogden-protocols', useProtocolStore, 'projectId-tagged', 4, protocolShape),
+  // Plan design-tension banner collapsed/expanded preference, per project
+  // (collapsedByProject Record<projectId, boolean>). A per-project UI cursor
+  // like ogden-plan-revision-dismissals (also a synced versioned-blob); absent
+  // ⇒ collapsed (true) default, so empty = true. v1 matches the persist version.
+  blob('ogden-plan-tension-banner', usePlanTensionBannerStore, 'byProject', 1, byKey('collapsedByProject', null, true)),
 ];
 
 /**

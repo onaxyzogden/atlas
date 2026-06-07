@@ -10,6 +10,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type SwotBucket = 'S' | 'W' | 'O' | 'T';
@@ -47,7 +48,7 @@ export const useSwotStore = create<SwotState>()(
         set((s) => ({ swot: s.swot.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeSwot: (id) => set((s) => ({ swot: s.swot.filter((e) => e.id !== id) })),
     }), { limit: 200 }),
-    { name: 'ogden-swot', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-swot', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

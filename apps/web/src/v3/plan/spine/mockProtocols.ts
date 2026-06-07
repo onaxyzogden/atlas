@@ -153,5 +153,7 @@ export function mockProtocolsForEnterprises(
 ): readonly SpineProtocolTemplate[] {
   const active = new Set(activeEnterprises);
   if (active.size === 0) return [];
-  return MOCK_STRATUM_PROTOCOLS.filter((t) => t.enterpriseScope.some((e) => active.has(e)));
+  return MOCK_STRATUM_PROTOCOLS.filter((t) =>
+    (t.enterpriseScope ?? []).some((e) => active.has(e)),
+  );
 }

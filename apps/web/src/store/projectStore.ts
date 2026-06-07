@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import {
   ProjectType,
   getActiveTensions,
@@ -97,6 +98,12 @@ export interface LocalProject {
    */
   startDate?: string | null;
   /**
+   * ISO YYYY-MM-DD. Date land establishment/planting began; drives the
+   * establishment-dip (years 1-2) re-frame on review flags. Distinct from
+   * startDate (Goal Compass scheduling anchor).
+   */
+  commencementDate?: string | null;
+  /**
    * Which Plan-stage shell the steward sees: the new 7-stratum spine
    * (OLOS Plan Navigation Spec v1) or the legacy module bar. Per-project
    * so legacy projects with `MTC_SEED` keep their module shape, while
@@ -122,6 +129,14 @@ export interface LocalProject {
    * `getObserveShellMode(project)` which applies the defaulting rules.
    */
   observeShellMode?: ObserveShellMode;
+  /**
+   * Which data source the `module-bar` Observe lens reads: `live` resolves
+   * the lens bundle from the project's real ObserveDataPoint store +
+   * domain snapshots; `mock` falls back to the static Millbrook fixtures
+   * (the escape hatch). Per-project so a steward can pin either source.
+   * Read via `getObserveLensDataSource(project)` which defaults to `live`.
+   */
+  observeLensDataSource?: ObserveLensDataSource;
 }
 
 /**
@@ -197,6 +212,29 @@ export function getObserveShellMode(
 ): ObserveShellMode {
   if (project.observeShellMode) return project.observeShellMode;
   return 'dashboard';
+}
+
+/**
+ * Which data source the `module-bar` Observe lens renders. `live` builds
+ * the lens bundle from the project's real ObserveDataPoint store + domain
+ * snapshots (the default for every project, builtin and user-created);
+ * `mock` is the escape hatch back to the static Millbrook fixtures. Both
+ * stay reachable per project via `ObserveLensDataSourceToggle`.
+ */
+export type ObserveLensDataSource = 'mock' | 'live';
+
+/**
+ * Canonical accessor for a project's Observe lens data source. Explicit
+ * per-project values win; everything else — including builtin samples
+ * (MTC, "351 House") — defaults to `live` so the lens reflects real
+ * captured observations out of the box. No persist backfill: an undefined
+ * value resolves to the live default here.
+ */
+export function getObserveLensDataSource(
+  project: Pick<LocalProject, 'observeLensDataSource'>,
+): ObserveLensDataSource {
+  if (project.observeLensDataSource) return project.observeLensDataSource;
+  return 'live';
 }
 
 /**
@@ -485,6 +523,43 @@ export function normalizeProjectType(
   return null;
 }
 
+/**
+ * Build a fresh `ProjectTypeRecord` from a project's bare `projectType` string
+ * when — and only when — that string normalizes to a valid PRIMARY type.
+ *
+ * Legacy/seeded projects (e.g. the "351 House" homestead, or a project created
+ * before the wizard wrote records) carry a bare `projectType` but no
+ * `metadata.projectTypeRecord`. The resolution ladder in `useProjectObjectives`
+ * tolerates that via its Level-2 string fallback, but the Step-2 wizard reads the
+ * record DIRECTLY — so without a record it renders no primary selection, hides the
+ * secondary picker, and blocks `handleToggleSecondary`. This helper lets both the
+ * persist `migrate` backfill and the wizard materialize the SAME record the
+ * steward would get by re-picking, mirroring `setPrimaryType`'s write exactly
+ * (empty secondary / ack / version / reopening arrays, no `versionHistory` entry).
+ *
+ *   null / "" / unknown string   -> null
+ *   secondary-only (residential) -> null   (canBePrimary: false)
+ *   kebab archetype / legacy enum -> normalized + materialized (via normalizeProjectType)
+ *
+ * Returns `null` when no valid primary can be derived, so callers leave the
+ * project untouched (it keeps falling through to the static skeleton).
+ */
+export function recordFromBareProjectType(
+  projectType: string | null | undefined,
+): ProjectTypeRecord | null {
+  const normalized = normalizeProjectType(projectType);
+  if (!normalized) return null;
+  const def = findProjectType(normalized);
+  if (!def?.canBePrimary) return null;
+  return {
+    primaryTypeId: def.id,
+    secondaryTypeIds: [],
+    tensionAcknowledgements: [],
+    versionHistory: [],
+    reopeningAcknowledgements: [],
+  };
+}
+
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -553,6 +628,14 @@ export const useProjectStore = create<ProjectState>()(
             // Same rationale — Observe shell mode is a per-steward
             // UI choice, not narrative content.
             'observeShellMode',
+            // Same rationale — Observe lens data source (live/mock) is a
+            // per-steward UI choice, settable on builtin samples (MTC) so
+            // the steward can flip the lens between live and fixtures.
+            'observeLensDataSource',
+            // commencementDate is a steward-entered date, not narrative
+            // content -- must be settable on builtin sample projects so the
+            // establishment-dip re-frame works in preview/demo contexts.
+            'commencementDate',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>
@@ -1014,7 +1097,15 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 7,
+      // Durable IndexedDB backend (Phase 1 pilot store). Moves the full
+      // projects[] off the ~5–10 MB localStorage origin cap onto IDB, where the
+      // offline write queue already lives. Rehydration is now ASYNC: the boot
+      // sequence in syncService.start() awaits hydration before attaching the
+      // write-through subscriptions (see awaitStoresHydrated), so the diff
+      // baseline is the hydrated project list — not an empty pre-hydration
+      // snapshot that would re-push every project as a create on boot.
+      storage: idbPersistStorage,
+      version: 9,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -1070,6 +1161,39 @@ export const useProjectStore = create<ProjectState>()(
                 : (p as { planShellMode?: string }).planShellMode,
           }));
         }
+        if (version < 8) {
+          // Backfill a `projectTypeRecord` for any project (builtins included)
+          // that carries a valid bare `projectType` but no record yet. Legacy/
+          // seeded projects resolved their objectives via the string-level
+          // fallback in `useProjectObjectives`, but the Step-2 wizard reads the
+          // record directly — so without one the steward cannot add secondary
+          // layers without first re-picking the primary. Seeding the record the
+          // bare string already implies makes resolution uniformly source:'record'
+          // and unblocks the wizard. Idempotent: projects already holding a record
+          // (or whose string is empty / unknown / secondary-only) pass through.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => {
+            const meta = (p as { metadata?: Record<string, unknown> | null })
+              .metadata;
+            if (meta?.projectTypeRecord) return p;
+            const record = recordFromBareProjectType(
+              (p as { projectType?: string | null }).projectType,
+            );
+            if (!record) return p;
+            return {
+              ...p,
+              metadata: { ...(meta ?? {}), projectTypeRecord: record },
+            };
+          });
+        }
+        if (version < 9) {
+          // No data transform — `observeLensDataSource` stays undefined on
+          // existing projects and resolves to the `live` default via
+          // `getObserveLensDataSource(project)`. Leaving the field absent
+          // means the module-bar Observe lens reads live project data out of
+          // the box; the steward opts back to `mock` per project via the
+          // ObserveLensDataSourceToggle.
+        }
         return state;
       },
       // Strip large geospatial blobs (parsed attachments) from localStorage to
@@ -1119,6 +1243,30 @@ useProjectStore.persist.onFinishHydration(() => {
 // by `'mtc'` so `updateProject('mtc', …)` writes route through the
 // builtin allowlist (parcel boundary + metadata) instead of silently
 // dropping. Idempotent.
+// Plausible Ontario placeholder parcel for the Moontrance Creek demo (~40 ha
+// near Mulmur/Creemore, CA/ON). Long axis runs NW-SE along the lie of the
+// land; the seasonal creek follows the low NE edge. Full 6-dp precision,
+// true-north WGS84 -- swappable for surveyed coordinates later. DEMO DATA.
+const MTC_PARCEL_BOUNDARY: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { name: 'Moontrance Creek (demo parcel)' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-80.105900, 44.303500],
+          [-80.097200, 44.301800],
+          [-80.095800, 44.296500],
+          [-80.104500, 44.298200],
+          [-80.105900, 44.303500],
+        ]],
+      },
+    },
+  ],
+};
+
 export const MTC_SEED: LocalProject = {
   id: 'mtc',
   name: 'Moontrance Creek',
@@ -1132,11 +1280,11 @@ export const MTC_SEED: LocalProject = {
   parcelId: null,
   acreage: null,
   dataCompletenessScore: null,
-  hasParcelBoundary: false,
+  hasParcelBoundary: true,
   isBuiltin: true,
   createdAt: '2026-05-13T00:00:00.000Z',
   updatedAt: '2026-05-13T00:00:00.000Z',
-  parcelBoundaryGeojson: null,
+  parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY,
   ownerNotes: null,
   zoningNotes: null,
   accessNotes: null,
@@ -1151,6 +1299,17 @@ function seedMtcDemo(): void {
   if (!existing) {
     useProjectStore.setState((state) => ({
       projects: [...state.projects, MTC_SEED],
+    }));
+  } else if (!existing.parcelBoundaryGeojson) {
+    // Backfill the demo boundary onto a row persisted before it existed.
+    // Idempotent: only patches when the boundary is still absent, so a user
+    // who later draws their own boundary is never overwritten.
+    useProjectStore.setState((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === 'mtc'
+          ? { ...p, parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY, hasParcelBoundary: true }
+          : p,
+      ),
     }));
   }
   // Seed MTC's curated Act content at hydrate time so View B is populated the

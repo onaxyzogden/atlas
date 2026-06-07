@@ -17,10 +17,14 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type { ObserveFreshness } from '@ogden/shared';
 import { useProjectStore } from '../../../store/projectStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { observeDomainMatchesQuery } from '../../search/useStageSearchResults.js';
 import { useDomainSnapshots } from './useDomainSnapshot.js';
 import LandStateSummary from './LandStateSummary.js';
 import DomainStatusCard from './DomainStatusCard.js';
 import PlanRevisionBanner from './revision/PlanRevisionBanner.js';
+import ChronicSynthesisCard from './ChronicSynthesisCard.js';
+import CoOccurrenceSynthesisCard from './CoOccurrenceSynthesisCard.js';
 import PresentationModeOverlay from './presentation/PresentationModeOverlay.js';
 import PresentationShareDialog from './presentation/PresentationShareDialog.js';
 import css from './UnifiedLandStateSurface.module.css';
@@ -39,15 +43,37 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
   const [presentationOpen, setPresentationOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const visible = useMemo(
+  // Header Stage Search: while a query is active, narrow the 16-domain grid to
+  // domains whose label / purpose / id matches. The freshness filter still
+  // applies underneath (search ∧ freshness). Selecting a card clears the query
+  // so the dashboard returns to its full grid on the revealed domain detail.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim() !== '';
+
+  const freshnessVisible = useMemo(
     () => (filter === null ? snapshots : snapshots.filter((s) => s.freshness === filter)),
     [snapshots, filter],
+  );
+  const visible = useMemo(
+    () =>
+      searchActive
+        ? freshnessVisible.filter((s) =>
+            observeDomainMatchesQuery(
+              { label: s.label, purpose: s.purpose, domainId: s.domainId },
+              searchQuery,
+            ),
+          )
+        : freshnessVisible,
+    [freshnessVisible, searchActive, searchQuery],
   );
 
   return (
     <div className={css.surface}>
       <div className={css.header}>
         <PlanRevisionBanner projectId={projectId} />
+        <ChronicSynthesisCard projectId={projectId} />
+        <CoOccurrenceSynthesisCard projectId={projectId} />
         <div className={css.toolbar}>
           <button
             type="button"
@@ -79,18 +105,25 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
       <div
         className={css.grid}
         role="list"
-        aria-label="Universal land domains"
+        aria-label={
+          searchActive
+            ? `Universal land domains matching “${searchQuery.trim()}”`
+            : 'Universal land domains'
+        }
       >
         {visible.map((snapshot) => (
           <DomainStatusCard
             key={snapshot.domainId}
             snapshot={snapshot}
             projectId={projectId}
+            onNavigate={searchActive ? clearSearch : undefined}
           />
         ))}
         {visible.length === 0 && (
           <div className={css.empty}>
-            No domains match this freshness filter.
+            {searchActive
+              ? `No domains match “${searchQuery.trim()}”.`
+              : 'No domains match this freshness filter.'}
           </div>
         )}
       </div>

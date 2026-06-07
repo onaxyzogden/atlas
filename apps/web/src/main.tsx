@@ -6,7 +6,7 @@ import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
 import SessionExpiredBanner from './components/SessionExpiredBanner.js';
-import ApiReachabilityBanner from './components/ApiReachabilityBanner.js';
+import ApiReachabilityWatcher from './components/ApiReachabilityWatcher.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
@@ -57,9 +57,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         {/* SessionExpiredBanner subscribes to sessionExpiredStore, which is
             never triggered on the showcase path; mounting it is free. */}
         <SessionExpiredBanner />
-        {/* ApiReachabilityBanner reads connectivity + auth stores, which stay
-            at their defaults on the showcase path; mounting it is free. */}
-        <ApiReachabilityBanner />
+        {/* ApiReachabilityWatcher is the headless global self-heal (online
+            listener + reachability poll); it renders null. It reads connectivity
+            + auth stores, which stay at their defaults on the showcase path, so
+            mounting it is free. The visible warning is the header chip
+            ApiReachabilityStatus, mounted in AppShell. */}
+        <ApiReachabilityWatcher />
         <RouterProvider router={router} />
         <ToastContainer />
       </QueryClientProvider>

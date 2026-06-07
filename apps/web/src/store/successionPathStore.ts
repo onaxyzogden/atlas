@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type SuccessionAction = 'plant' | 'thin' | 'remove';
 
@@ -98,6 +99,6 @@ export const useSuccessionPathStore = create<SuccessionPathState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-succession-path', version: 1 },
+    { name: 'ogden-succession-path', storage: idbPersistStorage, version: 1 },
   ),
 );

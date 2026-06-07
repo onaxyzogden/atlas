@@ -14,7 +14,7 @@
   gap: 14px;
   width: 100%;
   padding: 16px 18px;
-  background: color-mix(in srgb, var(--next-color) 8%, var(--color-bg, #1f1d1a));
+  background: color-mix(in srgb, var(--next-color) 8%, var(--color-bg, #14191f));
   border: 1px solid color-mix(in srgb, var(--next-color) 45%, var(--color-border));
   border-radius: var(--radius-lg, 12px);
   color: var(--color-text, #f2ede3);
@@ -26,7 +26,7 @@
 }
 
 .card:hover {
-  background: color-mix(in srgb, var(--next-color) 14%, var(--color-bg, #1f1d1a));
+  background: color-mix(in srgb, var(--next-color) 14%, var(--color-bg, #14191f));
   border-color: var(--next-color);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
@@ -49,7 +49,7 @@
 
 .eyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -68,7 +68,7 @@
 .statusPill {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -80,7 +80,7 @@
 .sourceTag {
   padding: 3px 10px;
   border-radius: var(--radius-full, 999px);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -112,7 +112,7 @@
   gap: 4px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;

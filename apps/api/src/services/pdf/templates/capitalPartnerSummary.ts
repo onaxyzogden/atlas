@@ -411,8 +411,15 @@ export function renderCapitalPartnerSummary(data: ExportDataBag): string {
       </div>
     </div>`;
 
+  // L.1 — first 15 assumptions render on page 1; any remainder continues on a
+  // dedicated page-2 section with continuous numbering (<ol start="16">) so the
+  // full list is surfaced rather than silently truncated.
+  const FIRST_PAGE_ASSUMPTIONS = 15;
+  const firstPageAssumptions = fin.assumptions.slice(0, FIRST_PAGE_ASSUMPTIONS);
+  const continuationAssumptions = fin.assumptions.slice(FIRST_PAGE_ASSUMPTIONS);
+
   const assumptionsList = fin.assumptions.length > 0
-    ? `<ul>${fin.assumptions.slice(0, 15).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`
+    ? `<ul>${firstPageAssumptions.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`
     : '<p>No assumptions recorded.</p>';
 
   const nc = fin.naturalCapital;
@@ -484,8 +491,24 @@ export function renderCapitalPartnerSummary(data: ExportDataBag): string {
       </div>
     </div>`;
 
+  // L.1 — page-2 continuation for assumptions beyond the first 15. Reuses the
+  // existing `.cover { page-break-after: always }` machinery via an explicit
+  // page-break-before so the list starts on a fresh page; numbering resumes at
+  // 16 so readers don't lose count.
+  const assumptionsContinuationSection = continuationAssumptions.length > 0
+    ? `
+    <section class="cover" style="page-break-before: always;">
+      <div class="section">
+        <h2>Assumptions (continued)</h2>
+        <ol start="${FIRST_PAGE_ASSUMPTIONS + 1}">
+          ${continuationAssumptions.map((a) => `<li>${esc(a)}</li>`).join('')}
+        </ol>
+      </div>
+    </section>`
+    : '';
+
   return baseLayout('Capital Partner Summary', p.name,
     propertySection + highlightsSection + costsSection + revenueSection +
     cashflowSection + jCurveSection + missionSection + naturalCapitalSection +
-    capitalChannelsSection + disclaimerSection);
+    capitalChannelsSection + disclaimerSection + assumptionsContinuationSection);
 }

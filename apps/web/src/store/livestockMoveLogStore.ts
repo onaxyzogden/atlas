@@ -10,6 +10,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { LivestockSpecies } from './livestockStore.js';
 
 export type LivestockMoveDirection = 'move_in' | 'move_out' | 'rotate_through';
@@ -253,6 +254,8 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
     }),
     {
       name: 'ogden-livestock-moves',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 4,
       migrate: (persisted, fromVersion) => {
         const state = persisted as { events?: LivestockMoveEvent[] } | undefined;

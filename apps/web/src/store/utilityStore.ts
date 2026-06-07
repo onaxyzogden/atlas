@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { utility } from '../lib/tokens';
 
 export type UtilityType =
@@ -123,6 +124,8 @@ export const useUtilityStore = create<UtilityState>()(
     }),
     {
       name: 'ogden-utilities',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({ utilities: state.utilities }),

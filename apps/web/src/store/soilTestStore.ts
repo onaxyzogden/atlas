@@ -16,6 +16,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export interface SoilTest {
   id: string;
@@ -72,7 +73,7 @@ export const useSoilTestStore = create<SoilTestState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-soil-tests', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-soil-tests', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

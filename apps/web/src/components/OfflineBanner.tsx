@@ -12,7 +12,7 @@
  * Mounted at the top of AppShell (before header).
  */
 
-import { useConnectivityStore } from '../store/connectivityStore.js';
+import { selectMostRecentSync, useConnectivityStore } from '../store/connectivityStore.js';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from '@tanstack/react-router';
 import styles from './OfflineBanner.module.css';
@@ -21,7 +21,7 @@ export default function OfflineBanner() {
   const isOnline = useConnectivityStore((s) => s.isOnline);
   const syncStatus = useConnectivityStore((s) => s.syncStatus);
   const pendingChanges = useConnectivityStore((s) => s.pendingChanges);
-  const lastSyncedAt = useConnectivityStore((s) => s.lastSyncedAt);
+  const lastSyncedAt = useConnectivityStore(selectMostRecentSync);
   const conflictedStores = useConnectivityStore((s) => s.conflictedStores);
   const clearConflictedStore = useConnectivityStore((s) => s.clearConflictedStore);
   const droppedStores = useConnectivityStore((s) => s.droppedStores);

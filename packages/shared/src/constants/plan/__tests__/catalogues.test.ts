@@ -20,6 +20,14 @@ import {
   ORCHARD_SECONDARY_OBJECTIVES,
   ORCHARD_SECONDARY_PATCHES,
   NURSERY_SECONDARY_OBJECTIVES,
+  HOMESTEAD_PRIMARY_OBJECTIVES,
+  EDUCATION_PRIMARY_OBJECTIVES,
+  CONSERVATION_PRIMARY_OBJECTIVES,
+  MARKET_GARDEN_PRIMARY_OBJECTIVES,
+  OFF_GRID_PRIMARY_OBJECTIVES,
+  LIVESTOCK_PRIMARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_PATCHES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -39,11 +47,18 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...SILVOPASTURE_SECONDARY_OBJECTIVES,
   ...ORCHARD_PRIMARY_OBJECTIVES,
   ...ORCHARD_SECONDARY_OBJECTIVES,
+  ...HOMESTEAD_PRIMARY_OBJECTIVES,
+  ...EDUCATION_PRIMARY_OBJECTIVES,
+  ...CONSERVATION_PRIMARY_OBJECTIVES,
+  ...MARKET_GARDEN_PRIMARY_OBJECTIVES,
+  ...OFF_GRID_PRIMARY_OBJECTIVES,
+  ...LIVESTOCK_PRIMARY_OBJECTIVES,
+  ...LIVESTOCK_SECONDARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS|HMS|EDU|CON|MGD|OFG|LVS)-S[1-7]\.\d+$/;
 
-const PATCH_REF = /^(RES|SILV|ORCH)>(U|RF)-S[1-7]\.\d+$/;
+const PATCH_REF = /^(RES|SILV|ORCH|LVS)>(U|RF)-S[1-7]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
   it('every authored objective parses via PlanStratumObjectiveSchema', () => {
@@ -181,6 +196,56 @@ describe('catalogue conformance - source/layer discipline', () => {
       expect(o.secondaryClass, o.id).toBe('additive');
     }
   });
+
+  it('homestead primary objectives are source=primary, sourceTypeId=homestead', () => {
+    for (const o of HOMESTEAD_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('homestead');
+    }
+  });
+
+  it('education primary objectives are source=primary, sourceTypeId=education', () => {
+    for (const o of EDUCATION_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('education');
+    }
+  });
+
+  it('conservation primary objectives are source=primary, sourceTypeId=conservation', () => {
+    for (const o of CONSERVATION_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('conservation');
+    }
+  });
+
+  it('market garden primary objectives are source=primary, sourceTypeId=market_garden', () => {
+    for (const o of MARKET_GARDEN_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('market_garden');
+    }
+  });
+
+  it('off-grid primary objectives are source=primary, sourceTypeId=off_grid', () => {
+    for (const o of OFF_GRID_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('off_grid');
+    }
+  });
+
+  it('livestock primary objectives are source=primary, sourceTypeId=livestock_operation', () => {
+    for (const o of LIVESTOCK_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('livestock_operation');
+    }
+  });
+
+  it('livestock secondary objectives are source=secondary/additive, sourceTypeId=livestock_operation', () => {
+    for (const o of LIVESTOCK_SECONDARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('secondary');
+      expect(o.sourceTypeId, o.id).toBe('livestock_operation');
+      expect(o.secondaryClass, o.id).toBe('additive');
+    }
+  });
 });
 
 describe('catalogue conformance - global id uniqueness', () => {
@@ -297,9 +362,44 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 48 objectives (19 universal + 29 primary)', () => {
-    expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(29);
-    expect(objectives.length).toBe(48);
+  it('resolves to 53 objectives (19 universal + 34 primary)', () => {
+    expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(34);
+    expect(objectives.length).toBe(53);
+  });
+
+  it('carries the 5 eco-resort / glamping extension objectives, each conditionally scoped', () => {
+    const extensionRefs = [
+      'AG-S3.7',
+      'AG-S4.9',
+      'AG-S5.9',
+      'AG-S5.10',
+      'AG-S7.8',
+    ];
+    const extension = AGRITOURISM_PRIMARY_OBJECTIVES.filter((o) =>
+      extensionRefs.includes(o.ref ?? ''),
+    );
+    expect(extension).toHaveLength(extensionRefs.length);
+    for (const o of extension) {
+      expect(typeof o.scopeNotes).toBe('string');
+      expect(o.scopeNotes && o.scopeNotes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('carries the Amanah membership / season-pass flag on the AG-S4.8 revenue model', () => {
+    // feedback_csa_in_catalogues: a season-pass / membership instrument is an
+    // advance-sale surface (bay` ma laysa `indak / gharar) that must be surfaced
+    // AND flagged + routed to Scholar Council, never silently omitted. AG-S7.8
+    // deferred it; AG-S4.8 now realises it as a membership benefit, not prepayment.
+    const revenue = AGRITOURISM_PRIMARY_OBJECTIVES.find(
+      (o) => o.id === 'ag-s4-revenue-model',
+    );
+    expect(revenue?.scopeNotes).toBeTruthy();
+    expect(revenue?.scopeNotes).toContain('Scholar Council');
+    expect(revenue?.scopeNotes).toContain('membership benefit');
+    const membershipItem = revenue?.checklist.find(
+      (i) => i.id === 'ag-s4-revenue-model-c8',
+    );
+    expect(membershipItem?.label.toLowerCase()).toContain('membership benefit');
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -410,6 +510,64 @@ describe('catalogue conformance - silvopasture primary resolution', () => {
   });
 });
 
+describe('catalogue conformance - livestock primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'livestock_operation',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 42 objectives (19 universal + 23 primary)', () => {
+    expect(LIVESTOCK_PRIMARY_OBJECTIVES.length).toBe(23);
+    expect(objectives.length).toBe(42);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every livestock primary ref is unique within the primary set', () => {
+    const refs = LIVESTOCK_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
+  });
+
+  it('binds all six livestock/grazing formula ids across the catalogue', () => {
+    const bound = new Set(
+      LIVESTOCK_PRIMARY_OBJECTIVES.flatMap((o) =>
+        o.checklist
+          .map((i) => i.formulaBinding?.formulaId)
+          .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+      ),
+    );
+    expect(bound).toEqual(
+      new Set([
+        'forage-carrying-capacity',
+        'carrying-capacity-seasonal',
+        'paddock-stocking-density',
+        'stock-water-demand',
+        'paddock-system-capacity',
+        'enterprise-break-even',
+      ]),
+    );
+  });
+
+  it('carries the Amanah advance-sale flag on the marketing objective scopeNotes', () => {
+    // feedback_csa_in_catalogues: meat/herd-share advance-subscription channels
+    // must be surfaced AND flagged (bay` ma laysa `indak), never silently omitted.
+    const marketing = LIVESTOCK_PRIMARY_OBJECTIVES.find(
+      (o) => o.id === 'lvs-s7-marketing',
+    );
+    expect(marketing?.scopeNotes).toBeTruthy();
+    expect(marketing?.scopeNotes).toContain('Scholar Council');
+    const channels = marketing?.checklist.find(
+      (i) => i.id === 'lvs-s7-marketing-c3',
+    );
+    expect(channels?.label.toLowerCase()).toContain('herd-share');
+  });
+});
+
 describe('catalogue conformance - orchard primary resolution', () => {
   const { objectives } = resolveProjectObjectives({
     primaryTypeId: 'orchard_food_forest',
@@ -483,8 +641,8 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes exactly 5 additive objectives and 3 patches', () => {
-    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(5);
+  it('contributes exactly 8 additive objectives and 3 patches', () => {
+    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(8);
     expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(3);
   });
 
@@ -500,7 +658,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     }
   });
 
-  it('resolves silvopasture onto a regen primary as +5 additive', () => {
+  it('resolves silvopasture onto a regen primary as +8 additive', () => {
     const base = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: [],
@@ -509,7 +667,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
     });
-    expect(withSilv.objectives.length).toBe(base.objectives.length + 5);
+    expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
   it('applies all 3 patches to universal targets, none skipped', () => {
@@ -798,6 +956,95 @@ describe('catalogue conformance - orchard secondary resolution', () => {
     const { objectives } = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['orchard_food_forest'],
+    });
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+});
+
+describe('catalogue conformance - livestock secondary resolution', () => {
+  it('contributes exactly 7 additive objectives and 3 patches', () => {
+    expect(LIVESTOCK_SECONDARY_OBJECTIVES.length).toBe(7);
+    expect(LIVESTOCK_SECONDARY_PATCHES.length).toBe(3);
+  });
+
+  it('every livestock secondary patch ref matches the patch format', () => {
+    for (const p of LIVESTOCK_SECONDARY_PATCHES) {
+      expect(p.ref, p.targetObjectiveId).toMatch(PATCH_REF);
+    }
+  });
+
+  it('every livestock secondary patch parses via PatchRecordSchema', () => {
+    for (const p of LIVESTOCK_SECONDARY_PATCHES) {
+      expect(() => PatchRecordSchema.parse(p), p.ref).not.toThrow();
+    }
+  });
+
+  it('resolves livestock onto a regen primary as +7 additive', () => {
+    const base = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: [],
+    });
+    const withLvs = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['livestock_operation'],
+    });
+    expect(withLvs.objectives.length).toBe(base.objectives.length + 7);
+  });
+
+  it('applies all 3 patches to universal targets, none skipped', () => {
+    const result = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['livestock_operation'],
+    });
+    const patched = result.objectives.filter((o) =>
+      o.checklist.some(
+        (c) => c.expandedBySecondaryId === 'livestock_operation',
+      ),
+    );
+    expect(patched.length).toBe(3);
+    expect(result.provenance.skippedPatches).toEqual([]);
+  });
+
+  it('concatenates patch gate amendments onto the target completion gate', () => {
+    const result = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['livestock_operation'],
+    });
+    const water = findPlanStratumObjectiveIn(
+      result.objectives,
+      's4-water-strategy',
+    );
+    expect(water).toBeDefined();
+    expect(water?.completionGate).toContain('Livestock water demand');
+  });
+
+  it('livestock secondary refs do not collide with livestock primary refs', () => {
+    const primaryRefs = new Set(LIVESTOCK_PRIMARY_OBJECTIVES.map((o) => o.ref));
+    for (const o of LIVESTOCK_SECONDARY_OBJECTIVES) {
+      expect(primaryRefs.has(o.ref), o.ref).toBe(false);
+    }
+  });
+
+  it('co-resolves with the silvopasture secondary on a third host without id collision', () => {
+    // Both secondaries patch the same universal targets; namespaced item ids
+    // (...-lvs-N vs ...-silv-N) must keep the resolved set globally unique.
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['silvopasture', 'livestock_operation'],
+    });
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('has globally unique checklist item ids when layered', () => {
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['livestock_operation'],
     });
     const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
     expect(new Set(itemIds).size).toBe(itemIds.length);

@@ -14,14 +14,27 @@ import {
   ProofType,
   ProofGeotagSchema,
   ProofVerificationStatus,
+  ProofDetailsSchema,
 } from '@ogden/shared';
 import { NotFoundError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
+import {
+  OLOS_STORE_KEYS,
+  mapProofRow,
+  surfaceOlosConflict,
+  broadcastOlosUpsert,
+  toOlosDeltaItem,
+} from './recordSync.js';
 
 const ParamsProofId = z.object({
   id: z.string().uuid(),
   taskId: z.string().uuid(),
   proofId: z.string().uuid(),
+});
+
+// ISO-8601 with offset; absent → full snapshot (epoch) at the call site.
+const ChangedSinceQuery = z.object({
+  since: z.string().datetime({ offset: true }).optional(),
 });
 
 const ProofCreateInput = z.object({
@@ -31,33 +44,22 @@ const ProofCreateInput = z.object({
   measurementValue: z.number().nullish(),
   measurementUnit: z.string().nullish(),
   geotag: ProofGeotagSchema.nullish(),
+  details: ProofDetailsSchema.nullish(),
   capturedAt: z.string().datetime().optional(),
   verificationStatus: ProofVerificationStatus.default('pending'),
 });
 
-const ProofPatchInput = ProofCreateInput.partial();
+// `baseRev` opts a write into the rev-gated sync path (stale → 409). Absent →
+// the legacy COALESCE update (non-sync callers) — back-compat, no rev bump.
+const ProofPatchInput = ProofCreateInput.partial().extend({
+  baseRev: z.number().int().nonnegative().optional(),
+});
 
 type Row = Record<string, unknown>;
 
-function mapRow(row: Row) {
-  return {
-    id: row.id as string,
-    projectId: row.project_id as string,
-    taskId: row.task_id as string,
-    proofType: row.proof_type as string,
-    fileUri: (row.file_uri ?? null) as string | null,
-    note: (row.note ?? null) as string | null,
-    measurementValue:
-      row.measurement_value === null ? null : Number(row.measurement_value),
-    measurementUnit: (row.measurement_unit ?? null) as string | null,
-    geotag: (row.geotag ?? null) as unknown,
-    capturedAt: (row.captured_at as Date).toISOString(),
-    submittedBy: (row.submitted_by ?? null) as string | null,
-    verificationStatus: row.verification_status as string,
-    createdAt: (row.created_at as Date).toISOString(),
-    updatedAt: (row.updated_at as Date).toISOString(),
-  };
-}
+// Row → wire shape (incl. `rev`) lives in recordSync.ts so the conflict surface,
+// broadcast, and changed-since delta all share one mapper.
+const mapRow = mapProofRow;
 
 async function ensureTask(
   db: FastifyInstance['db'],
@@ -119,13 +121,15 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
       const body = ProofCreateInput.parse(req.body);
       await ensureTask(db, req.projectId, taskId);
 
+      // Fresh row → rev = 1 (DEFAULT 0 is the pre-sync sentinel for legacy
+      // backfilled rows only); a baseRev-0 first push then clears the 0 <= 0 gate.
       const [row] = await db`
         INSERT INTO olos_proof_records (
           project_id, task_id,
           proof_type, file_uri, note,
           measurement_value, measurement_unit,
-          geotag, captured_at,
-          submitted_by, verification_status
+          geotag, details, captured_at,
+          submitted_by, verification_status, rev
         ) VALUES (
           ${req.projectId},
           ${taskId},
@@ -135,9 +139,11 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
           ${body.measurementValue ?? null},
           ${body.measurementUnit ?? null},
           ${body.geotag ? db.json(body.geotag as never) : null},
+          ${body.details ? db.json(body.details as never) : null},
           ${body.capturedAt ?? new Date().toISOString()},
           ${req.userId},
-          ${body.verificationStatus}
+          ${body.verificationStatus},
+          1
         )
         RETURNING *
       `;
@@ -151,8 +157,51 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
         metadata: { taskId, proofType: body.proofType },
       });
 
+      const saved = mapRow(row as Row);
+      broadcastOlosUpsert(fastify, {
+        projectId: req.projectId,
+        storeKey: OLOS_STORE_KEYS.proof,
+        recordId: saved.id,
+        rev: saved.rev,
+        payload: saved,
+        userId: req.userId,
+      });
+
       reply.code(201);
-      return { data: mapRow(row as Row), meta: undefined, error: null };
+      return { data: saved, meta: undefined, error: null };
+    },
+  );
+
+  // GET /:id/olos/proofs/changed-since?since=<ISO> — project-scoped reconnect
+  // delta-pull source across ALL tasks (NOT nested under /tasks/:taskId), oldest
+  // first, as the storeKey-generic delta envelope.
+  fastify.get<{ Params: { id: string }; Querystring: { since?: string } }>(
+    '/:id/olos/proofs/changed-since',
+    {
+      preHandler: [
+        authenticate,
+        resolveProjectRole,
+        requireRole('owner', 'designer', 'reviewer', 'viewer'),
+      ],
+    },
+    async (req) => {
+      const since = ChangedSinceQuery.parse(req.query).since ?? '1970-01-01T00:00:00.000Z';
+      const rows = await db`
+        SELECT * FROM olos_proof_records
+        WHERE project_id = ${req.projectId} AND updated_at > ${since}
+        ORDER BY updated_at ASC
+      `;
+      return {
+        data: rows.map((row) =>
+          toOlosDeltaItem(
+            OLOS_STORE_KEYS.proof,
+            mapRow(row as Row),
+            (row.updated_at as Date).toISOString(),
+          ),
+        ),
+        meta: { total: rows.length },
+        error: null,
+      };
     },
   );
 
@@ -189,9 +238,9 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
         requireRole('owner', 'designer'),
       ],
     },
-    async (req) => {
+    async (req, reply) => {
       const { taskId, proofId } = ParamsProofId.parse(req.params);
-      const body = ProofPatchInput.parse(req.body);
+      const { baseRev, ...patch } = ProofPatchInput.parse(req.body);
 
       const [existing] = await db`
         SELECT id FROM olos_proof_records
@@ -201,16 +250,76 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
       `;
       if (!existing) throw new NotFoundError('ProofRecord', proofId);
 
+      // Rev-gated sync write: bump rev only when the client is not behind the
+      // stored rev. A stale write matches 0 rows → surface the conflict (409).
+      if (baseRev !== undefined) {
+        const [updated] = await db`
+          UPDATE olos_proof_records SET
+            proof_type          = COALESCE(${patch.proofType ?? null}, proof_type),
+            file_uri            = ${patch.fileUri === undefined ? db`file_uri` : patch.fileUri ?? null},
+            note                = ${patch.note === undefined ? db`note` : patch.note ?? null},
+            measurement_value   = ${patch.measurementValue === undefined ? db`measurement_value` : patch.measurementValue ?? null},
+            measurement_unit    = ${patch.measurementUnit === undefined ? db`measurement_unit` : patch.measurementUnit ?? null},
+            geotag              = ${patch.geotag === undefined ? db`geotag` : patch.geotag === null ? null : db.json(patch.geotag as never)},
+            details             = ${patch.details === undefined ? db`details` : patch.details === null ? null : db.json(patch.details as never)},
+            captured_at         = COALESCE(${patch.capturedAt ?? null}, captured_at),
+            verification_status = COALESCE(${patch.verificationStatus ?? null}, verification_status),
+            rev                 = rev + 1
+          WHERE id = ${proofId} AND rev <= ${baseRev}
+          RETURNING *
+        `;
+
+        if (!updated) {
+          const [current] = await db`
+            SELECT * FROM olos_proof_records
+            WHERE id = ${proofId} AND project_id = ${req.projectId}
+          `;
+          const server = current ? mapRow(current as Row) : null;
+          reply.code(409);
+          return surfaceOlosConflict(db, {
+            projectId: req.projectId,
+            storeKey: OLOS_STORE_KEYS.proof,
+            recordId: proofId,
+            baseRev,
+            localPayload: patch as Record<string, unknown>,
+            serverRev: server?.rev ?? null,
+            serverPayload: server,
+            userId: req.userId,
+          });
+        }
+
+        await logActivity(db, {
+          projectId: req.projectId,
+          userId: req.userId,
+          action: 'olos_proof_updated',
+          entityType: 'olos_proof_record',
+          entityId: proofId,
+        });
+
+        const saved = mapRow(updated as Row);
+        broadcastOlosUpsert(fastify, {
+          projectId: req.projectId,
+          storeKey: OLOS_STORE_KEYS.proof,
+          recordId: saved.id,
+          rev: saved.rev,
+          payload: saved,
+          userId: req.userId,
+        });
+        return { data: saved, meta: undefined, error: null };
+      }
+
+      // Legacy path (no baseRev) — unchanged COALESCE update, no rev bump.
       const [updated] = await db`
         UPDATE olos_proof_records SET
-          proof_type          = COALESCE(${body.proofType ?? null}, proof_type),
-          file_uri            = ${body.fileUri === undefined ? db`file_uri` : body.fileUri ?? null},
-          note                = ${body.note === undefined ? db`note` : body.note ?? null},
-          measurement_value   = ${body.measurementValue === undefined ? db`measurement_value` : body.measurementValue ?? null},
-          measurement_unit    = ${body.measurementUnit === undefined ? db`measurement_unit` : body.measurementUnit ?? null},
-          geotag              = ${body.geotag === undefined ? db`geotag` : body.geotag === null ? null : db.json(body.geotag as never)},
-          captured_at         = COALESCE(${body.capturedAt ?? null}, captured_at),
-          verification_status = COALESCE(${body.verificationStatus ?? null}, verification_status),
+          proof_type          = COALESCE(${patch.proofType ?? null}, proof_type),
+          file_uri            = ${patch.fileUri === undefined ? db`file_uri` : patch.fileUri ?? null},
+          note                = ${patch.note === undefined ? db`note` : patch.note ?? null},
+          measurement_value   = ${patch.measurementValue === undefined ? db`measurement_value` : patch.measurementValue ?? null},
+          measurement_unit    = ${patch.measurementUnit === undefined ? db`measurement_unit` : patch.measurementUnit ?? null},
+          geotag              = ${patch.geotag === undefined ? db`geotag` : patch.geotag === null ? null : db.json(patch.geotag as never)},
+          details             = ${patch.details === undefined ? db`details` : patch.details === null ? null : db.json(patch.details as never)},
+          captured_at         = COALESCE(${patch.capturedAt ?? null}, captured_at),
+          verification_status = COALESCE(${patch.verificationStatus ?? null}, verification_status),
           updated_at          = now()
         WHERE id = ${proofId}
         RETURNING *

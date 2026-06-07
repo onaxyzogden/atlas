@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { api } from '../lib/apiClient.js';
 
 export interface StoryScene {
@@ -262,7 +263,7 @@ export const usePortalStore = create<PortalState>()(
         }
       },
     }),
-    { name: 'ogden-portal', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-portal', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

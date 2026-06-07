@@ -1,0 +1,105 @@
+/* LoopDesignScorePanel - whole-surface loop design score strip (Plan Module 5).
+ * Mounted between the hero and the List/Dashboard switcher in WasteVectorTool.
+ * Tokens mirror the shared stageCard / WasteVectorTool palette (ASCII only). */
+
+.panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 14px 18px;
+  margin: 0 0 18px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--color-hairline);
+  border-radius: 10px;
+}
+
+.scoreBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.scoreValue {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.scoreValue[data-tone="positive"] {
+  color: rgba(122, 176, 122, 0.95);
+}
+
+.scoreValue[data-tone="warn"] {
+  color: rgba(210, 160, 90, 0.95);
+}
+
+.scoreOutOf {
+  font-size: 13px;
+  color: var(--color-text-dim);
+}
+
+.tierBadge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-left: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-dim);
+}
+
+.tierBadge[data-tone="positive"] {
+  background: rgba(122, 176, 122, 0.16);
+  border-color: rgba(122, 176, 122, 0.4);
+  color: rgba(122, 176, 122, 0.95);
+}
+
+.tierBadge[data-tone="info"] {
+  background: rgba(var(--color-gold-rgb), 0.16);
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+  color: rgba(var(--color-gold-rgb), 0.95);
+}
+
+.tierBadge[data-tone="warn"] {
+  background: rgba(210, 160, 90, 0.16);
+  border-color: rgba(210, 160, 90, 0.4);
+  color: rgba(210, 160, 90, 0.95);
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metricLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.metricValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.metricValue[data-warn="true"] {
+  color: rgba(210, 160, 90, 0.95);
+}

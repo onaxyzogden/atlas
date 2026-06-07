@@ -29,6 +29,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type SetbackPurpose =
@@ -106,7 +107,7 @@ export const useSetbackStore = create<SetbackState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-setback-rings', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-setback-rings', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

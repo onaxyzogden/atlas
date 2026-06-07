@@ -32,7 +32,9 @@ import {
   useProjectStore,
   MTC_SEED,
   getObserveShellMode,
+  getObserveLensDataSource,
   type ObserveShellMode,
+  type ObserveLensDataSource,
 } from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
@@ -83,12 +85,79 @@ import {
 import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
+import ObserveLensDataSourceToggle from './dashboard/ObserveLensDataSourceToggle.js';
 import ObserveDashboardLayout from './dashboard/ObserveDashboardLayout.js';
+import ObserveLensDashboard from './lens/ObserveLensDashboard.js';
 import type { SourceFilter } from './dashboard/domain/observationSource.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
+/**
+ * ObserveLayout — route component for all project-scoped `observe*` routes.
+ *
+ * Shell branch:
+ *   - `dashboard`  → the 4-surface OLOS Observe Dashboard (delegated, unchanged,
+ *                    to ObserveDualShellLayoutLegacy below).
+ *   - `module-bar` → the promoted "observational lens" dashboard
+ *                    (ObserveLensDashboard, mock-backed; not yet wired to live
+ *                    data). This REPLACES the legacy module-bar assembly, which
+ *                    is preserved intact in ObserveDualShellLayoutLegacy (kept
+ *                    compiled/reachable for the dashboard path; its own
+ *                    module-bar branch is simply no longer entered).
+ *
+ * ObserveShellToggle remains the escape hatch back to the dashboard shell.
+ */
 export default function ObserveLayout() {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const id = params.projectId ?? 'mtc';
+  const projects = useProjectStore((s) => s.projects);
+  const updateProject = useProjectStore((s) => s.updateProject);
+  const projectRecord = useMemo(
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
+    [projects, id],
+  );
+  const observeShellMode = getObserveShellMode(projectRecord);
+  const handleObserveShellModeChange = (mode: ObserveShellMode) => {
+    updateProject(projectRecord.id, { observeShellMode: mode });
+  };
+  const observeLensDataSource = getObserveLensDataSource(projectRecord);
+  const handleObserveLensDataSourceChange = (source: ObserveLensDataSource) => {
+    updateProject(projectRecord.id, { observeLensDataSource: source });
+  };
+
+  if (observeShellMode === 'module-bar') {
+    // Full-bleed mount (NOT StageShell): the lens dashboard owns the whole
+    // route outlet, mirroring the working standalone /v3/prototype/observe-lens
+    // mount. StageShell's grid/flex/padding context confined the zoom wrapper to
+    // a sub-viewport box (gutters); the outlet is a positioned, full-size
+    // ancestor, so `absolute; inset:0` fills it exactly. ObserveShellToggle
+    // floats above the lens (rendered last) as the escape hatch to the dashboard;
+    // ObserveLensDataSourceToggle stacks just below it to flip live/mock data.
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <ObserveLensDashboard
+          projectId={projectRecord.id}
+          dataSource={observeLensDataSource}
+        />
+        <ObserveShellToggle
+          mode={observeShellMode}
+          onChange={handleObserveShellModeChange}
+        />
+        <ObserveLensDataSourceToggle
+          source={observeLensDataSource}
+          onChange={handleObserveLensDataSourceChange}
+        />
+      </div>
+    );
+  }
+
+  return <ObserveDualShellLayoutLegacy />;
+}
+
+// Preserved dual-shell layout (unchanged). Renders the real `dashboard` shell;
+// its internal `module-bar` branch is retained for fidelity / future reuse but
+// is intercepted by the wrapper above and no longer entered in normal flow.
+function ObserveDualShellLayoutLegacy() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     module?: string;

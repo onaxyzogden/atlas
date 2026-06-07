@@ -88,7 +88,7 @@ export default function ParameterGroup({ projectId, objective }: Props) {
       >
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             fontFamily: F.mono,
             fontWeight: 600,
             letterSpacing: '0.12em',
@@ -170,7 +170,7 @@ export default function ParameterGroup({ projectId, objective }: Props) {
                 {item.unit && (
                   <span
                     style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       fontFamily: F.mono,
                       color: C.textTertiary,
                       whiteSpace: 'nowrap',
@@ -190,7 +190,7 @@ export default function ParameterGroup({ projectId, objective }: Props) {
       <p
         style={{
           marginTop: 14,
-          fontSize: 11,
+          fontSize: 12,
           fontFamily: F.sans,
           color: C.textTertiary,
           lineHeight: 1.5,

@@ -121,25 +121,18 @@ describe('HeaderStageSpine', () => {
     ).toBe('true');
   });
 
-  it('shows each stage’s own real % from its compass hook (no em dash)', () => {
+  it('renders no numeric % readout in any segment', () => {
     h.pathname = '/v3/project/mtc/observe';
     h.pct = 50;
     h.planPct = 12;
     h.actPct = 0;
     const { container } = render(<HeaderStageSpine />);
-    expect(
-      container.querySelector('[data-stage="observe"]')?.textContent,
-    ).toContain('50%');
-    expect(
-      container.querySelector('[data-stage="plan"]')?.textContent,
-    ).toContain('12%');
-    expect(
-      container.querySelector('[data-stage="act"]')?.textContent,
-    ).toContain('0%');
+    // The percentage was removed from the pills — no % text anywhere, and the
+    // old em-dash placeholder stays gone too.
     for (const id of ['observe', 'plan', 'act']) {
-      expect(
-        container.querySelector(`[data-stage="${id}"]`)?.textContent,
-      ).not.toContain('—');
+      const text = container.querySelector(`[data-stage="${id}"]`)?.textContent;
+      expect(text).not.toContain('%');
+      expect(text).not.toContain('—');
     }
   });
 
@@ -232,6 +225,59 @@ describe('HeaderStageSpine', () => {
 
   it('routes Act to the Command Centre once Act is complete (pct === 100)', () => {
     h.pathname = '/v3/project/mtc/observe';
+    h.actPct = 100;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act/command-centre',
+        params: { projectId: 'mtc' },
+      }),
+    );
+  });
+
+  it('forwards the current Plan stratum into Act while Act is incomplete', () => {
+    h.pathname = '/v3/project/mtc/plan/stratum/s5-system-design';
+    h.actPct = 0;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: 'mtc', stratumId: 's5-system-design' },
+      }),
+    );
+  });
+
+  it('forwards the Plan stratum even from a deep Plan objective route', () => {
+    h.pathname =
+      '/v3/project/mtc/plan/stratum/s4-foundation-decisions/objective/s4-zones';
+    h.actPct = 40;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: 'mtc', stratumId: 's4-foundation-decisions' },
+      }),
+    );
+  });
+
+  it('falls back to bare /act when not coming from a Plan stratum route', () => {
+    h.pathname = '/v3/project/mtc/plan'; // Plan, but no stratum segment
+    h.actPct = 0;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act',
+        params: { projectId: 'mtc' },
+      }),
+    );
+  });
+
+  it('ignores the Plan stratum and routes to the Command Centre when Act is complete', () => {
+    h.pathname = '/v3/project/mtc/plan/stratum/s5-system-design';
     h.actPct = 100;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="act"]')!);

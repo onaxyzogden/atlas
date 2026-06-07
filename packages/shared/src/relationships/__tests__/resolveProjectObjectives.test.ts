@@ -106,7 +106,7 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
 });
 
 describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
-  // agritourism now has an encoded primary catalogue (29 objectives), so it
+  // agritourism now has an encoded primary catalogue (34 objectives), so it
   // resolves universal + agritourism-primary. residential is compatible (X) on
   // agritourism, so its catalogue layers in too, but residential's P0 patch
   // targets rf-s2-landscape-context - a regenfarm objective absent under an
@@ -118,8 +118,8 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 19 universal + 29 agritourism primary + 6 residential additive = 54 objectives', () => {
-    expect(r.objectives).toHaveLength(54);
+  it('resolves 19 universal + 34 agritourism primary + 6 residential additive = 59 objectives', () => {
+    expect(r.objectives).toHaveLength(59);
   });
 
   it('applies 4 patches and skips P0 without throwing', () => {

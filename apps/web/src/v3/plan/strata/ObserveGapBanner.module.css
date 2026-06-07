@@ -14,7 +14,7 @@
   margin: 0 0 16px;
   border-radius: var(--radius-md, 8px);
   border: 1px solid color-mix(in srgb, var(--color-info, #5aa9c4) 35%, transparent);
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
 }
 
 .iconWrap {
@@ -40,7 +40,7 @@
 
 .eyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -70,7 +70,7 @@
 }
 
 .dismiss:hover {
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
   color: var(--color-text, #f2ede3);
 }
 

@@ -39,7 +39,7 @@
   border-radius: 6px;
   background: transparent;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -85,11 +85,11 @@
 .pill {
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: color-mix(in srgb, var(--status-color) 16%, var(--color-bg, #1f1d1a));
+  background: color-mix(in srgb, var(--status-color) 16%, var(--color-bg, #14191f));
   color: var(--status-color);
   border: 1px solid color-mix(in srgb, var(--status-color) 32%, transparent);
 }
@@ -98,12 +98,12 @@
 .sourceTag {
   padding: 3px 9px;
   border-radius: var(--radius-full, 999px);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   --source-color: var(--color-info, #5aa9c9);
-  background: color-mix(in srgb, var(--source-color) 16%, var(--color-bg, #1f1d1a));
+  background: color-mix(in srgb, var(--source-color) 16%, var(--color-bg, #14191f));
   color: var(--source-color);
   border: 1px solid color-mix(in srgb, var(--source-color) 32%, transparent);
 }

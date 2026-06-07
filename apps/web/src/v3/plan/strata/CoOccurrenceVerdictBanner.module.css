@@ -1,0 +1,134 @@
+/*
+ * CoOccurrenceVerdictBanner -- collapsible cross-protocol verdict list at the
+ * top of the Plan objective column. Amber treatment (verdicts are advisory
+ * friction, not failure), rounded surface consistent with DesignTensionBanner.
+ * Existential-bearing clusters get a stronger static amber ring -- no
+ * animation, so it is inherently safe under prefers-reduced-motion.
+ */
+
+.banner {
+  margin: 0 0 4px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e8a958 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--color-text, #f2ede3);
+  transition: background 120ms ease;
+}
+
+.header:hover {
+  background: color-mix(in srgb, #e8a958 8%, transparent);
+}
+
+.header:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: -2px;
+}
+
+.iconWrap {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, #e8a958 22%, transparent);
+  color: #e8a958;
+}
+
+.headerText {
+  flex: 1 1 auto;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: color-mix(in srgb, var(--color-bg, #14191f) 80%, #ffffff);
+}
+
+.row[data-existential='true'] {
+  border-color: color-mix(in srgb, #e8a958 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #e8a958 30%, transparent);
+}
+
+.themeHeading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text, #f2ede3);
+}
+
+.rowBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.objectiveLink {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, #e8a958 30%, transparent);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.objectiveLink:hover {
+  background: color-mix(in srgb, #e8a958 26%, transparent);
+}
+
+.objectiveLink:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: 2px;
+}

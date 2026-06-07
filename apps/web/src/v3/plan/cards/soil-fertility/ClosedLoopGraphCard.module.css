@@ -1,0 +1,41 @@
+/*
+ * ClosedLoopGraphCard local styles -- the orphan-fertility pulse ring.
+ * CSS @keyframes (NOT SMIL) per the epic decision: SMIL animation on SVG is
+ * deprecated and harder to control; a CSS class on the ring element animates
+ * its radius/opacity reliably and respects prefers-reduced-motion.
+ *
+ * ASCII only. Resolves against the app dark theme via literal rgba (the card
+ * already inlines its palette as rgba elsewhere).
+ */
+
+.pulseRing {
+  fill: none;
+  stroke: #e08a4a;
+  stroke-width: 1.6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: closedLoopPulse 1800ms ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes closedLoopPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulseRing {
+    animation: none;
+    opacity: 0.4;
+  }
+}

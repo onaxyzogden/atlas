@@ -23,6 +23,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type EcologicalNoteKind =
@@ -88,7 +89,7 @@ export const useEcologicalNoteStore = create<EcologicalNoteState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-ecological-notes', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-ecological-notes', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

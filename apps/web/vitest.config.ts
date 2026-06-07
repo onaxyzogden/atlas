@@ -1,22 +1,35 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { createRequire } from 'node:module';
-import { dirname } from 'node:path';
 
-// Resolve the single hoisted react/react-dom copy via Node's resolver instead
-// of a hard-coded `../../node_modules` path. The relative path is correct in
-// the main tree but breaks in a git worktree (no local node_modules), which
-// silently collapses the whole suite to "0 tests".
-const req = createRequire(import.meta.url);
-const reactDir = dirname(req.resolve('react/package.json'));
-const reactDomDir = dirname(req.resolve('react-dom/package.json'));
+// Resolve the single hoisted react/react-dom via Node's directory walk
+// (anchored at apps/web) instead of a fixed `../../node_modules` path. The
+// walk finds `<repo>/node_modules/react` from both the main tree AND any
+// git worktree (worktrees live inside the repo but have no own node_modules),
+// so the dedupe pin below works everywhere without a per-worktree install.
+const requireFromWeb = createRequire(__dirname + '/');
+const reactDir = dirname(requireFromWeb.resolve('react/package.json'));
+const reactDomDir = dirname(requireFromWeb.resolve('react-dom/package.json'));
 
 export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
     environment: 'node',
+    // Forks (not the default `threads` pool) are force-killed by tinypool on
+    // teardown. happy-dom can leave a pending OS handle, and the `threads` pool
+    // waits for it indefinitely on Windows → `vitest run` never exits and
+    // becomes a multi-day zombie. Forks + a bounded teardown guarantee exit.
+    pool: 'forks',
+    teardownTimeout: 10_000,
+    // Even with forks + a bounded teardown, vitest 2.1.x still hangs at exit
+    // after all files pass: tinypool's graceful pool.close() waits on a handle
+    // a happy-dom worker leaves alive and never returns (a multi-minute zombie
+    // on CI). The force-exit reporter ends the run from onFinished — which
+    // vitest awaits after results aggregate but before pool.close() — with the
+    // correct pass/fail code. 'default' is kept for the run summary.
+    reporters: ['default', './scripts/force-exit-reporter.mjs'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     // Inline zustand so its bare `react` import is rewritten by the
     // resolve.alias below (externalized deps bypass the alias and pull
@@ -43,6 +56,8 @@ export default defineConfig({
     alias: {
       // Pin react/react-dom to the single hoisted copy (Vite matches `react`
       // exactly and `react/*`, but not `react-dom`, so jsx-runtime still works).
+      // Paths resolved above via Node module resolution so they hold in any
+      // git worktree, not just the main tree.
       react: reactDir,
       'react-dom': reactDomDir,
       // More-specific subpath aliases MUST come first — Vite tests prefix match in order.

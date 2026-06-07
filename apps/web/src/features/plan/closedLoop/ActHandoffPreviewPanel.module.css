@@ -1,0 +1,165 @@
+/* ActHandoffPreviewPanel - read-only Act handoff preview (Plan Module 5, Slice
+ * A4). Tokens mirror the shared stageCard / LoopDesignScorePanel palette.
+ * ASCII only. */
+
+.panel {
+  padding: 16px 18px;
+  margin: 0 0 18px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--color-hairline);
+  border-radius: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.verdict {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-hairline);
+}
+
+.verdict[data-ok="true"] {
+  background: rgba(122, 176, 122, 0.16);
+  border-color: rgba(122, 176, 122, 0.4);
+  color: rgba(122, 176, 122, 0.95);
+}
+
+.verdict[data-ok="false"] {
+  background: rgba(210, 160, 90, 0.16);
+  border-color: rgba(210, 160, 90, 0.4);
+  color: rgba(210, 160, 90, 0.95);
+}
+
+.reason {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  margin: 0 0 14px;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0 0 14px;
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.countLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.countValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.countValue[data-warn="true"] {
+  color: rgba(210, 160, 90, 0.95);
+}
+
+.scope {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.section {
+  min-width: 0;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin: 0 0 6px;
+}
+
+.sectionCount {
+  font-weight: 600;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  counter-reset: seq;
+}
+
+.list[data-ordered="true"] .item {
+  counter-increment: seq;
+}
+
+.list[data-ordered="true"] .item::before {
+  content: counter(seq) ". ";
+  color: var(--color-text-dim);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.item {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-text);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+
+.itemPrimary {
+  color: var(--color-text);
+}
+
+.itemSecondary {
+  font-size: 11px;
+  color: var(--color-text-dim);
+}

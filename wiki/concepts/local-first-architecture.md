@@ -68,6 +68,41 @@ capping the queue at the count of distinct pending entities. `flush()` reads a
 bounded `getBatch(FLUSH_BATCH=200)` cursor slice, `reconcile()` collapses any
 pre-existing runaway queue at `syncService.start()`, and exhausted ops are now
 dropped. See [ADR 2026-05-25](../decisions/2026-05-25-sync-queue-oom-coalescing-fix.md).
+### Project create is single-pathed + idempotent (2026-05-31)
+Project creation used to fire from two un-coordinated places: the wizard create
+sites (`WizardStep1Site.tsx`, `NewProjectPage.tsx`) called `api.projects.create()`
+inline, *and* `syncService.subscribeToProjects()` fired an un-awaited,
+non-idempotent `syncProjectCreate` on every added project -- a **double-create
+race** that could mint two server rows for one wizard project. All create now
+routes through one canonical action `syncProjectNow(localId): {ok, serverId?,
+error?}`: idempotent (`serverId` short-circuit + `isBuiltin` guard), race-free (a
+module-level `inFlightProjectSync` promise map dedupes concurrent calls), and
+awaitable so the wizard can `toast.error` on failure (while still navigating --
+local-first). A per-row "Sync now" button in `PortfolioProjectList` triggers it
+for any never-synced non-builtin project. See
+[ADR 2026-05-31 -- project-sync hardening](../decisions/2026-05-31-atlas-project-sync-hardening.md).
+
+> ✅ **Boundary-hydration gap (closed 2026-06-01):** server-synced projects arrive
+> with `hasParcelBoundary: true` but `parcelBoundaryGeojson: null` (the `GET /projects`
+> list/sync path omits geometry; only `GET /projects/:id` embeds it via `ST_AsGeoJSON`).
+> `hydrateProjectBoundaries()` (`syncService.ts`) now back-fills geometry for those
+> candidates via `api.projects.get(serverId)`, writing through `updateProject` under the
+> `isSyncing` guard so the subscription doesn't echo it back as a boundary edit. The
+> Portfolio Map (`PortfolioMapPage.tsx`) drives it from a memoized `pendingBoundaryKey`
+> effect that re-fires whenever the set of un-hydrated server-boundary projects changes
+> (covers projects that sync down *after* mount, not just the mount-time set); an
+> `inFlightBoundaryHydration` Set dedupes overlapping runs so each project is fetched at
+> most once. The "fall back to `metadata.centerLat/centerLng`" path was already native in
+> `projectCentroid`. Server-only projects (e.g. Halton Hills) thus become valid
+> flow/relationship endpoints. Landed in commit `5aa973a4`
+> (`feat(portfolio): hydrate parcel geometry for server-synced projects`).
+> *Verification caveat:* the hardened fix is typecheck-clean (the 2 boundary files have
+> zero `tsc` errors; the project-wide typecheck failure on 2026-06-01 was entirely
+> unrelated `sourceFeatureRef` observe-schema WIP) and the diff matches the approved plan,
+> but it was **not** live-verified with a screenshot — the working tree was too polluted
+> with unrelated half-migrated WIP to boot a trustworthy preview. Live confirmation of a
+> drawn flow/relationship line to Halton Hills remains a recommended next-session check.
+
 ### Sync queue circuit-breaker (2026-05-25)
 The executor circuit-breaker deferred above is now closed. `executeQueuedOp`
 routed create/update through the *swallowing* live-path handlers, so `flush()`
@@ -83,6 +118,59 @@ highest-severity `OfflineBanner`. See
 the safety property that makes turning on the full-coverage path
 (`FLAGS.SYNC_STATE_BLOBS`) safe — a persistently-failing blob push now surfaces
 instead of vanishing.
+
+### Local-first hardening: durable cache + full real-time coverage (2026-06-04)
+
+Plan `the-goal-is-to-bright-blanket` reframed the target around the actual user:
+a small (2–6 person) **trusted field team that works land with often no
+connectivity at all** — full days offline are the *normal* case, not the
+exception. So the design target is "the field device is fully functional with no
+server in sight, for hours," with the network as a luxury that opportunistically
+reconciles. The eventual on-site **field-hub** (Docker stack on a site mini-PC for
+LAN sync) and a CRDT conflict model are noted as future directions — explicitly
+out of scope; this work hardened the device side first. The existing `rev`-based
+"steward picks keep-mine / keep-server" conflict model is kept (right-sized for a
+trusted team).
+
+- **Phase 1 (commit `0dae9cdf`) — durable offline cache.** Moved the
+  `SYNCED_STORES` set off `localStorage` (the ~5–10 MB origin cap silently fails
+  writes / evicts state after a heavy offline day) onto an **IndexedDB** persist
+  backend (`idbPersistStorage`, DB `ogden-state`), with a lazy one-time
+  `localStorage`→IndexedDB migration on first read and async-rehydration safety.
+- **Phase 2 (commits `d2fd8930`→`4d8f3b7a`) — full real-time + reconnect coverage
+  for the four typed-record Act stores.** These all flow through the single
+  generic `synced_records` PUT, each row carrying its own monotonic `rev` +
+  `updated_at`. Added a generic `record_upserted`/`record_deleted` WS event pair;
+  the server broadcasts author-excluded on the PUT; a single guarded client apply
+  `applyIncomingRecord` (shared by the live WS handler and the reconnect
+  delta-pull) owns per-record `rev` bookkeeping + three guards (rev/echo →
+  author never double-applies own echo; version-skew drop; init-clobber → pending
+  un-synced local push never overwritten) inside `setSyncGuard`; a new
+  `GET .../changed-since?since=<ISO>` endpoint + `pullActRecordDelta` lets an
+  all-day-offline device **pull** what teammates changed while it was gone
+  (broadcast alone only reaches peers connected at broadcast time), advancing the
+  `lastSyncedAt` watermark to the newest *server* `updated_at` (clock-skew-immune).
+  Gated behind `FEATURE_SYNC_STATE_BLOBS` (default OFF). See
+  [[decisions/2026-06-04-olos-local-first-record-broadcast-reconnect-delta]].
+- **Phase 3 (commits `cf8f0c52`→`5a961da3`) — per-project watermark + olos record
+  rev-parity.** Closed Phase 2's two open threads. (A) `lastSyncedAt` went from a
+  single global scalar to a `Record<localProjectId, ISO>` map (`get/setLastSyncedAt`,
+  migrate drops the scalar + preserves `conflictedStores`); **all three client-clock
+  writes deleted** so the server-clock advance in `pullActRecordDelta` is the only
+  writer — fixing both the clock-skew clobber AND the global-scalar gap-skip (project
+  A's pull no longer advances past project B's last real sync). (B) The three `olos_*`
+  record domains (observations/proofs/verifications) got full rev-parity with the Act
+  path: migration 053 adds `rev BIGINT`; the routes do rev-gated update + 409
+  escalation + author-excluded broadcast + `changed-since`; three `typed-record`
+  descriptors register them; the storeKey-generic `applyIncomingRecord` and
+  `SyncConflictsPage` are reused verbatim. The one olos-specific seam is the
+  **server-assigns-uuid id-transition** (local `obs-`/`proof-`/`verify-` drafts rekey
+  to the server uuid), handled by a dedicated `executeOlosRecordOp`, plus an
+  **independent `${projectId}::olos` watermark sub-key** so the Act and olos
+  `changed-since` streams advance separately and neither skips the other's gap. olos
+  conflicts ALWAYS escalate (no `observed_at` auto-resolve tier). Same
+  `FEATURE_SYNC_STATE_BLOBS` gate (default OFF, flag-off byte-identical). See
+  [[decisions/2026-06-05-olos-watermark-and-record-rev-parity]].
 
 ## Sync Strategy (Planned — full coverage deferred to backlog)
 Extending `syncService` from the 4 covered slices to the full ~70-store v3

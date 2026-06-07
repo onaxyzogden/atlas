@@ -1,0 +1,61 @@
+# DISABLED 2026-06-05 — superseded by the Render Blueprint (render.yaml).
+# GitHub Pages ships ONLY the static SPA with no backend, so every relative
+# /api/v1/... call 404s and auth cannot work. Renamed to .yml.disabled (GitHub
+# ignores non-.yml files in this dir) rather than deleted, for reference.
+# To re-enable, rename back to deploy.yml — but the live deploy is Render.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter @ogden/web build
+        env:
+          NODE_OPTIONS: --max-old-space-size=7168
+          VITE_MAPTILER_KEY: ${{ secrets.VITE_MAPTILER_KEY }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

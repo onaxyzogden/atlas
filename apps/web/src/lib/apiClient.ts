@@ -85,6 +85,10 @@ import type {
   PoiProjectFlow,
   CreatePoiFlowInput,
   UpdatePoiFlowInput,
+  CompostSite,
+  CompostPile,
+  CompostReading,
+  CompostReadingSource,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -153,7 +157,7 @@ export function setApiClientErrorReporter(fn: ((r: ApiClientErrorReport) => void
 // (mirrors the reporter injection above) to drive the connectivity store's
 // `apiReachable` signal back to true once the server responds. A server that
 // recovers (restart) fires no browser `online` event, so an explicit success
-// signal is required for the API-unreachable banner to auto-clear.
+// signal is required for the API-unreachable status chip to auto-clear.
 let apiSuccessHandler: (() => void) | null = null;
 
 export function setApiSuccessHandler(fn: (() => void) | null) {
@@ -267,6 +271,8 @@ export interface ApiAuthUser {
   displayName: string | null;
   /** Phase 4.5 — personal default org created at register time; always present post-migration-036. */
   defaultOrgId: string;
+  /** Soft gate — surfaced as a flag, never enforced as a login wall. New signups start false. */
+  emailVerified: boolean;
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
@@ -275,8 +281,9 @@ export const api = {
   // Lightweight, unauthenticated reachability ping. Hits the proxied
   // /api/v1/health route (the root /health is not under the web app's /api dev
   // proxy). A 2xx fires the apiClient success hook (→ apiReachable = true) on
-  // the authed path; ApiReachabilityBanner's no-token Retry also flips the flag
-  // directly off a resolved call, since the success hook is wired authed-only.
+  // the authed path; the shared attemptApiRecovery (apiRecovery.ts) no-token
+  // path also flips the flag directly off a resolved call, since the success
+  // hook is wired authed-only.
   health: () =>
     request<{ status: string; timestamp: string; version: string }>(
       'GET', '/api/v1/health',
@@ -294,8 +301,36 @@ export const api = {
       ),
 
     me: () =>
-      request<{ id: string; email: string; displayName: string | null; defaultOrgId: string }>(
+      request<ApiAuthUser>(
         'GET', '/api/v1/auth/me',
+      ),
+
+    // ── Email verification + password reset ──
+    // Confirm/reset failures return 400 INVALID_TOKEN (never 401), so a stale
+    // link never trips the global session-expiry logout above.
+
+    /** (Re)send a verification email. Always succeeds generically (anti-enumeration). */
+    requestEmailVerification: (email: string) =>
+      request<{ sent: boolean }>(
+        'POST', '/api/v1/auth/verify-email/request', { email },
+      ),
+
+    /** Confirm a verification token; on success returns a fresh token + user for auto-sign-in. */
+    confirmEmailVerification: (token: string) =>
+      request<{ verified: boolean; token: string; user: ApiAuthUser }>(
+        'POST', '/api/v1/auth/verify-email/confirm', { token },
+      ),
+
+    /** Request a password-reset link. Always succeeds generically (anti-enumeration). */
+    forgotPassword: (email: string) =>
+      request<{ sent: boolean }>(
+        'POST', '/api/v1/auth/forgot-password', { email },
+      ),
+
+    /** Set a new password from a reset token. No auto-login — caller redirects to /login. */
+    resetPassword: (token: string, password: string) =>
+      request<{ reset: boolean }>(
+        'POST', '/api/v1/auth/reset-password', { token, password },
       ),
   },
 
@@ -594,6 +629,17 @@ export const api = {
         'PUT',
         `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}/${encodeURIComponent(recordId)}`,
         input,
+      ),
+
+    // Reconnect delta-pull (Phase 2 Problem B): every record in the project
+    // changed since `sinceISO` (omit for a full snapshot), across all stores,
+    // oldest-first. Apply-only on the client (server-wins by rev).
+    changedSince: (projectServerId: string, sinceISO?: string) =>
+      request<SyncedRecord[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectServerId}/changed-since${
+          sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+        }`,
       ),
 
     // ADR 7 Phase 4 — conflict resolution surface.
@@ -1246,12 +1292,24 @@ export const api = {
       update: (
         projectId: string,
         recordId: string,
-        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>>,
+        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<ObservationRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): every observation in the project changed
+      // since `sinceISO` (omit for a full snapshot), oldest-first by server
+      // `updated_at`. Apply-only on the client (server-wins by rev).
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, recordId: string) =>
         request<void>(
@@ -1427,12 +1485,23 @@ export const api = {
         projectId: string,
         taskId: string,
         proofId: string,
-        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>>,
+        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<ProofRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped (NOT task-scoped) so a
+      // device catches up every proof changed since `sinceISO` in one call.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/proofs/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, taskId: string, proofId: string) =>
         request<void>(
@@ -1467,12 +1536,23 @@ export const api = {
         projectId: string,
         taskId: string,
         verificationId: string,
-        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>>,
+        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<VerificationRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped catch-up of every
+      // verification changed since `sinceISO`, oldest-first by server updated_at.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/verifications/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, taskId: string, verificationId: string) =>
         request<void>(
@@ -1570,6 +1650,94 @@ export const api = {
           'DELETE',
           `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
         ),
+    },
+
+    // ── olos record conflict resolution (Phase 3B) ────────────────────────
+    // One generic route closes an escalated conflict for any of the three olos
+    // record domains; the server dispatches the keep_mine write to the table
+    // named by sync_log.store_key. Mirrors actRecords.resolveConflict, keyed on
+    // the olos `:id` project param. keep_server is a server-side read no-op.
+    resolveConflict: (
+      projectId: string,
+      syncLogId: string,
+      input: ResolveConflictInput,
+    ) =>
+      request<ResolveConflictResult>(
+        'POST',
+        `/api/v1/projects/${projectId}/olos/conflicts/${encodeURIComponent(
+          syncLogId,
+        )}/resolve`,
+        input,
+      ),
+  },
+
+  // ── Compost vertical (org-scoped Site / Pile / Reading; /api/v1/compost) ──
+  // The thermophilic-composting vertical persists piles + readings to typed
+  // org-scoped tables (NOT project-scoped synced_records). Mirrors the
+  // organizations/olos groups; `request` injects the Bearer token and drives
+  // the connectivity store's apiReachable signal.
+  compost: {
+    sites: {
+      list: (orgId: string) =>
+        request<CompostSite[]>(
+          'GET',
+          `/api/v1/compost/sites?orgId=${encodeURIComponent(orgId)}`,
+        ),
+      create: (input: Omit<CompostSite, 'id' | 'ownerId'>) =>
+        request<CompostSite>('POST', '/api/v1/compost/sites', input),
+      get: (siteId: string) =>
+        request<CompostSite>('GET', `/api/v1/compost/sites/${siteId}`),
+      update: (
+        siteId: string,
+        patch: Partial<Omit<CompostSite, 'id' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostSite>('PATCH', `/api/v1/compost/sites/${siteId}`, patch),
+      delete: (siteId: string) =>
+        request<void>('DELETE', `/api/v1/compost/sites/${siteId}`),
+    },
+
+    piles: {
+      list: (siteId: string) =>
+        request<CompostPile[]>('GET', `/api/v1/compost/sites/${siteId}/piles`),
+      create: (
+        siteId: string,
+        input: Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>,
+      ) => request<CompostPile>('POST', `/api/v1/compost/sites/${siteId}/piles`, input),
+      get: (pileId: string) =>
+        request<CompostPile>('GET', `/api/v1/compost/piles/${pileId}`),
+      update: (
+        pileId: string,
+        patch: Partial<Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostPile>('PATCH', `/api/v1/compost/piles/${pileId}`, patch),
+      delete: (pileId: string) =>
+        request<void>('DELETE', `/api/v1/compost/piles/${pileId}`),
+    },
+
+    readings: {
+      list: (pileId: string, source?: CompostReadingSource) => {
+        const suffix = source ? `?source=${source}` : '';
+        return request<CompostReading[]>(
+          'GET',
+          `/api/v1/compost/piles/${pileId}/readings${suffix}`,
+        );
+      },
+      create: (
+        pileId: string,
+        input: Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>,
+      ) =>
+        request<CompostReading>(
+          'POST',
+          `/api/v1/compost/piles/${pileId}/readings`,
+          input,
+        ),
+      get: (readingId: string) =>
+        request<CompostReading>('GET', `/api/v1/compost/readings/${readingId}`),
+      update: (
+        readingId: string,
+        patch: Partial<Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>>,
+      ) =>
+        request<CompostReading>('PATCH', `/api/v1/compost/readings/${readingId}`, patch),
+      delete: (readingId: string) =>
+        request<void>('DELETE', `/api/v1/compost/readings/${readingId}`),
     },
   },
 };

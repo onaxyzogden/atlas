@@ -16,6 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { UniversalDomain } from '@ogden/shared';
 import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { PlanModule } from '../v3/plan/types.js';
@@ -168,6 +169,8 @@ export const usePlanCompassStore = create<PlanCompassState>()(
     }),
     {
       name: 'ogden-atlas-plan-compass',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted, version) => {
         if (version < 2) {

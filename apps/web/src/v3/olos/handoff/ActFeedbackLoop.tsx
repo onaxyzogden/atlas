@@ -28,6 +28,8 @@ import {
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
+import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
+import TaskProofPanel from './TaskProofPanel';
 import css from './HandoffSection.module.css';
 
 interface Props {
@@ -54,6 +56,8 @@ export default function ActFeedbackLoop({
 
   const members = useMemberStore((s) => s.members);
   const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const myRoles = useMemberStore((s) => s.myRoles);
+  const fetchMyRoles = useMemberStore((s) => s.fetchMyRoles);
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   // Pull this project's tasks on mount so assignments made elsewhere are
@@ -64,6 +68,15 @@ export default function ActFeedbackLoop({
   useEffect(() => {
     if (serverId && members.length === 0) void fetchMembers(serverId);
   }, [serverId, members.length, fetchMembers]);
+
+  // Load the project-scoped role map so role resolution is correct. The global
+  // `members` array is shared across projects and is pre-seeded with a
+  // synthetic demo roster by the builtin sample, so deriving role from it
+  // returns the wrong project's role -- or undefined for the authenticated
+  // user. myRoles is keyed by serverId.
+  useEffect(() => {
+    if (serverId) void fetchMyRoles();
+  }, [serverId, fetchMyRoles]);
 
   const tasks = useMemo(
     () =>
@@ -80,16 +93,19 @@ export default function ActFeedbackLoop({
     [escalationByProject, projectId, objective.id],
   );
 
-  const myRole = useMemo(
-    () => members.find((m) => m.userId === currentUserId)?.role,
-    [members, currentUserId],
-  );
+  const myRole = serverId ? myRoles[serverId] : undefined;
   // Mirrors the API PATCH gate requireRole('owner','designer'): show the picker
   // only to roles that satisfy either, and only on synced projects.
   const canAssign =
     !!serverId &&
     !!myRole &&
     (roleSatisfies(myRole, 'owner') || roleSatisfies(myRole, 'designer'));
+
+  // Formal OLOS proof/verification surface is flag-gated (off by default); the
+  // lightweight ObserveDataPoint completion path stays live until the
+  // multi-session replacement migration. See
+  // wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  const formalProofEnabled = isOlosFormalProofEnabled();
 
   const onAssign = (taskId: string, userId: string) => {
     if (!serverId) return;
@@ -166,6 +182,16 @@ export default function ActFeedbackLoop({
                     <span className={css.taskStatus}>
                       {assignee?.displayName ?? assignee?.email ?? 'Assigned'}
                     </span>
+                  ) : null}
+                  {formalProofEnabled ? (
+                    <TaskProofPanel
+                      projectId={projectId}
+                      task={t}
+                      serverId={serverId}
+                      members={members}
+                      currentUserId={currentUserId}
+                      myRole={myRole}
+                    />
                   ) : null}
                 </li>
               );

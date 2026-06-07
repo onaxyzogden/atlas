@@ -17,6 +17,16 @@ const EnvSchema = z.object({
   S3_ENDPOINT: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
   ANTHROPIC_API_KEY: z.string().optional(),
   PUPPETEER_EXECUTABLE_PATH: z.string().optional(),
+  // ── Email (verification + password reset) ────────────────────────────────
+  // EMAIL_TRANSPORT — 'console' (default) logs links to stdout, no account
+  //   needed; 'resend' sends real mail via the Resend REST API.
+  // RESEND_API_KEY — required only when EMAIL_TRANSPORT=resend (else falls back
+  //   to console with a warning, so a missing key never blocks boot).
+  // APP_PUBLIC_URL — base URL used to build verify/reset links in emails.
+  EMAIL_TRANSPORT: z.enum(['console', 'resend']).default('console'),
+  RESEND_API_KEY: z.string().optional().transform((v) => v || undefined),
+  EMAIL_FROM: z.string().default('OGDEN Atlas <noreply@ogden.ag>'),
+  APP_PUBLIC_URL: z.string().url().default('http://localhost:5200'),
   // ── GAEZ v4 (self-hosted rasters) ────────────────────────────────────────
   // GAEZ_DATA_DIR — local filesystem path to the converted COG directory.
   //   Defaults to `./data/gaez/cog` relative to CWD (typically apps/api).

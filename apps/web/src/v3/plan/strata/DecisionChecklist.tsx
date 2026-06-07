@@ -19,7 +19,7 @@
 // DecisionChecklist.module.css is retired for this surface (left orphaned on
 // disk per "no deletion in revamps").
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type {
@@ -72,6 +72,31 @@ export default function DecisionChecklist({
 
   const groups = buildRenderGroups(objective, items);
 
+  // Expansion state is lifted here (was per-card local state) so a single
+  // header control can open/close every group at once. Only groups with items
+  // are expandable. Default: every group collapsed; reset on objective switch.
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setExpandedGroups(new Set());
+  }, [objective.id]);
+
+  const expandableIds = groups
+    .filter((g) => g.items.length > 0)
+    .map((g) => g.id);
+  const allExpanded =
+    expandableIds.length > 0 &&
+    expandableIds.every((id) => expandedGroups.has(id));
+
+  const toggleGroup = (id: string) =>
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () =>
+    setExpandedGroups(allExpanded ? new Set() : new Set(expandableIds));
+
   return (
     <section
       aria-label="Your decisions"
@@ -98,12 +123,42 @@ export default function DecisionChecklist({
         >
           Your decisions
         </p>
-        <span
-          data-status={status}
-          style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.mono }}
-        >
-          {requiredDoneCount} / {requiredCount} required
-        </span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          {expandableIds.length > 0 ? (
+            <button
+              type="button"
+              onClick={toggleAll}
+              aria-label={
+                allExpanded
+                  ? 'Collapse all decision groups'
+                  : 'Expand all decision groups'
+              }
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 8px',
+                fontSize: 10,
+                fontWeight: 600,
+                color: C.textSecondary,
+                background: 'transparent',
+                border: `1px solid ${C.border}`,
+                borderRadius: 5,
+                cursor: 'pointer',
+                fontFamily: F.sans,
+                alignSelf: 'center',
+              }}
+            >
+              {allExpanded ? 'Collapse all' : 'Expand all'}
+            </button>
+          ) : null}
+          <span
+            data-status={status}
+            style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.mono }}
+          >
+            {requiredDoneCount} / {requiredCount} required
+          </span>
+        </div>
       </header>
 
       {items.length === 0 ? (
@@ -128,6 +183,8 @@ export default function DecisionChecklist({
             index={i}
             isItemComplete={isItemComplete}
             derivedEvidence={derivedEvidence}
+            expanded={expandedGroups.has(group.id)}
+            onToggle={() => toggleGroup(group.id)}
           />
         ))
       )}
@@ -205,6 +262,9 @@ interface CardProps {
   index: number;
   isItemComplete: (id: string) => boolean;
   derivedEvidence?: VisionDerivedMap;
+  /** Controlled expansion — lifted to DecisionChecklist for expand/collapse-all. */
+  expanded: boolean;
+  onToggle: () => void;
 }
 
 /**
@@ -220,9 +280,10 @@ function ReadOnlyDecisionGroupCard({
   index,
   isItemComplete,
   derivedEvidence,
+  expanded,
+  onToggle,
 }: CardProps) {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(false);
   const hasItems = group.items.length > 0;
   const isDone = hasItems && group.items.every((i) => isItemComplete(i.id));
   const injected = group.sourceSecondaryId != null;
@@ -248,13 +309,13 @@ function ReadOnlyDecisionGroupCard({
     >
       {/* Group header — tappable if it has items */}
       <div
-        onClick={() => hasItems && setExpanded((p) => !p)}
+        onClick={() => hasItems && onToggle()}
         role={hasItems ? 'button' : undefined}
         tabIndex={hasItems ? 0 : undefined}
         onKeyDown={(e) => {
           if (hasItems && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault();
-            setExpanded((p) => !p);
+            onToggle();
           }
         }}
         style={{
@@ -373,50 +434,36 @@ function ReadOnlyDecisionGroupCard({
             />
           ))}
 
-          <div
+          {/* Full-width action footer — flush to card edges, clipped by parent borderRadius+overflow:hidden. */}
+          <button
+            type="button"
+            data-testid="open-in-act-trigger"
+            onClick={() =>
+              navigate({
+                to: '/v3/project/$projectId/act/field-action/$objectiveId',
+                params: { projectId, objectiveId },
+              })
+            }
             style={{
-              padding: '10px 14px',
-              background: C.bg3,
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
+              margin: 0,
+              padding: '11px 14px',
+              border: 'none',
+              borderTop: `1px solid ${CA('blue', 0.25)}`,
+              background: CA('blue', 0.1),
+              fontSize: 11,
+              color: C.blue,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              cursor: 'pointer',
             }}
           >
-            <span
-              style={{
-                fontSize: 10,
-                color: C.textTertiary,
-                fontFamily: F.sans,
-                fontStyle: 'italic',
-              }}
-            >
-              Full methodology available in Act
-            </span>
-            <button
-              type="button"
-              data-testid="open-in-act-trigger"
-              onClick={() =>
-                navigate({
-                  to: '/v3/project/$projectId/act/field-action/$objectiveId',
-                  params: { projectId, objectiveId },
-                })
-              }
-              style={{
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                background: 'transparent',
-                font: 'inherit',
-                fontSize: 10,
-                color: C.blue,
-                fontFamily: F.sans,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Open in Act →
-            </button>
-          </div>
+            Open in Act →
+          </button>
         </div>
       ) : null}
 

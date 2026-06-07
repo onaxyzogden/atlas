@@ -225,10 +225,24 @@ function/widget.
   is `lazy()`. Two NEW pure, ecological-only math modules back widgets:
   `features/livestock/stockWaterDemandMath.ts` and
   `features/livestock/forageCarryingCapacityMath.ts` (reuse `LIVESTOCK_SPECIES`
-  + `AU_FACTORS`). The S7 `enterprise-break-even` entry ships a deliberate
-  **placeholder** (`formula-widgets/BreakEvenPlaceholderWidget.tsx`, no
-  inputs/numbers/financial framing; `summarize` always `{ hasResult:false }`) --
-  financial wiring deferred under Scholar Council ([[fiqh-csra-erased-2026-05-04]]).
+  + `AU_FACTORS`). The S7 `enterprise-break-even` entry now ships a **live
+  cost-recovery readout** (`formula-widgets/BreakEvenWidget.tsx`), replacing the
+  earlier placeholder -- which is kept unmounted, not deleted
+  ([[feedback-no-deletion]]). It reuses the existing financial engine through a
+  pure `engine/computeProjectBreakEven.ts` core (runs `computeAllCosts ->
+  detectEnterprises -> computeRevenueStreams -> applyRevenueOverrides ->
+  computeCashflow -> computeBreakEven`, returns ONLY `{ hasModel, breakEvenYear,
+  peakNegativeCashflow }`) fed by a hook-free `engine/assembleFinancialInputs.ts`
+  (`*.getState()` store reads, mirroring `useFinancialModel`'s useMemo body). The
+  widget reads ONLY `breakEvenYear` + `peakNegativeCashflow` (recovery year +
+  peak capital outlay) and NEVER `tenYearROI` -- cost-recovery TIMING math only,
+  no advance-sale / salam / CSRA / investor / yield framing
+  ([[fiqh-csra-erased-2026-05-04]]); a covenant guard test pins the rendered text
+  + `summarize` display against a forbidden-token list. `summarize` tracks
+  `hasModel` (true even when `breakEvenYear` is null -- "computed even if never"),
+  so the S7 item auto-satisfies once a model exists, through the same 6th-arg
+  union below. No new input field; revenue is refined on the existing Economics
+  `revenueOverrides` path. Log: [[log/2026-06-02-atlas-s7-break-even-wiring]].
 - **`FormulaResultSection.tsx`** (+ CSS) in `ObjectiveDetailPanel` collects
   `objective.checklist.filter(i => i.formulaBinding)`, returns `null` when none
   (non-livestock panels untouched, no chunk cost), renders each widget inside

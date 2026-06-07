@@ -50,6 +50,12 @@ import {
   type Primitive,
   type Substitution,
 } from './substitutionCatalog.js';
+import {
+  REGION_MULTIPLIERS,
+  ECO_UPLIFT_POINT_SCALE,
+  ECO_UPLIFT_MAX_POINTS,
+} from './materialSubstitutionMath.js';
+import { REGION_LABELS } from '../../../../features/financial/engine/types.js';
 
 interface Props {
   project: LocalProject;
@@ -98,6 +104,10 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
   const costOverrides = useFinancialStore((s) => s.costOverrides);
   const setCostOverride = useFinancialStore((s) => s.setCostOverride);
   const clearCostOverride = useFinancialStore((s) => s.clearCostOverride);
+  const setSubstitutionMeta = useFinancialStore((s) => s.setSubstitutionMeta);
+  const clearSubstitutionMeta = useFinancialStore((s) => s.clearSubstitutionMeta);
+  const region = useFinancialStore((s) => s.region);
+  const regionFactor = REGION_MULTIPLIERS[region] ?? 1;
 
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allPaths = usePathStore((s) => s.paths);
@@ -180,8 +190,15 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
   function toggle(row: Row) {
     if (row.isApplied) {
       clearCostOverride(row.item.id);
+      clearSubstitutionMeta(row.item.id);
     } else {
       setCostOverride(row.item.id, row.appliedCost);
+      // v2: record the non-cost dimensions so the ecological mission uplift
+      // and establishment-time delta go live (covenant: ecological only).
+      setSubstitutionMeta(row.item.id, {
+        upliftEstimate: row.substitution.alternative.missionUpliftEstimate,
+        establishmentMonths: row.substitution.alternative.establishmentMonths,
+      });
     }
   }
 
@@ -194,11 +211,11 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
           Every infrastructure line item with a living-system alternative
           surfaces here. Toggle a row and the alternative&apos;s cost
           flows through the financial model — total investment,
-          break-even, and mission score recompute live. Establishment
-          time and mission-uplift are illustrative in v1 (wiring into
-          cashflow phase-shift and mission scoring is v2). Holmgren
-          P5 — Use &amp; value renewable resources &amp; services;
-          P9 — Use small &amp; slow solutions.
+          break-even, and mission score recompute live. v2 makes the
+          mission-uplift live too: applied substitutions raise the
+          <em> ecological</em> mission component only (never the financial
+          return). Holmgren P5 — Use &amp; value renewable resources &amp;
+          services; P9 — Use small &amp; slow solutions.
         </p>
       </header>
 
@@ -238,8 +255,21 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
               <span>+{totals.establishmentMonthsPending} months</span>
             </div>
             <div className={styles.statRow}>
-              <span>Mission uplift pending (illustrative)</span>
-              <span>+{totals.upliftPending.toFixed(2)}</span>
+              <span>Ecological mission uplift (live)</span>
+              <span>
+                +
+                {Math.min(
+                  ECO_UPLIFT_MAX_POINTS,
+                  Math.round(totals.upliftPending * ECO_UPLIFT_POINT_SCALE),
+                )}{' '}
+                eco pts
+              </span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Regional cost factor</span>
+              <span>
+                {regionFactor.toFixed(2)}× · {REGION_LABELS[region]}
+              </span>
             </div>
             <div className={styles.statRow}>
               <span>Total investment (mid, post-override)</span>
@@ -251,11 +281,12 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
             <section className={styles.section}>
               <p className={styles.empty}>
                 None of the {model!.costLineItems.length} cost line items
-                in this project match the v1 substitution catalog. The
-                catalog covers woven-wire / post-wire fencing, paved
-                walkways and farm lanes, garden beds, row crops,
-                windbreaks, and concrete water tanks (8 cited pairs).
-                v2 expands to 10–15.
+                in this project match the substitution catalog. The catalog
+                covers fencing (woven-wire, post-wire, electric/temporary),
+                paths and livestock lanes, garden / market-garden / nursery
+                beds, orchards, row crops, windbreaks, water tanks, and
+                rain-catchment drainage ({SUBSTITUTION_CATALOG.length} cited
+                pairs).
               </p>
             </section>
           )}
@@ -386,8 +417,12 @@ export default function MaterialSubstitutionsCard({ project }: Props) {
               it up on the next recompute, so total investment, cashflow,
               break-even, and mission score all reflect the swap. Turning
               the toggle off clears that one override (other manual
-              overrides remain untouched). Catalog ships {SUBSTITUTION_CATALOG.length} cited pairs;
-              expansion to 10–15 is the v2 catalog-research follow-up.
+              overrides remain untouched). v2 additionally records each
+              applied row in <code>financialStore.substitutionMeta</code>,
+              which raises the <em>ecological</em> mission component only
+              (capped at {ECO_UPLIFT_MAX_POINTS} points) — the financial
+              return surface is never touched. Catalog ships{' '}
+              {SUBSTITUTION_CATALOG.length} cited pairs.
             </p>
           </section>
         </>

@@ -10,6 +10,7 @@
 import type { KeyboardEvent } from 'react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import type { ObjectiveProgress } from './objectiveProgress.js';
+import { getSourceTag } from '../../plan/strata/sourceTag.js';
 import styles from './ActTierShell.module.css';
 
 interface Props {
@@ -39,16 +40,33 @@ export default function ActTierObjectiveCard({
       ? 'No tasks yet'
       : `${progress.verified}/${progress.total} done`;
 
+  // Source provenance (Universal / Primary / Secondary - <Type>). Universal is
+  // the baseline and carries no badge to keep the rail uncluttered; primary and
+  // secondary objectives get a labelled pill so a steward can see which of their
+  // chosen project types (e.g. an Orchard / Food Forest or Silvopasture
+  // secondary) contributed the objective - parity with the Plan ObjectiveColumn.
+  const source = getSourceTag(objective);
+
   return (
     <div
       className={styles.objCard}
       role="button"
       tabIndex={0}
+      // Selection is a toggle: clicking the active card deselects it (the shell
+      // routes a re-select back to the stratum dashboard). aria-pressed exposes
+      // that toggle state so assistive tech announces selected/not-selected
+      // rather than a one-shot action.
+      aria-pressed={isActive}
       data-status={progress.state}
       data-active={isActive}
       onClick={onSelect}
       onKeyDown={handleKeyDown}
     >
+      {source.kind !== 'universal' && (
+        <span className={styles.objSource} data-kind={source.kind}>
+          {source.label}
+        </span>
+      )}
       <span className={styles.objEyebrow}>{eyebrow}</span>
       <span className={styles.objTitle}>{objective.shortTitle ?? objective.title}</span>
       <span className={styles.objDesc}>{objective.focusedQuestion}</span>

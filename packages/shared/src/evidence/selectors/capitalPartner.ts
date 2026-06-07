@@ -186,7 +186,7 @@ export function selectCapitalPartnerEvidence(
       value: pdfAssumptionCount,
       source: {
         kind: 'fixture',
-        derivation: 'capitalPartnerSummary template (truncated at 15)',
+        derivation: 'capitalPartnerSummary template (15 on PDF page 1, remainder continued on page 2)',
         confidence: 'high',
       },
     });

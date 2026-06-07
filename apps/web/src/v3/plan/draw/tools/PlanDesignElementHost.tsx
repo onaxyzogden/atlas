@@ -12,6 +12,7 @@
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useDesignElementDrawTool } from '../../canvas/draw/useDesignElementDrawTool.js';
+import { usePlanSnapTargets } from './usePlanSnapTargets.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
@@ -31,12 +32,15 @@ export default function PlanDesignElementHost({
   parcelBoundary,
 }: Props) {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
   const { liveArea, liveLength } = useDesignElementDrawTool({
     map,
     projectId,
     kind,
     onComplete: () => setActiveTool(null),
     parcelBoundary,
+    snap: true,
+    getSnapTargets,
   });
   if (liveArea === null && liveLength === null) return null;
   return (

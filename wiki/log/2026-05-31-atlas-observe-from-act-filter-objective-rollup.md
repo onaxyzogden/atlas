@@ -71,12 +71,17 @@ Detail / 3 Temporal / **4 Rollup**). 9 files (5 new + 4 edits):
   freshness accent.
 - [ActTierExecutionPanel.tsx](apps/web/src/v3/act/tier-shell/ActTierExecutionPanel.tsx)
   -- now imports `readNote` / `formatActyTimestamp` from the extracted module
-  (local copies removed). **NOTE (disclosed):** this de-dup edit is TANGLED with
-  foreign WIP in the same file (a `useEffectiveChecklistProgress` refactor) and
-  was therefore EXCLUDED from the `ba1d5b8c` commit to avoid sweeping foreign
-  work. `observationDisplay.ts` is self-contained and consumed by the rollup card,
-  so the codebase compiles; the panel's switch to the shared helpers remains
-  uncommitted in the working tree pending the foreign WIP landing.
+  (local copies removed). **RESOLVED (2026-05-31, follow-up session):** the
+  disclosed de-dup deferral is closed. Rather than a fresh hunk-only commit by
+  me, the panel's switch to the shared `observationDisplay` helpers landed via
+  the out-of-band rebase commit `0e028508`
+  (*fix(v3): single source of truth for Stratum-1 effective progress*), which
+  carried BOTH my `observationDisplay` import AND the foreign
+  `useEffectiveChecklistProgress` refactor together. On inspection the working
+  tree had already converged: HEAD contained the de-dup, the file was clean, and
+  no empty commit was warranted. The foreign refactor was left untouched
+  throughout. See the follow-up log
+  [[log/2026-05-31-atlas-observe-rollup-deep-link]].
 - [ObserveDashboardLayout.tsx](apps/web/src/v3/observe/dashboard/ObserveDashboardLayout.tsx)
   -- `ObserveDashboardSurface` union extended with `'rollup'`; `effectiveSurface`
   gains a `surface === 'rollup' -> 'rollup'` branch (objective-keyed, no
@@ -119,7 +124,8 @@ the 9 intended files, foreign WIP confirmed untouched; committed the moment each
 verified per [[feedback-commit-immediately-on-rebased-branches]]). Commit
 messages BOM-free UTF-8 via `[System.IO.File]::WriteAllText` + `git commit -F`.
 Branch fetched + divergence-checked. The `ActTierExecutionPanel.tsx` helper
-de-dup left uncommitted (tangled with foreign WIP, disclosed above). Foreign WIP
+de-dup later landed via the out-of-band rebase `0e028508` (see RESOLVED note
+above), with the foreign WIP left untouched. Foreign WIP
 untouched ([[feedback-no-deletion]], [[project-branch-rebase]]); CSRA model
 untouched ([[fiqh-csra-erased-2026-05-04]]); ASCII-only copy.
 

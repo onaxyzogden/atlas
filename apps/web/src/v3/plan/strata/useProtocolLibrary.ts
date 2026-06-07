@@ -11,8 +11,8 @@
 
 import { useMemo } from 'react';
 import {
-  enterprisesForProjectTypes,
-  templatesForEnterprises,
+  resolveProjectProtocols,
+  PLAN_STRATA,
   buildProtocolOutputs,
   findPlanStratumObjective,
   type ProjectTypeId,
@@ -22,24 +22,55 @@ import { useProtocolStore } from '../../../store/protocolStore.js';
 import {
   usePlanStratumProgressStore,
   selectParameterValues,
+  selectProjectProtocolOverrides,
 } from '../../../store/planStratumStore.js';
 import { type RecordStatus } from './ProtocolLibraryCard.js';
 
 /** One tier-grouped bucket of templates, in catalogue (first-seen) order. */
 export interface ProtocolTierGroup {
   tier: string;
+  /**
+   * The `PlanStratumId` this group corresponds to (e.g. `s6-integration-design`),
+   * or `undefined` for the defensive "Standing protocols" fallback bucket. Typed
+   * off the template's own field so no separate `PlanStratumId` import is needed.
+   * Lets the Plan surface filter to the currently-open stratum; the Act-rail
+   * `ProtocolLayerPanel` simply ignores it.
+   */
+  stratumId: StandardProtocolTemplate['stratumId'];
   items: StandardProtocolTemplate[];
 }
 
+/**
+ * Pure helper: narrow a list of tier groups to just the one matching the
+ * currently-open stratum. Returns all groups when `activeStratumId` is null
+ * (e.g. the Act-rail panel, which has no single open stratum). Unit-testable
+ * without rendering.
+ */
+export function filterProtocolGroups(
+  groups: readonly ProtocolTierGroup[],
+  activeStratumId: string | null,
+): ProtocolTierGroup[] {
+  if (!activeStratumId) return [...groups];
+  return groups.filter((g) => g.stratumId === activeStratumId);
+}
+
 export interface ProtocolLibrary {
-  /** Enterprise-filtered standard templates for this project's types. */
+  /** Full resolved standing-protocol set for this project's types (S1→S7). */
   templates: readonly StandardProtocolTemplate[];
-  /** Templates grouped by real `tierAuthored`, preserving catalogue order. */
+  /** Templates grouped by stratum (`stratumId`), preserving resolver S1→S7 order. */
   groups: ProtocolTierGroup[];
   /** templateId → lifecycle status, scoped to THIS project. */
   statusByTemplate: Record<string, RecordStatus>;
   /** Derived token-substitution outputs from the steward's S6 parameter values. */
   outputs: Record<string, string>;
+  /**
+   * Per-protocol token-substitution outputs: the base `outputs` merged with this
+   * project's Act-stage threshold overrides for ONE template (overrides win).
+   * The Act surfaces (detail pane + rail list) render conditions through this so a
+   * `[token]` reflects the steward's per-protocol bound. Falls back to base
+   * `outputs` for any template with no overrides. Stable identity per call args.
+   */
+  outputsFor: (templateId: string) => Record<string, string>;
   /** Count of templates currently in the `active` lifecycle state. */
   activeCount: number;
 }
@@ -54,17 +85,17 @@ export function useProtocolLibrary(
   primaryTypeId: ProjectTypeId | null,
   secondaryTypeIds: readonly ProjectTypeId[],
 ): ProtocolLibrary {
-  // Enterprise-filtered standard templates (spec 4.3). Memoised on the
-  // project-type identity so the pure filter only re-runs when the project's
-  // types actually change. `secondaryKey` collapses the array to a stable
-  // primitive so a fresh `secondaryTypeIds` array reference per render does not
-  // recompute or, worse, churn downstream memos.
+  // Full resolved standing-protocol set (ADR 2026-06-03): universal (22) +
+  // primary-type deltas + each compatible secondary's additive/patch protocols,
+  // already sorted S1→S7 (stratum ordinal → source layer → authored order) by
+  // the pure resolver. Memoised on the project-type identity so it only re-runs
+  // when the project's types actually change. `secondaryKey` collapses the array
+  // to a stable primitive so a fresh `secondaryTypeIds` array reference per
+  // render does not recompute or, worse, churn downstream memos.
   const secondaryKey = secondaryTypeIds.join(',');
   const templates = useMemo<readonly StandardProtocolTemplate[]>(() => {
     if (!primaryTypeId) return [];
-    return templatesForEnterprises(
-      enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
-    );
+    return resolveProjectProtocols({ primaryTypeId, secondaryTypeIds }).protocols;
     // secondaryTypeIds is captured via secondaryKey (stable primitive).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryTypeId, secondaryKey]);
@@ -86,6 +117,23 @@ export function useProtocolLibrary(
     [s6Values],
   );
 
+  // Act-stage per-protocol threshold overrides for THIS project (templateId ->
+  // token -> value). Reference-stable selector returning a frozen {} when empty
+  // (NEVER an inline derive — Zustand v5 loop hazard). `outputsFor(templateId)`
+  // merges this template's overrides on top of the base `outputs` so a `[token]`
+  // in that protocol's condition renders the steward's bound; templates without
+  // overrides fall back to the shared `outputs` identity (no churn).
+  const protocolOverrides = usePlanStratumProgressStore((s) =>
+    selectProjectProtocolOverrides(s, projectId),
+  );
+  const outputsFor = useMemo(() => {
+    return (templateId: string): Record<string, string> => {
+      const overrides = protocolOverrides[templateId];
+      if (!overrides) return outputs;
+      return { ...outputs, ...overrides };
+    };
+  }, [outputs, protocolOverrides]);
+
   // Reference-stable selector + useMemo (NEVER an inline `.filter()` selector —
   // Zustand v5 infinite-loop hazard). Build a templateId → status map for THIS
   // project so each card reflects its real lifecycle state.
@@ -98,25 +146,40 @@ export function useProtocolLibrary(
     return map;
   }, [records, projectId]);
 
-  // Group by the template's real `tierAuthored` string, preserving first-seen
-  // (catalogue) order. No per-stratum invention: one group per distinct tier the
-  // catalogue actually authors.
+  // Group by the template's `stratumId`, preserving first-seen order — which is
+  // already S1→S7 because the resolver sorts by stratum ordinal. The heading is
+  // the PLAN_STRATA label (`S{ordinal} · {title}`, e.g. "S6 · Integration
+  // Design"). Catalogue protocols all set `stratumId`; any that omit it (defensive
+  // — e.g. a legacy enterprise template) fall back to one "Standing protocols"
+  // bucket rather than dropping out of the list.
   const groups = useMemo<ProtocolTierGroup[]>(() => {
+    const STRATUM_LABEL = new Map(
+      PLAN_STRATA.map((s) => [s.id, `S${s.ordinal} · ${s.title}`] as const),
+    );
+    const FALLBACK_TIER = 'Standing protocols';
     const order: string[] = [];
-    const byTier = new Map<string, StandardProtocolTemplate[]>();
+    const byTier = new Map<
+      string,
+      { stratumId: StandardProtocolTemplate['stratumId']; items: StandardProtocolTemplate[] }
+    >();
     for (const t of templates) {
-      // `tierAuthored` is optional in the schema; a template that omits it still
-      // groups under a sensible default rather than dropping out of the list.
-      const tier = t.tierAuthored ?? 'Standard protocols';
+      const tier =
+        (t.stratumId && STRATUM_LABEL.get(t.stratumId)) ?? FALLBACK_TIER;
       const bucket = byTier.get(tier);
       if (bucket) {
-        bucket.push(t);
+        bucket.items.push(t);
       } else {
-        byTier.set(tier, [t]);
+        // The bucket's stratumId is taken from its first template; all templates
+        // sharing a PLAN_STRATA label share the same stratumId by construction
+        // (the fallback bucket carries `undefined`).
+        byTier.set(tier, { stratumId: t.stratumId, items: [t] });
         order.push(tier);
       }
     }
-    return order.map((tier) => ({ tier, items: byTier.get(tier)! }));
+    return order.map((tier) => {
+      const bucket = byTier.get(tier)!;
+      return { tier, stratumId: bucket.stratumId, items: bucket.items };
+    });
   }, [templates]);
 
   const activeCount = useMemo(
@@ -124,5 +187,5 @@ export function useProtocolLibrary(
     [templates, statusByTemplate],
   );
 
-  return { templates, groups, statusByTemplate, outputs, activeCount };
+  return { templates, groups, statusByTemplate, outputs, outputsFor, activeCount };
 }

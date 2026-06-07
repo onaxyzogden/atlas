@@ -15,6 +15,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PrincipleStatus = 'unmet' | 'partial' | 'met';
 
@@ -60,7 +61,7 @@ export const usePrincipleCheckStore = create<PrincipleCheckState>()(
           return { byProject: { ...s.byProject, [projectId]: next } };
         }),
     }),
-    { name: 'ogden-principle-checks', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-principle-checks', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  *
  * Locks the `apiReachable` reachability signal added for the global
- * ApiReachabilityBanner: it toggles, and — critically — `setApiReachable`
+ * API reachability surface (ApiReachabilityWatcher + ApiReachabilityStatus):
+ * it toggles, and — critically — `setApiReachable`
  * is a no-op when the value is unchanged, so the apiClient success hook
  * (which fires on every successful response) never notifies subscribers
  * needlessly.

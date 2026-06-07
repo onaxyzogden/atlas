@@ -1,0 +1,408 @@
+/* VisionClassifyCapture.module.css
+ *
+ * Styles for the two-column vision-classify capture component. Converts the
+ * mockup's "Suggested vision elements" chips, transient "Unclassified" staging
+ * zone, two committed/aspirational columns, and a write-your-own composer into
+ * project design tokens (var() with literal fallbacks). Mirrors the token
+ * vocabulary of SuccessCriteriaCapture.module.css. ASCII-only: all glyphs are
+ * lucide icons rendered by the component (no Unicode shapes here).
+ *
+ * Token substitution note: the mockup's committed/"green" accent maps to
+ * --color-success / --color-accent; the aspirational/"blue-teal dream" accent
+ * maps to --color-info (closest project token -- no exact "aspirational" token
+ * exists); "amber action" -> --color-stage-act. No other token names were
+ * missing.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Suggested vision elements (chips) ---------- */
+
+.sugBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sugHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sugLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  letter-spacing: 0.01em;
+}
+
+.sugSub {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.sugGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text, #1b1e22);
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--color-stage-act, #d9a036);
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+/* Used: text already staged or classified -- dimmed + non-interactive. */
+.chip[data-used='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 55%, transparent);
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.chip:disabled {
+  cursor: not-allowed;
+}
+
+.chipIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.chip[data-used='true'] .chipIcon {
+  color: var(--color-success, #6b8f6b);
+}
+
+.sugToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.sugToggle:hover {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.sugArrow {
+  transition: transform 150ms ease;
+}
+
+.sugToggle[data-open='true'] .sugArrow {
+  transform: rotate(180deg);
+}
+
+/* ---------- Unclassified staging zone (transient) ---------- */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.stageLbl {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.stageList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stageCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+}
+
+.stageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.stageBtn[data-col='committed']:hover {
+  border-color: var(--color-success, #6b8f6b);
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+}
+
+.stageBtn[data-col='aspirational']:hover {
+  border-color: var(--color-info, #5b8eaf);
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+}
+
+/* ---------- Two columns: committed / aspirational ---------- */
+
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+  background: var(--color-surface, #ffffff);
+}
+
+.col[data-col='committed'] {
+  border-top: 2px solid var(--color-success, #6b8f6b);
+}
+
+.col[data-col='aspirational'] {
+  border-top: 2px solid var(--color-info, #5b8eaf);
+}
+
+.colHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.colTitle {
+  font-family: var(--font-serif, Georgia, serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--color-text, #1b1e22);
+}
+
+.col[data-col='committed'] .colTitle {
+  color: var(--color-success, #6b8f6b);
+}
+
+.col[data-col='aspirational'] .colTitle {
+  color: var(--color-info, #5b8eaf);
+}
+
+.colCount {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.colList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 24px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+}
+
+.card[data-col='committed'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 45%, transparent);
+}
+
+.card[data-col='aspirational'] {
+  border-color: color-mix(in srgb, var(--color-info, #5b8eaf) 45%, transparent);
+}
+
+.cardText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text, #1b1e22);
+}
+
+.cardActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.cardMove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.cardMove:hover {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+
+.cardDel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.cardDel:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+/* ---------- Write-your-own composer ---------- */
+
+.own {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ownRoles {
+  display: inline-flex;
+  gap: 4px;
+  flex: none;
+}
+
+.ownRole {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 11px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.ownRole[data-active='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 10%, transparent);
+}
+
+.ownInput {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text, #1b1e22);
+  font-size: 13px;
+  line-height: 1.4;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.ownInput:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.ownInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.ownAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 7px 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text, #1b1e22);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.ownAdd:hover {
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+  background: var(--color-surface-alt, #f3efe6);
+}

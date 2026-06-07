@@ -11,7 +11,10 @@
  *   - Returns null when there is neither a centroid nor any manual sector
  *     (nothing to draw).
  *
- * Read-only display: clicks pass through to the card itself only.
+ * Read-only by default: clicks pass through to the card itself only. When an
+ * `onOpenEditor` handler is supplied (e.g. the Act stage), the card becomes an
+ * interactive button that invokes it — used to take over the right rail with a
+ * sectors editor. Observe omits the handler and keeps the read-only behaviour.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -34,9 +37,16 @@ interface Props {
    * → stationary compass (legacy behaviour).
    */
   map?: maplibregl.Map | null;
+  /**
+   * Optional click handler. When provided the whole compass card renders as a
+   * button (`aria-label="Edit sectors"`) and invokes this on click — the Act
+   * stage uses it to open the right-rail sectors editor. Omitted in Observe,
+   * where the HUD stays a read-only display.
+   */
+  onOpenEditor?: () => void;
 }
 
-export default function SectorCompassOverlay({ projectId, map }: Props) {
+export default function SectorCompassOverlay({ projectId, map, onOpenEditor }: Props) {
   const id = projectId ?? 'mtc';
   const project = useV3Project(id);
   const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
@@ -88,9 +98,27 @@ export default function SectorCompassOverlay({ projectId, map }: Props) {
   if (!sectorsVisible) return null;
   if (!centroidTuple && sectors.length === 0) return null;
 
+  const interactive = typeof onOpenEditor === 'function';
+  const CardTag = interactive ? 'button' : 'div';
+  const cardProps = interactive
+    ? {
+        type: 'button' as const,
+        'aria-label': 'Edit sectors',
+        onClick: onOpenEditor,
+        // Keep the .card frame (background/border/padding from the class);
+        // only neutralise the UA button chrome and add the pointer affordance.
+        style: {
+          cursor: 'pointer',
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+        } as React.CSSProperties,
+      }
+    : {};
+
   return (
     <div className={css.dock} aria-hidden={false}>
-      <div className={css.card}>
+      <CardTag className={css.card} {...cardProps}>
         <div
           style={{
             transform: `perspective(420px) rotateX(${pitch}deg) rotateZ(${-bearing}deg)`,
@@ -107,7 +135,7 @@ export default function SectorCompassOverlay({ projectId, map }: Props) {
             className={css.svg}
           />
         </div>
-      </div>
+      </CardTag>
     </div>
   );
 }

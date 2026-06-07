@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type {
   AccessMarketSegment,
   DealBreaker,
@@ -93,6 +94,8 @@ export const useTrueNorthStore = create<TrueNorthState>()(
     },
     {
       name: 'ogden-true-north',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({ profilesByProject: state.profilesByProject }),
     },

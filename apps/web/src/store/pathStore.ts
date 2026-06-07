@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { path } from '../lib/tokens';
 
@@ -126,7 +127,7 @@ export const usePathStore = create<PathState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-paths', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-paths', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

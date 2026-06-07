@@ -27,6 +27,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { CostRange } from '@ogden/shared';
 
 const now = () => new Date().toISOString();
@@ -84,6 +85,8 @@ export const useWorkItemBudgetStore = create<WorkItemBudgetState>()(
     }),
     {
       name: 'ogden-work-item-actuals',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({ actuals: state.actuals }),
     },

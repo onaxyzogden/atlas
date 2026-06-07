@@ -15,4 +15,5 @@ export const FEEDS_TO_MODULE: Record<string, ActModule> = {
   'Livestock & Animal Health': 'animals-livestock',
   'Water & Hydrology':         'hydrology',
   'Soil':                      'soil',
+  'Built Infrastructure':      'built-infrastructure',
 };

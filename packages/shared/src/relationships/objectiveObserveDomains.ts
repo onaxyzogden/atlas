@@ -98,10 +98,13 @@ export const OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE: Readonly<
   ],
 
   // ---------- S3 ----------
+  // Primary domain is built-infrastructure: checklist item c3 ("Note existing
+  // infrastructure and utilities") is the defining output of this objective,
+  // and it directly feeds forward to the built-infrastructure Observe module.
   's3-systems-baseline': [
+    'built-infrastructure',
     'access-circulation',
     'energy-resources',
-    'built-infrastructure',
     'monitoring-records',
   ],
 

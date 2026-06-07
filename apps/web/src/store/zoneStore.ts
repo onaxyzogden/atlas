@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { zone } from '../lib/tokens';
 
@@ -378,6 +379,8 @@ export const useZoneStore = create<ZoneState>()(
     ),
     {
       name: 'ogden-zones',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       migrate: (persisted, version) => {
         const state = persisted as { zones?: LandZone[] };

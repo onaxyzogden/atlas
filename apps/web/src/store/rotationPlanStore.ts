@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type {
   RotationCell,
   RotationPlan,
@@ -143,6 +144,6 @@ export const useRotationPlanStore = create<RotationPlanState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-rotation-plan', version: 1 },
+    { name: 'ogden-rotation-plan', storage: idbPersistStorage, version: 1 },
   ),
 );

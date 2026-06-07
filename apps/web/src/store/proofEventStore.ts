@@ -24,6 +24,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { ProofEvent } from '@ogden/shared';
 
 interface ProofEventState {
@@ -50,6 +51,8 @@ export const useProofEventStore = create<ProofEventState>()(
     }),
     {
       name: 'ogden-work-item-proof',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({ events: state.events }),
     },

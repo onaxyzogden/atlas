@@ -81,7 +81,7 @@ export async function bootAuthedShell(): Promise<void> {
       context: { code: r.code, status: r.status, method: r.method, path: r.path },
     });
     // A network-level rejection (status 0) means the backend is unreachable —
-    // surface it globally via the ApiReachabilityBanner. Real HTTP errors
+    // surface it globally via the ApiReachabilityStatus chip. Real HTTP errors
     // (4xx/5xx) prove the server IS reachable, so they don't flip this.
     if (r.code === 'NETWORK_ERROR') {
       useConnectivityStore.getState().setApiReachable(false);

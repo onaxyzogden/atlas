@@ -24,6 +24,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 const PERSIST_KEY = 'ogden-plan-revision-dismissals';
 
@@ -70,6 +71,8 @@ export const usePlanRevisionDismissalStore =
       }),
       {
         name: PERSIST_KEY,
+        // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+        storage: idbPersistStorage,
         version: 1,
         partialize: (state) => ({ byProject: state.byProject }),
       },

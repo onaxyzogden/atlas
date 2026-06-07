@@ -18,6 +18,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export interface Enterprise {
   id: string;
@@ -55,7 +56,7 @@ export const useEnterpriseStore = create<EnterpriseState>()(
       removeEnterprise: (id) =>
         set((s) => ({ enterprises: s.enterprises.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-enterprises', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-enterprises', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

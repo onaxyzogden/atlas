@@ -1,8 +1,10 @@
 // catalogues/agritourism.ts
 //
 // Agritourism / Retreat / Experience Destination PRIMARY-type objectives - the
-// 29 type-specific objectives an Agritourism project adds on top of the 19
-// Universal objectives (OLOS Agritourism / Retreat Objective Catalogue).
+// 34 type-specific objectives an Agritourism project adds on top of the 19
+// Universal objectives (OLOS Agritourism / Retreat Objective Catalogue). 29 are
+// from the v1.0 source catalogue; 5 (the eco-resort / glamping extension) were
+// added 2026-06-03 - see the Extension note below.
 //
 // This file holds ONLY the primary-layer objectives. The universal slot lives
 // in ./universal.ts (the shared baseline).
@@ -10,17 +12,41 @@
 // Primary-only note: the source header table lists the role as "Primary or
 // Secondary", and projectTypes.ts marks agritourism canBeSecondary: true. BUT
 // this catalogue document contains only a primary-layer catalogue (19 universal
-// references + 29 standalone primary objectives) - there is no secondary-layer
+// references + 34 standalone primary objectives) - there is no secondary-layer
 // section, no additive-as-secondary objectives, and no patch records. So
 // agritourism is registered in getPrimaryCatalogue only, exactly like
 // regenFarm / ecovillage. Its can-be-secondary capability would be exercised by
 // a SEPARATE Agritourism-secondary-layer spec (additive objectives + patches
 // targeting another primary), which is not in hand. We do not invent one.
 //
-// Count note: 19 universal + 29 primary = 48 total. The per-tier primary
-// sub-headers (3+4+4+5+5+4+4 = 29) and the complete objective index both confirm
-// 29, and the index carries NO duplicate refs - AG-T<tier>.<n> runs cleanly
-// 0.1-0.6, 1.1-1.8, 2.1-2.6, 3.1-3.8, 4.1-4.8, 5.1-5.5, 6.1-6.7.
+// Count note: 19 universal + 34 primary = 53 total. The original v1.0 source
+// catalogue carried 29 primary (per-tier 3+4+4+5+5+4+4 = 29), index with NO
+// duplicate refs. The 2026-06-03 eco-resort / glamping extension adds 5 (per-tier
+// delta S3 +1, S4 +1, S5 +2, S7 +1), bringing the encoded primary count to 34
+// (3+4+5+6+7+4+5). New refs: AG-S3.7, AG-S4.9, AG-S5.9, AG-S5.10, AG-S7.8.
+//
+// Extension note (2026-06-03, eco-resort / glamping): rather than add a separate
+// eco_resort project type (which would near-duplicate agritourism), the operator
+// ratified extending this catalogue with 5 additive objectives capturing the
+// dispersed-accommodation / nature-immersion differentiators agritourism lacked:
+// ecological carrying capacity under visitor load (AG-S3.7), guest-to-production
+// biosecurity buffers (AG-S4.9), dispersed low-impact siting (AG-S5.9),
+// decentralised servicing + dark-sky / quiet (AG-S5.10), and seasonal-occupancy
+// resilience (AG-S7.8). Each carries a conditional scopeNote so plain day-visit
+// agritourism is not over-scoped (education EDU-S4.7 / S5.7 precedent). No new
+// sales surface; bookings remain the ratified service-reservation model. Hybrid-
+// sourced via docs/catalogues/eco-resort-glamping-agritourism-extension-draft.md.
+//
+// Membership / season-pass note (2026-06-03): AG-S4.8 (the revenue model) was
+// extended IN PLACE with 5 fiqh-gated checklist items (c7-c11) + 2 decision
+// groups + an Amanah scopeNote, realising the membership / season-pass
+// instrument AG-S7.8 deferred. Structured as a membership benefit (entitlement
+// of belonging, cancellable / refundable - not advance prepayment of undelivered
+// nights, which would be bay` ma laysa `indak / gharar), required to carry
+// genuine non-stay substance, bounded by AG-S3.7 carrying capacity, and routed
+// to Scholar Council review. No new objective / ref (count stays 34); operator-
+// ratified. Hybrid-sourced via
+// docs/catalogues/agritourism-membership-instrument-draft.md.
 //
 // Version note: the source file is named "...v1.1" but the document body states
 // "v1.0" throughout (Authored to Catalogue Authoring Standards v1.3). Encoded as
@@ -616,6 +642,73 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Existing food production capacity inventoried. Gaps relative to guest dining vision identified.',
     actHandoff: 'Existing Food Production Capacity Survey',
   }),
+  obj({
+    id: 'ag-s3-ecological-carrying-capacity',
+    stratumId: 's3-systems-reading',
+    ref: 'AG-S3.7',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title:
+      "A clear read of the land's ecological carrying capacity under visitor pressure",
+    shortTitle: 'Ecological carrying capacity under visitor pressure',
+    focusedQuestion:
+      'How much foot traffic and dispersed-stay pressure can this landscape absorb before regeneration is undermined - and which areas must be protected from guest access?',
+    checklist: [
+      ck(
+        'ag-s3-ecological-carrying-capacity-c1',
+        'Map guest-trafficked zones against soil type and compaction / erosion susceptibility',
+      ),
+      ck(
+        'ag-s3-ecological-carrying-capacity-c2',
+        'Assess trampling and trail-erosion thresholds for proposed paths and gathering areas',
+      ),
+      ck(
+        'ag-s3-ecological-carrying-capacity-c3',
+        'Identify sensitive habitats and wildlife corridors to exclude or buffer from guest access',
+      ),
+      ck(
+        'ag-s3-ecological-carrying-capacity-c4',
+        'Define seasonal sensitivity windows (wet soil, breeding, regeneration) when access must reduce or close',
+      ),
+      ck(
+        'ag-s3-ecological-carrying-capacity-c5',
+        'Define sacrificial vs protected ground - where wear is accepted and hardened vs prevented',
+      ),
+      ck(
+        'ag-s3-ecological-carrying-capacity-c6',
+        'Set an ecological carrying-capacity ceiling that feeds the Stratum 6 load monitor and Stratum 4 zoning',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'ag-s3-ecological-carrying-capacity-dg1',
+        'Ground & traffic tolerance',
+        [
+          'ag-s3-ecological-carrying-capacity-c1',
+          'ag-s3-ecological-carrying-capacity-c2',
+          'ag-s3-ecological-carrying-capacity-c5',
+        ],
+        ['Soil'],
+      ),
+      dg(
+        'ag-s3-ecological-carrying-capacity-dg2',
+        'Sensitive areas & seasonal limits',
+        [
+          'ag-s3-ecological-carrying-capacity-c3',
+          'ag-s3-ecological-carrying-capacity-c4',
+        ],
+        ['Ecology & Habitat'],
+      ),
+      dg('ag-s3-ecological-carrying-capacity-dg3', 'Carrying-capacity ceiling', [
+        'ag-s3-ecological-carrying-capacity-c6',
+      ]),
+    ],
+    completionGate:
+      'Ecological carrying capacity assessed. Protected areas, seasonal limits, and the visitor-load ceiling defined.',
+    actHandoff: 'Ecological Carrying Capacity & Visitor-Load Assessment',
+    scopeNotes:
+      'Applies when guests move through or stay dispersed across the working / regenerating landscape (eco-resort / glamping / nature-immersion model); omit for agritourism confined to a hardened visitor precinct. Feeds AG-S6.5 and AG-S4.4 / AG-S4.9; does not duplicate AG-S6.5, which tracks operational load rather than ecological tolerance.',
+  }),
   // ---------------------------------------------------------------- Stratum 4
   obj({
     id: 'ag-s4-circulation-strategy',
@@ -856,6 +949,26 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c6',
         'Confirm pricing is consistent with market comparables and service standard',
       ),
+      ck(
+        'ag-s4-revenue-model-c7',
+        'Decide whether a membership or season-pass tier is offered at all - default to none unless deliberately adopted; if none, c8-c11 are N/A',
+      ),
+      ck(
+        'ag-s4-revenue-model-c8',
+        'If adopted, structure it as a membership benefit - entitlement to access, priority booking, member rates, and belonging-benefits - with each actual stay still transacted as a separate per-stay service reservation (deposit + balance on a booked, deliverable stay) and the membership cancellable with pro-rata refund of unused access; the membership fee buys belonging and access terms, NOT a bundle of specific undelivered nights (avoids bay` ma laysa `indak / gharar)',
+      ),
+      ck(
+        'ag-s4-revenue-model-c9',
+        'Ensure member value is demonstrably non-stay-predominant - real belonging substance (community, seasonal / biodynamic events, bounded off-season access) beyond stay discounts - so the instrument is a membership in substance, not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6), not as an advance purchase',
+      ),
+      ck(
+        'ag-s4-revenue-model-c10',
+        'Bound member access, especially off-season, within the AG-S3.7 ecological carrying-capacity ceiling and its seasonal sensitivity windows; coordinate with AG-S7.8 so member presence supports off-season resilience without exceeding load limits; if member access extends beyond any hardened visitor precinct, AG-S3.7 must be in scope - the membership can pull it into scope',
+      ),
+      ck(
+        'ag-s4-revenue-model-c11',
+        'Route any membership / season-pass instrument to Scholar Council review before adoption; surface it explicitly, never as a default or recommended model; use no CSRA / salam advance-purchase framing',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-revenue-model-dg1', 'Pricing & booking terms', [
@@ -868,10 +981,79 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c5',
         'ag-s4-revenue-model-c6',
       ]),
+      dg('ag-s4-revenue-model-dg3', 'Membership structure & fiqh routing (optional)', [
+        'ag-s4-revenue-model-c7',
+        'ag-s4-revenue-model-c8',
+        'ag-s4-revenue-model-c11',
+      ]),
+      dg('ag-s4-revenue-model-dg4', 'Membership substance & ecological bound', [
+        'ag-s4-revenue-model-c9',
+        'ag-s4-revenue-model-c10',
+      ]),
     ],
     completionGate:
-      'Booking, pricing, and revenue model approved. Break-even timeline and minimum occupancy confirmed.',
+      'Booking, pricing, and revenue model approved. Break-even timeline and minimum occupancy confirmed. Any contemplated membership / season-pass tier is membership-benefit-structured (not advance prepayment), carries genuine non-stay substance within AG-S3.7 limits, and is routed to Scholar Council review.',
     actHandoff: 'Booking, Pricing & Revenue Model Brief',
+    scopeNotes:
+      "Amanah flag - surface, do not omit: a season-pass / membership / advance multi-night package is a sales instrument that, if structured as prepayment for specific undelivered nights, is the advance sale of what the operator does not yet possess (bay` ma laysa `indak / gharar) - the structure that retired the MTC CSRA model. It is surfaced here, never silently dropped, but must be structured as a membership benefit (entitlement to access, priority, and belonging-benefits, not advance purchase), with each stay still transacted as a separate per-stay reservation and the membership cancellable with pro-rata refund of unused access (evidencing access, not purchase). The membership must carry genuine non-stay substance (community, seasonal events, bounded off-season access) so it is a membership in substance and not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6); and member access stays within the AG-S3.7 carrying-capacity limits (which the membership pulls into scope if access leaves a hardened precinct). It must not be presented as a default or recommended model, carries no CSRA / salam framing, and goes to Scholar Council review before adoption. Permissible without the flag: ordinary per-stay service reservation (deposit + balance on a booked, deliverable stay), already covered by c1-c2.",
+  }),
+  obj({
+    id: 'ag-s4-biosecurity-zoning',
+    stratumId: 's4-foundation-decisions',
+    ref: 'AG-S4.9',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title:
+      'A sound guest-to-production biosecurity & contamination-buffer strategy',
+    shortTitle: 'Guest-to-production biosecurity & buffers',
+    focusedQuestion:
+      'How are guests and their vehicles, gear, and pets kept from carrying contamination into - or hazards out of - working production, livestock, and spray zones?',
+    checklist: [
+      ck(
+        'ag-s4-biosecurity-zoning-c1',
+        'Identify contamination pathways between guest areas and production / livestock / spray zones (both directions)',
+      ),
+      ck(
+        'ag-s4-biosecurity-zoning-c2',
+        'Set buffer distances and physical separation between guest circulation and sensitive production',
+      ),
+      ck(
+        'ag-s4-biosecurity-zoning-c3',
+        'Specify arrival hygiene measures - foot-baths, wash points, signage - where guests cross into or near production',
+      ),
+      ck(
+        'ag-s4-biosecurity-zoning-c4',
+        'Define weed / pathogen controls on guest vehicles, gear, and pets entering the property',
+      ),
+      ck(
+        'ag-s4-biosecurity-zoning-c5',
+        'Define safe guest-animal interaction protocols covering both animal welfare and zoonosis risk',
+      ),
+      ck(
+        'ag-s4-biosecurity-zoning-c6',
+        'Confirm the strategy is consistent with the AG-S4.4 guest circulation / zoning decision',
+      ),
+    ],
+    decisionGroups: [
+      dg('ag-s4-biosecurity-zoning-dg1', 'Contamination pathways & buffers', [
+        'ag-s4-biosecurity-zoning-c1',
+        'ag-s4-biosecurity-zoning-c2',
+      ]),
+      dg('ag-s4-biosecurity-zoning-dg2', 'Entry hygiene & arrivals control', [
+        'ag-s4-biosecurity-zoning-c3',
+        'ag-s4-biosecurity-zoning-c4',
+      ]),
+      dg('ag-s4-biosecurity-zoning-dg3', 'Animal contact & circulation fit', [
+        'ag-s4-biosecurity-zoning-c5',
+        'ag-s4-biosecurity-zoning-c6',
+      ]),
+    ],
+    completionGate:
+      'Guest-to-production biosecurity strategy set. Pathways, buffers, entry hygiene, and animal-contact protocols defined and consistent with circulation zoning.',
+    actHandoff:
+      'Guest-to-Production Biosecurity & Contamination-Buffer Strategy',
+    scopeNotes:
+      'Applies when guest circulation sits alongside working production, livestock, or sprayed areas (the eco-resort / glamping / working-farm-stay model); omit for retreats with no adjacent active production. Safe guest-animal interaction carries a welfare (ihsan) duty as well as a biosecurity one. Complements AG-S4.4 (guest circulation / zoning); does not replace it.',
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({
@@ -1122,6 +1304,148 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Visitor safety and emergency infrastructure design approved. Regulatory compliance confirmed.',
     actHandoff: 'Visitor Safety & Emergency Infrastructure Design Package',
+  }),
+  obj({
+    id: 'ag-s5-dispersed-siting',
+    stratumId: 's5-system-design',
+    ref: 'AG-S5.9',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title:
+      'A coherent dispersed low-impact accommodation siting & landscape-integration plan',
+    shortTitle: 'Dispersed low-impact siting & landscape integration',
+    focusedQuestion:
+      'Where do scattered low-impact units (tents, yurts, cabins) sit so they tread lightly, stay reversible, and disappear into the landscape rather than dominating it?',
+    checklist: [
+      ck(
+        'ag-s5-dispersed-siting-c1',
+        'Locate candidate unit sites against the AG-S3.7 ecological carrying-capacity and protected-area map',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c2',
+        'Minimise ground disturbance per site - favour zero / minimal-foundation platforms over excavation',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c3',
+        'Ensure each site is reversible - the land can be returned to its prior state if a unit is removed',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c4',
+        'Set inter-unit spacing for guest privacy, sense of immersion, and ecological breathing room',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c5',
+        'Plan low-impact access to each site - foot paths / light tracks rather than engineered roads',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c6',
+        'Confirm placement respects the AG-S3.4 sensory-environment read and AG-S3.7 limits',
+      ),
+      ck(
+        'ag-s5-dispersed-siting-c7',
+        'Defer per-unit structure design and servicing to AG-S5.4 / AG-S5.10 - this objective owns siting',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'ag-s5-dispersed-siting-dg1',
+        'Placement & ground impact',
+        [
+          'ag-s5-dispersed-siting-c1',
+          'ag-s5-dispersed-siting-c2',
+          'ag-s5-dispersed-siting-c3',
+        ],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        'ag-s5-dispersed-siting-dg2',
+        'Spacing & access',
+        ['ag-s5-dispersed-siting-c4', 'ag-s5-dispersed-siting-c5'],
+        ['Infrastructure & Access'],
+      ),
+      dg('ag-s5-dispersed-siting-dg3', 'Cross-objective fit', [
+        'ag-s5-dispersed-siting-c6',
+        'ag-s5-dispersed-siting-c7',
+      ]),
+    ],
+    completionGate:
+      'Dispersed siting plan set. Unit locations, spacing, low-impact access, and reversibility defined within ecological limits.',
+    actHandoff:
+      'Dispersed Low-Impact Accommodation Siting & Landscape-Integration Plan',
+    scopeNotes:
+      'Applies when accommodation is dispersed light-footprint units scattered across the landscape (glamping / eco-cabin model); omit for a single fixed lodge or day-visit-only agritourism. Owns siting and landscape integration only; per-unit structure design stays with AG-S5.4 and servicing with AG-S5.10.',
+  }),
+  obj({
+    id: 'ag-s5-decentralised-servicing',
+    stratumId: 's5-system-design',
+    ref: 'AG-S5.10',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title:
+      'Well-designed decentralised servicing & dark-sky / quiet provisions for dispersed sites',
+    shortTitle: 'Decentralised servicing & dark-sky / quiet design',
+    focusedQuestion:
+      'How is each scattered site watered, powered, and waste-managed at the point of use - while protecting the dark-sky and quiet that are the eco-experience itself?',
+    checklist: [
+      ck(
+        'ag-s5-decentralised-servicing-c1',
+        'Design point-of-use water supply per site - local rainwater capture and / or reticulated delivery',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c2',
+        'Design greywater / blackwater treatment at or near each site (composting / sealed / on-site treatment)',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c3',
+        'Provide off-grid power and refrigeration appropriate to dispersed, low-impact sites',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c4',
+        'Specify dark-sky-compliant lighting - shielded, warm, minimal - to protect the night-sky experience',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c5',
+        'Define acoustic-quiet zoning so plant, generators, and guest noise do not break the quiet baseline',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c6',
+        'Keep all servicing within the AG-S3.3 water / sanitation and AG-S3.7 carrying-capacity limits',
+      ),
+      ck(
+        'ag-s5-decentralised-servicing-c7',
+        'Confirm sanitation and discharge designs meet applicable regulation',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'ag-s5-decentralised-servicing-dg1',
+        'Water & waste at point of use',
+        [
+          'ag-s5-decentralised-servicing-c1',
+          'ag-s5-decentralised-servicing-c2',
+          'ag-s5-decentralised-servicing-c7',
+        ],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        'ag-s5-decentralised-servicing-dg2',
+        'Power & refrigeration',
+        ['ag-s5-decentralised-servicing-c3'],
+        ['Infrastructure & Access'],
+      ),
+      dg('ag-s5-decentralised-servicing-dg3', 'Dark-sky & quiet', [
+        'ag-s5-decentralised-servicing-c4',
+        'ag-s5-decentralised-servicing-c5',
+      ]),
+      dg('ag-s5-decentralised-servicing-dg4', 'Capacity & compliance fit', [
+        'ag-s5-decentralised-servicing-c6',
+      ]),
+    ],
+    completionGate:
+      'Decentralised servicing designed. Point-of-use water, waste, power, dark-sky lighting, and quiet zoning specified within capacity and regulatory limits.',
+    actHandoff: 'Decentralised Servicing & Dark-Sky / Quiet Design Package',
+    scopeNotes:
+      'Applies when servicing dispersed off-grid eco-accommodation (glamping / eco-cabin model); omit for centrally serviced lodges or day-visit agritourism. Turns the AG-S3.3 water / sanitation and AG-S3.4 sensory-environment surveys into design commitments; does not duplicate those reads.',
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({
@@ -1520,5 +1844,62 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+  }),
+  obj({
+    id: 'ag-s7-seasonal-resilience',
+    stratumId: 's7-phasing-resourcing',
+    ref: 'AG-S7.8',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title:
+      'A sound seasonal-occupancy resilience & off-season resourcing plan',
+    shortTitle: 'Seasonal-occupancy resilience & off-season resourcing',
+    focusedQuestion:
+      'How does the operation carry itself - financially, operationally, and ecologically - through the off-season trough rather than only the peak?',
+    checklist: [
+      ck(
+        'ag-s7-seasonal-resilience-c1',
+        'Plan off-season maintenance and land-recovery windows when guest pressure lifts',
+      ),
+      ck(
+        'ag-s7-seasonal-resilience-c2',
+        'Design the seasonal staffing cycle - retention, scaling down, and re-hire ahead of peak',
+      ),
+      ck(
+        'ag-s7-seasonal-resilience-c3',
+        'Buffer cash flow across the peak-to-trough swing so fixed costs are met off-season',
+      ),
+      ck(
+        'ag-s7-seasonal-resilience-c4',
+        'Define mothballing / partial-closure protocols for units taken offline in the low season',
+      ),
+      ck(
+        'ag-s7-seasonal-resilience-c5',
+        'Identify complementary off-season uses (events, education, maintenance retreats) that fit capacity limits',
+      ),
+      ck(
+        'ag-s7-seasonal-resilience-c6',
+        'Confirm the plan is consistent with the AG-S2.8 seasonal-pattern read and AG-S7.6 viability model',
+      ),
+    ],
+    decisionGroups: [
+      dg('ag-s7-seasonal-resilience-dg1', 'Off-season operations', [
+        'ag-s7-seasonal-resilience-c1',
+        'ag-s7-seasonal-resilience-c4',
+        'ag-s7-seasonal-resilience-c5',
+      ]),
+      dg('ag-s7-seasonal-resilience-dg2', 'Staffing & cash flow', [
+        'ag-s7-seasonal-resilience-c2',
+        'ag-s7-seasonal-resilience-c3',
+      ]),
+      dg('ag-s7-seasonal-resilience-dg3', 'Cross-objective fit', [
+        'ag-s7-seasonal-resilience-c6',
+      ]),
+    ],
+    completionGate:
+      'Seasonal resilience plan set. Off-season maintenance, staffing cycle, cash-flow buffering, and complementary uses defined within capacity and viability limits.',
+    actHandoff: 'Seasonal-Occupancy Resilience & Off-Season Resourcing Plan',
+    scopeNotes:
+      "Applies when occupancy is strongly seasonal (the eco-resort / glamping pattern); omit for steady year-round operations. This is operational planning, not a sales surface - it introduces no season-pass, advance multi-night package, or membership prepayment. Should the operator later want such an instrument (now scoped at AG-S4.8), it must be encoded verbatim and carry an Amanah scopeNote (bay' ma laysa 'indak / gharar - no advance sale of undelivered nights) and go to Scholar Council review; it is not assumed here.",
   }),
 ];

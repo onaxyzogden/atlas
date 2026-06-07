@@ -13,6 +13,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type SuccessionPhase = 'pioneer' | 'mid' | 'climax';
 
@@ -53,7 +54,7 @@ export const useSuccessionStore = create<SuccessionState>()(
       removeMilestone: (id) =>
         set((s) => ({ milestones: s.milestones.filter((m) => m.id !== id) })),
     }),
-    { name: 'ogden-act-succession', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-succession', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

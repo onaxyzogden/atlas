@@ -13,6 +13,7 @@ import {
 } from '../../../../store/zoneStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
@@ -39,6 +40,7 @@ const STATUS_COLOR: Record<string, string> = {
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const Z_OPTIONS = [
@@ -56,7 +58,7 @@ const optionsForZ = (z: string | number | undefined): { value: ZoneCategory; lab
   return list.map((k) => ({ value: k, label: ZONE_CATEGORY_CONFIG[k].label }));
 };
 
-export default function ZonePolygonTool({ map, projectId }: Props) {
+export default function ZonePolygonTool({ map, projectId, getSnapTargets }: Props) {
   const addZone = useZoneStore((s) => s.addZone);
   const updateZone = useZoneStore((s) => s.updateZone);
   const deleteZone = useZoneStore((s) => s.deleteZone);
@@ -169,6 +171,8 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
     mode: 'draw_polygon',
     onComplete: handleComplete,
     enabled: dimMode === 'freehand',
+    snap: true,
+    getSnapTargets,
   });
 
   useDimensionDrawTool({

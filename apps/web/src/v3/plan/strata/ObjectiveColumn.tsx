@@ -21,6 +21,7 @@ import {
   selectProjectReviewMap,
 } from '../../../store/cyclicalReviewStore.js';
 import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
+import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import DesignTensionBanner from './DesignTensionBanner.js';
@@ -67,6 +68,28 @@ interface Props {
    * transient auto-expand of the banner.
    */
   activeStratumId?: string | null;
+  /**
+   * Plan Nav v1.1 §8 — invoked when a tension banner row is clicked. The shell
+   * wires this to navigate to the tension's resolution stratum and flash the
+   * objective cards it concerns. Omitted → banner rows render as static text.
+   */
+  onSelectTension?: (tensionId: string) => void;
+  /**
+   * Plan Nav v1.1 §8 — per-tension cross-stratum hint map: the strata each
+   * tension's concerned objectives live in OTHER than its resolution stratum.
+   * Rendered as clickable "Also in {Stratum} (n)" chips under the banner row.
+   * Keyed by tension id; omitted/absent ids render no chips.
+   */
+  tensionStrataHints?: Record<
+    string,
+    { stratumId: string; label: string; count: number }[]
+  >;
+  /**
+   * Plan Nav v1.1 §8 — invoked when an "Also in {Stratum}" chip is clicked. The
+   * shell wires this to navigate to that stratum and (re-)flash the tension's
+   * concerned cards there. Omitted → no chips render.
+   */
+  onSelectTensionStratum?: (tensionId: string, stratumId: string) => void;
   onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
@@ -115,6 +138,9 @@ export default function ObjectiveColumn({
   projectId,
   tensions,
   activeStratumId,
+  onSelectTension,
+  tensionStrataHints,
+  onSelectTensionStratum,
   onSelectObjective,
   onObjectiveDivergenceClick,
   onRestoreObjective,
@@ -200,6 +226,10 @@ export default function ObjectiveColumn({
     }
     return counts;
   }, [projectId, observeByProject, divergedDataPointDomainCounts, objectives]);
+
+  // T1.7 -- OPEN review-flag counts per objective (amber chip on each card).
+  // The hook is already internally memoized + reactive; do NOT wrap in useMemo.
+  const reviewFlagByObjective = useReviewFlagCountsByObjective(projectId ?? null);
 
   // Plan Nav v1.1 §7 — per-card "review suggested" flag. Subscribes to this
   // project's cyclical-review map so a badge appears the moment a 90-day clock
@@ -345,6 +375,9 @@ export default function ObjectiveColumn({
           expanded={tensionExpanded}
           highlightTensionIds={highlightTensionIds}
           onToggle={handleToggleTensions}
+          onSelectTension={onSelectTension}
+          tensionStrataHints={tensionStrataHints}
+          onSelectTensionStratum={onSelectTensionStratum}
         />
       )}
 
@@ -398,6 +431,7 @@ export default function ObjectiveColumn({
                 isActive={obj.id === activeObjectiveId}
                 isHighlighting={highlightSet.has(obj.id)}
                 divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                 reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
                 onSelect={onSelectObjective}
                 onDivergenceClick={onObjectiveDivergenceClick}
@@ -420,6 +454,7 @@ export default function ObjectiveColumn({
                   status="deferred"
                   isActive={obj.id === activeObjectiveId}
                   divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                  reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                   onSelect={onSelectObjective}
                   onRestore={onRestoreObjective}
                 />

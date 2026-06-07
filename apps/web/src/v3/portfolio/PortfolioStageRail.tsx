@@ -80,6 +80,18 @@ export default function PortfolioStageRail({
       <div className={css.buttons}>
         <button
           type="button"
+          className={`${css.stageBtn} ${css.observe} ${activeStage === 'observe' ? css.active : ''}`}
+          onClick={goObserve}
+        >
+          <Telescope size={15} aria-hidden />
+          <span className={css.stageBtnText}>
+            <span className={css.stageBtnLabel}>Observe</span>
+            <span className={css.stageBtnSub}>{observeSub}</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
           className={`${css.stageBtn} ${css.plan} ${activeStage === 'plan' ? css.active : ''}`}
           onClick={goPlan}
         >
@@ -99,18 +111,6 @@ export default function PortfolioStageRail({
           <span className={css.stageBtnText}>
             <span className={css.stageBtnLabel}>Act</span>
             <span className={css.stageBtnSub}>{actSub}</span>
-          </span>
-        </button>
-
-        <button
-          type="button"
-          className={`${css.stageBtn} ${css.observe} ${activeStage === 'observe' ? css.active : ''}`}
-          onClick={goObserve}
-        >
-          <Telescope size={15} aria-hidden />
-          <span className={css.stageBtnText}>
-            <span className={css.stageBtnLabel}>Observe</span>
-            <span className={css.stageBtnSub}>{observeSub}</span>
           </span>
         </button>
       </div>

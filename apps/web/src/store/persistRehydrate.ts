@@ -28,6 +28,15 @@
  * The persist key is auto-derived from `getOptions().name`, so call sites are a
  * uniform one-arg swap: `rehydrateWithLogging(useConventionalCropStore);`
  *
+ * Async-hydration hook (`onHydrated`): when a store moves off synchronous
+ * `localStorage` to the IndexedDB backend (see lib/indexedDBStorage.ts),
+ * hydration resolves on a later microtask. Code that previously ran a one-time
+ * migration synchronously AFTER `rehydrateWithLogging(...)` (e.g.
+ * `useWorkItemStore.getState().ensureMigrated()`) would then run on EMPTY,
+ * pre-hydration state. Pass that logic as the `onHydrated` callback instead: it
+ * fires once hydration settles, for both sync and async backends. It must be
+ * idempotent — onRehydrateStorage can fire on more than one hydration pass.
+ *
  * See wiki/log/2026-05-21-persist-rehydrate-instrumentation.md and
  * wiki/log/2026-05-21-client-error-telemetry-sink.md.
  */
@@ -49,16 +58,36 @@ interface PersistInstrumentable {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/** Optional config for `rehydrateWithLogging` (back-compat: both fields optional). */
+export interface RehydrateOptions {
+  /** Label for the failure log; defaults to the persist `name` option. */
+  nameOverride?: string;
+  /**
+   * Runs AFTER hydration settles (sync or async backend). Use for post-rehydrate
+   * side effects — one-time migrations, derived seeding — that must not see
+   * empty pre-hydration state. MUST be idempotent: it can fire on more than one
+   * hydration pass. `error` is set if hydration failed (the callback still runs
+   * so callers can recover/seed defaults).
+   */
+  onHydrated?: (error?: unknown) => void;
+}
+
 /**
  * Trigger `store.persist.rehydrate()` with failure logging.
  *
- * @param store        any zustand store created with the `persist` middleware
- * @param nameOverride optional label; defaults to the persist `name` option
+ * @param store any zustand store created with the `persist` middleware
+ * @param opts  a string is accepted as a shorthand for `{ nameOverride }`
+ *              (preserves the original two-arg signature); or pass
+ *              `{ nameOverride?, onHydrated? }`.
  */
 export function rehydrateWithLogging(
   store: PersistInstrumentable,
-  nameOverride?: string,
+  opts?: string | RehydrateOptions,
 ): void {
+  const normalized: RehydrateOptions =
+    typeof opts === 'string' ? { nameOverride: opts } : opts ?? {};
+  const { nameOverride, onHydrated } = normalized;
+
   const options = store.persist.getOptions();
   const name = nameOverride ?? options.name ?? 'unknown';
   const existing = options.onRehydrateStorage;
@@ -85,6 +114,16 @@ export function rehydrateWithLogging(
           });
         }
         if (innerCallback) innerCallback(hydratedState, error);
+        // Post-hydration hook runs last, after any composed migration handler,
+        // so it observes fully-hydrated state. Best-effort: a throw here must
+        // not break the hydration chain for other stores.
+        if (onHydrated) {
+          try {
+            onHydrated(error);
+          } catch (hookErr) {
+            console.error(`[persist:${name}] onHydrated hook threw`, hookErr);
+          }
+        }
       };
     },
   });

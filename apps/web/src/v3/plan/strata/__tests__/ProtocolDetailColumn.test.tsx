@@ -12,21 +12,23 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
-  templatesForEnterprises,
+  resolveProjectProtocols,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import ProtocolDetailColumn from '../ProtocolDetailColumn.js';
 
-const TEMPLATES: readonly StandardProtocolTemplate[] =
-  templatesForEnterprises(['sheep_beef']);
+const TEMPLATES: readonly StandardProtocolTemplate[] = resolveProjectProtocols({
+  primaryTypeId: 'silvopasture',
+}).protocols.slice(0, 6);
 
 describe('ProtocolDetailColumn', () => {
   it('shows the empty state when nothing is selected', () => {
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={[]}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     expect(screen.getByTestId('protocol-detail-empty')).toBeTruthy();
@@ -36,9 +38,10 @@ describe('ProtocolDetailColumn', () => {
   it('renders one card for a single selected template', () => {
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={[TEMPLATES[0]!]}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     const cards = screen.getAllByTestId('protocol-template-card');
@@ -51,9 +54,10 @@ describe('ProtocolDetailColumn', () => {
     const picked = [TEMPLATES[0]!, TEMPLATES[1]!];
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={picked}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     const cards = screen.getAllByTestId('protocol-template-card');

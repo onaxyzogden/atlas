@@ -14,6 +14,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { useHomesteadStore } from './homesteadStore.js';
 
@@ -171,7 +172,7 @@ export const useHumanContextStore = create<HumanContextState>()(
           permacultureZones: s.permacultureZones.filter((z) => z.id !== id),
         })),
     }), { limit: 200 }),
-    { name: 'ogden-human-context', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-human-context', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

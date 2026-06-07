@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /** Which stage transition the override applies to. The store is generic over
  *  the gate key, so both soft gates share one persisted record. */
@@ -40,6 +41,8 @@ export const useStageGateOverrideStore = create<StageGateOverrideState>()(
     }),
     {
       name: 'ogden-atlas-stage-gate-override',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as StageGateOverrideState,
     },

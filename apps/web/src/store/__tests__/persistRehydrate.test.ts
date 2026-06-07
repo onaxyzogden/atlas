@@ -120,4 +120,53 @@ describe('rehydrateWithLogging', () => {
       expect.anything(),
     );
   });
+
+  it('runs onHydrated AFTER hydration settles, with fully-hydrated state', async () => {
+    const store = makeStore('probe-hook', JSON.stringify({ state: { value: 5 }, version: 0 }));
+    let seen: number | undefined;
+    rehydrateWithLogging(store, {
+      onHydrated: () => {
+        // Proves the hook fires post-hydration: a synchronous getState() after
+        // rehydrateWithLogging would read 0 under async storage; here it is 5.
+        seen = store.getState().value;
+      },
+    });
+    await flush();
+    expect(seen).toBe(5);
+  });
+
+  it('passes the hydration error to onHydrated and still runs it', async () => {
+    const store = makeStore('probe-hook-err', '{ not valid json');
+    const hook = vi.fn();
+    rehydrateWithLogging(store, { onHydrated: hook });
+    await flush();
+    expect(hook).toHaveBeenCalledTimes(1);
+    expect(hook).toHaveBeenCalledWith(expect.anything()); // error arg present
+  });
+
+  it('still honours nameOverride when passed via the options object', async () => {
+    const store = makeStore('probe-opts-name', 'bad{');
+    rehydrateWithLogging(store, { nameOverride: 'opts-label' });
+    await flush();
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[persist:opts-label] rehydrate failed'),
+      expect.anything(),
+    );
+  });
+
+  it('an onHydrated throw does not break the rehydrate chain', async () => {
+    const store = makeStore('probe-hook-throw', JSON.stringify({ state: { value: 3 }, version: 0 }));
+    rehydrateWithLogging(store, {
+      onHydrated: () => {
+        throw new Error('boom');
+      },
+    });
+    await flush();
+    // The thrown hook is caught and logged; hydrated state is intact.
+    expect(store.getState().value).toBe(3);
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[persist:probe-hook-throw] onHydrated hook threw'),
+      expect.anything(),
+    );
+  });
 });

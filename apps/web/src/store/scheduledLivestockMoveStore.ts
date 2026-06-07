@@ -25,6 +25,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import {
   useLivestockMoveLogStore,
   type LivestockMoveDirection,
@@ -165,6 +166,8 @@ export const useScheduledLivestockMoveStore = create<ScheduledLivestockMoveState
     }),
     {
       name: 'ogden-scheduled-livestock-moves',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       // v1 → v2: structure-destination fields added. Existing v1 entries
       // already have `toPaddockId` set; new optional `toStructureId` /

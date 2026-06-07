@@ -8,7 +8,7 @@
 
 .row {
   --stratum-state-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
-  --stratum-state-bg: color-mix(in srgb, var(--color-surface, #1f1d1a) 92%, #fff);
+  --stratum-state-bg: color-mix(in srgb, var(--color-surface, #14191f) 92%, #fff);
   --stratum-state-border: color-mix(
     in srgb,
     var(--color-border, rgba(242, 237, 227, 0.12)) 88%,
@@ -136,7 +136,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 2px solid var(--stratum-state-color);
   color: var(--stratum-state-color);
 }
@@ -155,7 +155,7 @@
 }
 
 .row[data-state='locked'] .spineDot {
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
 }
 
 /* --- ordinal + body ------------------------------------------------------ */
@@ -192,7 +192,7 @@
 .pill {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;

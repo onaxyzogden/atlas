@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Forks are force-killed on teardown; the default `threads` pool can hang
+    // indefinitely on a leaked handle (mirrors apps/web). Keeps `vitest run`
+    // from turning into a zombie process. The integration config already does this.
+    pool: 'forks',
+    teardownTimeout: 10_000,
     exclude: [...configDefaults.exclude, 'src/tests/integration/**', '**/*.pgtest.ts'],
     env: {
       NODE_ENV: 'test',

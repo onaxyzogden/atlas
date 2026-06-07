@@ -757,6 +757,10 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Guild planting plan approved. All species sourced.',
     actHandoff: 'Guild Planting Plan',
+    // Orchard-primary projects (which don't receive the additive secondary
+    // `orch-sec-s5-guild-layout`) reach the Plan-stage multilayer guild
+    // designer through this primary guild objective's REFERENCE section.
+    legacyCardSectionId: 'plan-guild-builder',
   }),
   obj({
     id: 'orch-s5-establishment-irrigation',
@@ -1293,6 +1297,12 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Spaced multilayer guild layout drawn and integrated with the host design. Light competition resolved at maturity.',
     actHandoff: 'Guild Layout & Spacing Design Package',
+    // Surfaces the full 7-layer GuildSpatialBuilderCard (the Plan-stage
+    // multilayer guild designer) in this objective's REFERENCE section.
+    // This is the only valid home for the guild designer in the forward
+    // (stratum-spine) IA, and the target of the Act → Plan deep-link
+    // ("surface the Plan designer", not re-implement it in Act).
+    legacyCardSectionId: 'plan-guild-builder',
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

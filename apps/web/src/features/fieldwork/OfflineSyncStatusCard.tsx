@@ -16,7 +16,7 @@
  */
 
 import { useMemo } from 'react';
-import { useConnectivityStore } from '../../store/connectivityStore.js';
+import { selectMostRecentSync, useConnectivityStore } from '../../store/connectivityStore.js';
 import { useFieldworkStore } from '../../store/fieldworkStore.js';
 import s from './OfflineSyncStatusCard.module.css';
 
@@ -54,7 +54,7 @@ function formatRelative(iso: string | null): string {
 
 export default function OfflineSyncStatusCard({ projectId }: Props) {
   const isOnline = useConnectivityStore((st) => st.isOnline);
-  const lastSyncedAt = useConnectivityStore((st) => st.lastSyncedAt);
+  const lastSyncedAt = useConnectivityStore(selectMostRecentSync);
   const syncStatus = useConnectivityStore((st) => st.syncStatus);
   const entries = useFieldworkStore((st) => st.entries);
   const walkRoutes = useFieldworkStore((st) => st.walkRoutes);

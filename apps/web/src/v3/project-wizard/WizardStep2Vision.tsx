@@ -24,7 +24,10 @@ import type {
   TensionAck,
 } from '@ogden/shared';
 import { getActiveTensions, isCompatibleSecondary } from '@ogden/shared';
-import { useProjectStore } from '../../store/projectStore.js';
+import {
+  useProjectStore,
+  recordFromBareProjectType,
+} from '../../store/projectStore.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
 import WizardMapThumbnail from './WizardMapThumbnail.js';
 import WizardProjectTypeGrid from './WizardProjectTypeGrid.js';
@@ -52,7 +55,19 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
 
   // --- Section A: project type record (durable draft) -------------------
   const typeRecord = project?.metadata?.projectTypeRecord;
-  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  // Legacy/seeded projects carry a bare `projectType` string but no record.
+  // Derive a materializable record from it (only when no record exists yet) so
+  // the grid shows the type preselected and the secondary picker opens WITHOUT
+  // forcing the steward to re-pick the primary first. The derived record is not
+  // written until the steward actually acts (select / toggle / acknowledge);
+  // the handlers below use it as their base — lazy-materialize, no write-on-mount.
+  const derivedRecord = useMemo(
+    () => (typeRecord ? null : recordFromBareProjectType(project?.projectType)),
+    [typeRecord, project?.projectType],
+  );
+  // Effective selection: the durable record wins; otherwise the bare-string
+  // derivation. Null only when the project genuinely has no resolvable primary.
+  const primaryTypeId = typeRecord?.primaryTypeId ?? derivedRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = useMemo<readonly ProjectTypeId[]>(
     () => typeRecord?.secondaryTypeIds ?? [],
     [typeRecord?.secondaryTypeIds],
@@ -84,40 +99,45 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
 
   const handleSelectPrimary = useCallback(
     (id: ProjectTypeId) => {
-      const existing = project?.metadata?.projectTypeRecord;
+      // Base on the durable record, or the bare-string derivation for a legacy
+      // project that has yet to materialize one.
+      const base = project?.metadata?.projectTypeRecord ?? derivedRecord;
       // Dropping a primary for one that doesn't support a chosen secondary
       // must prune that secondary, or the record carries an invalid pairing.
-      const keptSecondaries = (existing?.secondaryTypeIds ?? []).filter((s) =>
+      const keptSecondaries = (base?.secondaryTypeIds ?? []).filter((s) =>
         isCompatibleSecondary(s, id),
       );
       writeRecord({
         primaryTypeId: id,
         secondaryTypeIds: keptSecondaries,
-        tensionAcknowledgements: existing?.tensionAcknowledgements ?? [],
-        versionHistory: existing?.versionHistory ?? [],
-        reopeningAcknowledgements: existing?.reopeningAcknowledgements ?? [],
+        tensionAcknowledgements: base?.tensionAcknowledgements ?? [],
+        versionHistory: base?.versionHistory ?? [],
+        reopeningAcknowledgements: base?.reopeningAcknowledgements ?? [],
       });
     },
-    [project?.metadata?.projectTypeRecord, writeRecord],
+    [project?.metadata?.projectTypeRecord, derivedRecord, writeRecord],
   );
 
   const handleToggleSecondary = useCallback(
     (id: ProjectTypeId) => {
-      const existing = project?.metadata?.projectTypeRecord;
-      if (!existing) return; // no primary selected yet
-      const has = existing.secondaryTypeIds.includes(id);
+      // A legacy bare-string project has no record yet — materialize from the
+      // derived base on first toggle so secondaries can be added without the
+      // steward first re-picking the primary.
+      const base = project?.metadata?.projectTypeRecord ?? derivedRecord;
+      if (!base) return; // no primary derivable yet
+      const has = base.secondaryTypeIds.includes(id);
       const nextSecondaries = has
-        ? existing.secondaryTypeIds.filter((s) => s !== id)
-        : existing.secondaryTypeIds.length >= 8
-          ? existing.secondaryTypeIds
-          : [...existing.secondaryTypeIds, id];
-      writeRecord({ ...existing, secondaryTypeIds: nextSecondaries });
+        ? base.secondaryTypeIds.filter((s) => s !== id)
+        : base.secondaryTypeIds.length >= 8
+          ? base.secondaryTypeIds
+          : [...base.secondaryTypeIds, id];
+      writeRecord({ ...base, secondaryTypeIds: nextSecondaries });
     },
-    [project?.metadata?.projectTypeRecord, writeRecord],
+    [project?.metadata?.projectTypeRecord, derivedRecord, writeRecord],
   );
 
   const handleAcknowledgeTensions = useCallback(() => {
-    const existing = project?.metadata?.projectTypeRecord;
+    const existing = project?.metadata?.projectTypeRecord ?? derivedRecord;
     if (!existing) return;
     const active = getActiveTensions(
       existing.primaryTypeId,
@@ -138,7 +158,7 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
         ...newAcks,
       ],
     });
-  }, [project?.metadata?.projectTypeRecord, writeRecord]);
+  }, [project?.metadata?.projectTypeRecord, derivedRecord, writeRecord]);
 
   const advance = useCallback(() => {
     if (!project) return;

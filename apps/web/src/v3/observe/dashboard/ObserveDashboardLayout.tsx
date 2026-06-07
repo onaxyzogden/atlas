@@ -20,6 +20,7 @@ import { useMemo } from 'react';
 import type { UniversalDomain } from '@ogden/shared';
 import { UNIVERSAL_DOMAINS } from '@ogden/shared';
 import type { ObserveShellMode } from '../../../store/projectStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
 import ObserveShellToggle from './ObserveShellToggle.js';
 import UnifiedLandStateSurface from './UnifiedLandStateSurface.js';
 import DomainDetailLayout from './domain/DomainDetailLayout.js';
@@ -65,13 +66,22 @@ export default function ObserveDashboardLayout({
     return isUniversalDomain(domainId) ? domainId : null;
   }, [domainId]);
 
+  // While a header Stage Search query is active, force Surface 1 (the unified
+  // 16-domain grid) regardless of the current sub-route: that surface owns the
+  // search filter, so a query typed from a domain-detail / temporal / rollup
+  // sub-surface "reveals" the matching domains in the grid (parity with Plan's
+  // search column and Act's search rail, which likewise override the active
+  // sub-view). Selecting a card clears the query and navigates onward.
+  const searchActive = useStageSearchStore((s) => s.query.trim() !== '');
+
   // Effective surface — only mount the temporal/domain branches when the
   // domainId actually resolves. A stale `?domainId=junk` falls back to
   // Surface 1 so the steward never lands on a blank surface. The rollup
   // surface (Surface 4) is objective-keyed, not domain-keyed, so it carries
   // no domainId requirement.
-  const effectiveSurface: ObserveDashboardSurface =
-    surface === 'rollup'
+  const effectiveSurface: ObserveDashboardSurface = searchActive
+    ? 'unified'
+    : surface === 'rollup'
       ? 'rollup'
       : surface === 'temporal' && validDomainId
         ? 'temporal'

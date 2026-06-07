@@ -99,8 +99,12 @@ describe('ProtocolApprovalOverlay', () => {
       screen.getByTestId('protocol-approval-overlay'),
     ).toBeTruthy();
 
-    // A known sheep_beef template should be present.
-    expect(screen.getByText('Paddock Rotation — Cover Trigger')).toBeTruthy();
+    // A known sheep_beef template should be present. The name now appears in
+    // BOTH the expected-rate panel and the confirmation card below, so match
+    // on count (>=1) instead of asserting a single unique node.
+    expect(
+      screen.getAllByText('Paddock Rotation — Cover Trigger').length,
+    ).toBeGreaterThan(0);
   });
 
   it('Activate button calls activateProtocol', () => {
