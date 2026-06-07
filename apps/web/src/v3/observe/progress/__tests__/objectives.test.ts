@@ -71,7 +71,14 @@ describe('evaluateObserve', () => {
     expect(r.overall.percent).toBe(0);
     expect(r.overall.doneCount).toBe(0);
     expect(r.overall.requiredComplete).toBe(false);
-    expect(r.overall.remainingRequired).toHaveLength(OBSERVE_MODULES.length);
+    // After the UniversalDomain cutover only a subset of the 16 Observe modules
+    // declare a required objective (the rest are unauthored, empty lists). Under
+    // empty input every declared-required objective is unmet, so the remaining
+    // count equals the number of modules that carry one.
+    const modulesWithRequired = OBSERVE_MODULES.filter(
+      (m) => r.byModule[m].requiredTotal > 0,
+    ).length;
+    expect(r.overall.remainingRequired).toHaveLength(modulesWithRequired);
   });
 
   it('all required objectives met → gate opens', () => {

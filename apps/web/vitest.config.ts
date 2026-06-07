@@ -23,6 +23,14 @@ export default defineConfig({
     // becomes a multi-day zombie. Forks + a bounded teardown guarantee exit.
     pool: 'forks',
     teardownTimeout: 10_000,
+    // Per-test / per-hook watchdog. A test or hook that never settles (e.g. a
+    // gate left unreleased, a fetch that never resolves) fails here in seconds
+    // instead of hanging the worker. This does NOT catch a file-finalization
+    // hang where the test itself completes but leaves a pending handle — the
+    // CI job `timeout-minutes` in .github/workflows/test.yml is the backstop
+    // for that. These bounds are well above the suite's real per-test runtime.
+    testTimeout: 15_000,
+    hookTimeout: 15_000,
     // Even with forks + a bounded teardown, vitest 2.1.x still hangs at exit
     // after all files pass: tinypool's graceful pool.close() waits on a handle
     // a happy-dom worker leaves alive and never returns (a multi-minute zombie

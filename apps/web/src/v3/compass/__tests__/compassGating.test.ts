@@ -135,8 +135,12 @@ describe('Plan compass seed', () => {
     expect(objectiveProgress(3, seed, NONE).verified).toBe(2);
   });
 
-  it('returns an empty seed for an unstarted Plan module (machinery)', () => {
-    const seed = planSeedFor('built-infrastructure'); // {}
+  it('returns an empty seed for an unstarted Plan module (land-base)', () => {
+    // After the UniversalDomain cutover the legacy "machinery" module folded
+    // into built-infrastructure, which now carries a seeded node. Point this
+    // case at a genuinely-unauthored Plan domain so it still exercises the
+    // empty-seed path.
+    const seed = planSeedFor('land-base'); // {}
     expect(seed).toEqual({});
     expect(resolveNodeStates(2, seed, NONE)).toEqual(['open', 'locked']);
   });
@@ -144,15 +148,22 @@ describe('Plan compass seed', () => {
 
 describe('Act compass config + seed', () => {
   it('builds one objective per Act module with full metadata', () => {
-    expect(ACT_COMPASS_OBJECTIVES).toHaveLength(8);
+    expect(ACT_COMPASS_OBJECTIVES).toHaveLength(16);
     ACT_COMPASS_OBJECTIVES.forEach((o, i) => {
       expect(o.ordinal).toBe(i + 1);
       expect(o.label.length).toBeGreaterThan(0);
       expect(o.accent).toMatch(/^#/);
       expect(o.icon).toBeTruthy(); // lucide icon (forwardRef component)
-      expect(o.nodes.length).toBeGreaterThan(0);
-      expect(o.pitfall && o.pitfall.length).toBeGreaterThan(0);
       o.nodes.forEach((n, idx) => expect(n.index).toBe(idx));
+    });
+    // After the UniversalDomain cutover only the authored Act domains carry
+    // guidance steps (nodes) + a pitfall; the unauthored universal domains
+    // resolve to empty node lists. Assert the authored set is non-empty and
+    // that each authored objective carries its full guidance metadata.
+    const authored = ACT_COMPASS_OBJECTIVES.filter((o) => o.nodes.length > 0);
+    expect(authored.length).toBeGreaterThan(0);
+    authored.forEach((o) => {
+      expect(o.pitfall && o.pitfall.length).toBeGreaterThan(0);
     });
   });
 
@@ -168,9 +179,12 @@ describe('Act compass config + seed', () => {
     expect(states[2]).toBe('evidence-in');
   });
 
-  it('locks every node for an unstarted Act module (review)', () => {
-    const obj = actObjectiveById('monitoring-records');
-    const seed = actSeedFor('monitoring-records'); // {}
+  it('locks every node for an unstarted Act module (people-governance)', () => {
+    // The legacy "review" module folded into monitoring-records, which now
+    // carries a seed. people-governance is authored (it has guidance nodes) but
+    // unseeded ({}), so it exercises the all-locked path against real nodes.
+    const obj = actObjectiveById('people-governance');
+    const seed = actSeedFor('people-governance'); // {}
     const states = resolveNodeStates(obj.nodes.length, seed, NONE);
     expect(states[0]).toBe('open');
     states.slice(1).forEach((s) => expect(s).toBe('locked'));

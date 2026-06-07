@@ -34,7 +34,7 @@ describe('emptyPlanWorkPackage', () => {
     const p = emptyPlanWorkPackage('mtc');
     expect(p.projectId).toBe('mtc');
     expect(p.status).toBe('draft');
-    expect(p.teamType).toBe('build');
+    expect(p.teamType).toBe('built-infrastructure');
     expect(p.objective).toBe('');
     expect(p.detail).toBe('');
     expect(p.location).toBe('');
@@ -77,7 +77,7 @@ describe('buildWorkPackageFromDecision', () => {
   it('starts as a draft with the build team on the decision project', () => {
     const p = buildWorkPackageFromDecision(decision({ projectId: 'farm-2' }));
     expect(p.status).toBe('draft');
-    expect(p.teamType).toBe('build');
+    expect(p.teamType).toBe('built-infrastructure');
     expect(p.projectId).toBe('farm-2');
     expect(p.id).toBeTruthy();
   });

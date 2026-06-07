@@ -80,9 +80,11 @@ import {
   syncVegetationCreate,
 } from '../syncService.js';
 
+// A create op's payload is a not-yet-synced local project: it must NOT carry a
+// serverId, or syncProjectCreate short-circuits at `if (project.serverId) return`
+// (syncService.ts:461) and api.projects.create is never called.
 const PROJECT = {
   id: 'local-1',
-  serverId: 'srv-1',
   name: 'Test Farm',
   projectType: 'permaculture',
   country: 'US',

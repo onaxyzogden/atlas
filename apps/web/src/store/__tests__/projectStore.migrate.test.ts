@@ -57,8 +57,8 @@ describe('projectStore migrate (v6 -> v7): planShellMode stratum rename', () => 
     expect(out.activeProjectId).toBe('p-tier');
   });
 
-  it('targets persist version 8', () => {
-    expect(options.version).toBe(8);
+  it('targets persist version 9', () => {
+    expect(options.version).toBe(9);
   });
 });
 

@@ -12,6 +12,13 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Durable hang backstop. vitest's force-exit reporter fires from
+    # onFinished, which a file-finalization hang never reaches (a pending
+    # promise surviving happy-dom teardown keeps the worker from finalizing the
+    # file), so nothing inside vitest can recover. Without a job timeout such a
+    # regression rides the 6h GitHub default and blocks every PR. 15 min is far
+    # above this fast suite's real runtime (seconds) yet fails fast on a hang.
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -32,6 +39,9 @@ jobs:
       - name: Test
         # `test` is `node scripts/check-react-resolution.mjs && vitest run`,
         # so the react-resolution guard runs first as a true server-side gate.
+        # Step-level timeout (below the job timeout) so a hang is attributed to
+        # this step and fails fast.
+        timeout-minutes: 10
         run: pnpm --filter @ogden/web test
         env:
           NODE_OPTIONS: --max-old-space-size=7168
