@@ -160,3 +160,52 @@
   color: var(--color-stage-act, #d9a036);
   background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
 }
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #d4d8de);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #565b63);
+  cursor: pointer;
+}
+.chip[data-on='true'] {
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+.notesTa {
+  min-height: 70px;
+  resize: vertical;
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+}
+.culturalBanner {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--color-info, #2f80ed);
+  background: color-mix(in srgb, var(--color-info, #2f80ed) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #2f80ed) 28%, transparent);
+}

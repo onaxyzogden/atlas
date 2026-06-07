@@ -788,7 +788,161 @@ export default function BoundaryCapture({
     );
   }
 
-  // c5 body lands in BR7.
+  if (model.kind === 'landHistoryRegister') {
+    const histTypes = resolveOptions('boundaryHistoryType');
+    const contamOpts = resolveOptions('boundaryContamination');
+    const priorOpts = resolveOptions('boundaryPriorCommunity');
+    const setRow = (i: number, patch: Partial<HistoryRecord>) =>
+      emit({
+        ...model,
+        rows: model.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)),
+      });
+    const toggleContam = (c: string) =>
+      emit({
+        ...model,
+        contamination: model.contamination.includes(c)
+          ? model.contamination.filter((x) => x !== c)
+          : [...model.contamination, c],
+      });
+    return (
+      <div className={css.root} data-boundary-mode="landHistoryRegister">
+        <div className={css.regHead}>
+          <span className={css.regTitle}>Prior use history - known records</span>
+          <span className={css.regCount}>{model.rows.length} records</span>
+        </div>
+        {model.rows.map((r, i) => (
+          <div key={i} className={css.row}>
+            <input
+              className={css.inp}
+              data-testid={`history-era-${i}`}
+              aria-label={`Record ${i + 1} era`}
+              value={r.era}
+              placeholder="Era (e.g. 1960s-present)"
+              onChange={(e) => setRow(i, { era: e.target.value })}
+            />
+            <select
+              className={css.sel}
+              data-testid={`history-type-${i}`}
+              aria-label={`Record ${i + 1} type`}
+              value={r.type}
+              onChange={(e) => setRow(i, { type: e.target.value })}
+            >
+              <option value="">Type</option>
+              {histTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              className={css.inp}
+              data-testid={`history-name-${i}`}
+              aria-label={`Record ${i + 1} name`}
+              value={r.name}
+              placeholder="Name / description"
+              onChange={(e) => setRow(i, { name: e.target.value })}
+            />
+            <input
+              className={css.inp}
+              data-testid={`history-body-${i}`}
+              aria-label={`Record ${i + 1} detail`}
+              value={r.body}
+              placeholder="Detail"
+              onChange={(e) => setRow(i, { body: e.target.value })}
+            />
+            <button
+              type="button"
+              className={css.delBtn}
+              data-testid={`history-remove-${i}`}
+              aria-label={`Remove record ${i + 1}`}
+              onClick={() =>
+                emit({ ...model, rows: model.rows.filter((_, j) => j !== i) })
+              }
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={css.addBtn}
+          data-testid="history-add"
+          onClick={() =>
+            emit({
+              ...model,
+              rows: [...model.rows, { era: '', type: '', name: '', body: '' }],
+            })
+          }
+        >
+          <Plus size={14} aria-hidden="true" /> Add historical record
+        </button>
+
+        <div className={css.field}>
+          <span className={css.qLabel}>
+            Was this land previously used as an intentional community?
+          </span>
+          <div className={css.chipRow}>
+            {priorOpts.map((o) => (
+              <button
+                key={o}
+                type="button"
+                className={css.chip}
+                data-testid={`prior-community-${o}`}
+                data-on={model.wasPriorIC === o ? 'true' : 'false'}
+                aria-pressed={model.wasPriorIC === o}
+                onClick={() =>
+                  emit({
+                    ...model,
+                    wasPriorIC: model.wasPriorIC === o ? '' : o,
+                  })
+                }
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={css.field}>
+          <span className={css.qLabel}>Contamination concerns</span>
+          <div className={css.chipRow}>
+            {contamOpts.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={css.chip}
+                data-testid={`contam-${c}`}
+                data-on={model.contamination.includes(c) ? 'true' : 'false'}
+                aria-pressed={model.contamination.includes(c)}
+                onClick={() => toggleContam(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <textarea
+          className={css.notesTa}
+          data-testid="history-notes"
+          aria-label="Land history notes"
+          value={model.notes}
+          placeholder="Detail any contamination concerns..."
+          onChange={(e) => emit({ ...model, notes: e.target.value })}
+        />
+
+        <div className={css.culturalBanner}>
+          Site may be on the unceded Country of a Traditional Owner group.
+          Cultural heritage assessment is recommended before any earthworks.
+          Check the relevant cultural-heritage register for this cadastral parcel
+          and consult the local Traditional Owner corporation about adjacent
+          waterway corridors.
+        </div>
+      </div>
+    );
+  }
+
+  // unreachable: every BoundaryMode has a branch above.
   return <div className={css.root} data-boundary-mode={model.kind} />;
 }
 

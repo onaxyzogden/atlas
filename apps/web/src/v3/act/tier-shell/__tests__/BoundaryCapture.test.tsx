@@ -404,6 +404,35 @@ describe('BoundaryCapture -- render c4 (titleRestrictionChecker) (BR6)', () => {
   });
 });
 
+describe('BoundaryCapture -- render c5 (landHistoryRegister) (BR7)', () => {
+  it('add-record appends an empty historical record', () => {
+    const { onChange } = renderCapture('s1-boundaries-c5', {});
+    fireEvent.click(screen.getByTestId('history-add'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.histTypes as string[])).toEqual(['']);
+  });
+  it('toggling a contamination chip emits it', () => {
+    const { onChange } = renderCapture('s1-boundaries-c5', {});
+    fireEvent.click(screen.getByTestId('contam-Asbestos structures'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.contamination as string[])).toEqual(['Asbestos structures']);
+  });
+  it('selecting prior-community emits wasPriorIC', () => {
+    const { onChange } = renderCapture('s1-boundaries-c5', {});
+    fireEvent.click(screen.getByTestId('prior-community-Yes - detail below'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.wasPriorIC).toBe('Yes - detail below');
+  });
+  it('typing notes emits the notes scalar', () => {
+    const { onChange } = renderCapture('s1-boundaries-c5', {});
+    fireEvent.change(screen.getByTestId('history-notes'), {
+      target: { value: 'Check creek corridor' },
+    });
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect(arg.notes).toBe('Check creek corridor');
+  });
+});
+
 describe('encode/decode round-trip via emitBoundary', () => {
   it('c1 boundaryRegister: emitBoundary reproduces canonical input exactly', () => {
     const input: FormValue = {
