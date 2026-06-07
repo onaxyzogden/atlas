@@ -8,8 +8,11 @@
  * each carrying its severity-tier badge, and a "Recent activations" strip maps
  * the immutable ProtocolActivation records (useProtocolActivations) to rows.
  *
- * Fixture mirrors ProtocolApprovalOverlay.test: a silvopasture project
- * (-> sheep_beef + water enterprises) with `water-trough-inspection` active.
+ * Fixture: a silvopasture project with the `silv-tree-browse-damage` standing
+ * protocol active. After the per-type catalogue rewrite (commit 29662ef3) the
+ * old `water-trough-inspection` id no longer resolves for a silvopasture
+ * project, so we activate a real RESPOND-tier template from the silvopasture
+ * catalogue (packages/shared/.../catalogues/silvopasture.ts) instead.
  * @tanstack/react-router useParams is mocked to that project; real stores are
  * seeded directly (no store mocks) so the derivation is exercised for real.
  */
@@ -68,8 +71,8 @@ import { useProtocolStore } from '../../../store/protocolStore.js';
 import ProtocolsDashboardPage from '../ProtocolsDashboardPage.js';
 
 const PROJECT_ID = 'test-proj-d1';
-const TEMPLATE_ID = 'water-trough-inspection';
-const TEMPLATE_NAME = 'Water Trough Inspection';
+const TEMPLATE_ID = 'silv-tree-browse-damage';
+const TEMPLATE_NAME = 'Tree Browse Damage';
 
 function seedProject() {
   const stub: LocalProject = {

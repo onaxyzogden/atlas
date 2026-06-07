@@ -266,9 +266,20 @@ describe('conflict resolution labels + affinity map', () => {
     }
   });
 
-  it('maps every Observe module to at least one Plan module', () => {
-    for (const modules of Object.values(OBSERVE_TO_PLAN_AFFINITY)) {
-      expect(modules.length).toBeGreaterThan(0);
+  it('maps Observe modules to Plan modules via well-formed affinity arrays', () => {
+    // After the UniversalDomain cutover the affinity map keys all 16 domains,
+    // but only the authored ones carry Plan targets — the rest are intentionally
+    // empty arrays. So we assert structural soundness (every value is an array of
+    // non-empty strings) plus the invariant that at least one mapping is active,
+    // rather than the old "every module maps to >= 1" which no longer holds.
+    const entries = Object.values(OBSERVE_TO_PLAN_AFFINITY);
+    for (const modules of entries) {
+      expect(Array.isArray(modules)).toBe(true);
+      for (const m of modules) {
+        expect(typeof m).toBe('string');
+        expect(m.length).toBeGreaterThan(0);
+      }
     }
+    expect(entries.some((modules) => modules.length > 0)).toBe(true);
   });
 });

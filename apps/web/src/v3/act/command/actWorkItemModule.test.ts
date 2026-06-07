@@ -11,34 +11,50 @@ const itemWith = (source: WorkItemSource): WorkItem =>
   ({ source }) as unknown as WorkItem;
 
 describe('actWorkItemModule', () => {
-  it('maps maintenance → maintain', () => {
-    expect(actWorkItemModule(itemWith('maintenance'))).toBe('maintain');
-  });
-
-  it('maps livestock-movement sources → livestock', () => {
-    expect(actWorkItemModule(itemWith('scheduled-livestock-move'))).toBe(
-      'livestock',
+  it('maps maintenance → built-infrastructure', () => {
+    expect(actWorkItemModule(itemWith('maintenance'))).toBe(
+      'built-infrastructure',
     );
-    expect(actWorkItemModule(itemWith('rotation-sequence'))).toBe('livestock');
   });
 
-  it('maps planting / habitat sources → build', () => {
-    expect(actWorkItemModule(itemWith('nursery-batch'))).toBe('build');
-    expect(actWorkItemModule(itemWith('cover-crop'))).toBe('build');
-    expect(actWorkItemModule(itemWith('tree-planting'))).toBe('build');
-    expect(actWorkItemModule(itemWith('agroforestry'))).toBe('build');
-    expect(actWorkItemModule(itemWith('habitat-feature'))).toBe('build');
+  it('maps livestock-movement sources → animals-livestock', () => {
+    expect(actWorkItemModule(itemWith('scheduled-livestock-move'))).toBe(
+      'animals-livestock',
+    );
+    expect(actWorkItemModule(itemWith('rotation-sequence'))).toBe(
+      'animals-livestock',
+    );
   });
 
-  it('maps the execution-spine sources → tracker', () => {
-    expect(actWorkItemModule(itemWith('goal-compass'))).toBe('tracker');
-    expect(actWorkItemModule(itemWith('field-task'))).toBe('tracker');
-    expect(actWorkItemModule(itemWith('manual'))).toBe('tracker');
+  it('maps planting / habitat sources → built-infrastructure', () => {
+    expect(actWorkItemModule(itemWith('nursery-batch'))).toBe(
+      'built-infrastructure',
+    );
+    expect(actWorkItemModule(itemWith('cover-crop'))).toBe(
+      'built-infrastructure',
+    );
+    expect(actWorkItemModule(itemWith('tree-planting'))).toBe(
+      'built-infrastructure',
+    );
+    expect(actWorkItemModule(itemWith('agroforestry'))).toBe(
+      'built-infrastructure',
+    );
+    expect(actWorkItemModule(itemWith('habitat-feature'))).toBe(
+      'built-infrastructure',
+    );
   });
 
-  it('defaults an unknown source → tracker', () => {
+  it('maps the execution-spine sources → monitoring-records', () => {
+    expect(actWorkItemModule(itemWith('goal-compass'))).toBe(
+      'monitoring-records',
+    );
+    expect(actWorkItemModule(itemWith('field-task'))).toBe('monitoring-records');
+    expect(actWorkItemModule(itemWith('manual'))).toBe('monitoring-records');
+  });
+
+  it('defaults an unknown source → monitoring-records', () => {
     expect(actWorkItemModule(itemWith('something-new' as WorkItemSource))).toBe(
-      'tracker',
+      'monitoring-records',
     );
   });
 });

@@ -8,8 +8,19 @@
  *   - Stays hidden when online, no pending, no conflicts (regression lock).
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { ReactNode } from 'react';
+
+// OfflineBanner renders a <Link to="/conflicts"> (added in commit e28ed6cb),
+// which needs a RouterProvider. Stub it to a plain anchor for unit isolation —
+// same pattern as conflicts/__tests__/SyncConflictsPage.test.tsx.
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ to, children }: { to: string; children: ReactNode }) => (
+    <a href={to}>{children}</a>
+  ),
+}));
+
 import OfflineBanner from '../OfflineBanner.js';
 import { useConnectivityStore } from '../../store/connectivityStore.js';
 
