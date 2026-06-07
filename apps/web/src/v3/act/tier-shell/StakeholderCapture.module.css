@@ -1,0 +1,117 @@
+/**
+ * StakeholderCapture.module.css
+ * REVIEW R1: placeholder pending operator's olos_stakeholders_mixed_surface.html mockup.
+ * Uses project token vocabulary (mirrors BoundaryCapture.module.css token set).
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-surface, #f9f7f3);
+  border: 1px solid var(--color-border, #d8d2c4);
+  border-radius: 6px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--color-surface-alt, #f3efe8);
+  border: 1px solid var(--color-border-subtle, #e8e2d6);
+  border-radius: 4px;
+}
+
+.rowName {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text, #2c2a25);
+}
+
+.rowMeta {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b6560);
+}
+
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  min-width: 120px;
+  padding: 5px 8px;
+  font-size: 13px;
+  border: 1px solid var(--color-border, #d8d2c4);
+  border-radius: 4px;
+  background: var(--color-surface-raised, #ffffff);
+  color: var(--color-text, #2c2a25);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent, #5a7a52);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 13px;
+  border: 1px solid var(--color-border, #d8d2c4);
+  border-radius: 4px;
+  background: var(--color-surface-raised, #ffffff);
+  color: var(--color-text, #2c2a25);
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-surface-alt, #f3efe8);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid var(--color-border-subtle, #e8e2d6);
+  border-radius: 4px;
+  background: var(--color-surface-alt, #f3efe8);
+  color: var(--color-text-muted, #6b6560);
+  cursor: pointer;
+  text-align: left;
+}
+
+.toggle[aria-pressed="true"] {
+  background: var(--color-success, #4a7c59);
+  color: #ffffff;
+  border-color: var(--color-success, #4a7c59);
+}
+
+.toggle:hover {
+  border-color: var(--color-accent, #5a7a52);
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-subtle, #9e9890);
+}
