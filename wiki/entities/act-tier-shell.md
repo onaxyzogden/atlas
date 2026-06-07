@@ -245,8 +245,11 @@ See [[decisions/2026-06-04-atlas-act-adopt-and-draw-snapping]] (commits `9d0ddae
 
 ## Routes
 
-- `act/tier-shell` — dashboard mode
-- `act/tier-shell/$objectiveId` — objective-execution mode
+- `act/tier-shell` — dashboard mode (S1 landing; always reachable)
+- `act/tier-shell/$objectiveId` — objective-execution mode; `beforeLoad` guard redirects to `act/tier-shell` if the objective is locked by the Plan prerequisite gate
+- `act/tier-shell/stratum/$stratumId` — stratum-bearing tier shell (URL-parity with Plan's `plan/stratum/$stratumId`); `beforeLoad` guard redirects to `act/tier-shell` if the stratum is locked
+
+Both guarded routes use `buildActLockContext(projectId)` — reads hydrated Zustand stores synchronously, runs `computeEffectiveProgress` + `computeAllObjectiveStatuses` + `computeAllStratumStates`, returns `undefined` when DEV unlock (`useDevUnlockStore.unlockAll`) is on. Guard short-circuits on unknown project or unknown objective id. See [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]].
 
 ## Data: Evidence capture persistence
 
@@ -820,12 +823,26 @@ top-left `BaseMapCard` (bottom corners hold `MapToolbar` bottom-left and the
 `SectorCompass` overlay bottom-right). The default preserves Plan/DesignPage
 behavior exactly.
 
-**Known limitation (not a regression):** `api.exports.generate` requires a real
-server project UUID. The `mtc` seed-only demo project has **no `serverId`**, so
-generate returns `invalid input syntax for type uuid: "mtc"` -- the Plan control
-fails identically on `mtc`; it is a backend/demo-data constraint, not introduced
-by this mount. The UI restore (pill top-right, popover, capture->POST) is fully
-DOM-proven. Log: [[log/2026-06-05-act-tier-pdf-export-toolbar]].
+**Known limitation, now fixed (`09b92fea`):** `api.exports.generate` requires a
+real server project UUID, but `MapSheetExportControl` was passing its `projectId`
+prop -- the **local** id -- straight to the exports API. That id-space confusion
+meant Plan-stage export was already broken for **every synced project** (local
+`id` != `serverId` -> 404); the `mtc` seed-only demo (no `serverId`, builtin,
+intentionally never synced) just surfaced it loudly as `invalid input syntax for
+type uuid: "mtc"`. The control now resolves the backing project from
+`useProjectStore` by the local id and sends its **`serverId`** to the API; store
+filtering for zones/guilds/crops still uses the local `projectId`. When no
+`serverId` exists (the `mtc` builtin or any unsynced project) the picker is
+**disabled and annotated** -- "PDF export isn't available for the demo project."
+(builtin) or "Save this project to the server to enable PDF export." (regular
+unsynced) -- instead of firing a request the backend rejects, matching the
+`!!serverId` gating precedent (`TaskProofPanel`, `useActObjectiveTaskBridge`).
+Both mounts (Plan `DesignPage`, Act `ActTierShell`) keep passing `projectId`
+unchanged; the component resolves `serverId` internally. "Seed a server record
+for `mtc`" was rejected -- builtins never sync (`syncProjectNow()` no-ops on
+`isBuiltin`). The UI restore (pill top-right, popover, capture->POST) is fully
+DOM-proven. Logs: [[log/2026-06-05-act-tier-pdf-export-toolbar]],
+[[log/2026-06-05-mapsheet-export-server-id-aware]].
 
 ## SectorCompass HUD -> right-rail sectors editor (2026-06-04)
 
@@ -1735,3 +1752,37 @@ Roadmapped next: live e2e smoke (NOT YET RUN), then the multi-session
 - TS gotcha: discriminant narrowing of `tool.arm` is DROPPED inside a nested
   `.find` closure -- hoist `const arm = tool.arm` before the closure.
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
+
+## Plan prerequisite gate: deep-link protection (2026-06-07)
+
+Two TanStack Router v1 `beforeLoad` guards close the deep-link bypass gap that
+existed after `67d184c9` wired `STRATUM_PREREQS` into the `obj()` authoring helper.
+The interactive paths (handleSelectObjective / handleSelectStratum in ActTierShell)
+already enforced the gate; direct URL navigation bypassed it entirely.
+
+Commit `e0a65aca` (`apps/web/src/routes/index.tsx`, 87 insertions):
+
+**`buildActLockContext(projectId)`** -- shared synchronous helper called by both
+guards. Reads `useProjectStore` + `usePlanStratumProgressStore` via `.getState()`
+(synchronous; Zustand persist middleware hydrates from localStorage before the
+first render). Derives `computeEffectiveProgress` -> `computeAllObjectiveStatuses`.
+Returns `{ statuses, objectives }` or `undefined` (project not found, or
+`import.meta.env.DEV && useDevUnlockStore.getState().unlockAll`).
+
+**Objective guard** (`v3ActTierShellObjectiveRoute`): if
+`statuses[objectiveId] ?? 'locked'` === `'locked'`, throws
+`redirect({ to: '/v3/project/$projectId/act/tier-shell', params: { projectId } })`.
+Unknown objectiveId passes through (component handles gracefully).
+
+**Stratum guard** (`v3ActTierShellStratumRoute`): calls `computeAllStratumStates`
+on `PLAN_STRATA.map(s => s.id)` + the objective statuses map; if
+`stratumStates[stratumId] ?? 'locked'` === `'locked'`, same redirect target.
+
+**Smoke-verified** via `window.__TSR_ROUTER__.navigate()` on MTC:
+- locked objective -> redirects to `act/tier-shell` (PASS)
+- unlocked objective -> renders (PASS)
+- locked stratum -> redirects to `act/tier-shell` (PASS)
+- DEV unlock ON -> no redirect for same locked URLs (PASS)
+- DEV unlock OFF -> redirects again (PASS)
+
+ADR: [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]].
