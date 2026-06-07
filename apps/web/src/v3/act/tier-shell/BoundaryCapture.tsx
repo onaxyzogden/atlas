@@ -158,6 +158,7 @@ export const TITLE_CATEGORIES: readonly TitleCategory[] = [
 // ---------------------------------------------------------------------------
 // FormValue helpers.
 // ---------------------------------------------------------------------------
+// Scalar "" is treated as absent (zero-length array); only array form may carry empty-string slots.
 function asArr(v: string | string[] | undefined): string[] {
   if (Array.isArray(v)) return v;
   return typeof v === 'string' && v !== '' ? [v] : [];
@@ -322,6 +323,7 @@ function encodeBoundary(model: BoundaryModel): FormValue {
 export function isBoundaryValid(_itemId: string, model: BoundaryModel): boolean {
   switch (model.kind) {
     case 'boundaryRegister':
+      // Valid when at least one section has a typed boundary; direction is informational, not gated.
       return model.sections.some((s) => s.type !== '');
     case 'rowRegister':
       return true; // zero rights of way is a valid answer

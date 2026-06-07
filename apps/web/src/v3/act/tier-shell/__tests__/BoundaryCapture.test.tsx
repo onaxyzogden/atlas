@@ -43,6 +43,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 import BoundaryCapture, {
   boundaryModeFor,
   decodeBoundary,
+  emitBoundary,
   isBoundaryValid,
   summariseBoundary,
   TITLE_CATEGORIES,
@@ -268,5 +269,76 @@ describe('BoundaryCapture -- c5 landHistoryRegister (BR4)', () => {
     const s = summariseBoundary('s1-boundaries-c5', m);
     expect(s).toMatch(/1 historical record/);
     expect(s).toMatch(/2 contamination/);
+  });
+});
+
+describe('encode/decode round-trip via emitBoundary', () => {
+  it('c1 boundaryRegister: emitBoundary reproduces canonical input exactly', () => {
+    const input: FormValue = {
+      directions: ['N', 'W'],
+      secTypes: ['Shared / dividing fence', 'Unfenced / in dispute'],
+      names: ['North fence', 'West boundary'],
+      obligations: ['Shared upkeep', ''],
+      disputes: ['', 'true'],
+    };
+    const model = decodeBoundary('s1-boundaries-c1', input);
+    const onChange = vi.fn();
+    emitBoundary(onChange, model);
+    expect(onChange).toHaveBeenCalledWith(input);
+  });
+
+  it('c2 rowRegister: emitBoundary reproduces canonical input exactly', () => {
+    const input: FormValue = {
+      rowTypes: ['Utility easement', 'Access easement'],
+      names: ['Power line', 'Driveway'],
+      impacts: ['Restricts', 'Enables'],
+      holders: ['Energy provider', ''],
+      widths: ['3m', ''],
+      details: ['Underground cable', ''],
+    };
+    const model = decodeBoundary('s1-boundaries-c2', input);
+    const onChange = vi.fn();
+    emitBoundary(onChange, model);
+    expect(onChange).toHaveBeenCalledWith(input);
+  });
+
+  it('c3 tenancyRegister: emitBoundary reproduces canonical input exactly', () => {
+    const input: FormValue = {
+      tenTypes: ['Agistment', 'Lease'],
+      names: ['Cattle grazing', 'Shed storage'],
+      expiries: ['Near', 'Far'],
+      flags: ['Must terminate before community occupation', 'Monitor'],
+      details: ['Seasonal arrangement', ''],
+    };
+    const model = decodeBoundary('s1-boundaries-c3', input);
+    const onChange = vi.fn();
+    emitBoundary(onChange, model);
+    expect(onChange).toHaveBeenCalledWith(input);
+  });
+
+  it('c4 titleRestrictionChecker: emitBoundary reproduces canonical input exactly', () => {
+    const input: FormValue = {
+      categories: ['present', 'absent', 'absent', 'unknown', 'absent', 'present'],
+    };
+    const model = decodeBoundary('s1-boundaries-c4', input);
+    const onChange = vi.fn();
+    emitBoundary(onChange, model);
+    expect(onChange).toHaveBeenCalledWith(input);
+  });
+
+  it('c5 landHistoryRegister: emitBoundary reproduces canonical input exactly', () => {
+    const input: FormValue = {
+      eras: ['1960s-present', '1940s'],
+      histTypes: ['Agricultural', 'Industrial'],
+      names: ['Cattle run', 'Timber mill'],
+      bodies: ['Grazing operation', 'Decommissioned'],
+      wasPriorIC: 'No prior community',
+      contamination: ['Asbestos structures', 'Chemical storage / AST'],
+      notes: 'Check creek corridor for residual contamination',
+    };
+    const model = decodeBoundary('s1-boundaries-c5', input);
+    const onChange = vi.fn();
+    emitBoundary(onChange, model);
+    expect(onChange).toHaveBeenCalledWith(input);
   });
 });
