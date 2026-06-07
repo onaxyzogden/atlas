@@ -306,13 +306,14 @@ export default function DecisionWorkingPanel({
               : 'Complete the required fields to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isStakeholder) {
+      // Only c1 (mapContact, needs >=1 neighbour) and c2 (contact/authority,
+      // needs >=1 authority) can be invalid; c3/c4/c5/c6 are always valid, so
+      // their modes never reach this gate note.
       const mode = stakeholderModeFor(decision.itemId);
       const note =
-        mode === 'cultural'
-          ? 'Record an Indigenous/cultural relationship, or acknowledge none identified.'
-          : mode === 'annotate'
-            ? 'Annotate at least one stakeholder, or acknowledge none to annotate.'
-            : 'Add at least one stakeholder, or acknowledge none in this category.';
+        mode === 'mapContact'
+          ? 'Add at least one neighbour to record.'
+          : 'Add at least one authority contact to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLabourInventory && labourModel) {
       const missing: string[] = [];

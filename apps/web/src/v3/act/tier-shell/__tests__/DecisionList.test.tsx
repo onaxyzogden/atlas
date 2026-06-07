@@ -285,9 +285,9 @@ describe('DecisionList -- mode badges', () => {
       />,
     );
     expect(screen.getByTestId('mode-badge-s-mapContact').textContent).toMatch(/^Map \+ contact$/);
-    expect(screen.getByTestId('mode-badge-s-contact').textContent).toMatch(/^Contact$/);
+    expect(screen.getByTestId('mode-badge-s-contact').textContent).toMatch(/^Contact entry$/);
     expect(screen.getByTestId('mode-badge-s-cultural').textContent).toMatch(/^Cultural$/);
-    expect(screen.getByTestId('mode-badge-s-annotate').textContent).toMatch(/^Annotate$/);
+    expect(screen.getByTestId('mode-badge-s-annotate').textContent).toMatch(/^Annotate register$/);
   });
 
   it('renders NO mode badge for any row when modeFor is absent', () => {

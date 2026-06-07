@@ -780,8 +780,9 @@ describe('DecisionWorkingPanel -- stakeholder arm', () => {
         fields: TEXT_FIELDS,
       }),
     });
-    // StakeholderCapture-specific surface present.
-    expect(screen.getByTestId('stakeholder-none-toggle')).toBeTruthy();
+    // StakeholderCapture-specific surface present (c2 authority body).
+    expect(screen.getByText('Add by authority type')).toBeTruthy();
+    expect(screen.getAllByTestId('stakeholder-auth-btn').length).toBeGreaterThan(0);
     // The generic VisionFormFields label from TEXT_FIELDS must NOT render.
     expect(screen.queryByText('Primary purpose')).toBeNull();
   });
@@ -799,11 +800,15 @@ describe('DecisionWorkingPanel -- stakeholder arm', () => {
     }) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
     expect(btn.getAttribute('data-locked')).toBe('true');
-    // Adding a stakeholder row to the register flips validity reactively.
+    // Adding an authority row to the register flips c2 validity reactively.
     act(() => {
       useStakeholderRegisterStore
         .getState()
-        .createStakeholder('proj-test', { name: 'A', type: '', role: '' });
+        .createStakeholder('proj-test', {
+          name: 'A',
+          type: 'authority',
+          role: '',
+        });
     });
     expect(btn.disabled).toBe(false);
     expect(btn.getAttribute('data-locked')).toBe('false');
@@ -813,7 +818,11 @@ describe('DecisionWorkingPanel -- stakeholder arm', () => {
     act(() => {
       useStakeholderRegisterStore
         .getState()
-        .createStakeholder('proj-test', { name: 'A', type: '', role: '' });
+        .createStakeholder('proj-test', {
+          name: 'A',
+          type: 'authority',
+          role: '',
+        });
     });
     const { onRecord } = renderPanel({
       decision: makeDecision({

@@ -55,11 +55,12 @@ const MODE_LABELS: Record<string, string> = {
   map: 'Map',
   mapEntry: 'Map + entry',
   decision: 'Decision',
-  // Stakeholder modes (REVIEW R6 -- labels placeholder pending the operator mockup).
+  // Stakeholder modes (labels confirmed against the operator mockup
+  // olos_stakeholders_mixed_surface.html center-list mode badges).
   mapContact: 'Map + contact',
-  contact: 'Contact',
+  contact: 'Contact entry',
   cultural: 'Cultural',
-  annotate: 'Annotate',
+  annotate: 'Annotate register',
 };
 
 export default function DecisionList({
