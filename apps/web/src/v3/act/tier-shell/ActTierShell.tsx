@@ -116,6 +116,7 @@ import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
+import { decodeSteward, stewardInvitesToQueued } from './StewardCapture.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
@@ -668,6 +669,17 @@ export default function ActTierShell() {
   const handleFormDataSave = useCallback(
     (formId: string, value: FormValue, summary: string) => {
       useActEvidenceStore.getState().saveVisionFormData(id, formId, value, summary);
+      // Reconcile the steward-capture invite queue into the canonical
+      // metadata.team.queuedInvites (local-only). The capture persists invites
+      // as a parallel-array FormValue; this mirrors them into the project
+      // metadata so they reach the canonical home. RBAC reconciliation RW4.
+      if (formId === 's1-vision-steward') {
+        const queued = stewardInvitesToQueued(
+          decodeSteward(value),
+          new Date().toISOString(),
+        );
+        useProjectStore.getState().reconcileStewardInvites(id, queued);
+      }
       // The formId IS the checklist item id (1:1 per actToolCatalog design).
       // Mark it complete (add-only) so the execution-panel checklist reflects
       // the structured capture, exactly as handleFormSave does for text.
