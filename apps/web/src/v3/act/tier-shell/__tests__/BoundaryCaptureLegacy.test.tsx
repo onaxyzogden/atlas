@@ -57,7 +57,7 @@ import BoundaryCapture, {
   type ZoningModel,
   type WaterModel,
   type PermitsModel,
-} from '../BoundaryCapture.js';
+} from '../BoundaryCaptureLegacy.js';
 import type { FormValue } from '../actToolCatalog.js';
 
 const DOC_STATUS = ['Verified', 'Pending', 'Not held'] as const;

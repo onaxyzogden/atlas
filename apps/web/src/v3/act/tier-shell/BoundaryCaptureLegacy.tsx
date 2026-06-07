@@ -36,7 +36,7 @@ import {
   X,
 } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
-import css from './BoundaryCapture.module.css';
+import css from './BoundaryCaptureLegacy.module.css';
 
 export type BoundaryMode = 'doc' | 'map' | 'mapEntry' | 'decision';
 
