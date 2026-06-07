@@ -163,6 +163,43 @@
   color: var(--color-stage-act, #d9a036);
 }
 
+/* Stakeholder reg-strip: live shared-register count summary (mockup parity). */
+.regStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.12));
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-alt, #f3eee2);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text, #1b1e22);
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+}
+
+.regStripIcon {
+  flex: none;
+  color: var(--color-info, #4a8c9e);
+}
+
+.regStripCount {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 600;
+  color: var(--color-info, #4a8c9e);
+}
+
+.regStripLabel {
+  color: var(--color-text-muted, #545c64);
+}
+
+.regStripNote {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-subtle, #8a9199);
+}
+
 .right {
   min-width: 0;
   padding: 16px;

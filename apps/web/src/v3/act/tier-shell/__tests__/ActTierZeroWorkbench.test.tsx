@@ -64,6 +64,7 @@ import ActTierZeroWorkbench, {
   buildDecisionTarget,
   type ActTierZeroWorkbenchProps,
 } from '../ActTierZeroWorkbench.js';
+import { useStakeholderRegisterStore } from '../../../../store/stakeholderRegisterStore.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures: the active objective uses REAL catalog ids so buildDecisionTarget
@@ -513,7 +514,7 @@ describe('buildDecisionTarget -- stakeholder detection', () => {
   });
 });
 
-describe('ActTierZeroWorkbench -- stakeholder objective (no boundary strip)', () => {
+describe('ActTierZeroWorkbench -- stakeholder objective (strips + badges)', () => {
   const STAKEHOLDER_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,
     id: 's1-stakeholders',
@@ -553,6 +554,54 @@ describe('ActTierZeroWorkbench -- stakeholder objective (no boundary strip)', ()
     // c3 => cultural => "Cultural"
     const c3Badge = screen.getByTestId('mode-badge-s1-stakeholders-c3');
     expect(c3Badge.textContent).toMatch(/cultural/i);
+  });
+
+  it('renders the stakeholder map-strip ("2 overlays active on map")', () => {
+    renderWorkbench({
+      objectives: [STAKEHOLDER_OBJECTIVE],
+      activeObjectiveId: STAKEHOLDER_OBJECTIVE.id,
+    });
+    const strip = screen.getByTestId('stakeholder-map-strip');
+    expect(strip.textContent).toMatch(/2 overlays active on map/i);
+  });
+
+  it('renders the reg-strip with the register label + ASCII note', () => {
+    renderWorkbench({
+      objectives: [STAKEHOLDER_OBJECTIVE],
+      activeObjectiveId: STAKEHOLDER_OBJECTIVE.id,
+    });
+    const strip = screen.getByTestId('stakeholder-reg-strip');
+    expect(strip.textContent).toMatch(/stakeholders in register/i);
+    expect(strip.textContent).toContain(
+      'Items 1-4 build the register - Items 5-6 annotate it',
+    );
+  });
+
+  it('reg-count reflects the LIVE shared register for the project', () => {
+    const projectId = 'proj-reg-count';
+    const store = useStakeholderRegisterStore.getState();
+    store.createStakeholder(projectId, {
+      name: 'Neighbour A',
+      type: 'neighbour',
+      role: '',
+    });
+    store.createStakeholder(projectId, {
+      name: 'Authority B',
+      type: 'authority',
+      role: '',
+    });
+    renderWorkbench({
+      projectId,
+      objectives: [STAKEHOLDER_OBJECTIVE],
+      activeObjectiveId: STAKEHOLDER_OBJECTIVE.id,
+    });
+    expect(screen.getByTestId('stakeholder-reg-count').textContent).toBe('2');
+  });
+
+  it('does NOT render either stakeholder strip for s1-vision', () => {
+    renderWorkbench();
+    expect(screen.queryByTestId('stakeholder-map-strip')).toBeNull();
+    expect(screen.queryByTestId('stakeholder-reg-strip')).toBeNull();
   });
 });
 

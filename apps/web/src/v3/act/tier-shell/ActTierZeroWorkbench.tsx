@@ -16,8 +16,8 @@
  * are project var()s with literal fallbacks (see ActTierZeroWorkbench.module.css).
  */
 
-import { useEffect, useState } from 'react';
-import { Layers } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Layers, Users } from 'lucide-react';
 import type {
   PlanStratumObjective,
   PlanDecisionChecklistItem,
@@ -37,6 +37,10 @@ import DecisionWorkingPanel, {
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import { boundaryModeFor } from './BoundaryCapture.js';
 import { stakeholderModeFor } from './StakeholderCapture.js';
+import {
+  useStakeholderRegisterStore,
+  EMPTY_STAKEHOLDERS_BY_ID,
+} from '../../../store/stakeholderRegisterStore.js';
 import css from './ActTierZeroWorkbench.module.css';
 
 // ---------------------------------------------------------------------------
@@ -187,6 +191,19 @@ export default function ActTierZeroWorkbench({
   const resolveOptions = (optionSetId: string) =>
     resolveFieldOptions(optionSetId, primary, secondaries);
 
+  // Reactive stakeholder register count for the s1-stakeholders reg-strip.
+  // MUST select the STABLE raw byProject object (frozen EMPTY fallback) and
+  // derive the count via useMemo -- a fresh-array selector (listForProject)
+  // would mint a new array each render and trip the Zustand v5 stable-snapshot
+  // infinite-render trap. The hook stays unconditional (above the early return).
+  const stakeholdersById = useStakeholderRegisterStore(
+    (s) => s.byProject[projectId] ?? EMPTY_STAKEHOLDERS_BY_ID,
+  );
+  const stakeholderCount = useMemo(
+    () => Object.values(stakeholdersById).length,
+    [stakeholdersById],
+  );
+
   // ---------- Empty container ----------
   if (!activeObjective) {
     return <div className={css.root} data-empty="true" />;
@@ -198,9 +215,10 @@ export default function ActTierZeroWorkbench({
   // map-activation strip. Neither renders for any other objective (e.g. vision).
   const isBoundaryObjective = activeObjective.id === 's1-boundaries';
 
-  // Stakeholder objective drives the center-list mode badges. No map strip
-  // is rendered (REVIEW R7: a stakeholder-specific strip, if any, awaits the
-  // operator mockup; intentionally not rendered for s1-stakeholders this pass).
+  // Stakeholder objective drives the center-list mode badges + two strips above
+  // the list (per the operator mockup olos_stakeholders_mixed_surface.html):
+  // a static map-strip ("2 overlays active on map") and a LIVE reg-strip showing
+  // the shared register count. Neither renders for any other objective.
   const isStakeholderObjective = activeObjective.id === 's1-stakeholders';
 
   const selectedItem =
@@ -271,6 +289,31 @@ export default function ActTierZeroWorkbench({
               Boundary
             </span>
           </div>
+        ) : null}
+        {isStakeholderObjective ? (
+          <>
+            <div className={css.mapStrip} data-testid="stakeholder-map-strip">
+              <Layers
+                size={15}
+                className={css.mapStripIcon}
+                aria-hidden="true"
+              />
+              <span>2 overlays active on map</span>
+            </div>
+            <div className={css.regStrip} data-testid="stakeholder-reg-strip">
+              <Users size={14} className={css.regStripIcon} aria-hidden="true" />
+              <span
+                className={css.regStripCount}
+                data-testid="stakeholder-reg-count"
+              >
+                {stakeholderCount}
+              </span>
+              <span className={css.regStripLabel}>stakeholders in register</span>
+              <span className={css.regStripNote}>
+                Items 1-4 build the register - Items 5-6 annotate it
+              </span>
+            </div>
+          </>
         ) : null}
         <DecisionList
           objective={activeObjective}
