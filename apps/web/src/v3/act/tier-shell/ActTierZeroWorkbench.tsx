@@ -117,6 +117,18 @@ export function buildDecisionTarget(
   // matched generic form. False for every non-stakeholder id.
   const isStakeholder = item.id.startsWith('s1-stakeholders-');
 
+  // Steward (team member capture) is a single item detected by exact id; the
+  // panel's isSteward body-router arm (StewardCapture) takes precedence over any
+  // matched generic form. False for every other id.
+  const isSteward = item.id === 's1-vision-steward';
+
+  // The steward item carries a custom defer label (it stays deferrable -- only
+  // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
+  const deferLabel =
+    item.id === 's1-vision-steward'
+      ? 'Add team members later in settings'
+      : undefined;
+
   // c3 (Indigenous land relationships / cultural obligations) is mandatory and
   // NON-deferrable (Amanah): hide the defer button. undefined => deferrable for
   // every other item, including the other stakeholder items.
@@ -141,6 +153,8 @@ export function buildDecisionTarget(
     isVisionClassify,
     isBoundary,
     isStakeholder,
+    isSteward,
+    deferLabel,
     deferrable,
   };
 }

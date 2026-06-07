@@ -514,6 +514,36 @@ describe('buildDecisionTarget -- stakeholder detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- steward detection', () => {
+  function makeItem(id: string): PlanDecisionChecklistItem {
+    return {
+      id,
+      label: `Item ${id}`,
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+  }
+
+  it('flags isSteward + deferLabel for s1-vision-steward and keeps it deferrable', () => {
+    const target = buildDecisionTarget(makeItem('s1-vision-steward'));
+    expect(target.isSteward).toBe(true);
+    expect(target.deferLabel).toBe('Add team members later in settings');
+    expect(target.deferrable).not.toBe(false);
+  });
+
+  it('does NOT flag isSteward or deferLabel for a non-steward vision item', () => {
+    const target = buildDecisionTarget(makeItem('s1-vision-classify'));
+    expect(target.isSteward).toBe(false);
+    expect(target.deferLabel).toBeUndefined();
+  });
+
+  it('keeps deferrable === false and isSteward === false for s1-stakeholders-c3', () => {
+    const target = buildDecisionTarget(makeItem('s1-stakeholders-c3'));
+    expect(target.deferrable).toBe(false);
+    expect(target.isSteward).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- stakeholder objective (strips + badges)', () => {
   const STAKEHOLDER_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,
