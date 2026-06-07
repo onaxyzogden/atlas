@@ -35,6 +35,7 @@ import type {
   PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
 import type { ProjectTypeId } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
+import { STRATUM_PREREQS } from './authoring.js';
 import { UNIVERSAL_PLAN_OBJECTIVES, findUniversalObjective } from './universal.js';
 import { REGEN_FARM_PRIMARY_OBJECTIVES } from './regenFarm.js';
 import { ECOVILLAGE_PRIMARY_OBJECTIVES } from './ecovillage.js';
@@ -70,6 +71,7 @@ import {
 } from './livestockOperation.js';
 
 export {
+  STRATUM_PREREQS,
   UNIVERSAL_PLAN_OBJECTIVES,
   findUniversalObjective,
   REGEN_FARM_PRIMARY_OBJECTIVES,

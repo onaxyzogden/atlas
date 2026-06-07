@@ -27,6 +27,43 @@ import type {
 } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
 
 /**
+ * Seven-tier spine gate. Maps each stratum to the prerequisite objective ids
+ * that gate EVERY objective authored in that stratum (auto-applied by `obj()`
+ * unless a per-objective override is supplied).
+ *
+ * CRITICAL INVARIANT — values must reference ONLY universal objective ids
+ * (the always-present backbone). The resolver (`resolveProjectObjectives`)
+ * always includes universal + primary objectives but DROPS incompatible
+ * secondary objectives. `computeObjectiveStatus` treats a prereq whose id is
+ * absent from the resolved set as not-`complete`, which silently locks the
+ * objective FOREVER with no diagnostic. Referencing only universal ids
+ * guarantees no dangling ref for any primary+secondary combo. The
+ * `spineGate.conformance.test.ts` resolver test enforces this.
+ *
+ * Each stratum gates on the PRIOR stratum's universal reads/decisions, so the
+ * narrated "can't design planting (S5) before zones + terrain (S4←S3←S2)" holds
+ * transitively. S1 has no prerequisites (it is the entry tier).
+ */
+export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
+  's1-project-foundation': [],
+  's2-land-reading': ['s1-vision', 's1-boundaries', 's1-stakeholders'],
+  's3-systems-reading': [
+    's2-terrain',
+    's2-climate',
+    's2-ecology',
+    's2-infrastructure',
+  ],
+  's4-foundation-decisions': ['s3-hydrology', 's3-soil'],
+  's5-system-design': ['s4-direction', 's4-water-strategy', 's4-zones'],
+  's6-integration-design': [
+    's5-access',
+    's5-water-infrastructure',
+    's5-soil-improvement',
+  ],
+  's7-phasing-resourcing': ['s6-monitoring'],
+};
+
+/**
  * Build a checklist item. None of the transcribed RegenFarm / Residential
  * items are authored as optional or methodology, so the helper takes just
  * id + label and applies the schema defaults (feedsInto: [], optional: false).
@@ -87,6 +124,16 @@ export function dg(
 export interface ObjectiveInput {
   id: string;
   stratumId: PlanStratumId;
+  /**
+   * Prerequisite objective ids gating this objective. OMIT to inherit the
+   * stratum's spine gate (`STRATUM_PREREQS[stratumId]`) — the default for
+   * essentially every catalogue objective. Pass an explicit `[]` to opt OUT
+   * of the gate (entry-tier or deliberately ungated objectives). Any custom
+   * list MUST reference only ever-present (universal) objective ids, or the
+   * objective will be silently locked forever for project types that drop the
+   * referenced secondary — see the `STRATUM_PREREQS` invariant note above.
+   */
+  prerequisiteObjectiveIds?: string[];
   title: string;
   /**
    * Card-tile display label: the core noun phrase with the leading framing
@@ -136,7 +183,8 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     title: input.title,
     ...(input.shortTitle ? { shortTitle: input.shortTitle } : {}),
     focusedQuestion: input.focusedQuestion,
-    prerequisiteObjectiveIds: [],
+    prerequisiteObjectiveIds:
+      input.prerequisiteObjectiveIds ?? [...STRATUM_PREREQS[input.stratumId]],
     defaultOverlayBundle: [],
     checklist: input.checklist,
     decisionGroups: input.decisionGroups ?? [],
