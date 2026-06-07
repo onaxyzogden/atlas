@@ -290,6 +290,35 @@ describe('DecisionList -- mode badges', () => {
     expect(screen.getByTestId('mode-badge-s-annotate').textContent).toMatch(/^Annotate register$/);
   });
 
+  it('BR8: maps boundary re-decompose mode keys to their human labels', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 'b-titleRestrictionChecker', label: 'Title checker row', feedsInto: [], optional: false },
+        { id: 'b-boundaryRegister', label: 'Boundary register row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    const modes: Record<string, string> = {
+      'b-titleRestrictionChecker': 'titleRestrictionChecker',
+      'b-boundaryRegister': 'boundaryRegister',
+    };
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => modes[itemId] ?? null}
+      />,
+    );
+    expect(screen.getByTestId('mode-badge-b-titleRestrictionChecker').textContent).toMatch(
+      /^Title conditions$/,
+    );
+    expect(screen.getByTestId('mode-badge-b-boundaryRegister').textContent).toMatch(
+      /^Boundary register$/,
+    );
+  });
+
   it('renders NO mode badge for any row when modeFor is absent', () => {
     renderList();
     expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();

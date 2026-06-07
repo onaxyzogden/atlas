@@ -943,7 +943,7 @@ export default function BoundaryCapture({
   }
 
   // unreachable: every BoundaryMode has a branch above.
-  return <div className={css.root} data-boundary-mode={model.kind} />;
+  return <div className={css.root} data-boundary-mode={(model as BoundaryModel).kind} />;
 }
 
 // Decorative, disabled map affordance (deferred rich I/O; boundary precedent).

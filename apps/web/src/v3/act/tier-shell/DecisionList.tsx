@@ -55,12 +55,17 @@ const MODE_LABELS: Record<string, string> = {
   map: 'Map',
   mapEntry: 'Map + entry',
   decision: 'Decision',
-  // Stakeholder modes (labels confirmed against the operator mockup
-  // olos_stakeholders_mixed_surface.html center-list mode badges).
+  // Stakeholder modes.
   mapContact: 'Map + contact',
   contact: 'Contact entry',
   cultural: 'Cultural',
   annotate: 'Annotate register',
+  // Boundary re-decompose modes (SP1). REVIEW: badge copy.
+  boundaryRegister: 'Boundary register',
+  rowRegister: 'Rights of way',
+  tenancyRegister: 'Tenancy register',
+  titleRestrictionChecker: 'Title conditions',
+  landHistoryRegister: 'Land history',
 };
 
 export default function DecisionList({

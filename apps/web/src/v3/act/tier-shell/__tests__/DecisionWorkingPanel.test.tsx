@@ -595,19 +595,18 @@ describe('DecisionWorkingPanel -- bespoke child remount on decision switch', () 
 });
 
 describe('DecisionWorkingPanel -- boundary', () => {
-  it('routes a boundary decision to BoundaryCapture (doc mode) and not the generic body', () => {
+  it('routes a boundary decision to BoundaryCapture (boundaryRegister mode) and not the generic body', () => {
     renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
         label: 'Confirm legal boundaries',
         isBoundary: true,
       }),
-      resolveOptions: (id) =>
-        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      resolveOptions: () => [],
       initialValue: {},
     });
-    // BoundaryCapture-specific surface (doc mode: the upload zone testid).
-    expect(screen.getByTestId('doc-upload')).toBeTruthy();
+    // BoundaryCapture-specific surface (boundaryRegister mode: section-add button).
+    expect(screen.getByTestId('section-add')).toBeTruthy();
     // Not the success-criteria surface, and no generic textarea fallback.
     expect(screen.queryByText(/suggested criteria/i)).toBeNull();
     expect(
@@ -623,24 +622,22 @@ describe('DecisionWorkingPanel -- boundary', () => {
         fields: TEXT_FIELDS,
         isBoundary: true,
       }),
-      resolveOptions: (id) =>
-        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      resolveOptions: () => [],
       initialValue: {},
     });
-    expect(screen.getByTestId('doc-upload')).toBeTruthy();
+    expect(screen.getByTestId('section-add')).toBeTruthy();
     // The generic VisionFormFields label from TEXT_FIELDS must not render.
     expect(screen.queryByText('Primary purpose')).toBeNull();
   });
 
-  it('disables Record and shows a gate note for an invalid boundary draft', () => {
+  it('disables Record and shows a gate note for an invalid boundary draft (c1 empty sections)', () => {
     const { onRecord } = renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
         label: 'Confirm legal boundaries',
         isBoundary: true,
       }),
-      resolveOptions: (id) =>
-        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      resolveOptions: () => [],
       initialValue: {},
     });
     const btn = screen.getByRole('button', {
@@ -648,15 +645,21 @@ describe('DecisionWorkingPanel -- boundary', () => {
     }) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
     expect(btn.getAttribute('data-locked')).toBe('true');
-    expect(screen.getByText(/document status to record/i)).toBeTruthy();
+    // Gate note for boundaryRegister (BR8).
+    expect(
+      screen.getByText(/add at least one boundary section \(with a type\) to record/i),
+    ).toBeTruthy();
     expect(onRecord).not.toHaveBeenCalled();
   });
 
   it('enables Record with a valid boundary draft and emits summariseBoundary summary on click', () => {
+    // A valid boundaryRegister value: one section with a typed boundary.
     const VALID: import('../actToolCatalog.js').FormValue = {
-      docName: 'Title document.pdf',
-      docStatus: 'Held',
-      notes: '',
+      directions: ['N'],
+      secTypes: ['Shared / dividing fence'],
+      names: ['North fence'],
+      obligations: ['Shared upkeep'],
+      disputes: [''],
     };
     const { onRecord } = renderPanel({
       decision: makeDecision({
@@ -664,8 +667,7 @@ describe('DecisionWorkingPanel -- boundary', () => {
         label: 'Confirm legal boundaries',
         isBoundary: true,
       }),
-      resolveOptions: (id) =>
-        id === 'boundaryDocStatus' ? ['Held', 'Pending', 'Missing'] : [],
+      resolveOptions: () => [],
       initialValue: VALID,
     });
     const btn = screen.getByRole('button', {
@@ -676,7 +678,7 @@ describe('DecisionWorkingPanel -- boundary', () => {
     fireEvent.click(btn);
     expect(onRecord).toHaveBeenCalledTimes(1);
     const [value, summary] = onRecord.mock.calls[0]!;
-    expect(value.docStatus).toBe('Held');
+    expect(value.secTypes).toEqual(['Shared / dividing fence']);
     expect(summary).toBe(
       summariseBoundary('s1-boundaries-c1', decodeBoundary('s1-boundaries-c1', VALID)),
     );
@@ -704,23 +706,22 @@ describe('DecisionWorkingPanel -- boundary', () => {
   });
 
   it('re-seeds the boundary draft when the selected itemId changes (key reset)', () => {
-    const decisionValid = makeDecision({
+    const decisionC1 = makeDecision({
       itemId: 's1-boundaries-c1',
-      label: 'Boundary A',
+      label: 'Boundary A (boundaryRegister)',
       isBoundary: true,
     });
-    const decisionEmpty = makeDecision({
+    const decisionC2 = makeDecision({
       itemId: 's1-boundaries-c2',
-      label: 'Boundary B',
+      label: 'Boundary B (rowRegister)',
       isBoundary: true,
     });
     const props: DecisionWorkingPanelProps = {
       projectId: 'proj-test',
-      decision: decisionValid,
-      resolveOptions: (id) =>
-        id === 'boundaryDocStatus' ? ['Held', 'Pending'] : [],
+      decision: decisionC1,
+      resolveOptions: () => [],
       successCriteriaOptions: SUCCESS_OPTIONS,
-      initialValue: { docName: '', docStatus: 'Held', notes: '' },
+      initialValue: {},
       initialRationale: '',
       deferred: false,
       recorded: false,
@@ -729,18 +730,92 @@ describe('DecisionWorkingPanel -- boundary', () => {
       onToggleDefer: vi.fn(),
     };
     const { rerender } = render(<DecisionWorkingPanel {...props} />);
-    // Doc mode body present for c1.
-    expect(screen.getByTestId('doc-upload')).toBeTruthy();
-    // Switch to c2 (map mode) with empty value -> different body, draft re-seeded.
+    // boundaryRegister body present for c1.
+    expect(screen.getByTestId('section-add')).toBeTruthy();
+    // Switch to c2 (rowRegister) with empty value -> different body, draft re-seeded.
     rerender(
       <DecisionWorkingPanel
         {...props}
-        decision={decisionEmpty}
+        decision={decisionC2}
         initialValue={{}}
       />,
     );
-    expect(screen.queryByTestId('doc-upload')).toBeNull();
-    expect(screen.getByTestId('ack-toggle')).toBeTruthy();
+    expect(screen.queryByTestId('section-add')).toBeNull();
+    // rowRegister body: row-add button.
+    expect(screen.getByTestId('row-add')).toBeTruthy();
+  });
+
+  // BR8: gate-note cases for the new boundary modes.
+  it('BR8 c4 titleRestrictionChecker: gate note warns about Unknown conditions', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c4',
+        label: 'Check title restrictions',
+        isBoundary: true,
+      }),
+      resolveOptions: () => [],
+      initialValue: {}, // decode -> all categories = 'unknown' -> invalid
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(
+      screen.getByText(
+        /resolve every unknown title condition with legal advice before recording/i,
+      ),
+    ).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
+  it('BR8 c1 boundaryRegister: gate note requests at least one typed boundary section', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c1',
+        label: 'Register boundary sections',
+        isBoundary: true,
+      }),
+      resolveOptions: () => [],
+      initialValue: {}, // decode -> zero sections -> invalid
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(
+      screen.getByText(
+        /add at least one boundary section \(with a type\) to record/i,
+      ),
+    ).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
+  it('BR8 c2 rowRegister: Record is ENABLED immediately (zero rows is valid)', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c2',
+        label: 'Register rights of way',
+        isBoundary: true,
+      }),
+      resolveOptions: () => [],
+      initialValue: {}, // decode -> zero rows -> rowRegister is always valid
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    // No gate note shown (valid state).
+    expect(
+      screen.queryByText(/add at least one boundary section/i),
+    ).toBeNull();
+    expect(
+      screen.queryByText(/resolve every unknown title condition/i),
+    ).toBeNull();
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
   });
 });
 

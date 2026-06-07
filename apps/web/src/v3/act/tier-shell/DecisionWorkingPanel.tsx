@@ -317,13 +317,11 @@ export default function DecisionWorkingPanel({
     } else if (decision.isBoundary) {
       const mode = boundaryModeFor(decision.itemId);
       const note =
-        mode === 'doc'
-          ? 'Set a document status to record.'
-          : mode === 'map'
-            ? 'Acknowledge the boundaries to record.'
-            : mode === 'mapEntry'
-              ? 'Add at least one easement (or mark no implications) to record.'
-              : 'Complete the required fields to record.';
+        mode === 'boundaryRegister'
+          ? 'Add at least one boundary section (with a type) to record.'
+          : mode === 'titleRestrictionChecker'
+            ? 'Resolve every Unknown title condition with legal advice before recording.'
+            : 'Complete the required fields to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isStakeholder) {
       // Only c1 (mapContact, needs >=1 neighbour) and c2 (contact/authority,
