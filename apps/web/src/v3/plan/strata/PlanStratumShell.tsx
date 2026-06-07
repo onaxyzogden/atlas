@@ -32,6 +32,10 @@ import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
+import {
+  useDevUnlockStore,
+  liftLockedStatuses,
+} from '../../../store/devUnlockStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
 import { resolvePlanSearchMatches } from '../../search/useStageSearchResults.js';
 import { useV3Project } from '../../data/useV3Project.js';
@@ -184,15 +188,20 @@ export default function PlanStratumShell() {
     [visionDerivedMap, stewardshipDerivedMap],
   );
 
-  const objectiveStatuses = useMemo(
-    () =>
-      computeAllObjectiveStatuses(
-        objectives,
-        effectiveProgress.flatMap,
-        deferredSet,
-      ),
-    [objectives, effectiveProgress, deferredSet],
-  );
+  // DEV-only: the header "Unlock all" toggle lifts every `locked` status to
+  // `available` so the gate can be bypassed while developing. Guarded by
+  // import.meta.env.DEV so production never honours a stale flag.
+  const unlockAll = useDevUnlockStore((s) => s.unlockAll);
+  const objectiveStatuses = useMemo(() => {
+    const computed = computeAllObjectiveStatuses(
+      objectives,
+      effectiveProgress.flatMap,
+      deferredSet,
+    );
+    return unlockAll && import.meta.env.DEV
+      ? liftLockedStatuses(computed)
+      : computed;
+  }, [objectives, effectiveProgress, deferredSet, unlockAll]);
   const stratumStates = useMemo(
     () =>
       computeAllStratumStates(
@@ -303,6 +312,9 @@ export default function PlanStratumShell() {
 
   useEffect(() => {
     if (!projectId || celebratingStratumId) return;
+    // DEV unlock lifts every lock at once — skip the celebration scan so it
+    // doesn't fire a "stratum unlocked" storm across all 7 strata.
+    if (unlockAll && import.meta.env.DEV) return;
     for (const stratum of PLAN_STRATA) {
       if (stratum.ordinal === 0) continue;
       const state = stratumStates[stratum.id] ?? 'locked';
@@ -311,7 +323,13 @@ export default function PlanStratumShell() {
       setCelebratingStratumId(stratum.id);
       return;
     }
-  }, [stratumStates, projectId, celebratingStratumId, celebratedStratumIds]);
+  }, [
+    stratumStates,
+    projectId,
+    celebratingStratumId,
+    celebratedStratumIds,
+    unlockAll,
+  ]);
 
   const celebratingStratum = celebratingStratumId
     ? (findPlanStratum(celebratingStratumId) ?? null)
@@ -1076,6 +1094,7 @@ export default function PlanStratumShell() {
           stratum={lockedPopoverStratum}
           objectives={objectives}
           objectiveStatuses={objectiveStatuses}
+          currentObjectiveId={activeObjectiveId}
           onAcknowledge={(obj) => {
             setLockedPopoverStratum(null);
             navigateToObjective(obj.id, obj.stratumId);

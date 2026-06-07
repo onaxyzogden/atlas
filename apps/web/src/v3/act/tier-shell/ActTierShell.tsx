@@ -32,7 +32,9 @@ import {
   PLAN_STRATA,
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
+  computeAllStratumStates,
   getObjectiveActTools,
+  type PlanStratum,
   type PlanStratumObjective,
 } from '@ogden/shared';
 import {
@@ -43,7 +45,16 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
-import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
+import {
+  selectDeferredObjectives,
+  toDeferredSet,
+  usePlanStratumProgressStore,
+} from '../../../store/planStratumStore.js';
+import {
+  useDevUnlockStore,
+  liftLockedStatuses,
+} from '../../../store/devUnlockStore.js';
+import StratumLockedPopover from '../../plan/strata/StratumLockedPopover.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { toast } from '../../../components/Toast.js';
 import * as turf from '@turf/turf';
@@ -308,6 +319,43 @@ export default function ActTierShell() {
   // shows them done.
   const effectiveProgress = useEffectiveChecklistProgress(id, objectives);
 
+  // Plan prerequisite lock gating (mirrors PlanStratumShell). The spine's
+  // `stratumStates` above is the Act-execution rollup (never locks) and drives
+  // progress chips only; THIS map is the Plan dependency gate that decides what
+  // the steward may open. Deferred overrides resolve exactly as in Plan.
+  const deferredObjectiveIds = usePlanStratumProgressStore((s) =>
+    selectDeferredObjectives(s, id),
+  );
+  const deferredSet = useMemo(
+    () => toDeferredSet(deferredObjectiveIds),
+    [deferredObjectiveIds],
+  );
+  // DEV-only: header "Unlock all" toggle lifts every `locked` → `available`.
+  const unlockAll = useDevUnlockStore((s) => s.unlockAll);
+  const planObjectiveStatuses = useMemo(() => {
+    const computed = computeAllObjectiveStatuses(
+      objectives,
+      effectiveProgress.flatMap,
+      deferredSet,
+    );
+    return unlockAll && import.meta.env.DEV
+      ? liftLockedStatuses(computed)
+      : computed;
+  }, [objectives, effectiveProgress, deferredSet, unlockAll]);
+  const planStratumStates = useMemo(
+    () => computeAllStratumStates(STRATUM_IDS, objectives, planObjectiveStatuses),
+    [objectives, planObjectiveStatuses],
+  );
+  const lockedStratumIds = useMemo(
+    () =>
+      new Set(
+        STRATUM_IDS.filter((sid) => planStratumStates[sid] === 'locked'),
+      ),
+    [planStratumStates],
+  );
+  const [lockedPopoverStratum, setLockedPopoverStratum] =
+    useState<PlanStratum | null>(null);
+
   // Rail cards reflect CHECKLIST completion (effective progress), agreeing with
   // the right-rail execution panel's "N/M steps". The field-action
   // progressByObjective above stays the source for the map markers.
@@ -497,9 +545,17 @@ export default function ActTierShell() {
 
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
+      // Honour the Plan prerequisite gate (mirrors PlanStratumShell): a locked
+      // stratum opens the explanatory popover instead of navigating.
+      if ((planStratumStates[stratumId] ?? 'locked') === 'locked') {
+        setLockedPopoverStratum(
+          PLAN_STRATA.find((s) => s.id === stratumId) ?? null,
+        );
+        return;
+      }
       goToStratum(stratumId);
     },
-    [goToStratum],
+    [goToStratum, planStratumStates],
   );
 
   const handleSelectObjective = useCallback(
@@ -513,10 +569,16 @@ export default function ActTierShell() {
         goToObjective(null);
         return;
       }
+      // Honour the Plan prerequisite gate — a locked objective is not openable
+      // until its upstream decisions are complete.
+      if ((planObjectiveStatuses[nextObjectiveId] ?? 'locked') === 'locked') {
+        toast.warning('Locked until its prerequisites are complete.');
+        return;
+      }
       setRightMode('detail');
       goToObjective(nextObjectiveId);
     },
-    [goToObjective, objectiveId],
+    [goToObjective, objectiveId, planObjectiveStatuses],
   );
 
   // Protocol card click → open its detail in the right rail. Re-clicking the
@@ -802,6 +864,7 @@ export default function ActTierShell() {
         strata={PLAN_STRATA}
         objectives={objectives}
         stratumStates={stratumStates}
+        lockedStratumIds={lockedStratumIds}
         activeStratumId={selectedStratumId}
         onSelectStratum={handleSelectStratum}
         projectTitle={project.name}
@@ -1094,6 +1157,20 @@ export default function ActTierShell() {
         onSaveData={handleFormDataSave}
         onClose={() => setOpenFormGroup(null)}
       />
+      )}
+      {lockedPopoverStratum && (
+        <StratumLockedPopover
+          stratum={lockedPopoverStratum}
+          objectives={objectives}
+          objectiveStatuses={planObjectiveStatuses}
+          currentObjectiveId={objectiveId ?? null}
+          onAcknowledge={(obj) => {
+            setLockedPopoverStratum(null);
+            setRightMode('detail');
+            goToObjective(obj.id);
+          }}
+          onDismiss={() => setLockedPopoverStratum(null)}
+        />
       )}
     </div>
   );

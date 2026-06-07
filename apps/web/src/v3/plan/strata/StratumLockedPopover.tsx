@@ -17,6 +17,11 @@ interface Props {
   stratum: PlanStratum;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
+  /**
+   * The objective currently open on screen, if any. The CTA skips it so
+   * "open" never resolves to a no-op navigation to the page already shown.
+   */
+  currentObjectiveId?: string | null;
   onAcknowledge: (objective: PlanStratumObjective) => void;
   onDismiss: () => void;
 }
@@ -25,6 +30,7 @@ export default function StratumLockedPopover({
   stratum,
   objectives,
   objectiveStatuses,
+  currentObjectiveId = null,
   onAcknowledge,
   onDismiss,
 }: Props) {
@@ -46,7 +52,17 @@ export default function StratumLockedPopover({
     );
   }, [stratum.id, objectives, objectiveStatuses]);
 
-  const firstUnmet = unmetPrereqs[0] ?? null;
+  // CTA target: the first unmet prerequisite the steward can actually work
+  // right now — an actionable status (available/active) and NOT the objective
+  // already on screen. Routing to a still-`locked` prereq, or to the page
+  // already open, would be a no-op (the original bug).
+  const ctaTarget =
+    unmetPrereqs.find(
+      (o) =>
+        o.id !== currentObjectiveId &&
+        (objectiveStatuses[o.id] === 'available' ||
+          objectiveStatuses[o.id] === 'active'),
+    ) ?? null;
 
   // Focus the popover on mount + close on Escape for keyboard parity
   // with the surrounding modals.
@@ -132,12 +148,12 @@ export default function StratumLockedPopover({
             type="button"
             className={css.primaryBtn}
             onClick={() => {
-              if (firstUnmet) onAcknowledge(firstUnmet);
+              if (ctaTarget) onAcknowledge(ctaTarget);
               else onDismiss();
             }}
-            disabled={!firstUnmet}
+            disabled={!ctaTarget}
           >
-            {firstUnmet ? 'Acknowledge & open' : 'Acknowledge'}
+            {ctaTarget ? 'Work prerequisite →' : 'Acknowledge'}
           </button>
         </footer>
       </div>

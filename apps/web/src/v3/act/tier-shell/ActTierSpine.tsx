@@ -11,7 +11,7 @@
 // behind a lock. Only `complete` and `active` earn a chip; `available`
 // renders bare.
 
-import { Check, Loader } from 'lucide-react';
+import { Check, Loader, Lock } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -23,6 +23,13 @@ interface Props {
   strata: readonly PlanStratum[];
   objectives: readonly PlanStratumObjective[];
   stratumStates: Readonly<Record<string, PlanStratumState>>;
+  /**
+   * Strata whose Plan prerequisites are unmet. Act execution never locks on its
+   * own, but the Plan dependency gate still applies — locked tabs get a lock
+   * glyph + muted style, and clicking one opens the explanatory popover (the
+   * parent's onSelectStratum guard) rather than navigating.
+   */
+  lockedStratumIds: ReadonlySet<string>;
   activeStratumId: string;
   onSelectStratum: (stratumId: string) => void;
   /** Current project name — shown in the leading identity tile. */
@@ -38,6 +45,7 @@ export default function ActTierSpine({
   strata,
   objectives,
   stratumStates,
+  lockedStratumIds,
   activeStratumId,
   onSelectStratum,
   projectTitle,
@@ -59,6 +67,7 @@ export default function ActTierSpine({
       <div className={styles.spine} role="tablist" aria-label="Act strata">
         {strata.map((stratum) => {
         const status = stratumStates[stratum.id] ?? 'available';
+        const isLocked = lockedStratumIds.has(stratum.id);
         const count = objectives.filter(
           (o) => o.stratumId === stratum.id,
         ).length;
@@ -69,23 +78,28 @@ export default function ActTierSpine({
             type="button"
             role="tab"
             aria-selected={isActive}
+            aria-disabled={isLocked || undefined}
             className={styles.tier}
             data-status={status}
+            data-locked={isLocked || undefined}
             data-active={isActive}
             onClick={() => onSelectStratum(stratum.id)}
           >
             <span className={styles.tierTop}>
               <span className={styles.stratumOrdinal}>S{stratum.ordinal}</span>
-              {status === 'complete' && (
+              {isLocked ? (
+                <span className={styles.tierStateChip} data-status="locked">
+                  <Lock size={11} aria-hidden="true" />
+                </span>
+              ) : status === 'complete' ? (
                 <span className={styles.tierStateChip} data-status="complete">
                   <Check size={11} aria-hidden="true" />
                 </span>
-              )}
-              {status === 'active' && (
+              ) : status === 'active' ? (
                 <span className={styles.tierStateChip} data-status="active">
                   <Loader size={11} aria-hidden="true" />
                 </span>
-              )}
+              ) : null}
             </span>
             <span className={styles.tierTitle}>{stratum.title}</span>
             <span className={styles.tierMeta}>

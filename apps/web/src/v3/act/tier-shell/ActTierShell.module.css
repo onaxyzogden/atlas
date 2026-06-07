@@ -173,6 +173,19 @@
   );
 }
 
+/* Plan-prerequisite lock gate. The tab stays clickable (the click opens the
+   explanatory popover), so this is a muted/disabled *look*, not pointer-events
+   off. aria-disabled carries the real semantics for assistive tech. */
+.tier[data-locked='true'] {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.tier[data-locked='true']:hover {
+  border-color: var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
 .tierTop {
   display: flex;
   align-items: center;
@@ -204,6 +217,11 @@
 .tierStateChip[data-status='active'] {
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 30%, transparent);
   color: var(--color-gold-brand, #c4a265);
+}
+
+.tierStateChip[data-status='locked'] {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 12%, transparent);
+  color: color-mix(in srgb, var(--color-text, #f2ede3) 55%, transparent);
 }
 
 .tierTitle {
