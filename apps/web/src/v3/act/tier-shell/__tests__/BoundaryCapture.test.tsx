@@ -347,6 +347,63 @@ describe('BoundaryCapture -- render c2 (rowRegister) (BR5)', () => {
   });
 });
 
+describe('BoundaryCapture -- render c3 (tenancyRegister) (BR6)', () => {
+  it('add-tenancy appends an empty agreement', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {});
+    fireEvent.click(screen.getByTestId('tenancy-add'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.tenTypes as string[])).toEqual(['']);
+  });
+  it('selecting a termination flag emits it', () => {
+    const { onChange } = renderCapture('s1-boundaries-c3', {
+      tenTypes: ['Agistment'],
+      names: [''],
+      expiries: [''],
+      flags: [''],
+      details: [''],
+    });
+    fireEvent.change(screen.getByTestId('tenancy-flag-0'), {
+      target: { value: 'Must terminate before community occupation' },
+    });
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.flags as string[])[0]).toBe(
+      'Must terminate before community occupation',
+    );
+  });
+});
+
+describe('BoundaryCapture -- render c4 (titleRestrictionChecker) (BR6)', () => {
+  it('renders all 6 category rows', () => {
+    renderCapture('s1-boundaries-c4', {});
+    for (let i = 0; i < 6; i++) {
+      expect(screen.getByTestId(`title-cat-${i}`)).toBeTruthy();
+    }
+  });
+  it('clicking Present on category 0 emits categories[0]="present"', () => {
+    const { onChange } = renderCapture('s1-boundaries-c4', {});
+    fireEvent.click(screen.getByTestId('title-cat-0-present'));
+    const arg = onChange.mock.calls[0]![0] as FormValue;
+    expect((arg.categories as string[])[0]).toBe('present');
+  });
+  it('shows the consequence + Act-task note when a category is Present', () => {
+    renderCapture('s1-boundaries-c4', {
+      categories: ['present', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
+    });
+    expect(screen.getByTestId('title-consequence-0')).toBeTruthy();
+    expect(screen.getByText(/Act task will be created/i)).toBeTruthy();
+  });
+  it('shows the unknown-warning while any category is Unknown', () => {
+    renderCapture('s1-boundaries-c4', {});
+    expect(screen.getByTestId('title-unknown-warning')).toBeTruthy();
+  });
+  it('hides the unknown-warning when none remain', () => {
+    renderCapture('s1-boundaries-c4', {
+      categories: ['absent', 'absent', 'absent', 'absent', 'absent', 'absent'],
+    });
+    expect(screen.queryByTestId('title-unknown-warning')).toBeNull();
+  });
+});
+
 describe('encode/decode round-trip via emitBoundary', () => {
   it('c1 boundaryRegister: emitBoundary reproduces canonical input exactly', () => {
     const input: FormValue = {

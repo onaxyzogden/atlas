@@ -83,3 +83,80 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+.legalBanner {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 30%, transparent);
+}
+.titleCat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle, #e6e9ee);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+}
+.titleCatHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+.titleCatLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+.titleCatDesc {
+  font-size: 12px;
+  color: var(--color-text-muted, #565b63);
+}
+.triState {
+  display: inline-flex;
+  gap: 4px;
+}
+.triBtn {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #d4d8de);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #565b63);
+  cursor: pointer;
+}
+.triBtn[data-on='true'] {
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  border-color: var(--color-text-subtle, #7a808a);
+}
+.consequence {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-error, #c45a4a) 10%, transparent);
+}
+.consequenceText {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #1b1e22);
+}
+.actNote {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-error, #c45a4a);
+}
+.unknownWarning {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+}

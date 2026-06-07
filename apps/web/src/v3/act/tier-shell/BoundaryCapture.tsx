@@ -614,7 +614,181 @@ export default function BoundaryCapture({
     );
   }
 
-  // c3/c4/c5 bodies land in BR6/BR7. Temporary placeholder keeps the router total.
+  if (model.kind === 'tenancyRegister') {
+    const types = resolveOptions('boundaryTenancyType');
+    const expiries = resolveOptions('boundaryTenancyExpiry');
+    const flags = resolveOptions('boundaryTenancyFlag');
+    const set = (i: number, patch: Partial<TenancyAgreement>) =>
+      emit({
+        ...model,
+        rows: model.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)),
+      });
+    return (
+      <div className={css.root} data-boundary-mode="tenancyRegister">
+        <div className={css.regHead}>
+          <span className={css.regTitle}>Current agreements on the land</span>
+          <span className={css.regCount}>{model.rows.length} agreements</span>
+        </div>
+        {model.rows.map((r, i) => (
+          <div key={i} className={css.row}>
+            <select
+              className={css.sel}
+              data-testid={`tenancy-type-${i}`}
+              aria-label={`Agreement ${i + 1} type`}
+              value={r.type}
+              onChange={(e) => set(i, { type: e.target.value })}
+            >
+              <option value="">Type</option>
+              {types.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              className={css.inp}
+              data-testid={`tenancy-name-${i}`}
+              aria-label={`Agreement ${i + 1} name`}
+              value={r.name}
+              placeholder="Name / party"
+              onChange={(e) => set(i, { name: e.target.value })}
+            />
+            <select
+              className={css.sel}
+              data-testid={`tenancy-expiry-${i}`}
+              aria-label={`Agreement ${i + 1} expiry`}
+              value={r.expiry}
+              onChange={(e) => set(i, { expiry: e.target.value })}
+            >
+              <option value="">Expiry</option>
+              {expiries.map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+            </select>
+            <select
+              className={css.sel}
+              data-testid={`tenancy-flag-${i}`}
+              aria-label={`Agreement ${i + 1} status`}
+              value={r.flag}
+              onChange={(e) => set(i, { flag: e.target.value })}
+            >
+              <option value="">Status</option>
+              {flags.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={css.delBtn}
+              data-testid={`tenancy-remove-${i}`}
+              aria-label={`Remove agreement ${i + 1}`}
+              onClick={() =>
+                emit({ ...model, rows: model.rows.filter((_, j) => j !== i) })
+              }
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={css.addBtn}
+          data-testid="tenancy-add"
+          onClick={() =>
+            emit({
+              ...model,
+              rows: [
+                ...model.rows,
+                { type: '', name: '', expiry: '', flag: '', detail: '' },
+              ],
+            })
+          }
+        >
+          <Plus size={14} aria-hidden="true" /> Add tenancy or agreement
+        </button>
+      </div>
+    );
+  }
+
+  if (model.kind === 'titleRestrictionChecker') {
+    const states = resolveOptions('boundaryTitleState'); // Present/Absent/Unknown
+    const stateKey = (label: string): TitleState =>
+      label.toLowerCase() === 'present'
+        ? 'present'
+        : label.toLowerCase() === 'absent'
+          ? 'absent'
+          : 'unknown';
+    const unknownCount = model.categories.filter((s) => s === 'unknown').length;
+    const set = (i: number, next: TitleState) =>
+      emit({
+        ...model,
+        categories: model.categories.map((s, j) => (j === i ? next : s)),
+      });
+    return (
+      <div className={css.root} data-boundary-mode="titleRestrictionChecker">
+        <div className={css.legalBanner}>
+          Title documents should be reviewed with a solicitor familiar with
+          community land models. Mark unknowns and address them before completing
+          this objective.
+        </div>
+        {TITLE_CATEGORIES.map((cat, i) => {
+          const state = model.categories[i] ?? 'unknown';
+          return (
+            <div
+              key={i}
+              className={css.titleCat}
+              data-testid={`title-cat-${i}`}
+              data-state={state}
+            >
+              <div className={css.titleCatHead}>
+                <div className={css.titleCatLabel}>{cat.label}</div>
+                <div className={css.triState}>
+                  {states.map((label) => {
+                    const k = stateKey(label);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        className={css.triBtn}
+                        data-testid={`title-cat-${i}-${k}`}
+                        data-on={state === k ? 'true' : 'false'}
+                        aria-pressed={state === k}
+                        onClick={() => set(i, k)}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className={css.titleCatDesc}>{cat.description}</div>
+              {state === 'present' ? (
+                <div
+                  className={css.consequence}
+                  data-testid={`title-consequence-${i}`}
+                >
+                  <div className={css.consequenceText}>{cat.consequence}</div>
+                  <div className={css.actNote}>{cat.actNote}</div>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+        {unknownCount > 0 ? (
+          <div className={css.unknownWarning} data-testid="title-unknown-warning">
+            {unknownCount} condition(s) marked Unknown - resolve with legal advice
+            before completing this objective
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  // c5 body lands in BR7.
   return <div className={css.root} data-boundary-mode={model.kind} />;
 }
 
