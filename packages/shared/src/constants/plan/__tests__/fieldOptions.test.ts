@@ -376,3 +376,39 @@ describe('stakeholder option sets', () => {
     expect(withType).toEqual(withoutType);
   });
 });
+
+describe('boundary re-decompose option sets (BR1)', () => {
+  const NEW_SETS: ReadonlyArray<[string, number]> = [
+    ['boundaryDirection', 4],
+    ['boundarySectionType', 4],
+    ['boundaryRowType', 4],
+    ['boundaryRowImpact', 3],
+    ['boundaryTenancyType', 3],
+    ['boundaryTenancyExpiry', 3],
+    ['boundaryTenancyFlag', 3],
+    ['boundaryTitleState', 3],
+    ['boundaryHistoryType', 4],
+    ['boundaryContamination', 5],
+    ['boundaryPriorCommunity', 2],
+  ];
+
+  it.each(NEW_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
+    const set = FIELD_OPTION_SETS[id];
+    expect(set, id).toBeDefined();
+    expect(set!._base, id).toBeDefined();
+    expect(set!._base!.length, id).toBe(n);
+  });
+
+  it.each(NEW_SETS)('%s resolves _base verbatim for an undefined project type', (id) => {
+    const set = FIELD_OPTION_SETS[id]!;
+    expect(resolveFieldOptions(id, undefined)).toEqual([...set._base!]);
+  });
+
+  it('boundaryTitleState is Present/Absent/Unknown in order', () => {
+    expect(resolveFieldOptions('boundaryTitleState', undefined)).toEqual([
+      'Present',
+      'Absent',
+      'Unknown',
+    ]);
+  });
+});

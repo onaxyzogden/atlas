@@ -356,6 +356,64 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
     ],
   },
 
+  // REVIEW: Boundary RE-DECOMPOSE option sets (SP1) -- content transcribed
+  // verbatim from olos_boundary_legal_survey.html, ASCII-normalised. Operator
+  // to confirm/extend before treating as authoritative. The shipped boundary*
+  // sets above are retained (used by BoundaryCaptureLegacy).
+  boundaryDirection: {
+    _base: ['N', 'E', 'S', 'W'],
+  },
+  boundarySectionType: {
+    _base: [
+      'Shared / dividing fence',
+      'Creek / natural boundary',
+      'Council road frontage',
+      'Unfenced / in dispute',
+    ],
+  },
+  boundaryRowType: {
+    _base: [
+      'Utility easement',
+      'Access easement',
+      'Public right of way',
+      'Drainage easement',
+    ],
+  },
+  boundaryRowImpact: {
+    _base: ['Restricts', 'Enables', 'Minor impact'],
+  },
+  boundaryTenancyType: {
+    _base: ['Agistment', 'Lease', 'Water license'],
+  },
+  boundaryTenancyExpiry: {
+    _base: ['Near', 'Far', 'Expired'],
+  },
+  boundaryTenancyFlag: {
+    _base: [
+      'Must terminate before community occupation',
+      'Monitor',
+      'No termination required',
+    ],
+  },
+  boundaryTitleState: {
+    _base: ['Present', 'Absent', 'Unknown'],
+  },
+  boundaryHistoryType: {
+    _base: ['Agricultural', 'Community', 'Development', 'Industrial'],
+  },
+  boundaryContamination: {
+    _base: [
+      'Chemical storage / AST',
+      'Asbestos structures',
+      'Rubbish dump / landfill',
+      'Mining or extraction',
+      'None known',
+    ],
+  },
+  boundaryPriorCommunity: {
+    _base: ['Yes - detail below', 'No prior community'],
+  },
+
   // Stakeholder surface option sets -- reconciled with the operator's
   // olos_stakeholders_mixed_surface.html mockup (Phase C Part 3, sub-project 2).
   // Flat sets resolved via the already-threaded resolveOptions prop. The grouped
