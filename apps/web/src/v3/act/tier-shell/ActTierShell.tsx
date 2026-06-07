@@ -143,8 +143,13 @@ const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
 // Phase B/C Tier-0 swap: non-spatial foundation objectives render the inline
 // non-map decision workbench instead of the map shell. Widened incrementally
 // from a single id to a membership set as more objectives convert (Phase C
-// part 3 adds 's1-boundaries' alongside the universal 's1-vision').
-const TIER_ZERO_OBJECTIVE_IDS = new Set<string>(['s1-vision', 's1-boundaries']);
+// part 3 adds 's1-boundaries' then 's1-stakeholders' alongside the universal
+// 's1-vision').
+const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
+  's1-vision',
+  's1-boundaries',
+  's1-stakeholders',
+]);
 
 /**
  * Tier-0 by resolved-objective identity. Used once the per-project objective
