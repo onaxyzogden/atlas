@@ -1,5 +1,0 @@
-
-> @ogden/web@0.1.0 typecheck C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web
-> node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit
-
-WEB_TSC_EXIT=0

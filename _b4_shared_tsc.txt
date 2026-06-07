@@ -1,5 +1,0 @@
-
-> @ogden/shared@0.1.0 typecheck C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\packages\shared
-> node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit
-
-SHARED_TSC_EXIT=0
