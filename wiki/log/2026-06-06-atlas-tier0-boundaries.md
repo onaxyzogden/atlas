@@ -127,7 +127,26 @@ them.
   vs the more specific doc/map/mapEntry notes (left as-is, coherent, c7 never shows
   a note). Option content + validity heuristics ship REVIEW-flagged for operator
   confirmation.
-- **Live smoke:** <pending -- recorded on completion>.
+- **Live smoke (2026-06-06): PASS.** Web preview (port 5200), `mtc` (Moontrance
+  Creek). `/v3/project/mtc/act/tier-shell/s1-boundaries` renders the non-map 3-pane
+  Tier-0 workbench (**0 canvases / 0 mapbox elements**) with the map-activation strip
+  ("2 overlays will activate on the map: Risk / Compliance, Site Boundary") and all
+  **7 mode badges correct** (c1 Document, c2 Map, c3 Map + entry, c4 Decision, c5
+  Decision, c6 Document, c7 Decision -- exactly the mode map). **c1 (doc):** Record
+  disabled initially; the 3 doc-status buttons + a "Metadata only" upload stub render;
+  clicking "Current & verified" enables Record; recording ticks the item (2 complete
+  markers) and re-opening shows the status button `aria-pressed="true"` (lossless
+  rehydration). **c4 (decision):** `zoning-select` + 4 permitted-use checks + 4
+  review-flag checks render. **c3 (mapEntry):** the "Open map -- coming soon" button
+  is **`disabled`** (deferred-I/O honored). **Regression guards:** `s1-vision` still
+  renders its workbench unchanged (0 canvases, 0 mode badges, 0 boundary strip, 9
+  decision items); the spatial objective `s3-systems-baseline` still mounts the map
+  shell (1 canvas, no boundary strip). **No-screenshot-no-claim honored:**
+  `preview_screenshot` timed out (the transient dead-API renderer wedge,
+  [[project-screenshot-hang]] -- the API was not running this session, so it could not
+  be brought to a healthy 200 for a restart); all assertions above are DOM-verified
+  via `preview_eval`, and the screenshot tool is explicitly reported as unresponsive
+  rather than assumed successful.
 
 ## Hygiene and Amanah
 

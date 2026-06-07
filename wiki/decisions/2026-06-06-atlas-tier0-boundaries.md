@@ -215,7 +215,16 @@ financing instrument, or CSRA/salam framing; no riba/gharar surface
   Critical/Important defects. Two Minor cosmetic notes: the BT2-era header comment
   was stale (FIXED -- now lists all 7 ids / 4 modes); the decision-mode gate note is
   generic vs the more specific doc/map/mapEntry notes (left as-is, coherent).
-- Live smoke (2026-06-06): <recorded on completion>.
+- Live smoke (2026-06-06): **PASS** (`mtc`, port 5200).
+  `/v3/project/mtc/act/tier-shell/s1-boundaries` renders the non-map 3-pane workbench
+  (0 canvases / 0 mapbox) with the map-activation strip + all 7 mode badges correct;
+  c1 doc-mode records losslessly (status -> Record enables -> item ticks -> reopen
+  shows `aria-pressed`), c4 decision-mode (zoning select + use/review checks) and c3
+  mapEntry "Open map -- coming soon" `disabled` both confirmed; `s1-vision` workbench
+  and the spatial `s3-systems-baseline` map shell (1 canvas) both unaffected.
+  No-screenshot-no-claim honored: `preview_screenshot` timed out (transient dead-API
+  renderer wedge, [[project-screenshot-hang]]; API not running this session); all
+  assertions DOM-verified via `preview_eval`, screenshot reported unresponsive.
 
 ## Alternatives considered
 
