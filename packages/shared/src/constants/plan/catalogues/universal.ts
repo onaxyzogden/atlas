@@ -160,34 +160,49 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What are the legal, physical, and regulatory boundaries within which this project must operate?',
     checklist: [
-      ck('s1-boundaries-c1', 'Obtain and verify current title and deed documents'),
-      ck('s1-boundaries-c2', 'Map property boundaries on base layer'),
-      ck('s1-boundaries-c3', 'Identify all easements, rights of way, and encumbrances'),
-      ck('s1-boundaries-c4', 'Check zoning and permitted land uses'),
-      ck('s1-boundaries-c5', 'Identify water rights and entitlements'),
-      ck('s1-boundaries-c6', 'Record covenant, heritage, or conservation obligations'),
       ck(
-        's1-boundaries-c7',
-        'Note required permits for planned activities - building, earthworks, water harvesting',
+        's1-boundaries-c1',
+        'Map all shared boundary conditions and obligations',
+      ),
+      ck(
+        's1-boundaries-c2',
+        'Identify rights of way affecting communal land use and movement',
+      ),
+      ck(
+        's1-boundaries-c3',
+        'Record any existing tenancy, lease, or occupation agreements on the land',
+      ),
+      ck(
+        's1-boundaries-c4',
+        'Identify any title conditions that restrict multi-dwelling or communal use',
+      ),
+      ck(
+        's1-boundaries-c5',
+        'Record any prior community or development history on the land',
       ),
     ],
     decisionGroups: [
       dg(
         's1-boundaries-dg1',
-        'Title & boundary',
+        'Boundaries & rights of way',
         ['s1-boundaries-c1', 's1-boundaries-c2'],
-        ['Infrastructure & Access'],
+        ['Access design', 'Spatial framework', 'Exclusion zones'],
       ),
-      dg('s1-boundaries-dg2', 'Legal & permit obligations', [
-        's1-boundaries-c3',
-        's1-boundaries-c4',
-        's1-boundaries-c5',
-        's1-boundaries-c6',
-        's1-boundaries-c7',
-      ]),
+      dg(
+        's1-boundaries-dg2',
+        'Tenancy & title conditions',
+        ['s1-boundaries-c3', 's1-boundaries-c4'],
+        ['Pre-occupation Act tasks', 'Community form constraints'],
+      ),
+      dg(
+        's1-boundaries-dg3',
+        'Land history',
+        ['s1-boundaries-c5'],
+        ['Tier 1 ecology survey', 'Cultural heritage obligations'],
+      ),
     ],
     completionGate:
-      'All legal constraints and boundary conditions are mapped, recorded, and reviewed. No design work proceeds into areas of legal ambiguity.',
+      'Land tenure and boundary conditions fully surveyed. All constraints on communal use identified.',
     actHandoff: 'Legal & Boundary Constraints Brief',
   }),
   obj({

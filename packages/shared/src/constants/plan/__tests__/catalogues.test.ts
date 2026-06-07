@@ -1052,3 +1052,58 @@ describe('catalogue conformance - livestock secondary resolution', () => {
     expect(new Set(objIds).size).toBe(objIds.length);
   });
 });
+
+describe('s1-boundaries re-decompose (BR2)', () => {
+  const boundaries = UNIVERSAL_PLAN_OBJECTIVES.find(
+    (o) => o.id === 's1-boundaries',
+  );
+
+  it('has exactly the 5 re-decomposed checklist items in order', () => {
+    expect(boundaries).toBeDefined();
+    expect(boundaries!.checklist.map((i) => i.id)).toEqual([
+      's1-boundaries-c1',
+      's1-boundaries-c2',
+      's1-boundaries-c3',
+      's1-boundaries-c4',
+      's1-boundaries-c5',
+    ]);
+  });
+
+  it('carries the verbatim re-decomposed titles', () => {
+    const byId = Object.fromEntries(
+      boundaries!.checklist.map((i) => [i.id, i.label]),
+    );
+    expect(byId['s1-boundaries-c1']).toBe(
+      'Map all shared boundary conditions and obligations',
+    );
+    expect(byId['s1-boundaries-c4']).toBe(
+      'Identify any title conditions that restrict multi-dwelling or communal use',
+    );
+    expect(byId['s1-boundaries-c5']).toBe(
+      'Record any prior community or development history on the land',
+    );
+  });
+
+  it('partitions the 5 items into 3 decision groups', () => {
+    const groups = boundaries!.decisionGroups;
+    expect(groups.map((g) => g.id)).toEqual([
+      's1-boundaries-dg1',
+      's1-boundaries-dg2',
+      's1-boundaries-dg3',
+    ]);
+    const covered = groups.flatMap((g) => g.itemIds).sort();
+    expect(covered).toEqual([
+      's1-boundaries-c1',
+      's1-boundaries-c2',
+      's1-boundaries-c3',
+      's1-boundaries-c4',
+      's1-boundaries-c5',
+    ]);
+  });
+
+  it('no longer references c6 or c7', () => {
+    const ids = boundaries!.checklist.map((i) => i.id);
+    expect(ids).not.toContain('s1-boundaries-c6');
+    expect(ids).not.toContain('s1-boundaries-c7');
+  });
+});
