@@ -867,6 +867,138 @@ describe('DecisionWorkingPanel -- stakeholder arm', () => {
   });
 });
 
+describe('DecisionWorkingPanel -- steward arm', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('routes isSteward to StewardCapture before the generic fields engine', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+        fields: TEXT_FIELDS,
+      }),
+    });
+    // StewardCapture-specific surface present (primary steward card).
+    expect(screen.getByTestId('primary-steward-name')).toBeTruthy();
+    expect(screen.getByTestId('team-count')).toBeTruthy();
+    // The generic VisionFormFields label from TEXT_FIELDS must NOT render.
+    expect(screen.queryByText('Primary purpose')).toBeNull();
+  });
+
+  it('enables Record immediately (zero invites) and emits the zero-invite summary on click', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+      }),
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [, summary] = onRecord.mock.calls[0]!;
+    expect(summary).toBe('Primary steward confirmed');
+  });
+
+  it('summarises a queued co-steward invite via summariseSteward on Record', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+      }),
+      initialValue: {
+        inviteNames: ['Aisha'],
+        inviteEmails: ['aisha@example.com'],
+        inviteRoles: ['team_member'],
+      },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    const [, summary] = onRecord.mock.calls[0]!;
+    expect(summary).toBe('Primary steward + 1 invited (1 co-steward)');
+  });
+
+  it('renders a two-state defer button with the deferLabel and "Will add later"', () => {
+    const { onToggleDefer } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+        deferLabel: 'Add team members later in settings',
+      }),
+      deferred: false,
+    });
+    const restBtn = screen.getByRole('button', {
+      name: /add team members later in settings/i,
+    });
+    expect(restBtn.getAttribute('data-deferred')).toBe('false');
+    fireEvent.click(restBtn);
+    expect(onToggleDefer).toHaveBeenCalledWith(true);
+  });
+
+  it('shows "Will add later" when a deferLabel target is deferred', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+        deferLabel: 'Add team members later in settings',
+      }),
+      deferred: true,
+    });
+    const btn = screen.getByRole('button', { name: /will add later/i });
+    expect(btn.getAttribute('data-deferred')).toBe('true');
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('mounts with zero invite rows for an empty initialValue and does not crash', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-steward',
+        label: 'Confirm the stewardship team',
+        isSteward: true,
+      }),
+      initialValue: {},
+    });
+    // Only the primary-steward mini row exists -> exactly one team-member row.
+    expect(screen.getAllByTestId('team-member').length).toBe(1);
+  });
+});
+
+describe('DecisionWorkingPanel -- defer label regression', () => {
+  it('keeps the legacy resting/toggled strings for a non-steward target without deferLabel', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+      deferred: false,
+    });
+    expect(
+      screen.getByRole('button', { name: /not ready -- needs more observation/i }),
+    ).toBeTruthy();
+  });
+
+  it('shows the legacy deferred string when a non-steward target is deferred', () => {
+    renderPanel({
+      decision: makeDecision({ isSuccessCriteria: true }),
+      deferred: true,
+    });
+    expect(
+      screen.getByRole('button', { name: /deferred -- needs observation/i }),
+    ).toBeTruthy();
+  });
+});
+
 describe('DecisionWorkingPanel -- recorded badge', () => {
   it('shows a "Recorded" badge when recorded is true', () => {
     renderPanel({

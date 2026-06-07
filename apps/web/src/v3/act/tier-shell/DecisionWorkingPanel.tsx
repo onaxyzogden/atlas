@@ -68,6 +68,12 @@ import StakeholderCapture, {
   isStakeholderValid,
   summariseStakeholder,
 } from './StakeholderCapture.js';
+import StewardCapture, {
+  decodeSteward,
+  isStewardValid,
+  summariseSteward,
+  type StewardModel,
+} from './StewardCapture.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -100,8 +106,12 @@ export interface DecisionPanelTarget {
   isBoundary?: boolean;
   /** true => render StakeholderCapture (self-routing on itemId, store-direct). */
   isStakeholder?: boolean;
+  /** true => render StewardCapture (primary steward + queued invites). */
+  isSteward?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
+  /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
+  deferLabel?: string;
 }
 
 export interface DecisionWorkingPanelProps {
@@ -268,6 +278,14 @@ export default function DecisionWorkingPanel({
     ? decodeBoundary(decision.itemId, draft)
     : null;
 
+  // Decode the draft into the steward model once -- reused by validity and the
+  // record summary (mirrors the boundary / labour / classify patterns above).
+  // StewardCapture is controlled over the flat draft and self-derives the
+  // primary-steward display from auth.
+  const stewardModel: StewardModel | null = decision.isSteward
+    ? decodeSteward(draft)
+    : null;
+
   // ---------- Validity ----------
   let valid: boolean;
   if (decision.isVisionClassify) {
@@ -278,6 +296,8 @@ export default function DecisionWorkingPanel({
     valid = isLabourValid(labourModel!);
   } else if (decision.isStakeholder) {
     valid = isStakeholderValid(decision.itemId, stakeholderRows, draft);
+  } else if (decision.isSteward) {
+    valid = isStewardValid(stewardModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -356,12 +376,27 @@ export default function DecisionWorkingPanel({
       summary = summariseLabour(labourModel!);
     } else if (decision.isStakeholder) {
       summary = summariseStakeholder(decision.itemId, stakeholderRows, draft);
+    } else if (decision.isSteward) {
+      summary = summariseSteward(stewardModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
       summary = asString(draft.text);
     }
     onRecord(draft, summary);
+  };
+
+  // ---------- Defer label ----------
+  // Two-state, GATED so only targets carrying an explicit deferLabel (e.g. the
+  // steward arm) diverge from the legacy strings. All other targets keep the
+  // byte-for-byte legacy copy.
+  const deferLabelFor = (isDeferred: boolean): string => {
+    if (decision.deferLabel) {
+      return isDeferred ? 'Will add later' : decision.deferLabel;
+    }
+    return isDeferred
+      ? 'Deferred -- needs observation'
+      : 'Not ready -- needs more observation';
   };
 
   return (
@@ -435,6 +470,14 @@ export default function DecisionWorkingPanel({
             markerValue={draft}
             onMarkerChange={setDraft}
           />
+        ) : decision.isSteward ? (
+          <StewardCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
         ) : hasFields ? (
           <VisionFormFields
             fields={fields ?? []}
@@ -501,9 +544,7 @@ export default function DecisionWorkingPanel({
               onClick={() => onToggleDefer(!deferred)}
             >
               <Clock size={14} className={css.deferIcon} />
-              {deferred
-                ? 'Deferred -- needs observation'
-                : 'Not ready -- needs more observation'}
+              {deferLabelFor(deferred)}
             </button>
           )}
         </div>
