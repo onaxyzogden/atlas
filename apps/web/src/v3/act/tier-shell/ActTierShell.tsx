@@ -152,6 +152,9 @@ const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
 const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
 const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
+const NOOP_RAIL_MODE = (_: RailMode) => {};
+const NOOP_PROTOCOL = (_: string) => {};
+const EMPTY_TRIGGERED_IDS: readonly string[] = [];
 // S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
 // noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
 // known S1 id literal so the derived stratum id stays a plain string.
@@ -930,15 +933,15 @@ export default function ActTierShell() {
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
                 mode={showTierZeroWorkbench ? 'objectives' : railMode}
-                onModeChange={showTierZeroWorkbench ? (_: RailMode) => {} : handleRailModeChange}
+                onModeChange={showTierZeroWorkbench ? NOOP_RAIL_MODE : handleRailModeChange}
                 triggeredCount={showTierZeroWorkbench ? 0 : triggeredCount}
-                triggeredIds={showTierZeroWorkbench ? ([] as readonly string[]) : triggeredIds}
+                triggeredIds={showTierZeroWorkbench ? EMPTY_TRIGGERED_IDS : triggeredIds}
                 projectId={id}
                 primaryTypeId={primaryTypeId}
                 secondaryTypeIds={secondaryTypeIds}
                 activeStratumId={selectedStratumId}
                 selectedProtocolId={showTierZeroWorkbench ? null : selectedProtocolId}
-                onSelectProtocol={showTierZeroWorkbench ? (_: string) => {} : handleSelectProtocol}
+                onSelectProtocol={showTierZeroWorkbench ? NOOP_PROTOCOL : handleSelectProtocol}
                 bulkActivation={!showTierZeroWorkbench}
               />
             )
