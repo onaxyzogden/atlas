@@ -5,6 +5,9 @@ import {
   extractBoundaryGeometry,
   boundaryCentroid,
   renderablePolygon,
+  parcelAcres,
+  parcelAreaValue,
+  formatParcelArea,
 } from '../geo.js';
 
 describe('polygonCentroid', () => {
@@ -277,6 +280,66 @@ describe('renderablePolygon', () => {
 
   it('returns undefined for undefined input', () => {
     expect(renderablePolygon(undefined)).toBeUndefined();
+  });
+});
+
+describe('parcelAcres (canonical acres)', () => {
+  // ~100 m × 100 m square near the equator ≈ 1 hectare ≈ 2.471 acres.
+  // 100 m / 111_195 m-per-degree ≈ 0.0008993°.
+  const SIDE = 0.0008993;
+  const oneHectareSquare: GeoJSON.Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [SIDE, 0],
+        [SIDE, SIDE],
+        [0, SIDE],
+        [0, 0],
+      ],
+    ],
+  };
+
+  it('returns ~2.47 acres for a ~1-hectare parcel (NOT hectares)', () => {
+    const acres = parcelAcres(oneHectareSquare);
+    expect(acres).not.toBeNull();
+    // The bug under fix returned the value in ha (~1.0); acres must be ~2.47.
+    expect(acres!).toBeGreaterThan(2.3);
+    expect(acres!).toBeLessThan(2.6);
+  });
+
+  it('accepts a FeatureCollection', () => {
+    const fc: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', properties: {}, geometry: oneHectareSquare }],
+    };
+    expect(parcelAcres(fc)).toBeCloseTo(parcelAcres(oneHectareSquare)!, 5);
+  });
+});
+
+describe('parcelAreaValue (acres → display unit)', () => {
+  it('converts acres to hectares for metric', () => {
+    expect(parcelAreaValue(2.47105, 'metric')).toBeCloseTo(1, 4);
+  });
+
+  it('leaves acres unchanged for imperial', () => {
+    expect(parcelAreaValue(10, 'imperial')).toBe(10);
+  });
+});
+
+describe('formatParcelArea (acres → labelled string)', () => {
+  it('renders hectares for metric projects', () => {
+    expect(formatParcelArea(2.47105, 'metric')).toBe('1.00 ha');
+  });
+
+  it('renders acres for imperial projects', () => {
+    expect(formatParcelArea(2.47105, 'imperial')).toBe('2.47 ac');
+  });
+
+  it('returns an em dash for nullish / non-finite input', () => {
+    expect(formatParcelArea(null, 'metric')).toBe('—');
+    expect(formatParcelArea(undefined, 'imperial')).toBe('—');
+    expect(formatParcelArea(Number.NaN, 'metric')).toBe('—');
   });
 });
 

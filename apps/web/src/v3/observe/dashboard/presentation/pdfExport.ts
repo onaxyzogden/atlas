@@ -16,6 +16,7 @@
  */
 
 import type { LocalProject } from '../../../../store/projectStore.js';
+import { formatParcelArea } from '../../../../lib/geo.js';
 
 interface ExportInput {
   project: LocalProject;
@@ -58,8 +59,8 @@ function buildContentStream(project: LocalProject, generatedAt: string): string 
   const acreage = project.acreage;
   const acreageLine =
     typeof acreage === 'number' && Number.isFinite(acreage)
-      ? `Acreage: ${acreage.toFixed(2)} acres`
-      : 'Acreage: not captured';
+      ? `Area: ${asciiSafe(formatParcelArea(acreage, project.units))}`
+      : 'Area: not captured';
   const boundaryLine = project.hasParcelBoundary
     ? 'Boundary: captured'
     : 'Boundary: not captured';

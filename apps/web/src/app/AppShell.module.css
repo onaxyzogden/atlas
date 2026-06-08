@@ -148,6 +148,20 @@
   border-color: var(--color-neutral-300);
 }
 
+/* ─── Demo mode badge ──────────────────────────────────────────────────── */
+.demoBadge {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-warning-700, #92610a);
+  background: var(--color-warning-100, #fdf2d6);
+  border: 1px solid var(--color-warning-300, #f3d27a);
+  border-radius: var(--radius-md);
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
 /* ─── Header links ─────────────────────────────────────────────────────── */
 .newProjectLink {
   text-decoration: none;

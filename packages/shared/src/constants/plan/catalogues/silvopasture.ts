@@ -1389,9 +1389,14 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'silv-sec-s4-grazing-design-c5',
         'Define the feed-gap contingency - supplementary feed, destocking, or agistment triggers',
       ),
-      ck(
+      ckF(
         'silv-sec-s4-grazing-design-c6',
-        'Confirm the grazing framework is consistent with the surveyed carrying capacity',
+        'Run the paddock stocking density check to confirm the grazing design is within surveyed carrying capacity',
+        {
+          formulaId: 'paddock-stocking-density',
+          satisfiesWhenComputed: false,
+          resultLabel: 'Stocking density vs carrying capacity',
+        },
       ),
     ],
     decisionGroups: [
@@ -1490,6 +1495,164 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Livestock husbandry, health, and welfare framework approved. Humane and halal handling intent defined. Record-keeping established.',
     actHandoff: 'Livestock Husbandry & Welfare Framework Brief',
+  }),
+  // ---------------------------------------------------------------- Stratum 5
+  obj({
+    id: 'silv-sec-s5-tree-establishment',
+    stratumId: 's5-system-design',
+    ref: 'SILV-S5.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A tree planting & establishment plan for the silvopasture layer',
+    shortTitle: 'Tree planting & establishment plan',
+    focusedQuestion:
+      'Where, which species, at what spacing, and in what sequence will trees be planted - and how will they be protected during establishment?',
+    checklist: [
+      ck(
+        'silv-sec-s5-tree-establishment-c1',
+        'Select species by browse tolerance, climate suitability, and silvopasture function - shade, fodder, timber, or multi-purpose',
+      ),
+      ck(
+        'silv-sec-s5-tree-establishment-c2',
+        'Map planting layout - row spacing, alley width for livestock and machinery access, and per-hectare density targets',
+      ),
+      ck(
+        'silv-sec-s5-tree-establishment-c3',
+        'Design the protection strategy - individual guards, temporary exclusion fencing, or permanent browse barriers - and the threshold before livestock re-entry',
+      ),
+      ck(
+        'silv-sec-s5-tree-establishment-c4',
+        'Set the planting season and establishment schedule coordinated with the host primary operations calendar',
+      ),
+      ck(
+        'silv-sec-s5-tree-establishment-c5',
+        'Plan establishment-phase water access - mulching, drip irrigation, or tree guards for moisture retention',
+      ),
+      ck(
+        'silv-sec-s5-tree-establishment-c6',
+        'Confirm tree procurement source, lead time, and contingency for stock unavailability',
+      ),
+    ],
+    decisionGroups: [
+      dg('silv-sec-s5-tree-establishment-dg1', 'Species & layout', [
+        'silv-sec-s5-tree-establishment-c1',
+        'silv-sec-s5-tree-establishment-c2',
+      ], ['Vegetation & Succession']),
+      dg('silv-sec-s5-tree-establishment-dg2', 'Protection & schedule', [
+        'silv-sec-s5-tree-establishment-c3',
+        'silv-sec-s5-tree-establishment-c4',
+      ]),
+      dg('silv-sec-s5-tree-establishment-dg3', 'Water & procurement', [
+        'silv-sec-s5-tree-establishment-c5',
+        'silv-sec-s5-tree-establishment-c6',
+      ]),
+    ],
+    completionGate:
+      'Species list confirmed, spacing mapped onto site plan, protection method and re-entry threshold set, planting season locked, procurement source identified.',
+    actHandoff: 'Tree Planting & Establishment Design Package',
+  }),
+  // ---------------------------------------------------------------- Stratum 6
+  obj({
+    id: 'silv-sec-s6-pasture-tree-monitoring',
+    stratumId: 's6-integration-design',
+    ref: 'SILV-S6.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A pasture recovery & tree survival monitoring protocol',
+    shortTitle: 'Pasture & tree monitoring',
+    focusedQuestion:
+      'How will tree survival, browse damage, and pasture recovery be tracked - and what evidence triggers a grazing adjustment?',
+    checklist: [
+      ck(
+        'silv-sec-s6-pasture-tree-monitoring-c1',
+        'Set a tree survival rate target and inspection cadence - define the remediation protocol when the threshold is breached',
+      ),
+      ck(
+        'silv-sec-s6-pasture-tree-monitoring-c2',
+        'Define browse damage assessment - visual inspection frequency, damage threshold, and response triggers',
+      ),
+      ck(
+        'silv-sec-s6-pasture-tree-monitoring-c3',
+        'Define pasture recovery indicators - sward height, species composition, ground cover - and the minimum rest period before livestock re-entry',
+      ),
+      ck(
+        'silv-sec-s6-pasture-tree-monitoring-c4',
+        'Define adaptive grazing trigger rules - what evidence prompts a rotation change and who has authority to act',
+      ),
+      ck(
+        'silv-sec-s6-pasture-tree-monitoring-c5',
+        'Choose a record-keeping system and assign responsibility - field cards, app, or integration with the host primary monitoring process',
+      ),
+    ],
+    decisionGroups: [
+      dg('silv-sec-s6-pasture-tree-monitoring-dg1', 'Tree health', [
+        'silv-sec-s6-pasture-tree-monitoring-c1',
+        'silv-sec-s6-pasture-tree-monitoring-c2',
+      ], ['Vegetation & Succession']),
+      dg('silv-sec-s6-pasture-tree-monitoring-dg2', 'Pasture & adaptive management', [
+        'silv-sec-s6-pasture-tree-monitoring-c3',
+        'silv-sec-s6-pasture-tree-monitoring-c4',
+      ]),
+      dg('silv-sec-s6-pasture-tree-monitoring-dg3', 'Records & responsibility', [
+        'silv-sec-s6-pasture-tree-monitoring-c5',
+      ]),
+    ],
+    completionGate:
+      'Monitoring protocol written, survival rate and browse-damage thresholds set, pasture recovery indicators defined, adaptive trigger rules documented, record system and responsible person confirmed.',
+    actHandoff: 'Pasture Recovery & Tree Monitoring Protocol',
+  }),
+  // ---------------------------------------------------------------- Stratum 7
+  obj({
+    id: 'silv-sec-s7-stocking-phasing',
+    stratumId: 's7-phasing-resourcing',
+    ref: 'SILV-S7.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A stocking phasing plan relative to tree establishment milestones',
+    shortTitle: 'Stocking phasing vs tree establishment',
+    focusedQuestion:
+      'How does livestock introduction and stocking buildup sequence against tree establishment - what protection-phase milestones must be met before full stocking resumes?',
+    checklist: [
+      ck(
+        'silv-sec-s7-stocking-phasing-c1',
+        'Define the tree-protection phase - which paddocks are excluded, for how long, and what height or guard-integrity threshold triggers livestock re-entry',
+      ),
+      ck(
+        'silv-sec-s7-stocking-phasing-c2',
+        'Set the partial-stocking schedule - which paddocks remain open, at what density, and for what duration during tree establishment',
+      ),
+      ck(
+        'silv-sec-s7-stocking-phasing-c3',
+        'Project the full-stocking timeline based on species growth rates, site conditions, and survival-rate assumptions',
+      ),
+      ck(
+        'silv-sec-s7-stocking-phasing-c4',
+        'Assess the financial impact of reduced carrying capacity during establishment - supplementary feed budget, agistment, or destocking contingency',
+      ),
+      ck(
+        'silv-sec-s7-stocking-phasing-c5',
+        'Define the high-mortality contingency - replanting trigger threshold, stocking adjustment, and communication protocol to the host primary operator',
+      ),
+    ],
+    decisionGroups: [
+      dg('silv-sec-s7-stocking-phasing-dg1', 'Protection phase & partial stocking', [
+        'silv-sec-s7-stocking-phasing-c1',
+        'silv-sec-s7-stocking-phasing-c2',
+      ]),
+      dg('silv-sec-s7-stocking-phasing-dg2', 'Full-stocking timeline & financial impact', [
+        'silv-sec-s7-stocking-phasing-c3',
+        'silv-sec-s7-stocking-phasing-c4',
+      ]),
+      dg('silv-sec-s7-stocking-phasing-dg3', 'Contingency', [
+        'silv-sec-s7-stocking-phasing-c5',
+      ]),
+    ],
+    completionGate:
+      'Tree-protection phase milestones set, partial-stocking plan documented, full-stocking timeline projected, financial impact on host enterprise assessed, high-mortality contingency defined.',
+    actHandoff: 'Stocking Phasing Plan - communicate protection-phase constraints to host primary operator and update carrying-capacity calculations for the establishment period',
   }),
 ];
 

@@ -32,7 +32,9 @@ import {
   PLAN_STRATA,
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
+  computeAllStratumStates,
   getObjectiveActTools,
+  type PlanStratum,
   type PlanStratumObjective,
 } from '@ogden/shared';
 import {
@@ -43,7 +45,16 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
-import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
+import {
+  selectDeferredObjectives,
+  toDeferredSet,
+  usePlanStratumProgressStore,
+} from '../../../store/planStratumStore.js';
+import {
+  useDevUnlockStore,
+  liftLockedStatuses,
+} from '../../../store/devUnlockStore.js';
+import StratumLockedPopover from '../../plan/strata/StratumLockedPopover.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { toast } from '../../../components/Toast.js';
 import * as turf from '@turf/turf';
@@ -82,6 +93,11 @@ import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
+import AnnotationDragHandler from '../../observe/components/draw/AnnotationDragHandler.js';
+import AnnotationVertexEditHandler from '../../observe/components/draw/AnnotationVertexEditHandler.js';
+import AnnotationFormSlideUp from '../../observe/components/draw/AnnotationFormSlideUp.js';
+import SelectionFloater from '../../observe/components/SelectionFloater.js';
+import AnnotationDetailPanel from '../../observe/components/AnnotationDetailPanel.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
@@ -104,10 +120,13 @@ import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
+import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
+import { decodeSteward, stewardInvitesToQueued } from './StewardCapture.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
   type ActTool,
+  type FormValue,
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
@@ -124,11 +143,50 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 // new object literal, which would trigger an infinite React re-render loop
 // under Zustand v5 (getSnapshot result must be referentially stable).
 const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
+// Stable empty fallback for the visionFormData selector so it never returns a
+// fresh object (which would re-render every store update).
+const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
+// Stable empty fallbacks for the decision-rationale / deferred-decisions
+// selectors so they never return a fresh object literal (which would trigger
+// an infinite re-render under Zustand v5), matching the EMPTY_FORMS pattern.
+const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
+const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
 // noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
 // known S1 id literal so the derived stratum id stays a plain string.
 const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
+
+// Phase B/C Tier-0 swap: non-spatial foundation objectives render the inline
+// non-map decision workbench instead of the map shell. Widened incrementally
+// from a single id to a membership set as more objectives convert (Phase C
+// part 3 adds 's1-boundaries' then 's1-stakeholders' alongside the universal
+// 's1-vision').
+const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
+  's1-vision',
+  's1-boundaries',
+  's1-stakeholders',
+  'ev-s1-legal-governance',
+]);
+
+/**
+ * Tier-0 by resolved-objective identity. Used once the per-project objective
+ * set has hydrated and `selectedObjective` is non-null.
+ */
+function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
+  return objective != null && TIER_ZERO_OBJECTIVE_IDS.has(objective.id);
+}
+
+/**
+ * Tier-0 by route identity — keys off the synchronous URL `objectiveId` so the
+ * map shell is never mounted on a cold deep-link to a Tier-0 route while the
+ * objective set is still hydrating (`selectedObjective` lags a tick behind the
+ * route). Tests the same membership set the resolved-objective predicate uses,
+ * so the two converge once hydration completes.
+ */
+function isTierZeroObjectiveId(objectiveId: string | null): boolean {
+  return objectiveId != null && TIER_ZERO_OBJECTIVE_IDS.has(objectiveId);
+}
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -268,6 +326,43 @@ export default function ActTierShell() {
   // shows them done.
   const effectiveProgress = useEffectiveChecklistProgress(id, objectives);
 
+  // Plan prerequisite lock gating (mirrors PlanStratumShell). The spine's
+  // `stratumStates` above is the Act-execution rollup (never locks) and drives
+  // progress chips only; THIS map is the Plan dependency gate that decides what
+  // the steward may open. Deferred overrides resolve exactly as in Plan.
+  const deferredObjectiveIds = usePlanStratumProgressStore((s) =>
+    selectDeferredObjectives(s, id),
+  );
+  const deferredSet = useMemo(
+    () => toDeferredSet(deferredObjectiveIds),
+    [deferredObjectiveIds],
+  );
+  // DEV-only: header "Unlock all" toggle lifts every `locked` → `available`.
+  const unlockAll = useDevUnlockStore((s) => s.unlockAll);
+  const planObjectiveStatuses = useMemo(() => {
+    const computed = computeAllObjectiveStatuses(
+      objectives,
+      effectiveProgress.flatMap,
+      deferredSet,
+    );
+    return unlockAll && import.meta.env.DEV
+      ? liftLockedStatuses(computed)
+      : computed;
+  }, [objectives, effectiveProgress, deferredSet, unlockAll]);
+  const planStratumStates = useMemo(
+    () => computeAllStratumStates(STRATUM_IDS, objectives, planObjectiveStatuses),
+    [objectives, planObjectiveStatuses],
+  );
+  const lockedStratumIds = useMemo(
+    () =>
+      new Set(
+        STRATUM_IDS.filter((sid) => planStratumStates[sid] === 'locked'),
+      ),
+    [planStratumStates],
+  );
+  const [lockedPopoverStratum, setLockedPopoverStratum] =
+    useState<PlanStratum | null>(null);
+
   // Rail cards reflect CHECKLIST completion (effective progress), agreeing with
   // the right-rail execution panel's "N/M steps". The field-action
   // progressByObjective above stays the source for the map markers.
@@ -367,6 +462,22 @@ export default function ActTierShell() {
     (s) => s.visionForms[id] ?? EMPTY_FORMS,
   );
 
+  // Structured form values (the SF capture engine) keyed by formId under this
+  // project. Falls back to a stable empty record when nothing is saved yet.
+  const visionFormData = useActEvidenceStore(
+    (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
+  );
+
+  // Decision rationale + deferral state for the Tier-0 workbench, keyed by
+  // itemId under this project. Stable empty fallbacks (see above) keep the
+  // selector referentially stable under Zustand v5.
+  const decisionRationales = useActEvidenceStore(
+    (s) => s.decisionRationale[id] ?? EMPTY_RATIONALES,
+  );
+  const deferredDecisions = useActEvidenceStore(
+    (s) => s.deferredDecisions[id] ?? EMPTY_DEFERRED,
+  );
+
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -441,9 +552,17 @@ export default function ActTierShell() {
 
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
+      // Honour the Plan prerequisite gate (mirrors PlanStratumShell): a locked
+      // stratum opens the explanatory popover instead of navigating.
+      if ((planStratumStates[stratumId] ?? 'locked') === 'locked') {
+        setLockedPopoverStratum(
+          PLAN_STRATA.find((s) => s.id === stratumId) ?? null,
+        );
+        return;
+      }
       goToStratum(stratumId);
     },
-    [goToStratum],
+    [goToStratum, planStratumStates],
   );
 
   const handleSelectObjective = useCallback(
@@ -457,10 +576,16 @@ export default function ActTierShell() {
         goToObjective(null);
         return;
       }
+      // Honour the Plan prerequisite gate — a locked objective is not openable
+      // until its upstream decisions are complete.
+      if ((planObjectiveStatuses[nextObjectiveId] ?? 'locked') === 'locked') {
+        toast.warning('Locked until its prerequisites are complete.');
+        return;
+      }
       setRightMode('detail');
       goToObjective(nextObjectiveId);
     },
-    [goToObjective, objectiveId],
+    [goToObjective, objectiveId, planObjectiveStatuses],
   );
 
   // Protocol card click → open its detail in the right rail. Re-clicking the
@@ -545,6 +670,46 @@ export default function ActTierShell() {
       // click-outside / the X close it (handled by Modal).
     },
     [id, objectiveId],
+  );
+
+  const handleFormDataSave = useCallback(
+    (formId: string, value: FormValue, summary: string) => {
+      useActEvidenceStore.getState().saveVisionFormData(id, formId, value, summary);
+      // Reconcile the steward-capture invite queue into the canonical
+      // metadata.team.queuedInvites (local-only). The capture persists invites
+      // as a parallel-array FormValue; this mirrors them into the project
+      // metadata so they reach the canonical home. RBAC reconciliation RW4.
+      if (formId === 's1-vision-steward') {
+        const queued = stewardInvitesToQueued(
+          decodeSteward(value),
+          new Date().toISOString(),
+        );
+        useProjectStore.getState().reconcileStewardInvites(id, queued);
+      }
+      // The formId IS the checklist item id (1:1 per actToolCatalog design).
+      // Mark it complete (add-only) so the execution-panel checklist reflects
+      // the structured capture, exactly as handleFormSave does for text.
+      if (objectiveId) {
+        usePlanStratumProgressStore
+          .getState()
+          .setItemComplete(id, objectiveId, formId);
+      }
+      // Do NOT close the popup -- the steward continues with other tabs.
+    },
+    [id, objectiveId],
+  );
+
+  const handleSaveRationale = useCallback(
+    (itemId: string, text: string) => {
+      useActEvidenceStore.getState().saveDecisionRationale(id, itemId, text);
+    },
+    [id],
+  );
+  const handleToggleDefer = useCallback(
+    (itemId: string, deferred: boolean) => {
+      useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
+    },
+    [id],
   );
 
   const handleActivateTool = useCallback(
@@ -700,18 +865,64 @@ export default function ActTierShell() {
     [revealObjective, handleActivateTool, clearSearch],
   );
 
+  // Phase B swap flag: render the inline Tier-0 decision workbench in place of
+  // the map shell when the selected objective is the universal s1-vision one.
+  // Keyed off the URL-synchronous objectiveId first (not only the resolved
+  // selectedObjective) so a cold deep-link to the vision route never transiently
+  // mounts <StageShell>/<DiagnoseMap> (WebGL) during the tick before objectives
+  // hydrate. Falls back to the resolved-objective check so an in-app selection
+  // whose route change hasn't landed yet still swaps.
+  const showTierZeroWorkbench =
+    isTierZeroObjectiveId(objectiveId) ||
+    (selectedObjective != null && isTierZeroObjective(selectedObjective));
+
   return (
     <div className={styles.tierShell}>
       <ActTierSpine
         strata={PLAN_STRATA}
         objectives={objectives}
         stratumStates={stratumStates}
+        lockedStratumIds={lockedStratumIds}
         activeStratumId={selectedStratumId}
         onSelectStratum={handleSelectStratum}
         projectTitle={project.name}
         projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
+        {showTierZeroWorkbench ? (
+          selectedObjective ? (
+          <ActTierZeroWorkbench
+            projectId={id}
+            objectives={stratumObjectives}
+            activeObjectiveId={selectedObjective.id}
+            onSelectObjective={handleSelectObjective}
+            primaryTypeId={primaryTypeId}
+            secondaryTypeIds={secondaryTypeIds}
+            progressByObjective={effectiveProgress.byObjective}
+            formValues={visionFormData}
+            rationales={decisionRationales}
+            deferredItems={deferredDecisions}
+            onRecord={handleFormDataSave}
+            onSaveRationale={handleSaveRationale}
+            onToggleDefer={handleToggleDefer}
+          />
+          ) : (
+            // Tier-0 route resolved before its objective set hydrated: hold a
+            // lightweight non-map placeholder rather than falling through to the
+            // map shell (which would mount WebGL and wedge the headless preview).
+            // s1-vision is universal across every resolved set, so
+            // selectedObjective always arrives — this state is strictly transient.
+            <div
+              className={styles.tierZeroLoading}
+              role="status"
+              aria-live="polite"
+            >
+              <span className={styles.tierZeroLoadingText}>
+                Loading decision workbench…
+              </span>
+            </div>
+          )
+        ) : (
         <StageShell
           bottomPlacement="between-rails"
           symmetricRails
@@ -815,6 +1026,21 @@ export default function ActTierShell() {
                       decisions.
                     */}
                     <ObserveDrawHost map={map} projectId={id} />
+                    {/*
+                      Observe annotation interaction cluster — mirrors what
+                      ObserveLayout pairs with ObserveDrawHost. Without these the
+                      Act surface places a pin (store flips to `active`) but never
+                      renders the lab-values form and never reacts to selection,
+                      so Act-placed soil samples were neither presented nor
+                      editable. All are store-/selection-driven singletons that
+                      portal out, so they compose with the Act handlers (which
+                      bind disjoint layers).
+                    */}
+                    <AnnotationDragHandler map={map} />
+                    <AnnotationVertexEditHandler map={map} />
+                    <AnnotationFormSlideUp />
+                    <SelectionFloater projectId={id} />
+                    <AnnotationDetailPanel projectId={id} />
                     <PlanDrawHost
                       map={map}
                       projectId={id}
@@ -944,13 +1170,16 @@ export default function ActTierShell() {
             />
           }
         />
+        )}
       </div>
+      {!showTierZeroWorkbench && (
       <VisionFormsTabsModal
         open={openFormGroup !== null}
         title={openFormGroup?.title ?? ''}
         tools={openFormGroup?.tools ?? []}
         activeFormId={openFormGroup?.activeFormId ?? ''}
         initialValues={visionForms}
+        initialData={visionFormData}
         projectId={id}
         metadata={project.metadata ?? null}
         checklistItems={selectedObjective?.checklist ?? []}
@@ -958,8 +1187,24 @@ export default function ActTierShell() {
           setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
         }
         onSave={handleFormSave}
+        onSaveData={handleFormDataSave}
         onClose={() => setOpenFormGroup(null)}
       />
+      )}
+      {lockedPopoverStratum && (
+        <StratumLockedPopover
+          stratum={lockedPopoverStratum}
+          objectives={objectives}
+          objectiveStatuses={planObjectiveStatuses}
+          currentObjectiveId={objectiveId ?? null}
+          onAcknowledge={(obj) => {
+            setLockedPopoverStratum(null);
+            setRightMode('detail');
+            goToObjective(obj.id);
+          }}
+          onDismiss={() => setLockedPopoverStratum(null)}
+        />
+      )}
     </div>
   );
 }

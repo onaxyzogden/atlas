@@ -271,6 +271,8 @@ export interface ApiAuthUser {
   displayName: string | null;
   /** Phase 4.5 — personal default org created at register time; always present post-migration-036. */
   defaultOrgId: string;
+  /** Soft gate — surfaced as a flag, never enforced as a login wall. New signups start false. */
+  emailVerified: boolean;
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
@@ -299,8 +301,36 @@ export const api = {
       ),
 
     me: () =>
-      request<{ id: string; email: string; displayName: string | null; defaultOrgId: string }>(
+      request<ApiAuthUser>(
         'GET', '/api/v1/auth/me',
+      ),
+
+    // ── Email verification + password reset ──
+    // Confirm/reset failures return 400 INVALID_TOKEN (never 401), so a stale
+    // link never trips the global session-expiry logout above.
+
+    /** (Re)send a verification email. Always succeeds generically (anti-enumeration). */
+    requestEmailVerification: (email: string) =>
+      request<{ sent: boolean }>(
+        'POST', '/api/v1/auth/verify-email/request', { email },
+      ),
+
+    /** Confirm a verification token; on success returns a fresh token + user for auto-sign-in. */
+    confirmEmailVerification: (token: string) =>
+      request<{ verified: boolean; token: string; user: ApiAuthUser }>(
+        'POST', '/api/v1/auth/verify-email/confirm', { token },
+      ),
+
+    /** Request a password-reset link. Always succeeds generically (anti-enumeration). */
+    forgotPassword: (email: string) =>
+      request<{ sent: boolean }>(
+        'POST', '/api/v1/auth/forgot-password', { email },
+      ),
+
+    /** Set a new password from a reset token. No auto-login — caller redirects to /login. */
+    resetPassword: (token: string, password: string) =>
+      request<{ reset: boolean }>(
+        'POST', '/api/v1/auth/reset-password', { token, password },
       ),
   },
 

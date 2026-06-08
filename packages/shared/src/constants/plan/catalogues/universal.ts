@@ -155,29 +155,63 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's1-project-foundation',
     ref: 'U-S1.2',
     source: 'universal',
-    title: 'Settled site boundaries & legal constraints',
+    title: 'Establish site boundaries & legal constraints',
     shortTitle: 'Site boundaries & legal constraints',
     focusedQuestion:
       'What are the legal, physical, and regulatory boundaries within which this project must operate?',
     checklist: [
-      ck('s1-boundaries-c1', 'Obtain and verify current title and deed documents'),
+      // Group 1 -- Title & boundary
       ck('s1-boundaries-c2', 'Map property boundaries on base layer'),
-      ck('s1-boundaries-c3', 'Identify all easements, rights of way, and encumbrances'),
-      ck('s1-boundaries-c4', 'Check zoning and permitted land uses'),
-      ck('s1-boundaries-c5', 'Identify water rights and entitlements'),
-      ck('s1-boundaries-c6', 'Record covenant, heritage, or conservation obligations'),
+      ck(
+        's1-boundaries-c1',
+        'Obtain and verify current title and deed documents',
+        {
+          feedNote:
+            'Title documents feed Plan: Land Base & Legal Context. No design work proceeds where title is unverified.',
+        },
+      ),
+      // Group 2 -- Legal & permit obligations
+      ck(
+        's1-boundaries-c3',
+        'Identify all easements, rights of way, and encumbrances',
+        {
+          feedHint: 'Feeds Plan: Land use constraint map',
+          feedNote:
+            'Mapped easements feed Plan: Land use constraint map and the Risk / Compliance overlay.',
+        },
+      ),
+      ck('s1-boundaries-c4', 'Check zoning and permitted land uses', {
+        feedHint: 'Feeds Plan: Risk / Compliance overlay',
+        feedNote:
+          'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Tier 0.',
+      }),
+      ck('s1-boundaries-c5', 'Identify water rights and entitlements', {
+        feedHint: 'Feeds Tier 2: Water strategy',
+        feedNote:
+          'Water entitlements feed Tier 2: Water strategy and constrain all water harvesting and storage design.',
+      }),
+      ck(
+        's1-boundaries-c6',
+        'Record covenant, heritage, or conservation obligations',
+        {
+          feedNote:
+            'Covenants feed Plan: Risk / Compliance overlay as hard constraints that gate Act handoffs in affected zones.',
+        },
+      ),
       ck(
         's1-boundaries-c7',
         'Note required permits for planned activities - building, earthworks, water harvesting',
+        {
+          feedNote:
+            'Permit requirements become prerequisites on Act handoff packages in Tiers 3-6.',
+        },
       ),
     ],
     decisionGroups: [
-      dg(
-        's1-boundaries-dg1',
-        'Title & boundary',
-        ['s1-boundaries-c1', 's1-boundaries-c2'],
-        ['Infrastructure & Access'],
-      ),
+      dg('s1-boundaries-dg1', 'Title & boundary', [
+        's1-boundaries-c2',
+        's1-boundaries-c1',
+      ]),
       dg('s1-boundaries-dg2', 'Legal & permit obligations', [
         's1-boundaries-c3',
         's1-boundaries-c4',

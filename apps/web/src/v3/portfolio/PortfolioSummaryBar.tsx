@@ -15,6 +15,7 @@ import { BentoBox } from '../../components/ui/BentoBox.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ProjectUrgencyResult } from '@ogden/shared';
 import { STAGE_PAINT, type PortfolioStage } from './portfolioModel.js';
+import { parcelAreaValue } from '../../lib/geo.js';
 import css from './PortfolioSummaryBar.module.css';
 
 // Stage display order for the count chips (setup → plan → act → observe →
@@ -39,21 +40,25 @@ export interface PortfolioSummaryBarProps {
   onToggleDiverged: () => void;
 }
 
-/** Sum project areas, returning a formatted label with the dominant unit. */
+/** Sum project areas, returning a formatted label with the dominant unit.
+ *  `project.acreage` is canonically in ACRES; the acres total is converted to
+ *  the dominant display unit (hectares for metric-dominated portfolios). */
 function totalAreaLabel(projects: LocalProject[]): string {
-  let sum = 0;
+  let acres = 0;
   let imperial = 0;
   let metric = 0;
   for (const p of projects) {
     if (typeof p.acreage === 'number' && Number.isFinite(p.acreage) && p.acreage > 0) {
-      sum += p.acreage;
+      acres += p.acreage;
       if (p.units === 'imperial') imperial += 1;
       else metric += 1;
     }
   }
-  if (sum <= 0) return '—';
-  const unit = imperial >= metric ? 'ac' : 'ha';
-  const rounded = sum >= 10 ? Math.round(sum) : Math.round(sum * 10) / 10;
+  if (acres <= 0) return '—';
+  const metricDominant = metric > imperial;
+  const unit = metricDominant ? 'ha' : 'ac';
+  const value = parcelAreaValue(acres, metricDominant ? 'metric' : 'imperial');
+  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
   return `${rounded} ${unit}`;
 }
 

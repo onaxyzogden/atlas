@@ -1,0 +1,79 @@
+# ── OGDEN Atlas — Nginx site config for Render (single public front door) ──
+#
+# This is the Render deployment variant of conf.d/default.conf. It is a
+# *template*: the nginx:alpine entrypoint runs envsubst over it at container
+# start, substituting ${PORT} (injected by Render) and writing the result to
+# /etc/nginx/conf.d/default.conf. Only ${PORT} is substituted — every other
+# `$variable` below is an nginx runtime variable, left intact
+# (NGINX_ENVSUBST_FILTER=PORT in Dockerfile.nginx enforces this).
+#
+# Differences from the compose conf.d/default.conf:
+#   • upstream points at the private Render service `atlas-api` (was `api`)
+#   • listens on Render's injected ${PORT} (was a fixed :80)
+#   • no certbot/.well-known or 443 block — Render terminates TLS at the edge
+#
+# The SPA is baked into this image at /usr/share/nginx/html (see Dockerfile.nginx),
+# so there is no shared volume — nginx serves the static build directly and
+# reverse-proxies /api (and /api/v1/ws/* WebSockets) to the private API. The web
+# frontend uses relative /api/v1/... URLs, so this keeps everything same-origin
+# with zero frontend change.
+
+upstream api_backend {
+    server atlas-api:3001;
+}
+
+server {
+    listen ${PORT};
+    server_name _;
+
+    # Render edge health check — static, so the web service stays healthy
+    # independent of the API's state.
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+
+    # API proxy
+    location /api/ {
+        limit_req zone=api burst=50 nodelay;
+        proxy_pass http://api_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+
+        # WebSocket upgrade support (required for /api/v1/ws/*)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # CORS handled by Fastify — don't duplicate headers
+    }
+
+    # End-to-end health (proxies to the API's /health) — used by the runbook.
+    location = /health {
+        proxy_pass http://api_backend/health;
+    }
+
+    # Static React app (SPA fallback)
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+
+        # Cache static assets aggressively (Vite hashes filenames)
+        location ~* \.(js|css|woff2?|png|jpg|svg|ico|webp|wasm)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+
+        # Cesium static assets (Workers, Assets, ThirdParty)
+        location /cesium/ {
+            expires 30d;
+            add_header Cache-Control "public";
+        }
+    }
+}

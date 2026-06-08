@@ -1,0 +1,607 @@
+/**
+ * DecisionWorkingPanel -- the RIGHT pane of the Tier-0 workbench: the working
+ * surface for the currently-selected decision.
+ *
+ * Presentational + locally-drafted. The component owns a single piece of real
+ * state -- the working draft (a FormValue) plus the rationale draft string --
+ * seeded from the persisted values passed in and RE-SEEDED whenever the selected
+ * decision changes (keyed on decision.itemId). All persistence is lifted to the
+ * parent via callbacks (onRecord / onSaveRationale / onToggleDefer); this
+ * component never touches the store.
+ *
+ * Body router (in order -- bespoke arms first, generic fallbacks last):
+ *   1. decision.isVisionClassify  -> VisionClassifyCapture over { committed,
+ *                                    aspirational }.
+ *   2. decision.isLabourInventory -> LabourInventoryCapture over the labour model.
+ *   3. decision.isSuccessCriteria -> SuccessCriteriaCapture over { criteria }.
+ *   4. decision.fields (non-empty) -> VisionFormFields over the draft.
+ *   5. otherwise                   -> a single textarea bound to draft.text.
+ *
+ * The two bespoke children that hold transient, non-persisted UI state
+ * (VisionClassifyCapture's Unclassified staging; LabourInventoryCapture's skill
+ * composer) are KEYED on decision.itemId so a decision switch remounts them and
+ * resets that state -- the persistence-free analogue of the itemId-keyed draft
+ * re-seed below, so staged-but-unsorted items / open composers never bleed across
+ * a switch-and-return.
+ *
+ * Validity drives the Record button + the gate note:
+ *   - isVisionClassify:  isVisionClassifyValid (>=1 element classified).
+ *   - isLabourInventory: isLabourValid (>=1 labour row).
+ *   - fields / success-criteria: isFormValueValid(decision.fields ?? [], draft).
+ *   - textarea: draft.text trimmed is non-empty.
+ *
+ * Token substitutions are documented in DecisionWorkingPanel.module.css. ASCII
+ * only: all glyphs are lucide icons.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, Check, Clock, MousePointerClick } from 'lucide-react';
+import type { CriterionOption } from '@ogden/shared';
+import type { FormFieldSpec, FormValue } from './actToolCatalog.js';
+import VisionFormFields, {
+  initialFormValue,
+  isFormValueValid,
+  summariseFormValue,
+} from './VisionFormFields.js';
+import SuccessCriteriaCapture from './SuccessCriteriaCapture.js';
+import LabourInventoryCapture, {
+  decode,
+  isLabourValid,
+  summariseLabour,
+  type LabourModel,
+} from './LabourInventoryCapture.js';
+import VisionClassifyCapture, {
+  decodeClassify,
+  isVisionClassifyValid,
+  summariseVisionClassify,
+  type ClassifyValue,
+} from './VisionClassifyCapture.js';
+import BoundaryCapture, {
+  boundaryModeFor,
+  decodeBoundary,
+  isBoundaryValid,
+  summariseBoundary,
+  type BoundaryModel,
+} from './BoundaryCaptureLegacy.js';
+import EvLegalGovernanceCapture, {
+  legalGovernanceModeFor,
+  decodeLegalGovernance,
+  isLegalGovernanceValid,
+  summariseLegalGovernance,
+  type LegalGovernanceModel,
+} from './EvLegalGovernanceCapture.js';
+import StakeholderCapture, {
+  stakeholderModeFor,
+  isStakeholderValid,
+  summariseStakeholder,
+} from './StakeholderCapture.js';
+import StewardCapture, {
+  decodeSteward,
+  isStewardValid,
+  summariseSteward,
+  type StewardModel,
+} from './StewardCapture.js';
+import {
+  useStakeholderRegisterStore,
+  EMPTY_STAKEHOLDERS_BY_ID,
+} from '../../../store/stakeholderRegisterStore.js';
+import css from './DecisionWorkingPanel.module.css';
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+export interface DecisionPanelTarget {
+  /** checklist item id (== form tool arm.formId), e.g. 's1-vision-c2'. */
+  itemId: string;
+  /** decision label -> panel header title. */
+  label: string;
+  optional?: boolean;
+  /** tool prompt -> header hint line. */
+  prompt?: string;
+  /** the matching form tool's fields (undefined => textarea fallback). */
+  fields?: readonly FormFieldSpec[];
+  /** resolved "Feeds Observe: ..." text for the callout (null/undefined => no callout). */
+  feedsLabel?: string | null;
+  /** true => render SuccessCriteriaCapture over the { criteria } value. */
+  isSuccessCriteria?: boolean;
+  /** true => render LabourInventoryCapture (bespoke labour surface) over the draft. */
+  isLabourInventory?: boolean;
+  /** true => render VisionClassifyCapture over { committed, aspirational }. */
+  isVisionClassify?: boolean;
+  /** true => render BoundaryCapture (self-routing on itemId) over the draft. */
+  isBoundary?: boolean;
+  /** true => render StakeholderCapture (self-routing on itemId, store-direct). */
+  isStakeholder?: boolean;
+  /** true => render StewardCapture (primary steward + queued invites). */
+  isSteward?: boolean;
+  /** true => render EvLegalGovernanceCapture (self-routing on itemId) over the draft. */
+  isLegalGovernance?: boolean;
+  /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
+  deferrable?: boolean;
+  /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
+  deferLabel?: string;
+}
+
+export interface DecisionWorkingPanelProps {
+  /** owning project id; required by the stakeholder register subscription. */
+  projectId: string;
+  /** null => empty state. */
+  decision: DecisionPanelTarget | null;
+  /** for VisionFormFields hybrids. */
+  resolveOptions: (optionSetId: string) => readonly string[];
+  /** for SuccessCriteriaCapture chips. */
+  successCriteriaOptions: readonly CriterionOption[];
+  /** resolved skill suggestions for LabourInventoryCapture (LC4 populates; default []). */
+  labourSkillSuggestions?: readonly string[];
+  /** suggestions for VisionClassifyCapture chips. */
+  visionClassifySuggestions?: readonly string[];
+  /** persisted structured value for this formId ({} => seed via initialFormValue(fields)). */
+  initialValue: FormValue;
+  /** persisted rationale text. */
+  initialRationale: string;
+  /** current defer annotation for this decision. */
+  deferred: boolean;
+  /** whether the decision is already complete (effective progress). */
+  recorded: boolean;
+  /** parent does saveVisionFormData + setItemComplete. */
+  onRecord: (value: FormValue, summary: string) => void;
+  /** parent does saveDecisionRationale. */
+  onSaveRationale: (text: string) => void;
+  /** parent does setDecisionDeferred. */
+  onToggleDefer: (deferred: boolean) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Local value coercion (VisionFormFields does NOT export these).
+// ---------------------------------------------------------------------------
+
+function asString(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
+
+function asArray(v: unknown): string[] {
+  return Array.isArray(v) ? v.map((x) => (typeof x === 'string' ? x : '')) : [];
+}
+
+function hasKeys(value: FormValue): boolean {
+  return Object.keys(value).length > 0;
+}
+
+/** Seed the working draft for a decision from the persisted value (or a fresh one). */
+function seedDraft(
+  decision: DecisionPanelTarget,
+  initialValue: FormValue,
+): FormValue {
+  if (hasKeys(initialValue)) return initialValue;
+  return decision.fields ? initialFormValue(decision.fields) : { text: '' };
+}
+
+const MIN_CRITERIA = 3;
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export default function DecisionWorkingPanel({
+  projectId,
+  decision,
+  resolveOptions,
+  successCriteriaOptions,
+  labourSkillSuggestions,
+  visionClassifySuggestions = [],
+  initialValue,
+  initialRationale,
+  deferred,
+  recorded,
+  onRecord,
+  onSaveRationale,
+  onToggleDefer,
+}: DecisionWorkingPanelProps): JSX.Element {
+  // The only real state: the working draft + the rationale draft. Seeded once on
+  // mount and RE-SEEDED whenever the selected decision changes (keyed on itemId).
+  const [draft, setDraft] = useState<FormValue>(() =>
+    decision ? seedDraft(decision, initialValue) : {},
+  );
+  const [rationaleDraft, setRationaleDraft] = useState<string>(initialRationale);
+
+  const itemId = decision?.itemId ?? null;
+
+  // Always holds the LATEST typed rationale so the effect cleanup can flush the
+  // freshest value rather than a stale closure capture. Assigned on every render.
+  const rationaleDraftRef = useRef<string>(rationaleDraft);
+  rationaleDraftRef.current = rationaleDraft;
+
+  // Re-seed the draft + rationale whenever the selected decision changes. Keyed
+  // on itemId so switching decisions (or returning to one) reloads its persisted
+  // value rather than carrying the previous decision's edits.
+  //
+  // The cleanup flushes the OUTGOING decision's rationale before re-seeding (and
+  // on unmount). `initialRationale` and `onSaveRationale` here are the closure
+  // values from the render that CREATED this effect -- i.e. bound to the OUTGOING
+  // item -- which is exactly what we want. This covers switches that never blur
+  // the textarea (e.g. programmatic selection); the onBlur save remains as a
+  // complementary, idempotent path. Saving only when the value actually changed
+  // avoids spurious writes and keeps the flush off the keystroke path.
+  useEffect(() => {
+    if (!decision) return;
+    setDraft(seedDraft(decision, initialValue));
+    setRationaleDraft(initialRationale);
+    return () => {
+      if (rationaleDraftRef.current !== initialRationale) {
+        onSaveRationale(rationaleDraftRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemId]);
+
+  // Reactive read of THIS project's stakeholder register, used only by the
+  // stakeholder arm for validity / summary / gate-note. Stable-snapshot pattern:
+  // select the raw byProject bucket (a stable ref) or the frozen empty constant,
+  // and derive the array via useMemo. NEVER call listForProject in the selector
+  // (it mints a fresh array each call -> infinite re-render under Zustand v5).
+  const stakeholderRowsById = useStakeholderRegisterStore(
+    (s) => s.byProject[projectId] ?? EMPTY_STAKEHOLDERS_BY_ID,
+  );
+  const stakeholderRows = useMemo(
+    () => Object.values(stakeholderRowsById),
+    [stakeholderRowsById],
+  );
+
+  // ---------- Empty state ----------
+  if (!decision) {
+    return (
+      <div className={css.root}>
+        <div className={css.empty}>
+          <span className={css.emptyIcon} aria-hidden="true">
+            <MousePointerClick size={22} />
+          </span>
+          <div className={css.emptyTxt}>
+            Select a decision from the list to work through it here.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const fields = decision.fields;
+  const hasFields = Boolean(fields && fields.length > 0);
+
+  // Decode the draft into the labour model once -- reused by validity, the gate
+  // note, and the record summary so labour never routes through the generic
+  // FormValue engine.
+  const labourModel: LabourModel | null = decision.isLabourInventory
+    ? decode(draft)
+    : null;
+
+  // Decode the draft into the classify model once -- reused by validity, the
+  // record summary, and the body renderer (mirrors the labour pattern above).
+  const classifyModel: ClassifyValue | null = decision.isVisionClassify
+    ? decodeClassify(draft)
+    : null;
+
+  // Decode the draft into the boundary model once -- reused by validity, the
+  // gate note, the record summary, and the body renderer (mirrors the labour /
+  // classify patterns above). BoundaryCapture self-routes on itemId internally.
+  const boundaryModel: BoundaryModel | null = decision.isBoundary
+    ? decodeBoundary(decision.itemId, draft)
+    : null;
+
+  // Decode the draft into the steward model once -- reused by validity and the
+  // record summary (mirrors the boundary / labour / classify patterns above).
+  // StewardCapture is controlled over the flat draft and self-derives the
+  // primary-steward display from auth.
+  const stewardModel: StewardModel | null = decision.isSteward
+    ? decodeSteward(draft)
+    : null;
+
+  // Decode the draft into the legal-governance model once -- reused by validity,
+  // the gate note, the record summary, and the body renderer (mirrors the
+  // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
+  const legalGovernanceModel: LegalGovernanceModel | null =
+    decision.isLegalGovernance
+      ? decodeLegalGovernance(decision.itemId, draft)
+      : null;
+
+  // ---------- Validity ----------
+  let valid: boolean;
+  if (decision.isVisionClassify) {
+    valid = isVisionClassifyValid(classifyModel!);
+  } else if (decision.isBoundary) {
+    valid = isBoundaryValid(decision.itemId, boundaryModel!);
+  } else if (decision.isLegalGovernance) {
+    valid = isLegalGovernanceValid(decision.itemId, legalGovernanceModel!);
+  } else if (decision.isLabourInventory) {
+    valid = isLabourValid(labourModel!);
+  } else if (decision.isStakeholder) {
+    valid = isStakeholderValid(decision.itemId, stakeholderRows, draft);
+  } else if (decision.isSteward) {
+    valid = isStewardValid(stewardModel!);
+  } else if (decision.isSuccessCriteria || hasFields) {
+    valid = isFormValueValid(fields ?? [], draft);
+  } else {
+    valid = asString(draft.text).trim() !== '';
+  }
+  const invalid = !valid;
+
+  // ---------- Gate note ----------
+  let gateNote: JSX.Element | null = null;
+  if (invalid) {
+    if (decision.isVisionClassify) {
+      gateNote = (
+        <div className={css.gateNote}>
+          Classify at least one element before recording
+        </div>
+      );
+    } else if (decision.isBoundary) {
+      const mode = boundaryModeFor(decision.itemId);
+      let note: string;
+      if (mode === 'map') {
+        note =
+          'Confirm boundaries have been reviewed on the base layer to record.';
+      } else if (mode === 'doc') {
+        note =
+          decision.itemId === 's1-boundaries-c1'
+            ? 'Set a document status to record.'
+            : 'Select at least one obligation type to record.';
+      } else if (mode === 'mapEntry') {
+        note =
+          'Add at least one easement, or mark "No implications", to record.';
+      } else {
+        // decision mode = c4 (zoning), c5 (water), c7 (permits). c7/permits is
+        // always valid (isBoundaryValid returns true unconditionally), so it
+        // never reaches this gate note; only c4 and c5 do. If permit validity
+        // ever gains a rule, add an explicit c7 arm here so it does not fall
+        // through to the water-source copy.
+        note =
+          decision.itemId === 's1-boundaries-c4'
+            ? 'Select a zoning classification and a review flag to record.'
+            : 'Select at least one water source and a status to record.';
+      }
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isLegalGovernance) {
+      const mode = legalGovernanceModeFor(decision.itemId);
+      const note =
+        mode === 'legalAdviceGate'
+          ? 'Clear all 5 advice-scope items and confirm written advice before recording.'
+          : mode === 'entityDecisionRecord'
+            ? 'Document the rationale (why, enables, constrains) to record.'
+            : 'Complete the required selection to record.';
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isStakeholder) {
+      // Only c1 (mapContact, needs >=1 neighbour) and c2 (contact/authority,
+      // needs >=1 authority) can be invalid; c3/c4/c5/c6 are always valid, so
+      // their modes never reach this gate note.
+      const mode = stakeholderModeFor(decision.itemId);
+      const note =
+        mode === 'mapContact'
+          ? 'Add at least one neighbour to record.'
+          : 'Add at least one authority contact to record.';
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isLabourInventory && labourModel) {
+      const missing: string[] = [];
+      if (labourModel.who === '') missing.push('team');
+      if (labourModel.hours <= 0) missing.push('weekly hours');
+      if (labourModel.skills.length < 1) missing.push('at least one skill');
+      gateNote = (
+        <div className={css.gateNote}>
+          Add <strong>{missing.join(', ')}</strong> before recording
+        </div>
+      );
+    } else if (decision.isSuccessCriteria) {
+      const filled = asArray(draft.criteria).filter(
+        (c) => c.trim() !== '',
+      ).length;
+      const remaining = Math.max(0, MIN_CRITERIA - filled);
+      gateNote = (
+        <div className={css.gateNote}>
+          <strong>{remaining}</strong> more criteria needed before recording
+        </div>
+      );
+    } else {
+      gateNote = (
+        <div className={css.gateNote}>
+          Complete the required fields before recording
+        </div>
+      );
+    }
+  }
+
+  // ---------- Record ----------
+  const handleRecord = () => {
+    if (invalid) return;
+    let summary: string;
+    if (decision.isVisionClassify) {
+      summary = summariseVisionClassify(classifyModel!);
+    } else if (decision.isBoundary) {
+      summary = summariseBoundary(decision.itemId, boundaryModel!);
+    } else if (decision.isLegalGovernance) {
+      summary = summariseLegalGovernance(decision.itemId, legalGovernanceModel!);
+    } else if (decision.isLabourInventory) {
+      summary = summariseLabour(labourModel!);
+    } else if (decision.isStakeholder) {
+      summary = summariseStakeholder(decision.itemId, stakeholderRows, draft);
+    } else if (decision.isSteward) {
+      summary = summariseSteward(stewardModel!);
+    } else if (fields) {
+      summary = summariseFormValue(fields, draft);
+    } else {
+      summary = asString(draft.text);
+    }
+    onRecord(draft, summary);
+  };
+
+  // ---------- Defer label ----------
+  // Two-state, GATED so only targets carrying an explicit deferLabel (e.g. the
+  // steward arm) diverge from the legacy strings. All other targets keep the
+  // byte-for-byte legacy copy.
+  const deferLabelFor = (isDeferred: boolean): string => {
+    if (decision.deferLabel) {
+      return isDeferred ? 'Will add later' : decision.deferLabel;
+    }
+    return isDeferred
+      ? 'Deferred -- needs observation'
+      : 'Not ready -- needs more observation';
+  };
+
+  return (
+    <div className={css.root}>
+      {/* ---------- Header ---------- */}
+      <div className={css.header}>
+        <div className={css.eyebrowRow}>
+          <span className={css.eyebrow}>Working on</span>
+          {recorded ? (
+            <span className={css.recordedBadge}>
+              <Check size={12} />
+              Recorded
+            </span>
+          ) : null}
+        </div>
+        <div className={css.title}>
+          {decision.label}
+          {decision.optional ? (
+            <span className={css.optBadge}>optional</span>
+          ) : null}
+        </div>
+        {decision.prompt ? (
+          <div className={css.hint}>{decision.prompt}</div>
+        ) : null}
+      </div>
+
+      {/* ---------- Body router ---------- */}
+      <div className={css.body}>
+        {decision.isVisionClassify ? (
+          <VisionClassifyCapture
+            key={decision.itemId}
+            value={classifyModel!}
+            onChange={(next) =>
+              setDraft((d) => ({
+                ...d,
+                committed: next.committed,
+                aspirational: next.aspirational,
+              }))
+            }
+            suggestions={visionClassifySuggestions}
+          />
+        ) : decision.isSuccessCriteria ? (
+          <SuccessCriteriaCapture
+            value={{ criteria: asArray(draft.criteria) }}
+            onChange={(next) =>
+              setDraft((d) => ({ ...d, criteria: next.criteria }))
+            }
+            options={successCriteriaOptions}
+          />
+        ) : decision.isLabourInventory ? (
+          <LabourInventoryCapture
+            key={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            skillSuggestions={labourSkillSuggestions ?? []}
+          />
+        ) : decision.isBoundary ? (
+          <BoundaryCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
+        ) : decision.isStakeholder ? (
+          <StakeholderCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            projectId={projectId}
+            resolveOptions={resolveOptions}
+            markerValue={draft}
+            onMarkerChange={setDraft}
+          />
+        ) : decision.isSteward ? (
+          <StewardCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
+        ) : decision.isLegalGovernance ? (
+          <EvLegalGovernanceCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
+        ) : hasFields ? (
+          <VisionFormFields
+            fields={fields ?? []}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
+        ) : (
+          <textarea
+            className={css.fallbackTextarea}
+            aria-label={decision.label}
+            value={asString(draft.text)}
+            placeholder="Capture this decision in your own words."
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, text: e.target.value }))
+            }
+          />
+        )}
+      </div>
+
+      {/* ---------- Footer ---------- */}
+      <div className={css.foot}>
+        {decision.feedsLabel ? (
+          <div className={css.feedsBlock}>
+            <ArrowRight size={14} className={css.feedsIcon} aria-hidden="true" />
+            <div className={css.feedsTxt}>{decision.feedsLabel}</div>
+          </div>
+        ) : null}
+
+        <div className={css.ratBlock}>
+          <div className={css.secLbl}>
+            <span>Why these?</span>
+            <span className={css.secOptional}>(optional)</span>
+          </div>
+          <textarea
+            className={css.ratTa}
+            aria-label="Rationale"
+            value={rationaleDraft}
+            placeholder="What evidence or reasoning shapes this set? (optional)"
+            onChange={(e) => setRationaleDraft(e.target.value)}
+            onBlur={() => onSaveRationale(rationaleDraft)}
+          />
+        </div>
+
+        {gateNote}
+
+        <div className={css.actions}>
+          <button
+            type="button"
+            className={css.recordBtn}
+            disabled={invalid}
+            data-locked={invalid ? 'true' : 'false'}
+            onClick={handleRecord}
+          >
+            <Check size={15} />
+            Record this decision
+          </button>
+          {decision.deferrable === false ? null : (
+            <button
+              type="button"
+              className={css.deferBtn}
+              data-deferred={deferred ? 'true' : 'false'}
+              aria-pressed={deferred}
+              onClick={() => onToggleDefer(!deferred)}
+            >
+              <Clock size={14} className={css.deferIcon} />
+              {deferLabelFor(deferred)}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

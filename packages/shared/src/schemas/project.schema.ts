@@ -32,6 +32,14 @@ export const SoilNotes = z.object({
 }).strict();
 export type SoilNotes = z.infer<typeof SoilNotes>;
 
+export const QueuedTeamInvite = z.object({
+  name: z.string().max(200).optional(),
+  email: z.string().email().max(200),
+  role: z.enum(['team_member', 'contractor', 'landowner', 'reviewer']),
+  queuedAt: z.string().datetime(),
+});
+export type QueuedTeamInvite = z.infer<typeof QueuedTeamInvite>;
+
 export const ProjectMetadata = z.object({
   climateRegion: z.string().max(100).optional(),
   bioregion: z.string().max(100).optional(),
@@ -113,16 +121,7 @@ export const ProjectMetadata = z.object({
         )
         .max(50)
         .optional(),
-      queuedInvites: z
-        .array(
-          z.object({
-            email: z.string().email().max(200),
-            role: z.enum(['team_member', 'contractor', 'landowner', 'reviewer']),
-            queuedAt: z.string().datetime(),
-          }),
-        )
-        .max(50)
-        .optional(),
+      queuedInvites: z.array(QueuedTeamInvite).max(50).optional(),
     })
     .optional(),
   // OLOS Observe Dashboard share-link index (Phase 4 / Slice 4.1). Tokens

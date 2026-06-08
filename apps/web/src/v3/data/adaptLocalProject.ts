@@ -31,6 +31,7 @@ import {
   INTEGRITY_BLOCKER,
   INSUFFICIENT_DATA_VERDICT,
 } from './parcelIntegrity.js';
+import { parcelAreaValue } from '../../lib/geo.js';
 
 const PLACEHOLDER_TIER: ConfidenceTier = 'low';
 
@@ -84,9 +85,10 @@ const PLACEHOLDER_VERDICT: Verdict = {
  *  to `'observe'` so the v3 stage banner renders something sensible. */
 const DEFAULT_STAGE: LifecycleStage = 'discover';
 
-/** Cheap guard: real LocalProject acreage is in the project's preferred unit
- *  (`metric` → ha, `imperial` → ac). v3 carries the unit alongside the value
- *  so downstream pages render the right suffix. */
+/** v3 display unit for a project: hectares for metric, acres for imperial.
+ *  `LocalProject.acreage` is canonically ACRES; callers must convert the value
+ *  to this unit (see `parcelAreaValue`) so v3's `acreage`/`acreageUnit` pair
+ *  stays consistent (downstream filters/compare assume value is in the unit). */
 function unitOf(p: LocalProject): 'ac' | 'ha' {
   return p.units === 'imperial' ? 'ac' : 'ha';
 }
@@ -171,7 +173,7 @@ export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Pro
     location: {
       region: p.provinceState ? `${p.provinceState}, ${p.country}` : p.country,
       country: p.country,
-      acreage: areaValid ? (p.acreage as number) : 0,
+      acreage: areaValid ? parcelAreaValue(p.acreage as number, p.units) : 0,
       acreageUnit: unitOf(p),
       areaKnown: areaValid,
       ...(polygon ? { boundary: polygon } : {}),

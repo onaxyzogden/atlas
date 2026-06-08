@@ -245,8 +245,11 @@ See [[decisions/2026-06-04-atlas-act-adopt-and-draw-snapping]] (commits `9d0ddae
 
 ## Routes
 
-- `act/tier-shell` — dashboard mode
-- `act/tier-shell/$objectiveId` — objective-execution mode
+- `act/tier-shell` — dashboard mode (S1 landing; always reachable)
+- `act/tier-shell/$objectiveId` — objective-execution mode; `beforeLoad` guard redirects to `act/tier-shell` if the objective is locked by the Plan prerequisite gate
+- `act/tier-shell/stratum/$stratumId` — stratum-bearing tier shell (URL-parity with Plan's `plan/stratum/$stratumId`); `beforeLoad` guard redirects to `act/tier-shell` if the stratum is locked
+
+Both guarded routes use `buildActLockContext(projectId)` — reads hydrated Zustand stores synchronously, runs `computeEffectiveProgress` + `computeAllObjectiveStatuses` + `computeAllStratumStates`, returns `undefined` when DEV unlock (`useDevUnlockStore.unlockAll`) is on. Guard short-circuits on unknown project or unknown objective id. See [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]].
 
 ## Data: Evidence capture persistence
 
@@ -820,12 +823,26 @@ top-left `BaseMapCard` (bottom corners hold `MapToolbar` bottom-left and the
 `SectorCompass` overlay bottom-right). The default preserves Plan/DesignPage
 behavior exactly.
 
-**Known limitation (not a regression):** `api.exports.generate` requires a real
-server project UUID. The `mtc` seed-only demo project has **no `serverId`**, so
-generate returns `invalid input syntax for type uuid: "mtc"` -- the Plan control
-fails identically on `mtc`; it is a backend/demo-data constraint, not introduced
-by this mount. The UI restore (pill top-right, popover, capture->POST) is fully
-DOM-proven. Log: [[log/2026-06-05-act-tier-pdf-export-toolbar]].
+**Known limitation, now fixed (`09b92fea`):** `api.exports.generate` requires a
+real server project UUID, but `MapSheetExportControl` was passing its `projectId`
+prop -- the **local** id -- straight to the exports API. That id-space confusion
+meant Plan-stage export was already broken for **every synced project** (local
+`id` != `serverId` -> 404); the `mtc` seed-only demo (no `serverId`, builtin,
+intentionally never synced) just surfaced it loudly as `invalid input syntax for
+type uuid: "mtc"`. The control now resolves the backing project from
+`useProjectStore` by the local id and sends its **`serverId`** to the API; store
+filtering for zones/guilds/crops still uses the local `projectId`. When no
+`serverId` exists (the `mtc` builtin or any unsynced project) the picker is
+**disabled and annotated** -- "PDF export isn't available for the demo project."
+(builtin) or "Save this project to the server to enable PDF export." (regular
+unsynced) -- instead of firing a request the backend rejects, matching the
+`!!serverId` gating precedent (`TaskProofPanel`, `useActObjectiveTaskBridge`).
+Both mounts (Plan `DesignPage`, Act `ActTierShell`) keep passing `projectId`
+unchanged; the component resolves `serverId` internally. "Seed a server record
+for `mtc`" was rejected -- builtins never sync (`syncProjectNow()` no-ops on
+`isBuiltin`). The UI restore (pill top-right, popover, capture->POST) is fully
+DOM-proven. Logs: [[log/2026-06-05-act-tier-pdf-export-toolbar]],
+[[log/2026-06-05-mapsheet-export-server-id-aware]].
 
 ## SectorCompass HUD -> right-rail sectors editor (2026-06-04)
 
@@ -1735,3 +1752,152 @@ Roadmapped next: live e2e smoke (NOT YET RUN), then the multi-session
 - TS gotcha: discriminant narrowing of `tool.arm` is DROPPED inside a nested
   `.find` closure -- hoist `const arm = tool.arm` before the closure.
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
+
+## Plan prerequisite gate: deep-link protection (2026-06-07)
+
+Two TanStack Router v1 `beforeLoad` guards close the deep-link bypass gap that
+existed after `67d184c9` wired `STRATUM_PREREQS` into the `obj()` authoring helper.
+The interactive paths (handleSelectObjective / handleSelectStratum in ActTierShell)
+already enforced the gate; direct URL navigation bypassed it entirely.
+
+Commit `e0a65aca` (`apps/web/src/routes/index.tsx`, 87 insertions):
+
+**`buildActLockContext(projectId)`** -- shared synchronous helper called by both
+guards. Reads `useProjectStore` + `usePlanStratumProgressStore` via `.getState()`
+(synchronous; Zustand persist middleware hydrates from localStorage before the
+first render). Derives `computeEffectiveProgress` -> `computeAllObjectiveStatuses`.
+Returns `{ statuses, objectives }` or `undefined` (project not found, or
+`import.meta.env.DEV && useDevUnlockStore.getState().unlockAll`).
+
+**Objective guard** (`v3ActTierShellObjectiveRoute`): if
+`statuses[objectiveId] ?? 'locked'` === `'locked'`, throws
+`redirect({ to: '/v3/project/$projectId/act/tier-shell', params: { projectId } })`.
+Unknown objectiveId passes through (component handles gracefully).
+
+**Stratum guard** (`v3ActTierShellStratumRoute`): calls `computeAllStratumStates`
+on `PLAN_STRATA.map(s => s.id)` + the objective statuses map; if
+`stratumStates[stratumId] ?? 'locked'` === `'locked'`, same redirect target.
+
+**Smoke-verified** via `window.__TSR_ROUTER__.navigate()` on MTC:
+- locked objective -> redirects to `act/tier-shell` (PASS)
+- unlocked objective -> renders (PASS)
+- locked stratum -> redirects to `act/tier-shell` (PASS)
+- DEV unlock ON -> no redirect for same locked URLs (PASS)
+- DEV unlock OFF -> redirects again (PASS)
+
+ADR: [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]].
+
+## EvLegalGovernanceCapture: ev-s1-legal-governance 8-decision Tier-0 surface (SP1 Group 2, 2026-06-07)
+
+Second BUILD group of the OLOS mockup-batch rollout (Ecovillage vertical), after
+the Boundaries re-decompose (Group 1). Gives the Ecovillage objective
+`ev-s1-legal-governance` (EV-S1.4 "Legal entity, tenure & governance model") a
+bespoke 8-decision Decision Workbench faithful to the operator mockup
+`olos_legal_entity_tenure_financial.html`. Clones the proven self-routing capture
+pattern (Boundaries / Stakeholders / Stewards): ONE `isLegalGovernance` flag +
+ONE body-router arm in `DecisionWorkingPanel`, with a pure TOTAL
+`legalGovernanceModeFor(itemId)` driving both the right-panel body and the
+`DecisionList` mode badge.
+
+**New file:** `EvLegalGovernanceCapture.tsx` (+ test). Exports
+`legalGovernanceModeFor` / `decodeLegalGovernance` / `isLegalGovernanceValid` /
+`summariseLegalGovernance` / `emitLegalGovernance` (private `encodeLegalGovernance`).
+
+**Eight modes (item -> mode -> badge):** c1 `legalEntityPicker` (Entity options,
+5 choice cards), **c8 `jurisdiction`** (Jurisdiction; country + province +
+reg-office selects + read-only jurisdiction note), c2 `entityDecisionRecord`
+(Decision record; 3 textareas), c3 `tenureModel` (Tenure model; 4 cards), c4
+`decisionFramework` (Decision framework; 4 cards + quorum), c5
+`financialGovernance` (Financial governance; banking cards + 3 thresholds +
+FY-end), c6 `membershipRegister` (Membership register; 2 multi-select checklists),
+c7 `legalAdviceGate` (Legal advice gate; **HARD GATE**).
+
+**c8 is a NEW catalogue item** added additively at slot 2 of dg1 in
+`ecovillage.ts` (objective now 8 items / dg1 holds 3; item ids are arbitrary
+strings, so c2-c7 were not renumbered; no item retired -> no persisted-value
+orphaning).
+
+**FIVE coupled id sources (load-bearing).** A per-item id for this objective is
+referenced from: (1) `ecovillage.ts` checklist, (2) `ecovillage.ts` dg1.itemIds,
+(3) `objectiveActTools.ts` OBJECTIVE_ACT_TOOLS_OVERRIDE, (4) `actToolCatalog.ts`
+ACT_TOOL_CATALOG, (5) the capture's `legalGovernanceModeFor`. The initial edit
+updated only 1-3; source 4 was missed, turning `actToolCoverage.test.ts` red and
+leaving c8's panel without a header prompt. `actToolCoverage.test.ts` is the guard
+for a missed ACT_TOOL_CATALOG entry.
+
+**c7 legal-advice HARD GATE:** `isLegalGovernanceValid` for c7 is true only when
+`adviceScope.length >= 5 && adviceWritten === 'yes'` (the scope checklist has
+exactly 5 items). Record disabled + gate note "Clear all 5 advice-scope items and
+confirm written advice before recording" until cleared; `adviceDate` recorded but
+not gated. Mirrors the Group 1 c4 title-checker gate.
+
+**FormValue encoding:** flat `string | string[]`; scalars as strings, c6
+rights/obligations as independent string arrays (not zipped rows);
+`encodeLegalGovernance` is the exact inverse of `decodeLegalGovernance` per mode
+(round-trip unit-tested); decoders TOTAL; no object array / no `any`.
+
+**No store / no DecisionWorkingPanel-shape change** beyond the one flag + four
+arms; predicate widen only -- `ev-s1-legal-governance` added to
+`TIER_ZERO_OBJECTIVE_IDS`; persists via the existing
+`actEvidenceStore.visionFormData[itemId]` path.
+
+**Amanah:** c5 financial-governance covers custody/authorisation/reporting only
+(no riba, no gharar); equity-share tenure + share-company options are
+musharaka-like ownership, not riba; no CSA/advance-purchase/CSRA/salam framing, so
+no Scholar-Council routing required (unlike Group 3). One-line Amanah comment on
+the c5 mode.
+
+ADR: [[decisions/2026-06-07-atlas-ev-legal-governance-capture]]; Log:
+[[log/2026-06-07-atlas-ev-legal-governance-capture]].
+
+## Boundaries: s1-boundaries reverted to the 7-item mixed-mode mockup (2026-06-08)
+
+The shipped 5-register `s1-boundaries` surface (SP1 Group 1,
+[[decisions/2026-06-07-atlas-boundaries-redecompose]]) was **reverted for this
+objective** to the EARLIER 7-item mixed-mode shape, on operator instruction to
+match `olos_boundaries_legal_mixed_surface.html`. The mixed surface had been
+preserved as `BoundaryCaptureLegacy.tsx` precisely for this; the revival is a
+catalogue re-decompose + import swap (no change to the legacy component's
+resolver/decode/encode/valid/summarise).
+
+- **Catalogue (`universal.ts`):** `s1-boundaries` rewritten to 7 items in mockup
+  order `[c2, c1, c3, c4, c5, c6, c7]` / 2 groups -- dg1 "Title & boundary" =
+  [c2, c1], dg2 "Legal & permit obligations" = [c3, c4, c5, c6, c7]. Title
+  "Establish site boundaries & legal constraints"; verbatim mockup labels;
+  completion gate; `actHandoff` "Legal & Boundary Constraints Brief"; ref
+  `U-S1.2`. The 5 register ids retire (local-only surface, no migration).
+- **Live capture:** `DecisionWorkingPanel` + `ActTierZeroWorkbench` re-point
+  `./BoundaryCapture.js` -> `./BoundaryCaptureLegacy.js` (identical symbols).
+  Modes: c2->map, c1->doc(titleDeed), c3->mapEntry, c4->decision(zoning),
+  c5->decision(water), c6->doc(covenant), c7->decision(permits). Panel boundary
+  gate-note arm rewritten per mode (c7/permits always valid -> no note).
+- **Two new optional schema fields** on `PlanDecisionChecklistItemSchema`:
+  `feedHint` (short centre-column chip) + `feedNote` (longer right-panel
+  feeds-block callout); both free display text, distinct from the
+  objective-id-typed `feedsInto`; `ck()` gained an `opts` param. Absent on every
+  prior item -> all catalogues validate unchanged. `feedHint` on c3/c4/c5;
+  `feedNote` on c1/c3/c4/c5/c6/c7.
+- **`DecisionList` (shared, all gated):** opt-in `showGroups` prop (default
+  false) renders `.dGroup` dividers per group; `MODE_ICONS` (doc->FileText,
+  map->MapIcon, mapEntry->MapPin, decision->Scale) prepends a badge icon for
+  known modes; a `feedHint` chip falls back to the `feedsInto`-derived chip.
+  Workbench passes `showGroups={isBoundaryObjective}` and routes `feedNote` into
+  `feedsLabel`. Stakeholders / legal-governance / every other Tier-0 surface are
+  UNCHANGED (flat list, text-only badges). The lucide `Map` icon is imported
+  `as MapIcon` to avoid shadowing the global `Map`.
+- **No deletion:** the register `BoundaryCapture.tsx` + 44-test suite stay on
+  disk, unwired. Filenames now inverted vs roles (register = dead, "Legacy" =
+  live); rename deferred.
+
+**Verified:** shared + web `tsc` EXIT 0; bounded `--pool=forks` green
+(catalogues 105; DecisionWorkingPanel 55; DecisionList 23; BoundaryCaptureLegacy
+57 live; BoundaryCapture 44 unwired; ActTierZeroWorkbench 37). Final
+code-quality review APPROVE WITH NITS (no regression to other Tier-0 surfaces).
+Live preview DOM-verified (`preview_screenshot` hung on the Act map canvas --
+transient, [[project-screenshot-hang]]; used `preview_eval`): centre = 7 items
+under 2 group dividers, all badges iconed, feed chips on c3/c4/c5; right panel =
+correct body + verbatim `feedNote` callout + correct per-mode gate note. Commits
+`15d9482b` (BR1) -> `38df407b` (BR3) -> `66a3202f` (BR4) -> `620cd45d` (BR5) ->
+`4da47016` (BR6) -> `9d77a306` (polish). ADR
+[[decisions/2026-06-08-atlas-boundaries-mixed-mode]]; Log
+[[log/2026-06-08-atlas-boundaries-mixed-mode]].

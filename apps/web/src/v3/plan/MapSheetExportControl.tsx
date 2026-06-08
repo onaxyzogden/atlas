@@ -26,6 +26,7 @@ import {
 } from "../../store/zoneStore.js";
 import { usePolycultureStore, type Guild } from "../../store/polycultureStore.js";
 import { useCropStore, type CropArea, type CropAreaType } from "../../store/cropStore.js";
+import { useProjectStore } from "../../store/projectStore.js";
 import { findEntry } from "../../data/plantCatalog.js";
 import { captureMapImage } from "./captureMapImage.js";
 import { MapControlPopover } from "../../components/ui/MapControlPopover.js";
@@ -220,6 +221,18 @@ export default function MapSheetExportControl({
   const guilds = usePolycultureStore((s) => s.guilds).filter((g) => g.projectId === projectId);
   const cropAreas = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === projectId);
 
+  // The stores above are keyed by the LOCAL project id (the `projectId` prop). The
+  // exports API, however, addresses a project by its server UUID, so resolve the backing
+  // project and use its `serverId` for the network call. Projects without a `serverId`
+  // (the local-only `mtc` demo, or any project not yet synced) cannot export -- the
+  // picker is disabled and annotated rather than firing a request the backend rejects.
+  const project = useProjectStore((s) =>
+    s.projects.find((p) => p.id === projectId || p.serverId === projectId),
+  );
+  const serverId = project?.serverId ?? null;
+  const isBuiltin = project?.isBuiltin ?? false;
+  const canExport = serverId !== null;
+
   const [open, setOpen] = useState(false);
   const [generatingType, setGeneratingType] = useState<SheetExportType | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -227,6 +240,7 @@ export default function MapSheetExportControl({
 
   const handleExport = useCallback(
     async (type: SheetExportType) => {
+      if (serverId === null) return;
       setOpen(false);
       setGeneratingType(type);
       setError(null);
@@ -241,7 +255,7 @@ export default function MapSheetExportControl({
                 buildPlantingSchedule(guilds, cropAreas),
               )
             : buildMapSheetPayload(type, captured, zones);
-        const { data } = await api.exports.generate(projectId, {
+        const { data } = await api.exports.generate(serverId, {
           exportType: type,
           payload,
         });
@@ -252,7 +266,7 @@ export default function MapSheetExportControl({
         setGeneratingType(null);
       }
     },
-    [map, projectId, zones, guilds, cropAreas],
+    [map, serverId, zones, guilds, cropAreas],
   );
 
   const busy = generatingType !== null;
@@ -273,9 +287,10 @@ export default function MapSheetExportControl({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        disabled={busy}
+        disabled={busy || !canExport}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-disabled={!canExport}
         style={{
           display: "flex",
           alignItems: "center",
@@ -287,13 +302,30 @@ export default function MapSheetExportControl({
           borderRadius: 8,
           background: group.reporting,
           color: "#fff",
-          cursor: busy ? "not-allowed" : "pointer",
-          opacity: busy ? 0.7 : 1,
+          cursor: busy || !canExport ? "not-allowed" : "pointer",
+          opacity: busy || !canExport ? 0.7 : 1,
           boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
         }}
       >
         {busy ? `Exporting ${SHEET_LABEL[generatingType!]}…` : "Export sheet ▾"}
       </button>
+
+      {!canExport && (
+        <div
+          style={{
+            fontSize: 10,
+            color: "#fff",
+            background: "rgba(15,23,42,0.85)",
+            padding: "4px 8px",
+            borderRadius: 6,
+            maxWidth: 240,
+          }}
+        >
+          {isBuiltin
+            ? "PDF export isn't available for the demo project."
+            : "Save this project to the server to enable PDF export."}
+        </div>
+      )}
 
       {open && !busy && (
         <MapControlPopover

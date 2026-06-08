@@ -31,6 +31,24 @@
   min-width: 0;
 }
 
+/* Transient Tier-0 placeholder: shown on a cold deep-link to the s1-vision
+   route while the per-project objective set hydrates, in place of the map
+   shell. Non-map by design (no WebGL) so the swap to the inline decision
+   workbench never flickers through DiagnoseMap. */
+.tierZeroLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg, #14191f);
+}
+
+.tierZeroLoadingText {
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #8b97a3);
+}
+
 /* StageShell's bottom grid slot has min-width: auto (default for grid
    items), so a content-sized bottomTray like our .toolsPanel grows past the
    layout column. Scoping min-width: 0 to .tierShell keeps the fix isolated
@@ -155,6 +173,19 @@
   );
 }
 
+/* Plan-prerequisite lock gate. The tab stays clickable (the click opens the
+   explanatory popover), so this is a muted/disabled *look*, not pointer-events
+   off. aria-disabled carries the real semantics for assistive tech. */
+.tier[data-locked='true'] {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.tier[data-locked='true']:hover {
+  border-color: var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
 .tierTop {
   display: flex;
   align-items: center;
@@ -186,6 +217,11 @@
 .tierStateChip[data-status='active'] {
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 30%, transparent);
   color: var(--color-gold-brand, #c4a265);
+}
+
+.tierStateChip[data-status='locked'] {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 12%, transparent);
+  color: color-mix(in srgb, var(--color-text, #f2ede3) 55%, transparent);
 }
 
 .tierTitle {

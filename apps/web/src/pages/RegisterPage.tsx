@@ -89,7 +89,11 @@ export default function RegisterPage() {
 
       // 2. Route based on the locked tier-aware flags.
       if (!wantsTemplate) {
-        navigate({ to: '/home' });
+        // New accounts start unverified (soft gate). Surface the
+        // "check your email" note briefly before landing on /home so the
+        // verification email isn't a surprise.
+        setStageNote(`We've sent a verification link to ${email}. You can verify anytime — taking you to your projects…`);
+        setTimeout(() => navigate({ to: '/home' }), 1600);
         return;
       }
 

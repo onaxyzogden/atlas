@@ -113,6 +113,13 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
 
   useEffect(() => {
     if (!enabled) return;
+    // Force a crosshair for the whole draw session. mapbox-gl-draw queues its
+    // `mode-*` cursor classes and only flushes them in its render handler, which
+    // never fires under MapLibre until the first mouse-move -- so CSS keyed on
+    // those classes can't hold the crosshair from mode-start. Set it directly on
+    // the canvas (the WizardDrawRectangleTool precedent) and restore on teardown.
+    const canvas = map.getCanvas();
+    const prevCursor = canvas.style.cursor;
     // Snap is only meaningful for the line/polygon modes; point drops never
     // snap. When armed, register the custom snap modes alongside the stock set.
     const snapMode =
@@ -145,6 +152,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     // its behaviour is unchanged.
     try {
       map.addControl(draw);
+      canvas.style.cursor = 'crosshair';
       // MapboxDraw's `changeMode` is typed as a string-literal overload that
       // doesn't include our union directly; cast through to satisfy. When a
       // snap mode is active, enter it with the snap targets captured now.
@@ -294,6 +302,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
       setLiveLength(null);
       // Guard the whole map teardown: the map may already be disposed.
       try {
+        canvas.style.cursor = prevCursor;
         map.off('draw.create', onCreate);
         map.off('draw.render', onRender);
         map.removeControl(draw);

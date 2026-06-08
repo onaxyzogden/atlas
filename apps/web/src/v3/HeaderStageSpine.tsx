@@ -20,6 +20,7 @@
  */
 
 import { useRouterState, useNavigate } from '@tanstack/react-router';
+import DevUnlockToggle from './DevUnlockToggle.js';
 import StageSpine from './compass/StageSpine.js';
 import { useCompassData } from './compass/useCompassData.js';
 import { usePlanCompassData } from './plan/compass/usePlanCompassData.js';
@@ -132,10 +133,15 @@ export default function HeaderStageSpine() {
   };
 
   return (
-    <StageSpine
-      activeStage={activeStage}
-      progressByStage={progressByStage}
-      onNavigateStage={onNavigateStage}
-    />
+    <>
+      <StageSpine
+        activeStage={activeStage}
+        progressByStage={progressByStage}
+        onNavigateStage={onNavigateStage}
+      />
+      {/* DEV-only: bypass the Plan prerequisite lock gate. Self-gates on
+          import.meta.env.DEV (renders null in production). */}
+      <DevUnlockToggle />
+    </>
   );
 }

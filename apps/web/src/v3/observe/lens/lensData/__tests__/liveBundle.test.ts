@@ -30,8 +30,10 @@ import {
 import {
   buildLiveLensBundle,
   buildObservationPins,
+  buildDeclaredIntentPoint,
   computeDomainRollups,
 } from '../liveBundle.js';
+import type { LocalProject } from '../../../../../store/projectStore.js';
 
 // Fixed baseline so freshness / ages are deterministic (matches the seed era).
 const NOW_MS = Date.parse('2026-06-03T12:00:00.000Z');
@@ -253,5 +255,156 @@ describe('buildLiveLensBundle -- specialised from seed captures', () => {
     )!;
     expect(econSub.points).toHaveLength(0);
     expect(econSub.emptyNote).toBeTruthy();
+  });
+});
+
+describe('buildDeclaredIntentPoint', () => {
+  // The composer only touches project.metadata.visionProfile; a partial cast
+  // keeps the fixtures minimal without standing up a full LocalProject.
+  const projectWith = (visionProfile: unknown): LocalProject =>
+    ({ metadata: { visionProfile } }) as unknown as LocalProject;
+
+  it('returns null when the project carries no visionProfile', () => {
+    expect(buildDeclaredIntentPoint(undefined)).toBeNull();
+    expect(
+      buildDeclaredIntentPoint({ metadata: {} } as unknown as LocalProject),
+    ).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith(undefined))).toBeNull();
+  });
+
+  it('returns null when the visionProfile has no surfaceable content', () => {
+    expect(buildDeclaredIntentPoint(projectWith({}))).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith({ landIdentity: ['   '] }))).toBeNull();
+    expect(buildDeclaredIntentPoint(projectWith({ primaryOutcomes: [] }))).toBeNull();
+  });
+
+  it('composes a low-confidence declaration point from a full visionProfile', () => {
+    const pt = buildDeclaredIntentPoint(
+      projectWith({
+        landIdentity: ['A quiet regenerative homestead for the family'],
+        primaryOutcomes: ['soil_regeneration', 'food_for_community'],
+        budgetRange: 'over_500k', // known id (ASCII label)
+        timelineProgress: 'immediately', // known id
+        resourceConstraints: ['part_time_solo'], // wizard-local id -> humanized
+        updatedAt: '2026-05-20T10:00:00.000Z',
+      }),
+    );
+    expect(pt).not.toBeNull();
+    expect(pt!.type).toBe('declaration');
+    expect(pt!.confidence).toBe('low');
+    expect(pt!.label).toBe('Declared project intent');
+    // The free-text statement wins as the headline value.
+    expect(pt!.value).toBe('A quiet regenerative homestead for the family');
+    // Notes compose known-id labels + a humanized fallback, omitting absent fields.
+    expect(pt!.notes).toContain('Vision: A quiet regenerative homestead for the family');
+    expect(pt!.notes).toContain('Goals: Soil regeneration, Food for family / community');
+    expect(pt!.notes).toContain('Budget: $500,000+');
+    expect(pt!.notes).toContain('Timeline: Immediately');
+    expect(pt!.notes).toContain('Labour: Part time solo');
+    expect(pt!.recordedAt).toBe('20 May 2026');
+    expect(pt!.observedAt).toBe('20 May 2026');
+  });
+
+  it('falls back to outcome labels for the value when no statement exists', () => {
+    const pt = buildDeclaredIntentPoint(
+      projectWith({ primaryOutcomes: ['soil_regeneration'] }),
+    );
+    expect(pt).not.toBeNull();
+    expect(pt!.value).toBe('Soil regeneration');
+    expect(pt!.notes).toBe('Goals: Soil regeneration');
+    // No date fields when the profile has no updatedAt/completedAt.
+    expect(pt!.recordedAt).toBeUndefined();
+  });
+
+  it('surfaces a statement-only profile', () => {
+    const pt = buildDeclaredIntentPoint(projectWith({ landIdentity: ['Just a vision'] }));
+    expect(pt!.value).toBe('Just a vision');
+    expect(pt!.notes).toBe('Vision: Just a vision');
+  });
+});
+
+describe('buildLiveLensBundle -- declaredIntent injection (vision-intent only)', () => {
+  const VISION_LABEL = UNIVERSAL_DOMAIN_LABELS['vision-intent'];
+  const declared = buildDeclaredIntentPoint(
+    { metadata: { visionProfile: { landIdentity: ['A regenerative homestead'] } } } as unknown as LocalProject,
+  )!;
+
+  const baseInput = {
+    nowMs: NOW_MS,
+    projectName: 'Greenfield',
+    projectTypeLabel: 'Homestead',
+    getSlot: getMeasurementSlot,
+  } as const;
+
+  // A project with ZERO observe points -- the real-world case the feature targets.
+  const emptyWith = buildLiveLensBundle({ ...baseInput, points: [], declaredIntent: declared });
+  const emptyNull = buildLiveLensBundle({ ...baseInput, points: [], declaredIntent: null });
+
+  const humanKeyDatum = (b: typeof emptyWith) =>
+    b.lenses.find((l) => l.id === 'human')!.keyData.find((k) => k.label === VISION_LABEL)!;
+  const visionSub = (b: typeof emptyWith) =>
+    b.domainDetail['human']!.subdomains.find((s) => s.label === VISION_LABEL)!;
+
+  it('surfaces "Declared" in the vision-intent keyData row when 0 real observations', () => {
+    expect(humanKeyDatum(emptyWith).value).toBe('Declared');
+    expect(humanKeyDatum(emptyWith).confidence).toBe('low');
+    // Without a declaration the same row honestly reads "Not yet observed".
+    expect(humanKeyDatum(emptyNull).value).toBe('Not yet observed');
+  });
+
+  it('prepends the declared-intent row into the vision-intent slide-up and clears the empty note', () => {
+    const sub = visionSub(emptyWith);
+    expect(sub.points).toHaveLength(1);
+    expect(sub.points[0]!.id).toBe('declared-intent');
+    expect(sub.points[0]!.type).toBe('declaration');
+    expect(sub.emptyNote).toBeUndefined();
+    // The null build keeps the honest empty state.
+    expect(visionSub(emptyNull).points).toHaveLength(0);
+    expect(visionSub(emptyNull).emptyNote).toBeTruthy();
+  });
+
+  it('exposes a row glyph for the declaration type via the live typeIcon table', () => {
+    expect(emptyWith.typeIcon.declaration).toBe('◆');
+  });
+
+  it('HONESTY: the declaration inflates no observation count', () => {
+    // Every count-bearing field is byte-identical to the declaredIntent:null build.
+    expect(emptyWith.project.totalDataPoints).toBe(emptyNull.project.totalDataPoints);
+    expect(emptyWith.project.totalDataPoints).toBe(0);
+    expect(emptyWith.project.domainsMissingCount).toBe(emptyNull.project.domainsMissingCount);
+    expect(emptyWith.project.domainsCurrentCount).toBe(emptyNull.project.domainsCurrentCount);
+    expect(emptyWith.project.domainsAgeingCount).toBe(emptyNull.project.domainsAgeingCount);
+    // Per-lens observation badges + freshness unchanged.
+    for (const id of OBSERVE_LENS_IDS) {
+      const w = emptyWith.lenses.find((l) => l.id === id)!;
+      const n = emptyNull.lenses.find((l) => l.id === id)!;
+      expect(w.observations).toBe(n.observations);
+      expect(w.observations).toBe(0);
+      expect(w.freshness).toBe(n.freshness);
+      expect(w.summary).toBe(n.summary);
+    }
+  });
+
+  it('does not override an observed status: real observations win the keyData headline', () => {
+    // The MTC seed carries a real vision-intent observation; a declaration must
+    // not replace its observed status, but still appears in the slide-up.
+    const withDecl = buildLiveLensBundle({
+      points: POINTS,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+      getSlot: getMeasurementSlot,
+      declaredIntent: declared,
+    });
+    const kd = withDecl.lenses.find((l) => l.id === 'human')!.keyData.find((k) => k.label === VISION_LABEL)!;
+    expect(kd.value).not.toBe('Declared');
+    // Observation count is unchanged from the no-declaration build.
+    expect(withDecl.lenses.find((l) => l.id === 'human')!.observations).toBe(
+      bundle.lenses.find((l) => l.id === 'human')!.observations,
+    );
+    // The slide-up shows the declaration prepended ahead of the real observation.
+    const sub = withDecl.domainDetail['human']!.subdomains.find((s) => s.label === VISION_LABEL)!;
+    expect(sub.points[0]!.id).toBe('declared-intent');
+    expect(sub.points.length).toBeGreaterThanOrEqual(2);
   });
 });

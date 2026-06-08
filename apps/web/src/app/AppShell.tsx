@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
+import { DEMO_MODE_ENABLED, isDemoUser } from './demoSession.js';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
@@ -83,8 +84,20 @@ export default function AppShell({ children }: AppShellProps) {
           )}
         </button>
 
-        {/* Auth: show user email or Sign In link */}
-        {token ? (
+        {/* Auth: in demo mode a "Demo mode" badge + Sign in link (signals the
+            product is not "ready" and gives the team a path to real login —
+            signing in overwrites the throwaway token); otherwise the usual
+            account/sign-out button or Sign In link. */}
+        {DEMO_MODE_ENABLED && isDemoUser(user) ? (
+          <>
+            <span className={styles.demoBadge} title="You are exploring a demo session">
+              Demo mode
+            </span>
+            <Link to="/login" className={styles.signInLink}>
+              Sign in
+            </Link>
+          </>
+        ) : token ? (
           <button
             onClick={logout}
             title={`Signed in as ${user?.email ?? ''} — click to sign out`}

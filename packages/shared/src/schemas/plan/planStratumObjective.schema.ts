@@ -196,6 +196,21 @@ export const PlanDecisionChecklistItemSchema = z.object({
    * feed into. Surfaced as chips in the YOUR DECISIONS section per spec.
    */
   feedsInto: z.array(z.string()).default([]),
+  /**
+   * Optional SHORT feed caption rendered as the per-row chip in the Tier-0
+   * DecisionList centre column (mockup `.d-feed`, e.g. "Feeds Plan: Land use
+   * constraint map"). Free display text -- NOT a downstream objective id (that
+   * is `feedsInto`). Absent on every existing item, so the seed + catalogues
+   * validate unchanged.
+   */
+  feedHint: z.string().min(1).optional(),
+  /**
+   * Optional LONGER feed caption rendered as the in-panel feeds-block callout
+   * in DecisionWorkingPanel (mockup `.feeds-block`). Free display text. Routed
+   * through the panel's existing `feedsLabel` feeds-block render. Absent on
+   * every existing item.
+   */
+  feedNote: z.string().min(1).optional(),
   optional: z.boolean().default(false),
   /**
    * Marks a "how-to" / methodology item (a way of working) rather than a

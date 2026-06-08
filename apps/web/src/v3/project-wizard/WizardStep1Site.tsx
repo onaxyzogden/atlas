@@ -26,7 +26,7 @@ import {
   type WizardUnits,
 } from '../../store/projectWizardStore.js';
 import { syncProjectNow } from '../../lib/syncService.js';
-import { parcelAcreage } from '../../lib/geo.js';
+import { parcelAcres } from '../../lib/geo.js';
 import { toast } from '../../components/Toast.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
 import WizardSiteMap from './WizardSiteMap.js';
@@ -131,7 +131,7 @@ export default function WizardStep1Site() {
       });
       // Persist boundary immediately so a refresh after Next never loses it.
       const fc = toFeatureCollection(draft.draftBoundary);
-      const acreage = fc ? parcelAcreage(fc, draft.units) : null;
+      const acreage = fc ? parcelAcres(fc) : null;
       updateProject(project.id, {
         parcelBoundaryGeojson: fc,
         hasParcelBoundary: Boolean(fc),

@@ -46,6 +46,7 @@ import {
   type LocalProject,
 } from '../../../../store/projectStore.js';
 import { FRESHNESS, TYPE_ICON } from '../mockData.js';
+import { VISION_QUESTIONS } from '../../../stage-zero/data/visionBuilderQuestions.js';
 import {
   buildSpecialisedForLens,
   type SlotResolver,
@@ -460,6 +461,13 @@ export interface LiveBundleInput {
   parcelBoundary?: GeoJSON.FeatureCollection | null;
   /** True when boundary/points came from a builtin seed (drives the badge). */
   isDemoGeometry?: boolean;
+  /**
+   * Read-side declared-intent projection (from buildDeclaredIntentPoint), or null
+   * when the project has no declared vision. Surfaced ONLY in the vision-intent
+   * domain's keyData value + subdomain row; never counted as a field observation
+   * (lens.observations, project.totalDataPoints, freshness all ignore it).
+   */
+  declaredIntent?: DataPoint | null;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -468,6 +476,12 @@ const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
   { id: 'obs', label: 'Observe', color: '#5AAF72', startPct: 72, endPct: 100, days: 50 },
 ];
 const NOMINAL_TOTAL_DAYS = 180;
+
+// Live row-icon table: the mock TYPE_ICON plus a glyph for the read-side
+// 'declaration' type (declared intent). mockData.ts stays byte-untouched; this
+// live-only extension is returned as the bundle's typeIcon so DataPointRow can
+// resolve the declared-intent row. Filled diamond pairs with the Human lens '◇'.
+const LIVE_TYPE_ICON: Record<string, string> = { ...TYPE_ICON, declaration: '◆' };
 
 /**
  * Pure mapper: live ObserveDataPoint[] -> LensDataBundle. No React, no stores.
@@ -515,6 +529,16 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
 
     const keyData: KeyDatum[] = lens.domains.map((d): KeyDatum => {
       const s = rollups.get(d)!;
+      // A declared vision surfaces as "Declared" in the vision-intent row ONLY
+      // when that domain has no real observations -- observed status always wins,
+      // and the declaration never touches any count.
+      if (d === 'vision-intent' && s.observationCount === 0 && input.declaredIntent) {
+        return {
+          label: UNIVERSAL_DOMAIN_LABELS[d],
+          value: 'Declared',
+          confidence: 'low',
+        };
+      }
       return {
         label: UNIVERSAL_DOMAIN_LABELS[d],
         value: s.observationCount > 0 ? statusLabel(s.latestStatus) : 'Not yet observed',
@@ -570,7 +594,14 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
 
     // domainDetail entry (one subdomain per lens domain).
     const subdomains: Subdomain[] = lens.domains.map((d): Subdomain => {
-      const pts = (activeByDomain.get(d) ?? []).map(toDataPoint);
+      const observed = (activeByDomain.get(d) ?? []).map(toDataPoint);
+      // The declared-intent row is prepended to the vision-intent slide-up as a
+      // declaration; it is NOT a field observation, so it is excluded from every
+      // count above (obsCount, observed.length still drive totals/freshness).
+      const pts =
+        d === 'vision-intent' && input.declaredIntent
+          ? [input.declaredIntent, ...observed]
+          : observed;
       return {
         id: d,
         label: UNIVERSAL_DOMAIN_LABELS[d],
@@ -703,7 +734,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     ),
     cycle,
     freshness: FRESHNESS,
-    typeIcon: TYPE_ICON,
+    typeIcon: LIVE_TYPE_ICON,
   };
 }
 
@@ -729,6 +760,94 @@ export function resolveProjectTypeLabel(project: LocalProject | undefined): stri
   return project.projectType ?? 'Project';
 }
 
+// ── declared-intent (read-side projection of metadata.visionProfile) ──────────
+//
+// A project's declared vision lives in `metadata.visionProfile` (written by the
+// Phase-2 Project Creation Wizard: a free-text statement plus structured land-use
+// goals / budget / timeline / labour). The Observe "Vision & Project Intent"
+// domain otherwise reads ONLY persisted ObserveDataPoint records, so a real
+// project shows "Not yet observed" even when it has a stated vision. This pure
+// composer projects that declaration into a single synthetic DataPoint, framed
+// as a DECLARATION (confidence 'low', a dedicated 'declaration' type) -- it is
+// never persisted and never counted as a field observation (see buildLiveLensBundle).
+
+// Flat id -> human label over every Vision Builder option (authoritative source).
+const VISION_OPTION_LABELS: ReadonlyMap<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const q of VISION_QUESTIONS) {
+    for (const o of q.options) {
+      if (!m.has(o.id)) m.set(o.id, o.label);
+    }
+  }
+  return m;
+})();
+
+// "snake_case" / "kebab-case" id -> "Snake case" fallback for ids not in the
+// option vocabulary (e.g. wizard-local labour ids).
+function humanizeOptionId(id: string): string {
+  const s = id.replace(/[_-]+/g, ' ').trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : id;
+}
+
+function labelForOptionId(id: string): string {
+  return VISION_OPTION_LABELS.get(id) ?? humanizeOptionId(id);
+}
+
+/**
+ * Compose the read-side "declared intent" DataPoint from a project's structured
+ * visionProfile, or null when the project carries no surfaceable vision content.
+ * Pure + store-free (mirrors resolveProjectTypeLabel); unit-tested.
+ */
+export function buildDeclaredIntentPoint(
+  project: LocalProject | undefined,
+): DataPoint | null {
+  const vp = project?.metadata?.visionProfile;
+  if (!vp) return null;
+
+  const statement = vp.landIdentity
+    ?.find((s) => typeof s === 'string' && s.trim().length > 0)
+    ?.trim();
+  const outcomes = (vp.primaryOutcomes ?? []).map(labelForOptionId);
+  const budget = vp.budgetRange ? labelForOptionId(vp.budgetRange) : undefined;
+  const timeline = vp.timelineProgress
+    ? labelForOptionId(vp.timelineProgress)
+    : undefined;
+  const labour = vp.resourceConstraints?.[0]
+    ? labelForOptionId(vp.resourceConstraints[0])
+    : undefined;
+
+  const hasContent =
+    Boolean(statement) ||
+    outcomes.length > 0 ||
+    Boolean(budget) ||
+    Boolean(timeline) ||
+    Boolean(labour);
+  if (!hasContent) return null;
+
+  const value = statement ?? (outcomes.length > 0 ? outcomes.join(', ') : 'Declared');
+
+  const noteLines: string[] = [];
+  if (statement) noteLines.push(`Vision: ${statement}`);
+  if (outcomes.length > 0) noteLines.push(`Goals: ${outcomes.join(', ')}`);
+  if (budget) noteLines.push(`Budget: ${budget}`);
+  if (timeline) noteLines.push(`Timeline: ${timeline}`);
+  if (labour) noteLines.push(`Labour: ${labour}`);
+  const notes = noteLines.length > 0 ? noteLines.join('\n') : undefined;
+
+  const when = calendarDate(vp.updatedAt ?? vp.completedAt);
+
+  return {
+    id: 'declared-intent',
+    type: 'declaration',
+    label: 'Declared project intent',
+    value,
+    notes,
+    observedAt: when,
+    recordedAt: when,
+    confidence: 'low',
+  };
+}
+
 // ── the hook ──────────────────────────────────────────────────────────────────
 
 /**
@@ -745,6 +864,9 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   const projectTypeLabel = resolveProjectTypeLabel(project);
   const parcelBoundary = project?.parcelBoundaryGeojson ?? null;
   const isDemoGeometry = project?.isBuiltin ?? false;
+  // Memoized on the project ref (stable from the store selector) so the derived
+  // point keeps a stable identity and does not force the bundle to rebuild.
+  const declaredIntent = useMemo(() => buildDeclaredIntentPoint(project), [project]);
 
   return useMemo(
     () =>
@@ -756,7 +878,8 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         getSlot: getMeasurementSlot,
         parcelBoundary,
         isDemoGeometry,
+        declaredIntent,
       }),
-    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry],
+    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry, declaredIntent],
   );
 }

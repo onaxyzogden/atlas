@@ -36,7 +36,7 @@ import {
   type ObserveShellMode,
   type ObserveLensDataSource,
 } from '../../store/projectStore.js';
-import { parcelAcreage } from '../../lib/geo.js';
+import { parcelAcres } from '../../lib/geo.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
@@ -180,11 +180,6 @@ function ObserveDualShellLayoutLegacy() {
   const project = useV3Project(params.projectId);
   const projects = useProjectStore((s) => s.projects);
   const updateProject = useProjectStore((s) => s.updateProject);
-  const units = useProjectStore(
-    (s) =>
-      s.projects.find((p) => p.id === id || p.serverId === id)?.units ??
-      'metric',
-  );
 
   // Shell-mode branch parallel to PlanLayout / ActLayout. `projectRecord`
   // resolves to MTC_SEED when the route is the legacy sample project so
@@ -407,7 +402,7 @@ function ObserveDualShellLayoutLegacy() {
                       ],
                     },
                     hasParcelBoundary: true,
-                    acreage: parcelAcreage(polygon, units),
+                    acreage: parcelAcres(polygon),
                   });
                 }}
                 onBoundaryImported={(geojson) => {
@@ -415,7 +410,7 @@ function ObserveDualShellLayoutLegacy() {
                   updateProject(params.projectId, {
                     parcelBoundaryGeojson: geojson,
                     hasParcelBoundary: true,
-                    acreage: parcelAcreage(geojson, units),
+                    acreage: parcelAcres(geojson),
                   });
                 }}
               />

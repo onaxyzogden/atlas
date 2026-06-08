@@ -168,6 +168,10 @@ export default defineConfig({
     'process.env.FEATURE_PUBLIC_PORTAL': JSON.stringify(process.env.FEATURE_PUBLIC_PORTAL ?? 'false'),
     'process.env.FEATURE_RELATIONSHIPS': JSON.stringify(process.env.FEATURE_RELATIONSHIPS ?? 'false'),
     'process.env.FEATURE_SYNC_STATE_BLOBS': JSON.stringify(process.env.FEATURE_SYNC_STATE_BLOBS ?? 'false'),
+    // Demo mode: auto-register a throwaway guest session on boot so the live
+    // test site is explorable without the (broken) login. Off by default;
+    // enabled only on the live deployment build. See src/app/demoSession.ts.
+    'process.env.FEATURE_DEMO_MODE': JSON.stringify(process.env.FEATURE_DEMO_MODE ?? 'false'),
   },
   resolve: {
     alias: {

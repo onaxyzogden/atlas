@@ -1,0 +1,143 @@
+/* VisionFormFields.module.css
+ *
+ * Styles for the structured form-field engine rendered inside
+ * VisionFormsTabsModal. Mirrors the BentoBox token vocabulary used by
+ * VisionFormsTabsModal.module.css (color/border/radius/text variables with
+ * literal fallbacks). Layout only -- field labels, inputs, selects, repeatable
+ * groups, and the add/remove buttons.
+ */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  letter-spacing: 0.01em;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.06));
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-size: 13px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.06));
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.35));
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+/* ---------- Repeatable groups ---------- */
+
+.repeatable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  letter-spacing: 0.01em;
+  padding: 0 4px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rowControl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.addBtn {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  background: transparent;
+  color: var(--color-text, #f2ede3);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, opacity 120ms ease;
+}
+
+.addBtn:hover:not(:disabled) {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.addBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.removeBtn {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.removeBtn:hover {
+  border-color: var(--color-gold-brand, #c4a265);
+  color: var(--color-text, #f2ede3);
+}

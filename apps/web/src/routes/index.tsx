@@ -32,6 +32,9 @@ import ReportSharePage from '../pages/ReportSharePage.js';
 import ObserveShareViewerPage from '../pages/ObserveShareViewerPage.js';
 import LoginPage from '../pages/LoginPage.js';
 import RegisterPage from '../pages/RegisterPage.js';
+import VerifyEmailPage from '../pages/VerifyEmailPage.js';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.js';
+import ResetPasswordPage from '../pages/ResetPasswordPage.js';
 import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
@@ -90,6 +93,20 @@ import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
 import WizardStep1Site from '../v3/project-wizard/WizardStep1Site.js';
 import WizardStepRouter from '../v3/project-wizard/WizardStepRouter.js';
 import { useProjectStore } from '../store/projectStore.js';
+import {
+  usePlanStratumProgressStore,
+  selectProjectProgress,
+  selectDeferredObjectives,
+  toDeferredSet,
+} from '../store/planStratumStore.js';
+import { resolveObjectivesForProject } from '../v3/plan/strata/useProjectObjectives.js';
+import { computeEffectiveProgress } from '../v3/strata/effectiveProgress.js';
+import {
+  computeAllObjectiveStatuses,
+  computeAllStratumStates,
+  PLAN_STRATA,
+} from '@ogden/shared';
+import { useDevUnlockStore } from '../store/devUnlockStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -122,6 +139,44 @@ function isAuthenticated(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Synchronous lock-gate context for Act tier-shell `beforeLoad` guards.
+ *
+ * Returns `undefined` when the guard should NOT fire — unknown project id,
+ * DEV unlock toggle on, or any other condition where the component should
+ * handle the situation gracefully instead of a hard redirect.
+ *
+ * Both stores are Zustand-persist (hydrate synchronously from localStorage on
+ * import), so this is safe to call in `beforeLoad` — same pattern as the
+ * landing-route auth guard above. `computeEffectiveProgress` + the status
+ * engine are pure functions; no async work is needed.
+ */
+function buildActLockContext(projectId: string) {
+  // DEV override: if the unlock toggle is on, the gate should not fire.
+  if (import.meta.env.DEV && useDevUnlockStore.getState().unlockAll)
+    return undefined;
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectId || p.serverId === projectId);
+  if (!project) return undefined;
+  const { objectives } = resolveObjectivesForProject(project);
+  const ps = usePlanStratumProgressStore.getState();
+  const effectiveProgress = computeEffectiveProgress(
+    selectProjectProgress(ps, projectId),
+    project.metadata?.visionProfile ?? null,
+    project.metadata?.team ?? null,
+    objectives,
+    project.metadata ?? null,
+  );
+  const deferredSet = toDeferredSet(selectDeferredObjectives(ps, projectId));
+  const statuses = computeAllObjectiveStatuses(
+    objectives,
+    effectiveProgress.flatMap,
+    deferredSet,
+  );
+  return { statuses, objectives };
 }
 
 // ─── Root layout (with AppShell) ──────────────────────────────────────────
@@ -657,6 +712,24 @@ const v3ActTierShellObjectiveRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { taskId?: string } => ({
     taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
   }),
+  // Guard: deep-linking directly to a locked Act objective redirects to the
+  // bare tier-shell (S1 landing) rather than rendering locked content. Mirrors
+  // the Plan prerequisite lock gate that the interactive paths already enforce.
+  // Uses `buildActLockContext` — Zustand-persist stores hydrate synchronously,
+  // so this is safe as a synchronous `beforeLoad` (same pattern as the landing
+  // auth guard). The DEV unlock toggle bypasses the guard when on.
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    // Unknown objective id — let the component handle gracefully (e.g. 404).
+    if (!ctx.objectives.some((o) => o.id === params.objectiveId)) return;
+    if ((ctx.statuses[params.objectiveId] ?? 'locked') === 'locked') {
+      throw redirect({
+        to: '/v3/project/$projectId/act/tier-shell',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
 });
 // Stratum-bearing tier shell — URL-param parity with Plan's
 // plan/stratum/$stratumId. Lets a stage-switch into Act preserve the stratum the
@@ -680,6 +753,23 @@ const v3ActTierShellStratumRoute = createRoute({
         ? search.protocol
         : undefined,
   }),
+  // Guard: deep-linking to a locked Act stratum redirects to the bare
+  // tier-shell (S1 landing). The DEV unlock toggle bypasses the guard.
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    const stratumStates = computeAllStratumStates(
+      PLAN_STRATA.map((s) => s.id),
+      ctx.objectives,
+      ctx.statuses,
+    );
+    if ((stratumStates[params.stratumId] ?? 'locked') === 'locked') {
+      throw redirect({
+        to: '/v3/project/$projectId/act/tier-shell',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
 });
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.
@@ -860,6 +950,34 @@ const registerRoute = createRoute({
   },
 });
 
+// ─── Email verification + password reset (public, outside AppShell) ──────
+// Siblings of loginRoute under rootRoute (NOT appShellRoute) so the emailed
+// links resolve for signed-out visitors. Each reads an optional `?token=`.
+const tokenSearch = (
+  search: Record<string, unknown>,
+): { token?: string } =>
+  typeof search.token === 'string' && search.token ? { token: search.token } : {};
+
+const verifyEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/verify-email',
+  component: VerifyEmailPage,
+  validateSearch: tokenSearch,
+});
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forgot-password',
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
+  validateSearch: tokenSearch,
+});
+
 // Phase 4.5 — /organizations/new prelude. Sibling-of-appShellRoute so it
 // renders without the authed app shell, but is itself auth-gated: the
 // component redirects to /register if no token is present. Search params
@@ -1027,6 +1145,9 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   registerRoute,
+  verifyEmailRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   organizationCreateRoute,
   portalRoute,
   reportShareRoute,
