@@ -18,6 +18,9 @@ import { MTC_PROJECT } from "../data/mockProject.js";
 import { PLAN_STRATA, type PlanStratumState } from "@ogden/shared";
 import { Mountain, Droplets, Building2, Compass, Users } from "lucide-react";
 import css from "./ComponentsDebugPage.module.css";
+import DecisionWorkingPanel, {
+  type DecisionPanelTarget,
+} from "../act/tier-shell/DecisionWorkingPanel.js";
 
 const STAGES = ["home", "discover", "diagnose", "design", "prove", "build", "operate", "report"] as const;
 
@@ -222,6 +225,187 @@ export default function ComponentsDebugPage() {
           <PlanSpinePrototype height="100%" />
         </div>
       </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* DecisionWorkingPanel arms — map-free capture harness                */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="Decision Working Panel — empty">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={null}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — textarea fallback">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "demo-text",
+              label: "Generic decision",
+              prompt: "Describe the decision in your own words.",
+              feedsLabel: "Feeds Observe: example signal",
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — success criteria">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-c2",
+              label: "Define success criteria",
+              isSuccessCriteria: true,
+              prompt: "What does success look like?",
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — vision classify">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-classify",
+              label: "Classify the vision",
+              isVisionClassify: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            visionClassifySuggestions={["Food sovereignty", "Habitat restoration", "Education"]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — labour inventory">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-labour",
+              label: "Labour inventory",
+              isLabourInventory: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            labourSkillSuggestions={["Fencing", "Grafting", "Welding"]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — steward">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-steward",
+              label: "Primary steward",
+              isSteward: true,
+              deferLabel: "Add team members later in settings",
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — boundary register">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-boundaries-c1",
+              label: "Boundary register",
+              isBoundary: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel — legal governance">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-legal-governance-c1",
+              label: "Legal entity & tenure",
+              isLegalGovernance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
@@ -232,5 +416,23 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className={css.sectionTitle}>{title}</h2>
       {children}
     </section>
+  );
+}
+
+/** Fixed-width dark-theme frame that mirrors the real working panel column. */
+function PanelFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        maxWidth: 460,
+        border: "1px solid #2A2A25",
+        borderRadius: 12,
+        padding: 16,
+        background: "var(--color-surface, #1a1a16)",
+        boxSizing: "border-box",
+      }}
+    >
+      {children}
+    </div>
   );
 }
