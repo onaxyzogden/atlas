@@ -69,7 +69,7 @@ import { decode, summariseLabour } from '../LabourInventoryCapture.js';
 import {
   decodeBoundary,
   summariseBoundary,
-} from '../BoundaryCapture.js';
+} from '../BoundaryCaptureLegacy.js';
 import { useStakeholderRegisterStore } from '../../../../store/stakeholderRegisterStore.js';
 
 const SUCCESS_OPTIONS: readonly CriterionOption[] = [
@@ -594,23 +594,54 @@ describe('DecisionWorkingPanel -- bespoke child remount on decision switch', () 
   });
 });
 
-describe('DecisionWorkingPanel -- boundary', () => {
-  it('routes a boundary decision to BoundaryCapture (boundaryRegister mode) and not the generic body', () => {
+// The mixed-mode BoundaryCaptureLegacy bodies render their option buttons from
+// resolveOptions(optionSetId); the panel forwards its resolveOptions prop into
+// the capture, so these tests must supply the same boundary option sets the
+// capture's own test uses (verbatim mockup labels).
+const BOUNDARY_OPTIONS: Record<string, readonly string[]> = {
+  boundaryDocStatus: ['Verified', 'Pending', 'Not held'],
+  boundaryCovenantTypes: ['Conservation', 'Access', 'Water rights', 'Tenancy'],
+  boundaryEasementImplications: [
+    'Restricts building',
+    'Maintenance duty',
+    'Access required',
+    'No implications',
+  ],
+  boundaryZoning: ['Agricultural', 'Residential', 'Mixed use'],
+  boundaryPermittedUses: ['Grazing', 'Cropping', 'Dwelling'],
+  boundaryZoningReview: ['None', 'Change of use', 'Planning permission', 'Unsure'],
+  boundaryWaterSources: ['Mains', 'Borehole', 'River', 'Rainwater'],
+  boundaryWaterUnit: ['m3', 'litres'],
+  boundaryWaterStatus: ['Licenced', 'Unlicenced', 'Exempt'],
+  boundaryPermitActivities: [
+    'Abstraction',
+    'Discharge',
+    'Burning',
+    'Felling',
+    'Construction',
+  ],
+};
+const resolveBoundaryOptions = (id: string): readonly string[] =>
+  BOUNDARY_OPTIONS[id] ?? [];
+
+describe('DecisionWorkingPanel -- boundary (mixed-mode)', () => {
+  it('routes a c1 boundary decision to the mixed-mode doc body, not the register or generic body', () => {
     renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
-        label: 'Confirm legal boundaries',
+        label: 'Obtain and verify current title and deed documents',
         isBoundary: true,
       }),
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       initialValue: {},
     });
-    // BoundaryCapture-specific surface (boundaryRegister mode: section-add button).
-    expect(screen.getByTestId('section-add')).toBeTruthy();
+    // Mixed-mode titleDeed body: doc-status control (NOT the old register's section-add).
+    expect(screen.getByTestId('docstatus-Verified')).toBeTruthy();
+    expect(screen.queryByTestId('section-add')).toBeNull();
     // Not the success-criteria surface, and no generic textarea fallback.
     expect(screen.queryByText(/suggested criteria/i)).toBeNull();
     expect(
-      screen.queryByLabelText('Confirm legal boundaries'),
+      screen.queryByLabelText('Obtain and verify current title and deed documents'),
     ).toBeNull();
   });
 
@@ -622,22 +653,22 @@ describe('DecisionWorkingPanel -- boundary', () => {
         fields: TEXT_FIELDS,
         isBoundary: true,
       }),
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       initialValue: {},
     });
-    expect(screen.getByTestId('section-add')).toBeTruthy();
+    expect(screen.getByTestId('docstatus-Verified')).toBeTruthy();
     // The generic VisionFormFields label from TEXT_FIELDS must not render.
     expect(screen.queryByText('Primary purpose')).toBeNull();
   });
 
-  it('disables Record and shows a gate note for an invalid boundary draft (c1 empty sections)', () => {
+  it('c1 (doc): disables Record and shows the doc gate note for an empty titleDeed draft', () => {
     const { onRecord } = renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
-        label: 'Confirm legal boundaries',
+        label: 'Obtain and verify current title and deed documents',
         isBoundary: true,
       }),
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       initialValue: {},
     });
     const btn = screen.getByRole('button', {
@@ -645,29 +676,22 @@ describe('DecisionWorkingPanel -- boundary', () => {
     }) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
     expect(btn.getAttribute('data-locked')).toBe('true');
-    // Gate note for boundaryRegister (BR8).
-    expect(
-      screen.getByText(/add at least one boundary section \(with a type\) to record/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/set a document status to record/i)).toBeTruthy();
     expect(onRecord).not.toHaveBeenCalled();
   });
 
-  it('enables Record with a valid boundary draft and emits summariseBoundary summary on click', () => {
-    // A valid boundaryRegister value: one section with a typed boundary.
+  it('c1 (doc): enables Record once a document status is set and emits summariseBoundary on click', () => {
     const VALID: import('../actToolCatalog.js').FormValue = {
-      directions: ['N'],
-      secTypes: ['Shared / dividing fence'],
-      names: ['North fence'],
-      obligations: ['Shared upkeep'],
-      disputes: [''],
+      docStatus: 'Verified',
+      docName: 'Title document.pdf',
     };
     const { onRecord } = renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
-        label: 'Confirm legal boundaries',
+        label: 'Obtain and verify current title and deed documents',
         isBoundary: true,
       }),
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       initialValue: VALID,
     });
     const btn = screen.getByRole('button', {
@@ -678,20 +702,142 @@ describe('DecisionWorkingPanel -- boundary', () => {
     fireEvent.click(btn);
     expect(onRecord).toHaveBeenCalledTimes(1);
     const [value, summary] = onRecord.mock.calls[0]!;
-    expect(value.secTypes).toEqual(['Shared / dividing fence']);
+    expect(value.docStatus).toBe('Verified');
     expect(summary).toBe(
       summariseBoundary('s1-boundaries-c1', decodeBoundary('s1-boundaries-c1', VALID)),
     );
+  });
+
+  it('c2 (map): disables Record with the map gate note until boundaries are acknowledged', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c2',
+        label: 'Map property boundaries on base layer',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(
+      screen.getByText(
+        /confirm boundaries have been reviewed on the base layer to record/i,
+      ),
+    ).toBeTruthy();
+  });
+
+  it('c4 (decision/zoning): disables Record with the zoning gate note when invalid', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c4',
+        label: 'Check zoning and permitted land uses',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(
+      screen.getByText(
+        /select a zoning classification and a review flag to record/i,
+      ),
+    ).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
+  it('c4 (decision/zoning): enables Record once zoning + reviewFlag are set', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c4',
+        label: 'Check zoning and permitted land uses',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: { zoning: 'Agricultural', reviewFlag: 'None' },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+  });
+
+  it('c5 (decision/water): disables Record with the water gate note when invalid', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c5',
+        label: 'Identify water rights and entitlements',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(
+      screen.getByText(
+        /select at least one water source and a status to record/i,
+      ),
+    ).toBeTruthy();
+  });
+
+  it('c5 (decision/water): enables Record once a source + status are set', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c5',
+        label: 'Identify water rights and entitlements',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: { sources: ['Mains'], status: 'Licenced' },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+  });
+
+  it('c7 (permits): Record is ENABLED immediately (permits body is always valid)', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c7',
+        label: 'Note required permits for planned activities',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('data-locked')).toBe('false');
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
   });
 
   it('still saves rationale on blur and toggles defer for a boundary target', () => {
     const { onSaveRationale, onToggleDefer } = renderPanel({
       decision: makeDecision({
         itemId: 's1-boundaries-c1',
-        label: 'Confirm legal boundaries',
+        label: 'Obtain and verify current title and deed documents',
         isBoundary: true,
       }),
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       initialValue: {},
     });
     const ta = screen.getByLabelText(/rationale/i);
@@ -705,21 +851,21 @@ describe('DecisionWorkingPanel -- boundary', () => {
     expect(onToggleDefer).toHaveBeenCalledWith(true);
   });
 
-  it('re-seeds the boundary draft when the selected itemId changes (key reset)', () => {
+  it('re-seeds the boundary draft when the selected itemId changes (key reset): c1 doc -> c4 zoning', () => {
     const decisionC1 = makeDecision({
       itemId: 's1-boundaries-c1',
-      label: 'Boundary A (boundaryRegister)',
+      label: 'Title and deed (doc)',
       isBoundary: true,
     });
-    const decisionC2 = makeDecision({
-      itemId: 's1-boundaries-c2',
-      label: 'Boundary B (rowRegister)',
+    const decisionC4 = makeDecision({
+      itemId: 's1-boundaries-c4',
+      label: 'Zoning (decision)',
       isBoundary: true,
     });
     const props: DecisionWorkingPanelProps = {
       projectId: 'proj-test',
       decision: decisionC1,
-      resolveOptions: () => [],
+      resolveOptions: resolveBoundaryOptions,
       successCriteriaOptions: SUCCESS_OPTIONS,
       initialValue: {},
       initialRationale: '',
@@ -730,92 +876,19 @@ describe('DecisionWorkingPanel -- boundary', () => {
       onToggleDefer: vi.fn(),
     };
     const { rerender } = render(<DecisionWorkingPanel {...props} />);
-    // boundaryRegister body present for c1.
-    expect(screen.getByTestId('section-add')).toBeTruthy();
-    // Switch to c2 (rowRegister) with empty value -> different body, draft re-seeded.
+    // titleDeed (doc) body present for c1.
+    expect(screen.getByTestId('docstatus-Verified')).toBeTruthy();
+    // Switch to c4 (zoning) with empty value -> different body, draft re-seeded.
     rerender(
       <DecisionWorkingPanel
         {...props}
-        decision={decisionC2}
+        decision={decisionC4}
         initialValue={{}}
       />,
     );
-    expect(screen.queryByTestId('section-add')).toBeNull();
-    // rowRegister body: row-add button.
-    expect(screen.getByTestId('row-add')).toBeTruthy();
-  });
-
-  // BR8: gate-note cases for the new boundary modes.
-  it('BR8 c4 titleRestrictionChecker: gate note warns about Unknown conditions', () => {
-    const { onRecord } = renderPanel({
-      decision: makeDecision({
-        itemId: 's1-boundaries-c4',
-        label: 'Check title restrictions',
-        isBoundary: true,
-      }),
-      resolveOptions: () => [],
-      initialValue: {}, // decode -> all categories = 'unknown' -> invalid
-    });
-    const btn = screen.getByRole('button', {
-      name: /record this decision/i,
-    }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
-    expect(btn.getAttribute('data-locked')).toBe('true');
-    expect(
-      screen.getByText(
-        /resolve every unknown title condition with legal advice before recording/i,
-      ),
-    ).toBeTruthy();
-    expect(onRecord).not.toHaveBeenCalled();
-  });
-
-  it('BR8 c1 boundaryRegister: gate note requests at least one typed boundary section', () => {
-    const { onRecord } = renderPanel({
-      decision: makeDecision({
-        itemId: 's1-boundaries-c1',
-        label: 'Register boundary sections',
-        isBoundary: true,
-      }),
-      resolveOptions: () => [],
-      initialValue: {}, // decode -> zero sections -> invalid
-    });
-    const btn = screen.getByRole('button', {
-      name: /record this decision/i,
-    }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
-    expect(btn.getAttribute('data-locked')).toBe('true');
-    expect(
-      screen.getByText(
-        /add at least one boundary section \(with a type\) to record/i,
-      ),
-    ).toBeTruthy();
-    expect(onRecord).not.toHaveBeenCalled();
-  });
-
-  it('BR8 c2 rowRegister: Record is ENABLED immediately (zero rows is valid)', () => {
-    const { onRecord } = renderPanel({
-      decision: makeDecision({
-        itemId: 's1-boundaries-c2',
-        label: 'Register rights of way',
-        isBoundary: true,
-      }),
-      resolveOptions: () => [],
-      initialValue: {}, // decode -> zero rows -> rowRegister is always valid
-    });
-    const btn = screen.getByRole('button', {
-      name: /record this decision/i,
-    }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(false);
-    expect(btn.getAttribute('data-locked')).toBe('false');
-    // No gate note shown (valid state).
-    expect(
-      screen.queryByText(/add at least one boundary section/i),
-    ).toBeNull();
-    expect(
-      screen.queryByText(/resolve every unknown title condition/i),
-    ).toBeNull();
-    fireEvent.click(btn);
-    expect(onRecord).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('docstatus-Verified')).toBeNull();
+    // zoning body: the zoning select control.
+    expect(screen.getByTestId('zoning-select')).toBeTruthy();
   });
 });
 

@@ -62,7 +62,7 @@ import BoundaryCapture, {
   isBoundaryValid,
   summariseBoundary,
   type BoundaryModel,
-} from './BoundaryCapture.js';
+} from './BoundaryCaptureLegacy.js';
 import EvLegalGovernanceCapture, {
   legalGovernanceModeFor,
   decodeLegalGovernance,
@@ -335,12 +335,24 @@ export default function DecisionWorkingPanel({
       );
     } else if (decision.isBoundary) {
       const mode = boundaryModeFor(decision.itemId);
-      const note =
-        mode === 'boundaryRegister'
-          ? 'Add at least one boundary section (with a type) to record.'
-          : mode === 'titleRestrictionChecker'
-            ? 'Resolve every Unknown title condition with legal advice before recording.'
-            : 'Complete the required fields to record.';
+      let note: string;
+      if (mode === 'map') {
+        note =
+          'Confirm boundaries have been reviewed on the base layer to record.';
+      } else if (mode === 'doc') {
+        note =
+          decision.itemId === 's1-boundaries-c1'
+            ? 'Set a document status to record.'
+            : 'Select at least one obligation type to record.';
+      } else if (mode === 'mapEntry') {
+        note =
+          'Add at least one easement, or mark "No implications", to record.';
+      } else {
+        note =
+          decision.itemId === 's1-boundaries-c4'
+            ? 'Select a zoning classification and a review flag to record.'
+            : 'Select at least one water source and a status to record.';
+      }
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLegalGovernance) {
       const mode = legalGovernanceModeFor(decision.itemId);
