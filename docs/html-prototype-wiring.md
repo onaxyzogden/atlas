@@ -79,23 +79,87 @@ gate conditions) and express it in the catalogue (`obj`/`ck`/`dg`) pattern.
 
 ## Batch B — Act stage · Intentional Community objectives
 
-| # | HTML file | Tier | Catalogue objective (target) | Extract | Status |
+**Batch B outcome (full 14-row HTML diff, 2026-06-07):** every Batch B prototype's
+decisions / decision-groups / completion-gate was diffed against its mapped catalogue
+objective. **All already encoded — zero decision-level gaps, no catalogue edits.** The
+catalogues were authored from the same source docs as the prototypes, so the match is
+verbatim except where noted. Like Batch A, this was an audit + documentation pass.
+Covenant-relevant right-panel content (which has no catalogue home) is logged in the
+**Covenant-content inventory** below for the operator's review — **not** added to the
+catalogue (per the approved Batch B scope). **Out-of-slice:** rows 10-22 land in
+`ecovillage.ts`, which is not in the current Homestead+Silvopasture vertical slice, so
+these objectives do not render in the active slice project (no preview spot-check). Row
+18 (`lvs-sec-s1-enterprise-intent`) and row 23 (`nur-sec-s3-propagation-strategy`) are
+secondary-additive objectives (silvopasture livestock / nursery), in-slice via secondary.
+
+Two one-to-many mappings and one prototype-file mismatch were resolved during the diff
+(see the **Audit result** column).
+
+| # | HTML file | Tier | Catalogue objective (confirmed) | Audit result | Status |
 |---|---|---|---|---|---|
 | 3 | `olos_landscape_context.html` | 0 | `ev-s2-landscape-vectors` (ecovillage.ts) | reclassified here from Batch A — already encoded | done |
-| 10 | `olos_social_fabric_survey.html` | 0 | ecovillage.ts (social fabric) | survey decisions; founding-relationship profile; feeds Tier-3 feasibility | todo |
-| 11 | `olos_legal_entity_tenure_financial.html` | 0 | ecovillage.ts (legal entity) | entity-structure + tenure-model; gate blocks Tier 1 until entity confirmed | todo |
-| 12 | `olos_governance_decision_dispute.html` | 0 | ecovillage.ts (governance dispute) | decision-framework picker + dispute-resolution protocol | todo |
-| 13 | `olos_governance_structure.html` | 3 | ecovillage.ts (governance structure) | governance-structure options matrix | todo |
-| 14 | `olos_communal_infra_survey.html` | 2 | ecovillage.ts (communal infra survey) | infrastructure-condition survey per system | todo |
-| 15 | `olos_communal_infra_strategy.html` | 4 | ecovillage.ts (communal infra strategy) | tension-map shared vs private; dep: phased settlement | todo |
-| 16 | `olos_energy_systems.html` | 2 | ecovillage.ts (energy systems) | energy-source assessment matrix | todo |
-| 17 | `olos_communal_provision.html` | 3 | ecovillage.ts (communal provision) | communal vs private provision balance per system | todo |
-| 18 | `olos_livestock_intent.html` | 0 | livestockOperation.ts (livestock intent) | candidate species + enterprise intent; Tier-0 foundation gate | todo |
-| 19 | `olos_housing_cluster_design.html` | 4 | ecovillage.ts (housing cluster) | cluster-siting + 30m watercourse setback gate; dep: spatial framework + entitlement | todo |
-| 20 | `olos_food_system_design.html` | 5 | ecovillage.ts (food system) | approach selector (communal/individual/hybrid); dep: provision balance + spatial | todo |
-| 21 | `olos_financial_contribution_model.html` | 6 | ecovillage.ts (financial contribution) | buy-in tier table + hardship protocol; feeds Tier-6 capital phasing — **Amanah: no advance-purchase/CSRA framing** | todo |
-| 22 | `olos_phased_settlement.html` | 6 | ecovillage.ts (phased settlement) | cohort + population-ceiling + milestone-sequencing | todo |
-| 23 | `olos_nursery_propagation_strategy.html` | 3 | `nur-sec-s3-propagation-strategy` (nursery.ts) | production-mix + philosophy statement — likely already encoded | todo |
+| 10 | `olos_social_fabric_survey.html` | 0 | `ev-s2-social-fabric` (ecovillage.ts) | 6 decisions + 2 groups + gate verbatim match. Covenant: P4 cohesion-map faith domain (inventory #1) | done |
+| 11 | `olos_legal_entity_tenure_financial.html` | 0 | `ev-s1-legal-governance` (ecovillage.ts) | 8 decisions + 3 groups + gate verbatim match (catalogue c-ids ordered c1,c8,c2,c3,c4,c5,c6,c7) | done |
+| 12 | `olos_governance_decision_dispute.html` | 0 | `ev-s1-conflict-framework` (ecovillage.ts) | 7 decisions + 3 groups + gate verbatim match | done |
+| 13 | `olos_governance_structure.html` | 3 | `ev-s1-conflict-framework` (ecovillage.ts) | **resolved one-to-many:** identical 7 decisions/groups/gate to row 12 — a Tier-3 re-render of the *same* objective, **not a distinct decision set**. No new objective. | done |
+| 14 | `olos_communal_infra_survey.html` | 2 | `ev-s3-infra-condition` (ecovillage.ts) | 5 decisions + 3 groups + gate verbatim match | done |
+| 15 | `olos_communal_infra_strategy.html` | 4 | `ev-s4-infra-strategy` (ecovillage.ts) | **prototype-file mismatch:** the HTML file's content is the nursery propagation-strategy prototype (duplicate of row 23), not communal-infra-strategy. Catalogue objective `ev-s4-infra-strategy` exists and is well-formed (5 decisions, 3 groups, gate); the HTML could not be diffed against it. No catalogue gap inferable. | done (flagged) |
+| 16 | `olos_energy_systems.html` | 2 | `ev-s3-energy-potential` (ecovillage.ts) | **resolved one-to-many:** HTML is the Tier-2 *survey* (6 decisions "Assess... potential"), matches `ev-s3-energy-potential` verbatim — **not** the s5 `ev-s5-energy-system` design objective | done |
+| 17 | `olos_communal_provision.html` | 3 | `ev-s1-provision-balance` (ecovillage.ts) | 6 decisions + 2 groups + gate verbatim match (catalogue stratum is s1; prototype Tier-3 badge is cosmetic) | done |
+| 18 | `olos_livestock_intent.html` | 0 | `lvs-sec-s1-enterprise-intent` (livestockOperation.ts, **secondary**) | 5 decisions + 3 groups + gate semantic match. Maps to the livestock-as-secondary *host-integration* objective, **not** primary `lvs-s1-enterprise-vision` | done |
+| 19 | `olos_housing_cluster_design.html` | 4 | `ev-s4-housing-cluster` (ecovillage.ts) | 5 decisions (c1-c5) + 3 groups + gate verbatim match. Watercourse-setback gate + faith provisions are bespoke right-panel (inventory #2) | done |
+| 20 | `olos_food_system_design.html` | 5 | `ev-s4-food-system` (ecovillage.ts) | 6 decisions + 3 groups + gate verbatim match. Covenant: halal variety-selection hint (inventory #3) | done |
+| 21 | `olos_financial_contribution_model.html` | 6 | `ev-s4-financial-model` (ecovillage.ts) | 6 decisions + 3 groups + gate verbatim match. **Amanah: clean** — member cost-sharing among co-owners (buy-in, levy, hardship-deferral, reserve), not advance sale of yield; no riba, no CSRA framing (inventory #4) | done |
+| 22 | `olos_phased_settlement.html` | 6 | `ev-s4-settlement-strategy` (ecovillage.ts) | **resolved one-to-many:** 6 decisions + 3 groups + gate match `ev-s4-settlement-strategy` (s4-foundation-decisions) verbatim — **not** a separate s7 settlement-plan. Prototype Tier-6 badge is cosmetic | done |
+| 23 | `olos_nursery_propagation_strategy.html` | 3 | `nur-sec-s3-propagation-strategy` (nursery.ts, **secondary**) | 6 decisions + 3 groups + gate verbatim match — out-of-slice (nursery secondary) | done |
+
+---
+
+## Covenant-content inventory (Batch B — for operator review; NOT in catalogue)
+
+Per the approved Batch B scope (user decision: "log faith/covenant provisions for review,
+do not add to catalogue now"), the following covenant-relevant content was found in the
+prototypes' **bespoke right-panel work surfaces**. None of it has a catalogue decision home
+today; it would live in a Tier-0 `DecisionWorkingPanel`-style surface (see Deferred). It is
+recorded here **verbatim** for the operator to decide whether to promote into catalogue
+decisions / scopeNotes. **No catalogue change has been made.**
+
+1. **Row 10 — `olos_social_fabric_survey.html`** (cohesion-map panel P4, domain "Faith,
+   spirituality & practice", HIGH alignment): "All households share a Muslim faith
+   foundation. Significant alignment on daily rhythms, halal food practices, and Ramadan
+   observance." — captured cohesion data, not a decision.
+
+2. **Row 19 — `olos_housing_cluster_design.html`** ("Halal & faith-specific provisions"
+   std-group, right-panel verification items):
+   - "Outdoor prayer space accessible from dwelling without crossing shared lane - or
+     screening provided for prayer in private outdoor area" (Required)
+   - "Women's outdoor areas screened from cluster lane where requested by household"
+     (Required)
+   These are bespoke Tier-0 work-surface standards tied to `ev-s4-housing-cluster` c2/c3
+   (private zones / transitional zones), expressed as design-standard checks, not catalogue
+   decisions.
+
+3. **Row 20 — `olos_food_system_design.html`** (Decision 2 "Crop commitments" right-panel
+   hint): "Halal food priorities should shape variety selection - no pork products in
+   growing media, no animal-derived inputs without provenance." — a right-panel guidance
+   note on `ev-s4-food-system` c2.
+
+4. **Row 21 — `olos_financial_contribution_model.html`** (member-contribution mechanisms,
+   right-panel figures). **Amanah assessment: clean.** The mechanisms are member
+   cost-sharing among households who collectively own the asset - buy-in (land-purchase
+   share + Phase-1 infrastructure share + community-fund seed deposit), monthly levy
+   (maintenance, insurance, capital-reserve, operations), a three-tier hardship protocol
+   (deferral "repaid over 6 months" *without penalty* / reduction / waiver), and a capital
+   reserve fund. This is **not** advance sale of future yield; there is **no riba** (no
+   interest on buy-in or levy; hardship deferral is penalty-free, qard-hasan-consistent)
+   and **no CSRA / salam-style advance-purchase framing**. This matches the catalogue's
+   existing 2026-05-29 verbatim-encode authorisation note (`ecovillage.ts` header, lines
+   30-36). The specific dollar figures and per-household tables are bespoke right-panel
+   data with no catalogue home; logged here as reference only.
+
+> All four items belong to the **deferred Tier-1+ / Tier-0 bespoke right-panel workstream**,
+> not to this content audit. Promotion of any of them into catalogue decisions or
+> `scopeNotes` awaits operator review.
 
 ---
 
@@ -121,8 +185,16 @@ gate conditions) and express it in the catalogue (`obj`/`ck`/`dg`) pattern.
   zone-conflict resolver, vegetation-community recorder) + a `DecisionWorkingPanel`-style
   router for Tier 1+.
 - Tier-1+ per-decision mode-badge rendering (`MODE_LABELS` currently Tier-0 only).
-- Batch B (rows 10–23, Intentional Community → `ecovillage.ts` / `livestockOperation.ts`).
+- **Batch B covenant provisions** (inventory #1–#4 above): whether to promote the logged
+  faith/halal/financial right-panel content into catalogue decisions or `scopeNotes`
+  awaits operator review. The Tier-0 bespoke right-panel surface that would host items
+  #2 (housing-cluster prayer/screening standards) is part of the deferred work-surface
+  workstream.
 - Batch C (rows 24–28) per-row confirmation against `DecisionChecklist`.
+
+> **Batch B audit complete (2026-06-07):** all 14 rows confirmed already-encoded; see the
+> Batch B table and Covenant-content inventory above. One prototype-file mismatch flagged
+> (row 15 file content = nursery propagation, not communal-infra-strategy).
 
 ---
 
