@@ -1,0 +1,20 @@
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  font-size: var(--text-sm, 12px);
+  padding: 5px 11px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border, #d4d8de);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #565b63);
+  cursor: pointer;
+}
+.chip[data-on='true'] {
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}

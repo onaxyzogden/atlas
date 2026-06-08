@@ -1,0 +1,32 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full, 999px);
+  font-size: var(--text-xs, 11px);
+  padding: 3px 9px;
+  font-weight: 600;
+}
+.pill[data-tone='neutral'] {
+  color: var(--color-text-muted, #565b63);
+  background: var(--color-surface-alt, #f3efe6);
+}
+.pill[data-tone='act'] {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+}
+.pill[data-tone='success'] {
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+}
+.pill[data-tone='warn'] {
+  color: var(--color-warning, #ca8a04);
+  background: color-mix(in srgb, var(--color-warning, #ca8a04) 14%, transparent);
+}
+.pill[data-tone='error'] {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 14%, transparent);
+}
+.pill[data-tone='info'] {
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 14%, transparent);
+}
