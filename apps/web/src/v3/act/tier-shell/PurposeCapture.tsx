@@ -60,6 +60,7 @@ export interface PurposeGridCard {
   name: string;
   description: string;
   Icon: LucideIcon;
+  canBeSecondary: boolean;
 }
 
 /**
@@ -79,6 +80,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Regenerative mixed-enterprise farming. Ecological function and production co-primary.',
     Icon: Sprout,
+    canBeSecondary: findProjectType('regenerative_farm')?.canBeSecondary ?? false,
   },
   {
     id: 'homestead',
@@ -87,6 +89,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Family-scale food, shelter, and resilience. Long-term self-sufficient land stewardship.',
     Icon: Home,
+    canBeSecondary: findProjectType('homestead')?.canBeSecondary ?? false,
   },
   {
     id: 'market_garden',
@@ -95,6 +98,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Intensive vegetable production - beds, tunnels, wash/pack, irrigation, and sales.',
     Icon: ShoppingBasket,
+    canBeSecondary: findProjectType('market_garden')?.canBeSecondary ?? false,
   },
   {
     id: 'nursery',
@@ -103,6 +107,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Plant propagation, seedling production, greenhouse systems, and specialist stock.',
     Icon: Leaf,
+    canBeSecondary: findProjectType('nursery')?.canBeSecondary ?? false,
   },
   {
     id: 'off_grid',
@@ -111,6 +116,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Water, energy, shelter, and food security in remote or self-sufficient settings.',
     Icon: Sun,
+    canBeSecondary: findProjectType('off_grid')?.canBeSecondary ?? false,
   },
   // Group 2: Ecological systems
   {
@@ -120,6 +126,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Perennial tree crops, guilds, and succession systems for long-term yields.',
     Icon: Trees,
+    canBeSecondary: findProjectType('orchard_food_forest')?.canBeSecondary ?? false,
   },
   {
     id: 'silvopasture',
@@ -128,6 +135,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Rotational grazing, paddocks, forage, and animal-integrated land management.',
     Icon: PawPrint,
+    canBeSecondary: findProjectType('silvopasture')?.canBeSecondary ?? false,
   },
   {
     id: 'conservation',
@@ -136,6 +144,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Habitat restoration, native planting, corridors. Production incidental or absent.',
     Icon: Heart,
+    canBeSecondary: findProjectType('conservation')?.canBeSecondary ?? false,
   },
   {
     id: 'livestock_operation',
@@ -145,6 +154,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
       findProjectType('livestock_operation')?.description ??
       'Standalone grazing and animal-husbandry enterprise centered on the herd.',
     Icon: Beef,
+    canBeSecondary: findProjectType('livestock_operation')?.canBeSecondary ?? false,
   },
   // Group 3: Community & experience
   {
@@ -154,6 +164,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Shared land, housing clusters, governance, and communal infrastructure.',
     Icon: Users,
+    canBeSecondary: findProjectType('ecovillage')?.canBeSecondary ?? false,
   },
   {
     id: 'agritourism',
@@ -162,6 +173,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Guest experiences, farm tours, retreat programs, and visitor hospitality.',
     Icon: Compass,
+    canBeSecondary: findProjectType('agritourism')?.canBeSecondary ?? false,
   },
   {
     id: 'education',
@@ -170,6 +182,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Workshops, demonstration plots, field learning, and public-facing teaching.',
     Icon: GraduationCap,
+    canBeSecondary: findProjectType('education')?.canBeSecondary ?? false,
   },
   {
     id: 'wellness',
@@ -178,6 +191,7 @@ export const PURPOSE_GRID_CARDS: readonly PurposeGridCard[] = [
     description:
       'Healing gardens, quiet retreat, contemplative trails, and sensory design.',
     Icon: HeartHandshake,
+    canBeSecondary: findProjectType('wellness')?.canBeSecondary ?? false,
   },
 ];
 
@@ -253,6 +267,7 @@ export interface PurposeCaptureProps {
 }
 
 export default function PurposeCapture({
+  // itemId accepted for contract parity with StewardCapture -- unused (item is always s1-vision-c1)
   value,
   onChange,
   projectId,
@@ -289,11 +304,10 @@ export default function PurposeCapture({
                 const isSecondary =
                   !isPrimary && secondaryTypeIds.includes(card.id);
                 // +2 badge: canBeSecondary === true, NOT the current primary,
-                // NOT already a chosen secondary. Data-driven from PROJECT_TYPES.
-                const canBeSecondary =
-                  findProjectType(card.id)?.canBeSecondary === true;
+                // NOT already a chosen secondary. Sourced from PURPOSE_GRID_CARDS
+                // (baked at module-init from PROJECT_TYPES -- no per-render lookup).
                 const showCapabilityBadge =
-                  canBeSecondary && !isPrimary && !isSecondary;
+                  card.canBeSecondary && !isPrimary && !isSecondary;
 
                 return (
                   <div
