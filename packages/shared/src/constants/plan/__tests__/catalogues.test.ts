@@ -1053,57 +1053,101 @@ describe('catalogue conformance - livestock secondary resolution', () => {
   });
 });
 
-describe('s1-boundaries re-decompose (BR2)', () => {
+describe('s1-boundaries 7-item mixed-mode surface', () => {
   const boundaries = UNIVERSAL_PLAN_OBJECTIVES.find(
     (o) => o.id === 's1-boundaries',
   );
 
-  it('has exactly the 5 re-decomposed checklist items in order', () => {
+  it('exists with the mixed-mode title and completion gate', () => {
     expect(boundaries).toBeDefined();
-    expect(boundaries!.checklist.map((i) => i.id)).toEqual([
-      's1-boundaries-c1',
+    expect(boundaries!.title).toBe(
+      'Establish site boundaries & legal constraints',
+    );
+    expect(boundaries!.completionGate).toBe(
+      'All legal constraints and boundary conditions are mapped, recorded, and reviewed. No design work proceeds into areas of legal ambiguity.',
+    );
+  });
+
+  it('has 7 checklist items in mockup display order', () => {
+    expect(boundaries!.checklist.map((c) => c.id)).toEqual([
       's1-boundaries-c2',
+      's1-boundaries-c1',
       's1-boundaries-c3',
       's1-boundaries-c4',
       's1-boundaries-c5',
+      's1-boundaries-c6',
+      's1-boundaries-c7',
     ]);
   });
 
-  it('carries the verbatim re-decomposed titles', () => {
-    const byId = Object.fromEntries(
-      boundaries!.checklist.map((i) => [i.id, i.label]),
+  it('carries the verbatim mockup labels', () => {
+    const byId = new Map(boundaries!.checklist.map((c) => [c.id, c.label]));
+    expect(byId.get('s1-boundaries-c2')).toBe(
+      'Map property boundaries on base layer',
     );
-    expect(byId['s1-boundaries-c1']).toBe(
-      'Map all shared boundary conditions and obligations',
+    expect(byId.get('s1-boundaries-c1')).toBe(
+      'Obtain and verify current title and deed documents',
     );
-    expect(byId['s1-boundaries-c4']).toBe(
-      'Identify any title conditions that restrict multi-dwelling or communal use',
+    expect(byId.get('s1-boundaries-c3')).toBe(
+      'Identify all easements, rights of way, and encumbrances',
     );
-    expect(byId['s1-boundaries-c5']).toBe(
-      'Record any prior community or development history on the land',
+    expect(byId.get('s1-boundaries-c4')).toBe(
+      'Check zoning and permitted land uses',
+    );
+    expect(byId.get('s1-boundaries-c5')).toBe(
+      'Identify water rights and entitlements',
+    );
+    expect(byId.get('s1-boundaries-c6')).toBe(
+      'Record covenant, heritage, or conservation obligations',
+    );
+    expect(byId.get('s1-boundaries-c7')).toBe(
+      'Note required permits for planned activities - building, earthworks, water harvesting',
     );
   });
 
-  it('partitions the 5 items into 3 decision groups', () => {
-    const groups = boundaries!.decisionGroups;
-    expect(groups.map((g) => g.id)).toEqual([
+  it('partitions into 2 decision groups matching the mockup', () => {
+    expect(boundaries!.decisionGroups.map((g) => g.id)).toEqual([
       's1-boundaries-dg1',
       's1-boundaries-dg2',
-      's1-boundaries-dg3',
     ]);
-    const covered = groups.flatMap((g) => g.itemIds).sort();
-    expect(covered).toEqual([
-      's1-boundaries-c1',
-      's1-boundaries-c2',
+    const g1 = boundaries!.decisionGroups.find(
+      (g) => g.id === 's1-boundaries-dg1',
+    )!;
+    const g2 = boundaries!.decisionGroups.find(
+      (g) => g.id === 's1-boundaries-dg2',
+    )!;
+    expect(g1.label).toBe('Title & boundary');
+    expect(g1.itemIds).toEqual(['s1-boundaries-c2', 's1-boundaries-c1']);
+    expect(g2.label).toBe('Legal & permit obligations');
+    expect(g2.itemIds).toEqual([
       's1-boundaries-c3',
       's1-boundaries-c4',
       's1-boundaries-c5',
+      's1-boundaries-c6',
+      's1-boundaries-c7',
     ]);
   });
 
-  it('no longer references c6 or c7', () => {
-    const ids = boundaries!.checklist.map((i) => i.id);
-    expect(ids).not.toContain('s1-boundaries-c6');
-    expect(ids).not.toContain('s1-boundaries-c7');
+  it('carries the per-row feed chips and in-panel feed notes from the mockup', () => {
+    const byId = new Map(boundaries!.checklist.map((c) => [c.id, c]));
+    expect(byId.get('s1-boundaries-c3')!.feedHint).toBe(
+      'Feeds Plan: Land use constraint map',
+    );
+    expect(byId.get('s1-boundaries-c4')!.feedHint).toBe(
+      'Feeds Plan: Risk / Compliance overlay',
+    );
+    expect(byId.get('s1-boundaries-c5')!.feedHint).toBe(
+      'Feeds Tier 2: Water strategy',
+    );
+    // The map item carries no feed caption.
+    expect(byId.get('s1-boundaries-c2')!.feedHint).toBeUndefined();
+    expect(byId.get('s1-boundaries-c2')!.feedNote).toBeUndefined();
+    // Title + all legal/permit items carry an in-panel feed note.
+    expect(byId.get('s1-boundaries-c1')!.feedNote).toContain(
+      'Land Base & Legal Context',
+    );
+    expect(byId.get('s1-boundaries-c7')!.feedNote).toContain(
+      'prerequisites on Act handoff packages',
+    );
   });
 });
