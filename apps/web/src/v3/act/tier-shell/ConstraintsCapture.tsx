@@ -490,7 +490,7 @@ export default function ConstraintsCapture({
                             <span className={css.sChipText}>{chip.display}</span>
                             <span className={css.sChipTag}>
                               {cat.name}
-                              {' · '}
+                              {' - '}
                               {chip.severity === 'nn'
                                 ? 'Non-negotiable'
                                 : 'Hard constraint'}
