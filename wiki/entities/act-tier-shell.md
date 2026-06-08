@@ -1786,3 +1786,66 @@ on `PLAN_STRATA.map(s => s.id)` + the objective statuses map; if
 - DEV unlock OFF -> redirects again (PASS)
 
 ADR: [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]].
+
+## EvLegalGovernanceCapture: ev-s1-legal-governance 8-decision Tier-0 surface (SP1 Group 2, 2026-06-07)
+
+Second BUILD group of the OLOS mockup-batch rollout (Ecovillage vertical), after
+the Boundaries re-decompose (Group 1). Gives the Ecovillage objective
+`ev-s1-legal-governance` (EV-S1.4 "Legal entity, tenure & governance model") a
+bespoke 8-decision Decision Workbench faithful to the operator mockup
+`olos_legal_entity_tenure_financial.html`. Clones the proven self-routing capture
+pattern (Boundaries / Stakeholders / Stewards): ONE `isLegalGovernance` flag +
+ONE body-router arm in `DecisionWorkingPanel`, with a pure TOTAL
+`legalGovernanceModeFor(itemId)` driving both the right-panel body and the
+`DecisionList` mode badge.
+
+**New file:** `EvLegalGovernanceCapture.tsx` (+ test). Exports
+`legalGovernanceModeFor` / `decodeLegalGovernance` / `isLegalGovernanceValid` /
+`summariseLegalGovernance` / `emitLegalGovernance` (private `encodeLegalGovernance`).
+
+**Eight modes (item -> mode -> badge):** c1 `legalEntityPicker` (Entity options,
+5 choice cards), **c8 `jurisdiction`** (Jurisdiction; country + province +
+reg-office selects + read-only jurisdiction note), c2 `entityDecisionRecord`
+(Decision record; 3 textareas), c3 `tenureModel` (Tenure model; 4 cards), c4
+`decisionFramework` (Decision framework; 4 cards + quorum), c5
+`financialGovernance` (Financial governance; banking cards + 3 thresholds +
+FY-end), c6 `membershipRegister` (Membership register; 2 multi-select checklists),
+c7 `legalAdviceGate` (Legal advice gate; **HARD GATE**).
+
+**c8 is a NEW catalogue item** added additively at slot 2 of dg1 in
+`ecovillage.ts` (objective now 8 items / dg1 holds 3; item ids are arbitrary
+strings, so c2-c7 were not renumbered; no item retired -> no persisted-value
+orphaning).
+
+**FIVE coupled id sources (load-bearing).** A per-item id for this objective is
+referenced from: (1) `ecovillage.ts` checklist, (2) `ecovillage.ts` dg1.itemIds,
+(3) `objectiveActTools.ts` OBJECTIVE_ACT_TOOLS_OVERRIDE, (4) `actToolCatalog.ts`
+ACT_TOOL_CATALOG, (5) the capture's `legalGovernanceModeFor`. The initial edit
+updated only 1-3; source 4 was missed, turning `actToolCoverage.test.ts` red and
+leaving c8's panel without a header prompt. `actToolCoverage.test.ts` is the guard
+for a missed ACT_TOOL_CATALOG entry.
+
+**c7 legal-advice HARD GATE:** `isLegalGovernanceValid` for c7 is true only when
+`adviceScope.length >= 5 && adviceWritten === 'yes'` (the scope checklist has
+exactly 5 items). Record disabled + gate note "Clear all 5 advice-scope items and
+confirm written advice before recording" until cleared; `adviceDate` recorded but
+not gated. Mirrors the Group 1 c4 title-checker gate.
+
+**FormValue encoding:** flat `string | string[]`; scalars as strings, c6
+rights/obligations as independent string arrays (not zipped rows);
+`encodeLegalGovernance` is the exact inverse of `decodeLegalGovernance` per mode
+(round-trip unit-tested); decoders TOTAL; no object array / no `any`.
+
+**No store / no DecisionWorkingPanel-shape change** beyond the one flag + four
+arms; predicate widen only -- `ev-s1-legal-governance` added to
+`TIER_ZERO_OBJECTIVE_IDS`; persists via the existing
+`actEvidenceStore.visionFormData[itemId]` path.
+
+**Amanah:** c5 financial-governance covers custody/authorisation/reporting only
+(no riba, no gharar); equity-share tenure + share-company options are
+musharaka-like ownership, not riba; no CSA/advance-purchase/CSRA/salam framing, so
+no Scholar-Council routing required (unlike Group 3). One-line Amanah comment on
+the c5 mode.
+
+ADR: [[decisions/2026-06-07-atlas-ev-legal-governance-capture]]; Log:
+[[log/2026-06-07-atlas-ev-legal-governance-capture]].
