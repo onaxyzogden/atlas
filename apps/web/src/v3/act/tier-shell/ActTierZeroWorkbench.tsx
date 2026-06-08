@@ -139,6 +139,11 @@ export function buildDecisionTarget(
   // (ConstraintsCapture) takes precedence over the textarea fallback.
   const isConstraints = item.id === 's1-vision-constraints';
 
+  // Assumptions (assumptions + known unknowns two-section register) is a single
+  // item detected by exact id; the panel's isAssumptions body-router arm
+  // (AssumptionsCapture) takes precedence over the textarea fallback.
+  const isAssumptions = item.id === 's1-vision-assumptions';
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -179,6 +184,7 @@ export function buildDecisionTarget(
     isSteward,
     isPurpose,
     isConstraints,
+    isAssumptions,
     deferLabel,
     deferrable,
   };

@@ -93,6 +93,12 @@ import ConstraintsCapture, {
   summariseConstraints,
   type ConstraintsModel,
 } from './ConstraintsCapture.js';
+import AssumptionsCapture, {
+  decodeAssumptions,
+  isAssumptionsValid,
+  summariseAssumptions,
+  type AssumptionsModel,
+} from './AssumptionsCapture.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -133,6 +139,8 @@ export interface DecisionPanelTarget {
   isPurpose?: boolean;
   /** true => render ConstraintsCapture (non-negotiables + hard constraints register). */
   isConstraints?: boolean;
+  /** true => render AssumptionsCapture (assumptions + known unknowns two-section register). */
+  isAssumptions?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -328,6 +336,15 @@ export default function DecisionWorkingPanel({
     ? decodeConstraints(draft)
     : null;
 
+  // Decode the draft into the assumptions model once -- reused by validity,
+  // the gate note, the record summary, and the body renderer (mirrors the
+  // constraints pattern above). AssumptionsCapture owns a two-section surface
+  // (Assumptions + Known unknowns) and embeds its own feeds block because
+  // feedsLabel is null for s1-vision-assumptions.
+  const assumptionsModel: AssumptionsModel | null = decision.isAssumptions
+    ? decodeAssumptions(draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -354,6 +371,8 @@ export default function DecisionWorkingPanel({
     valid = isPurposeValid(purposeModel!);
   } else if (decision.isConstraints) {
     valid = isConstraintsValid(constraintsModel!);
+  } else if (decision.isAssumptions) {
+    valid = isAssumptionsValid(assumptionsModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -441,6 +460,12 @@ export default function DecisionWorkingPanel({
           Add at least one constraint to record this decision
         </div>
       );
+    } else if (decision.isAssumptions) {
+      gateNote = (
+        <div className={css.gateNote}>
+          Add at least 1 assumption and 1 known unknown to record
+        </div>
+      );
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -470,6 +495,8 @@ export default function DecisionWorkingPanel({
       summary = summarisePurpose(purposeModel!);
     } else if (decision.isConstraints) {
       summary = summariseConstraints(constraintsModel!);
+    } else if (decision.isAssumptions) {
+      summary = summariseAssumptions(assumptionsModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -588,6 +615,12 @@ export default function DecisionWorkingPanel({
           />
         ) : decision.isConstraints ? (
           <ConstraintsCapture
+            key={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : decision.isAssumptions ? (
+          <AssumptionsCapture
             key={decision.itemId}
             value={draft}
             onChange={setDraft}

@@ -1,0 +1,523 @@
+/* AssumptionsCapture.module.css
+ *
+ * Styles for the two-section Assumptions capture component (Assumptions + Known unknowns).
+ * Token vocabulary mirrors ConstraintsCapture.module.css and siblings.
+ * ASCII-only: every glyph is a lucide icon.
+ *
+ * Category -> token color map:
+ *   Infrastructure, Water, Community, Technical -> --color-info (blue)
+ *   Financial, Ecological, Environmental        -> --color-success (green)
+ *   Legal, Soil                                 -> --color-stage-act (amber/gold)
+ *
+ * Flag colors:
+ *   critical assumption  -> --color-stage-act (amber)
+ *   blocking unknown     -> --color-error (red)
+ *   off / non-critical   -> --color-text-muted (muted)
+ *
+ * No bare hex outside a var() fallback.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- Section ---------- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ---------- Section header ---------- */
+
+.sectHead {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sectLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.sectCount {
+  font-size: 10px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.sectDef {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+/* ---------- Section divider ---------- */
+
+.sectionDivider {
+  height: 1px;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  margin: 2px 0;
+}
+
+/* ---------- Entry list ---------- */
+
+.entryList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ---------- Entry card ---------- */
+
+.entryCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 7px 9px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 120ms ease;
+}
+
+/* ---------- Category badge ---------- */
+
+.entryCat {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  margin-top: 1px;
+  white-space: nowrap;
+  /* Default: info/blue */
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* Legal, Soil -> amber */
+.entryCat[data-category='Legal'],
+.entryCat[data-category='Soil'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* Financial, Ecological, Environmental -> green */
+.entryCat[data-category='Financial'],
+.entryCat[data-category='Ecological'],
+.entryCat[data-category='Environmental'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+/* Infrastructure, Water, Community, Technical -> blue (same as default; explicit for clarity) */
+.entryCat[data-category='Infrastructure'],
+.entryCat[data-category='Water'],
+.entryCat[data-category='Community'],
+.entryCat[data-category='Technical'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ---------- Entry text (display-only) ---------- */
+
+.entryText {
+  flex: 1;
+  font-size: 11.5px;
+  color: var(--color-text, #1b1e22);
+  line-height: 1.4;
+  min-width: 0;
+}
+
+/* ---------- Flag toggle button (circular) ---------- */
+
+.entryFlag {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: background 120ms ease, color 120ms ease;
+  margin-top: 0;
+}
+
+/* Critical OFF (assumption, flag=false) */
+.entryFlag[data-flag-type='crit'][data-flag-on='false'] {
+  background: color-mix(in srgb, var(--color-text-muted, #565c63) 14%, transparent);
+  color: var(--color-text-muted, #565c63);
+}
+
+.entryFlag[data-flag-type='crit'][data-flag-on='false']:hover {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* Critical ON (assumption, flag=true) -> amber */
+.entryFlag[data-flag-type='crit'][data-flag-on='true'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 22%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.entryFlag[data-flag-type='crit'][data-flag-on='true']:hover {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 35%, transparent);
+}
+
+/* Blocking OFF (unknown, flag=false) */
+.entryFlag[data-flag-type='block'][data-flag-on='false'] {
+  background: color-mix(in srgb, var(--color-text-muted, #565c63) 14%, transparent);
+  color: var(--color-text-muted, #565c63);
+}
+
+.entryFlag[data-flag-type='block'][data-flag-on='false']:hover {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 18%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+/* Blocking ON (unknown, flag=true) -> red */
+.entryFlag[data-flag-type='block'][data-flag-on='true'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 22%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.entryFlag[data-flag-type='block'][data-flag-on='true']:hover {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 35%, transparent);
+}
+
+/* ---------- Delete button ---------- */
+
+.entryDel {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted, #565c63);
+  font-size: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, color 120ms ease;
+  margin-top: 2px;
+  opacity: 0;
+}
+
+.entryCard:hover .entryDel,
+.entryCard:focus-within .entryDel {
+  opacity: 1;
+}
+
+.entryDel:hover {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+/* ---------- Suggestion chips ---------- */
+
+.sugSection {
+  margin-top: 3px;
+}
+
+.sugLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 5px;
+}
+
+.sugChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sugChip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+  font-family: inherit;
+}
+
+.sugChip:hover {
+  border-color: var(--color-stage-act, #d9a036);
+  border-style: solid;
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 8%, transparent);
+}
+
+/* ---------- Compact add form ---------- */
+
+.cafWrap {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-stage-act, #d9a036);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.cafCatRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.cafCatChip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #f5f1e8);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  font-family: inherit;
+}
+
+.cafCatChip:hover {
+  border-color: var(--color-text-subtle, #7a808a);
+}
+
+.cafCatChip[data-selected='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.cafInp {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  transition: border-color 130ms ease;
+  box-sizing: border-box;
+}
+
+.cafInp:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.cafInp::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.cafBottom {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cafFlagRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+
+.cafFlagLbl {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* Toggle switch */
+.cafToggle {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--color-surface-alt, #f3efe6);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  cursor: pointer;
+  position: relative;
+  transition: background 120ms ease;
+  flex-shrink: 0;
+}
+
+.cafToggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-text-subtle, #7a808a);
+  transition: left 120ms ease, background 120ms ease;
+}
+
+.cafToggle[data-on='true'] {
+  background: var(--color-stage-act, #d9a036);
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.cafToggle[data-on='true']::after {
+  left: 16px;
+  background: white;
+}
+
+.cafBtns {
+  display: flex;
+  gap: 5px;
+}
+
+.cafAddBtn {
+  padding: 6px 13px;
+  background: var(--color-stage-act, #d9a036);
+  border: none;
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-surface, #f5f1e8);
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.cafAddBtn:hover {
+  opacity: 0.88;
+}
+
+.cafCancelBtn {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.cafCancelBtn:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+/* ---------- Shared: add-row dashed button ---------- */
+
+.addRowBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  background: transparent;
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: border-color 130ms ease, color 130ms ease, background 130ms ease;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  margin-top: 2px;
+}
+
+.addRowBtn:hover {
+  border-color: var(--color-stage-act, #d9a036);
+  border-style: solid;
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 8%, transparent);
+}
+
+/* ---------- Legend ---------- */
+
+.legend {
+  display: flex;
+  gap: 10px;
+  padding: 6px 9px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.legItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.legDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.legDot[data-leg='crit'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 22%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.legDot[data-leg='block'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 22%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.legDot[data-leg='off'] {
+  background: color-mix(in srgb, var(--color-text-muted, #565c63) 14%, transparent);
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Feeds info ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}

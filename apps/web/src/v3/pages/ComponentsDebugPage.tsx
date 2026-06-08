@@ -458,6 +458,38 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      <Section title="Decision Working Panel - Assumptions (two-section register)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-assumptions",
+              label: "Record assumptions and known unknowns",
+              prompt: "Assumptions are things you're treating as true without verifying. Known unknowns are things you know you need to find out.",
+              isAssumptions: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              assumptions: [
+                JSON.stringify({ id: "seed-a1", category: "Infrastructure", text: "Bore water supply is adequate year-round for both livestock and supplemental irrigation.", flag: true }),
+                JSON.stringify({ id: "seed-a2", category: "Legal", text: "Planning permission for the proposed shed and dam expansion will be granted without material conditions.", flag: false }),
+              ],
+              unknowns: [
+                JSON.stringify({ id: "seed-u1", category: "Soil", text: "Soil depth and clay layer depth across the north paddock -- affects water retention and swale viability.", flag: true }),
+                JSON.stringify({ id: "seed-u2", category: "Water", text: "Whether the seasonal creek holds water into February in drought years -- affects livestock water system design.", flag: false }),
+              ],
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
