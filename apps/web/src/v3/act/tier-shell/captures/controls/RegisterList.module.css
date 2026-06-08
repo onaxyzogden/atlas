@@ -1,0 +1,52 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.empty {
+  font-size: var(--text-xs, 12px);
+  color: var(--color-text-subtle, #7a808a);
+  margin: 0;
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border-subtle, #e6e9ee);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-alt, #f6f7f9);
+}
+.delBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs, 12px);
+  padding: 6px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #d4d8de);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #565b63);
+  cursor: pointer;
+}
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  font-size: var(--text-xs, 12px);
+  padding: 6px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #d4d8de);
+  background: var(--color-surface, #fff);
+  color: var(--color-stage-act, #d9a036);
+  cursor: pointer;
+}

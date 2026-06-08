@@ -1,0 +1,52 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--radius-lg, 12px);
+  border-left: 3px solid var(--color-border, #d4d8de);
+  background: var(--color-surface-alt, #f6f7f9);
+}
+.label {
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  color: var(--color-text-muted, #565b63);
+}
+.figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--text-3xl, 30px);
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-text, #1b1e22);
+}
+.unit {
+  font-size: var(--text-base, 14px);
+  font-weight: 500;
+  color: var(--color-text-muted, #565b63);
+}
+.note {
+  font-size: var(--text-xs, 12px);
+  line-height: 1.5;
+  color: var(--color-text-muted, #565b63);
+}
+.block[data-tone='pass'] {
+  border-left-color: var(--color-success, #6b8f6b);
+}
+.block[data-tone='pass'] .figure {
+  color: var(--color-success, #6b8f6b);
+}
+.block[data-tone='warn'] {
+  border-left-color: var(--color-warning, #ca8a04);
+}
+.block[data-tone='warn'] .figure {
+  color: var(--color-warning, #ca8a04);
+}
+.block[data-tone='fail'] {
+  border-left-color: var(--color-error, #c4493a);
+}
+.block[data-tone='fail'] .figure {
+  color: var(--color-error, #c4493a);
+}

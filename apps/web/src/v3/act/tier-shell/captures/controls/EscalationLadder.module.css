@@ -1,0 +1,58 @@
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tier {
+  border: 1px solid var(--color-border-subtle, #e6e9ee);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  overflow: hidden;
+}
+.tierHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: var(--color-text, #1b1e22);
+  cursor: pointer;
+}
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+}
+.tierTitle {
+  flex: 1 1 auto;
+  font-size: var(--text-sm, 13px);
+  font-weight: 600;
+}
+.chevron {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle, #7a808a);
+  transition: transform var(--duration-fast, 100ms) var(--ease-default, ease);
+}
+.chevron[data-open='true'] {
+  transform: rotate(180deg);
+}
+.tierBody {
+  padding: 0 12px 12px 44px;
+  font-size: var(--text-sm, 13px);
+  line-height: 1.55;
+  color: var(--color-text-muted, #565b63);
+}

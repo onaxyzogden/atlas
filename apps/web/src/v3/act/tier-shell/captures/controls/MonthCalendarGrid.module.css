@@ -1,0 +1,23 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.cell {
+  aspect-ratio: 1;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+  font-size: var(--text-xs, 11px);
+  cursor: pointer;
+}
+.cell[data-state='low'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 10%, transparent);
+}
+.cell[data-state='med'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 22%, transparent);
+}
+.cell[data-state='high'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 40%, transparent);
+}

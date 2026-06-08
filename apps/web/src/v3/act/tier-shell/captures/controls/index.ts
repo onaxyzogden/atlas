@@ -30,3 +30,15 @@ export type {
   BarChartStripProps,
   BarDatum,
 } from './BarChartStrip.js';
+
+export { MonthCalendarGrid, MONTH_ABBR, MONTH_NAMES } from './MonthCalendarGrid.js';
+export type { MonthCalendarGridProps, MonthState } from './MonthCalendarGrid.js';
+
+export { CapacityCeilingBlock } from './CapacityCeilingBlock.js';
+export type { CapacityCeilingBlockProps } from './CapacityCeilingBlock.js';
+
+export { RegisterList } from './RegisterList.js';
+export type { RegisterListProps } from './RegisterList.js';
+
+export { EscalationLadder } from './EscalationLadder.js';
+export type { EscalationLadderProps, EscalationTier } from './EscalationLadder.js';
