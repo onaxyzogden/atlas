@@ -37,6 +37,7 @@ import DecisionWorkingPanel, {
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import { boundaryModeFor } from './BoundaryCapture.js';
 import { stakeholderModeFor } from './StakeholderCapture.js';
+import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -117,6 +118,11 @@ export function buildDecisionTarget(
   // matched generic form. False for every non-stakeholder id.
   const isStakeholder = item.id.startsWith('s1-stakeholders-');
 
+  // Legal-governance items detected by id prefix; the panel's isLegalGovernance
+  // body-router arm (EvLegalGovernanceCapture self-routes on itemId) takes
+  // precedence over any matched generic form. False for every other id.
+  const isLegalGovernance = item.id.startsWith('ev-s1-legal-governance-');
+
   // Steward (team member capture) is a single item detected by exact id; the
   // panel's isSteward body-router arm (StewardCapture) takes precedence over any
   // matched generic form. False for every other id.
@@ -153,6 +159,7 @@ export function buildDecisionTarget(
     isVisionClassify,
     isBoundary,
     isStakeholder,
+    isLegalGovernance,
     isSteward,
     deferLabel,
     deferrable,
@@ -234,6 +241,10 @@ export default function ActTierZeroWorkbench({
   // a static map-strip ("2 overlays active on map") and a LIVE reg-strip showing
   // the shared register count. Neither renders for any other objective.
   const isStakeholderObjective = activeObjective.id === 's1-stakeholders';
+
+  // Legal-governance objective (EV-S1.4) drives the center-list mode badges via
+  // legalGovernanceModeFor. No map/register strips render for it.
+  const isLegalGovernanceObjective = activeObjective.id === 'ev-s1-legal-governance';
 
   const selectedItem =
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
@@ -345,7 +356,12 @@ export default function ActTierZeroWorkbench({
                     itemId.startsWith('s1-stakeholders-')
                       ? stakeholderModeFor(itemId)
                       : null
-                : undefined
+                : isLegalGovernanceObjective
+                  ? (itemId) =>
+                      itemId.startsWith('ev-s1-legal-governance-')
+                        ? legalGovernanceModeFor(itemId)
+                        : null
+                  : undefined
           }
         />
       </section>
