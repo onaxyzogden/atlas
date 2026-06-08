@@ -35,7 +35,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
-import { boundaryModeFor } from './BoundaryCapture.js';
+import { boundaryModeFor } from './BoundaryCaptureLegacy.js';
 import { stakeholderModeFor } from './StakeholderCapture.js';
 import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
 import {
@@ -140,12 +140,17 @@ export function buildDecisionTarget(
   // every other item, including the other stakeholder items.
   const deferrable = item.id === 's1-stakeholders-c3' ? false : undefined;
 
-  const feedsLabel = item.feedsInto.length
-    ? 'Feeds ' +
-      item.feedsInto
-        .map((id) => findObjectiveGlobally(id)?.title ?? id)
-        .join(', ')
-    : null;
+  // An item's explicit feedNote (free-text in-panel callout, e.g. the boundary
+  // mixed-mode surface) takes precedence over the feedsInto-derived label
+  // (downstream objective titles). Most items carry neither -> null.
+  const feedsLabel = item.feedNote
+    ? item.feedNote
+    : item.feedsInto.length
+      ? 'Feeds ' +
+        item.feedsInto
+          .map((id) => findObjectiveGlobally(id)?.title ?? id)
+          .join(', ')
+      : null;
 
   return {
     itemId: item.id,
@@ -345,6 +350,7 @@ export default function ActTierZeroWorkbench({
           completedItemIds={completedForActive}
           selectedItemId={selectedItemId}
           onSelectItem={setSelectedItemId}
+          showGroups={isBoundaryObjective}
           modeFor={
             isBoundaryObjective
               ? (itemId) =>
