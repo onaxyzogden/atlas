@@ -166,6 +166,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   's1-vision',
   's1-boundaries',
   's1-stakeholders',
+  'ev-s1-legal-governance',
 ]);
 
 /**
