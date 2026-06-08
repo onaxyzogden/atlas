@@ -444,9 +444,9 @@ export default function ComponentsDebugPage() {
             successCriteriaOptions={[]}
             initialValue={{
               constraints: [
-                JSON.stringify({ text: "No synthetic herbicides, pesticides, or fertilisers -- certified organic methods only", severity: "nn", note: "" }),
-                JSON.stringify({ text: "Annual operating expenditure cannot exceed $40,000 in the first planning cycle", severity: "hc", note: "Agreed at founding meeting" }),
-                JSON.stringify({ text: "Existing bore is not to be disturbed or decommissioned under any circumstances", severity: "nn", note: "" }),
+                JSON.stringify({ id: "seed-1", text: "No synthetic herbicides, pesticides, or fertilisers -- certified organic methods only", severity: "nn", note: "" }),
+                JSON.stringify({ id: "seed-2", text: "Annual operating expenditure cannot exceed $40,000 in the first planning cycle", severity: "hc", note: "Agreed at founding meeting" }),
+                JSON.stringify({ id: "seed-3", text: "Existing bore is not to be disturbed or decommissioned under any circumstances", severity: "nn", note: "" }),
               ],
             }}
             initialRationale=""

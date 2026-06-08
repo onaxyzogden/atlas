@@ -15,6 +15,8 @@
  *   8. Render with empty value shows empty-state copy in Register tab.
  *   9. Render with populated value shows constraint text and severity pill.
  *  10. Clicking a suggestion chip calls onChange with the chip's FULL text encoded.
+ *  11. Severity toggle emits toggled model (stopPropagation confirmed).
+ *  12. Duplicate chip guard: already-added chip does not call onChange again.
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -55,10 +57,11 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 import ConstraintsCapture, {
   decodeConstraints,
+  encodeConstraints,
   isConstraintsValid,
   summariseConstraints,
+  type Constraint,
   type ConstraintsModel,
-  type ConstraintSeverity,
 } from '../ConstraintsCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
@@ -66,8 +69,12 @@ import type { FormValue } from '../actToolCatalog.js';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function encodeForTest(constraints: { text: string; severity: ConstraintSeverity; note: string }[]): FormValue {
-  return { constraints: constraints.map((c) => JSON.stringify(c)) };
+function encodeForTest(constraints: Omit<Constraint, 'id'>[] | Constraint[]): FormValue {
+  return encodeConstraints({
+    constraints: (constraints as Constraint[]).map((c, i) =>
+      'id' in c && c.id ? c : { ...c, id: 'test-' + i },
+    ),
+  });
 }
 
 function renderCapture(value: FormValue) {
@@ -81,15 +88,14 @@ function renderCapture(value: FormValue) {
 // ---------------------------------------------------------------------------
 
 describe('decodeConstraints -- round-trip', () => {
-  it('round-trips with encodeConstraints via decodeConstraints(encoded)', () => {
+  it('round-trips with encodeConstraints via decodeConstraints(encodeConstraints(model))', () => {
     const original: ConstraintsModel = {
       constraints: [
-        { text: 'No debt financing', severity: 'nn', note: 'Board resolution' },
-        { text: 'Max opex $40k/year', severity: 'hc', note: '' },
+        { id: 'r1', text: 'No debt financing', severity: 'nn', note: 'Board resolution' },
+        { id: 'r2', text: 'Max opex $40k/year', severity: 'hc', note: '' },
       ],
     };
-    const encoded = encodeForTest(original.constraints);
-    const decoded = decodeConstraints(encoded);
+    const decoded = decodeConstraints(encodeConstraints(original));
     expect(decoded).toEqual(original);
   });
 });
@@ -173,8 +179,8 @@ describe('isConstraintsValid', () => {
     expect(
       isConstraintsValid({
         constraints: [
-          { text: '', severity: 'hc', note: '' },
-          { text: '   ', severity: 'nn', note: '' },
+          { id: 'a', text: '', severity: 'hc', note: '' },
+          { id: 'b', text: '   ', severity: 'nn', note: '' },
         ],
       }),
     ).toBe(false);
@@ -184,8 +190,8 @@ describe('isConstraintsValid', () => {
     expect(
       isConstraintsValid({
         constraints: [
-          { text: '', severity: 'hc', note: '' },
-          { text: 'No debt financing', severity: 'nn', note: '' },
+          { id: 'a', text: '', severity: 'hc', note: '' },
+          { id: 'b', text: 'No debt financing', severity: 'nn', note: '' },
         ],
       }),
     ).toBe(true);
@@ -200,9 +206,9 @@ describe('summariseConstraints', () => {
   it('produces the correct pluralized string for 3 total / 1 nn', () => {
     const model: ConstraintsModel = {
       constraints: [
-        { text: 'Alpha', severity: 'nn', note: '' },
-        { text: 'Beta', severity: 'hc', note: '' },
-        { text: 'Gamma', severity: 'hc', note: '' },
+        { id: 'a', text: 'Alpha', severity: 'nn', note: '' },
+        { id: 'b', text: 'Beta', severity: 'hc', note: '' },
+        { id: 'c', text: 'Gamma', severity: 'hc', note: '' },
       ],
     };
     expect(summariseConstraints(model)).toBe(
@@ -212,7 +218,7 @@ describe('summariseConstraints', () => {
 
   it('uses singular forms when total is 1 and nn is 1', () => {
     const model: ConstraintsModel = {
-      constraints: [{ text: 'Alpha', severity: 'nn', note: '' }],
+      constraints: [{ id: 'a', text: 'Alpha', severity: 'nn', note: '' }],
     };
     expect(summariseConstraints(model)).toBe(
       '1 constraint recorded -- 1 non-negotiable',
@@ -222,8 +228,8 @@ describe('summariseConstraints', () => {
   it('uses plural for nn when nn count > 1', () => {
     const model: ConstraintsModel = {
       constraints: [
-        { text: 'Alpha', severity: 'nn', note: '' },
-        { text: 'Beta', severity: 'nn', note: '' },
+        { id: 'a', text: 'Alpha', severity: 'nn', note: '' },
+        { id: 'b', text: 'Beta', severity: 'nn', note: '' },
       ],
     };
     expect(summariseConstraints(model)).toBe(
@@ -234,9 +240,9 @@ describe('summariseConstraints', () => {
   it('excludes blank-text constraints from the count', () => {
     const model: ConstraintsModel = {
       constraints: [
-        { text: '', severity: 'nn', note: '' }, // blank -- excluded
-        { text: 'Alpha', severity: 'nn', note: '' },
-        { text: 'Beta', severity: 'hc', note: '' },
+        { id: 'a', text: '', severity: 'nn', note: '' }, // blank -- excluded
+        { id: 'b', text: 'Alpha', severity: 'nn', note: '' },
+        { id: 'c', text: 'Beta', severity: 'hc', note: '' },
       ],
     };
     // Only 2 filled; 1 nn
@@ -272,7 +278,7 @@ describe('ConstraintsCapture render -- empty state', () => {
 describe('ConstraintsCapture render -- populated state', () => {
   it('shows constraint text and severity pill in Register tab', () => {
     const value = encodeForTest([
-      { text: 'No debt financing', severity: 'nn', note: '' },
+      { id: 'p1', text: 'No debt financing', severity: 'nn', note: '' },
     ]);
     renderCapture(value);
     fireEvent.click(screen.getByRole('tab', { name: /register/i }));
@@ -283,8 +289,8 @@ describe('ConstraintsCapture render -- populated state', () => {
 
   it('renders multiple constraint items', () => {
     const value = encodeForTest([
-      { text: 'Constraint A', severity: 'nn', note: '' },
-      { text: 'Constraint B', severity: 'hc', note: '' },
+      { id: 'p1', text: 'Constraint A', severity: 'nn', note: '' },
+      { id: 'p2', text: 'Constraint B', severity: 'hc', note: '' },
     ]);
     renderCapture(value);
     fireEvent.click(screen.getByRole('tab', { name: /register/i }));
@@ -336,5 +342,70 @@ describe('ConstraintsCapture -- suggestion chip onClick', () => {
     expect(
       screen.getByRole('tab', { name: /register/i }).getAttribute('aria-selected'),
     ).toBe('true');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fix 3a -- Severity toggle emits toggled model (stopPropagation confirmed)
+// ---------------------------------------------------------------------------
+
+describe('ConstraintsCapture -- severity toggle', () => {
+  it('clicking the severity pill toggles severity from hc to nn without toggling note', () => {
+    const value = encodeForTest([
+      { id: 'sev-1', text: 'No debt financing', severity: 'hc', note: '' },
+    ]);
+    const { onChange } = renderCapture(value);
+
+    // Switch to Register tab to see the constraint row.
+    fireEvent.click(screen.getByRole('tab', { name: /register/i }));
+
+    // Click the severity pill (labelled "Hard").
+    const pill = screen.getByRole('button', {
+      name: /Severity: Hard -- click to toggle/i,
+    });
+    fireEvent.click(pill);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    const arr = emitted.constraints as string[];
+    expect(arr).toHaveLength(1);
+
+    const parsed = JSON.parse(arr[0]!);
+    // Severity must have toggled to nn.
+    expect(parsed.severity).toBe('nn');
+    // Text must be unchanged.
+    expect(parsed.text).toBe('No debt financing');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fix 3b -- Duplicate chip guard: already-added chip does not trigger onChange
+// ---------------------------------------------------------------------------
+
+describe('ConstraintsCapture -- duplicate chip guard', () => {
+  it('chip for a text already in the register is disabled and does not call onChange', () => {
+    // Use the full text of the Ecological chip.
+    const fullText =
+      'No synthetic herbicides, pesticides, or fertilisers -- certified organic methods only';
+    const value = encodeForTest([
+      { id: 'dup-1', text: fullText, severity: 'nn', note: '' },
+    ]);
+    const { onChange } = renderCapture(value);
+
+    // The Ecological category is collapsed by default -- expand it.
+    const ecoHeader = screen.getByRole('button', {
+      name: /Ecological/i,
+    });
+    fireEvent.click(ecoHeader);
+
+    // The chip for the already-added text should render as disabled/added.
+    const chip = screen.getByRole('button', {
+      name: /No synthetic herbicides/i,
+    });
+    expect((chip as HTMLButtonElement).disabled).toBe(true);
+
+    // Clicking a disabled chip must not invoke onChange.
+    fireEvent.click(chip);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

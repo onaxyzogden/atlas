@@ -448,7 +448,7 @@
 }
 
 .cItemNote[data-open='true'] {
-  max-height: 100px;
+  max-height: 160px;
   padding: 0 10px 8px 10px;
 }
 

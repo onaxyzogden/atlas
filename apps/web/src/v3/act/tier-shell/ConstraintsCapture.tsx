@@ -32,7 +32,7 @@
  * All icons are lucide-react; no Unicode shapes in JSX.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -50,12 +50,24 @@ import type { FormValue } from './actToolCatalog.js';
 import css from './ConstraintsCapture.module.css';
 
 // ---------------------------------------------------------------------------
+// Stable id factory (module-scoped, pure -- no side-effects at import time)
+// ---------------------------------------------------------------------------
+
+function makeConstraintId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'cst-' + Math.random().toString(36).slice(2, 10);
+}
+
+// ---------------------------------------------------------------------------
 // Model + contract types
 // ---------------------------------------------------------------------------
 
 export type ConstraintSeverity = 'nn' | 'hc'; // nn = non-negotiable, hc = hard constraint
 
 export interface Constraint {
+  id: string;
   text: string;
   severity: ConstraintSeverity;
   note: string;
@@ -81,8 +93,9 @@ export function decodeConstraints(value: FormValue): ConstraintsModel {
   const arr: unknown[] = Array.isArray(raw) ? raw : [];
 
   const constraints: Constraint[] = [];
+  let index = 0;
   for (const entry of arr) {
-    if (typeof entry !== 'string') continue;
+    if (typeof entry !== 'string') { index++; continue; }
     try {
       const parsed: unknown = JSON.parse(entry);
       if (
@@ -90,22 +103,26 @@ export function decodeConstraints(value: FormValue): ConstraintsModel {
         typeof parsed !== 'object' ||
         typeof (parsed as { text?: unknown }).text !== 'string'
       ) {
+        index++;
         continue;
       }
-      const p = parsed as { text: string; severity?: unknown; note?: unknown };
+      const p = parsed as { id?: unknown; text: string; severity?: unknown; note?: unknown };
+      const id: string =
+        typeof p.id === 'string' && p.id !== '' ? p.id : 'legacy-' + index;
       const severity: ConstraintSeverity =
         p.severity === 'nn' ? 'nn' : 'hc';
       const note: string = typeof p.note === 'string' ? p.note : '';
-      constraints.push({ text: p.text, severity, note });
+      constraints.push({ id, text: p.text, severity, note });
     } catch {
       // drop malformed entry
     }
+    index++;
   }
   return { constraints };
 }
 
 /** Encodes the model back to a flat FormValue. Round-trips losslessly with decodeConstraints. */
-function encodeConstraints(model: ConstraintsModel): FormValue {
+export function encodeConstraints(model: ConstraintsModel): FormValue {
   return {
     constraints: model.constraints.map((c) => JSON.stringify(c)),
   };
@@ -296,8 +313,8 @@ export default function ConstraintsCapture({
   const [expandedCats, setExpandedCats] = useState<Set<string>>(
     () => new Set(['physical']),
   );
-  // Which register items have their note row expanded (by index).
-  const [expandedNotes, setExpandedNotes] = useState<Set<number>>(
+  // Which register items have their note row expanded (by constraint.id).
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(
     () => new Set(),
   );
 
@@ -327,16 +344,21 @@ export default function ConstraintsCapture({
     });
   };
 
+  /** Memoized set of already-added constraint texts for O(1) chip-added lookup. */
+  const addedTexts = useMemo(
+    () => new Set(model.constraints.map((c) => c.text)),
+    [model.constraints],
+  );
+
   /** True if the chip's FULL text is already present in the register. */
-  const isChipAdded = (full: string): boolean =>
-    model.constraints.some((c) => c.text === full);
+  const isChipAdded = (full: string): boolean => addedTexts.has(full);
 
   const addFromChip = (chip: SuggestionChip) => {
     if (isChipAdded(chip.full)) return;
     emit({
       constraints: [
         ...model.constraints,
-        { text: chip.full, severity: chip.severity, note: '' },
+        { id: makeConstraintId(), text: chip.full, severity: chip.severity, note: '' },
       ],
     });
     setActiveTab('register');
@@ -346,7 +368,7 @@ export default function ConstraintsCapture({
     emit({
       constraints: [
         ...model.constraints,
-        { text: '', severity: 'hc', note: '' },
+        { id: makeConstraintId(), text: '', severity: 'hc', note: '' },
       ],
     });
     setActiveTab('register');
@@ -363,28 +385,27 @@ export default function ConstraintsCapture({
   };
 
   const removeConstraint = (idx: number) => {
+    const removed = model.constraints[idx];
     emit({
       constraints: model.constraints.filter((_, i) => i !== idx),
     });
-    // Remove from expanded notes if present and adjust indices above.
-    setExpandedNotes((prev) => {
-      const next = new Set<number>();
-      for (const n of prev) {
-        if (n < idx) next.add(n);
-        else if (n > idx) next.add(n - 1);
-        // n === idx: drop it
-      }
-      return next;
-    });
+    // Remove the id from expanded notes (no re-indexing needed -- id-keyed).
+    if (removed) {
+      setExpandedNotes((prev) => {
+        const next = new Set(prev);
+        next.delete(removed.id);
+        return next;
+      });
+    }
   };
 
-  const toggleNote = (idx: number) => {
+  const toggleNote = (constraintId: string) => {
     setExpandedNotes((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) {
-        next.delete(idx);
+      if (next.has(constraintId)) {
+        next.delete(constraintId);
       } else {
-        next.add(idx);
+        next.add(constraintId);
       }
       return next;
     });
@@ -544,12 +565,12 @@ export default function ConstraintsCapture({
           ) : (
             <div className={css.registerList}>
               {model.constraints.map((constraint, idx) => {
-                const noteOpen = expandedNotes.has(idx);
+                const noteOpen = expandedNotes.has(constraint.id);
                 const severityLabel =
                   constraint.severity === 'nn' ? 'Non-neg.' : 'Hard';
                 return (
                   <div
-                    key={idx}
+                    key={constraint.id}
                     className={css.cItem}
                     data-severity={constraint.severity}
                     data-testid="constraint-item"
@@ -557,13 +578,13 @@ export default function ConstraintsCapture({
                     {/* Item head (click toggles note row) */}
                     <div
                       className={css.cItemHead}
-                      onClick={() => toggleNote(idx)}
+                      onClick={() => toggleNote(constraint.id)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          toggleNote(idx);
+                          toggleNote(constraint.id);
                         }
                       }}
                       aria-expanded={noteOpen}
