@@ -414,6 +414,94 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
     _base: ['Yes - detail below', 'No prior community'],
   },
 
+  // REVIEW: Legal-governance option sets (SP1 Group 2) -- content transcribed
+  // verbatim from olos_legal_entity_tenure_financial.html, ASCII-normalised
+  // (em-dashes -> " - "). Consumed by EvLegalGovernanceCapture (ev-s1-legal-
+  // governance, 8 modes). Amanah: the financial sets below describe fund custody
+  // and signing authority only -- no interest-bearing instrument (riba) and no
+  // speculative sale (gharar).
+  legalEntityOptions: {
+    _base: [
+      'Community land trust (CLT)',
+      'Co-operative (housing or multi-stakeholder)',
+      'Charitable trust or non-profit corporation',
+      'Company (share or guarantee)',
+      'Incorporated society',
+    ],
+  },
+  legalJurisdictionCountry: {
+    _base: ['Canada', 'Australia', 'New Zealand', 'United Kingdom', 'United States', 'Other'],
+  },
+  legalJurisdictionProvince: {
+    _base: ['Ontario', 'British Columbia', 'Alberta', 'Quebec', 'Nova Scotia', 'Other'],
+  },
+  legalRegisteredOffice: {
+    _base: ['Registered office is on the land', 'Registered office is separate'],
+  },
+  legalTenureModel: {
+    _base: [
+      'Collective ownership - no private title',
+      'Leasehold - community land, household lease',
+      'Equity shares - proportional ownership interest',
+      'Hybrid - differentiated tenure by zone or household type',
+    ],
+  },
+  legalDecisionFramework: {
+    _base: [
+      'Consent (sociocracy)',
+      'Full consensus',
+      'Modified consensus with fallback vote',
+      'Democratic majority vote',
+    ],
+  },
+  legalQuorum: {
+    _base: [
+      '50% of active members',
+      '67% of active members',
+      '75% of active members',
+      '100% - unanimous attendance',
+    ],
+  },
+  legalBankingStructure: {
+    _base: [
+      'Community bank account - joint signatories',
+      'Separate accounts by function',
+      'Trustee-held funds',
+    ],
+  },
+  legalAuthSingle: { _base: ['$250', '$500', '$1,000', '$2,500'] },
+  legalAuthDouble: { _base: ['$2,500', '$5,000', '$10,000', '$25,000'] },
+  legalAuthVote: { _base: ['$5,000', '$10,000', '$25,000'] },
+  legalFinancialYearEnd: { _base: ['31 March', '31 December', '30 June'] },
+  legalWrittenAdvice: { _base: ['Yes', 'Pending'] },
+  legalMembershipRights: {
+    _base: [
+      'Right to occupy an allocated dwelling or site',
+      'Access to all shared land, infrastructure, and commons areas',
+      'Vote in community decisions (subject to the decision-making framework)',
+      'Priority consideration for expanded occupancy or additional plots',
+      'Share of any surplus income produced by community enterprises',
+    ],
+  },
+  legalMembershipObligations: {
+    _base: [
+      'Contribute a defined number of hours per month to shared land and infrastructure work',
+      'Pay monthly community levy on time as agreed',
+      'Participate in scheduled community decision-making meetings',
+      'Give the required notice period before initiating exit from the community',
+      'Maintain the private dwelling and site in a condition consistent with community standards',
+    ],
+  },
+  legalAdviceScope: {
+    _base: [
+      'Legal entity type and registration process in the confirmed jurisdiction',
+      'Land tenure model - title structure, lease enforceability, resale formula',
+      'Financial governance - signing authority, trustee obligations, annual compliance',
+      'Membership agreement - rights, obligations, and exit provisions',
+      'Any design tensions flagged for this project type combination reviewed',
+    ],
+  },
+
   // Stakeholder surface option sets -- reconciled with the operator's
   // olos_stakeholders_mixed_surface.html mockup (Phase C Part 3, sub-project 2).
   // Flat sets resolved via the already-threaded resolveOptions prop. The grouped
