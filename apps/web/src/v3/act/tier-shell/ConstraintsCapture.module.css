@@ -222,6 +222,27 @@
   font-size: 9.5px;
   color: var(--color-text-muted, #565c63);
   margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tagCat {
+  /* inherits sChipTag font/color */
+}
+
+.tagDot {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  margin: 0 6px;
+  vertical-align: middle;
+  background: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+}
+
+.tagSev {
+  /* inherits sChipTag font/color */
 }
 
 /* ---------- Shared: add-row dashed button ---------- */

@@ -149,6 +149,15 @@ describe('decodeConstraints -- defensive', () => {
     const result = decodeConstraints(value);
     expect(result.constraints[0]!.note).toBe('');
   });
+
+  it('returns { constraints: [] } when value.constraints is a raw JSON string (not an array)', () => {
+    // Contract: non-array value -> empty model. A bare JSON string must NOT be
+    // wrapped and parsed -- it must produce no entries.
+    const value: FormValue = {
+      constraints: '{"text":"x","severity":"nn","note":""}',
+    };
+    expect(decodeConstraints(value)).toEqual({ constraints: [] });
+  });
 });
 
 // ---------------------------------------------------------------------------

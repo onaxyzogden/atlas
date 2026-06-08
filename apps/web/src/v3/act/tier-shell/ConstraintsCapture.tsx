@@ -78,11 +78,7 @@ export interface ConstraintsModel {
  */
 export function decodeConstraints(value: FormValue): ConstraintsModel {
   const raw = value.constraints;
-  const arr: unknown[] = Array.isArray(raw)
-    ? raw
-    : typeof raw === 'string'
-      ? [raw]
-      : [];
+  const arr: unknown[] = Array.isArray(raw) ? raw : [];
 
   const constraints: Constraint[] = [];
   for (const entry of arr) {
@@ -489,11 +485,13 @@ export default function ConstraintsCapture({
                           <span className={css.sChipBody}>
                             <span className={css.sChipText}>{chip.display}</span>
                             <span className={css.sChipTag}>
-                              {cat.name}
-                              {' - '}
-                              {chip.severity === 'nn'
-                                ? 'Non-negotiable'
-                                : 'Hard constraint'}
+                              <span className={css.tagCat}>{cat.name}</span>
+                              <span className={css.tagDot} aria-hidden="true" />
+                              <span className={css.tagSev}>
+                                {chip.severity === 'nn'
+                                  ? 'Non-negotiable'
+                                  : 'Hard constraint'}
+                              </span>
                             </span>
                           </span>
                         </button>
