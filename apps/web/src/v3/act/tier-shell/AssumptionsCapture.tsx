@@ -357,7 +357,7 @@ function RegisterSection({
       {/* Entry list */}
       {entries.length > 0 ? (
         <div className={css.entryList}>
-          {entries.map((entry) => {
+          {entries.map((entry, idx) => {
             const isCritOrBlock = entry.flag;
             const isAssump = config.type === 'assump';
             return (
@@ -414,7 +414,7 @@ function RegisterSection({
                 <button
                   type="button"
                   className={css.entryDel}
-                  aria-label={`Remove entry`}
+                  aria-label={`Remove ${config.label.toLowerCase()} ${idx + 1}`}
                   onClick={() => onDeleteEntry(entry.id)}
                 >
                   <X size={9} aria-hidden="true" />
@@ -546,9 +546,9 @@ export default function AssumptionsCapture({
   };
 
   const handleCloseForm = () => {
+    if (openForm === 'assump') setAssumpComposer(defaultComposer(ASSUMP_CONFIG));
+    else if (openForm === 'unknown') setUnknownComposer(defaultComposer(UNKNOWN_CONFIG));
     setOpenForm(null);
-    setAssumpComposer(defaultComposer(ASSUMP_CONFIG));
-    setUnknownComposer(defaultComposer(UNKNOWN_CONFIG));
   };
 
   const handleComposerChange = (

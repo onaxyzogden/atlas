@@ -522,4 +522,85 @@ describe('AssumptionsCapture -- add-form', () => {
     expect(screen.queryByPlaceholderText('We are assuming that...')).toBeNull();
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('Cancel clears the composer draft -- re-opening shows empty input', () => {
+    const { onChange } = renderCapture({});
+
+    // Open the assumptions add-form
+    fireEvent.click(screen.getByTestId('assump-add-btn'));
+
+    // Type some draft text
+    const input = screen.getByPlaceholderText('We are assuming that...');
+    fireEvent.change(input, { target: { value: 'Draft text that should be cleared' } });
+    expect(input).toHaveProperty('value', 'Draft text that should be cleared');
+
+    // Cancel -- closes the form
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByPlaceholderText('We are assuming that...')).toBeNull();
+
+    // Re-query the add button (React may have replaced the DOM node after re-render)
+    // and re-open -- draft must be gone
+    fireEvent.click(screen.getByTestId('assump-add-btn'));
+    const reopenedInput = screen.getByPlaceholderText('We are assuming that...');
+    expect(reopenedInput).toHaveProperty('value', '');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cross-list isolation: flag toggle must not contaminate the other list
+// ---------------------------------------------------------------------------
+
+describe('AssumptionsCapture -- flag toggle cross-list isolation', () => {
+  it('toggling an unknown flag does not affect the assumptions list', () => {
+    const value = encodeAssumptions({
+      assumptions: [makeEntry({ id: 'a1', category: 'Financial', text: 'Assumption one', flag: false })],
+      unknowns: [makeEntry({ id: 'u1', category: 'Soil', text: 'Unknown one', flag: false })],
+    });
+    const { onChange } = renderCapture(value);
+
+    // Toggle the unknown flag (currently "Not blocking")
+    const flagBtn = screen.getByLabelText('Mark as blocking');
+    fireEvent.click(flagBtn);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+
+    // Unknown flag must have flipped
+    const unknownArr = emitted.unknowns as string[];
+    expect(unknownArr).toHaveLength(1);
+    expect(JSON.parse(unknownArr[0]!).flag).toBe(true);
+
+    // Assumptions list must be untouched -- no contamination
+    const assumpArr = emitted.assumptions as string[];
+    expect(assumpArr).toHaveLength(1);
+    expect(JSON.parse(assumpArr[0]!).flag).toBe(false);
+    expect(JSON.parse(assumpArr[0]!).text).toBe('Assumption one');
+  });
+
+  it('toggling an assumption flag does not affect the unknowns list', () => {
+    const value = encodeAssumptions({
+      assumptions: [makeEntry({ id: 'a1', category: 'Financial', text: 'Assumption one', flag: false })],
+      unknowns: [makeEntry({ id: 'u1', category: 'Soil', text: 'Unknown one', flag: true })],
+    });
+    const { onChange } = renderCapture(value);
+
+    // Toggle the assumption flag (currently "Not critical")
+    const flagBtn = screen.getByLabelText('Mark as critical');
+    fireEvent.click(flagBtn);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+
+    // Assumption flag must have flipped
+    const assumpArr = emitted.assumptions as string[];
+    expect(assumpArr).toHaveLength(1);
+    expect(JSON.parse(assumpArr[0]!).flag).toBe(true);
+
+    // Unknowns list must be untouched
+    const unknownArr = emitted.unknowns as string[];
+    expect(unknownArr).toHaveLength(1);
+    expect(JSON.parse(unknownArr[0]!).flag).toBe(true);
+    expect(JSON.parse(unknownArr[0]!).text).toBe('Unknown one');
+  });
 });
