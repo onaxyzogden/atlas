@@ -63,6 +63,13 @@ import BoundaryCapture, {
   summariseBoundary,
   type BoundaryModel,
 } from './BoundaryCapture.js';
+import EvLegalGovernanceCapture, {
+  legalGovernanceModeFor,
+  decodeLegalGovernance,
+  isLegalGovernanceValid,
+  summariseLegalGovernance,
+  type LegalGovernanceModel,
+} from './EvLegalGovernanceCapture.js';
 import StakeholderCapture, {
   stakeholderModeFor,
   isStakeholderValid,
@@ -108,6 +115,8 @@ export interface DecisionPanelTarget {
   isStakeholder?: boolean;
   /** true => render StewardCapture (primary steward + queued invites). */
   isSteward?: boolean;
+  /** true => render EvLegalGovernanceCapture (self-routing on itemId) over the draft. */
+  isLegalGovernance?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -286,12 +295,22 @@ export default function DecisionWorkingPanel({
     ? decodeSteward(draft)
     : null;
 
+  // Decode the draft into the legal-governance model once -- reused by validity,
+  // the gate note, the record summary, and the body renderer (mirrors the
+  // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
+  const legalGovernanceModel: LegalGovernanceModel | null =
+    decision.isLegalGovernance
+      ? decodeLegalGovernance(decision.itemId, draft)
+      : null;
+
   // ---------- Validity ----------
   let valid: boolean;
   if (decision.isVisionClassify) {
     valid = isVisionClassifyValid(classifyModel!);
   } else if (decision.isBoundary) {
     valid = isBoundaryValid(decision.itemId, boundaryModel!);
+  } else if (decision.isLegalGovernance) {
+    valid = isLegalGovernanceValid(decision.itemId, legalGovernanceModel!);
   } else if (decision.isLabourInventory) {
     valid = isLabourValid(labourModel!);
   } else if (decision.isStakeholder) {
@@ -322,6 +341,15 @@ export default function DecisionWorkingPanel({
           : mode === 'titleRestrictionChecker'
             ? 'Resolve every Unknown title condition with legal advice before recording.'
             : 'Complete the required fields to record.';
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isLegalGovernance) {
+      const mode = legalGovernanceModeFor(decision.itemId);
+      const note =
+        mode === 'legalAdviceGate'
+          ? 'Clear all 5 advice-scope items and confirm written advice before recording.'
+          : mode === 'entityDecisionRecord'
+            ? 'Document the rationale (why, enables, constrains) to record.'
+            : 'Complete the required selection to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isStakeholder) {
       // Only c1 (mapContact, needs >=1 neighbour) and c2 (contact/authority,
@@ -370,6 +398,8 @@ export default function DecisionWorkingPanel({
       summary = summariseVisionClassify(classifyModel!);
     } else if (decision.isBoundary) {
       summary = summariseBoundary(decision.itemId, boundaryModel!);
+    } else if (decision.isLegalGovernance) {
+      summary = summariseLegalGovernance(decision.itemId, legalGovernanceModel!);
     } else if (decision.isLabourInventory) {
       summary = summariseLabour(labourModel!);
     } else if (decision.isStakeholder) {
@@ -470,6 +500,14 @@ export default function DecisionWorkingPanel({
           />
         ) : decision.isSteward ? (
           <StewardCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            resolveOptions={resolveOptions}
+          />
+        ) : decision.isLegalGovernance ? (
+          <EvLegalGovernanceCapture
             key={decision.itemId}
             itemId={decision.itemId}
             value={draft}
