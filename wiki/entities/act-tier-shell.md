@@ -1849,3 +1849,55 @@ the c5 mode.
 
 ADR: [[decisions/2026-06-07-atlas-ev-legal-governance-capture]]; Log:
 [[log/2026-06-07-atlas-ev-legal-governance-capture]].
+
+## Boundaries: s1-boundaries reverted to the 7-item mixed-mode mockup (2026-06-08)
+
+The shipped 5-register `s1-boundaries` surface (SP1 Group 1,
+[[decisions/2026-06-07-atlas-boundaries-redecompose]]) was **reverted for this
+objective** to the EARLIER 7-item mixed-mode shape, on operator instruction to
+match `olos_boundaries_legal_mixed_surface.html`. The mixed surface had been
+preserved as `BoundaryCaptureLegacy.tsx` precisely for this; the revival is a
+catalogue re-decompose + import swap (no change to the legacy component's
+resolver/decode/encode/valid/summarise).
+
+- **Catalogue (`universal.ts`):** `s1-boundaries` rewritten to 7 items in mockup
+  order `[c2, c1, c3, c4, c5, c6, c7]` / 2 groups -- dg1 "Title & boundary" =
+  [c2, c1], dg2 "Legal & permit obligations" = [c3, c4, c5, c6, c7]. Title
+  "Establish site boundaries & legal constraints"; verbatim mockup labels;
+  completion gate; `actHandoff` "Legal & Boundary Constraints Brief"; ref
+  `U-S1.2`. The 5 register ids retire (local-only surface, no migration).
+- **Live capture:** `DecisionWorkingPanel` + `ActTierZeroWorkbench` re-point
+  `./BoundaryCapture.js` -> `./BoundaryCaptureLegacy.js` (identical symbols).
+  Modes: c2->map, c1->doc(titleDeed), c3->mapEntry, c4->decision(zoning),
+  c5->decision(water), c6->doc(covenant), c7->decision(permits). Panel boundary
+  gate-note arm rewritten per mode (c7/permits always valid -> no note).
+- **Two new optional schema fields** on `PlanDecisionChecklistItemSchema`:
+  `feedHint` (short centre-column chip) + `feedNote` (longer right-panel
+  feeds-block callout); both free display text, distinct from the
+  objective-id-typed `feedsInto`; `ck()` gained an `opts` param. Absent on every
+  prior item -> all catalogues validate unchanged. `feedHint` on c3/c4/c5;
+  `feedNote` on c1/c3/c4/c5/c6/c7.
+- **`DecisionList` (shared, all gated):** opt-in `showGroups` prop (default
+  false) renders `.dGroup` dividers per group; `MODE_ICONS` (doc->FileText,
+  map->MapIcon, mapEntry->MapPin, decision->Scale) prepends a badge icon for
+  known modes; a `feedHint` chip falls back to the `feedsInto`-derived chip.
+  Workbench passes `showGroups={isBoundaryObjective}` and routes `feedNote` into
+  `feedsLabel`. Stakeholders / legal-governance / every other Tier-0 surface are
+  UNCHANGED (flat list, text-only badges). The lucide `Map` icon is imported
+  `as MapIcon` to avoid shadowing the global `Map`.
+- **No deletion:** the register `BoundaryCapture.tsx` + 44-test suite stay on
+  disk, unwired. Filenames now inverted vs roles (register = dead, "Legacy" =
+  live); rename deferred.
+
+**Verified:** shared + web `tsc` EXIT 0; bounded `--pool=forks` green
+(catalogues 105; DecisionWorkingPanel 55; DecisionList 23; BoundaryCaptureLegacy
+57 live; BoundaryCapture 44 unwired; ActTierZeroWorkbench 37). Final
+code-quality review APPROVE WITH NITS (no regression to other Tier-0 surfaces).
+Live preview DOM-verified (`preview_screenshot` hung on the Act map canvas --
+transient, [[project-screenshot-hang]]; used `preview_eval`): centre = 7 items
+under 2 group dividers, all badges iconed, feed chips on c3/c4/c5; right panel =
+correct body + verbatim `feedNote` callout + correct per-mode gate note. Commits
+`15d9482b` (BR1) -> `38df407b` (BR3) -> `66a3202f` (BR4) -> `620cd45d` (BR5) ->
+`4da47016` (BR6) -> `9d77a306` (polish). ADR
+[[decisions/2026-06-08-atlas-boundaries-mixed-mode]]; Log
+[[log/2026-06-08-atlas-boundaries-mixed-mode]].
