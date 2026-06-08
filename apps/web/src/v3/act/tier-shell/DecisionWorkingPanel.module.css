@@ -244,10 +244,13 @@
   outline-offset: 1px;
 }
 
-/* Gate note (shown only when invalid). */
+/* Gate note (shown only when invalid). Mockup (.gate-note) centres this beneath
+ * the action buttons and uses the amber accent on the emphasised span; the
+ * ready state flips that span to green (handled by the component's copy). */
 .gateNote {
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
   color: var(--color-text-muted, #565c63);
   font-family: var(--font-sans, 'Inter', sans-serif);
 }
@@ -287,6 +290,12 @@
 
 .recordBtn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-stage-act, #d9a036) 88%, #000000);
+}
+
+/* Tactile press feedback, matching the mockup's .decide-btn:active. Suppressed
+ * under reduce-motion by the global transition-duration override. */
+.recordBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .recordBtn:focus-visible {
