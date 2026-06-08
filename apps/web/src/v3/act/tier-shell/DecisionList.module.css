@@ -84,6 +84,26 @@
   gap: 7px;
 }
 
+/* Group divider (mockup .group-label): small uppercase muted eyebrow that
+ * separates the checklist into its decision groups. Only rendered when
+ * showGroups is set (boundary mixed-mode surface). The first divider's top
+ * margin collapses naturally as the first flex row. */
+.dGroup {
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+/* Remove the top margin on the very first divider so the group list starts
+ * flush with the rows container. */
+.dGroup:first-child {
+  margin-top: 0;
+}
+
 .ditem {
   position: relative;
   display: flex;
@@ -219,6 +239,14 @@
   letter-spacing: 0.04em;
   color: var(--color-stage-act, #d9a036);
   vertical-align: middle;
+}
+
+/* Mode-badge leading icon (mixed boundary modes: doc/map/mapEntry/decision).
+ * Nudged to align with the badge text baseline; the badge is inline-block so a
+ * small right margin and vertical-align keep the icon and label visually paired. */
+.dModeBadgeIcon {
+  margin-right: 3px;
+  vertical-align: -1px;
 }
 
 .dFeed {

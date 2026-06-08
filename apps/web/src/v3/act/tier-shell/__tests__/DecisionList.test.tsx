@@ -398,6 +398,139 @@ describe('DecisionList -- mode badges', () => {
   });
 });
 
+describe('DecisionList -- groups + badge icons + feedHint (BR6)', () => {
+  // A 2-group objective mirroring the boundary mixed-mode partition.
+  function makeGroupedObjective(): PlanStratumObjective {
+    return makeObjective({
+      checklist: [
+        { id: 'i-a', label: 'A', feedsInto: [], optional: false },
+        { id: 'i-b', label: 'B', feedsInto: [], optional: false },
+        {
+          id: 'i-c',
+          label: 'C',
+          feedsInto: [],
+          optional: false,
+          feedHint: 'Feeds Plan: Land use constraint map',
+        },
+      ],
+      decisionGroups: [
+        {
+          id: 'g1',
+          label: 'Title & boundary',
+          itemIds: ['i-a', 'i-b'],
+          observeFeeds: [],
+          sourceSecondaryId: null,
+        },
+        {
+          id: 'g2',
+          label: 'Legal & permit obligations',
+          itemIds: ['i-c'],
+          observeFeeds: [],
+          sourceSecondaryId: null,
+        },
+      ],
+    } as Partial<PlanStratumObjective>);
+  }
+
+  it('renders NO group dividers when showGroups is omitted (flat list preserved)', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeGroupedObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+      />,
+    );
+    expect(screen.queryAllByTestId('decision-group')).toHaveLength(0);
+    // All rows still render.
+    expect(screen.getAllByTestId('decision-item')).toHaveLength(3);
+  });
+
+  it('renders one divider per group, in order, with the group labels when showGroups is set', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeGroupedObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        showGroups
+      />,
+    );
+    const dividers = screen.getAllByTestId('decision-group');
+    expect(dividers.map((d) => d.textContent)).toEqual([
+      'Title & boundary',
+      'Legal & permit obligations',
+    ]);
+  });
+
+  it('renders an icon inside the badge for an iconed (boundary) mode', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 'm-doc', label: 'Doc row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => (itemId === 'm-doc' ? 'doc' : null)}
+      />,
+    );
+    const badge = screen.getByTestId('mode-badge-m-doc');
+    // The mode label is still present...
+    expect(badge.textContent).toMatch(/Document/);
+    // ...and an icon svg is rendered alongside it (lucide stub renders <svg>).
+    expect(badge.querySelector('svg')).toBeTruthy();
+  });
+
+  it('renders the verbatim feedHint chip (no "Feeds " double-prefix)', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeGroupedObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+      />,
+    );
+    // The hint text renders exactly as authored.
+    expect(screen.getByText('Feeds Plan: Land use constraint map')).toBeTruthy();
+    // It is NOT wrapped with a second "Feeds " prefix.
+    expect(
+      screen.queryByText('Feeds Feeds Plan: Land use constraint map'),
+    ).toBeNull();
+  });
+
+  it('prefers feedHint over a feedsInto-derived chip on the same item', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        {
+          id: 'i-both',
+          label: 'Both',
+          feedsInto: ['s2-land-reading'],
+          optional: false,
+          feedHint: 'Feeds Plan: Custom hint',
+        },
+      ],
+    } as Partial<PlanStratumObjective>);
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+      />,
+    );
+    expect(screen.getByText('Feeds Plan: Custom hint')).toBeTruthy();
+  });
+});
+
 describe('DecisionList -- selection', () => {
   it('calls onSelectItem with the item id when a row is clicked', () => {
     const { onSelectItem } = renderList();

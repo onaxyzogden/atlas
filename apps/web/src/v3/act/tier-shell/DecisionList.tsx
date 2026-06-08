@@ -23,7 +23,15 @@
  * completion, and `findObjectiveGlobally` resolves feed target ids to titles.
  */
 
-import { ArrowRight, Check } from 'lucide-react';
+import { Fragment } from 'react';
+import {
+  ArrowRight,
+  Check,
+  FileText,
+  Map as MapIcon,
+  MapPin,
+  Scale,
+} from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 import css from './DecisionList.module.css';
@@ -44,6 +52,13 @@ export interface DecisionListProps {
    * (see MODE_LABELS). When absent, NO badge renders -- existing behaviour.
    */
   modeFor?: (itemId: string) => string | null;
+  /**
+   * OPTIONAL. When true AND the objective carries decisionGroups, the rows are
+   * rendered under group-label dividers (mockup `.group-label`). Default false,
+   * so stakeholders / legal-governance and every other Tier-0 surface are
+   * UNCHANGED (flat list).
+   */
+  showGroups?: boolean;
 }
 
 // Raw mode key -> human label. The keys cover three families: the LEGACY
@@ -80,12 +95,23 @@ const MODE_LABELS: Record<string, string> = {
   legalAdviceGate: 'Legal advice gate',
 };
 
+// Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
+// live boundary surface). Modes with no entry render a text-only badge
+// (unchanged), so stakeholder / legal-governance badges are unaffected.
+const MODE_ICONS: Record<string, typeof Check> = {
+  doc: FileText,
+  map: MapIcon,
+  mapEntry: MapPin,
+  decision: Scale,
+};
+
 export default function DecisionList({
   objective,
   completedItemIds,
   selectedItemId,
   onSelectItem,
   modeFor,
+  showGroups = false,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
   const items = objective.checklist;
@@ -113,65 +139,101 @@ export default function DecisionList({
 
       {/* ---------- Decision rows ---------- */}
       <div className={css.rows}>
-        {items.map((item) => {
-          const complete = completed.has(item.id);
-          const selected = item.id === selectedItemId;
-          const feedNames = item.feedsInto.map(
-            (targetId) => findObjectiveGlobally(targetId)?.title ?? targetId,
-          );
-          const rawMode = modeFor ? modeFor(item.id) : null;
-          const modeLabel = rawMode ? (MODE_LABELS[rawMode] ?? rawMode) : null;
-          return (
-            <div
-              key={item.id}
-              className={css.ditem}
-              data-testid="decision-item"
-              data-item-id={item.id}
-              data-complete={complete ? 'true' : 'false'}
-              data-selected={selected ? 'true' : 'false'}
-              role="button"
-              tabIndex={0}
-              aria-pressed={selected}
-              onClick={() => onSelectItem(item.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectItem(item.id);
-                }
-              }}
-            >
-              <span
-                className={css.dCirc}
-                data-complete={complete ? 'true' : 'false'}
-                aria-hidden="true"
-              >
-                {complete ? <Check size={11} /> : null}
-              </span>
-              <div className={css.dBody}>
-                <div className={css.dTxt}>
-                  {item.label}
-                  {item.optional ? (
-                    <span className={css.dOptBadge}>optional</span>
-                  ) : null}
-                  {modeLabel ? (
-                    <span
-                      className={css.dModeBadge}
-                      data-testid={`mode-badge-${item.id}`}
-                    >
-                      {modeLabel}
-                    </span>
-                  ) : null}
-                </div>
-                {feedNames.length > 0 ? (
-                  <div className={css.dFeed}>
-                    <ArrowRight size={11} className={css.dFeedIcon} />
-                    <span>Feeds {feedNames.join(', ')}</span>
+        {(() => {
+          // Build an itemId -> group-label map only when grouping is requested
+          // and the objective carries groups; iterate items in checklist order
+          // (the catalogue guarantees a full mutually-exclusive partition) and
+          // emit a divider before the first row of each group.
+          const groupLabelById = new Map<string, string>();
+          if (showGroups) {
+            for (const g of objective.decisionGroups) {
+              for (const id of g.itemIds) groupLabelById.set(id, g.label);
+            }
+          }
+          let lastGroup: string | null = null;
+          return items.map((item) => {
+            const complete = completed.has(item.id);
+            const selected = item.id === selectedItemId;
+            const feedNames = item.feedsInto.map(
+              (targetId) => findObjectiveGlobally(targetId)?.title ?? targetId,
+            );
+            const rawMode = modeFor ? modeFor(item.id) : null;
+            const modeLabel = rawMode ? (MODE_LABELS[rawMode] ?? rawMode) : null;
+            const ModeIcon = rawMode ? MODE_ICONS[rawMode] : undefined;
+            const groupLabel = showGroups
+              ? (groupLabelById.get(item.id) ?? null)
+              : null;
+            const showDivider = groupLabel !== null && groupLabel !== lastGroup;
+            if (groupLabel !== null) lastGroup = groupLabel;
+            return (
+              <Fragment key={item.id}>
+                {showDivider ? (
+                  <div className={css.dGroup} data-testid="decision-group">
+                    {groupLabel}
                   </div>
                 ) : null}
-              </div>
-            </div>
-          );
-        })}
+                <div
+                  className={css.ditem}
+                  data-testid="decision-item"
+                  data-item-id={item.id}
+                  data-complete={complete ? 'true' : 'false'}
+                  data-selected={selected ? 'true' : 'false'}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selected}
+                  onClick={() => onSelectItem(item.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectItem(item.id);
+                    }
+                  }}
+                >
+                  <span
+                    className={css.dCirc}
+                    data-complete={complete ? 'true' : 'false'}
+                    aria-hidden="true"
+                  >
+                    {complete ? <Check size={11} /> : null}
+                  </span>
+                  <div className={css.dBody}>
+                    <div className={css.dTxt}>
+                      {item.label}
+                      {item.optional ? (
+                        <span className={css.dOptBadge}>optional</span>
+                      ) : null}
+                      {modeLabel ? (
+                        <span
+                          className={css.dModeBadge}
+                          data-testid={`mode-badge-${item.id}`}
+                        >
+                          {ModeIcon ? (
+                            <ModeIcon
+                              size={11}
+                              className={css.dModeBadgeIcon}
+                            />
+                          ) : null}
+                          {modeLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    {item.feedHint ? (
+                      <div className={css.dFeed}>
+                        <ArrowRight size={11} className={css.dFeedIcon} />
+                        <span>{item.feedHint}</span>
+                      </div>
+                    ) : feedNames.length > 0 ? (
+                      <div className={css.dFeed}>
+                        <ArrowRight size={11} className={css.dFeedIcon} />
+                        <span>Feeds {feedNames.join(', ')}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </Fragment>
+            );
+          });
+        })()}
       </div>
 
       {/* ---------- Completion gate ---------- */}
