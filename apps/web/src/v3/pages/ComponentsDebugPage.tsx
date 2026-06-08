@@ -429,6 +429,35 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      <Section title="Decision Working Panel - Constraints (suggest + register)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-constraints",
+              label: "Identify non-negotiables and hard constraints",
+              prompt: "What cannot be crossed, and what limits what's possible?",
+              isConstraints: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              constraints: [
+                JSON.stringify({ text: "No synthetic herbicides, pesticides, or fertilisers -- certified organic methods only", severity: "nn", note: "" }),
+                JSON.stringify({ text: "Annual operating expenditure cannot exceed $40,000 in the first planning cycle", severity: "hc", note: "Agreed at founding meeting" }),
+                JSON.stringify({ text: "Existing bore is not to be disturbed or decommissioned under any circumstances", severity: "nn", note: "" }),
+              ],
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

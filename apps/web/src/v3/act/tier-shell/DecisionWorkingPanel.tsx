@@ -87,6 +87,12 @@ import PurposeCapture, {
   summarisePurpose,
   type PurposeModel,
 } from './PurposeCapture.js';
+import ConstraintsCapture, {
+  decodeConstraints,
+  isConstraintsValid,
+  summariseConstraints,
+  type ConstraintsModel,
+} from './ConstraintsCapture.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -125,6 +131,8 @@ export interface DecisionPanelTarget {
   isLegalGovernance?: boolean;
   /** true => render PurposeCapture (read-only project-type grid + optional elaboration). */
   isPurpose?: boolean;
+  /** true => render ConstraintsCapture (non-negotiables + hard constraints register). */
+  isConstraints?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -311,6 +319,15 @@ export default function DecisionWorkingPanel({
     ? decodePurpose(draft)
     : null;
 
+  // Decode the draft into the constraints model once -- reused by validity,
+  // the gate note, the record summary, and the body renderer (mirrors the
+  // purpose / labour patterns above). ConstraintsCapture owns a two-tab
+  // surface (Suggest + Register) and embeds its own gate-warning + feeds blocks
+  // because feedsLabel is null for s1-vision-constraints.
+  const constraintsModel: ConstraintsModel | null = decision.isConstraints
+    ? decodeConstraints(draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -335,6 +352,8 @@ export default function DecisionWorkingPanel({
     valid = isStewardValid(stewardModel!);
   } else if (decision.isPurpose) {
     valid = isPurposeValid(purposeModel!);
+  } else if (decision.isConstraints) {
+    valid = isConstraintsValid(constraintsModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -416,6 +435,12 @@ export default function DecisionWorkingPanel({
           <strong>{remaining}</strong> more criteria needed before recording
         </div>
       );
+    } else if (decision.isConstraints) {
+      gateNote = (
+        <div className={css.gateNote}>
+          Add at least one constraint to record this decision
+        </div>
+      );
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -443,6 +468,8 @@ export default function DecisionWorkingPanel({
       summary = summariseSteward(stewardModel!);
     } else if (decision.isPurpose) {
       summary = summarisePurpose(purposeModel!);
+    } else if (decision.isConstraints) {
+      summary = summariseConstraints(constraintsModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -556,6 +583,12 @@ export default function DecisionWorkingPanel({
             key={decision.itemId}
             itemId={decision.itemId}
             projectId={projectId}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : decision.isConstraints ? (
+          <ConstraintsCapture
+            key={decision.itemId}
             value={draft}
             onChange={setDraft}
           />

@@ -134,6 +134,11 @@ export function buildDecisionTarget(
   // type is sourced read-only from the project store -- not re-asked here.
   const isPurpose = item.id === 's1-vision-c1';
 
+  // Constraints (non-negotiables + hard constraints register) is a single item
+  // detected by exact id; the panel's isConstraints body-router arm
+  // (ConstraintsCapture) takes precedence over the textarea fallback.
+  const isConstraints = item.id === 's1-vision-constraints';
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -173,6 +178,7 @@ export function buildDecisionTarget(
     isLegalGovernance,
     isSteward,
     isPurpose,
+    isConstraints,
     deferLabel,
     deferrable,
   };
