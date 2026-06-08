@@ -1,0 +1,245 @@
+/* PurposeCapture.module.css
+ *
+ * Styles for the s1-vision-c1 right-panel capture: a read-only project-type
+ * grid (two columns, 3 groups) and an optional plain-language elaboration
+ * textarea.
+ *
+ * Token vocabulary mirrors StewardCapture.module.css:
+ *   --color-text{,-muted,-subtle}
+ *   --color-surface{,-alt,-raised}
+ *   --color-border{,-subtle}
+ *   --color-stage-act  (amber accent for the selected-primary card)
+ *   --radius-md
+ *   --font-sans
+ *
+ * ASCII-only. No bare hex outside var() fallbacks.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.secLabel {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #8a8680);
+  margin-bottom: 6px;
+  font-family: var(--font-serif, Georgia, serif);
+  font-style: italic;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border, #2a2a25);
+}
+
+/* ---------- type-card grid ---------- */
+
+.groupSection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.typeCard {
+  padding: 9px 10px;
+  background: var(--color-surface-alt, #1e1e1a);
+  border: 1.5px solid var(--color-border-subtle, #353530);
+  border-radius: var(--radius-md, 7px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: default;
+  position: relative;
+}
+
+/* Selected-primary card: amber border + faint amber tint */
+.typeCard[data-selected='true'] {
+  border-color: var(--color-stage-act, #d4944a);
+  background: var(--color-stage-act-dim, #2e1f0a);
+}
+
+/* Chosen-secondary card: subtle teal tint */
+.typeCard[data-secondary='true'] {
+  border-color: var(--color-teal, #3a9b8a);
+  background: var(--color-teal-dim, #0e2620);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cardIcon {
+  color: var(--color-text-subtle, #8a8680);
+  flex-shrink: 0;
+}
+
+.typeCard[data-selected='true'] .cardIcon {
+  color: var(--color-stage-act, #d4944a);
+}
+
+.typeCard[data-secondary='true'] .cardIcon {
+  color: var(--color-teal, #3a9b8a);
+}
+
+.cardName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text, #ede9e0);
+  font-family: var(--font-serif, Georgia, serif);
+  font-style: italic;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+
+.typeCard[data-selected='true'] .cardName {
+  color: var(--color-stage-act, #d4944a);
+}
+
+.typeCard[data-secondary='true'] .cardName {
+  color: var(--color-teal, #3a9b8a);
+}
+
+.cardDesc {
+  font-size: 9.5px;
+  color: var(--color-text-subtle, #4a4845);
+  line-height: 1.4;
+}
+
+/* ---------- pill badges ---------- */
+
+.badgeRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.primaryBadge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--color-stage-act-dim, #2e1f0a);
+  color: var(--color-stage-act, #d4944a);
+  border: 1px solid var(--color-stage-act, #d4944a);
+  text-transform: uppercase;
+}
+
+.secondaryBadge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--color-teal-dim, #0e2620);
+  color: var(--color-teal, #3a9b8a);
+  border: 1px solid var(--color-teal, #3a9b8a);
+  text-transform: uppercase;
+}
+
+.capabilityBadge {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--color-surface-raised, #252520);
+  color: var(--color-text-subtle, #4a4845);
+  border: 1px solid var(--color-border-subtle, #353530);
+  cursor: default;
+}
+
+/* ---------- read-only note ---------- */
+
+.readOnlyNote {
+  font-size: 10px;
+  color: var(--color-text-subtle, #4a4845);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+/* ---------- elaboration field ---------- */
+
+.fieldLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #4a4845);
+  margin-bottom: 2px;
+}
+
+.fieldSubLabel {
+  font-size: 10px;
+  color: var(--color-text-subtle, #4a4845);
+  font-style: italic;
+  margin-bottom: 5px;
+}
+
+.elaborationTa {
+  width: 100%;
+  background: var(--color-surface-raised, #252520);
+  border: 1px solid var(--color-border, #2a2a25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--color-text, #ede9e0);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  outline: none;
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.5;
+  transition: border-color 130ms ease;
+  box-sizing: border-box;
+}
+
+.elaborationTa:focus {
+  border-color: var(--color-stage-act, #d4944a);
+}
+
+.elaborationTa::placeholder {
+  color: var(--color-text-subtle, #4a4845);
+}
+
+/* ---------- feeds block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: var(--color-info-muted, #1e3248);
+  border: 1px solid var(--color-info, #4a8fd4);
+  border-radius: 6px;
+}
+
+.feedsIcon {
+  color: var(--color-info, #4a8fd4);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-muted, #8a8680);
+  line-height: 1.5;
+}

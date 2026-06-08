@@ -81,6 +81,12 @@ import StewardCapture, {
   summariseSteward,
   type StewardModel,
 } from './StewardCapture.js';
+import PurposeCapture, {
+  decodePurpose,
+  isPurposeValid,
+  summarisePurpose,
+  type PurposeModel,
+} from './PurposeCapture.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -117,6 +123,8 @@ export interface DecisionPanelTarget {
   isSteward?: boolean;
   /** true => render EvLegalGovernanceCapture (self-routing on itemId) over the draft. */
   isLegalGovernance?: boolean;
+  /** true => render PurposeCapture (read-only project-type grid + optional elaboration). */
+  isPurpose?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -295,6 +303,14 @@ export default function DecisionWorkingPanel({
     ? decodeSteward(draft)
     : null;
 
+  // Decode the draft into the purpose model once -- reused by validity and the
+  // record summary. PurposeCapture renders a read-only project-type grid plus
+  // an optional elaboration textarea. Always valid (elaboration is optional;
+  // primary type is set at project creation).
+  const purposeModel: PurposeModel | null = decision.isPurpose
+    ? decodePurpose(draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -317,6 +333,8 @@ export default function DecisionWorkingPanel({
     valid = isStakeholderValid(decision.itemId, stakeholderRows, draft);
   } else if (decision.isSteward) {
     valid = isStewardValid(stewardModel!);
+  } else if (decision.isPurpose) {
+    valid = isPurposeValid(purposeModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -423,6 +441,8 @@ export default function DecisionWorkingPanel({
       summary = summariseStakeholder(decision.itemId, stakeholderRows, draft);
     } else if (decision.isSteward) {
       summary = summariseSteward(stewardModel!);
+    } else if (decision.isPurpose) {
+      summary = summarisePurpose(purposeModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -530,6 +550,14 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             resolveOptions={resolveOptions}
+          />
+        ) : decision.isPurpose ? (
+          <PurposeCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            projectId={projectId}
+            value={draft}
+            onChange={setDraft}
           />
         ) : hasFields ? (
           <VisionFormFields

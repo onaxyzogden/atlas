@@ -406,6 +406,29 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      <Section title="Decision Working Panel - Purpose (read-only type grid)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s1-vision-c1",
+              label: "State the primary purpose of this land project",
+              prompt: "The primary type anchors all tier objectives and design logic.",
+              isPurpose: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

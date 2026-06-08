@@ -128,6 +128,12 @@ export function buildDecisionTarget(
   // matched generic form. False for every other id.
   const isSteward = item.id === 's1-vision-steward';
 
+  // Purpose (read-only project-type grid + optional elaboration) is a single
+  // item detected by exact id; the panel's isPurpose body-router arm
+  // (PurposeCapture) takes precedence over the textarea fallback. The primary
+  // type is sourced read-only from the project store -- not re-asked here.
+  const isPurpose = item.id === 's1-vision-c1';
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -166,6 +172,7 @@ export function buildDecisionTarget(
     isStakeholder,
     isLegalGovernance,
     isSteward,
+    isPurpose,
     deferLabel,
     deferrable,
   };
