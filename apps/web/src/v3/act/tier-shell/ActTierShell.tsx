@@ -889,38 +889,21 @@ export default function ActTierShell() {
         projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
-        {showTierZeroWorkbench ? (
-          selectedObjective ? (
-          <ActTierZeroWorkbench
-            projectId={id}
-            objectives={stratumObjectives}
-            activeObjectiveId={selectedObjective.id}
-            primaryTypeId={primaryTypeId}
-            secondaryTypeIds={secondaryTypeIds}
-            progressByObjective={effectiveProgress.byObjective}
-            formValues={visionFormData}
-            rationales={decisionRationales}
-            deferredItems={deferredDecisions}
-            onRecord={handleFormDataSave}
-            onSaveRationale={handleSaveRationale}
-            onToggleDefer={handleToggleDefer}
-          />
-          ) : (
-            // Tier-0 route resolved before its objective set hydrated: hold a
-            // lightweight non-map placeholder rather than falling through to the
-            // map shell (which would mount WebGL and wedge the headless preview).
-            // s1-vision is universal across every resolved set, so
-            // selectedObjective always arrives — this state is strictly transient.
-            <div
-              className={styles.tierZeroLoading}
-              role="status"
-              aria-live="polite"
-            >
-              <span className={styles.tierZeroLoadingText}>
-                Loading decision workbench…
-              </span>
-            </div>
-          )
+        {showTierZeroWorkbench && !selectedObjective ? (
+          // Tier-0 route resolved before its objective set hydrated: hold a
+          // lightweight non-map placeholder rather than falling through to the
+          // map shell (which would mount WebGL and wedge the headless preview).
+          // s1-vision is universal across every resolved set, so
+          // selectedObjective always arrives — this state is strictly transient.
+          <div
+            className={styles.tierZeroLoading}
+            role="status"
+            aria-live="polite"
+          >
+            <span className={styles.tierZeroLoadingText}>
+              Loading decision workbench…
+            </span>
+          </div>
         ) : (
         <StageShell
           bottomPlacement="between-rails"
@@ -946,227 +929,257 @@ export default function ActTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
-                mode={railMode}
-                onModeChange={handleRailModeChange}
-                triggeredCount={triggeredCount}
-                triggeredIds={triggeredIds}
+                mode={showTierZeroWorkbench ? 'objectives' : railMode}
+                onModeChange={showTierZeroWorkbench ? (_: RailMode) => {} : handleRailModeChange}
+                triggeredCount={showTierZeroWorkbench ? 0 : triggeredCount}
+                triggeredIds={showTierZeroWorkbench ? ([] as readonly string[]) : triggeredIds}
                 projectId={id}
                 primaryTypeId={primaryTypeId}
                 secondaryTypeIds={secondaryTypeIds}
                 activeStratumId={selectedStratumId}
-                selectedProtocolId={selectedProtocolId}
-                onSelectProtocol={handleSelectProtocol}
-                bulkActivation
+                selectedProtocolId={showTierZeroWorkbench ? null : selectedProtocolId}
+                onSelectProtocol={showTierZeroWorkbench ? (_: string) => {} : handleSelectProtocol}
+                bulkActivation={!showTierZeroWorkbench}
               />
             )
           }
           canvas={
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary}>
-                {({ map }) => (
-                  <>
-                    <BaseMapCard stage="act" />
-                    <MapToolbar
-                      map={map}
-                      projectId={params.projectId ?? null}
-                      boundary={safeBoundary ?? null}
-                      showBoundary={false}
-                    />
-                    <MapSheetExportControl
-                      map={map}
-                      projectId={id}
-                      anchor="top-right"
-                    />
-                    <ObserveAnnotationLayers map={map} projectId={id} />
-                    <PlanDataLayers map={map} projectId={id} editable={false} />
-                    <ActStructureClickHandler map={map} projectId={id} />
-                    <ActFeatureClickHandler map={map} projectId={id} />
-                    <ActDataLayers
-                      map={map}
-                      projectId={id}
-                      activeModule={activeModule}
-                    />
-                    <SectorCompassOverlay
-                      projectId={id}
-                      map={map}
-                      onOpenEditor={() => {
-                        // Mutually-exclusive rail takeovers: clear any as-built
-                        // session before arming the sectors editor so the rail
-                        // never has two claimants.
-                        useActAsBuiltPopoverStore.getState().close();
-                        useActSectorsEditorStore.getState().open();
-                      }}
-                    />
-                    <ActStructurePopover map={map} projectId={id} />
-                    <ActAsBuiltDrawHandler map={map} />
-                    <ActFlowConnectorPopover projectId={id} />
-                    <ActTierMapMarkers
-                      map={map}
-                      positionByObjective={positionByObjective}
-                      objectives={stratumObjectives}
-                      progressByObjective={progressByObjective}
-                      activeObjectiveId={objectiveId}
-                      onSelectObjective={handleSelectObjective}
-                    />
-                    <ProtocolMapMarkers
-                      map={map}
-                      centroid={baseCentroid}
-                      triggeredCount={triggeredCount}
-                    />
-                    <ActDrawHost map={map} projectId={params.projectId ?? null} />
-                    {/*
-                      ADR-7 tension: the Act canvas adds execution placements
-                      via Observe/Plan draw tools (one armed at a time). These
-                      hosts hard-guard on their own id prefix and return null
-                      otherwise, so they compose safely with ActDrawHost. They
-                      write to the SHARED stores (one source of truth); existing
-                      Plan features stay read-only here (PlanDataLayers
-                      editable={false}) — Act adds, it does not edit Plan
-                      decisions.
-                    */}
-                    <ObserveDrawHost map={map} projectId={id} />
-                    {/*
-                      Observe annotation interaction cluster — mirrors what
-                      ObserveLayout pairs with ObserveDrawHost. Without these the
-                      Act surface places a pin (store flips to `active`) but never
-                      renders the lab-values form and never reacts to selection,
-                      so Act-placed soil samples were neither presented nor
-                      editable. All are store-/selection-driven singletons that
-                      portal out, so they compose with the Act handlers (which
-                      bind disjoint layers).
-                    */}
-                    <AnnotationDragHandler map={map} />
-                    <AnnotationVertexEditHandler map={map} />
-                    <AnnotationFormSlideUp />
-                    <SelectionFloater projectId={id} />
-                    <AnnotationDetailPanel projectId={id} />
-                    <PlanDrawHost
-                      map={map}
-                      projectId={id}
-                      variant="current"
-                      parcelBoundary={safeBoundary}
-                    />
-                  </>
-                )}
-              </DiagnoseMap>
-            </div>
+            showTierZeroWorkbench && selectedObjective ? (
+              <ActTierZeroWorkbench
+                projectId={id}
+                objectives={stratumObjectives}
+                activeObjectiveId={selectedObjective.id}
+                primaryTypeId={primaryTypeId}
+                secondaryTypeIds={secondaryTypeIds}
+                progressByObjective={effectiveProgress.byObjective}
+                formValues={visionFormData}
+                rationales={decisionRationales}
+                deferredItems={deferredDecisions}
+                onRecord={handleFormDataSave}
+                onSaveRationale={handleSaveRationale}
+                onToggleDefer={handleToggleDefer}
+              />
+            ) : (
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary}>
+                  {({ map }) => (
+                    <>
+                      <BaseMapCard stage="act" />
+                      <MapToolbar
+                        map={map}
+                        projectId={params.projectId ?? null}
+                        boundary={safeBoundary ?? null}
+                        showBoundary={false}
+                      />
+                      <MapSheetExportControl
+                        map={map}
+                        projectId={id}
+                        anchor="top-right"
+                      />
+                      <ObserveAnnotationLayers map={map} projectId={id} />
+                      <PlanDataLayers map={map} projectId={id} editable={false} />
+                      <ActStructureClickHandler map={map} projectId={id} />
+                      <ActFeatureClickHandler map={map} projectId={id} />
+                      <ActDataLayers
+                        map={map}
+                        projectId={id}
+                        activeModule={activeModule}
+                      />
+                      <SectorCompassOverlay
+                        projectId={id}
+                        map={map}
+                        onOpenEditor={() => {
+                          // Mutually-exclusive rail takeovers: clear any as-built
+                          // session before arming the sectors editor so the rail
+                          // never has two claimants.
+                          useActAsBuiltPopoverStore.getState().close();
+                          useActSectorsEditorStore.getState().open();
+                        }}
+                      />
+                      <ActStructurePopover map={map} projectId={id} />
+                      <ActAsBuiltDrawHandler map={map} />
+                      <ActFlowConnectorPopover projectId={id} />
+                      <ActTierMapMarkers
+                        map={map}
+                        positionByObjective={positionByObjective}
+                        objectives={stratumObjectives}
+                        progressByObjective={progressByObjective}
+                        activeObjectiveId={objectiveId}
+                        onSelectObjective={handleSelectObjective}
+                      />
+                      <ProtocolMapMarkers
+                        map={map}
+                        centroid={baseCentroid}
+                        triggeredCount={triggeredCount}
+                      />
+                      <ActDrawHost map={map} projectId={params.projectId ?? null} />
+                      {/*
+                        ADR-7 tension: the Act canvas adds execution placements
+                        via Observe/Plan draw tools (one armed at a time). These
+                        hosts hard-guard on their own id prefix and return null
+                        otherwise, so they compose safely with ActDrawHost. They
+                        write to the SHARED stores (one source of truth); existing
+                        Plan features stay read-only here (PlanDataLayers
+                        editable={false}) — Act adds, it does not edit Plan
+                        decisions.
+                      */}
+                      <ObserveDrawHost map={map} projectId={id} />
+                      {/*
+                        Observe annotation interaction cluster — mirrors what
+                        ObserveLayout pairs with ObserveDrawHost. Without these the
+                        Act surface places a pin (store flips to `active`) but never
+                        renders the lab-values form and never reacts to selection,
+                        so Act-placed soil samples were neither presented nor
+                        editable. All are store-/selection-driven singletons that
+                        portal out, so they compose with the Act handlers (which
+                        bind disjoint layers).
+                      */}
+                      <AnnotationDragHandler map={map} />
+                      <AnnotationVertexEditHandler map={map} />
+                      <AnnotationFormSlideUp />
+                      <SelectionFloater projectId={id} />
+                      <AnnotationDetailPanel projectId={id} />
+                      <PlanDrawHost
+                        map={map}
+                        projectId={id}
+                        variant="current"
+                        parcelBoundary={safeBoundary}
+                      />
+                    </>
+                  )}
+                </DiagnoseMap>
+              </div>
+            )
           }
           rightRail={
-            <div className={styles.rightRail}>
-              {asBuiltActive ? (
-                // While an as-built deviation is being recorded the rail is
-                // taken over by the as-built form (panel variant): the
-                // Dashboard/Objective toggle is hidden and reappears when the
-                // store's `active` clears (Record/Cancel).
+            showTierZeroWorkbench ? (
+              <div className={styles.rightRail}>
                 <div className={styles.rightBody}>
-                  <ActAsBuiltPopover variant="panel" projectId={id} />
+                  <ActOpsDashboard
+                    projectId={id}
+                    onOpenWeather={() => setWeatherOpen(true)}
+                  />
                 </div>
-              ) : sectorsEditorActive ? (
-                // Clicking the floating SectorCompass HUD takes the rail over
-                // with the sectors editor; the Dashboard/Objective toggle is
-                // hidden and reappears when the editor's Done clears `active`.
-                // (As-built keeps precedence above.)
-                <div className={styles.rightBody}>
-                  <SectorsEditorPanel projectId={id} />
-                </div>
-              ) : (
-                <>
-                  <div
-                    className={styles.rightToggle}
-                    role="tablist"
-                    aria-label="Right rail mode"
-                  >
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={rightMode === 'dashboard'}
-                      className={styles.rightToggleBtn}
-                      data-active={rightMode === 'dashboard'}
-                      onClick={() => {
-                        setRightMode('dashboard');
-                        setWeatherOpen(false);
-                      }}
-                    >
-                      <LayoutDashboard size={14} aria-hidden="true" />
-                      Dashboard
-                    </button>
-                    {railMode === 'protocols' ? (
-                      // Contextual second tab: in Protocols mode the right rail's
-                      // detail slot holds the selected protocol, so the tab reads
-                      // "Protocols" and gates on a protocol selection.
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={rightMode === 'detail'}
-                        className={styles.rightToggleBtn}
-                        data-active={rightMode === 'detail'}
-                        disabled={!selectedProtocolId}
-                        onClick={() =>
-                          selectedProtocolId && setRightMode('detail')
-                        }
-                      >
-                        <ShieldCheck size={14} aria-hidden="true" />
-                        Protocols
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={rightMode === 'detail'}
-                        className={styles.rightToggleBtn}
-                        data-active={rightMode === 'detail'}
-                        disabled={!objectiveId}
-                        onClick={() => objectiveId && setRightMode('detail')}
-                      >
-                        <Target size={14} aria-hidden="true" />
-                        Objective
-                      </button>
-                    )}
-                  </div>
+              </div>
+            ) : (
+              <div className={styles.rightRail}>
+                {asBuiltActive ? (
+                  // While an as-built deviation is being recorded the rail is
+                  // taken over by the as-built form (panel variant): the
+                  // Dashboard/Objective toggle is hidden and reappears when the
+                  // store's `active` clears (Record/Cancel).
                   <div className={styles.rightBody}>
-                    {rightMode === 'detail' &&
-                    railMode === 'protocols' &&
-                    selectedProtocolId ? (
-                      <ActProtocolDetailPane
-                        projectId={id}
-                        primaryTypeId={primaryTypeId}
-                        secondaryTypeIds={secondaryTypeIds}
-                        templateId={selectedProtocolId}
-                      />
-                    ) : rightMode === 'detail' && selectedObjective ? (
-                      <ActTierExecutionPanel
-                        projectId={id}
-                        tier={selectedObjectiveTier}
-                        objective={selectedObjective}
-                        status={selectedObjectiveStatus}
-                        serverId={serverId}
-                        members={members}
-                        currentUserId={currentUserId}
-                        myRole={myRole}
-                      />
-                    ) : weatherOpen ? (
-                      <ActTierWeatherPanel
-                        project={project}
-                        onBack={() => setWeatherOpen(false)}
-                      />
-                    ) : (
-                      <ActOpsDashboard
-                        projectId={id}
-                        onOpenWeather={() => setWeatherOpen(true)}
-                      />
-                    )}
+                    <ActAsBuiltPopover variant="panel" projectId={id} />
                   </div>
-                </>
-              )}
-            </div>
+                ) : sectorsEditorActive ? (
+                  // Clicking the floating SectorCompass HUD takes the rail over
+                  // with the sectors editor; the Dashboard/Objective toggle is
+                  // hidden and reappears when the editor's Done clears `active`.
+                  // (As-built keeps precedence above.)
+                  <div className={styles.rightBody}>
+                    <SectorsEditorPanel projectId={id} />
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={styles.rightToggle}
+                      role="tablist"
+                      aria-label="Right rail mode"
+                    >
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={rightMode === 'dashboard'}
+                        className={styles.rightToggleBtn}
+                        data-active={rightMode === 'dashboard'}
+                        onClick={() => {
+                          setRightMode('dashboard');
+                          setWeatherOpen(false);
+                        }}
+                      >
+                        <LayoutDashboard size={14} aria-hidden="true" />
+                        Dashboard
+                      </button>
+                      {railMode === 'protocols' ? (
+                        // Contextual second tab: in Protocols mode the right rail's
+                        // detail slot holds the selected protocol, so the tab reads
+                        // "Protocols" and gates on a protocol selection.
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={rightMode === 'detail'}
+                          className={styles.rightToggleBtn}
+                          data-active={rightMode === 'detail'}
+                          disabled={!selectedProtocolId}
+                          onClick={() =>
+                            selectedProtocolId && setRightMode('detail')
+                          }
+                        >
+                          <ShieldCheck size={14} aria-hidden="true" />
+                          Protocols
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={rightMode === 'detail'}
+                          className={styles.rightToggleBtn}
+                          data-active={rightMode === 'detail'}
+                          disabled={!objectiveId}
+                          onClick={() => objectiveId && setRightMode('detail')}
+                        >
+                          <Target size={14} aria-hidden="true" />
+                          Objective
+                        </button>
+                      )}
+                    </div>
+                    <div className={styles.rightBody}>
+                      {rightMode === 'detail' &&
+                      railMode === 'protocols' &&
+                      selectedProtocolId ? (
+                        <ActProtocolDetailPane
+                          projectId={id}
+                          primaryTypeId={primaryTypeId}
+                          secondaryTypeIds={secondaryTypeIds}
+                          templateId={selectedProtocolId}
+                        />
+                      ) : rightMode === 'detail' && selectedObjective ? (
+                        <ActTierExecutionPanel
+                          projectId={id}
+                          tier={selectedObjectiveTier}
+                          objective={selectedObjective}
+                          status={selectedObjectiveStatus}
+                          serverId={serverId}
+                          members={members}
+                          currentUserId={currentUserId}
+                          myRole={myRole}
+                        />
+                      ) : weatherOpen ? (
+                        <ActTierWeatherPanel
+                          project={project}
+                          onBack={() => setWeatherOpen(false)}
+                        />
+                      ) : (
+                        <ActOpsDashboard
+                          projectId={id}
+                          onOpenWeather={() => setWeatherOpen(true)}
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
           }
           bottomTray={
-            <ActTierCategorizedToolsRail
-              objective={selectedObjective}
-              disabled={!params.projectId}
-              onActivate={handleActivateTool}
-              activeFormId={openFormGroup?.activeFormId ?? null}
-            />
+            showTierZeroWorkbench ? undefined : (
+              <ActTierCategorizedToolsRail
+                objective={selectedObjective}
+                disabled={!params.projectId}
+                onActivate={handleActivateTool}
+                activeFormId={openFormGroup?.activeFormId ?? null}
+              />
+            )
           }
         />
         )}
