@@ -1439,6 +1439,10 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     id: 'ev-s1-legal-governance-c1', label: 'Entity options', icon: FileText, category: 'vision',
     arm: { kind: 'form', formId: 'ev-s1-legal-governance-c1', prompt: 'Evaluate legal entity options - land trust, co-operative, company, charitable trust, incorporated society' },
   },
+  'ev-s1-legal-governance-c8': {
+    id: 'ev-s1-legal-governance-c8', label: 'Jurisdiction', icon: MapIcon, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c8', prompt: 'Confirm governing jurisdiction - province, territory, or nation of registration' },
+  },
   'ev-s1-legal-governance-c2': {
     id: 'ev-s1-legal-governance-c2', label: 'Entity choice', icon: Target, category: 'vision',
     arm: { kind: 'form', formId: 'ev-s1-legal-governance-c2', prompt: 'Select legal entity and document rationale' },
