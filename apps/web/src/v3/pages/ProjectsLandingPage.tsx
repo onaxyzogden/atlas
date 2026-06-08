@@ -34,6 +34,8 @@ import {
   LOCAL_CANDIDATE_PREFIX,
 } from "../data/projectToCandidate.js";
 import { useProjectStore } from "../../store/projectStore.js";
+import { useAuthStore } from "../../store/authStore.js";
+import { DEMO_MODE_ENABLED, isDemoUser } from "../../app/demoSession.js";
 import type { Candidate } from "../types.js";
 import css from "./DiscoverPage.module.css";
 import landingCss from "./ProjectsLandingPage.module.css";
@@ -45,6 +47,7 @@ export default function ProjectsLandingPage() {
   const archiveProject = useProjectStore((s) => s.archiveProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
   const navigate = useNavigate();
+  const currentUser = useAuthStore((s) => s.user);
 
   const selected = useDiscoverSelection((s) => s.selected);
   const toggle = useDiscoverSelection((s) => s.toggle);
@@ -64,8 +67,15 @@ export default function ProjectsLandingPage() {
   }, [projects]);
 
   const activeProjects = useMemo(
-    () => projects.filter((p) => p.status !== "archived"),
-    [projects],
+    () => {
+      const list = projects.filter((p) => p.status !== "archived");
+      // Demo users see only their editable clones; hide the read-only originals.
+      if (DEMO_MODE_ENABLED && isDemoUser(currentUser)) {
+        return list.filter((p) => !p.isBuiltin);
+      }
+      return list;
+    },
+    [projects, currentUser],
   );
 
   const realCandidates = useMemo(

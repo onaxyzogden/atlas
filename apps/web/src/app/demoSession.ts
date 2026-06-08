@@ -87,3 +87,76 @@ export async function maybeBootDemoSession(deps: DemoBootDeps): Promise<boolean>
     return false;
   }
 }
+
+// Server UUID for the "351 House -- Atlas Sample" builtin project (migration 017).
+const SAMPLE_PROJECT_SERVER_ID = '00000000-0000-0000-0000-0000005a3791';
+// localStorage key prefix — one entry per demo user (keyed by user.id).
+const DEMO_CLONE_FLAG = 'demo-cloned-';
+
+/**
+ * For demo users: clone each builtin project into an editable personal copy,
+ * seed observe data on the clone, then mark done in localStorage so this is
+ * idempotent across page reloads.
+ *
+ * Called from two sites to survive the boot race between hydrateBuiltins and
+ * maybeBootDemoSession (see bootAuthed.ts and projectStore.ts):
+ *  1. End of hydrateBuiltins() (dynamic import from projectStore.ts)
+ *  2. After maybeBootDemoSession() resolves in bootAuthed.ts (fallback)
+ *
+ * No-ops when: demo mode off, user not a demo user, builtins not yet in
+ * store, or cloning already done (localStorage flag).
+ */
+/**
+ * Override the build flag — for tests only. When omitted, the production
+ * build-time constant DEMO_MODE_ENABLED governs.
+ */
+export async function maybeCloneBuiltinsForDemo(
+  _enabled = DEMO_MODE_ENABLED,
+): Promise<void> {
+  if (!_enabled) return;
+
+  // Dynamic imports avoid a static circular dep:
+  // projectStore.ts calls this function via dynamic import, so
+  // demoSession.ts must not statically import projectStore.ts.
+  const [
+    { useAuthStore },
+    { useProjectStore },
+    { seedBuiltinObserveData },
+  ] = await Promise.all([
+    import('../store/authStore.js'),
+    import('../store/projectStore.js'),
+    import('../data/builtinSampleObserveData.js'),
+  ]);
+
+  const user = useAuthStore.getState().user;
+  if (!isDemoUser(user) || !user) return;
+
+  const flagKey = DEMO_CLONE_FLAG + user.id;
+  if (localStorage.getItem(flagKey)) return;
+
+  const { projects, duplicateProject } = useProjectStore.getState();
+
+  const house351 = projects.find((p) => p.serverId === SAMPLE_PROJECT_SERVER_ID);
+  const mtc = projects.find((p) => p.id === 'mtc');
+
+  // If neither builtin is in the store yet, bail — the other trigger will retry.
+  if (!house351 && !mtc) return;
+
+  for (const builtin of ([house351, mtc] as const).filter(Boolean)) {
+    const clone = duplicateProject(builtin!.id, builtin!.name);
+    if (!clone) continue;
+
+    // duplicateProject spreads ...rest which carries isBuiltin: true from source.
+    // Clear it so RBAC treats the clone as a normal editable project.
+    useProjectStore.setState((s) => ({
+      projects: s.projects.map((p) =>
+        p.id === clone.id ? { ...p, isBuiltin: undefined } : p,
+      ),
+    }));
+
+    // Seed rich observe data so demo users start with explore-stage content.
+    seedBuiltinObserveData(clone.id);
+  }
+
+  localStorage.setItem(flagKey, '1');
+}

@@ -32,7 +32,7 @@ import '../dev/seedMtcObserveBaseline.js';
 import '../dev/seedMtcRotationFixture.js';
 
 import { useAuthStore } from '../store/authStore.js';
-import { maybeBootDemoSession } from './demoSession.js';
+import { maybeBootDemoSession, maybeCloneBuiltinsForDemo, DEMO_MODE_ENABLED } from './demoSession.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import {
@@ -66,6 +66,13 @@ async function bootAuth(): Promise<void> {
     register: (email, password, displayName) =>
       useAuthStore.getState().register(email, password, displayName),
   });
+
+  // Fallback: if hydrateBuiltins resolved before demo registration, builtins are
+  // already in store — clone now. Idempotency flag prevents double-clone if
+  // trigger #1 (inside hydrateBuiltins) already ran.
+  if (DEMO_MODE_ENABLED) {
+    void maybeCloneBuiltinsForDemo();
+  }
 }
 
 /**

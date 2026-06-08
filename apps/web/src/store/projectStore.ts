@@ -1624,34 +1624,40 @@ async function hydrateBuiltins(): Promise<void> {
     const res = await fetch('/api/v1/projects/builtins');
     if (!res.ok) {
       applyBuiltinsToStore([LOCAL_BUILTIN_FALLBACK]);
-      return;
+    } else {
+      const envelope = (await res.json()) as {
+        data: Array<{
+          id: string;
+          name: string;
+          description: string | null;
+          status: 'active' | 'archived' | 'shared' | 'candidate';
+          projectType: string | null;
+          country: string;
+          provinceState: string | null;
+          conservationAuthId: string | null;
+          address: string | null;
+          parcelId: string | null;
+          acreage: number | null;
+          dataCompletenessScore: number | null;
+          hasParcelBoundary: boolean;
+          isBuiltin: boolean;
+          createdAt: string;
+          updatedAt: string;
+          parcelBoundaryGeojson?: GeoJSON.Geometry | GeoJSON.FeatureCollection | null;
+          layers?: MockLayerResult[];
+        }>;
+      };
+      applyBuiltinsToStore(envelope.data);
     }
-    const envelope = (await res.json()) as {
-      data: Array<{
-        id: string;
-        name: string;
-        description: string | null;
-        status: 'active' | 'archived' | 'shared' | 'candidate';
-        projectType: string | null;
-        country: string;
-        provinceState: string | null;
-        conservationAuthId: string | null;
-        address: string | null;
-        parcelId: string | null;
-        acreage: number | null;
-        dataCompletenessScore: number | null;
-        hasParcelBoundary: boolean;
-        isBuiltin: boolean;
-        createdAt: string;
-        updatedAt: string;
-        parcelBoundaryGeojson?: GeoJSON.Geometry | GeoJSON.FeatureCollection | null;
-        layers?: MockLayerResult[];
-      }>;
-    };
-    applyBuiltinsToStore(envelope.data);
   } catch (err) {
     console.warn('[OGDEN] Failed to fetch builtin samples — using local fallback:', err);
     applyBuiltinsToStore([LOCAL_BUILTIN_FALLBACK]);
+  }
+  // Trigger demo clone after builtins land. Tree-shaken to nothing in non-demo
+  // builds (Vite folds FEATURE_DEMO_MODE to a literal). Dynamic import avoids a
+  // circular dep: demoSession.ts statically imports projectStore.ts below.
+  if (process.env.FEATURE_DEMO_MODE === 'true') {
+    void import('../app/demoSession.js').then((m) => void m.maybeCloneBuiltinsForDemo());
   }
 }
 
