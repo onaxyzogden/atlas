@@ -108,3 +108,9 @@ services:
         sync: false
       - key: VITE_CESIUM_ION_TOKEN
         sync: false
+      # Demo mode — auto-registers a throwaway guest session on boot so the live
+      # test site is explorable without the (currently broken) login wall. Read
+      # from process.env in vite.config.ts and inlined into the bundle. Set to
+      # "false" (or remove) once real login is restored.
+      - key: FEATURE_DEMO_MODE
+        value: "true"

@@ -32,6 +32,7 @@ import '../dev/seedMtcObserveBaseline.js';
 import '../dev/seedMtcRotationFixture.js';
 
 import { useAuthStore } from '../store/authStore.js';
+import { maybeBootDemoSession } from './demoSession.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import {
@@ -54,6 +55,17 @@ async function bootAuth(): Promise<void> {
   const init = useAuthStore.getState().initFromStorage();
   const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
   await Promise.race([init, timeout]);
+
+  // Demo mode (live test deployment only): if there's no session, silently
+  // auto-register a throwaway guest account so the visitor lands in a working,
+  // browsable app instead of the (currently broken) login wall. No-op when the
+  // flag is off or a token already exists — real/returning users are untouched.
+  // Never throws; bounded so a slow/unreachable API can't block boot.
+  await maybeBootDemoSession({
+    getToken: () => useAuthStore.getState().token,
+    register: (email, password, displayName) =>
+      useAuthStore.getState().register(email, password, displayName),
+  });
 }
 
 /**

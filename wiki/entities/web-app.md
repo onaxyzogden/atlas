@@ -9,6 +9,32 @@ React SPA for property design, map visualization, dashboard analytics, financial
 ## CI / PR gating
 PRs touching `apps/web/**`, `packages/shared/**`, or `pnpm-lock.yaml` are gated by `.github/workflows/web-ci.yml` (added 2026-05-25, `016c6d0b`) — three parallel jobs: **typecheck** (`pnpm --filter @ogden/web typecheck`, 8 GB-heap `tsc --noEmit`), **test** (`vitest`, node env), **build** (`tsc && vite build` + Playwright `prerender:showcase`, with `VITE_MAPTILER_KEY`). This closed the last monorepo PR-CI gap (api was already gated by `api-ci.yml` + `api-integration.yml`); previously only `deploy.yml` exercised web, and only on `push` to `main`. See [[log/2026-05-25-web-ci-gate]].
 
+## Demo mode -- live-site login bypass (2026-06-08)
+
+Behind build-time flag **`FEATURE_DEMO_MODE`** (default `false`; `true` only on
+the live web build via `render.yaml` -> `Dockerfile.nginx` ARG/ENV -> Vite
+`define`), a first-time visitor (no `localStorage['ogden-auth-token']`) is
+silently **auto-registered a throwaway account** (`guest-<uuid>@demo.ogden.ag`)
+on boot and dropped straight into the app -- no login gate. Reuses the
+already-open `POST /api/v1/auth/register` (7-day JWT), so **no backend change**.
+
+- **`app/demoSession.ts`** -- `DEMO_MODE_ENABLED`
+  (`process.env.FEATURE_DEMO_MODE === 'true'`), `makeGuestCredentials()`,
+  `isDemoUser(user)`, `maybeBootDemoSession(deps)` (register raced against a
+  1500 ms timeout; errors swallowed so a down API never blocks boot).
+- **`app/bootAuthed.ts`** calls `maybeBootDemoSession` after the init/timeout
+  race; **`app/AppShell.tsx`** shows a **"DEMO MODE"** badge + **"Sign in"** ->
+  `/login` for demo users (signing in overwrites the demo token).
+- Entirely flag-gated: with the flag off terser dead-code-eliminates the demo
+  path, so **OFF == original landing/login behavior by construction**. The
+  account is per-browser (token persists across reloads).
+- *Deferred:* demo-user DB cleanup job; optional backend guard to skip the
+  verification email for `@demo.ogden.ag`; the underlying broken-login fix
+  (sidestepped, not fixed -- team uses `/login`).
+
+ADR [[decisions/2026-06-08-atlas-demo-mode-per-visitor-sessions]]; log
+[[log/2026-06-08-demo-mode-live-login-bypass]].
+
 ## Key Structure
 ```
 src/

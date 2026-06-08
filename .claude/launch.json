@@ -54,6 +54,18 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "set FEATURE_SYNC_STATE_BLOBS=true&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js --port 5205 --strictPort"],
       "port": 5205
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set FEATURE_DEMO_MODE=true&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js --port 5206 --strictPort"],
+      "port": 5206
+    },
+    {
+      "name": "downloads-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d C:\\Users\\MYOWNA~1\\Downloads && python -m http.server 8770 --bind 127.0.0.1"],
+      "port": 8770
     }
   ]
 }

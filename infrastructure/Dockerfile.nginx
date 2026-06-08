@@ -27,6 +27,11 @@ ARG VITE_MAPTILER_KEY
 ARG VITE_CESIUM_ION_TOKEN
 ENV VITE_MAPTILER_KEY=$VITE_MAPTILER_KEY
 ENV VITE_CESIUM_ION_TOKEN=$VITE_CESIUM_ION_TOKEN
+# Feature flags are read from process.env in vite.config.ts (NOT from .env, which
+# Vite only exposes as import.meta.env). Thread the demo-mode flag through as a
+# real build env so it is inlined into the SPA bundle. Defaults to false.
+ARG FEATURE_DEMO_MODE=false
+ENV FEATURE_DEMO_MODE=$FEATURE_DEMO_MODE
 # Cesium/MapLibre bundling is memory-hungry; match the CI heap ceiling.
 ENV NODE_OPTIONS=--max-old-space-size=7168
 # Both packages/shared/tsconfig.json and apps/web/tsconfig.json `extends`
