@@ -1,209 +1,118 @@
-/* ActTierZeroWorkbench.module.css
- *
- * Styles for the inline (non-map) Tier-0 workbench: a 3-column shell holding the
- * left objectives rail (fixed ~240px), the center DecisionList (flexible), and
- * the right DecisionWorkingPanel (fixed ~400px). The center and right children
- * own their internal chrome; this file supplies the column shells + the left
- * rail (objective rows + the "Completes Tier 0" next-box).
- *
- * Token substitution note (mockup -> project token; hex fallback as 2nd var() arg):
- *   amber active accent  -> --color-stage-act
- *   amber tint           -> --color-stage-act-glow-bg
- *   green done           -> --color-success
- *   text                 -> --color-text{,-muted,-subtle}
- *   surfaces             -> --color-surface{,-alt,-raised}
- *   borders              -> --color-border{,-subtle}
- *   serif headings       -> --font-serif; body -> --font-sans; mono counts -> --font-mono
- *   radius               -> --radius-md / --radius-lg
- * No exact token names were missing. ASCII-only (the "--" in "Unlocks Tier 1 --
- * Land Reading" is plain text rendered by the component, not a glyph here).
- */
+/* ActTierZeroWorkbench — 2-pane canvas (left: DecisionList, right: form) */
 
+/* Root: equal split filling whatever height StageShell grants the canvas */
 .root {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) minmax(360px, 420px);
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   height: 100%;
   min-height: 0;
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  background: var(--color-bg, #14191f);
 }
 
-/* ---------- LEFT rail ---------- */
-
-.lrail {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.railLbl {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle, #7a808a);
-  margin-bottom: 2px;
-}
-
-.objItem {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
-  border-left: 3px solid transparent;
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-surface, #ffffff);
-  cursor: pointer;
-  text-align: left;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.objItem:hover {
-  background: var(--color-surface-alt, #f3efe6);
-}
-
-.objItem:focus-visible {
-  outline: 2px solid var(--color-stage-act, #d9a036);
-  outline-offset: 1px;
-}
-
-.objItem[data-active='true'] {
-  border-left-color: var(--color-stage-act, #d9a036);
-  background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
-}
-
-.objItem[data-done='true'] .objM {
-  color: var(--color-success, #6b8f6b);
-}
-
-.objT {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-text, #1b1e22);
-}
-
-.objM {
-  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
-  font-size: 10.5px;
-  color: var(--color-text-muted, #565c63);
-}
-
-.railDiv {
-  height: 1px;
-  margin: 6px 0;
-  background: var(--color-border-subtle, rgba(84, 92, 100, 0.1));
-}
-
-/* ---------- next-box ---------- */
-
-.nextBox {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  border: 1px solid var(--color-stage-act, #d9a036);
-  border-radius: var(--radius-lg, 12px);
-  background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
-}
-
-.nextLbl {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-stage-act, #d9a036);
-}
-
-.nextTxt {
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: var(--color-text, #1b1e22);
-}
-
-.nextUnlock {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-text-muted, #565c63);
-}
-
-/* ---------- CENTER + RIGHT column shells ---------- */
+/* ── Left pane: decision list ────────────────────────────────────────────── */
 
 .center {
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
   padding: 16px;
-  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-  border-radius: var(--radius-lg, 12px);
-  background: var(--color-surface, #ffffff);
+  border-right: 1px solid var(--color-border, rgba(84, 92, 100, 0.20));
+  background: var(--color-surface, #1e252e);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border, rgba(84, 92, 100, 0.2)) transparent;
 }
 
-/* ---------- Boundary map-activation strip (center, above DecisionList) ---------- */
+.center::-webkit-scrollbar { width: 6px; }
+.center::-webkit-scrollbar-track { background: transparent; }
+.center::-webkit-scrollbar-thumb {
+  background: var(--color-border, rgba(84, 92, 100, 0.2));
+  border-radius: 3px;
+}
+
+/* ── Right pane: capture form ────────────────────────────────────────────── */
+
+.right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--color-surface-raised, #f3efe6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border, rgba(84, 92, 100, 0.2)) transparent;
+}
+
+.right::-webkit-scrollbar { width: 6px; }
+.right::-webkit-scrollbar-track { background: transparent; }
+.right::-webkit-scrollbar-thumb {
+  background: var(--color-border, rgba(84, 92, 100, 0.2));
+  border-radius: 3px;
+}
+
+/* ── Map strip (boundary / stakeholder objectives) ───────────────────────── */
 
 .mapStrip {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 14px;
-  padding: 9px 12px;
+  padding: 8px 12px;
+  background: color-mix(
+    in srgb,
+    var(--color-stage-act, #d9a036) 12%,
+    var(--color-surface, #1e252e)
+  );
   border: 1px solid
-    color-mix(in srgb, var(--color-stage-act, #d9a036) 40%, transparent);
+    color-mix(in srgb, var(--color-stage-act, #d9a036) 30%, transparent);
   border-radius: var(--radius-md, 8px);
-  background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
   font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-text, #1b1e22);
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  color: var(--color-text-muted, #8b97a3);
+  flex-shrink: 0;
 }
 
 .mapStripIcon {
-  flex: none;
+  flex-shrink: 0;
   color: var(--color-stage-act, #d9a036);
 }
 
-/* Stakeholder reg-strip: live shared-register count summary (mockup parity). */
+/* ── Register strip (stakeholder count) ──────────────────────────────────── */
+
 .regStrip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
   padding: 8px 12px;
-  border: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.12));
+  background: color-mix(
+    in srgb,
+    var(--color-surface-alt, #f3efe6) 60%,
+    var(--color-surface, #1e252e)
+  );
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.20));
   border-radius: var(--radius-md, 8px);
-  background: var(--color-surface-alt, #f3eee2);
   font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-text, #1b1e22);
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  flex-shrink: 0;
 }
 
 .regStripIcon {
-  flex: none;
-  color: var(--color-info, #4a8c9e);
+  flex-shrink: 0;
+  color: var(--color-text-muted, #8b97a3);
 }
 
 .regStripCount {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-info, #4a8c9e);
+  color: var(--color-text, #f2ede3);
 }
 
 .regStripLabel {
-  color: var(--color-text-muted, #545c64);
+  color: var(--color-text-muted, #8b97a3);
 }
 
 .regStripNote {
   margin-left: auto;
   font-size: 11px;
-  color: var(--color-text-subtle, #8a9199);
-}
-
-.right {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-  border-radius: var(--radius-lg, 12px);
-  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text-subtle, #7a808a);
+  font-style: italic;
 }

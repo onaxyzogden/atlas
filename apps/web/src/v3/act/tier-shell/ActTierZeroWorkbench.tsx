@@ -1,11 +1,12 @@
 /**
  * ActTierZeroWorkbench -- the inline (non-map) Tier-0 container.
  *
- * A 3-pane workbench composing three already-committed children:
- *   - LEFT  : an objectives rail (one row per objective with its decision count)
- *             + a "Completes Tier 0 / Unlocks Tier 1" next-box.
- *   - CENTER: <DecisionList> for the active objective.
- *   - RIGHT : <DecisionWorkingPanel> for the selected decision.
+ * A 2-pane canvas:
+ *   - LEFT  : <DecisionList> for the active objective (css.center).
+ *   - RIGHT : <DecisionWorkingPanel> for the selected decision (css.right).
+ *
+ * The objectives rail has been removed from this component; it is provided by
+ * the parent (ActTierShell) via StageShell's leftRail slot.
  *
  * It owns ONLY the active-decision selection state (re-seeded whenever the
  * active objective changes) and the pure item->DecisionPanelTarget derivation.
@@ -52,7 +53,6 @@ export interface ActTierZeroWorkbenchProps {
   projectId: string;
   objectives: readonly PlanStratumObjective[];
   activeObjectiveId: string;
-  onSelectObjective: (objectiveId: string) => void;
   primaryTypeId?: ProjectTypeId | null;
   secondaryTypeIds?: readonly ProjectTypeId[];
   /** effective per-item progress for ALL objectives (byObjective from useEffectiveChecklistProgress). */
@@ -179,7 +179,6 @@ export default function ActTierZeroWorkbench({
   projectId,
   objectives,
   activeObjectiveId,
-  onSelectObjective,
   primaryTypeId,
   secondaryTypeIds,
   progressByObjective,
@@ -255,61 +254,9 @@ export default function ActTierZeroWorkbench({
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
   const target = selectedItem ? buildDecisionTarget(selectedItem) : null;
 
-  const total = objectives.length;
-  const remaining = objectives.filter((o) => {
-    const done = (progressByObjective[o.id] ?? []).length;
-    return done < o.checklist.length;
-  }).length;
-
   return (
     <div className={css.root}>
-      {/* ---------- LEFT: objectives rail ---------- */}
-      <aside className={css.lrail}>
-        <div className={css.railLbl}>Objectives</div>
-        {objectives.map((o) => {
-          const done = (progressByObjective[o.id] ?? []).length;
-          const objTotal = o.checklist.length;
-          const isActive = o.id === activeObjective.id;
-          const isDone = objTotal > 0 && done === objTotal;
-          return (
-            <div
-              key={o.id}
-              className={css.objItem}
-              data-objective-row=""
-              data-objective-id={o.id}
-              data-active={isActive ? 'true' : 'false'}
-              data-done={isDone ? 'true' : 'false'}
-              role="button"
-              tabIndex={0}
-              aria-pressed={isActive}
-              onClick={() => onSelectObjective(o.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectObjective(o.id);
-                }
-              }}
-            >
-              <div className={css.objT}>{o.title}</div>
-              <div className={css.objM}>
-                {done} / {objTotal} decisions made
-              </div>
-            </div>
-          );
-        })}
-
-        <div className={css.railDiv} />
-
-        <div className={css.nextBox}>
-          <div className={css.nextLbl}>Completes Tier 0</div>
-          <div className={css.nextTxt}>
-            {remaining} of {total} objectives still to decide.
-          </div>
-          <div className={css.nextUnlock}>Unlocks Tier 1 -- Land Reading</div>
-        </div>
-      </aside>
-
-      {/* ---------- CENTER: decision list ---------- */}
+      {/* ---------- LEFT pane: decision list ---------- */}
       <section className={css.center}>
         {isBoundaryObjective ? (
           <div className={css.mapStrip} data-testid="boundary-map-strip">
@@ -372,7 +319,7 @@ export default function ActTierZeroWorkbench({
         />
       </section>
 
-      {/* ---------- RIGHT: working panel ---------- */}
+      {/* ---------- RIGHT pane: capture form ---------- */}
       <section className={css.right}>
         <DecisionWorkingPanel
           decision={target}

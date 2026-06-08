@@ -895,7 +895,6 @@ export default function ActTierShell() {
             projectId={id}
             objectives={stratumObjectives}
             activeObjectiveId={selectedObjective.id}
-            onSelectObjective={handleSelectObjective}
             primaryTypeId={primaryTypeId}
             secondaryTypeIds={secondaryTypeIds}
             progressByObjective={effectiveProgress.byObjective}
