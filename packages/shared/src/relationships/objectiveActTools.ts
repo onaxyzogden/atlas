@@ -367,6 +367,27 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Husbandry & welfare framework: non-spatial. gap: all — health, breeding,
   // welfare, halal handling, records (decisions).
   'silv-sec-s4-husbandry-framework': [],
+  // S5 - tree planting & establishment plan: map planting layout (orchards),
+  // exclusion fencing + individual guards / browse barriers (fencing +
+  // buffer-ring), establishment-phase drip irrigation (water-lines). Mirrors the
+  // primary silv-s5-tree-planting. gap: c1 species selection, c4 planting
+  // season / schedule, c6 procurement source (decisions).
+  'silv-sec-s5-tree-establishment': [
+    'orchards',
+    'fencing',
+    'buffer-ring',
+    'water-lines',
+  ],
+  // S6 - pasture recovery & tree survival monitoring: condition / recovery
+  // scoring transects + field notes. Mirrors the primary silv-s6-pasture-
+  // monitoring. gap: c1/c2 survival-rate & browse-damage thresholds, c4 adaptive
+  // trigger rules, c5 record-keeping system (decisions).
+  'silv-sec-s6-pasture-tree-monitoring': ['transect', 'note'],
+  // S7 - stocking phasing vs tree establishment: protection-phase exclusion and
+  // partial-stocking are assigned per paddock (paddocks). Mirrors the primary
+  // silv-s7-stocking-buildup. gap: c3 full-stocking timeline, c4 financial
+  // impact, c5 high-mortality contingency (decisions).
+  'silv-sec-s7-stocking-phasing': ['paddocks'],
 
   // ---------- HOMESTEAD (primary-only, 15 objectives) ----------
   // Authored 2026-06-03 (Act-coverage audit remediation R1). Homestead is the
