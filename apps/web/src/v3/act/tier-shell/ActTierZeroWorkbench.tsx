@@ -2,7 +2,7 @@
  * ActTierZeroWorkbench -- the inline (non-map) Tier-0 container.
  *
  * A 2-pane canvas:
- *   - LEFT  : <DecisionList> for the active objective (css.center).
+ *   - LEFT  : <DecisionList> for the active objective (css.left).
  *   - RIGHT : <DecisionWorkingPanel> for the selected decision (css.right).
  *
  * The objectives rail has been removed from this component; it is provided by
@@ -257,7 +257,7 @@ export default function ActTierZeroWorkbench({
   return (
     <div className={css.root}>
       {/* ---------- LEFT pane: decision list ---------- */}
-      <section className={css.center}>
+      <section className={css.left}>
         {isBoundaryObjective ? (
           <div className={css.mapStrip} data-testid="boundary-map-strip">
             <Layers size={15} className={css.mapStripIcon} aria-hidden="true" />

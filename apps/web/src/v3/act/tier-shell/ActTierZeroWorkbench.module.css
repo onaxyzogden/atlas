@@ -11,7 +11,7 @@
 
 /* ── Left pane: decision list ────────────────────────────────────────────── */
 
-.center {
+.left {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -24,9 +24,9 @@
   scrollbar-color: var(--color-border, rgba(84, 92, 100, 0.2)) transparent;
 }
 
-.center::-webkit-scrollbar { width: 6px; }
-.center::-webkit-scrollbar-track { background: transparent; }
-.center::-webkit-scrollbar-thumb {
+.left::-webkit-scrollbar { width: 6px; }
+.left::-webkit-scrollbar-track { background: transparent; }
+.left::-webkit-scrollbar-thumb {
   background: var(--color-border, rgba(84, 92, 100, 0.2));
   border-radius: 3px;
 }
