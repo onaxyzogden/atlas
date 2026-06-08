@@ -165,17 +165,27 @@ decisions / scopeNotes. **No catalogue change has been made.**
 
 ## Batch C — Plan stage right-panel wiring (three-panel shell)
 
-| # | HTML file | Tier | Target | Extract | Status |
-|---|---|---|---|---|---|
-| 24 | `olos_plan_feasible_direction.html` | 3 | `v3/plan/.../DecisionChecklist.tsx` (read-only) | decision list + gate-check display + "Open in Act" CTA — largely already satisfied | todo |
-| 25 | `olos_plan_phased_settlement.html` | 6 | `DecisionChecklist` | decision list + map strip + field-actions + accordion | todo |
-| 26 | `olos_plan_communal_infra.html` | 4 | `DecisionChecklist` | decision list + map strip + field-actions + accordion | todo |
-| 27 | `olos_plan_community_health.html` | 5 | `DecisionChecklist` | decision list + act-tasks list + "Open in Act" CTA | todo |
-| 28 | `olos_plan_infra_maintenance.html` | 5 | `DecisionChecklist` | decision list + act-tasks + maintenance gate logic | todo |
+**Batch C outcome (5-row Plan-prototype diff, 2026-06-07):** each Plan-stage prototype is a
+**read-only render of an existing catalogue objective** (universal or ecovillage). Every
+prototype's decisions / decision-groups / completion-gate matches its catalogue objective
+**verbatim**, and each prototype confirms the target architecture: a "Read-only preview -
+decisions are worked through in Act" lock note plus an "Open in Act" CTA (and "Launch Act
+Command Center" footer). This is exactly what `DecisionChecklist.tsx` renders today - so
+Batch C required **no component construction and no catalogue edits**; it is a confirmation
+pass. No covenant content found in any Batch C prototype.
 
-> Batch C is largely already satisfied: `DecisionChecklist.tsx` renders the catalogue
-> read-only with an "Open in Act →" CTA today. Remaining work is per-row confirmation,
-> not new component construction.
+| # | HTML file | Tier | Catalogue objective (confirmed) | Audit result | Status |
+|---|---|---|---|---|---|
+| 24 | `olos_plan_feasible_direction.html` | 3 | `s4-direction` (universal.ts) | 6 decisions + 2 groups ("Survey validation" / "Scope & first cycle") + gate verbatim match. Read-only preview + "Approve project direction - unlock Tier 3" CTA | done |
+| 25 | `olos_plan_phased_settlement.html` | 6 | `ev-s4-settlement-strategy` (ecovillage.ts) | 6 decisions + 3 groups + gate verbatim match (same objective as Batch B row 22). Read-only + "Open in Act" CTA | done |
+| 26 | `olos_plan_communal_infra.html` | 4 | `ev-s4-infra-strategy` (ecovillage.ts) | 5 decisions + 3 groups + gate verbatim match. **Confirms `ev-s4-infra-strategy` is correctly encoded** - the content the row-15 prototype file was missing. Read-only + "Open in Act" CTA | done |
+| 27 | `olos_plan_community_health.html` | 5 | `ev-s6-social-monitoring` (ecovillage.ts) | 6 decisions + 3 groups + gate verbatim match. Act-tasks list + Observe feed chips + "Open in Act" CTA | done |
+| 28 | `olos_plan_infra_maintenance.html` | 5 | `ev-s6-maintenance-protocol` (ecovillage.ts) | 5 decisions + 3 groups + gate verbatim match. Act-tasks list + "Open in Act" CTA | done |
+
+> Batch C confirmed already satisfied: `DecisionChecklist.tsx` renders the catalogue
+> read-only with an "Open in Act →" CTA today, matching all five prototypes. No remaining
+> work. (Out-of-slice: rows 25-28 are ecovillage objectives, not in the active
+> Homestead+Silvopasture slice; row 24 `s4-direction` is universal and in-slice.)
 
 ---
 
@@ -190,11 +200,20 @@ decisions / scopeNotes. **No catalogue change has been made.**
   awaits operator review. The Tier-0 bespoke right-panel surface that would host items
   #2 (housing-cluster prayer/screening standards) is part of the deferred work-surface
   workstream.
-- Batch C (rows 24–28) per-row confirmation against `DecisionChecklist`.
 
 > **Batch B audit complete (2026-06-07):** all 14 rows confirmed already-encoded; see the
 > Batch B table and Covenant-content inventory above. One prototype-file mismatch flagged
 > (row 15 file content = nursery propagation, not communal-infra-strategy).
+>
+> **Batch C audit complete (2026-06-07):** all 5 Plan-stage prototypes confirmed to be
+> read-only renders of existing catalogue objectives, matched verbatim; the read-only +
+> "Open in Act" architecture they depict is already shipped in `DecisionChecklist.tsx`.
+>
+> **All batches (A + B + C, rows 1-28) are now audited and confirmed already-encoded.**
+> The entire HTML-prototype wiring effort required zero catalogue edits: the catalogues
+> were authored from the same source docs as the prototypes. The only open items are the
+> deferred bespoke Tier-1+ right-panel work surfaces, the covenant-content inventory
+> (operator review), and the row-15 prototype-file mismatch (re-export needed).
 
 ---
 
