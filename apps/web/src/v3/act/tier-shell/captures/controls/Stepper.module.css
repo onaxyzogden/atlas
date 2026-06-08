@@ -1,0 +1,54 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: var(--text-base, 14px);
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #1b1e22);
+  cursor: pointer;
+}
+.step:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+.value {
+  min-width: 36px;
+  text-align: center;
+  font-size: var(--text-base, 14px);
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+.unit {
+  font-size: var(--text-xs, 11px);
+  font-weight: 500;
+  color: var(--color-text-muted, #565b63);
+}
+.preset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  border: 1px solid var(--color-border, #d4d8de);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #565b63);
+  cursor: pointer;
+}
+.preset[data-on='true'] {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-stage-act, #d9a036) 40%, transparent);
+}
