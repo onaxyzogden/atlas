@@ -121,6 +121,7 @@ import { useActEvidenceStore } from '../store/actEvidenceStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
+import { useStakeholderRegisterStore } from '../store/stakeholderRegisterStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -919,6 +920,9 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // like ogden-plan-revision-dismissals (also a synced versioned-blob); absent
   // ⇒ collapsed (true) default, so empty = true. v1 matches the persist version.
   blob('ogden-plan-tension-banner', usePlanTensionBannerStore, 'byProject', 1, byKey('collapsedByProject', null, true)),
+  // Act Tier-0 stakeholder register: rows keyed byProject[projectId][stakeholderId].
+  // Persist v2 (v1→v2 migration: commsChannel string → commsChannels array).
+  blob('ogden-stakeholder-register', useStakeholderRegisterStore, 'byProject', 2, byKey('byProject', null, {})),
 ];
 
 /**
@@ -938,4 +942,7 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   // point the wizard store is cleared. Per-device transient by design;
   // syncing it across devices would race with project creation.
   'ogden-project-wizard',
+  // DEV-ONLY override that lifts Plan prerequisite locks for local testing.
+  // Call-sites are guarded by import.meta.env.DEV; the flag must never sync.
+  'ogden-dev-unlock-all-strata',
 ]);
