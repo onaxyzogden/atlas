@@ -69,6 +69,15 @@ const MODE_LABELS: Record<string, string> = {
   tenancyRegister: 'Tenancy register',
   titleRestrictionChecker: 'Title conditions',
   landHistoryRegister: 'Land history',
+  // Legal governance modes (EV-S1.4).
+  legalEntityPicker: 'Entity options',
+  jurisdiction: 'Jurisdiction',
+  entityDecisionRecord: 'Decision record',
+  tenureModel: 'Tenure model',
+  decisionFramework: 'Decision framework',
+  financialGovernance: 'Financial governance',
+  membershipRegister: 'Membership register',
+  legalAdviceGate: 'Legal advice gate',
 };
 
 export default function DecisionList({

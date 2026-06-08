@@ -332,6 +332,59 @@ describe('DecisionList -- mode badges', () => {
     );
   });
 
+  it('LG9: maps all 8 legal-governance mode keys to their human labels', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 'lg-legalEntityPicker', label: 'Entity picker row', feedsInto: [], optional: false },
+        { id: 'lg-jurisdiction', label: 'Jurisdiction row', feedsInto: [], optional: false },
+        { id: 'lg-entityDecisionRecord', label: 'Decision record row', feedsInto: [], optional: false },
+        { id: 'lg-tenureModel', label: 'Tenure model row', feedsInto: [], optional: false },
+        { id: 'lg-decisionFramework', label: 'Decision framework row', feedsInto: [], optional: false },
+        { id: 'lg-financialGovernance', label: 'Financial governance row', feedsInto: [], optional: false },
+        { id: 'lg-membershipRegister', label: 'Membership register row', feedsInto: [], optional: false },
+        { id: 'lg-legalAdviceGate', label: 'Legal advice gate row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    const modes: Record<string, string> = {
+      'lg-legalEntityPicker': 'legalEntityPicker',
+      'lg-jurisdiction': 'jurisdiction',
+      'lg-entityDecisionRecord': 'entityDecisionRecord',
+      'lg-tenureModel': 'tenureModel',
+      'lg-decisionFramework': 'decisionFramework',
+      'lg-financialGovernance': 'financialGovernance',
+      'lg-membershipRegister': 'membershipRegister',
+      'lg-legalAdviceGate': 'legalAdviceGate',
+    };
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => modes[itemId] ?? null}
+      />,
+    );
+    expect(screen.getByTestId('mode-badge-lg-legalEntityPicker').textContent).toMatch(/^Entity options$/);
+    expect(screen.getByTestId('mode-badge-lg-jurisdiction').textContent).toMatch(/^Jurisdiction$/);
+    expect(screen.getByTestId('mode-badge-lg-entityDecisionRecord').textContent).toMatch(
+      /^Decision record$/,
+    );
+    expect(screen.getByTestId('mode-badge-lg-tenureModel').textContent).toMatch(/^Tenure model$/);
+    expect(screen.getByTestId('mode-badge-lg-decisionFramework').textContent).toMatch(
+      /^Decision framework$/,
+    );
+    expect(screen.getByTestId('mode-badge-lg-financialGovernance').textContent).toMatch(
+      /^Financial governance$/,
+    );
+    expect(screen.getByTestId('mode-badge-lg-membershipRegister').textContent).toMatch(
+      /^Membership register$/,
+    );
+    expect(screen.getByTestId('mode-badge-lg-legalAdviceGate').textContent).toMatch(
+      /^Legal advice gate$/,
+    );
+  });
+
   it('renders NO mode badge for any row when modeFor is absent', () => {
     renderList();
     expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
