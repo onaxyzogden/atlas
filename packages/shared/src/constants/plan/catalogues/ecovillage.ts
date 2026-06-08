@@ -71,6 +71,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s1-legal-governance-c1',
         'Evaluate legal entity options - land trust, co-operative, company, charitable trust, incorporated society',
       ),
+      ck(
+        'ev-s1-legal-governance-c8',
+        'Confirm governing jurisdiction - province, territory, or nation of registration',
+      ),
       ck('ev-s1-legal-governance-c2', 'Select legal entity and document rationale'),
       ck(
         'ev-s1-legal-governance-c3',
@@ -91,7 +95,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ev-s1-legal-governance-c7', 'Obtain legal advice on chosen structure before finalising'),
     ],
     decisionGroups: [
-      dg('ev-s1-legal-governance-dg1', 'Legal entity selection', ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c2'], []),
+      dg('ev-s1-legal-governance-dg1', 'Legal entity selection', ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c8', 'ev-s1-legal-governance-c2'], []),
       dg('ev-s1-legal-governance-dg2', 'Tenure & decision-making model', ['ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4'], []),
       dg('ev-s1-legal-governance-dg3', 'Financial & membership governance', ['ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'], []),
     ],

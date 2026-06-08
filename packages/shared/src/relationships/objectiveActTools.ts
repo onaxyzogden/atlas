@@ -1327,7 +1327,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S1 -- legal entity, tenure & governance model: entity selection, tenure
   // model, decision-making framework -- a legal/governance decision. gap: all.
   // R2: per-checklist-item s1 intent capture forms.
-  'ev-s1-legal-governance': ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c2', 'ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4', 'ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'],
+  'ev-s1-legal-governance': ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c8', 'ev-s1-legal-governance-c2', 'ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4', 'ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'],
   // S1 -- communal vs. private provision balance: what is shared vs. private --
   // a provision-policy decision, no spatial act. gap: all.
   'ev-s1-provision-balance': ['ev-s1-provision-balance-c1', 'ev-s1-provision-balance-c2', 'ev-s1-provision-balance-c3', 'ev-s1-provision-balance-c4', 'ev-s1-provision-balance-c5', 'ev-s1-provision-balance-c6'],
