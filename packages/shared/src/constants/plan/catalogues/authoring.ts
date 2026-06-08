@@ -68,8 +68,19 @@ export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
  * items are authored as optional or methodology, so the helper takes just
  * id + label and applies the schema defaults (feedsInto: [], optional: false).
  */
-export function ck(id: string, label: string): PlanDecisionChecklistItem {
-  return { id, label, feedsInto: [], optional: false };
+export function ck(
+  id: string,
+  label: string,
+  opts: { feedHint?: string; feedNote?: string } = {},
+): PlanDecisionChecklistItem {
+  return {
+    id,
+    label,
+    feedsInto: [],
+    optional: false,
+    ...(opts.feedHint ? { feedHint: opts.feedHint } : {}),
+    ...(opts.feedNote ? { feedNote: opts.feedNote } : {}),
+  };
 }
 
 /**
