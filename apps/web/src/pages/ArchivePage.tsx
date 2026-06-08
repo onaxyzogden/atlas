@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { api } from '../lib/apiClient.js';
+import { formatParcelArea } from '../lib/geo.js';
 import { ConfirmDestructiveDialog } from '../components/ui/ConfirmDestructiveDialog.js';
 
 type Dialog = null | { kind: 'delete'; projectId: string };
@@ -126,7 +127,7 @@ export default function ArchivePage() {
                   }}
                 >
                   {p.address ?? p.provinceState ?? p.country ?? '—'}
-                  {p.acreage != null ? ` · ${p.acreage.toFixed(1)} ${p.units === 'metric' ? 'ha' : 'ac'}` : ''}
+                  {p.acreage != null ? ` · ${formatParcelArea(p.acreage, p.units)}` : ''}
                 </div>
               </div>
               <button

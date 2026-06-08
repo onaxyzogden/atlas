@@ -25,7 +25,7 @@ import {
   getActShellMode,
 } from '../../store/projectStore.js';
 import {
-  parcelAcreage,
+  parcelAcres,
   extractBoundaryGeometry,
   boundaryCentroid,
   renderablePolygon,
@@ -170,7 +170,7 @@ export default function ActLayout() {
         features: [{ type: 'Feature', properties: {}, geometry: polygon }],
       },
       hasParcelBoundary: true,
-      acreage: parcelAcreage(polygon, project.units),
+      acreage: parcelAcres(polygon),
     });
   };
 

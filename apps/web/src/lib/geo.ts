@@ -91,6 +91,59 @@ export function parcelAcreage(
 }
 
 /**
+ * Parcel area in **acres**, the canonical storage unit for `project.acreage`.
+ *
+ * The backend authoritatively computes `acreage` as
+ * `ST_Area(boundary::geography) / 4046.86` (acres) and overwrites the local
+ * value on every boundary sync (`applyServerAcreage`). Client write paths must
+ * store acres too, so locally-computed and server-recomputed values agree
+ * regardless of the project's display `units`. Use `formatParcelArea` to render
+ * this value in the steward's preferred unit. Best-effort: `null` on any turf
+ * failure (matches `parcelAcreage`).
+ */
+export function parcelAcres(
+  geo: GeoJSON.Geometry | GeoJSON.Feature | GeoJSON.FeatureCollection,
+): number | null {
+  try {
+    return Math.round((turf.area(geo) / 4046.86) * 100) / 100;
+  } catch {
+    return null;
+  }
+}
+
+/** Acres → hectares (1 acre = 0.404686 ha). */
+const HA_PER_ACRE = 0.404686;
+
+/**
+ * Convert a canonical **acres** value (`project.acreage`) to the numeric value
+ * in the project's preferred unit (hectares for `metric`, acres for `imperial`).
+ * Use this for callers that render the number and its unit separately (e.g. the
+ * v3 `Candidate.acreage` / `acreageUnit` pair); use `formatParcelArea` when a
+ * formatted string is wanted.
+ */
+export function parcelAreaValue(
+  acres: number,
+  units: 'metric' | 'imperial',
+): number {
+  return units === 'metric' ? acres * HA_PER_ACRE : acres;
+}
+
+/**
+ * Format a canonical **acres** value (`project.acreage`) for display in the
+ * project's preferred unit: hectares for `metric`, acres for `imperial`.
+ * Returns an em dash for nullish / non-finite input.
+ */
+export function formatParcelArea(
+  acres: number | null | undefined,
+  units: 'metric' | 'imperial',
+): string {
+  if (acres == null || !Number.isFinite(acres)) return '—';
+  return units === 'metric'
+    ? `${(acres * HA_PER_ACRE).toFixed(2)} ha`
+    : `${acres.toFixed(2)} ac`;
+}
+
+/**
  * Raw parcel area in square metres (geodesic, turf). `parcelAcreage` rounds
  * to ha/ac for display; this is the unrounded m² some callers (e.g. water
  * catchment sizing) need. Best-effort: `null` on any turf failure.

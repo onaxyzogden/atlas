@@ -14,6 +14,7 @@
 
 import type { LocalProject } from "../../store/projectStore.js";
 import type { Candidate } from "../types.js";
+import { parcelAreaValue } from "../../lib/geo.js";
 
 export const LOCAL_CANDIDATE_PREFIX = "local:";
 
@@ -28,7 +29,9 @@ export function localProjectToCandidate(project: LocalProject): Candidate {
     id: `${LOCAL_CANDIDATE_PREFIX}${project.id}`,
     name: project.name,
     region,
-    acreage: project.acreage ?? 0,
+    // project.acreage is canonically ACRES; convert to match acreageUnit so
+    // CandidateCard (renders value + unit directly) shows the right figure.
+    acreage: parcelAreaValue(project.acreage ?? 0, project.units),
     acreageUnit: project.units === "metric" ? "ha" : "ac",
     priceUsd: 0,
     pricePerAcre: undefined,
