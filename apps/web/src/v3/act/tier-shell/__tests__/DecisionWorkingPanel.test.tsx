@@ -830,6 +830,50 @@ describe('DecisionWorkingPanel -- boundary (mixed-mode)', () => {
     expect(onRecord).toHaveBeenCalledTimes(1);
   });
 
+  it('c3 (mapEntry/easements): disables Record with the easement gate note when invalid', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c3',
+        label: 'Identify all easements, rights of way, and encumbrances',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(
+      screen.getByText(
+        /add at least one easement, or mark "no implications", to record/i,
+      ),
+    ).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
+  it('c6 (doc/covenant): disables Record with the obligation-type gate note when invalid', () => {
+    const { onRecord } = renderPanel({
+      decision: makeDecision({
+        itemId: 's1-boundaries-c6',
+        label: 'Record covenant, heritage, or conservation obligations',
+        isBoundary: true,
+      }),
+      resolveOptions: resolveBoundaryOptions,
+      initialValue: {},
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute('data-locked')).toBe('true');
+    expect(
+      screen.getByText(/select at least one obligation type to record/i),
+    ).toBeTruthy();
+    expect(onRecord).not.toHaveBeenCalled();
+  });
+
   it('still saves rationale on blur and toggles defer for a boundary target', () => {
     const { onSaveRationale, onToggleDefer } = renderPanel({
       decision: makeDecision({

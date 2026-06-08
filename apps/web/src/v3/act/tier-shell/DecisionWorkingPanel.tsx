@@ -348,6 +348,11 @@ export default function DecisionWorkingPanel({
         note =
           'Add at least one easement, or mark "No implications", to record.';
       } else {
+        // decision mode = c4 (zoning), c5 (water), c7 (permits). c7/permits is
+        // always valid (isBoundaryValid returns true unconditionally), so it
+        // never reaches this gate note; only c4 and c5 do. If permit validity
+        // ever gains a rule, add an explicit c7 arm here so it does not fall
+        // through to the water-source copy.
         note =
           decision.itemId === 's1-boundaries-c4'
             ? 'Select a zoning classification and a review flag to record.'
