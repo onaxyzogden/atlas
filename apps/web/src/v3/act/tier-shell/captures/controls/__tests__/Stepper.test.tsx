@@ -80,6 +80,13 @@ describe('Stepper', () => {
     expect(onChange).toHaveBeenCalledWith(24);
   });
 
+  it('clicking a preset above max clamps it into [min, max]', () => {
+    const onChange = vi.fn();
+    render(<Stepper value={5} onChange={onChange} max={10} presets={[8, 24]} />);
+    fireEvent.click(screen.getByText('24'));
+    expect(onChange).toHaveBeenCalledWith(10);
+  });
+
   it('preset data-on reflects current value', () => {
     render(<Stepper value={8} onChange={() => {}} presets={[8, 24]} />);
     const presets = screen
