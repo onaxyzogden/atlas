@@ -229,4 +229,80 @@ describe('VisionClassifyCapture -- show more', () => {
     fireEvent.click(screen.getByRole('button', { name: /Show 1 more/ }));
     expect(screen.getByRole('button', { name: /Resilience/ })).toBeTruthy();
   });
+
+  it('toggle copy reads "Show {n} more" collapsed and "Show fewer" expanded', () => {
+    renderCapture();
+    const toggle = screen.getByRole('button', { name: /Show 1 more/ });
+    expect(toggle.textContent).toContain('Show 1 more');
+    expect(toggle.textContent).not.toContain('suggestions');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { name: /Show fewer/ }).textContent).toBe(
+      'Show fewer',
+    );
+  });
+});
+
+// --------------------------------------------------------------------------
+// fidelity re-skin: column sub-labels, tier-3 note, inline hint, corrected copy
+// --------------------------------------------------------------------------
+
+describe('VisionClassifyCapture -- column sub-labels', () => {
+  it('renders the committed sub-label verbatim', () => {
+    renderCapture();
+    expect(
+      screen.getByText('Will happen. Regardless of conditions.'),
+    ).toBeTruthy();
+  });
+
+  it('renders the aspirational sub-label verbatim', () => {
+    renderCapture();
+    expect(
+      screen.getByText('Hoped for. Depends on capacity or land.'),
+    ).toBeTruthy();
+  });
+});
+
+describe('VisionClassifyCapture -- tier 3 note', () => {
+  it('renders the Tier 3 reclassification note verbatim', () => {
+    renderCapture();
+    // "Tier 3" sits inside a <strong>, so match on the paragraph's full
+    // textContent (whitespace-collapsed) rather than a single text node.
+    const note = screen.getByText((_content, el) => {
+      if (!el || el.tagName !== 'P') return false;
+      const t = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+      return (
+        t ===
+        'At Tier 3, each element gets reclassified against observed land conditions -- feasible, conditional, deferred, or rejected. This is your intent. The land has its own answer.'
+      );
+    });
+    expect(note).toBeTruthy();
+  });
+});
+
+describe('VisionClassifyCapture -- write-own inline hint', () => {
+  it('renders the italic "Unclassified if unsure" hint next to the role buttons', () => {
+    renderCapture();
+    const hint = screen.getByText('Unclassified if unsure');
+    expect(hint).toBeTruthy();
+    // Informational text, not a button.
+    expect(hint.tagName).not.toBe('BUTTON');
+  });
+});
+
+describe('VisionClassifyCapture -- corrected copy', () => {
+  it('unclassified staging zone reads "Unclassified" + "Assign each below"', () => {
+    renderCapture();
+    fireEvent.click(screen.getByRole('button', { name: /Grow food/ }));
+    expect(screen.getByText('Unclassified')).toBeTruthy();
+    expect(screen.getByText('Assign each below')).toBeTruthy();
+    expect(screen.queryByText(/sort each one/)).toBeNull();
+  });
+
+  it('suggestion header reads "Add from suggestions" with a neutral example sub-label', () => {
+    renderCapture();
+    expect(screen.getByText('Add from suggestions')).toBeTruthy();
+    expect(screen.getByText('Examples for this project')).toBeTruthy();
+    expect(screen.queryByText(/Suggested vision elements/)).toBeNull();
+    expect(screen.queryByText(/Regen Farm/)).toBeNull();
+  });
 });

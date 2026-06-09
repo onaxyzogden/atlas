@@ -139,12 +139,28 @@
   background: var(--color-surface-alt, #f3efe6);
 }
 
+.stageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .stageLbl {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-subtle, #7a808a);
+}
+
+.stageInstruction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
 }
 
 .stageList {
@@ -244,6 +260,13 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--color-text-subtle, #7a808a);
+}
+
+.colSub {
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-text-muted, #565c63);
 }
 
 .colList {
@@ -362,6 +385,14 @@
   background: color-mix(in srgb, var(--color-stage-act, #d9a036) 10%, transparent);
 }
 
+.ownHint {
+  flex: none;
+  align-self: center;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+}
+
 .ownInput {
   flex: 1 1 160px;
   min-width: 0;
@@ -405,4 +436,37 @@
   border-color: var(--color-stage-act, #d9a036);
   color: var(--color-stage-act, #d9a036);
   background: var(--color-surface-alt, #f3efe6);
+}
+
+/* ---------- Tier 3 reclassification note ---------- */
+
+.tier3Note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 24%, transparent);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 9%, transparent);
+}
+
+.tier3Icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-info, #5b8eaf);
+}
+
+.tier3Text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.tier3Text strong {
+  font-weight: 600;
+  color: var(--color-info, #5b8eaf);
 }

@@ -10,7 +10,7 @@
  * committed hue maps to --color-success/--color-accent.
  */
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Plus, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronDown, Plus, X } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
 import css from './VisionClassifyCapture.module.css';
 
@@ -26,6 +26,11 @@ export interface VisionClassifyCaptureProps {
 }
 
 const ALWAYS_VISIBLE = 3;
+
+const COLUMN_SUBLABEL: Record<'committed' | 'aspirational', string> = {
+  committed: 'Will happen. Regardless of conditions.',
+  aspirational: 'Hoped for. Depends on capacity or land.',
+};
 
 export function decodeClassify(value: FormValue): ClassifyValue {
   const arr = (v: unknown): string[] =>
@@ -98,6 +103,7 @@ export default function VisionClassifyCapture({
         <span className={css.colTitle}>{title}</span>
         <span className={css.colCount}>{value[col].length}</span>
       </div>
+      <div className={css.colSub}>{COLUMN_SUBLABEL[col]}</div>
       <div className={css.colList}>
         {/* key by text -- inUse() enforces text is unique across all three lists. */}
         {value[col].map((text) => (
@@ -133,8 +139,8 @@ export default function VisionClassifyCapture({
     <div className={css.root}>
       <div className={css.sugBlock}>
         <div className={css.sugHead}>
-          <span className={css.sugLabel}>Suggested vision elements</span>
-          <span className={css.sugSub}>Add to staging, then sort</span>
+          <span className={css.sugLabel}>Add from suggestions</span>
+          <span className={css.sugSub}>Examples for this project</span>
         </div>
         <div className={css.sugGrid}>
           {visibleChips.map((text) => {
@@ -165,14 +171,20 @@ export default function VisionClassifyCapture({
             onClick={() => setShowMore((s) => !s)}
           >
             <ChevronDown size={13} className={css.sugArrow} />
-            <span>{showMore ? 'Show fewer suggestions' : `Show ${hiddenCount} more suggestions`}</span>
+            <span>{showMore ? 'Show fewer' : `Show ${hiddenCount} more`}</span>
           </button>
         ) : null}
       </div>
 
       {unclassified.length > 0 ? (
         <div className={css.stage}>
-          <div className={css.stageLbl}>Unclassified -- sort each one</div>
+          <div className={css.stageHead}>
+            <span className={css.stageLbl}>Unclassified</span>
+            <span className={css.stageInstruction}>
+              Assign each below
+              <ArrowDown size={11} aria-hidden="true" />
+            </span>
+          </div>
           <div className={css.stageList}>
             {unclassified.map((text) => (
               <div
@@ -242,6 +254,7 @@ export default function VisionClassifyCapture({
           >
             Aspirational
           </button>
+          <span className={css.ownHint}>Unclassified if unsure</span>
         </div>
         <input
           className={css.ownInput}
@@ -259,6 +272,17 @@ export default function VisionClassifyCapture({
           <Plus size={14} />
           Add
         </button>
+      </div>
+
+      <div className={css.tier3Note}>
+        <span className={css.tier3Icon}>
+          <ArrowRight size={13} aria-hidden="true" />
+        </span>
+        <p className={css.tier3Text}>
+          At <strong>Tier 3</strong>, each element gets reclassified against
+          observed land conditions -- feasible, conditional, deferred, or
+          rejected. This is your intent. The land has its own answer.
+        </p>
       </div>
     </div>
   );
