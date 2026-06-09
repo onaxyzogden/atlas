@@ -21,6 +21,7 @@ import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { FORAGE_GENERATION_PREFIX } from '../../act/tier-shell/forageZoneSync.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import {
@@ -657,6 +658,10 @@ export default function PlanDataLayers({
     // Paddocks (polygon) — Module 4 Livestock & Subdivision. Yeomans rank 9.
     for (const pd of paddocks) {
       if (pd.projectId !== projectId) continue;
+      // Forage-survey drafts (generationId "forage:*") carry degenerate
+      // placeholder geometry and exist only to feed the carrying-capacity math;
+      // they must never render as paddock polygons on the map. Kept in the store.
+      if (pd.generationId?.startsWith(FORAGE_GENERATION_PREFIX)) continue;
       const props: Record<string, unknown> = {
         id: pd.id,
         kind: 'paddock',

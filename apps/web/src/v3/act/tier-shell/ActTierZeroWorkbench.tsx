@@ -182,6 +182,14 @@ export function buildDecisionTarget(
   // via the panel's siblingValues prop. False for every other id.
   const isCarryingCapacity = item.id.startsWith('ev-s2-carrying-capacity-');
 
+  // Forage / pasture survey is a 5-item silvopasture objective
+  // (silv-sec-s3-forage-survey-c1..-c5); detected by id prefix. The panel's
+  // isForage body-router arm (ForageCapture self-routes on itemId via
+  // forageModeFor) takes precedence over any matched generic form. The seasonal
+  // (c2), capacity (c3), and constraints (c4) modes read sibling FormValues via
+  // the panel's siblingValues prop. False for every other id.
+  const isForage = item.id.startsWith('silv-sec-s3-forage-survey-');
+
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
     item.id === 's1-vision-steward'
@@ -228,6 +236,7 @@ export function buildDecisionTarget(
     isEcology,
     isLandscape,
     isCarryingCapacity,
+    isForage,
     deferLabel,
     deferrable,
   };

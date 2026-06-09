@@ -25,6 +25,7 @@ import { climateModeFor } from './ClimateCapture.js';
 import { ecologyModeFor } from './EcologyCapture.js';
 import { landscapeModeFor } from './LandscapeContextCapture.js';
 import { carryingCapacityModeFor } from './CarryingCapacityCapture.js';
+import { forageModeFor } from './ForageCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -149,6 +150,19 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     modeFor: (itemId) =>
       itemId.startsWith('ev-s2-carrying-capacity-')
         ? carryingCapacityModeFor(itemId)
+        : null,
+  },
+  // S3 forage / pasture survey (silvopasture): 5 items, grouped (showGroups
+  // true); no map/register strips. modeFor returns the raw ForageMode key
+  // (zones / seasonal / capacity / constraints / toxic), mapped to a badge by
+  // DecisionList MODE_LABELS.
+  'silv-sec-s3-forage-survey': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('silv-sec-s3-forage-survey-')
+        ? forageModeFor(itemId)
         : null,
   },
 };
