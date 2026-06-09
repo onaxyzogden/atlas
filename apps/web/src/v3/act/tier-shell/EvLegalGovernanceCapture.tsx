@@ -594,8 +594,6 @@ export default function EvLegalGovernanceCapture({
                 ? css.eccStrong
                 : e.compat === 'conditional'
                 ? css.eccConditional
-                : e.compat === 'caution'
-                ? css.eccCaution
                 : css.eccIncomp;
             return (
               <div
