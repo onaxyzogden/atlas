@@ -103,8 +103,7 @@
   font-size: 11.5px;
   font-weight: 600;
   color: var(--color-text, #ede9e0);
-  font-family: var(--font-serif, Georgia, serif);
-  font-style: italic;
+  font-family: var(--font-sans, 'Inter', sans-serif);
   line-height: 1.2;
   flex: 1;
   min-width: 0;
