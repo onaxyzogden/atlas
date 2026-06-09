@@ -626,12 +626,6 @@ function recordToMonths(rec: Record<number, MonthState>): number[] {
   return months;
 }
 
-function numField(raw: string, fallback: number): number {
-  if (raw.trim() === '') return fallback;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 function toxicTone(risk: string): StatusPillTone {
   if (risk === 'HIGH') return 'error';
   if (risk.startsWith('Moderate')) return 'warn';
@@ -674,7 +668,7 @@ export function ForageCapture({
     const model = decodeForage('zones', value) as ForageZonesModel;
     const set = (patch: Partial<ForageZonesModel>): void =>
       onChange(encodeForage('zones', { ...model, ...patch }));
-    const totalHa = model.zones.reduce((sum, z) => sum + numField(z.areaHa, 0), 0);
+    const totalHa = model.zones.reduce((sum, z) => sum + num(z.areaHa, 0), 0);
     const speciesOptions = SPECIES_ORDER.map((s) => ({
       id: s,
       title: SPECIES_LABELS[s],
@@ -914,7 +908,7 @@ export function ForageCapture({
     for (const z of zones) {
       const cls = classById.get(z.id) ?? '';
       if (cls !== '')
-        grandTotal += Math.round(numField(z.areaHa, 0) * DSE_PRESETS[cls]);
+        grandTotal += Math.round(num(z.areaHa, 0) * DSE_PRESETS[cls]);
     }
     const cattle = Math.round(grandTotal / 8);
 
@@ -941,7 +935,7 @@ export function ForageCapture({
                   ? CONDITION_CLASS_GROUPS[z.forageType as ForageType]
                   : ALL_CONDITION_CLASSES;
               const dse = cls !== '' ? DSE_PRESETS[cls] : 0;
-              const area = numField(z.areaHa, 0);
+              const area = num(z.areaHa, 0);
               const zoneDse = Math.round(area * dse);
               return (
                 <div key={z.id} className={css.dseCard}>
@@ -1006,12 +1000,12 @@ export function ForageCapture({
     const set = (rows: ForageConstraintRow[]): void =>
       onChange(encodeForage('constraints', { kind: 'constraints', rows }));
     const totalHa = readSiblingZones(siblingValues).zones.reduce(
-      (sum, z) => sum + numField(z.areaHa, 0),
+      (sum, z) => sum + num(z.areaHa, 0),
       0,
     );
     const exclusionsHa = model.rows
       .filter((r) => r.kind === 'exclusion')
-      .reduce((sum, r) => sum + Math.abs(numField(r.areaHa, 0)), 0);
+      .reduce((sum, r) => sum + Math.abs(num(r.areaHa, 0)), 0);
     const effective = Math.max(0, totalHa - exclusionsHa);
 
     return (
