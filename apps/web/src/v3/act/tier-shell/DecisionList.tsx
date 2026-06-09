@@ -113,6 +113,13 @@ const MODE_LABELS: Record<string, string> = {
   connectivity: 'Assessment',
   waterHabitat: 'Map',
 };
+  // Landscape & vectors modes (EV-S2.7).
+  landUse: 'Map',
+  sprayRisk: 'Risk survey',
+  planning: 'Assessment',
+  community: 'Contact entry',
+  disputes: 'Document',
+  catchment: 'Risk survey',
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
 // live boundary surface). Modes with no entry render a text-only badge

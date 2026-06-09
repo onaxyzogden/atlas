@@ -167,6 +167,13 @@ export function buildDecisionTarget(
   const isEcology = item.id.startsWith('s2-ecology-');
 
   // The steward item carries a custom defer label (it stays deferrable -- only
+  // Landscape context is a 6-item ecovillage objective
+  // (ev-s2-landscape-vectors-c1..-c6); detected by id prefix. The panel's
+  // isLandscape body-router arm (LandscapeContextCapture self-routes on itemId
+  // via landscapeModeFor) takes precedence over any matched generic form. False
+  // for every other id.
+  const isLandscape = item.id.startsWith('ev-s2-landscape-vectors-');
+
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
     item.id === 's1-vision-steward'
@@ -211,6 +218,7 @@ export function buildDecisionTarget(
     isTerrain,
     isClimate,
     isEcology,
+    isLandscape,
     deferLabel,
     deferrable,
   };

@@ -174,6 +174,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   's2-terrain',
   's2-climate',
   's2-ecology',
+  'ev-s2-landscape-vectors',
 ]);
 
 /**

@@ -23,6 +23,7 @@ import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
 import { terrainModeFor } from './TerrainCapture.js';
 import { climateModeFor } from './ClimateCapture.js';
 import { ecologyModeFor } from './EcologyCapture.js';
+import { landscapeModeFor } from './LandscapeContextCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -125,6 +126,15 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     showGroups: true,
     modeFor: (itemId) =>
       itemId.startsWith('s2-ecology-') ? ecologyModeFor(itemId) : null,
+  },
+  // S2 landscape & vectors (ecovillage EV-S2.7): 6 items, 3 decision groups
+  // (showGroups true), no map/register strips.
+  'ev-s2-landscape-vectors': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('ev-s2-landscape-vectors-') ? landscapeModeFor(itemId) : null,
   },
 };
 

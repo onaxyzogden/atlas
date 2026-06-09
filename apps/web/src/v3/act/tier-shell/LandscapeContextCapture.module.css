@@ -1,0 +1,774 @@
+/* LandscapeContextCapture.module.css
+ *
+ * Styles for the 6-mode landscape-context capture (landUse / sprayRisk /
+ * planning / community / disputes / catchment). Ported from
+ * olos_landscape_context.html p1..p6. Token vocabulary mirrors
+ * EcologyCapture.module.css / ClimateCapture.module.css. ASCII-only; every
+ * glyph is a lucide icon. No bare hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  (--am)   -> --color-stage-act (#d9a036)
+ *   blue   (--bl)   -> --color-info       (#5b8eaf)
+ *   green  (--gn)   -> --color-success     (#6b8f6b)
+ *   red    (--rd)   -> --color-error       (#c4493a)
+ *   teal (--tl) / pine -> nearest of info / success (no parallel tokens)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared section label ---------- */
+
+.secLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.secCount {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 10px;
+  color: var(--color-success, #6b8f6b);
+}
+
+/* ---------- Shared empty-state ---------- */
+
+.empty {
+  padding: 14px 0;
+  text-align: center;
+  color: var(--color-text-muted, #565c63);
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ---------- Shared card list ---------- */
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ---------- Shared divider ---------- */
+
+.fdiv {
+  height: 1px;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  margin: 2px 0;
+}
+
+/* ---------- Shared textarea ---------- */
+
+.textarea {
+  width: 100%;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  resize: none;
+  min-height: 56px;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color 130ms ease;
+}
+
+.textarea:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared delete button ---------- */
+
+.del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 5px);
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.del:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+/* ---------- Add register button (shared) ---------- */
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  background: transparent;
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.addBtn:hover {
+  border-color: var(--color-info, #5b8eaf);
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 8%, transparent);
+}
+
+/* ---------- Add form (shared) ---------- */
+
+.addForm {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-stage-act, #d9a036);
+  border-radius: var(--radius-md, 8px);
+  padding: 11px;
+  margin-top: 4px;
+}
+
+.afLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.afLbl:first-child {
+  margin-top: 0;
+}
+
+.afInput,
+.afSelect {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.afSelect {
+  cursor: pointer;
+}
+
+.afInput:focus,
+.afSelect:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.afInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.afGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.afRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.afAdd {
+  padding: 7px 14px;
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 40%, transparent);
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+  cursor: pointer;
+}
+
+.afCancel {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+}
+
+/* ===================================================================== */
+/* LAND USE REGISTER (p1)                                                */
+/* ===================================================================== */
+
+.luCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 11px;
+}
+
+.luHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.luDir {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.luName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+.luRiskTag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.luRiskTag[data-risk='high'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 18%, transparent);
+  color: var(--color-error, #c4493a);
+}
+.luRiskTag[data-risk='mod'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+.luRiskTag[data-risk='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.luRiskTag[data-risk='none'] {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+.luRiskTag[data-risk='positive'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  color: color-mix(in srgb, var(--color-success, #6b8f6b) 80%, var(--color-info, #5b8eaf));
+}
+
+.luType {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+}
+
+/* ===================================================================== */
+/* RISK PATHWAY CARDS (p2)                                               */
+/* ===================================================================== */
+
+.riskCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 11px;
+}
+
+.riskHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.rcFrom {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.rcName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.rcRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.rcLbl {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.rcBtns {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.rcBtn {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 5px);
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #f5f1e8);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 110ms ease, background 110ms ease, color 110ms ease;
+  font-family: inherit;
+}
+
+.rcBtn:hover {
+  border-color: var(--color-text-muted, #565c63);
+}
+
+.rcBtn[data-sev='high'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  border-color: var(--color-error, #c4493a);
+  color: var(--color-error, #c4493a);
+}
+.rcBtn[data-sev='mod'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+}
+.rcBtn[data-sev='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 50%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.rcBtn[data-path='on'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  border-color: var(--color-info, #5b8eaf);
+  color: var(--color-info, #5b8eaf);
+}
+
+.rcNote {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: none;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 0;
+  padding: 8px 0 0;
+  margin-top: 4px;
+  font-size: 10.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  outline: none;
+  resize: none;
+  min-height: 40px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.rcNote::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ===================================================================== */
+/* PLANNING ENVIRONMENT CARDS (p3)                                       */
+/* ===================================================================== */
+
+.planCards {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.planCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 130ms ease, background 130ms ease;
+}
+
+.planCard:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.pcDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  background: var(--color-text-muted, #565c63);
+}
+
+.planCard[data-tone='fav'] .pcDot {
+  background: var(--color-success, #6b8f6b);
+}
+.planCard[data-tone='perm'] .pcDot {
+  background: var(--color-info, #5b8eaf);
+}
+.planCard[data-tone='unc'] .pcDot {
+  background: var(--color-stage-act, #d9a036);
+}
+.planCard[data-tone='chal'] .pcDot {
+  background: var(--color-error, #c4493a);
+}
+
+.planCard[data-tone='fav'][data-on='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+}
+.planCard[data-tone='perm'][data-on='true'] {
+  border-color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+}
+.planCard[data-tone='unc'][data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+.planCard[data-tone='chal'][data-on='true'] {
+  border-color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+.planBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.planTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.planCard[data-tone='fav'][data-on='true'] .planTitle {
+  color: var(--color-success, #6b8f6b);
+}
+.planCard[data-tone='perm'][data-on='true'] .planTitle {
+  color: var(--color-info, #5b8eaf);
+}
+.planCard[data-tone='unc'][data-on='true'] .planTitle {
+  color: var(--color-stage-act, #d9a036);
+}
+.planCard[data-tone='chal'][data-on='true'] .planTitle {
+  color: var(--color-error, #c4493a);
+}
+
+.planDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.4;
+}
+
+.planAction {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 5px);
+  font-size: 10.5px;
+  line-height: 1.5;
+  background: var(--color-surface, #f5f1e8);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.planCard[data-tone='fav'][data-on='true'] .planAction {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.planCard[data-tone='perm'][data-on='true'] .planAction {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+.planCard[data-tone='unc'][data-on='true'] .planAction {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+.planCard[data-tone='chal'][data-on='true'] .planAction {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+/* ===================================================================== */
+/* COMMUNITY NETWORK CARDS (p4)                                          */
+/* ===================================================================== */
+
+.networkCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.ncHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+}
+
+.ncRel {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.ncRel[data-tone='ally'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.ncRel[data-tone='pally'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+.ncRel[data-tone='neut'] {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+.ncRel[data-tone='opp'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 18%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.ncName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+.ncBody {
+  padding: 5px 11px 9px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+/* ===================================================================== */
+/* DISPUTE CARDS (p5)                                                    */
+/* ===================================================================== */
+
+.disputeCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.dcHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+}
+
+.dcYear {
+  font-size: 10px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-muted, #565c63);
+  flex-shrink: 0;
+}
+
+.dcStatus {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.dcStatus[data-tone='res'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.dcStatus[data-tone='ong'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 18%, transparent);
+  color: var(--color-error, #c4493a);
+}
+.dcStatus[data-tone='dorm'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.dcName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+.dcBody {
+  padding: 5px 11px 9px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+/* ===================================================================== */
+/* CATCHMENT RISK ROWS (p6)                                              */
+/* ===================================================================== */
+
+.catchmentRow {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.crTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 11px;
+}
+
+.crName {
+  flex: 1;
+  min-width: 0;
+}
+
+.crTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.crDesc {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  margin-top: 1px;
+  line-height: 1.4;
+}
+
+.crSevBtns {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.crBtn {
+  padding: 4px 7px;
+  border-radius: var(--radius-sm, 5px);
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #f5f1e8);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 110ms ease, background 110ms ease, color 110ms ease;
+  font-family: inherit;
+}
+
+.crBtn:hover {
+  border-color: var(--color-text-muted, #565c63);
+}
+
+.crBtn[data-sev='high'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  border-color: var(--color-error, #c4493a);
+  color: var(--color-error, #c4493a);
+}
+.crBtn[data-sev='mod'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+}
+.crBtn[data-sev='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 50%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.crBtn[data-sev='nil'] {
+  background: var(--color-surface-alt, #f3efe6);
+  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
+  color: var(--color-text-muted, #565c63);
+}
+
+.crMonitor {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: none;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 0;
+  padding: 8px 11px;
+  font-size: 10.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  outline: none;
+  resize: none;
+  min-height: 40px;
+  line-height: 1.45;
+  box-sizing: border-box;
+}
+
+.crMonitor::placeholder {
+  color: var(--color-text-muted, #565c63);
+}

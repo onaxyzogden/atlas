@@ -136,6 +136,15 @@ import {
   type EcologyModel,
 } from './EcologyCapture.js';
 import {
+  LandscapeContextCapture,
+  landscapeModeFor,
+  decodeLandscape,
+  isLandscapeValid,
+  summariseLandscape,
+  type LandscapeMode,
+  type LandscapeModel,
+} from './LandscapeContextCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -186,6 +195,8 @@ export interface DecisionPanelTarget {
   /** true => render EcologyCapture (self-routing on itemId via ecologyModeFor). */
   isEcology?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
+  /** true => render LandscapeContextCapture (self-routing on itemId via landscapeModeFor). */
+  isLandscape?: boolean;
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
   deferLabel?: string;
@@ -430,6 +441,17 @@ export default function DecisionWorkingPanel({
     : null;
 
   // Decode the draft into the legal-governance model once -- reused by validity,
+  // Landscape is a 6-mode capture (landUse/sprayRisk/planning/community/
+  // disputes/catchment) routed by landscapeModeFor(itemId). Decode once for
+  // validity, the gate note, the record summary, and the body renderer
+  // (mirrors the ecology pattern above).
+  const landscapeMode: LandscapeMode | null = decision.isLandscape
+    ? landscapeModeFor(decision.itemId)
+    : null;
+  const landscapeModel: LandscapeModel | null = landscapeMode
+    ? decodeLandscape(landscapeMode, draft)
+    : null;
+
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
   const legalGovernanceModel: LegalGovernanceModel | null =
@@ -466,6 +488,8 @@ export default function DecisionWorkingPanel({
   } else if (ecologyMode) {
     valid = isEcologyValid(ecologyModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
+  } else if (landscapeMode) {
+    valid = isLandscapeValid(landscapeMode, landscapeModel!);
     valid = isFormValueValid(fields ?? [], draft);
   } else {
     valid = asString(draft.text).trim() !== '';
@@ -595,6 +619,20 @@ export default function DecisionWorkingPanel({
                 : 'Add a water-dependent area, or affirm none present, to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
+    } else if (landscapeMode) {
+      const note =
+        landscapeMode === 'landUse'
+          ? 'Add at least one land use to record'
+          : landscapeMode === 'sprayRisk'
+            ? 'Add a risk with a name and severity to record'
+            : landscapeMode === 'planning'
+              ? 'Classify the planning environment to record'
+              : landscapeMode === 'community'
+                ? 'Add at least one organisation or contact to record'
+                : landscapeMode === 'disputes'
+                  ? 'Add a dispute record, or capture key lessons, to record'
+                  : 'Assess at least one contamination vector to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
       gateNote = (
         <div className={css.gateNote}>
           Complete the required fields before recording
@@ -634,6 +672,8 @@ export default function DecisionWorkingPanel({
     } else if (ecologyMode) {
       summary = summariseEcology(ecologyModel!);
     } else if (fields) {
+    } else if (landscapeMode) {
+      summary = summariseLandscape(landscapeMode, landscapeModel!);
       summary = summariseFormValue(fields, draft);
     } else {
       summary = asString(draft.text);
@@ -790,6 +830,13 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
           />
         ) : hasFields ? (
+        ) : landscapeMode ? (
+          <LandscapeContextCapture
+            key={decision.itemId}
+            mode={landscapeMode}
+            value={draft}
+            onChange={setDraft}
+          />
           <VisionFormFields
             fields={fields ?? []}
             value={draft}
