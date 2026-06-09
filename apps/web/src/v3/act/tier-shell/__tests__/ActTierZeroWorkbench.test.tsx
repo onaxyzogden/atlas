@@ -579,6 +579,49 @@ describe('ActTierZeroWorkbench -- stakeholder objective (strips + badges)', () =
   });
 });
 
+describe('ActTierZeroWorkbench -- arbitrary future objective (no descriptor entry)', () => {
+  // An S2-style objective with no entry in workbenchAffordances must mount the
+  // generic 2-pane workbench: both panes render, but NO map/register strips and
+  // NO mode badges (showGroups defaults off, modeFor is undefined). This proves
+  // an arbitrary S2-S7 objective routes through the generic path with no
+  // special-casing in the component.
+  const S2_OBJECTIVE: PlanStratumObjective = {
+    ...ACTIVE_OBJECTIVE,
+    id: 's2-fake-carrying-capacity',
+    title: 'Assess carrying capacity',
+    checklist: [
+      {
+        id: 's2-fake-carrying-capacity-c1',
+        label: 'Estimate forage availability',
+        feedsInto: [],
+        optional: false,
+      },
+      {
+        id: 's2-fake-carrying-capacity-c2',
+        label: 'Set initial stocking rate',
+        feedsInto: [],
+        optional: false,
+      },
+    ],
+  } as PlanStratumObjective;
+
+  it('mounts the 2-pane workbench with NO strips and NO mode badges', () => {
+    renderWorkbench({
+      objectives: [S2_OBJECTIVE],
+      activeObjectiveId: S2_OBJECTIVE.id,
+    });
+    // Both panes present.
+    expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    expect(screen.getByText(/working on/i)).toBeTruthy();
+    // No affordance strips of any kind.
+    expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
+    expect(screen.queryByTestId('stakeholder-map-strip')).toBeNull();
+    expect(screen.queryByTestId('stakeholder-reg-strip')).toBeNull();
+    // No mode badges (modeFor is undefined for an unknown objective).
+    expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
+  });
+});
+
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
     // Use an objective whose FIRST checklist item is the vision-classify

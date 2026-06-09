@@ -36,9 +36,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
-import { boundaryModeFor } from './BoundaryCaptureLegacy.js';
-import { stakeholderModeFor } from './StakeholderCapture.js';
-import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
+import { workbenchAffordancesFor } from './workbenchAffordances.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -262,19 +260,19 @@ export default function ActTierZeroWorkbench({
 
   const completedForActive = progressByObjective[activeObjective.id] ?? [];
 
-  // Boundary objective drives the center-list mode badges + the static
-  // map-activation strip. Neither renders for any other objective (e.g. vision).
-  const isBoundaryObjective = activeObjective.id === 's1-boundaries';
+  // Per-objective affordances (map strips, live register strip, decision-group
+  // headers, center-list mode mapper) are resolved from a data-driven descriptor
+  // keyed by objective id. Any objective without an entry routes to the EMPTY
+  // shape -- no strips, no groups, no modeFor -- so S2-S7 objectives mount the
+  // generic 2-pane workbench with no special-casing here.
+  const affordances = workbenchAffordancesFor(activeObjective.id);
 
-  // Stakeholder objective drives the center-list mode badges + two strips above
-  // the list (per the operator mockup olos_stakeholders_mixed_surface.html):
-  // a static map-strip ("2 overlays active on map") and a LIVE reg-strip showing
-  // the shared register count. Neither renders for any other objective.
-  const isStakeholderObjective = activeObjective.id === 's1-stakeholders';
-
-  // Legal-governance objective (EV-S1.4) drives the center-list mode badges via
-  // legalGovernanceModeFor. No map/register strips render for it.
-  const isLegalGovernanceObjective = activeObjective.id === 'ev-s1-legal-governance';
+  // The live count for a register strip; only the 'stakeholder' kind sources the
+  // shared stakeholder register count (0 otherwise).
+  const registerCount =
+    affordances.registerStrip?.registerKind === 'stakeholder'
+      ? stakeholderCount
+      : 0;
 
   const selectedItem =
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
@@ -284,64 +282,43 @@ export default function ActTierZeroWorkbench({
     <div className={css.root}>
       {/* ---------- LEFT pane: decision list ---------- */}
       <section className={css.left}>
-        {isBoundaryObjective ? (
-          <div className={css.mapStrip} data-testid="boundary-map-strip">
+        {affordances.mapStrips.map((strip) => (
+          <div
+            key={strip.testId}
+            className={css.mapStrip}
+            data-testid={strip.testId}
+          >
             <Layers size={15} className={css.mapStripIcon} aria-hidden="true" />
-            <span>
-              2 overlays will activate on the map: Risk / Compliance, Site
-              Boundary
+            <span>{strip.text}</span>
+          </div>
+        ))}
+        {affordances.registerStrip ? (
+          <div
+            className={css.regStrip}
+            data-testid={affordances.registerStrip.testId}
+          >
+            <Users size={14} className={css.regStripIcon} aria-hidden="true" />
+            <span
+              className={css.regStripCount}
+              data-testid={affordances.registerStrip.countTestId}
+            >
+              {registerCount}
+            </span>
+            <span className={css.regStripLabel}>
+              {affordances.registerStrip.label}
+            </span>
+            <span className={css.regStripNote}>
+              {affordances.registerStrip.note}
             </span>
           </div>
-        ) : null}
-        {isStakeholderObjective ? (
-          <>
-            <div className={css.mapStrip} data-testid="stakeholder-map-strip">
-              <Layers
-                size={15}
-                className={css.mapStripIcon}
-                aria-hidden="true"
-              />
-              <span>2 overlays active on map</span>
-            </div>
-            <div className={css.regStrip} data-testid="stakeholder-reg-strip">
-              <Users size={14} className={css.regStripIcon} aria-hidden="true" />
-              <span
-                className={css.regStripCount}
-                data-testid="stakeholder-reg-count"
-              >
-                {stakeholderCount}
-              </span>
-              <span className={css.regStripLabel}>stakeholders in register</span>
-              <span className={css.regStripNote}>
-                Items 1-4 build the register - Items 5-6 annotate it
-              </span>
-            </div>
-          </>
         ) : null}
         <DecisionList
           objective={activeObjective}
           completedItemIds={completedForActive}
           selectedItemId={selectedItemId}
           onSelectItem={setSelectedItemId}
-          showGroups={isBoundaryObjective}
-          modeFor={
-            isBoundaryObjective
-              ? (itemId) =>
-                  itemId.startsWith('s1-boundaries-')
-                    ? boundaryModeFor(itemId)
-                    : null
-              : isStakeholderObjective
-                ? (itemId) =>
-                    itemId.startsWith('s1-stakeholders-')
-                      ? stakeholderModeFor(itemId)
-                      : null
-                : isLegalGovernanceObjective
-                  ? (itemId) =>
-                      itemId.startsWith('ev-s1-legal-governance-')
-                        ? legalGovernanceModeFor(itemId)
-                        : null
-                  : undefined
-          }
+          showGroups={affordances.showGroups}
+          modeFor={affordances.modeFor ?? undefined}
         />
       </section>
 
