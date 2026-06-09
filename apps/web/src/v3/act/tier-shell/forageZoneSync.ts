@@ -4,13 +4,14 @@
  * Converts a list of ForageZone records (from the ForageCapture register) into
  * a diff { upserts, deleteIds } that the caller can apply to the livestock
  * store.  The adapter ONLY touches paddocks whose generationId starts with
- * "forage:" -- all other paddocks are invisible to the diff.
+ * FORAGE_GENERATION_PREFIX -- all other paddocks are invisible to the diff.
  *
  * Exports:
- *   - DSE_PRESETS      -- verbatim DSE/ha preset table (14 entries)
- *   - ConditionClass   -- string-literal union of all preset keys
- *   - ForageZone       -- minimal input shape
- *   - diffForagePaddocks -- the pure diff function
+ *   - DSE_PRESETS               -- verbatim DSE/ha preset table (14 entries)
+ *   - ConditionClass            -- string-literal union of all preset keys
+ *   - ForageZone                -- minimal input shape
+ *   - FORAGE_GENERATION_PREFIX  -- generationId prefix for forage-owned paddocks
+ *   - diffForagePaddocks        -- the pure diff function
  */
 
 import type { Paddock, LivestockSpecies } from "../../../store/livestockStore.js";
@@ -61,26 +62,44 @@ export interface ForageZone {
   id: string;
   /** Zone label, e.g. "North flat". */
   name: string;
-  /** Hectares as a raw string; "0" / "" means no area. */
+  /** Hectares as a raw string; "0" / "" / negative means no area. */
   areaHa: string;
-  /** Optional condition class; available to enrich paddock notes. */
+  /** Optional condition class; incorporated into paddock notes when present. */
   conditionClass?: ConditionClass;
-  /** Optional free-text forage type. */
+  /** Optional free-text forage type; incorporated into paddock notes when present. */
   forageType?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Named constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Prefix applied to the generationId field of all forage-owned paddocks.
+ * Exported so map-filter and other consumers can match without hard-coding
+ * the string.  NOTE: this is the paddock generationId prefix ("forage:"),
+ * distinct from the objective-id prefix used by the capture component.
+ */
+export const FORAGE_GENERATION_PREFIX = "forage:";
+
+/** Internal prefix used to build deterministic paddock ids. */
+const FORAGE_ID_PREFIX = "forage";
+
+/** Fallback display name for zones that arrive with a blank name. */
+const FALLBACK_ZONE_NAME = "Forage zone";
 
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a raw string value to a finite number.
- * Returns 0 for empty, non-finite, or NaN input.
+ * Parse a raw string value to a positive finite number.
+ * Returns 0 for empty, non-finite, NaN, or non-positive input.
  * Mirrors the CarryingCapacity convention.
  */
 function num(s: string | null | undefined): number {
   const n = parseFloat(String(s ?? ""));
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 /**
@@ -96,10 +115,13 @@ const DEGENERATE_RING: GeoJSON.Position[] = [
   [0, 0],
 ];
 
-const DEGENERATE_POLYGON: GeoJSON.Polygon = {
-  type: "Polygon",
-  coordinates: [DEGENERATE_RING],
-};
+/**
+ * Construct a fresh degenerate polygon per upsert to avoid shared mutable
+ * object references across paddocks.
+ */
+function makeDegeneratePolygon(): GeoJSON.Polygon {
+  return { type: "Polygon", coordinates: [DEGENERATE_RING.slice()] };
+}
 
 // ---------------------------------------------------------------------------
 // diffForagePaddocks
@@ -111,6 +133,7 @@ export function diffForagePaddocks(
   projectId: string,
   candidateSpecies: LivestockSpecies[],
 ): { upserts: Paddock[]; deleteIds: string[] } {
+  // Stable timestamp for this diff batch.
   const now = new Date().toISOString();
 
   // Compute upserts: one Paddock per zone with positive area.
@@ -125,15 +148,20 @@ export function diffForagePaddocks(
       continue;
     }
 
-    const id = `forage-${projectId}-${zone.id}`;
+    const id = `${FORAGE_ID_PREFIX}-${projectId}-${zone.id}`;
     upsertIds.add(id);
+
+    const zoneName = zone.name.trim() || FALLBACK_ZONE_NAME;
+    const parts = [zoneName];
+    if (zone.forageType) parts.push(zone.forageType);
+    if (zone.conditionClass) parts.push(zone.conditionClass);
 
     const paddock: Paddock = {
       id,
       projectId,
-      name: zone.name.trim() !== "" ? zone.name : "Forage zone",
+      name: zoneName,
       color: "#7cb342",
-      geometry: DEGENERATE_POLYGON,
+      geometry: makeDegeneratePolygon(),
       areaM2: ha * 10000,
       grazingCellGroup: null,
       species: candidateSpecies,
@@ -143,9 +171,9 @@ export function diffForagePaddocks(
       waterPointNote: "",
       shelterNote: "",
       phase: "soil",
-      notes: `[forage-survey] ${zone.name}`,
+      notes: `[forage-survey] ${parts.join(" - ")}`,
       draft: true,
-      generationId: `forage:${projectId}`,
+      generationId: `${FORAGE_GENERATION_PREFIX}${projectId}`,
       createdAt: now,
       updatedAt: now,
     };
@@ -156,7 +184,7 @@ export function diffForagePaddocks(
   // Compute deleteIds: forage-owned rows whose id is NOT in the upsert set.
   const deleteIds: string[] = [];
   for (const p of existing) {
-    if (typeof p.generationId === "string" && p.generationId.startsWith("forage:")) {
+    if (typeof p.generationId === "string" && p.generationId.startsWith(FORAGE_GENERATION_PREFIX)) {
       if (!upsertIds.has(p.id)) {
         deleteIds.push(p.id);
       }

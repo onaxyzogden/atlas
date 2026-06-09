@@ -9,12 +9,18 @@
  *  5. Removed zone -> deleteId in result.
  *  6. Non-forage rows (canonical, other-generation) are never touched.
  *  7. Area-dropped-to-zero zone -> delete, not upsert.
+ *  8. Negative areaHa is treated as zero (no upsert produced).
+ *  9. Two upserts from one call do NOT share the same geometry object.
+ * 10. forageType and conditionClass appear in notes when set.
+ * 11. Whitespace-only zone name falls back to "Forage zone".
+ * 12. FORAGE_GENERATION_PREFIX is exported and equals "forage:".
  */
 
 import { describe, it, expect } from 'vitest';
 import {
   DSE_PRESETS,
   diffForagePaddocks,
+  FORAGE_GENERATION_PREFIX,
 } from '../forageZoneSync.js';
 import type { ForageZone } from '../forageZoneSync.js';
 import type { Paddock } from '../../../../store/livestockStore.js';
@@ -276,5 +282,132 @@ describe('diffForagePaddocks -- area dropped to zero', () => {
     const result = diffForagePaddocks([zone], existing, 'p1', []);
     expect(result.deleteIds).toContain('forage-p1-z1');
     expect(result.upserts).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Negative areaHa produces zero upserts (I-1)
+// ---------------------------------------------------------------------------
+
+describe('diffForagePaddocks -- negative areaHa', () => {
+  it('zone with areaHa "-3" produces no upsert', () => {
+    const zone = makeZone('z1', 'Bad zone', '-3');
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts).toHaveLength(0);
+  });
+
+  it('existing forage paddock lands in deleteIds when its zone has negative areaHa', () => {
+    const zone = makeZone('z1', 'Bad zone', '-3');
+    const existing: Paddock[] = [makeForagePaddock('forage-p1-z1', 'p1')];
+    const result = diffForagePaddocks([zone], existing, 'p1', []);
+    expect(result.upserts).toHaveLength(0);
+    expect(result.deleteIds).toContain('forage-p1-z1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 9. Two upserts do NOT share the same geometry object reference (I-2)
+// ---------------------------------------------------------------------------
+
+describe('diffForagePaddocks -- no shared geometry reference', () => {
+  it('two upserts from one call have distinct geometry object references', () => {
+    const zones: ForageZone[] = [
+      makeZone('z1', 'Zone A', '2'),
+      makeZone('z2', 'Zone B', '3'),
+    ];
+    const result = diffForagePaddocks(zones, [], 'p1', []);
+    expect(result.upserts).toHaveLength(2);
+    const a = result.upserts[0]!;
+    const b = result.upserts[1]!;
+    // Must NOT be the same object reference.
+    expect(a.geometry).not.toBe(b.geometry);
+    // Both must still be valid closed rings.
+    for (const u of [a, b]) {
+      expect(u.geometry.type).toBe('Polygon');
+      const ring = u.geometry.coordinates[0]!;
+      expect(ring.length).toBeGreaterThanOrEqual(4);
+      expect(ring[0]).toEqual(ring[ring.length - 1]);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. forageType and conditionClass appear in notes (M-1/M-2)
+// ---------------------------------------------------------------------------
+
+describe('diffForagePaddocks -- forageType and conditionClass in notes', () => {
+  it('notes contains forageType when set', () => {
+    const zone: ForageZone = { id: 'z1', name: 'Kikuyu flat', areaHa: '4', forageType: 'kikuyu' };
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts).toHaveLength(1);
+    const notes = result.upserts[0]!.notes;
+    expect(notes.startsWith('[forage-survey] ')).toBe(true);
+    expect(notes).toContain('kikuyu');
+  });
+
+  it('notes contains conditionClass when set', () => {
+    const zone: ForageZone = { id: 'z1', name: 'Native pasture', areaHa: '6', conditionClass: 'native-good' };
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts).toHaveLength(1);
+    const notes = result.upserts[0]!.notes;
+    expect(notes.startsWith('[forage-survey] ')).toBe(true);
+    expect(notes).toContain('native-good');
+  });
+
+  it('notes contains both forageType and conditionClass when both set', () => {
+    const zone: ForageZone = {
+      id: 'z1',
+      name: 'Mixed zone',
+      areaHa: '3',
+      forageType: 'clover-mix',
+      conditionClass: 'mixed-good',
+    };
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts).toHaveLength(1);
+    const notes = result.upserts[0]!.notes;
+    expect(notes.startsWith('[forage-survey] ')).toBe(true);
+    expect(notes).toContain('clover-mix');
+    expect(notes).toContain('mixed-good');
+  });
+
+  it('notes without forageType or conditionClass starts with zone name after prefix', () => {
+    const zone = makeZone('z1', 'Plain zone', '2');
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts[0]!.notes).toBe('[forage-survey] Plain zone');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 11. Whitespace-only zone name falls back to FALLBACK_ZONE_NAME (M-6)
+// ---------------------------------------------------------------------------
+
+describe('diffForagePaddocks -- fallback zone name', () => {
+  it('whitespace-only name yields paddock named "Forage zone"', () => {
+    const zone = makeZone('z1', '   ', '5');
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts).toHaveLength(1);
+    expect(result.upserts[0]!.name).toBe('Forage zone');
+  });
+
+  it('notes for a whitespace-only name starts with "[forage-survey] Forage zone"', () => {
+    const zone = makeZone('z1', '   ', '5');
+    const result = diffForagePaddocks([zone], [], 'p1', []);
+    expect(result.upserts[0]!.notes.startsWith('[forage-survey] Forage zone')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 12. FORAGE_GENERATION_PREFIX is exported and correct (M-5)
+// ---------------------------------------------------------------------------
+
+describe('FORAGE_GENERATION_PREFIX', () => {
+  it('is exported and equals "forage:"', () => {
+    expect(FORAGE_GENERATION_PREFIX).toBe('forage:');
+  });
+
+  it('generationId of upserted paddock starts with FORAGE_GENERATION_PREFIX', () => {
+    const zone = makeZone('z1', 'Zone', '2');
+    const result = diffForagePaddocks([zone], [], 'p42', []);
+    expect(result.upserts[0]!.generationId).toBe(`${FORAGE_GENERATION_PREFIX}p42`);
   });
 });
