@@ -1,0 +1,352 @@
+/* ForageCapture.module.css
+ *
+ * Styles for the 5-mode forage / carrying-capacity capture (zones / seasonal /
+ * capacity / constraints / toxic). Ported from olos_forage_carrying_capacity.html
+ * p1..p5. Token vocabulary mirrors CarryingCapacityCapture.module.css. ASCII-only;
+ * every glyph is a lucide icon. No bare hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  -> --color-stage-act (#d9a036)
+ *   blue   -> --color-info       (#5b8eaf)
+ *   green  -> --color-success     (#6b8f6b)
+ *   red    -> --color-error       (#c4493a)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared divider ---------- */
+
+.fdiv {
+  height: 1px;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  margin: 2px 0;
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ===================================================================== */
+/* P1 ZONES -- register row fields + plain text inputs                   */
+/* ===================================================================== */
+
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+
+.textInput {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.textInput:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.textArea {
+  min-height: 44px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* ===================================================================== */
+/* P2 SEASONAL -- per-zone calendar block + legend + gap summary         */
+/* ===================================================================== */
+
+.calZone {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.calZoneName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.legendDot[data-state='high'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 55%, transparent);
+}
+
+.legendDot[data-state='med'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 45%, transparent);
+}
+
+.legendDot[data-state='none'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 50%, transparent);
+}
+
+/* ===================================================================== */
+/* P3 CAPACITY -- per-zone DSE card + selector + live calc row           */
+/* ===================================================================== */
+
+.dseCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.dseHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dseName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.dseTotal {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-success, #6b8f6b);
+}
+
+.dseUnit {
+  font-size: 10px;
+  color: var(--color-success, #6b8f6b);
+  margin-left: 2px;
+}
+
+.dseCalc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 9px;
+  background: var(--color-surface, #f5f1e8);
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.dseResult {
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+}
+
+/* ===================================================================== */
+/* P4 CONSTRAINTS -- net effective grazeable summary                     */
+/* ===================================================================== */
+
+.netBlock {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+}
+
+.netLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.netRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+}
+
+.netRowLbl {
+  font-size: 11.5px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.netRowVal {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+}
+
+.netTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.netTotalLbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+}
+
+.netTotalVal {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+}
+
+/* ===================================================================== */
+/* P5 TOXIC -- plant rows + tri-state buttons                            */
+/* ===================================================================== */
+
+.toxicRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.toxicRow[data-risk='HIGH'] {
+  border-color: color-mix(in srgb, var(--color-error, #c4493a) 40%, transparent);
+}
+
+.toxicName {
+  flex: 1;
+  min-width: 0;
+}
+
+.toxicTitle {
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+}
+
+.toxicSci {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+  margin-top: 1px;
+}
+
+.toxicXref {
+  font-size: 10px;
+  color: var(--color-stage-act, #d9a036);
+  margin-top: 4px;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+  border-radius: var(--radius-sm, 5px);
+}
+
+.toxicBtns {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.toxicBtn {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 5px);
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface, #f5f1e8);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 110ms ease, background 110ms ease, color 110ms ease;
+}
+
+.toxicBtn[data-on='true'][data-tone='present'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 14%, transparent);
+  border-color: var(--color-error, #c4493a);
+  color: var(--color-error, #c4493a);
+}
+
+.toxicBtn[data-on='true'][data-tone='absent'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  border-color: var(--color-success, #6b8f6b);
+  color: var(--color-success, #6b8f6b);
+}
+
+.toxicBtn[data-on='true'][data-tone='not-surveyed'] {
+  background: var(--color-surface-alt, #f3efe6);
+  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
+  color: var(--color-text, #1b1e22);
+}

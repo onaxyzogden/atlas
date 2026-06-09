@@ -152,6 +152,13 @@ import {
   type CarryingCapacityMode,
 } from './CarryingCapacityCapture.js';
 import {
+  ForageCapture,
+  forageModeFor,
+  isForageValid,
+  summariseForage,
+  type ForageMode,
+} from './ForageCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -206,6 +213,8 @@ export interface DecisionPanelTarget {
   isLandscape?: boolean;
   /** true => render CarryingCapacityCapture (self-routing on itemId via carryingCapacityModeFor). */
   isCarryingCapacity?: boolean;
+  /** true => render ForageCapture (self-routing on itemId via forageModeFor). */
+  isForage?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -479,6 +488,14 @@ export default function DecisionWorkingPanel({
       ? carryingCapacityModeFor(decision.itemId)
       : null;
 
+  // Forage / pasture survey is a 5-mode capture (zones/seasonal/capacity/
+  // constraints/toxic) routed by forageModeFor(itemId). Like carrying capacity
+  // it validates / summarises directly off the FormValue (its seasonal, capacity,
+  // and constraints modes also read the sibling c1 zones), so only the resolved
+  // mode is held here -- used by the summary and body-router arms below.
+  const forageMode: ForageMode | null =
+    decision.isForage ? forageModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -519,6 +536,8 @@ export default function DecisionWorkingPanel({
     valid = isLandscapeValid(landscapeMode, landscapeModel!);
   } else if (carryingCapacityMode) {
     valid = isCarryingCapacityValid(carryingCapacityMode, draft);
+  } else if (forageMode) {
+    valid = isForageValid(forageMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -715,6 +734,8 @@ export default function DecisionWorkingPanel({
         draft,
         siblingValues,
       );
+    } else if (forageMode) {
+      summary = summariseForage(forageMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -886,6 +907,16 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             siblingValues={siblingValues}
+          />
+        ) : forageMode ? (
+          <ForageCapture
+            key={decision.itemId}
+            mode={forageMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+            projectId={projectId}
           />
         ) : hasFields ? (
           <VisionFormFields

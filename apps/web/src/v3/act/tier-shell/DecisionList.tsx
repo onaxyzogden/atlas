@@ -128,6 +128,12 @@ const MODE_LABELS: Record<string, string> = {
   space: 'Site space',
   synthesis: 'Capacity synthesis',
   gate: 'Capacity gate',
+  // Forage survey modes (SILV-S3.20).
+  zones: 'Zone register',
+  seasonal: 'Seasonal grid',
+  capacity: 'Capacity calc',
+  constraints: 'Constraint survey',
+  toxic: 'Toxic-plant survey',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

@@ -22,6 +22,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from "../act/tier-shell/DecisionWorkingPanel.js";
 import type { FormValue } from "../act/tier-shell/actToolCatalog.js";
+import { encodeForage } from "../act/tier-shell/ForageCapture.js";
 
 const STAGES = ["home", "discover", "diagnose", "design", "prove", "build", "operate", "report"] as const;
 
@@ -144,6 +145,24 @@ const CARRYING_DEMO_SIBLINGS: Record<string, FormValue> = {
   "ev-s2-carrying-capacity-c3": { hh: "8", pph: "2.5", nComp: "25" },
   "ev-s2-carrying-capacity-c4": { hh: "8", pph: "2.5", eDemand: "8", eSolar: "20" },
   "ev-s2-carrying-capacity-c5": { hh: "8", pph: "2.5", spaceTotalHa: "45", sWild: "27", sFood: "4", sComm: "0.5", sHh: "0.5" },
+};
+
+// Seeded c1 forage zones for the seasonal (c2), capacity (c3), and constraints
+// (c4) demos, which read sibling c1 zones via siblingValues. Three demo zones
+// from the forage-survey mockup (South 8.5ha improved/good, North 12.0ha
+// native/fair, Creek 2.0ha riparian/good) plus a candidate species (cattle).
+// Keyed by the c1 item id; encoded via encodeForage so the field shape matches
+// decodeForage("zones", ...). The toxic mode (c5) is standalone -- no siblings.
+const FORAGE_DEMO_SIBLINGS: Record<string, FormValue> = {
+  "silv-sec-s3-forage-survey-c1": encodeForage("zones", {
+    kind: "zones",
+    zones: [
+      { id: "zone-south", forageType: "improved", name: "South paddock", areaHa: "8.5", condition: "good", composition: "Ryegrass / sub-clover dominant." },
+      { id: "zone-north", forageType: "native", name: "North flat", areaHa: "12.0", condition: "fair", composition: "Native grassland; bare patches on west slope." },
+      { id: "zone-creek", forageType: "riparian", name: "Creek line", areaHa: "2.0", condition: "good", composition: "Riparian browse and shade." },
+    ],
+    candidateSpecies: ["cattle"],
+  }),
 };
 
 export default function ComponentsDebugPage() {
@@ -834,6 +853,130 @@ export default function ComponentsDebugPage() {
             successCriteriaOptions={[]}
             initialValue={{}}
             siblingValues={CARRYING_DEMO_SIBLINGS}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      {/* Phase 3b -- Forage / pasture survey (silv-sec-s3-forage-survey): a
+          5-mode silvopasture capture. c1 (zones) builds the forage zone register
+          + candidate species; c2 (seasonal), c3 (capacity), and c4 (constraints)
+          read the seeded c1 zones via siblingValues; c5 (toxic) is standalone.
+          All panels need a projectId -- the dummy "gallery" id matches the
+          carrying-capacity sections above. */}
+      <Section title="Decision Working Panel - Forage: zones (silv-sec-s3-forage-survey c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s3-forage-survey-c1",
+              label: "Register the forage zones and candidate stock species",
+              prompt: "Add each grazeable zone with its forage type, area, and condition, then pick the candidate stock species.",
+              isForage: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={FORAGE_DEMO_SIBLINGS["silv-sec-s3-forage-survey-c1"] ?? {}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Forage: seasonal (silv-sec-s3-forage-survey c2, seeded zones)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s3-forage-survey-c2",
+              label: "Map per-zone seasonal feed availability",
+              prompt: "Mark each month adequate, moderate, or a feed gap for every zone. The worst zone per month drives the gap summary.",
+              isForage: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            siblingValues={FORAGE_DEMO_SIBLINGS}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Forage: capacity (silv-sec-s3-forage-survey c3, seeded zones)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s3-forage-survey-c3",
+              label: "Assign a DSE condition class to each zone",
+              prompt: "Pick the condition class per zone; OLOS multiplies area x DSE/ha into a conservative carrying capacity.",
+              isForage: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            siblingValues={FORAGE_DEMO_SIBLINGS}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Forage: constraints (silv-sec-s3-forage-survey c4, seeded zones)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s3-forage-survey-c4",
+              label: "Record shade, shelter, and tree-protection constraints",
+              prompt: "Add shade/shelter resources and tree-protection exclusion zones; exclusions reduce the net effective grazeable area.",
+              isForage: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            siblingValues={FORAGE_DEMO_SIBLINGS}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Forage: toxic (silv-sec-s3-forage-survey c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s3-forage-survey-c5",
+              label: "Survey toxic and weed plants for candidate stock",
+              prompt: "Mark each toxic / weed plant present, absent, or not surveyed. A present high-risk plant generates a priority Act control task.",
+              isForage: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
             initialRationale=""
             deferred={false}
             recorded={false}

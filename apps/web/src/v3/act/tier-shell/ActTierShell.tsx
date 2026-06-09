@@ -122,6 +122,7 @@ import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
 import { decodeSteward, stewardInvitesToQueued } from './StewardCapture.js';
+import { FORAGE_PREFIX, planForagePaddockReconcile } from './ForageCapture.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
@@ -129,6 +130,7 @@ import {
   type FormValue,
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
+import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
@@ -176,6 +178,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   's2-ecology',
   'ev-s2-landscape-vectors',
   'ev-s2-carrying-capacity',
+  'silv-sec-s3-forage-survey',
 ]);
 
 /**
@@ -694,6 +697,35 @@ export default function ActTierShell() {
           new Date().toISOString(),
         );
         useProjectStore.getState().reconcileStewardInvites(id, queued);
+      }
+      // Forage / pasture survey (silv-sec-s3-forage-survey-*): on any item save,
+      // re-derive the forage-owned paddock set from the c1 zone register and
+      // reconcile it into the livestock store. saveVisionFormData above has
+      // already persisted the c1 value, so reading it back here is current.
+      if (formId.startsWith(FORAGE_PREFIX)) {
+        const c1 =
+          useActEvidenceStore.getState().visionFormData[id]?.[
+            `${FORAGE_PREFIX}-c1`
+          ] ?? {};
+        const existing = useLivestockStore
+          .getState()
+          .paddocks.filter((p) => p.projectId === id);
+        const { upserts, deleteIds } = planForagePaddockReconcile(
+          c1,
+          existing,
+          id,
+        );
+        const ls = useLivestockStore.getState();
+        deleteIds.forEach((d) => ls.deletePaddock(d));
+        // Read fresh state per decision: deletes above mutate the store, so the
+        // add-vs-update check must not race on a pre-delete snapshot. (The diff
+        // never overlaps upsert ids with deleteIds, but this keeps it correct
+        // regardless of that contract.)
+        upserts.forEach((p) =>
+          useLivestockStore.getState().paddocks.some((x) => x.id === p.id)
+            ? ls.updatePaddock(p.id, p)
+            : ls.addPaddock(p),
+        );
       }
       // The formId IS the checklist item id (1:1 per actToolCatalog design).
       // Mark it complete (add-only) so the execution-panel checklist reflects
