@@ -16,7 +16,7 @@
  * module of pure exports.
  *
  * Serialization mirrors BoundaryCapture exactly: growable rows are stored as
- * parallel string[] register-arrays (asArr / asStr / zipLen), positional
+ * parallel string[] register-arrays (asArr / zipLen), positional
  * checkers as a single positional string[]. Numeric raw fields are stored as
  * RAW STRINGS and coerced via `num` (CarryingCapacity convention -- preserves a
  * legitimate 0, falls back only on empty / non-finite). decode is TOTAL: it
@@ -210,9 +210,6 @@ export const TOXIC_PLANTS: readonly ToxicPlantSpec[] = [
 function asArr(v: FormValue[string] | undefined): string[] {
   if (Array.isArray(v)) return v;
   return typeof v === 'string' && v !== '' ? [v] : [];
-}
-function asStr(v: FormValue[string] | undefined): string {
-  return typeof v === 'string' ? v : '';
 }
 function zipLen(...arrs: string[][]): number {
   return arrs.length ? Math.min(...arrs.map((a) => a.length)) : 0;
