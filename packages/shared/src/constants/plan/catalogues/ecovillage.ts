@@ -70,34 +70,75 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s1-legal-governance-c1',
         'Evaluate legal entity options - land trust, co-operative, company, charitable trust, incorporated society',
+        {
+          feedHint: 'Compare 5 Ontario entity types against Islamic compatibility and community land principles',
+          feedNote:
+            'Most Islamic ICs in Canada use a non-profit corporation (ONCA) structured as a CLT - the corporation holds the land, members hold long-term leasehold. This is the recommended starting point for Decision 3.',
+        },
       ),
       ck(
         'ev-s1-legal-governance-c8',
         'Confirm governing jurisdiction - province, territory, or nation of registration',
+        {
+          feedHint:
+            'Ontario provincial vs. federal incorporation - implications for charitable status and land holding',
+          feedNote:
+            'Ontario ONCA incorporation is the standard choice for a single-site GTA/Halton community. Charitable status under CRA is a separate question - register as a charity only if the organization qualifies under the Income Tax Act.',
+        },
       ),
-      ck('ev-s1-legal-governance-c2', 'Select legal entity and document rationale'),
+      ck('ev-s1-legal-governance-c2', 'Select legal entity and document rationale', {
+        feedHint: 'The formal decision record - entity selected, reasons stated, shura vote outcome recorded',
+        feedNote:
+          'This decision record is permanent - it feeds the legal advice gate (Decision 8) and the Waqf deed documentation. It becomes the governance record for all future members and for the founding documents.',
+      }),
       ck(
         'ev-s1-legal-governance-c3',
         'Define land tenure model - collective ownership, leasehold, equity shares, or hybrid',
+        {
+          feedHint:
+            'Waqf-compatible perpetual holding recommended - land is an amanah, not an asset to be extracted',
+          feedNote:
+            'The tenure model must be reflected in the Waqf declaration deed (prepared with legal counsel) and in the ground lease template. Decision 8 confirms these documents have been reviewed.',
+        },
       ),
       ck(
         'ev-s1-legal-governance-c4',
         'Define decision-making framework - consensus, sociocracy, majority vote, or hybrid',
+        {
+          feedHint:
+            'Shura as governing principle - three tiers of authority: steward / committee / full shura',
+          feedNote:
+            'The three-tier framework is embedded in the community covenant (next objective) and in the financial governance rules (Decision 6). It also governs the Adaptive Management Protocol designed at Stratum 7.',
+        },
       ),
       ck(
         'ev-s1-legal-governance-c5',
         'Define financial governance - how community funds are held, authorised, and reported',
+        {
+          feedHint:
+            'Riba-free banking - qist in expense authorisation - quarterly reporting to all members',
+          feedNote:
+            'Financial governance rules feed the community agreement (next objective) and the annual review process designed at Stratum 7. All spending above threshold is recorded in the plan-change log.',
+        },
       ),
       ck(
         'ev-s1-legal-governance-c6',
         'Establish membership rights and obligations in the governance model',
+        {
+          feedHint:
+            'What membership confers and what it requires - including entry, exit, and covenant obligations',
+          feedNote:
+            'Membership rights and obligations become Appendix A of the community covenant - the legally binding agreement signed by each household at admission. Decision 8 confirms a legal adviser has reviewed these terms.',
+        },
       ),
-      ck('ev-s1-legal-governance-c7', 'Obtain legal advice on chosen structure before finalising'),
+      ck('ev-s1-legal-governance-c7', 'Obtain legal advice on chosen structure before finalising', {
+        feedHint: 'The only non-self-certifiable item - requires documented third-party legal counsel to close',
+      }),
     ],
     decisionGroups: [
-      dg('ev-s1-legal-governance-dg1', 'Legal entity selection', ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c8', 'ev-s1-legal-governance-c2'], []),
-      dg('ev-s1-legal-governance-dg2', 'Tenure & decision-making model', ['ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4'], []),
-      dg('ev-s1-legal-governance-dg3', 'Financial & membership governance', ['ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'], []),
+      dg('ev-s1-legal-governance-dg1', 'Legal entity', ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c8', 'ev-s1-legal-governance-c2'], []),
+      dg('ev-s1-legal-governance-dg2', 'Tenure & governance', ['ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4'], []),
+      dg('ev-s1-legal-governance-dg3', 'Finance & membership', ['ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'], []),
     ],
     completionGate:
       'Legal entity selected and documented. Tenure and governance model approved by founding group with legal advice confirmed.',

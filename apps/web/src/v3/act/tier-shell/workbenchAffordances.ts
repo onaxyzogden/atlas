@@ -89,7 +89,7 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
   'ev-s1-legal-governance': {
     mapStrips: [],
     registerStrip: null,
-    showGroups: false,
+    showGroups: true,
     modeFor: (itemId) =>
       itemId.startsWith('ev-s1-legal-governance-')
         ? legalGovernanceModeFor(itemId)

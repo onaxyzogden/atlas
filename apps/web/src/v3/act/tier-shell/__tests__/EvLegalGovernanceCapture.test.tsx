@@ -185,13 +185,16 @@ describe('isLegalGovernanceValid', () => {
   it('membership register is always recordable', () => {
     expect(isLegalGovernanceValid('ev-s1-legal-governance-c6', { kind: 'membershipRegister', rights: [], obligations: [] })).toBe(true);
   });
-  it('legal advice gate is invalid until all 5 scope items + written advice', () => {
-    const partial: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd'], adviceWritten: 'yes', adviceDate: '' };
-    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', partial)).toBe(false);
-    const full: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e'], adviceWritten: 'yes', adviceDate: '' };
-    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', full)).toBe(true);
-    const noWritten: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e'], adviceWritten: 'pending', adviceDate: '' };
-    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', noWritten)).toBe(false);
+  it('legal advice gate is invalid until all 6 scope items are checked', () => {
+    // 5 items is NOT sufficient -- regression guard against old 5-gate behaviour.
+    const five: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e'], adviceWritten: 'yes', adviceDate: '' };
+    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', five)).toBe(false);
+    // 4 items is also invalid.
+    const four: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd'], adviceWritten: 'yes', adviceDate: '' };
+    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', four)).toBe(false);
+    // All 6 items required -- adviceWritten is no longer checked by validity.
+    const six: LegalGovernanceModel = { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e', 'f'], adviceWritten: '', adviceDate: '' };
+    expect(isLegalGovernanceValid('ev-s1-legal-governance-c7', six)).toBe(true);
   });
 });
 
@@ -203,7 +206,7 @@ describe('summariseLegalGovernance', () => {
     expect(summariseLegalGovernance('ev-s1-legal-governance-c4', { kind: 'decisionFramework', framework: 'Full consensus', quorum: '67% of active members' })).toBe('Full consensus (quorum 67% of active members)');
     expect(summariseLegalGovernance('ev-s1-legal-governance-c5', { kind: 'financialGovernance', banking: 'Trustee-held funds', authSingle: '', authDouble: '', authVote: '', fyEnd: '' })).toBe('Trustee-held funds');
     expect(summariseLegalGovernance('ev-s1-legal-governance-c6', { kind: 'membershipRegister', rights: ['a'], obligations: ['b', 'c'] })).toBe('1 right, 2 obligations');
-    expect(summariseLegalGovernance('ev-s1-legal-governance-c7', { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e'], adviceWritten: 'yes', adviceDate: '' })).toBe('Legal advice confirmed');
-    expect(summariseLegalGovernance('ev-s1-legal-governance-c7', { kind: 'legalAdviceGate', adviceScope: ['a', 'b'], adviceWritten: 'pending', adviceDate: '' })).toBe('2 of 5 scope items cleared');
+    expect(summariseLegalGovernance('ev-s1-legal-governance-c7', { kind: 'legalAdviceGate', adviceScope: ['a', 'b', 'c', 'd', 'e', 'f'], adviceWritten: '', adviceDate: '' })).toBe('Legal advice confirmed');
+    expect(summariseLegalGovernance('ev-s1-legal-governance-c7', { kind: 'legalAdviceGate', adviceScope: ['a', 'b'], adviceWritten: 'pending', adviceDate: '' })).toBe('2 of 6 scope items cleared');
   });
 });
