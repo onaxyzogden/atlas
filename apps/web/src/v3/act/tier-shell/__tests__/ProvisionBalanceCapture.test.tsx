@@ -138,7 +138,7 @@ describe('matrix -- decode / encode / validity / summarise', () => {
       ],
     };
     const model = decodeProvisionBalance('matrix', value);
-    const encoded = encodeProvisionBalance('matrix', model);
+    const encoded = encodeProvisionBalance(model);
     expect(decodeProvisionBalance('matrix', encoded)).toEqual(model);
   });
 
@@ -146,7 +146,7 @@ describe('matrix -- decode / encode / validity / summarise', () => {
     const partial = decodeProvisionBalance('matrix', {
       provisionMatrix: ['water::C'],
     });
-    expect(isProvisionBalanceValid('matrix', partial)).toBe(false);
+    expect(isProvisionBalanceValid(partial)).toBe(false);
 
     const full = decodeProvisionBalance('matrix', {
       provisionMatrix: [
@@ -159,7 +159,7 @@ describe('matrix -- decode / encode / validity / summarise', () => {
         'health::H',
       ],
     });
-    expect(isProvisionBalanceValid('matrix', full)).toBe(true);
+    expect(isProvisionBalanceValid(full)).toBe(true);
   });
 
   it('summarise counts communal/hybrid/household', () => {
@@ -174,7 +174,7 @@ describe('matrix -- decode / encode / validity / summarise', () => {
         'health::H',
       ],
     });
-    expect(summariseProvisionBalance('matrix', full)).toBe(
+    expect(summariseProvisionBalance(full)).toBe(
       '3 communal, 3 hybrid, 1 household',
     );
   });
@@ -204,18 +204,18 @@ describe('food -- decode / validity / summarise / render', () => {
 
   it('encode round-trips', () => {
     const model = decodeProvisionBalance('food', { foodSystem: 'hybrid' });
-    expect(decodeProvisionBalance('food', encodeProvisionBalance('food', model))).toEqual(
+    expect(decodeProvisionBalance('food', encodeProvisionBalance(model))).toEqual(
       model,
     );
   });
 
   it('valid only when set; summarise is the card title', () => {
     expect(
-      isProvisionBalanceValid('food', { kind: 'food', foodSystem: '' }),
+      isProvisionBalanceValid({ kind: 'food', foodSystem: '' }),
     ).toBe(false);
     const model = decodeProvisionBalance('food', { foodSystem: 'communal' });
-    expect(isProvisionBalanceValid('food', model)).toBe(true);
-    expect(summariseProvisionBalance('food', model)).toBe('Fully communal');
+    expect(isProvisionBalanceValid(model)).toBe(true);
+    expect(summariseProvisionBalance(model)).toBe('Fully communal');
   });
 
   it('renders the 3 cards and picks one', () => {
@@ -234,7 +234,7 @@ describe('food -- decode / validity / summarise / render', () => {
 describe('financial -- validity / summarise / render / amanah', () => {
   it('valid only when set; summarise is chosen title', () => {
     expect(
-      isProvisionBalanceValid('financial', {
+      isProvisionBalanceValid({
         kind: 'financial',
         financialModel: '',
       }),
@@ -242,8 +242,8 @@ describe('financial -- validity / summarise / render / amanah', () => {
     const model = decodeProvisionBalance('financial', {
       financialModel: 'contrib',
     });
-    expect(isProvisionBalanceValid('financial', model)).toBe(true);
-    expect(summariseProvisionBalance('financial', model)).toBe(
+    expect(isProvisionBalanceValid(model)).toBe(true);
+    expect(summariseProvisionBalance(model)).toBe(
       'Household contributions + shared cost pools',
     );
   });
@@ -283,14 +283,14 @@ describe('entitlement -- decode / validity / summarise / render', () => {
     expect(
       decodeProvisionBalance(
         'entitlement',
-        encodeProvisionBalance('entitlement', model),
+        encodeProvisionBalance(model),
       ),
     ).toEqual(model);
   });
 
   it('valid only when floor area parses > 0', () => {
     expect(
-      isProvisionBalanceValid('entitlement', {
+      isProvisionBalanceValid({
         kind: 'entitlement',
         floorArea: '',
         outdoor: '',
@@ -301,7 +301,7 @@ describe('entitlement -- decode / validity / summarise / render', () => {
       }),
     ).toBe(false);
     const model = decodeProvisionBalance('entitlement', { entFloorArea: '65' });
-    expect(isProvisionBalanceValid('entitlement', model)).toBe(true);
+    expect(isProvisionBalanceValid(model)).toBe(true);
   });
 
   it('summarise reports floor area and privacy count', () => {
@@ -309,7 +309,7 @@ describe('entitlement -- decode / validity / summarise / render', () => {
       entFloorArea: '65',
       entPrivacy: ['visual', 'acoustic'],
     });
-    expect(summariseProvisionBalance('entitlement', model)).toBe(
+    expect(summariseProvisionBalance(model)).toBe(
       '65 m2/adult floor area, 2 privacy standard(s)',
     );
   });
@@ -339,7 +339,7 @@ describe('tension -- decode / validity / summarise / render', () => {
     expect(
       decodeProvisionBalance(
         'tension',
-        encodeProvisionBalance('tension', model),
+        encodeProvisionBalance(model),
       ),
     ).toEqual(model);
   });
@@ -348,18 +348,18 @@ describe('tension -- decode / validity / summarise / render', () => {
     const partial = decodeProvisionBalance('tension', {
       tensionResolutions: ['t1::a', 't2::b'],
     });
-    expect(isProvisionBalanceValid('tension', partial)).toBe(false);
+    expect(isProvisionBalanceValid(partial)).toBe(false);
     const full = decodeProvisionBalance('tension', {
       tensionResolutions: ['t1::a', 't2::b', 't3::c'],
     });
-    expect(isProvisionBalanceValid('tension', full)).toBe(true);
+    expect(isProvisionBalanceValid(full)).toBe(true);
   });
 
   it('summarise reports n/3 resolved', () => {
     const model = decodeProvisionBalance('tension', {
       tensionResolutions: ['t1::a', 't2::  '],
     });
-    expect(summariseProvisionBalance('tension', model)).toBe(
+    expect(summariseProvisionBalance(model)).toBe(
       '1/3 tensions resolved',
     );
   });
@@ -409,13 +409,13 @@ describe('ratify -- decode / validity / summarise / render', () => {
     };
     const model = decodeProvisionBalance('ratify', value);
     expect(
-      decodeProvisionBalance('ratify', encodeProvisionBalance('ratify', model)),
+      decodeProvisionBalance('ratify', encodeProvisionBalance(model)),
     ).toEqual(model);
   });
 
   it('valid only when >=1 member AND none pending', () => {
     const empty = decodeProvisionBalance('ratify', {});
-    expect(isProvisionBalanceValid('ratify', empty)).toBe(false);
+    expect(isProvisionBalanceValid(empty)).toBe(false);
 
     const pending = decodeProvisionBalance('ratify', {
       ratifyMembers: [
@@ -423,7 +423,7 @@ describe('ratify -- decode / validity / summarise / render', () => {
         JSON.stringify({ id: 'b', name: 'B', status: 'pending', note: '' }),
       ],
     });
-    expect(isProvisionBalanceValid('ratify', pending)).toBe(false);
+    expect(isProvisionBalanceValid(pending)).toBe(false);
 
     const all = decodeProvisionBalance('ratify', {
       ratifyMembers: [
@@ -431,7 +431,7 @@ describe('ratify -- decode / validity / summarise / render', () => {
         JSON.stringify({ id: 'b', name: 'B', status: 'offplatform', note: 'x' }),
       ],
     });
-    expect(isProvisionBalanceValid('ratify', all)).toBe(true);
+    expect(isProvisionBalanceValid(all)).toBe(true);
   });
 
   it('summarise reports confirmed/total', () => {
@@ -441,7 +441,7 @@ describe('ratify -- decode / validity / summarise / render', () => {
         JSON.stringify({ id: 'b', name: 'B', status: 'pending', note: '' }),
       ],
     });
-    expect(summariseProvisionBalance('ratify', model)).toBe(
+    expect(summariseProvisionBalance(model)).toBe(
       '1/2 founding members confirmed',
     );
   });

@@ -395,7 +395,7 @@ export default function DecisionWorkingPanel({
   } else if (decision.isAssumptions) {
     valid = isAssumptionsValid(assumptionsModel!);
   } else if (provisionMode) {
-    valid = isProvisionBalanceValid(provisionMode, provisionModel!);
+    valid = isProvisionBalanceValid(provisionModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -533,7 +533,7 @@ export default function DecisionWorkingPanel({
     } else if (decision.isAssumptions) {
       summary = summariseAssumptions(assumptionsModel!);
     } else if (provisionMode) {
-      summary = summariseProvisionBalance(provisionMode, provisionModel!);
+      summary = summariseProvisionBalance(provisionModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {

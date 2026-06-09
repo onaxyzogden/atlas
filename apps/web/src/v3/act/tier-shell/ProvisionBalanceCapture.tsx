@@ -406,6 +406,10 @@ export function decodeProvisionBalance(
       }
       return { kind: 'ratify', members };
     }
+    default: {
+      const _exhaustive: never = mode;
+      throw new Error(`Unknown ProvisionBalanceMode: ${String(_exhaustive)}`);
+    }
   }
 }
 
@@ -414,7 +418,6 @@ export function decodeProvisionBalance(
 // ---------------------------------------------------------------------------
 
 export function encodeProvisionBalance(
-  _mode: ProvisionBalanceMode,
   model: ProvisionBalanceModel,
 ): FormValue {
   switch (model.kind) {
@@ -455,7 +458,6 @@ export function encodeProvisionBalance(
 // ---------------------------------------------------------------------------
 
 export function isProvisionBalanceValid(
-  _mode: ProvisionBalanceMode,
   model: ProvisionBalanceModel,
 ): boolean {
   switch (model.kind) {
@@ -486,7 +488,6 @@ export function isProvisionBalanceValid(
 // ---------------------------------------------------------------------------
 
 export function summariseProvisionBalance(
-  _mode: ProvisionBalanceMode,
   model: ProvisionBalanceModel,
 ): string {
   switch (model.kind) {
@@ -539,7 +540,7 @@ export function ProvisionBalanceCapture({
 }: ProvisionBalanceCaptureProps): React.JSX.Element {
   const model = decodeProvisionBalance(mode, value);
   const emit = (next: ProvisionBalanceModel): void =>
-    onChange(encodeProvisionBalance(mode, next));
+    onChange(encodeProvisionBalance(next));
 
   if (model.kind === 'matrix') {
     const vals = Object.values(model.assignments);
