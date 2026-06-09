@@ -42,7 +42,7 @@ services:
     dockerContext: .
     plan: starter              # non-suspending: BullMQ workers + WS subscriber start in onReady
     region: oregon
-    healthCheckPath: /health
+    # healthCheckPath not supported on pserv (private service) — removed
     # Managed Postgres has no docker-entrypoint-initdb.d hook, so run the
     # idempotent migration runner on every deploy. WORKDIR is /app/apps/api.
     preDeployCommand: node dist/db/migrate.js
