@@ -97,22 +97,51 @@ landscape markers staged**, foreign hunks preserved unstaged + byte-identical in
 the working tree. Landscape committed `8db07f18` (8 files, +2990) on `main`,
 explicit pathspec, not pushed. Temp filter script removed post-commit.
 
-## Screenshot gate DEFERRED (not skipped)
+## Screenshot gate CLEARED (2026-06-09)
 
-The Phase-3a sub-phase gate requires screenshot verification, but the four S2
-captures are **not** registered in the map-free `/v3/components` gallery harness,
-and the only other visual path is the live workbench (dead dev API + WebGL map
-canvas, [[project-screenshot-hang]]). A clean full-suite gate is additionally
-blocked while the concurrent session's uncommitted `ACT_COPY` WIP sits in the
-working tree (running it would test their incomplete work, not my committed code).
-Per CLAUDE.md no visual pass is claimed without a screenshot.
+Closed the deferred gate by the map-free path. Registered all four captures in
+the `/v3/components` gallery harness (`ComponentsDebugPage.tsx`, commit
+`76dd781b`) -- one `<Section>` per capture at its representative c1 mode
+(`s2-terrain-c1` mapSource, `s2-climate-c1` rainfall, `s2-ecology-c1`
+vegetation, `ev-s2-landscape-vectors-c1` landUse), each with empty
+`initialValue` (decode is TOTAL/defensive and never fabricates seeds; per-mode
+populated logic is already covered by the 127 unit tests). `tsc --noEmit`
+EXIT 0; gallery file committed alone with an explicit pathspec (the concurrent
+session's `ACT_COPY` WIP left untouched).
+
+Screenshot-verified all four on the running `web` dev server (port 5200,
+map-free so no WebGL/dead-API hang, [[project-screenshot-hang]]). Each routes to
+its bespoke capture (NOT the `<textarea>` fallback) and composes the Phase-0
+controls inside the shared chrome with app `--color-*` tokens + Lucide icons:
+
+- **Terrain / mapSource** -- 6-card PRIMARY DATA SOURCE ChoiceCardGrid (LiDAR /
+  drone / professional survey / GPS / existing property / satellite-SRTM) with
+  resolution badges + "Best if..." notes, interpretation block, record gate.
+- **Climate / rainfall** -- annual-average AmountRow, 4-season distribution
+  inputs + BarChartStrip, rainfall-variability (CV%), "feeds Tier 3: Water
+  strategy" InterpretationBlock, required-field gate.
+- **Ecology / vegetation** -- 7 community-type toggle rows with per-row % input,
+  "feeds Tier 3: Zone allocation" InterpretationBlock, >=1-type record gate.
+- **Landscape / landUse** -- LAND USE REGISTER empty state ("0 entries" / "+ Add
+  land use") RegisterList, >=1-entry record gate.
+
+Console showed only unrelated `[SYNC]` viewer-permission errors (the
+restricted live API) -- no React/module/render errors, nothing touching the four
+captures or the foreign WIP. Per CLAUDE.md a visual pass is only claimed with a
+screenshot; four were taken.
+
+> Entity-page ([[entities/act-tier-shell]]) gate note still reads DEFERRED in
+> the working tree -- that file carries the concurrent session's uncommitted
+> copy-module edits (+31 lines), so its one-line flip was left for the next clean
+> wiki pass rather than risk surgical staging mid-flight.
 
 ## Next
 
-- **Phase-3a close (follow-up):** register the four captures in the
-  `/v3/components` gallery, batch-screenshot all four vs their mockups; run the
-  clean full bounded `vitest` suite once the concurrent session's `ACT_COPY` WIP
-  has landed (so the tree is clean).
+- **Phase-3a close:** DONE -- gallery registration (`76dd781b`) +
+  four screenshots verified (see "Screenshot gate CLEARED" above). Remaining
+  follow-up: run the clean full bounded `vitest` suite once the concurrent
+  session's `ACT_COPY` WIP has landed (so the tree is clean), and flip the
+  entity-page gate note in the next clean wiki pass.
 - **Phase 3b-3f:** ~22 remaining S2-S7 captures per the MOCKUP_REGISTRY (3b
   Capacity, 3c Livestock/silvopasture, 3d Soil & food, 3e Water/energy/settlement,
   3f Communal infra & finance -- `ev-s4-financial-model` Amanah-screened at
