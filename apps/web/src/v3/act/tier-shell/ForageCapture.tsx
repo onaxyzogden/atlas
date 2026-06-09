@@ -9,11 +9,16 @@
  *   c4 -> constraints  (shelter / grazing-exclusion register)
  *   c5 -> toxic        (toxic / weed plant survey for candidate stock)
  *
- * F1 (THIS FILE) is the PURE CONTRACT ONLY: types, mode mapper, decode/encode,
- * validity gates, summaries, and the verbatim constant tables. There is NO
- * React component body and no per-mode JSX yet -- the `ForageCapture` component
- * and the five mode bodies (P1..P5) arrive in F2. This file compiles as a
- * module of pure exports.
+ * F1 is the PURE CONTRACT: types, mode mapper, decode/encode, validity gates,
+ * summaries, and the verbatim constant tables.
+ *
+ * F2 (NOW LANDED, below the F1 exports) adds the controlled React component
+ * `ForageCapture` plus its five mode bodies (P1..P5). The component renders
+ * ONLY the scrollable mode body (the mockup's `.rb` inner content) -- the
+ * third-column host (DecisionWorkingPanel) owns the eyebrow / title / hint /
+ * feeds / Record-Defer chrome. Each body follows the same shape as
+ * CarryingCapacityCapture: decode(value) -> set(patch) -> onChange(encode).
+ * `projectId` is accepted (and consumed by F3 at Record time) but unused here.
  *
  * Serialization mirrors BoundaryCapture exactly: growable rows are stored as
  * parallel string[] register-arrays (asArr / zipLen), positional
@@ -27,9 +32,27 @@
  * are lucide (none referenced here). Apostrophes use double-quoted JS strings.
  */
 
+import * as React from 'react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+
 import type { FormValue } from './actToolCatalog.js';
 import { DSE_PRESETS, type ConditionClass } from './forageZoneSync.js';
 import type { LivestockSpecies } from '../../../store/livestockStore.js';
+import {
+  AmountRow,
+  CapacityCeilingBlock,
+  ChipSelect,
+  ChoiceCardGrid,
+  InterpretationBlock,
+  MonthCalendarGrid,
+  type MonthState,
+  MONTH_NAMES,
+  RegisterList,
+  SectionEyebrow,
+  StatusPill,
+  type StatusPillTone,
+} from './captures/controls/index.js';
+import css from './ForageCapture.module.css';
 
 // ---------------------------------------------------------------------------
 // Mode mapper
@@ -514,3 +537,670 @@ export function summariseForage(
     }
   }
 }
+
+// ===========================================================================
+// F2 -- React component + 5 mode bodies (P1..P5)
+// ===========================================================================
+
+// Candidate livestock species labels (P1 selector). VERBATIM.
+const SPECIES_LABELS: Record<LivestockSpecies, string> = {
+  sheep: 'Sheep',
+  cattle: 'Cattle',
+  goats: 'Goats',
+  poultry: 'Poultry',
+  pigs: 'Pigs',
+  horses: 'Horses',
+  ducks_geese: 'Ducks & geese',
+  rabbits: 'Rabbits',
+  bees: 'Bees',
+};
+const SPECIES_ORDER: readonly LivestockSpecies[] = [
+  'sheep',
+  'cattle',
+  'goats',
+  'poultry',
+  'pigs',
+  'horses',
+  'ducks_geese',
+  'rabbits',
+  'bees',
+];
+
+// Forage-type label <-> value maps (P1 ChipSelect uses labels as options).
+const FORAGE_LABEL_BY_VALUE = new Map<string, string>(
+  FORAGE_TYPES.map((t) => [t.value, t.label]),
+);
+const FORAGE_VALUE_BY_LABEL = new Map<string, string>(
+  FORAGE_TYPES.map((t) => [t.label, t.value]),
+);
+
+// Condition-grade label <-> value maps (P1 ChipSelect).
+const COND_LABEL_BY_VALUE = new Map<string, string>(
+  CONDITION_GRADES.map((g) => [g.value, g.label]),
+);
+const COND_VALUE_BY_LABEL = new Map<string, string>(
+  CONDITION_GRADES.map((g) => [g.label, g.value]),
+);
+
+// Condition-class label <-> value maps (P3 selector).
+const CLASS_VALUE_BY_LABEL = new Map<string, ConditionClass>(
+  (Object.keys(CONDITION_CLASS_LABELS) as ConditionClass[]).map((k) => [
+    CONDITION_CLASS_LABELS[k],
+    k,
+  ]),
+);
+
+// All ConditionClass values (P3 fallback when a zone has no forageType).
+const ALL_CONDITION_CLASSES = Object.keys(DSE_PRESETS) as ConditionClass[];
+
+// Monotonic id counter -- stable within a session; ensures decode's positional
+// fallback never collides. Component-scope (not a workflow script), so a plain
+// counter is acceptable.
+let _idCounter = 0;
+
+// Tri-state toxic control buttons (P5).
+const TOXIC_BUTTONS: readonly { state: ToxicState; label: string }[] = [
+  { state: 'present', label: 'Present' },
+  { state: 'absent', label: 'Absent' },
+  { state: 'not-surveyed', label: 'Not surveyed' },
+];
+
+// Map model month int (0|1|2) -> MonthState for the 3-state seasonal cycle.
+const SEASONAL_CYCLE: readonly MonthState[] = ['none', 'med', 'high'];
+
+function monthsToRecord(months: number[]): Record<number, MonthState> {
+  const rec: Record<number, MonthState> = {};
+  for (let i = 0; i < 12; i++) {
+    const m = months[i] ?? 0;
+    rec[i] = m === 2 ? 'high' : m === 1 ? 'med' : 'none';
+  }
+  return rec;
+}
+
+function recordToMonths(rec: Record<number, MonthState>): number[] {
+  const months: number[] = [];
+  for (let i = 0; i < 12; i++) {
+    const s = rec[i] ?? 'none';
+    months.push(s === 'high' ? 2 : s === 'med' ? 1 : 0);
+  }
+  return months;
+}
+
+function numField(raw: string, fallback: number): number {
+  if (raw.trim() === '') return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function toxicTone(risk: string): StatusPillTone {
+  if (risk === 'HIGH') return 'error';
+  if (risk.startsWith('Moderate')) return 'warn';
+  return 'neutral';
+}
+
+/** Read the c1 zones model from siblings; empty model when absent. */
+function readSiblingZones(
+  siblingValues: Record<string, FormValue> | undefined,
+): ForageZonesModel {
+  const c1 = siblingValues?.[`${FORAGE_PREFIX}-c1`];
+  if (!c1) return { kind: 'zones', zones: [], candidateSpecies: [] };
+  return decodeForage('zones', c1) as ForageZonesModel;
+}
+
+export interface ForageCaptureProps {
+  mode: ForageMode;
+  value: FormValue;
+  onChange: (next: FormValue) => void;
+  /** this capture's own checklist item id (e.g. silv-sec-s3-forage-survey-c1). */
+  itemId: string;
+  /** full per-item FormValue map; the capture reads only the ids it needs. */
+  siblingValues?: Record<string, FormValue>;
+  /** owning project id; consumed by F3 at Record time, unused for rendering. */
+  projectId: string;
+}
+
+export function ForageCapture({
+  mode,
+  value,
+  onChange,
+  itemId,
+  siblingValues = {},
+  projectId,
+}: ForageCaptureProps): React.JSX.Element {
+  void itemId;
+  void projectId;
+
+  if (mode === 'zones') {
+    const model = decodeForage('zones', value) as ForageZonesModel;
+    const set = (patch: Partial<ForageZonesModel>): void =>
+      onChange(encodeForage('zones', { ...model, ...patch }));
+    const totalHa = model.zones.reduce((sum, z) => sum + numField(z.areaHa, 0), 0);
+    const speciesOptions = SPECIES_ORDER.map((s) => ({
+      id: s,
+      title: SPECIES_LABELS[s],
+    }));
+    return (
+      <div className={css.root} data-forage-mode="zones">
+        <div>
+          <SectionEyebrow>
+            Forage zone register
+            {model.zones.length > 0
+              ? ` -- ${model.zones.length} ${
+                  model.zones.length === 1 ? 'zone' : 'zones'
+                } / ${totalHa.toFixed(1)} ha`
+              : ''}
+          </SectionEyebrow>
+          <RegisterList<ForageZoneInput>
+            items={model.zones}
+            onChange={(next) => set({ zones: next })}
+            makeEmpty={() => ({
+              id: `forage-z-${++_idCounter}`,
+              forageType: '',
+              name: '',
+              areaHa: '',
+              condition: '',
+              composition: '',
+            })}
+            addLabel="Add forage zone"
+            emptyHint="No forage zones yet. Add each grazeable zone with its type, area, and condition."
+            ariaLabel="Forage zones"
+            renderRow={(zone, _index, update) => (
+              <div className={css.fieldStack}>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Forage type</span>
+                  <ChipSelect
+                    multi={false}
+                    options={FORAGE_TYPES.map((t) => t.label)}
+                    value={
+                      zone.forageType !== '' &&
+                      FORAGE_LABEL_BY_VALUE.has(zone.forageType)
+                        ? [FORAGE_LABEL_BY_VALUE.get(zone.forageType) as string]
+                        : []
+                    }
+                    onChange={(next) => {
+                      const label = next[0];
+                      update({
+                        forageType:
+                          label !== undefined
+                            ? (FORAGE_VALUE_BY_LABEL.get(label) ?? '')
+                            : '',
+                      });
+                    }}
+                    ariaLabel="Forage type"
+                  />
+                </div>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Zone name</span>
+                  <input
+                    type="text"
+                    className={css.textInput}
+                    value={zone.name}
+                    placeholder="South paddock"
+                    aria-label="Zone name"
+                    onChange={(e) => update({ name: e.target.value })}
+                  />
+                </div>
+                <AmountRow
+                  label="Area"
+                  value={zone.areaHa}
+                  onChange={(v) => update({ areaHa: v })}
+                  unit="ha"
+                  placeholder="8.5"
+                />
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Condition</span>
+                  <ChipSelect
+                    multi={false}
+                    options={CONDITION_GRADES.map((g) => g.label)}
+                    value={
+                      zone.condition !== '' &&
+                      COND_LABEL_BY_VALUE.has(zone.condition)
+                        ? [COND_LABEL_BY_VALUE.get(zone.condition) as string]
+                        : []
+                    }
+                    onChange={(next) => {
+                      const label = next[0];
+                      update({
+                        condition:
+                          label !== undefined
+                            ? (COND_VALUE_BY_LABEL.get(label) ?? '')
+                            : '',
+                      });
+                    }}
+                    ariaLabel="Condition"
+                  />
+                </div>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Species composition</span>
+                  <textarea
+                    className={`${css.textInput} ${css.textArea}`}
+                    value={zone.composition}
+                    placeholder="Ryegrass / sub-clover dominant; bare patches on west slope."
+                    aria-label="Species composition"
+                    onChange={(e) => update({ composition: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          />
+        </div>
+        <div className={css.fdiv} aria-hidden="true" />
+        <div>
+          <SectionEyebrow>Candidate stock species</SectionEyebrow>
+          <ChoiceCardGrid
+            multi
+            columns={3}
+            options={speciesOptions}
+            value={model.candidateSpecies}
+            onChange={(next) =>
+              set({ candidateSpecies: next as LivestockSpecies[] })
+            }
+            ariaLabel="Candidate stock species"
+          />
+        </div>
+        <FeedsNote>
+          Forage zones feed the <strong>live carrying capacity panel</strong>{' '}
+          once DSE/ha values are assigned in item 3. Record all zones before
+          completing the seasonal calendar.
+        </FeedsNote>
+      </div>
+    );
+  }
+
+  if (mode === 'seasonal') {
+    const model = decodeForage('seasonal', value) as ForageSeasonalModel;
+    const zones = readSiblingZones(siblingValues).zones;
+    const calById = new Map(model.calendars.map((c) => [c.zoneId, c.months]));
+
+    const writeZone = (zoneId: string, months: number[]): void => {
+      const calendars = zones.map((z) => ({
+        zoneId: z.id,
+        months:
+          z.id === zoneId
+            ? months
+            : (calById.get(z.id) ?? new Array<number>(12).fill(0)),
+      }));
+      onChange(encodeForage('seasonal', { kind: 'seasonal', calendars }));
+    };
+
+    // Gap summary: per month, Math.min across all zones (worst zone).
+    const gapMonths: string[] = [];
+    if (zones.length > 0) {
+      for (let m = 0; m < 12; m++) {
+        const minState = Math.min(
+          ...zones.map(
+            (z) => (calById.get(z.id) ?? new Array<number>(12).fill(0))[m] ?? 0,
+          ),
+        );
+        if (minState === 0) gapMonths.push(MONTH_NAMES[m]);
+      }
+    }
+
+    return (
+      <div className={css.root} data-forage-mode="seasonal">
+        <div>
+          <SectionEyebrow>Forage availability calendar</SectionEyebrow>
+          {zones.length === 0 ? (
+            <InterpretationBlock tone="info">
+              No forage zones recorded yet. Add zones in item 1 to build the
+              seasonal availability calendar.
+            </InterpretationBlock>
+          ) : (
+            zones.map((z) => {
+              const months = calById.get(z.id) ?? new Array<number>(12).fill(0);
+              return (
+                <div key={z.id} className={css.calZone}>
+                  <span className={css.calZoneName}>{z.name || 'Forage zone'}</span>
+                  <MonthCalendarGrid
+                    value={monthsToRecord(months)}
+                    cycle={SEASONAL_CYCLE}
+                    onChange={(rec) => writeZone(z.id, recordToMonths(rec))}
+                    ariaLabel={`Availability for ${z.name || 'forage zone'}`}
+                  />
+                </div>
+              );
+            })
+          )}
+          <div className={css.legend}>
+            <span className={css.legendItem}>
+              <span className={css.legendDot} data-state="high" aria-hidden="true" />
+              Adequate
+            </span>
+            <span className={css.legendItem}>
+              <span className={css.legendDot} data-state="med" aria-hidden="true" />
+              Moderate
+            </span>
+            <span className={css.legendItem}>
+              <span className={css.legendDot} data-state="none" aria-hidden="true" />
+              Feed gap
+            </span>
+          </div>
+        </div>
+        {gapMonths.length > 0 ? (
+          <InterpretationBlock tone="fail">
+            Critical feed gap: {gapMonths.join(' / ')}. Supplementary feeding or
+            destocking required across this period -- plan before stocking begins.
+          </InterpretationBlock>
+        ) : zones.length > 0 ? (
+          <InterpretationBlock tone="pass">
+            No critical feed gaps across zones.
+          </InterpretationBlock>
+        ) : null}
+        <FeedsNote>
+          Feed gap months feed the <strong>live calculations panel</strong> and
+          generate an <strong>Act routine</strong> for supplementary feeding.
+        </FeedsNote>
+      </div>
+    );
+  }
+
+  if (mode === 'capacity') {
+    const model = decodeForage('capacity', value) as ForageCapacityModel;
+    const zones = readSiblingZones(siblingValues).zones;
+    const classById = new Map(
+      model.classByZone.map((c) => [c.zoneId, c.conditionClass]),
+    );
+
+    const writeZone = (zoneId: string, cls: ConditionClass | ''): void => {
+      const classByZone = zones.map((z) => ({
+        zoneId: z.id,
+        conditionClass:
+          z.id === zoneId ? cls : (classById.get(z.id) ?? ''),
+      }));
+      onChange(encodeForage('capacity', { kind: 'capacity', classByZone }));
+    };
+
+    let grandTotal = 0;
+    for (const z of zones) {
+      const cls = classById.get(z.id) ?? '';
+      if (cls !== '')
+        grandTotal += Math.round(numField(z.areaHa, 0) * DSE_PRESETS[cls]);
+    }
+    const cattle = Math.round(grandTotal / 8);
+
+    return (
+      <div className={css.root} data-forage-mode="capacity">
+        <div>
+          <SectionEyebrow>
+            Zone carrying capacity -- 1 DSE ~ 1 Merino ewe or 50kg live weight
+          </SectionEyebrow>
+          {zones.length === 0 ? (
+            <InterpretationBlock tone="info">
+              No forage zones recorded yet. Add zones in item 1 to estimate
+              per-zone carrying capacity.
+            </InterpretationBlock>
+          ) : (
+            zones.map((z) => {
+              const cls = classById.get(z.id) ?? '';
+              const classes =
+                z.forageType !== '' &&
+                Object.prototype.hasOwnProperty.call(
+                  CONDITION_CLASS_GROUPS,
+                  z.forageType,
+                )
+                  ? CONDITION_CLASS_GROUPS[z.forageType as ForageType]
+                  : ALL_CONDITION_CLASSES;
+              const dse = cls !== '' ? DSE_PRESETS[cls] : 0;
+              const area = numField(z.areaHa, 0);
+              const zoneDse = Math.round(area * dse);
+              return (
+                <div key={z.id} className={css.dseCard}>
+                  <div className={css.dseHead}>
+                    <span className={css.dseName}>
+                      {z.name || 'Forage zone'} -- {area.toFixed(1)} ha
+                    </span>
+                    <span className={css.dseTotal}>
+                      {zoneDse}
+                      <span className={css.dseUnit}>DSE</span>
+                    </span>
+                  </div>
+                  <ChipSelect
+                    multi={false}
+                    options={classes.map((c) => CONDITION_CLASS_LABELS[c])}
+                    value={cls !== '' ? [CONDITION_CLASS_LABELS[cls]] : []}
+                    onChange={(next) => {
+                      const label = next[0];
+                      writeZone(
+                        z.id,
+                        label !== undefined
+                          ? (CLASS_VALUE_BY_LABEL.get(label) ?? '')
+                          : '',
+                      );
+                    }}
+                    ariaLabel={`Condition class for ${z.name || 'forage zone'}`}
+                  />
+                  <div className={css.dseCalc}>
+                    <span>
+                      {area.toFixed(1)} ha x {dse.toFixed(1)} DSE/ha
+                    </span>
+                    <span className={css.dseResult}>= {zoneDse} DSE</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        <CapacityCeilingBlock
+          label="Total conservative carrying capacity"
+          value={grandTotal}
+          unit="DSE"
+          tone="pass"
+          note={`approx ${grandTotal} Merino ewes at 1:1 DSE  /  approx ${cattle} cattle at 8 DSE/hd`}
+        />
+        <InterpretationBlock tone="info">
+          The on-screen DSE total is a conservative working aid. OLOS computes
+          the recorded baseline carrying capacity independently from zone area
+          and candidate species.
+        </InterpretationBlock>
+        <FeedsNote>
+          Zone DSE values update the <strong>live calculations panel</strong> in
+          real time. Use the most constrained month to set the final stocking
+          rate, not the annual average.
+        </FeedsNote>
+      </div>
+    );
+  }
+
+  if (mode === 'constraints') {
+    const model = decodeForage('constraints', value) as ForageConstraintsModel;
+    const set = (rows: ForageConstraintRow[]): void =>
+      onChange(encodeForage('constraints', { kind: 'constraints', rows }));
+    const totalHa = readSiblingZones(siblingValues).zones.reduce(
+      (sum, z) => sum + numField(z.areaHa, 0),
+      0,
+    );
+    const exclusionsHa = model.rows
+      .filter((r) => r.kind === 'exclusion')
+      .reduce((sum, r) => sum + Math.abs(numField(r.areaHa, 0)), 0);
+    const effective = Math.max(0, totalHa - exclusionsHa);
+
+    return (
+      <div className={css.root} data-forage-mode="constraints">
+        <div>
+          <SectionEyebrow>
+            Shade, shelter & tree-protection constraints
+          </SectionEyebrow>
+          <RegisterList<ForageConstraintRow>
+            items={model.rows}
+            onChange={set}
+            makeEmpty={() => ({
+              id: `forage-c-${++_idCounter}`,
+              kind: 'shelter',
+              title: '',
+              detail: '',
+              areaHa: '',
+            })}
+            addLabel="Add constraint"
+            emptyHint="No constraints recorded. Add shade/shelter resources or tree-protection exclusion zones."
+            ariaLabel="Shade and shelter constraints"
+            renderRow={(row, _index, update) => (
+              <div className={css.fieldStack}>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Kind</span>
+                  <ChipSelect
+                    multi={false}
+                    options={['Shade / shelter', 'Tree-protection exclusion']}
+                    value={
+                      row.kind === 'exclusion'
+                        ? ['Tree-protection exclusion']
+                        : row.kind === 'shelter'
+                          ? ['Shade / shelter']
+                          : []
+                    }
+                    onChange={(next) =>
+                      update({
+                        kind:
+                          next[0] === 'Tree-protection exclusion'
+                            ? 'exclusion'
+                            : 'shelter',
+                      })
+                    }
+                    ariaLabel="Constraint kind"
+                  />
+                </div>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Title</span>
+                  <input
+                    type="text"
+                    className={css.textInput}
+                    value={row.title}
+                    placeholder="Scattered eucalypts"
+                    aria-label="Constraint title"
+                    onChange={(e) => update({ title: e.target.value })}
+                  />
+                </div>
+                <div className={css.field}>
+                  <span className={css.fieldLbl}>Detail</span>
+                  <textarea
+                    className={`${css.textInput} ${css.textArea}`}
+                    value={row.detail}
+                    placeholder="~25 mature grey box trees, average 12m canopy spread."
+                    aria-label="Constraint detail"
+                    onChange={(e) => update({ detail: e.target.value })}
+                  />
+                </div>
+                <AmountRow
+                  label="Area"
+                  value={row.areaHa}
+                  onChange={(v) => update({ areaHa: v })}
+                  unit="ha"
+                  placeholder="0.8"
+                />
+              </div>
+            )}
+          />
+        </div>
+        <div className={css.netBlock} data-testid="forage-net-grazeable">
+          <div className={css.netLbl}>Net effective grazeable area</div>
+          <div className={css.netRow}>
+            <span className={css.netRowLbl}>Total land area</span>
+            <span className={css.netRowVal}>{totalHa.toFixed(1)} ha</span>
+          </div>
+          <div className={css.netRow}>
+            <span className={css.netRowLbl}>Exclusions</span>
+            <span className={css.netRowVal}>{exclusionsHa.toFixed(1)} ha</span>
+          </div>
+          <div className={css.netTotal}>
+            <span className={css.netTotalLbl}>Effective grazeable area</span>
+            <span className={css.netTotalVal}>{effective.toFixed(1)} ha</span>
+          </div>
+        </div>
+        <FeedsNote>
+          Effective grazeable area feeds{' '}
+          <strong>Tier 3: Grazing system design</strong>. Exclusion zones are
+          fixed constraints; tree rows are progressive exclusions.
+        </FeedsNote>
+      </div>
+    );
+  }
+
+  // toxic
+  const model = decodeForage('toxic', value) as ForageToxicModel;
+  const setToxicState = (index: number, next: ToxicState): void => {
+    const states = model.states.slice();
+    states[index] = next;
+    onChange(encodeForage('toxic', { kind: 'toxic', states }));
+  };
+  const capePresent = model.states[0] === 'present';
+  return (
+    <div className={css.root} data-forage-mode="toxic">
+      <div>
+        <SectionEyebrow>Toxic & weed plants -- candidate stock</SectionEyebrow>
+        {TOXIC_PLANTS.map((plant, i) => {
+          const state = model.states[i] ?? 'not-surveyed';
+          const isCape = i === 0 && plant.ecologyXref === true;
+          return (
+            <div
+              key={plant.name}
+              className={css.toxicRow}
+              data-toxic-row=""
+              data-risk={plant.risk === 'HIGH' ? 'HIGH' : 'other'}
+            >
+              <div className={css.toxicName}>
+                <div className={css.toxicTitle}>
+                  <strong>{plant.name}</strong>
+                </div>
+                <div className={css.toxicSci}>{plant.binomial}</div>
+                {isCape && state === 'present' ? (
+                  <div className={css.toxicXref}>
+                    <ArrowLeft size={9} aria-hidden="true" /> Linked to ecology /
+                    habitat survey
+                  </div>
+                ) : null}
+              </div>
+              <StatusPill label={plant.risk} tone={toxicTone(plant.risk)} />
+              <div className={css.toxicBtns}>
+                {TOXIC_BUTTONS.map((b) => {
+                  const on = state === b.state;
+                  return (
+                    <button
+                      key={b.state}
+                      type="button"
+                      className={css.toxicBtn}
+                      data-on={on ? 'true' : 'false'}
+                      data-tone={b.state}
+                      aria-pressed={on}
+                      onClick={() => setToxicState(i, b.state)}
+                    >
+                      {b.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {capePresent ? (
+        <InterpretationBlock tone="fail">
+          High risk -- Cape tulip present. Act task generated: Cape tulip control
+          programme.
+        </InterpretationBlock>
+      ) : null}
+      <FeedsNote>
+        Each present toxic plant generates a{' '}
+        <strong>priority Act weed control task</strong> that must complete before
+        stocking begins.
+      </FeedsNote>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Shared sub-component
+// ---------------------------------------------------------------------------
+
+function FeedsNote({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <div className={css.feedsBlock}>
+      <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
+      <div className={css.feedsTxt}>{children}</div>
+    </div>
+  );
+}
+
+export default ForageCapture;
