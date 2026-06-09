@@ -1901,3 +1901,59 @@ correct body + verbatim `feedNote` callout + correct per-mode gate note. Commits
 `4da47016` (BR6) -> `9d77a306` (polish). ADR
 [[decisions/2026-06-08-atlas-boundaries-mixed-mode]]; Log
 [[log/2026-06-08-atlas-boundaries-mixed-mode]].
+
+## Provision balance: 6-mode communal/private capture (2026-06-08)
+
+`ev-s1-provision-balance` (EV-S1.5, 6 items c1..c6) gained a bespoke
+`ProvisionBalanceCapture` from `olos_communal_private_provision.html` (SP1
+Group 3), cloning the `EvLegalGovernanceCapture` multi-mode pattern: one
+`provisionBalanceModeFor(itemId)` mapper (c1 `matrix` / c2 `food` / c3
+`financial` / c4 `entitlement` / c5 `tension` / c6 `ratify`) + one
+`isProvisionBalance` flag + one `DecisionWorkingPanel` arm. Per-mode
+JSON-in-FormValue encoding; `decode` TOTAL/defensive (per-entry try/catch, never
+fabricates seeds); `encode` lossless inverse (exported); stable member ids via
+`makeMemberId()` in event handlers only. Two deliberate per-item
+simplifications (a per-item capture cannot read sibling items): **c5 tension** =
+FIXED verbatim scaffold whose resolutions persist (the mockup auto-derives the 3
+tensions from c1/c2/c3); **c6 ratify** = starts EMPTY with "Add founding member"
+(the mockup seeds demo members). Added to `TIER_ZERO_OBJECTIVE_IDS`; persists via
+the existing `actEvidenceStore.visionFormData[itemId]` path; no store/schema
+change. **Amanah:** the c3 financial mode renders the verbatim 2026-05-29-authorised
+scope-note ("...communal cost-sharing models among members who collectively own
+the asset -- not advance sale of future yield...") -- musharaka-like co-ownership,
+no riba / `bay' ma laysa 'indak` / CSRA / salam. Commits `181f7396` -> `e7eed111`
+-> `53243580` (drop dead `mode` param) -> `ad6dce78` (MOCKUP_REGISTRY triage) on
+`main`. ADR [[decisions/2026-06-08-atlas-ev-provision-balance-capture]]; Log
+[[log/2026-06-08-atlas-tier0-provision-affordance-phase1-close]]. SP1 Group 4
+(`EvConflictFrameworkCapture`, `ev-s1-conflict-framework`) remains.
+
+## Data-driven workbench affordance descriptor (Phase 2, 2026-06-08)
+
+`ActTierZeroWorkbench` previously hard-coded three `is<X>Objective` id checks
+driving the map-activation strips, the live stakeholder register strip, the
+decision-group dividers, and the center-list mode mapper. New
+`workbenchAffordances.ts` lifts those per-objective decisions into a static
+descriptor table: `WorkbenchObjectiveAffordances { mapStrips; registerStrip;
+showGroups; modeFor }`, a module-private `MAP` of the 3 existing entries (strings
+transcribed VERBATIM from the prior inline JSX -> byte-identical DOM), and
+`workbenchAffordancesFor(objectiveId)`. Any id WITHOUT an entry returns the frozen
+shared `EMPTY_AFFORDANCES` (no strips, no groups, null modeFor) so an arbitrary
+S2-S7 objective mounts the generic 2-pane workbench with zero special-casing and
+never throws. The component now reads `workbenchAffordancesFor(activeObjective.id)`
+and renders strips/badges/groups from it; the unconditional
+`useStakeholderRegisterStore` hook + `stakeholderCount` useMemo (above the early
+return, load-bearing per the Zustand v5 stable-snapshot rule) are untouched.
+Operator scope ("Mechanism only, ids in Phase 3"): the live routed set stays the 5
+S1 ids; S2-routability proved by a `s2-fake-carrying-capacity` test fixture; each
+Phase-3 sub-phase adds its id alongside its capture. The
+`TIER_ZERO_OBJECTIVE_IDS` -> "workbench-routed" rename is deferred as cosmetic.
+Tests: `workbenchAffordances.test.ts` (9, happy-dom) + a new `ActTierZeroWorkbench`
+S2-fixture render test. Single commit `0e7b2d37` on `main`. ADR
+[[decisions/2026-06-08-atlas-workbench-affordance-descriptor]]; Log
+[[log/2026-06-08-atlas-tier0-provision-affordance-phase1-close]].
+
+> **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
+> delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
+> canonical working line, `feat/structured-capture-forms` is an ancestor.
+> Phase 3 continues on `main`; nothing pushed without an explicit ask
+> ([[project-structured-capture-on-main]], [[project-branch-rebase]]).
