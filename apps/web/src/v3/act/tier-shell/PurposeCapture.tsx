@@ -381,7 +381,7 @@ export default function PurposeCapture({
         <ArrowRight size={11} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
           The primary type anchors all tier objectives and design logic.
-          Secondary types layer additional scope onto this foundation.
+          Secondary types can be added next to layer additional scope onto this foundation.
         </div>
       </div>
     </div>
