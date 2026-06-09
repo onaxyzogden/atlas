@@ -24,6 +24,7 @@ import { terrainModeFor } from './TerrainCapture.js';
 import { climateModeFor } from './ClimateCapture.js';
 import { ecologyModeFor } from './EcologyCapture.js';
 import { landscapeModeFor } from './LandscapeContextCapture.js';
+import { carryingCapacityModeFor } from './CarryingCapacityCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -135,6 +136,20 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     showGroups: true,
     modeFor: (itemId) =>
       itemId.startsWith('ev-s2-landscape-vectors-') ? landscapeModeFor(itemId) : null,
+  },
+  // S2 carrying capacity (ecovillage EV-S2.x): 7 items, 3 decision groups
+  // (resource ceilings / synthesis / gate). showGroups true; no map/register
+  // strips. modeFor returns the raw CarryingCapacityMode key (water / food /
+  // waste / energy / space / synthesis / gate), mapped to a badge by
+  // DecisionList MODE_LABELS.
+  'ev-s2-carrying-capacity': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('ev-s2-carrying-capacity-')
+        ? carryingCapacityModeFor(itemId)
+        : null,
   },
 };
 

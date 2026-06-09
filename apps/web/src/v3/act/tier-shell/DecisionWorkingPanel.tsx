@@ -145,6 +145,13 @@ import {
   type LandscapeModel,
 } from './LandscapeContextCapture.js';
 import {
+  CarryingCapacityCapture,
+  carryingCapacityModeFor,
+  isCarryingCapacityValid,
+  summariseCarryingCapacity,
+  type CarryingCapacityMode,
+} from './CarryingCapacityCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -194,9 +201,11 @@ export interface DecisionPanelTarget {
   isClimate?: boolean;
   /** true => render EcologyCapture (self-routing on itemId via ecologyModeFor). */
   isEcology?: boolean;
-  /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   /** true => render LandscapeContextCapture (self-routing on itemId via landscapeModeFor). */
   isLandscape?: boolean;
+  /** true => render CarryingCapacityCapture (self-routing on itemId via carryingCapacityModeFor). */
+  isCarryingCapacity?: boolean;
+  /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
   deferLabel?: string;
@@ -217,6 +226,12 @@ export interface DecisionWorkingPanelProps {
   visionClassifySuggestions?: readonly string[];
   /** persisted structured value for this formId ({} => seed via initialFormValue(fields)). */
   initialValue: FormValue;
+  /**
+   * OPTIONAL full per-item FormValue map (id -> value). Read ONLY by the
+   * CarryingCapacityCapture arm (its synthesis/gate modes compute across the
+   * sibling resource items). Every other capture ignores it. Defaults to {}.
+   */
+  siblingValues?: Record<string, FormValue>;
   /** persisted rationale text. */
   initialRationale: string;
   /** current defer annotation for this decision. */
@@ -270,6 +285,7 @@ export default function DecisionWorkingPanel({
   labourSkillSuggestions,
   visionClassifySuggestions = [],
   initialValue,
+  siblingValues = {},
   initialRationale,
   deferred,
   recorded,
@@ -440,7 +456,6 @@ export default function DecisionWorkingPanel({
     ? decodeEcology(ecologyMode, draft)
     : null;
 
-  // Decode the draft into the legal-governance model once -- reused by validity,
   // Landscape is a 6-mode capture (landUse/sprayRisk/planning/community/
   // disputes/catchment) routed by landscapeModeFor(itemId). Decode once for
   // validity, the gate note, the record summary, and the body renderer
@@ -452,6 +467,18 @@ export default function DecisionWorkingPanel({
     ? decodeLandscape(landscapeMode, draft)
     : null;
 
+  // Carrying capacity is a 7-mode capture (water/food/waste/energy/space/
+  // synthesis/gate) routed by carryingCapacityModeFor(itemId). Unlike the other
+  // captures it validates / summarises directly off the FormValue (its synthesis
+  // and gate modes also read the sibling resource items), so no decoded model is
+  // held here -- only the resolved mode is needed for the gate-note, summary, and
+  // body-router arms below.
+  const carryingCapacityMode: CarryingCapacityMode | null =
+    decision.isCarryingCapacity
+      ? carryingCapacityModeFor(decision.itemId)
+      : null;
+
+  // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
   const legalGovernanceModel: LegalGovernanceModel | null =
@@ -487,9 +514,11 @@ export default function DecisionWorkingPanel({
     valid = isClimateValid(climateModel!);
   } else if (ecologyMode) {
     valid = isEcologyValid(ecologyModel!);
-  } else if (decision.isSuccessCriteria || hasFields) {
   } else if (landscapeMode) {
     valid = isLandscapeValid(landscapeMode, landscapeModel!);
+  } else if (carryingCapacityMode) {
+    valid = isCarryingCapacityValid(carryingCapacityMode, draft);
+  } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
     valid = asString(draft.text).trim() !== '';
@@ -618,7 +647,6 @@ export default function DecisionWorkingPanel({
                 ? 'Choose a connectivity classification to record'
                 : 'Add a water-dependent area, or affirm none present, to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
-    } else {
     } else if (landscapeMode) {
       const note =
         landscapeMode === 'landUse'
@@ -633,6 +661,13 @@ export default function DecisionWorkingPanel({
                   ? 'Add a dispute record, or capture key lessons, to record'
                   : 'Assess at least one contamination vector to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (carryingCapacityMode === 'gate') {
+      gateNote = (
+        <div className={css.gateNote}>
+          Select a pathway (confirm, defer, or redesign) to record
+        </div>
+      );
+    } else {
       gateNote = (
         <div className={css.gateNote}>
           Complete the required fields before recording
@@ -671,9 +706,15 @@ export default function DecisionWorkingPanel({
       summary = summariseClimate(climateModel!);
     } else if (ecologyMode) {
       summary = summariseEcology(ecologyModel!);
-    } else if (fields) {
     } else if (landscapeMode) {
       summary = summariseLandscape(landscapeMode, landscapeModel!);
+    } else if (carryingCapacityMode) {
+      summary = summariseCarryingCapacity(
+        carryingCapacityMode,
+        draft,
+        siblingValues,
+      );
+    } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
       summary = asString(draft.text);
@@ -829,7 +870,6 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
           />
-        ) : hasFields ? (
         ) : landscapeMode ? (
           <LandscapeContextCapture
             key={decision.itemId}
@@ -837,6 +877,16 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
           />
+        ) : carryingCapacityMode ? (
+          <CarryingCapacityCapture
+            key={decision.itemId}
+            mode={carryingCapacityMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : hasFields ? (
           <VisionFormFields
             fields={fields ?? []}
             value={draft}

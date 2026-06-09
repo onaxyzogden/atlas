@@ -174,6 +174,14 @@ export function buildDecisionTarget(
   // for every other id.
   const isLandscape = item.id.startsWith('ev-s2-landscape-vectors-');
 
+  // Carrying capacity is a 7-item ecovillage objective
+  // (ev-s2-carrying-capacity-c1..-c7); detected by id prefix. The panel's
+  // isCarryingCapacity body-router arm (CarryingCapacityCapture self-routes on
+  // itemId via carryingCapacityModeFor) takes precedence over any matched
+  // generic form. The synthesis (c6) and gate (c7) modes read sibling FormValues
+  // via the panel's siblingValues prop. False for every other id.
+  const isCarryingCapacity = item.id.startsWith('ev-s2-carrying-capacity-');
+
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
     item.id === 's1-vision-steward'
@@ -219,6 +227,7 @@ export function buildDecisionTarget(
     isClimate,
     isEcology,
     isLandscape,
+    isCarryingCapacity,
     deferLabel,
     deferrable,
   };
@@ -361,6 +370,7 @@ export default function ActTierZeroWorkbench({
           labourSkillSuggestions={labourSkills}
           visionClassifySuggestions={vcSuggestions}
           initialValue={selectedItem ? (formValues[selectedItem.id] ?? {}) : {}}
+          siblingValues={formValues}
           initialRationale={
             selectedItem ? (rationales[selectedItem.id] ?? '') : ''
           }
