@@ -717,8 +717,12 @@ export default function ActTierShell() {
         );
         const ls = useLivestockStore.getState();
         deleteIds.forEach((d) => ls.deletePaddock(d));
+        // Read fresh state per decision: deletes above mutate the store, so the
+        // add-vs-update check must not race on a pre-delete snapshot. (The diff
+        // never overlaps upsert ids with deleteIds, but this keeps it correct
+        // regardless of that contract.)
         upserts.forEach((p) =>
-          ls.paddocks.some((x) => x.id === p.id)
+          useLivestockStore.getState().paddocks.some((x) => x.id === p.id)
             ? ls.updatePaddock(p.id, p)
             : ls.addPaddock(p),
         );
