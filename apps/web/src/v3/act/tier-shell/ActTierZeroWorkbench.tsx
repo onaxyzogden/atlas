@@ -144,6 +144,12 @@ export function buildDecisionTarget(
   // (AssumptionsCapture) takes precedence over the textarea fallback.
   const isAssumptions = item.id === 's1-vision-assumptions';
 
+  // Provision-balance is a 6-item objective (ev-s1-provision-balance-c1..-c6);
+  // detected by id prefix. The panel's isProvisionBalance body-router arm
+  // (ProvisionBalanceCapture self-routes on itemId via provisionBalanceModeFor)
+  // takes precedence over any matched generic form. False for every other id.
+  const isProvisionBalance = item.id.startsWith('ev-s1-provision-balance-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -185,6 +191,7 @@ export function buildDecisionTarget(
     isPurpose,
     isConstraints,
     isAssumptions,
+    isProvisionBalance,
     deferLabel,
     deferrable,
   };

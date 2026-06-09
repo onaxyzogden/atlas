@@ -490,6 +490,170 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      <Section title="Decision Working Panel - Provision balance: matrix (c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c1",
+              label: "Define communal infrastructure commitments",
+              prompt: "For each infrastructure domain, decide whether it's fully communal, a hybrid arrangement, or each household's own responsibility.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              provisionMatrix: [
+                "water::C",
+                "energy::H",
+                "sanit::C",
+                "bldg::C",
+                "roads::C",
+                "comms::H",
+                "health::H",
+              ],
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Provision balance: food system (c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c2",
+              label: "Define food system approach",
+              prompt: "How food is produced and distributed shapes daily community life. Be honest about the labour capacity behind each model.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{ foodSystem: "hybrid" }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Provision balance: financial model (c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c3",
+              label: "Define the financial sharing model",
+              prompt: "These are the five models that have actually worked - each with real tradeoffs.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{ financialModel: "contrib" }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Provision balance: entitlement register (c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c4",
+              label: "Define private household entitlements",
+              prompt: "These are the minimum private provisions each household can count on. Define them clearly, not aspirationally.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              entFloorArea: "65",
+              entOutdoor: "40",
+              entGarden: "25",
+              entVehicle: "1",
+              entPrivacy: ["visual", "acoustic"],
+              entAutonomy: "",
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Provision balance: tension map (c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c5",
+              label: "Resolve conflicts between communal efficiency and household autonomy",
+              prompt: "OLOS has identified three tensions that must be documented before the provision balance can be ratified.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              tensionResolutions: [
+                "t1::Aggregated metering only; no per-household consumption data is shared without consent.",
+              ],
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Provision balance: ratification (c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s1-provision-balance-c6",
+              label: "Confirm provision balance is agreed by all founding members",
+              prompt: "Every founding household must confirm agreement. This is the gate. One person cannot record this decision for everyone.",
+              isProvisionBalance: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{
+              ratifyMembers: [
+                JSON.stringify({ id: "seed-m1", name: "Sarah Mitchell", status: "confirmed", note: "" }),
+                JSON.stringify({ id: "seed-m2", name: "Marcus Delacroix", status: "pending", note: "" }),
+              ],
+            }}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

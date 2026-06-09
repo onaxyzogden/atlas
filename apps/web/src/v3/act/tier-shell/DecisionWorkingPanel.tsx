@@ -100,6 +100,15 @@ import AssumptionsCapture, {
   type AssumptionsModel,
 } from './AssumptionsCapture.js';
 import {
+  ProvisionBalanceCapture,
+  provisionBalanceModeFor,
+  decodeProvisionBalance,
+  isProvisionBalanceValid,
+  summariseProvisionBalance,
+  type ProvisionBalanceMode,
+  type ProvisionBalanceModel,
+} from './ProvisionBalanceCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -141,6 +150,8 @@ export interface DecisionPanelTarget {
   isConstraints?: boolean;
   /** true => render AssumptionsCapture (assumptions + known unknowns two-section register). */
   isAssumptions?: boolean;
+  /** true => render ProvisionBalanceCapture (self-routing on itemId via provisionBalanceModeFor). */
+  isProvisionBalance?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -345,6 +356,16 @@ export default function DecisionWorkingPanel({
     ? decodeAssumptions(draft)
     : null;
 
+  // Provision-balance is a 6-mode capture (matrix/food/financial/entitlement/
+  // tension/ratify) routed by provisionBalanceModeFor(itemId). Decode once for
+  // validity, the gate note, the record summary, and the body renderer.
+  const provisionMode: ProvisionBalanceMode | null = decision.isProvisionBalance
+    ? provisionBalanceModeFor(decision.itemId)
+    : null;
+  const provisionModel: ProvisionBalanceModel | null = provisionMode
+    ? decodeProvisionBalance(provisionMode, draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -373,6 +394,8 @@ export default function DecisionWorkingPanel({
     valid = isConstraintsValid(constraintsModel!);
   } else if (decision.isAssumptions) {
     valid = isAssumptionsValid(assumptionsModel!);
+  } else if (provisionMode) {
+    valid = isProvisionBalanceValid(provisionMode, provisionModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -466,6 +489,18 @@ export default function DecisionWorkingPanel({
           Add at least 1 assumption and 1 known unknown to record
         </div>
       );
+    } else if (provisionMode) {
+      const note =
+        provisionMode === 'matrix'
+          ? 'Assign all 7 infrastructure domains to record'
+          : provisionMode === 'entitlement'
+            ? 'Enter a private floor area to record'
+            : provisionMode === 'tension'
+              ? 'Resolve all 3 tensions to record'
+              : provisionMode === 'ratify'
+                ? 'Confirm all founding members to record'
+                : 'Select an option to record this decision';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -497,6 +532,8 @@ export default function DecisionWorkingPanel({
       summary = summariseConstraints(constraintsModel!);
     } else if (decision.isAssumptions) {
       summary = summariseAssumptions(assumptionsModel!);
+    } else if (provisionMode) {
+      summary = summariseProvisionBalance(provisionMode, provisionModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -622,6 +659,13 @@ export default function DecisionWorkingPanel({
         ) : decision.isAssumptions ? (
           <AssumptionsCapture
             key={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : provisionMode ? (
+          <ProvisionBalanceCapture
+            key={decision.itemId}
+            mode={provisionMode}
             value={draft}
             onChange={setDraft}
           />
