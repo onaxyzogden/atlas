@@ -45,11 +45,32 @@ no `TIER_ZERO_OBJECTIVE_IDS` change needed.
 `TIER_ZERO_OBJECTIVE_IDS`. If their mockups (below) are pulled into Phase 1, their ids must be added
 to the set as the final Phase-1 task (exactly as Phase 2 does for S2–S7). Otherwise move to Phase 3.
 
+**TRIAGE RESOLVED (2026-06-08).** Read of all three mockups + the catalogue (`ecovillage.ts:107`)
+settles the conflation: `ev-s1-provision-balance` (ref EV-S1.5, Tier-0 stratum `s1-project-foundation`)
+has exactly **6 checklist items** (c1 infra matrix / c2 food / c3 financial model / c4 entitlements /
+c5 tensions / c6 ratification) in 2 decision groups — and **`olos_communal_private_provision.html`
+is the pixel-exact match** (badged "Tier 0 — Project Foundation"; its 6 left-rail decisions map 1:1
+to c1–c6). It is the **canonical S1 source**. The other two are NOT separate S1 captures:
+`olos_communal_provision.html` is an **earlier/simpler variant of the same objective** (title
+"Communal vs. Private Provision Balance"); `olos_financial_contribution_model.html` is badged
+**"Tier 6 — Phasing & Resourcing"** and maps to **`ev-s4-financial-model`** (EV-S4.8) — a distinct
+later-tier objective, **deferred to Phase 3f**. So Phase 1 builds ONE multi-mode capture
+(`ProvisionBalanceCapture`, 6 modes) and adds `ev-s1-provision-balance` to `TIER_ZERO_OBJECTIVE_IDS`.
+
+**Amanah screen of the S1 source (`communal_private_provision.html`) — CLEAR.** Its finance copy is
+c3's five communal cost-sharing models (full income-sharing / household-contributions-to-shared-pools /
+land-equity+site-fee via CLT-co-op / sliding-scale solidarity / separate-finances-equal-split). All are
+**cost-sharing among members who collectively own the asset** — no advance-sale-of-future-yield, no CSRA,
+no salam, no riba. This is exactly the domain the operator already screened: `ecovillage.ts:28–36`
+records the **2026-05-29 "encode verbatim, no gating"** authorization for this member-contribution
+framing. Transcribe verbatim + scopeNote, no prohibited content present. The **⚠⚠ capital** panel
+(`financial_contribution_model`, buy-in/levy/reserves) is the deferred Tier-6 one, NOT built in Phase 1.
+
 | # | Mockup | Objective / item id | Arm | Action | Control primitives | Amanah |
 |---|---|---|---|---|---|---|
-| 15 | `olos_communal_private_provision.html` | `ev-s1-provision-balance` | new `ProvisionBalanceCapture` | Build | ChoiceCardGrid (communal/private split), ChipSelect | ⚠ finance |
-| 16 | `olos_communal_provision.html` | `ev-s1-provision-balance` | new `ProvisionBalanceCapture` | Build | ChoiceCardGrid, AmountRow | ⚠ finance |
-| 17 | `olos_financial_contribution_model.html` | `ev-s1-provision-balance` / `ev-s4-financial-model` | new `ProvisionBalanceCapture` / `FinancialModelCapture` | Build | AmountRow (buy-in), InterpretationBlock, Stepper | ⚠⚠ capital — **no CSRA / salam / advance-purchase framing**; permitted channels only (donation, restricted donation, qard ḥasan, in-kind, sponsorship); label "capital partners & allies" |
+| 15 | `olos_communal_private_provision.html` | `ev-s1-provision-balance` / c1–c6 | new `ProvisionBalanceCapture` (`provisionBalanceModeFor`) | **Build (Phase 1)** — canonical source, 6 modes; add id to `TIER_ZERO_OBJECTIVE_IDS` | ProvisionMatrix (C/H/P tri-toggle), ChoiceCardGrid (food/financial), entitlement register, tension-resolution cards, member-ratify register | ⚠ finance — screened CLEAR (communal cost-sharing; 2026-05-29 verbatim-no-gating) |
+| 16 | `olos_communal_provision.html` | `ev-s1-provision-balance` (earlier variant) | — | **Superseded** by row 15 (same objective, simpler draft); no separate capture | — | ⚠ finance |
+| 17 | `olos_financial_contribution_model.html` | `ev-s4-financial-model` (EV-S4.8, **Tier 6**) | new `FinancialModelCapture` | **Defer to Phase 3f** — distinct later-tier objective, NOT S1 | AmountRow (buy-in/levy), hardship EscalationLadder, reserve BarChartStrip, member-ratify | ⚠⚠ capital — **no CSRA / salam / advance-purchase framing**; permitted channels only (donation, restricted donation, qard ḥasan, in-kind, sponsorship); label "capital partners & allies"; screen at Phase 3f kickoff |
 
 ---
 
@@ -167,6 +188,7 @@ Panels carrying capital/finance or cultural copy that require explicit review pe
 ## Counts
 
 - **49** mockup files total.
-- **Phase 1 (S1):** 14 mapped + 3 boundary (`ev-s1-provision-balance` — verify tier) = **17**.
-- **Phase 3+ (S2–S7):** **25** (3a:4, 3b:2, 3c:4, 3d:7, 3e:6, 3f:3 — minus shared `DirectionCapture` dedupe).
+- **Phase 1 (S1):** 14 mapped + 1 (`ev-s1-provision-balance` via `communal_private_provision`) = **15**
+  (was 17; `communal_provision` superseded as earlier variant, `financial_contribution_model` moved to Phase 3f).
+- **Phase 3+ (S2–S7):** **26** (3a:4, 3b:2, 3c:4, 3d:7, 3e:6, 3f:4 [+`financial_contribution_model` → `FinancialModelCapture`] — minus shared `DirectionCapture` dedupe).
 - **Deferred (Plan-stage / triage):** **7** (with open triage items above).
