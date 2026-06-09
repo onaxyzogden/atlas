@@ -346,6 +346,16 @@
   color: rgba(242, 237, 227, 0.55);
 }
 
+/* Suggestion 4 -- visible confirmation that a verified field action reached
+   the land's record and will surface in Observe (loop closes visibly). */
+.observeSignal {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #8fc97a;
+}
+
 .addMoreToggle {
   display: inline-flex;
   align-items: center;

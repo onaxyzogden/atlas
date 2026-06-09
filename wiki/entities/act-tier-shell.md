@@ -2040,6 +2040,37 @@ each capture is an instance of the EcologyCapture multi-mode pattern, already
 recorded; the catchment fixed-scaffold + "decode never fabricates" decisions
 mirror the provision-balance ADR).
 
+## OLOS UI/UX trust copy: central copy module (2026-06-09)
+
+A separate concurrent session reworded every user-facing string on the v3
+Plan -> Act -> Observe surfaces into a land-stewardship mentor register and
+extracted them into a NEW central copy module **`apps/web/src/v3/copy/`**
+(barrel `index.ts` + per-surface `plan.ts` / `act.ts` / `observe.ts` /
+`shared.ts` + `__tests__/`) -- the 10 suggestions of `OLOS_UIUX_Suggestions.md`,
+theme "This Thinks The Way I Think". The module lives in **`apps/web`, NOT
+`packages/shared`** (React-surface chrome; shared stays UI-string-free): static
+strings -> frozen consts; parameterized copy -> pure store-free functions
+(`feedsFallback`, `observeSignalConfirmation`, `decisionCount`, plus Observe
+helpers). On the Act surface specifically: `DecisionWorkingPanel.tsx` consumes
+`ACT_COPY.workingPanel.*` (eyebrow "Working on", "Record this decision",
+placeholders, defer labels "Not ready -- needs more observation" /
+"Deferred -- needs observation" / "Will add later") and `ACT_COPY.divergence.*`
+(in-sheet post-divergence confirmation after `markDiverged`, no app-level toast);
+`ActTierZeroWorkbench.tsx` uses `feedsFallback(names)` for the "feeds into"
+chrome (still preferring `item.feedNote`; authored per-item content stays in
+seed). Suggestion 4 (visible Observe signal on first verified Act task) reuses
+the existing `appendObserveFeedFor` emission -- no new feed plumbing -- and
+since `FieldAction` carries no `domainId` the Act site calls
+`observeSignalConfirmation(null)`. **Seed-data boundary held:** only chrome
+templates moved; `feedsInto` / `feedHint` / `feedNote` stay in
+`packages/shared`. Verified: web `tsc` EXIT 0 (8GB heap); `DecisionWorkingPanel`
+55 + `fieldActionStore.observeWiring` 6 bounded `--pool=forks` green; preview
+**screenshot** confirmed the Act copy live. ADR
+[[decisions/2026-06-09-olos-uiux-copy-module]]; Log
+[[log/2026-06-09-olos-uiux-copy-module]]; Observe side
+[[entities/observe-dashboard]]. Amanah: pure copy reword, no finance framing
+([[fiqh-csra-erased-2026-05-04]]).
+
 > **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
 > delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
 > canonical working line, `feat/structured-capture-forms` is an ancestor.

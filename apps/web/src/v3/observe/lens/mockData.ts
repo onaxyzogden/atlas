@@ -9,6 +9,7 @@
 
 import { OBSERVE_LENSES, type ObserveLensId } from '@ogden/shared';
 import { C } from './tokens.js';
+import { OBSERVE_COPY } from '../../copy/index.js';
 import type {
   DomainDetail,
   Freshness,
@@ -810,7 +811,7 @@ export const FRESHNESS: Record<Freshness, { color: string; label: string; dot: b
   current: { color: C.green, label: 'Current', dot: true },
   ageing: { color: C.amber, label: 'Ageing', dot: true },
   stale: { color: C.red, label: 'Needs refresh', dot: true },
-  missing: { color: C.textTertiary, label: 'Not yet observed', dot: false },
+  missing: { color: C.textTertiary, label: OBSERVE_COPY.notYetRead, dot: false },
 };
 
 export const TYPE_ICON: Record<string, string> = {

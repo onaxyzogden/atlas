@@ -28,6 +28,7 @@ import {
   tryGetGeotag,
 } from '../proof/proofItemBuilder.js';
 import DivergenceTypeSelector from './DivergenceTypeSelector.js';
+import { ACT_COPY } from '../../../copy/index.js';
 import css from './Divergence.module.css';
 
 interface Props {
@@ -59,6 +60,9 @@ export default function DivergenceCaptureForm({
   const [gpsPoint, setGpsPoint] = useState<FieldActionProofItem | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Suggestion 7 — after a successful submit we hold an in-sheet confirmation
+  // (the land's account is now the permanent record) before dismissing.
+  const [submitted, setSubmitted] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const canSubmit =
@@ -142,13 +146,32 @@ export default function DivergenceCaptureForm({
       resolutionStatus: 'open',
     };
     markDiverged(projectId, action.id, flag);
-    onDone();
+    setSubmitted(true);
   };
+
+  if (submitted) {
+    return (
+      <div className={css.form} data-testid="divergence-capture-form">
+        <div className={css.confirm} data-testid="divergence-confirmation">
+          <Save size={18} strokeWidth={2} aria-hidden="true" />
+          <p className={css.confirmText}>{ACT_COPY.divergence.confirmation}</p>
+          <button
+            type="button"
+            className={css.submitBtn}
+            onClick={onDone}
+            data-testid="divergence-confirm-done"
+          >
+            {ACT_COPY.divergence.confirmCta}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={css.form} data-testid="divergence-capture-form">
       <div className={css.formHeader}>
-        <h3 className={css.formTitle}>Reality diverges from the plan</h3>
+        <h3 className={css.formTitle}>{ACT_COPY.divergence.title}</h3>
         <button
           type="button"
           className={css.cancelBtn}
@@ -156,32 +179,29 @@ export default function DivergenceCaptureForm({
           aria-label="Close divergence capture"
         >
           <X size={12} strokeWidth={2} aria-hidden="true" />
-          Close
+          {ACT_COPY.divergence.close}
         </button>
       </div>
-      <p className={css.formIntro}>
-        Divergence is field-truth, not failure. Capture what you saw so it
-        flows to Observe and the parent objective can be reviewed.
-      </p>
+      <p className={css.formIntro}>{ACT_COPY.divergence.intro}</p>
 
       <div>
-        <span className={css.fieldLabel}>What changed?</span>
+        <span className={css.fieldLabel}>{ACT_COPY.divergence.whatChanged}</span>
         <DivergenceTypeSelector value={type} onChange={setType} disabled={busy} />
       </div>
 
       <div>
-        <span className={css.fieldLabel}>Note (required)</span>
+        <span className={css.fieldLabel}>{ACT_COPY.divergence.noteLabel}</span>
         <textarea
           className={css.notesArea}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Briefly describe the divergence so a reviewer can act on it."
+          placeholder={ACT_COPY.divergence.notePlaceholder}
           data-testid="divergence-note"
         />
       </div>
 
       <div>
-        <span className={css.fieldLabel}>Photo (required)</span>
+        <span className={css.fieldLabel}>{ACT_COPY.divergence.photoLabel}</span>
         <input
           ref={fileRef}
           type="file"
@@ -224,7 +244,7 @@ export default function DivergenceCaptureForm({
       </div>
 
       <div>
-        <span className={css.fieldLabel}>Location (recommended)</span>
+        <span className={css.fieldLabel}>{ACT_COPY.divergence.locationLabel}</span>
         <div className={css.row}>
           <button
             type="button"
@@ -257,7 +277,7 @@ export default function DivergenceCaptureForm({
           data-testid="divergence-submit"
         >
           <Save size={12} strokeWidth={2} aria-hidden="true" />
-          Submit divergence
+          {ACT_COPY.divergence.submit}
         </button>
         <button
           type="button"
@@ -265,10 +285,10 @@ export default function DivergenceCaptureForm({
           onClick={onCancel}
           data-testid="divergence-cancel"
         >
-          Cancel
+          {ACT_COPY.divergence.cancel}
         </button>
         {!canSubmit && type !== null && (
-          <span className={css.hint}>Type, note, and a photo are required.</span>
+          <span className={css.hint}>{ACT_COPY.divergence.requiredHint}</span>
         )}
       </div>
     </div>

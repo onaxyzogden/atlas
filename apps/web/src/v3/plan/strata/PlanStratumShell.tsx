@@ -75,6 +75,7 @@ import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklis
 // the `--spine-*` custom properties declared in spine-theme.css, which is
 // scoped to `.olos-spine-root` so it never leaks into sibling surfaces.
 import { C, F } from '../spine/tokens.js';
+import { PLAN_COPY } from '../../copy/index.js';
 import '../spine/spine-theme.css';
 
 const HIGHLIGHT_DURATION_MS = 3000;
@@ -900,6 +901,22 @@ export default function PlanStratumShell() {
               <span>Compact ledger</span>
             </button>
           </div>
+
+          {/* Suggestion 2 - names the unlock sequence as ecological wisdom,
+              not bureaucracy, so the steward reads the gating as guidance. */}
+          <p
+            data-testid="plan-first-entry-intro"
+            style={{
+              margin: '12px 0 0',
+              paddingTop: 12,
+              borderTop: `1px solid ${C.border}`,
+              fontSize: 12,
+              lineHeight: 1.5,
+              color: C.textTertiary,
+            }}
+          >
+            {PLAN_COPY.firstEntryIntro}
+          </p>
         </div>
 
         {/* Chronic structural verdict (heavier tier -- recurs across cycles) */}

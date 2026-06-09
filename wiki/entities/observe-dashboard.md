@@ -542,6 +542,43 @@ render-DOM proof blocked by the no-network sandbox renderer hang on the Observe 
 [[decisions/2026-06-05-atlas-observe-declared-intent]],
 [[log/2026-06-05-atlas-observe-declared-intent]].
 
+## OLOS UI/UX trust copy: Observe surface reword (2026-06-09)
+
+Part of the 10-suggestion "This Thinks The Way I Think" reword that extracted
+all v3 user-facing copy into the central module **`apps/web/src/v3/copy/`** (see
+[[entities/act-tier-shell]] for the module rationale + Act side). On the Observe
+surface:
+
+- **Ecological revision banner (suggestions 9+10).** `PlanRevisionBanner.tsx`
+  dropped its local `HEADLINE` const + `formatSupportingCopy` and consumes
+  `revisionHeadline(priority, cycleTitle)` / `revisionSupporting({eventCount,
+  domains, cycleTitle})`. The copy reframes events as "readings" --
+  `critical` -> "The land is asking you to look again", `high` -> "Field
+  evidence is pulling against your plan", `informational` -> "New observations
+  since your last review". Cycle title is passed `null` (the summary carries no
+  cycle title -- suggestion 10 future-cycle echo deferred; the function no-ops
+  on null).
+- **Per-domain empty-state question (suggestion 8).** `DomainStatusCard.tsx`
+  renders `domainUnansweredQuestion(domainId)` (new `.emptyQuestion` CSS) when
+  `observationCount === 0`, else the existing `purpose`. `DOMAIN_QUESTION` is a
+  `Record<UniversalDomain,string>` exhaustive over all 16 domains
+  (compiler- + test-enforced). This is the ONE card-shaped surface with room
+  for a multi-sentence question.
+- **Compact "Not yet read" reword (suggestions 1+8).** The 5 compact label
+  cells where a full question will not fit -- `liveBundle.ts` (statusLabel
+  default + KeyDatum), `mockData.ts` (FRESHNESS missing), `components.tsx`
+  (stat-tile label + SVG ghost text) -- use the short land reword
+  `OBSERVE_COPY.notYetRead` ("Not yet read") instead of "Not yet observed".
+
+Verified via web `tsc` EXIT 0 (8GB heap) + 264 Observe/copy bounded
+`--pool=forks` tests ([[feedback-vitest-bounded-runs]]); assertions reference
+the copy-module constant, not rendered literals. The Observe dashboard could NOT
+be live-previewed (dead dev API on :3000, no project in localStorage, `/v3`
+404) -- reported honestly per CLAUDE.md, no screenshot claimed. ADR
+[[decisions/2026-06-09-olos-uiux-copy-module]]; Log
+[[log/2026-06-09-olos-uiux-copy-module]]. Amanah: pure copy reword, no finance
+framing ([[fiqh-csra-erased-2026-05-04]]).
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the

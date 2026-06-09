@@ -37,6 +37,7 @@ import DecisionWorkingPanel, {
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import { workbenchAffordancesFor } from './workbenchAffordances.js';
+import { feedsFallback } from '../../copy/index.js';
 import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
@@ -166,7 +167,6 @@ export function buildDecisionTarget(
   // for every other id.
   const isEcology = item.id.startsWith('s2-ecology-');
 
-  // The steward item carries a custom defer label (it stays deferrable -- only
   // Landscape context is a 6-item ecovillage objective
   // (ev-s2-landscape-vectors-c1..-c6); detected by id prefix. The panel's
   // isLandscape body-router arm (LandscapeContextCapture self-routes on itemId
@@ -182,6 +182,7 @@ export function buildDecisionTarget(
   // via the panel's siblingValues prop. False for every other id.
   const isCarryingCapacity = item.id.startsWith('ev-s2-carrying-capacity-');
 
+  // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
     item.id === 's1-vision-steward'
@@ -199,10 +200,9 @@ export function buildDecisionTarget(
   const feedsLabel = item.feedNote
     ? item.feedNote
     : item.feedsInto.length
-      ? 'Feeds ' +
-        item.feedsInto
-          .map((id) => findObjectiveGlobally(id)?.title ?? id)
-          .join(', ')
+      ? feedsFallback(
+          item.feedsInto.map((id) => findObjectiveGlobally(id)?.title ?? id),
+        )
       : null;
 
   return {

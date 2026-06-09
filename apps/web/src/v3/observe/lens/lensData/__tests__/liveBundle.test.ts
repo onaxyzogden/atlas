@@ -33,6 +33,7 @@ import {
   buildDeclaredIntentPoint,
   computeDomainRollups,
 } from '../liveBundle.js';
+import { OBSERVE_COPY } from '../../../../copy/index.js';
 import type { LocalProject } from '../../../../../store/projectStore.js';
 
 // Fixed baseline so freshness / ages are deterministic (matches the seed era).
@@ -348,8 +349,9 @@ describe('buildLiveLensBundle -- declaredIntent injection (vision-intent only)',
   it('surfaces "Declared" in the vision-intent keyData row when 0 real observations', () => {
     expect(humanKeyDatum(emptyWith).value).toBe('Declared');
     expect(humanKeyDatum(emptyWith).confidence).toBe('low');
-    // Without a declaration the same row honestly reads "Not yet observed".
-    expect(humanKeyDatum(emptyNull).value).toBe('Not yet observed');
+    // Without a declaration the same row honestly reads the land-vocabulary
+    // empty label ("Not yet read").
+    expect(humanKeyDatum(emptyNull).value).toBe(OBSERVE_COPY.notYetRead);
   });
 
   it('prepends the declared-intent row into the vision-intent slide-up and clears the empty note', () => {

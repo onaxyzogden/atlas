@@ -14,6 +14,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { AlertTriangle } from 'lucide-react';
 import type { ObserveFreshness, ObserveStatusOutput } from '@ogden/shared';
+import { domainUnansweredQuestion } from '../../copy/index.js';
 import type { DomainSnapshot } from './useDomainSnapshot.js';
 import css from './DomainStatusCard.module.css';
 
@@ -99,7 +100,16 @@ export default function DomainStatusCard({
           {FRESHNESS_LABEL[freshness]}
         </span>
       </div>
-      <div className={css.purpose}>{purpose}</div>
+      {/* Suggestion 8 -- an unobserved domain surfaces the question it cannot
+          yet answer (and why it matters), not a flat "no data" line. Observed
+          domains keep their standing purpose. */}
+      {observationCount === 0 ? (
+        <div className={css.emptyQuestion}>
+          {domainUnansweredQuestion(domainId)}
+        </div>
+      ) : (
+        <div className={css.purpose}>{purpose}</div>
+      )}
       <div className={css.meta}>
         <div className={css.metaLeft}>
           <span className={css.count}>

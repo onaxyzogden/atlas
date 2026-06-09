@@ -51,6 +51,7 @@ import {
   buildSpecialisedForLens,
   type SlotResolver,
 } from './specialisedBuilders.js';
+import { OBSERVE_COPY } from '../../../copy/index.js';
 import type {
   BBox,
   Confidence,
@@ -98,7 +99,7 @@ function statusLabel(s: ObserveStatusOutput | null): string {
     case 'unknown':
       return 'Unknown';
     default:
-      return 'Not yet observed';
+      return OBSERVE_COPY.notYetRead;
   }
 }
 
@@ -541,7 +542,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
       }
       return {
         label: UNIVERSAL_DOMAIN_LABELS[d],
-        value: s.observationCount > 0 ? statusLabel(s.latestStatus) : 'Not yet observed',
+        value: s.observationCount > 0 ? statusLabel(s.latestStatus) : OBSERVE_COPY.notYetRead,
         confidence: confidenceFromFreshness(s.freshness),
       };
     });

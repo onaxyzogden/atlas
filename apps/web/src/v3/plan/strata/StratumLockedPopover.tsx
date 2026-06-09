@@ -11,6 +11,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { PLAN_COPY, lockReason, prereqStatusLabel } from '../../copy/index.js';
 import css from './StratumLockedPopover.module.css';
 
 interface Props {
@@ -96,7 +97,9 @@ export default function StratumLockedPopover({
             <Lock size={14} strokeWidth={2} />
           </span>
           <div className={css.headerText}>
-            <p className={css.eyebrow}>Stratum {stratum.ordinal} locked</p>
+            <p className={css.eyebrow}>
+              Stratum {stratum.ordinal} {PLAN_COPY.lockedPopover.eyebrowSuffix}
+            </p>
             <h3 className={css.title} id="stratum-locked-title">
               {stratum.title}
             </h3>
@@ -111,15 +114,10 @@ export default function StratumLockedPopover({
           </button>
         </header>
 
-        <p className={css.body}>
-          Finish the upstream decisions below before opening this stratum.
-        </p>
+        <p className={css.body}>{lockReason(stratum.id)}</p>
 
         {unmetPrereqs.length === 0 ? (
-          <p className={css.empty}>
-            No specific prerequisites recorded. Complete the earlier strata
-            in order.
-          </p>
+          <p className={css.empty}>{PLAN_COPY.lockedPopover.emptyPrereq}</p>
         ) : (
           <ul className={css.prereqList}>
             {unmetPrereqs.map((obj) => (
@@ -128,7 +126,7 @@ export default function StratumLockedPopover({
                 <div className={css.prereqText}>
                   <span className={css.prereqTitle}>{obj.title}</span>
                   <span className={css.prereqMeta}>
-                    Status: {objectiveStatuses[obj.id] ?? 'locked'}
+                    {prereqStatusLabel(objectiveStatuses[obj.id] ?? 'locked')}
                   </span>
                 </div>
               </li>
@@ -142,7 +140,7 @@ export default function StratumLockedPopover({
             className={css.secondaryBtn}
             onClick={onDismiss}
           >
-            Not now
+            {PLAN_COPY.lockedPopover.secondaryCta}
           </button>
           <button
             type="button"
@@ -153,7 +151,9 @@ export default function StratumLockedPopover({
             }}
             disabled={!ctaTarget}
           >
-            {ctaTarget ? 'Work prerequisite →' : 'Acknowledge'}
+            {ctaTarget
+              ? `${PLAN_COPY.lockedPopover.workCta} →`
+              : PLAN_COPY.lockedPopover.acknowledgeCta}
           </button>
         </footer>
       </div>

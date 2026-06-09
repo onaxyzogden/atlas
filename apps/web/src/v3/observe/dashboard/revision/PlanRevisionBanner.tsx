@@ -21,11 +21,8 @@
 
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import {
-  UNIVERSAL_DOMAIN_LABELS,
-  type UniversalDomain,
-} from '@ogden/shared';
 import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
+import { revisionHeadline, revisionSupporting } from '../../../copy/index.js';
 import { useRevisionEvents } from './useRevisionEvents.js';
 import { usePlanRevisionDismissalStore } from '../../../../store/planRevisionDismissalStore.js';
 import css from './PlanRevisionBanner.module.css';
@@ -39,33 +36,6 @@ const PRIORITY_LABEL = {
   high: 'High',
   informational: 'Informational',
 } as const;
-
-const HEADLINE = {
-  critical: 'Plan revision required',
-  high: 'Plan revision recommended',
-  informational: 'New observations since your last review',
-} as const;
-
-function formatDomainList(domains: readonly UniversalDomain[]): string {
-  if (domains.length === 0) return '';
-  const labels = domains.map((d) => UNIVERSAL_DOMAIN_LABELS[d]);
-  if (labels.length === 1) return labels[0]!;
-  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
-  const head = labels.slice(0, -1).join(', ');
-  const tail = labels[labels.length - 1]!;
-  return `${head}, and ${tail}`;
-}
-
-function formatSupportingCopy(
-  eventCount: number,
-  domains: readonly UniversalDomain[],
-): string {
-  const eventNoun = eventCount === 1 ? 'event' : 'events';
-  if (domains.length === 0) {
-    return `${eventCount} ${eventNoun} since your last review.`;
-  }
-  return `${eventCount} ${eventNoun} across ${formatDomainList(domains)} since your last review.`;
-}
 
 export default function PlanRevisionBanner({ projectId }: Props) {
   const summary = useRevisionEvents(projectId);
@@ -129,9 +99,17 @@ export default function PlanRevisionBanner({ projectId }: Props) {
         {PRIORITY_LABEL[priority]}
       </span>
       <div className={css.body}>
-        <p className={css.headline}>{HEADLINE[priority]}</p>
+        {/* Suggestion 9 -- ecological reframe of the headline. Suggestion 10
+            (cycle-name echo) passes null here: the active cycle title is not
+            in scope at the banner boundary, so the copy no-ops gracefully
+            rather than reach across surfaces for it. */}
+        <p className={css.headline}>{revisionHeadline(priority, null)}</p>
         <p className={css.supporting}>
-          {formatSupportingCopy(summary.eventCount, summary.impactedDomains)}
+          {revisionSupporting({
+            eventCount: summary.eventCount,
+            domains: summary.impactedDomains,
+            cycleTitle: null,
+          })}
         </p>
       </div>
       <div className={css.actions}>

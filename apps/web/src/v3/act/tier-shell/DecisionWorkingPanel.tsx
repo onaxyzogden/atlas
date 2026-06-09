@@ -155,6 +155,7 @@ import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
+import { ACT_COPY } from '../../copy/index.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -728,11 +729,11 @@ export default function DecisionWorkingPanel({
   // byte-for-byte legacy copy.
   const deferLabelFor = (isDeferred: boolean): string => {
     if (decision.deferLabel) {
-      return isDeferred ? 'Will add later' : decision.deferLabel;
+      return isDeferred ? ACT_COPY.workingPanel.addLater : decision.deferLabel;
     }
     return isDeferred
-      ? 'Deferred -- needs observation'
-      : 'Not ready -- needs more observation';
+      ? ACT_COPY.workingPanel.deferDeferred
+      : ACT_COPY.workingPanel.deferActive;
   };
 
   return (
@@ -740,18 +741,18 @@ export default function DecisionWorkingPanel({
       {/* ---------- Header ---------- */}
       <div className={css.header}>
         <div className={css.eyebrowRow}>
-          <span className={css.eyebrow}>Working on</span>
+          <span className={css.eyebrow}>{ACT_COPY.workingPanel.workingOn}</span>
           {recorded ? (
             <span className={css.recordedBadge}>
               <Check size={12} />
-              Recorded
+              {ACT_COPY.workingPanel.recorded}
             </span>
           ) : null}
         </div>
         <div className={css.title}>
           {decision.label}
           {decision.optional ? (
-            <span className={css.optBadge}>optional</span>
+            <span className={css.optBadge}>{ACT_COPY.decisionList.optional}</span>
           ) : null}
         </div>
         {decision.prompt ? (
@@ -898,7 +899,7 @@ export default function DecisionWorkingPanel({
             className={css.fallbackTextarea}
             aria-label={decision.label}
             value={asString(draft.text)}
-            placeholder="Capture this decision in your own words."
+            placeholder={ACT_COPY.workingPanel.decisionPlaceholder}
             onChange={(e) =>
               setDraft((d) => ({ ...d, text: e.target.value }))
             }
@@ -917,14 +918,14 @@ export default function DecisionWorkingPanel({
 
         <div className={css.ratBlock}>
           <div className={css.secLbl}>
-            <span>Why these?</span>
-            <span className={css.secOptional}>(optional)</span>
+            <span>{ACT_COPY.workingPanel.whyThese}</span>
+            <span className={css.secOptional}>{ACT_COPY.workingPanel.whyTheseOptional}</span>
           </div>
           <textarea
             className={css.ratTa}
             aria-label="Rationale"
             value={rationaleDraft}
-            placeholder="What evidence or reasoning shapes this set? (optional)"
+            placeholder={ACT_COPY.workingPanel.rationalePlaceholder}
             onChange={(e) => setRationaleDraft(e.target.value)}
             onBlur={() => onSaveRationale(rationaleDraft)}
           />
@@ -941,7 +942,7 @@ export default function DecisionWorkingPanel({
             onClick={handleRecord}
           >
             <Check size={15} />
-            Record this decision
+            {ACT_COPY.workingPanel.recordButton}
           </button>
           {decision.deferrable === false ? null : (
             <button

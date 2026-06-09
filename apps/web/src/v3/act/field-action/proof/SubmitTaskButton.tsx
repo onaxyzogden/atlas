@@ -13,6 +13,7 @@ import { CheckCircle2, Send } from 'lucide-react';
 import type { FieldAction } from '@ogden/shared';
 import { getProofSchema } from '@ogden/shared';
 import { useFieldActionStore } from '../../../../store/fieldActionStore.js';
+import { observeSignalConfirmation } from '../../../copy/index.js';
 import css from './ProofCapture.module.css';
 
 interface Props {
@@ -85,6 +86,15 @@ export default function SubmitTaskButton({ projectId, action }: Props) {
       {allProofFilled && !isSelf && action.status === 'submitted' && (
         <p className={css.submitHint}>
           Submitted — a verifier will confirm the proof.
+        </p>
+      )}
+      {/* Suggestion 4 -- the loop closes visibly: a verified field action now
+          lives in the land's record and will surface in Observe. Domain-keyed
+          routing is deferred (FieldAction has no domainId yet), so the generic
+          land-record confirmation is shown. */}
+      {verified && (
+        <p className={css.observeSignal} data-testid="act-task-observe-signal">
+          {observeSignalConfirmation(null)}
         </p>
       )}
     </div>

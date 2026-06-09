@@ -10,6 +10,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ObserveLensId } from '@ogden/shared';
 import { C, F } from './tokens.js';
+import { OBSERVE_COPY } from '../../copy/index.js';
 import { useLensData } from './lensData/LensDataContext.js';
 import type {
   ClimateData,
@@ -258,7 +259,7 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
       <div style={{ padding: '12px 12px 0' }}>
         <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Land State · {PROJECT.name}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
-          {[{ label: 'Total observations', value: PROJECT.totalDataPoints, color: C.textPrimary }, { label: 'Domains current', value: PROJECT.domainsCurrentCount, color: C.green }, { label: 'Ageing / stale', value: PROJECT.domainsAgeingCount, color: C.amber }, { label: 'Not yet observed', value: PROJECT.domainsMissingCount, color: C.textTertiary }].map((stat) => (
+          {[{ label: 'Total observations', value: PROJECT.totalDataPoints, color: C.textPrimary }, { label: 'Domains current', value: PROJECT.domainsCurrentCount, color: C.green }, { label: 'Ageing / stale', value: PROJECT.domainsAgeingCount, color: C.amber }, { label: OBSERVE_COPY.notYetRead, value: PROJECT.domainsMissingCount, color: C.textTertiary }].map((stat) => (
             <div key={stat.label} style={{ background: C.bg3, borderRadius: 7, padding: '8px 10px', border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: stat.color, fontFamily: F.mono }}>{stat.value}</div>
               <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 2, fontFamily: F.sans }}>{stat.label}</div>
@@ -766,7 +767,7 @@ function DomainMiniMap({ lensId, lens, focusId }: { lensId: ObserveLensId; lens:
           <line x1="30" y1="130" x2="330" y2="130" stroke={C.teal + '15'} strokeWidth="1" strokeDasharray="8 4" />
           <rect x="80" y="80" width="60" height="40" rx="2" fill="none" stroke={C.teal + '20'} strokeWidth="1" strokeDasharray="3 2" />
           <rect x="200" y="160" width="50" height="35" rx="2" fill="none" stroke={C.teal + '20'} strokeWidth="1" strokeDasharray="3 2" />
-          <text x="180" y="135" textAnchor="middle" fontSize="9" fill={C.textTertiary + '60'} fontFamily={F.mono}>not yet observed</text>
+          <text x="180" y="135" textAnchor="middle" fontSize="9" fill={C.textTertiary + '60'} fontFamily={F.mono}>{OBSERVE_COPY.notYetRead.toLowerCase()}</text>
         </>
       )}
 

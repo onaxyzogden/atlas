@@ -12,6 +12,7 @@
 import { useEffect, useRef } from 'react';
 import { ArrowRight, Sparkles, X } from 'lucide-react';
 import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
+import { PLAN_COPY, unlockSurveyLine } from '../../copy/index.js';
 import css from './StratumUnlockCelebration.module.css';
 
 interface Props {
@@ -68,7 +69,9 @@ export default function StratumUnlockCelebration({
           <Sparkles size={22} />
         </div>
 
-        <p className={css.eyebrow}>Stratum {stratum.ordinal} unlocked</p>
+        <p className={css.eyebrow}>
+          Stratum {stratum.ordinal} {PLAN_COPY.unlockCelebration.eyebrowSuffix}
+        </p>
         <h2 className={css.title} id="stratum-unlock-title">
           {stratum.title}
         </h2>
@@ -76,7 +79,7 @@ export default function StratumUnlockCelebration({
 
         {firstObjective ? (
           <div className={css.objectiveBlock}>
-            <p className={css.objectiveEyebrow}>Start with</p>
+            <p className={css.objectiveEyebrow}>{PLAN_COPY.unlockCelebration.startWith}</p>
             <p className={css.objectiveTitle}>{firstObjective.title}</p>
             <p className={css.objectiveQuestion}>
               {firstObjective.focusedQuestion}
@@ -84,12 +87,18 @@ export default function StratumUnlockCelebration({
           </div>
         ) : (
           <div className={css.objectiveBlock}>
-            <p className={css.objectiveEyebrow}>This stratum has no objectives seeded yet</p>
             <p className={css.objectiveQuestion}>
-              Open the stratum to review what is planned.
+              {PLAN_COPY.unlockCelebration.empty}
             </p>
           </div>
         )}
+
+        <p className={css.survey}>
+          <span className={css.surveyLead}>
+            {PLAN_COPY.unlockCelebration.surveyLead}:
+          </span>{' '}
+          {unlockSurveyLine()}
+        </p>
 
         <div className={css.actions}>
           <button

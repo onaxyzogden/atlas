@@ -135,6 +135,18 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
 }
 
+.survey {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.surveyLead {
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
 .actions {
   display: flex;
   align-items: center;

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
+import { ACT_COPY, decisionCount, feedsFallback } from '../../copy/index.js';
 import css from './DecisionList.module.css';
 
 export interface DecisionListProps {
@@ -112,7 +113,6 @@ const MODE_LABELS: Record<string, string> = {
   corridors: 'Map',
   connectivity: 'Assessment',
   waterHabitat: 'Map',
-};
   // Landscape & vectors modes (EV-S2.7).
   landUse: 'Map',
   sprayRisk: 'Risk survey',
@@ -120,6 +120,15 @@ const MODE_LABELS: Record<string, string> = {
   community: 'Contact entry',
   disputes: 'Document',
   catchment: 'Risk survey',
+  // Carrying capacity modes (EV-S2.x). Resource ceilings + synthesis + gate.
+  water: 'Water demand',
+  food: 'Food production',
+  waste: 'Waste & nutrients',
+  energy: 'Energy systems',
+  space: 'Site space',
+  synthesis: 'Capacity synthesis',
+  gate: 'Capacity gate',
+};
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
 // live boundary surface). Modes with no entry render a text-only badge
@@ -148,7 +157,7 @@ export default function DecisionList({
     <div className={css.root}>
       {/* ---------- Center header ---------- */}
       <div className={css.ch}>
-        <div className={css.chEyebrow}>Active decision</div>
+        <div className={css.chEyebrow}>{ACT_COPY.decisionList.activeDecision}</div>
         <div className={css.chTitle}>{objective.title}</div>
         {objective.focusedQuestion ? (
           <div className={css.chQ}>{objective.focusedQuestion}</div>
@@ -157,10 +166,8 @@ export default function DecisionList({
 
       {/* ---------- Decisions label + count ---------- */}
       <div className={css.decLabel}>
-        <span>Your Decisions</span>
-        <span className={css.decCount}>
-          {doneCount} / {total} decisions made
-        </span>
+        <span>{ACT_COPY.decisionList.yourDecisions}</span>
+        <span className={css.decCount}>{decisionCount(doneCount, total)}</span>
       </div>
 
       {/* ---------- Decision rows ---------- */}
@@ -226,7 +233,7 @@ export default function DecisionList({
                     <div className={css.dTxt}>
                       {item.label}
                       {item.optional ? (
-                        <span className={css.dOptBadge}>optional</span>
+                        <span className={css.dOptBadge}>{ACT_COPY.decisionList.optional}</span>
                       ) : null}
                       {modeLabel ? (
                         <span
@@ -251,7 +258,7 @@ export default function DecisionList({
                     ) : feedNames.length > 0 ? (
                       <div className={css.dFeed}>
                         <ArrowRight size={11} className={css.dFeedIcon} />
-                        <span>Feeds {feedNames.join(', ')}</span>
+                        <span>{feedsFallback(feedNames)}</span>
                       </div>
                     ) : null}
                   </div>
@@ -265,7 +272,7 @@ export default function DecisionList({
       {/* ---------- Completion gate ---------- */}
       {objective.completionGate ? (
         <div className={css.cgate}>
-          <div className={css.cgateLbl}>Completion gate</div>
+          <div className={css.cgateLbl}>{ACT_COPY.decisionList.completionGate}</div>
           <div className={css.cgateTxt}>{objective.completionGate}</div>
         </div>
       ) : null}

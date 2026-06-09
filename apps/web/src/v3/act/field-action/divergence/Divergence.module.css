@@ -61,6 +61,24 @@
   line-height: 1.5;
 }
 
+/* Suggestion 7 -- post-submit confirmation: the land's account is the record. */
+.confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 8px 8px;
+  text-align: center;
+  color: #e8a958;
+}
+
+.confirmText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(242, 237, 227, 0.85);
+}
+
 .fieldLabel {
   font-size: 10px;
   font-weight: 700;
