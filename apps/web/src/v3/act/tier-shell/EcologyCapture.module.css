@@ -1,0 +1,718 @@
+/* EcologyCapture.module.css
+ *
+ * Styles for the 5-mode ecology/habitat capture (vegetation / species /
+ * corridors / connectivity / waterHabitat). Ported from
+ * olos_ecology_habitat.html p1..p5. Token vocabulary mirrors
+ * ClimateCapture.module.css / TerrainCapture.module.css. ASCII-only; every
+ * glyph is a lucide icon. No bare hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  (--am)  -> --color-stage-act (#d9a036)
+ *   blue   (--bl)  -> --color-info       (#5b8eaf)
+ *   green  (--gn)  -> --color-success     (#6b8f6b)
+ *   red    (--rd)  -> --color-error       (#c4493a)
+ *   sage / pine / teal accents -> nearest of success / info (no parallel tokens)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared section label ---------- */
+
+.secLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.secOptional {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ---------- Shared textarea ---------- */
+
+.textarea {
+  width: 100%;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  resize: none;
+  min-height: 52px;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color 130ms ease;
+}
+
+.textarea:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared divider (species register split) ---------- */
+
+.fdiv {
+  height: 1px;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  margin: 2px 0;
+}
+
+/* ---------- Shared empty-state ---------- */
+
+.spEmpty {
+  padding: 14px 0;
+  text-align: center;
+  color: var(--color-text-muted, #565c63);
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ===================================================================== */
+/* VEGETATION (p1) -- community-type toggle list with % of site          */
+/* ===================================================================== */
+
+.vegList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vegRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.vegRow[data-on='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 10%, transparent);
+}
+
+.vegToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.vegChk {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  flex-shrink: 0;
+  background: var(--color-surface, #f5f1e8);
+  position: relative;
+}
+
+.vegRow[data-on='true'] .vegChk,
+.vegToggle[data-on='true'] .vegChk,
+.noneAffirm[data-on='true'] .vegChk {
+  background: var(--color-success, #6b8f6b);
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.vegRow[data-on='true'] .vegChk::after,
+.vegToggle[data-on='true'] .vegChk::after,
+.noneAffirm[data-on='true'] .vegChk::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 3px;
+  height: 6px;
+  border: solid var(--color-surface, #f5f1e8);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.vegName {
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  line-height: 1.3;
+}
+
+.vegRow[data-on='true'] .vegName {
+  color: var(--color-success, #6b8f6b);
+}
+
+.vegPct {
+  width: 48px;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 5px 6px;
+  font-size: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  text-align: right;
+  transition: border-color 120ms ease, opacity 120ms ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.vegPct:focus {
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.vegPct:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.vegUnit {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  flex-shrink: 0;
+}
+
+/* ===================================================================== */
+/* SHARED SELECTION CHIPS (corridors p3)                                 */
+/* ===================================================================== */
+
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.selChip {
+  padding: 5px 9px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.selChip:hover {
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.selChip[data-on='true'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  border-color: var(--color-success, #6b8f6b);
+  color: var(--color-success, #6b8f6b);
+}
+
+.selChip[data-on='true'][data-nesting='true'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  border-color: var(--color-info, #5b8eaf);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ===================================================================== */
+/* SPECIES (p2) -- native register + invasive weed register              */
+/* ===================================================================== */
+
+.speciesRegister {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.spName {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.spSci {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text, #1b1e22);
+  line-height: 1.3;
+}
+
+.spCommon {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.spType {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.spType[data-kind='tree'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.spType[data-kind='shrub'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  color: color-mix(in srgb, var(--color-success, #6b8f6b) 85%, var(--color-info, #5b8eaf));
+}
+.spType[data-kind='grass'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+.spType[data-kind='ground'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+.spAbund {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.spDel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 5px);
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.spDel:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+.invList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invRow {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+}
+
+.invHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.invName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.invSci {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+  flex: 1;
+  min-width: 0;
+}
+
+.invPriority {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.invPriority[data-priority='high'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+.invPriority[data-priority='mod'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+.invPriority[data-priority='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.invDist {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+/* ---------- Add register button (shared species/water) ---------- */
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  background: transparent;
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.addBtn:hover {
+  border-color: var(--color-success, #6b8f6b);
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 8%, transparent);
+}
+
+/* ---------- Add form (shared species/water) ---------- */
+
+.addForm {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-stage-act, #d9a036);
+  border-radius: var(--radius-md, 8px);
+  padding: 11px;
+  margin-top: 4px;
+}
+
+.afLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.afLbl:first-child {
+  margin-top: 0;
+}
+
+.afInput,
+.afSelect {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.afSelect {
+  cursor: pointer;
+}
+
+.afInput:focus,
+.afSelect:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.afInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.afGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.afRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.afAdd {
+  padding: 7px 14px;
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 40%, transparent);
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+  cursor: pointer;
+}
+
+.afCancel {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+}
+
+/* ===================================================================== */
+/* CONNECTIVITY (p4) -- 4-card single-select assessment                  */
+/* ===================================================================== */
+
+.connCards {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.connCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 130ms ease, background 130ms ease;
+}
+
+.connCard:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.connDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: var(--color-text-muted, #565c63);
+}
+
+.connCard[data-tone='sg'] .connDot {
+  background: var(--color-success, #6b8f6b);
+}
+.connCard[data-tone='st'] .connDot {
+  background: var(--color-info, #5b8eaf);
+}
+.connCard[data-tone='sa'] .connDot {
+  background: var(--color-stage-act, #d9a036);
+}
+.connCard[data-tone='sr'] .connDot {
+  background: var(--color-error, #c4493a);
+}
+
+.connCard[data-tone='sg'][data-on='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+}
+.connCard[data-tone='st'][data-on='true'] {
+  border-color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+}
+.connCard[data-tone='sa'][data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+.connCard[data-tone='sr'][data-on='true'] {
+  border-color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+.connBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.connTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.connCard[data-tone='sg'][data-on='true'] .connTitle {
+  color: var(--color-success, #6b8f6b);
+}
+.connCard[data-tone='st'][data-on='true'] .connTitle {
+  color: var(--color-info, #5b8eaf);
+}
+.connCard[data-tone='sa'][data-on='true'] .connTitle {
+  color: var(--color-stage-act, #d9a036);
+}
+.connCard[data-tone='sr'][data-on='true'] .connTitle {
+  color: var(--color-error, #c4493a);
+}
+
+.connDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+}
+
+.connImpl {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--color-surface, #f5f1e8);
+  border-radius: var(--radius-sm, 5px);
+  font-style: italic;
+}
+
+/* ===================================================================== */
+/* WATER HABITAT (p5) -- water-dependent area register + none affirm     */
+/* ===================================================================== */
+
+.waterList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.waterRow {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+}
+
+.waterHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.waterType {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+.waterName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+.waterDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.noneAffirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.noneAffirm[data-on='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  color: var(--color-success, #6b8f6b);
+}

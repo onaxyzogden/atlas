@@ -106,6 +106,12 @@ const MODE_LABELS: Record<string, string> = {
   solar: 'Map',
   fire: 'Risk survey',
   microclimate: 'Field survey',
+  // Ecology modes (U-S2.3).
+  vegetation: 'Vegetation survey',
+  species: 'Species survey',
+  corridors: 'Map',
+  connectivity: 'Assessment',
+  waterHabitat: 'Map',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

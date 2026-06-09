@@ -127,6 +127,15 @@ import {
   type ClimateModel,
 } from './ClimateCapture.js';
 import {
+  EcologyCapture,
+  ecologyModeFor,
+  decodeEcology,
+  isEcologyValid,
+  summariseEcology,
+  type EcologyMode,
+  type EcologyModel,
+} from './EcologyCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -174,6 +183,8 @@ export interface DecisionPanelTarget {
   isTerrain?: boolean;
   /** true => render ClimateCapture (self-routing on itemId via climateModeFor). */
   isClimate?: boolean;
+  /** true => render EcologyCapture (self-routing on itemId via ecologyModeFor). */
+  isEcology?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -408,6 +419,16 @@ export default function DecisionWorkingPanel({
     ? decodeClimate(climateMode, draft)
     : null;
 
+  // Ecology is a 5-mode capture (vegetation/species/corridors/connectivity/
+  // waterHabitat) routed by ecologyModeFor(itemId). Decode once for validity,
+  // the gate note, the record summary, and the body renderer (mirrors climate).
+  const ecologyMode: EcologyMode | null = decision.isEcology
+    ? ecologyModeFor(decision.itemId)
+    : null;
+  const ecologyModel: EcologyModel | null = ecologyMode
+    ? decodeEcology(ecologyMode, draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -442,6 +463,8 @@ export default function DecisionWorkingPanel({
     valid = isTerrainValid(terrainModel!);
   } else if (climateMode) {
     valid = isClimateValid(climateModel!);
+  } else if (ecologyMode) {
+    valid = isEcologyValid(ecologyModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -559,6 +582,18 @@ export default function DecisionWorkingPanel({
                 ? 'Add at least one landform feature to record'
                 : 'Choose a risk level, or flag mass movement, to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (ecologyMode) {
+      const note =
+        ecologyMode === 'vegetation'
+          ? 'Record at least one community type to record'
+          : ecologyMode === 'species'
+            ? 'Add at least one native or invasive species to record'
+            : ecologyMode === 'corridors'
+              ? 'Select at least one corridor or nesting feature to record'
+              : ecologyMode === 'connectivity'
+                ? 'Choose a connectivity classification to record'
+                : 'Add a water-dependent area, or affirm none present, to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -596,6 +631,8 @@ export default function DecisionWorkingPanel({
       summary = summariseTerrain(terrainModel!);
     } else if (climateMode) {
       summary = summariseClimate(climateModel!);
+    } else if (ecologyMode) {
+      summary = summariseEcology(ecologyModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -742,6 +779,13 @@ export default function DecisionWorkingPanel({
           <ClimateCapture
             key={decision.itemId}
             mode={climateMode}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : ecologyMode ? (
+          <EcologyCapture
+            key={decision.itemId}
+            mode={ecologyMode}
             value={draft}
             onChange={setDraft}
           />

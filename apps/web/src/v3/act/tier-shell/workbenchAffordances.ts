@@ -22,6 +22,7 @@ import { stakeholderModeFor } from './StakeholderCapture.js';
 import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
 import { terrainModeFor } from './TerrainCapture.js';
 import { climateModeFor } from './ClimateCapture.js';
+import { ecologyModeFor } from './EcologyCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -114,6 +115,16 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     showGroups: true,
     modeFor: (itemId) =>
       itemId.startsWith('s2-climate-') ? climateModeFor(itemId) : null,
+  },
+  // S2 ecology: 5 items, 2 decision groups (showGroups true), no map/register
+  // strips. modeFor returns the raw EcologyMode key, which DecisionList maps to
+  // its badge label via MODE_LABELS.
+  's2-ecology': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('s2-ecology-') ? ecologyModeFor(itemId) : null,
   },
 };
 
