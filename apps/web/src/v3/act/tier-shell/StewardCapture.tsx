@@ -26,7 +26,7 @@
  * made; invites are sent only when the decision is recorded (later task).
  */
 import * as React from 'react';
-import { Lock, Plus, Send, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, Plus, Send, Trash2 } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
 import type { QueuedTeamInvite } from '@ogden/shared';
 import { useAuthStore } from '../../../store/authStore.js';
@@ -271,6 +271,9 @@ export default function StewardCapture({
   const [selectedRole, setSelectedRole] = React.useState<StewardRole>(
     'team_member',
   );
+  // UI-only accordion state for the invite form -- presentation only, does NOT
+  // affect the persisted FormValue. Default COLLAPSED (matches the mockup).
+  const [inviteOpen, setInviteOpen] = React.useState(false);
 
   const emit = (next: StewardModel) => onChange(encodeSteward(next));
 
@@ -437,8 +440,29 @@ export default function StewardCapture({
           ))}
         </div>
 
-        {/* INVITE FORM */}
-        <div className={css.inviteForm}>
+        {/* INVITE FORM (collapsible accordion -- default collapsed) */}
+        <div className={css.inviteForm} data-open={inviteOpen ? 'true' : 'false'}>
+          <button
+            type="button"
+            className={css.inviteTrigger}
+            data-testid="invite-trigger"
+            aria-expanded={inviteOpen}
+            onClick={() => setInviteOpen((o) => !o)}
+          >
+            <span className={css.inviteTriggerChevron} aria-hidden="true">
+              {inviteOpen ? (
+                <ChevronDown size={14} />
+              ) : (
+                <ChevronRight size={14} />
+              )}
+            </span>
+            <span className={css.inviteTriggerText}>
+              Invite someone to this project
+            </span>
+          </button>
+
+          {inviteOpen ? (
+            <div className={css.inviteFields} data-testid="invite-fields">
           <div className={css.fieldLabel}>Name</div>
           <input
             type="text"
@@ -499,6 +523,8 @@ export default function StewardCapture({
           <div className={css.inviteFootnote}>
             Invite sent when you record this decision
           </div>
+            </div>
+          ) : null}
         </div>
       </div>
 

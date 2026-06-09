@@ -332,9 +332,39 @@ describe('StewardCapture -- team list', () => {
 // Invite form gating + emit
 // --------------------------------------------------------------------------
 
+/** The invite form is a collapsed accordion by default -- open it first. */
+function openInvite() {
+  fireEvent.click(screen.getByTestId('invite-trigger'));
+}
+
 describe('StewardCapture -- invite form', () => {
+  it('the invite fields are collapsed by default and the trigger has the verbatim label', () => {
+    render(<ControlledCapture />);
+    // Fields hidden initially.
+    expect(screen.queryByTestId('invite-fields')).toBeNull();
+    expect(screen.queryByTestId('invite-name')).toBeNull();
+    expect(screen.queryByTestId('invite-email')).toBeNull();
+    // Trigger carries the verbatim label.
+    const trigger = screen.getByTestId('invite-trigger');
+    expect(trigger.textContent).toContain('Invite someone to this project');
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('clicking the trigger reveals the Name and Email inputs', () => {
+    render(<ControlledCapture />);
+    expect(screen.queryByTestId('invite-name')).toBeNull();
+    openInvite();
+    expect(screen.getByTestId('invite-fields')).toBeTruthy();
+    expect(screen.getByTestId('invite-name')).toBeTruthy();
+    expect(screen.getByTestId('invite-email')).toBeTruthy();
+    expect(
+      screen.getByTestId('invite-trigger').getAttribute('aria-expanded'),
+    ).toBe('true');
+  });
+
   it('Queue is disabled until name && email-with-"@"', () => {
     render(<ControlledCapture />);
+    openInvite();
     const queue = screen.getByTestId('invite-submit') as HTMLButtonElement;
     expect(queue.disabled).toBe(true);
 
@@ -357,6 +387,7 @@ describe('StewardCapture -- invite form', () => {
   it('typing name/email does NOT call onChange', () => {
     const onChange = vi.fn();
     render(<ControlledCapture onChange={onChange} />);
+    openInvite();
     fireEvent.change(screen.getByTestId('invite-name'), {
       target: { value: 'Amina' },
     });
@@ -368,6 +399,7 @@ describe('StewardCapture -- invite form', () => {
 
   it('selecting a role updates the role-hint text', () => {
     render(<ControlledCapture />);
+    openInvite();
     const before = screen.getByTestId('role-hint').textContent;
     fireEvent.click(screen.getByTestId('invite-role-contractor'));
     const after = screen.getByTestId('role-hint').textContent;
@@ -378,6 +410,7 @@ describe('StewardCapture -- invite form', () => {
   it('Queue calls onChange ONCE with the row appended to all three arrays', () => {
     const onChange = vi.fn();
     render(<ControlledCapture onChange={onChange} />);
+    openInvite();
 
     fireEvent.click(screen.getByTestId('invite-role-contractor'));
     fireEvent.change(screen.getByTestId('invite-name'), {

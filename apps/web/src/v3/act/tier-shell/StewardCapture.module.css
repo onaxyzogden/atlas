@@ -346,6 +346,55 @@
   background: var(--color-surface-alt, #1e1e1a);
   border: 1px solid var(--color-border-subtle, #353530);
   border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.inviteForm[data-open='true'] {
+  border-color: var(--color-warning, #d4944a);
+}
+
+/* Accordion trigger -- always visible; toggles the fields. */
+.inviteTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 130ms ease;
+}
+
+.inviteTrigger:hover {
+  background: var(--color-surface-raised, #252520);
+}
+
+.inviteTriggerChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-subtle, #4a4845);
+  transition: color 130ms ease;
+}
+
+.inviteForm[data-open='true'] .inviteTriggerChevron {
+  color: var(--color-warning, #d4944a);
+}
+
+.inviteTriggerText {
+  font-size: 12px;
+  color: var(--color-text-muted, #8a8680);
+}
+
+.inviteForm[data-open='true'] .inviteTriggerText {
+  color: var(--color-warning, #d4944a);
+}
+
+.inviteFields {
   padding: 0 12px 12px;
 }
 
