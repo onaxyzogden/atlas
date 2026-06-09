@@ -21,6 +21,7 @@ import css from "./ComponentsDebugPage.module.css";
 import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from "../act/tier-shell/DecisionWorkingPanel.js";
+import type { FormValue } from "../act/tier-shell/actToolCatalog.js";
 
 const STAGES = ["home", "discover", "diagnose", "design", "prove", "build", "operate", "report"] as const;
 
@@ -129,6 +130,21 @@ const COMPASS_DEMO_VIEWS: ObjectiveView[] = [
     progress: { verified: 0, total: 3, pct: 0 },
   },
 ];
+
+// Seeded c1..c5 siblings for the carrying-capacity synthesis (c6) and gate (c7)
+// demos. These mirror the capture's DEF mockup fallbacks, so the synthesis
+// recomputes a real binding constraint: intended population (8 hh x 2.5 =
+// 20 people) EXCEEDS the food-production ceiling (~17), which surfaces the
+// over-capacity warning + the Stratum-1 escalation rule and disables the
+// gate's "confirm" pathway. Keyed by sibling item id (prefix-c1..c5); field
+// keys match decodeCarryingCapacity for each mode.
+const CARRYING_DEMO_SIBLINGS: Record<string, FormValue> = {
+  "ev-s2-carrying-capacity-c1": { hh: "8", pph: "2.5", wDom: "80", wIrr: "1200", wLive: "400", wSupply: "5000" },
+  "ev-s2-carrying-capacity-c2": { hh: "8", pph: "2.5", fArea: "20000", fExtern: "30", ccFoodIntensity: "450" },
+  "ev-s2-carrying-capacity-c3": { hh: "8", pph: "2.5", nComp: "25" },
+  "ev-s2-carrying-capacity-c4": { hh: "8", pph: "2.5", eDemand: "8", eSolar: "20" },
+  "ev-s2-carrying-capacity-c5": { hh: "8", pph: "2.5", spaceTotalHa: "45", sWild: "27", sFood: "4", sComm: "0.5", sHh: "0.5" },
+};
 
 export default function ComponentsDebugPage() {
   return (
@@ -742,6 +758,82 @@ export default function ComponentsDebugPage() {
             resolveOptions={() => []}
             successCriteriaOptions={[]}
             initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      {/* Phase 3b -- Carrying capacity (ev-s2-carrying-capacity): a 7-mode
+          capture. c1 (water) shows the population anchor + a domain input mode;
+          c6 (synthesis) and c7 (gate) read seeded c1..c5 siblings so the
+          binding-constraint ceiling, over-capacity warning, escalation rule,
+          and gate pathway gating all render without a live store. */}
+      <Section title="Decision Working Panel - Carrying capacity: water (ev-s2-carrying-capacity c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-carrying-capacity-c1",
+              label: "Establish the population anchor and water ceiling",
+              prompt: "Set the intended households and people-per-household, then the water budget. The anchor (hh x pph) flows to every other domain.",
+              isCarryingCapacity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Carrying capacity: synthesis (ev-s2-carrying-capacity c6, seeded over-capacity)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-carrying-capacity-c6",
+              label: "Synthesise the binding constraint across all five domains",
+              prompt: "OLOS recomputes each domain ceiling from c1..c5 and reports the lowest as the binding constraint.",
+              isCarryingCapacity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            siblingValues={CARRYING_DEMO_SIBLINGS}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Carrying capacity: gate (ev-s2-carrying-capacity c7, confirm disabled)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-carrying-capacity-c7",
+              label: "Choose a pathway given the carrying-capacity verdict",
+              prompt: "When intended population exceeds capacity, the confirm pathway is gated -- defer or redesign only.",
+              isCarryingCapacity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            siblingValues={CARRYING_DEMO_SIBLINGS}
             initialRationale=""
             deferred={false}
             recorded={false}
