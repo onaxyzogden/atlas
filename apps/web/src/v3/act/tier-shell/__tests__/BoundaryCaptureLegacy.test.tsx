@@ -393,6 +393,37 @@ describe('BoundaryCapture -- mapEntry mode (c3)', () => {
     const btn = screen.getByTestId('open-map') as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
   });
+
+  it('mapEntry renders BOTH the map mock AND the entry-list that plain map does not', () => {
+    // The dedicated mapEntry branch (c3 -> EasementBody) renders the map mock
+    // (open-map) PLUS the easement entry-list affordance (easement-add). The
+    // plain map branch (c2 -> MapBody) renders the map mock but NO entry list.
+    const { unmount } = render(
+      <BoundaryCapture
+        itemId="s1-boundaries-c3"
+        value={{}}
+        onChange={vi.fn()}
+        resolveOptions={resolveOptions}
+      />,
+    );
+    // map mock present in mapEntry
+    expect(screen.getByTestId('open-map')).toBeTruthy();
+    // entry-list affordance present in mapEntry
+    expect(screen.getByTestId('easement-add')).toBeTruthy();
+    unmount();
+
+    // Plain map mode (c2): map mock present, entry-list ABSENT.
+    render(
+      <BoundaryCapture
+        itemId="s1-boundaries-c2"
+        value={{}}
+        onChange={vi.fn()}
+        resolveOptions={resolveOptions}
+      />,
+    );
+    expect(screen.getByTestId('open-map')).toBeTruthy();
+    expect(screen.queryByTestId('easement-add')).toBeNull();
+  });
 });
 
 // --------------------------------------------------------------------------
