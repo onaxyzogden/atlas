@@ -122,8 +122,7 @@ import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
 import { decodeSteward, stewardInvitesToQueued } from './StewardCapture.js';
-import { FORAGE_PREFIX, decodeForage } from './ForageCapture.js';
-import { diffForagePaddocks } from './forageZoneSync.js';
+import { FORAGE_PREFIX, planForagePaddockReconcile } from './ForageCapture.js';
 import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
@@ -708,24 +707,13 @@ export default function ActTierShell() {
           useActEvidenceStore.getState().visionFormData[id]?.[
             `${FORAGE_PREFIX}-c1`
           ] ?? {};
-        const model = decodeForage('zones', c1);
-        const zones = model.zones.map((z) => ({
-          id: z.id,
-          name: z.name,
-          areaHa: z.areaHa,
-          forageType: z.forageType || undefined,
-          // conditionClass intentionally left undefined: ForageZoneInput.condition
-          // is only a grade (good/fair/poor), not a full ConditionClass; it is
-          // cosmetic (paddock notes) and must not fabricate an invalid class key.
-        }));
         const existing = useLivestockStore
           .getState()
           .paddocks.filter((p) => p.projectId === id);
-        const { upserts, deleteIds } = diffForagePaddocks(
-          zones,
+        const { upserts, deleteIds } = planForagePaddockReconcile(
+          c1,
           existing,
           id,
-          model.candidateSpecies,
         );
         const ls = useLivestockStore.getState();
         deleteIds.forEach((d) => ls.deletePaddock(d));

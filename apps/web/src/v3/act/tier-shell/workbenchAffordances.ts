@@ -154,8 +154,9 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
   },
   // S3 forage / pasture survey (silvopasture): 5 items, grouped (showGroups
   // true); no map/register strips. modeFor returns the raw ForageMode key
-  // (zones / seasonal / capacity / constraints / toxic), mapped to a badge by
-  // DecisionList MODE_LABELS.
+  // (zones / seasonal / capacity / constraints / toxic). DecisionList's
+  // MODE_LABELS has no forage entries yet, so the badge falls back to the raw
+  // mode key (MODE_LABELS[rawMode] ?? rawMode) -- cosmetic, no label collision.
   'silv-sec-s3-forage-survey': {
     mapStrips: [],
     registerStrip: null,

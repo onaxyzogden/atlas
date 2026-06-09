@@ -36,8 +36,13 @@ import * as React from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import type { FormValue } from './actToolCatalog.js';
-import { DSE_PRESETS, type ConditionClass } from './forageZoneSync.js';
-import type { LivestockSpecies } from '../../../store/livestockStore.js';
+import {
+  DSE_PRESETS,
+  diffForagePaddocks,
+  type ConditionClass,
+  type ForageZone,
+} from './forageZoneSync.js';
+import type { LivestockSpecies, Paddock } from '../../../store/livestockStore.js';
 import {
   AmountRow,
   CapacityCeilingBlock,
@@ -536,6 +541,34 @@ export function summariseForage(
       throw new Error(`Unknown ForageMode: ${String(_exhaustive)}`);
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Record-time reconcile planner (pure; consumed by ActTierShell at save time)
+// ---------------------------------------------------------------------------
+
+/**
+ * Pure Record-time reconcile planner. Decodes the persisted c1 ("zones") value,
+ * maps the register rows to forageZoneSync's ForageZone shape, and returns the
+ * paddock diff the caller applies to the livestock store. Store-free and total:
+ * an empty/missing c1 value yields empty zones (decodeForage is defensive), so
+ * the result deletes all existing forage-owned rows and upserts none.
+ * conditionClass is intentionally omitted (ForageZoneInput.condition is only a
+ * grade, not a full ConditionClass, and is cosmetic in paddock notes).
+ */
+export function planForagePaddockReconcile(
+  c1Value: FormValue,
+  existing: Paddock[],
+  projectId: string,
+): { upserts: Paddock[]; deleteIds: string[] } {
+  const model = decodeForage('zones', c1Value) as ForageZonesModel;
+  const zones: ForageZone[] = model.zones.map((z) => ({
+    id: z.id,
+    name: z.name,
+    areaHa: z.areaHa,
+    forageType: z.forageType || undefined,
+  }));
+  return diffForagePaddocks(zones, existing, projectId, model.candidateSpecies);
 }
 
 // ===========================================================================
