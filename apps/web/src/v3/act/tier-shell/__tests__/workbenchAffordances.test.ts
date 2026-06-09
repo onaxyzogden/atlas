@@ -68,10 +68,10 @@ describe('workbenchAffordancesFor -- s1-stakeholders', () => {
 describe('workbenchAffordancesFor -- ev-s1-legal-governance', () => {
   const aff = workbenchAffordancesFor('ev-s1-legal-governance');
 
-  it('carries no strips, no groups, but a non-null modeFor', () => {
+  it('carries no strips, shows decision groups, and provides a non-null modeFor', () => {
     expect(aff.mapStrips).toHaveLength(0);
     expect(aff.registerStrip).toBeNull();
-    expect(aff.showGroups).toBe(false);
+    expect(aff.showGroups).toBe(true);
     expect(aff.modeFor!('ev-s1-legal-governance-c1')).not.toBeNull();
   });
 });
