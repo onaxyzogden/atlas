@@ -32,7 +32,10 @@
 
 import { useState } from 'react';
 import {
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
+  ArrowUpRight,
   Briefcase,
   Building2,
   Check,
@@ -62,6 +65,22 @@ export interface LabourModel {
 const LEVELS: readonly SkillLevel[] = ['beginner', 'capable', 'expert'];
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'] as const;
 type Season = (typeof SEASONS)[number];
+
+/**
+ * Per-season labour-trend direction arrow + colour, mirroring the mockup's
+ * season-card glyphs (Spring up/green, Summer right/amber, Autumn up-right/gold,
+ * Winter down/blue). Unicode arrows in the mockup are rendered here as lucide
+ * icons; colour is applied via the matching CSS class on the wrapper.
+ */
+const SEASON_TREND: Record<
+  Season,
+  { Arrow: typeof ArrowUp; dir: 'up' | 'right' | 'up-right' | 'down' }
+> = {
+  spring: { Arrow: ArrowUp, dir: 'up' },
+  summer: { Arrow: ArrowRight, dir: 'right' },
+  autumn: { Arrow: ArrowUpRight, dir: 'up-right' },
+  winter: { Arrow: ArrowDown, dir: 'down' },
+};
 
 /** Display fallbacks from the mockup (applied only when a field is unset). */
 const DEFAULT_HOURS = 20;
@@ -416,35 +435,59 @@ export default function LabourInventoryCapture({
       <div className={css.section}>
         <div className={css.secLabel}>Seasonal variation</div>
         <div className={css.seasonGrid}>
-          {SEASONS.map((s) => (
-            <div key={s} className={css.seasonCard}>
-              <div className={css.seasonName}>
-                <span>{capitalize(s)}</span>
+          {SEASONS.map((s) => {
+            const { Arrow, dir } = SEASON_TREND[s];
+            // Thin season-bar width is proportional to that season's value,
+            // normalized to the largest season (matching the mockup's
+            // updateSeasonViz: Math.max(4, pct)%).
+            const barPct = Math.max(
+              4,
+              Math.round((model.seasonal[s] / maxSeason) * 100),
+            );
+            return (
+              <div key={s} className={css.seasonCard}>
+                <div className={css.seasonName}>
+                  <span>{capitalize(s)}</span>
+                  <span
+                    className={css.seasonTrend}
+                    data-season={s}
+                    data-testid={`season-trend-${s}`}
+                    aria-label={`${capitalize(s)} labour trend ${dir}`}
+                  >
+                    <Arrow size={12} />
+                  </span>
+                </div>
+                <div className={css.seasonAdj}>
+                  <button
+                    type="button"
+                    className={css.seasonBtn}
+                    aria-label={`Decrease ${s}`}
+                    onClick={() => adjustSeason(s, -5)}
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className={css.seasonValWrap}>
+                    <span className={css.seasonVal}>{model.seasonal[s]}</span>
+                    <span className={css.seasonUnit}>h</span>
+                  </span>
+                  <button
+                    type="button"
+                    className={css.seasonBtn}
+                    aria-label={`Increase ${s}`}
+                    onClick={() => adjustSeason(s, 5)}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+                <div
+                  className={css.seasonBar}
+                  data-season={s}
+                  data-testid={`season-bar-${s}`}
+                  style={{ width: `${barPct}%` }}
+                />
               </div>
-              <div className={css.seasonAdj}>
-                <button
-                  type="button"
-                  className={css.seasonBtn}
-                  aria-label={`Decrease ${s}`}
-                  onClick={() => adjustSeason(s, -5)}
-                >
-                  <Minus size={14} />
-                </button>
-                <span className={css.seasonValWrap}>
-                  <span className={css.seasonVal}>{model.seasonal[s]}</span>
-                  <span className={css.seasonUnit}>h</span>
-                </span>
-                <button
-                  type="button"
-                  className={css.seasonBtn}
-                  aria-label={`Increase ${s}`}
-                  onClick={() => adjustSeason(s, 5)}
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className={css.rhythm}>
           <div className={css.rhythmLbl}>Annual rhythm</div>

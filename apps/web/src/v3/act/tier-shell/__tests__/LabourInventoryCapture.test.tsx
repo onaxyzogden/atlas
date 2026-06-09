@@ -298,6 +298,30 @@ describe('LabourInventoryCapture -- seasonal', () => {
     expect((onChange.mock.calls[0]![0] as FormValue).winter).toBe('0');
   });
 
+  it('renders a direction-arrow icon and a thin season-bar in each season card', () => {
+    renderCapture(
+      fullValue({ spring: '25', summer: '20', autumn: '50', winter: '10' }),
+    );
+    // Each season card shows its mapped lucide direction arrow.
+    const trendIcons: Record<string, string> = {
+      spring: 'ArrowUp',
+      summer: 'ArrowRight',
+      autumn: 'ArrowUpRight',
+      winter: 'ArrowDown',
+    };
+    for (const season of ['spring', 'summer', 'autumn', 'winter']) {
+      const trend = screen.getByTestId(`season-trend-${season}`);
+      const icon = trend.querySelector('[data-lucide-icon]');
+      expect(icon?.getAttribute('data-lucide-icon')).toBe(trendIcons[season]);
+      // Each card also renders the thin proportional season-bar.
+      expect(screen.getByTestId(`season-bar-${season}`)).toBeTruthy();
+    }
+    // autumn is the max -> its bar is full width (100%).
+    expect(screen.getByTestId('season-bar-autumn').style.width).toBe('100%');
+    // winter 10/50 = 20%.
+    expect(screen.getByTestId('season-bar-winter').style.width).toBe('20%');
+  });
+
   it('normalizes rhythm bars to the largest season value', () => {
     // spring 25, summer 20, autumn 50, winter 10 -> autumn is 100%
     renderCapture(

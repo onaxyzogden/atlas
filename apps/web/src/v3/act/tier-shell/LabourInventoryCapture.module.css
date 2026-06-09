@@ -272,6 +272,46 @@
   color: var(--color-text-subtle, #7a808a);
 }
 
+/* Per-season direction arrow (lucide icon). Colour mirrors the mockup:
+ * Spring up/green, Summer right/amber, Autumn up-right/gold, Winter down/blue. */
+.seasonTrend {
+  display: inline-flex;
+  align-items: center;
+}
+.seasonTrend[data-season='spring'] {
+  color: var(--color-success, #6b8f6b);
+}
+.seasonTrend[data-season='summer'] {
+  color: var(--color-stage-act, #d9a036);
+}
+.seasonTrend[data-season='autumn'] {
+  color: color-mix(in srgb, var(--color-stage-act, #d9a036) 70%, var(--color-success, #6b8f6b));
+}
+.seasonTrend[data-season='winter'] {
+  color: var(--color-info, #5b8eaf);
+}
+
+/* Thin per-season progress bar inside each card (mockup .season-bar, ~3-4px).
+ * Width is set inline (proportional to the season value vs. the max). */
+.seasonBar {
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 6px;
+  transition: width 200ms ease;
+}
+.seasonBar[data-season='spring'] {
+  background: var(--color-success, #6b8f6b);
+}
+.seasonBar[data-season='summer'] {
+  background: var(--color-stage-act, #d9a036);
+}
+.seasonBar[data-season='autumn'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 70%, var(--color-success, #6b8f6b));
+}
+.seasonBar[data-season='winter'] {
+  background: var(--color-info, #5b8eaf);
+}
+
 .seasonAdj {
   display: flex;
   align-items: center;
