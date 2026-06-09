@@ -654,6 +654,103 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3a -- Land reading (S2): four multi-mode captures.
+          Each registers its c1 mode as the representative view. Empty
+          initialValue renders the capture's controls + shared chrome
+          faithfully (decode is TOTAL/defensive and never fabricates seeds;
+          per-mode populated logic is covered by the 127 unit tests). */}
+      <Section title="Decision Working Panel - Terrain survey: map source (s2-terrain c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-terrain-c1",
+              label: "Establish the terrain map source and its accuracy",
+              prompt: "Record where the base elevation/contour data comes from before reading slope, landform, and erosion off it.",
+              isTerrain: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Climate sectors: rainfall (s2-climate c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-climate-c1",
+              label: "Document the site rainfall regime",
+              prompt: "Capture annual total and seasonal distribution; the interpretation block classifies the humidity band.",
+              isClimate: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Ecology & habitat: vegetation (s2-ecology c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-c1",
+              label: "Map existing vegetation communities",
+              prompt: "Record the vegetation communities present on site as the basis for species, corridor, and connectivity reads.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Landscape context: surrounding land use (ev-s2-landscape-vectors c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-landscape-vectors-c1",
+              label: "Survey surrounding land use",
+              prompt: "Record the land uses adjacent to the site that shape spray risk, planning, community, and catchment vectors.",
+              isLandscape: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
