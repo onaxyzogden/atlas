@@ -1952,6 +1952,94 @@ S2-fixture render test. Single commit `0e7b2d37` on `main`. ADR
 [[decisions/2026-06-08-atlas-workbench-affordance-descriptor]]; Log
 [[log/2026-06-08-atlas-tier0-provision-affordance-phase1-close]].
 
+## Phase 3a -- Land reading (S2): four multi-mode captures (2026-06-08/09)
+
+First Phase-3 sub-phase of the OLOS-UI mockup adoption: the four S2 "land
+reading" objectives each got a bespoke multi-mode capture in the third-column
+body-router, all cloning the established EcologyCapture controlled contract
+(CONTROLLED/pure -- `model = decode<X>(mode, value)` each render, full next model
+via `onChange(encode<X>(...))`; a pure TOTAL `<x>ModeFor(itemId)` mapper; per-mode
+discriminated-union models keyed on `kind`; flat per-item `FormValue` JSON
+encoding; `decode` TOTAL/defensive and **never fabricates seeds**; `encode`
+lossless inverse, exported; stable per-row ids via a module-scoped `makeRowId()`
+in event handlers only). Each capture renders ONLY the `.rb` body blocks; the
+panel owns all chrome.
+
+| Capture | Objective | Items / modes | Commit |
+|---|---|---|---|
+| `TerrainCapture` | `s2-terrain` | 5: mapSource / slope / elevation / landform / erosion | `246cd649` (+`b4fe6832` ASCII fix) |
+| `ClimateCapture` | `s2-climate` | 6: rainfall / temperature / wind / solar / fire / microclimate | `f50cd022` |
+| `EcologyCapture` | `s2-ecology` | 5: vegetation / species / corridors / connectivity / waterHabitat | `2643e828` |
+| `LandscapeContextCapture` | `ev-s2-landscape-vectors` | 6: landUse / sprayRisk / planning / community / disputes / catchment | `8db07f18` |
+
+**Wiring per capture (5 sites):** (1) `DecisionWorkingPanel.tsx` import +
+`is<X>?` flag on `DecisionPanelTarget` + decode-once block + validity / gate-note
+/ record-summary / body-router arms; (2) `ActTierZeroWorkbench.tsx`
+`buildDecisionTarget` -- `is<X> = item.id.startsWith('<prefix>-')`; (3)
+`workbenchAffordances.ts` -- import the mapper + a `MAP` entry (`showGroups:true`,
+empty strips, `modeFor` guarded by the id prefix); (4) `DecisionList.tsx`
+`MODE_LABELS` entries; (5) `ActTierShell.tsx` -- objective id added to
+`TIER_ZERO_OBJECTIVE_IDS`. This is exactly the Phase-2 affordance-descriptor
+mechanism paying off: a new S2 objective needs one descriptor entry + the id in
+the set, no `ActTierZeroWorkbench` special-casing.
+
+**LandscapeContextCapture specifics.** Ports `olos_landscape_context.html` for
+the ecovillage objective `ev-s2-landscape-vectors` (EV-S2.7, 6 items c1..c6, 3
+decision groups). Four growable registers (`landUse`, `sprayRisk`, `community`,
+`disputes`) via `makeRowId()`; `planning` = 4 fixed single-select environment
+cards (selected starts null, action block only when selected); `catchment` =
+**FIXED 4-vector contamination scaffold** (keys `agRunoff` / `roadRunoff` /
+`wildfireAsh` / `industrialLegacy` with GENERIC non-site-specific titles+descs,
+severity single-select + editable monitoring textarea; decode reconstructs all 4
+in fixed order). This fixed-scaffold-with-generic-content choice mirrors the
+ProvisionBalance c5 precedent and honours "decode never fabricates seeds": **NO
+site-specific mockup demo prose was seeded** (no Ridgeline Road / Commonground /
+Castlemaine / VCAT / 20,000 L). Allow-list `Set`s reject unknown enums ->
+defaults; validity per mode (landUse >=1 named; sprayRisk >=1 named WITH severity;
+planning selected != null; community >=1 named; disputes >=1 named OR non-empty
+lessons; catchment >=1 vector with severity). `encode`/`isLandscapeValid`/
+`summariseLandscape` carry an unused `mode` param (`void mode;`) for call-site
+symmetry -- a deliberate minor divergence from the EcologyCapture template.
+
+**Amanah:** all four captures are pure landscape / climate / ecology / planning /
+contamination survey surfaces -- no finance, riba, gharar, or `bay' ma laysa
+'indak`; cleared without Scholar-Council routing.
+
+**Verified:** four isolated bounded `--pool=forks` suites
+([[feedback-vitest-bounded-runs]]) -- Terrain 31, Climate 35, Ecology 28,
+Landscape 33 = **127 tests green**; web `tsc` EXIT 0 (8GB heap); ASCII-only. Each
+capture passed both review stages (spec-compliance then code-quality) per
+subagent-driven-development.
+
+**Surgical staging around a concurrent session.** A second Claude Code session was
+committing an `ACT_COPY`/`copy/index.js` copy-refactor to the SAME three contended
+wiring files (`DecisionWorkingPanel` / `ActTierZeroWorkbench` / `DecisionList`)
+during the landscape build. A whole-file `git add` would have captured their
+untracked, uncommitted `copy/` WIP into my commit (broken build). Resolved by
+hunk-level staging: `git diff -U0 --no-color -- <file> | <filter> | git apply
+--cached --unidiff-zero --recount`, where the filter drops any hunk containing a
+foreign marker (`ACT_COPY` / `copy/index` / `feedsFallback`). `-U0` splits the
+mixed import hunk so only my landscape import stages; `--recount` makes git apply
+recompute line counts. Verified pre-commit: 0 foreign markers staged, 214
+landscape markers staged, foreign hunks preserved unstaged + byte-identical in the
+working tree. Landscape committed `8db07f18` (8 files, +2990) on `main`, explicit
+pathspec, **not pushed**.
+
+**Screenshot gate DEFERRED (not skipped).** The Phase-3a sub-phase gate requires
+screenshot verification, but the four S2 captures are **not** registered in the
+map-free `/v3/components` gallery harness, and the only other visual path is the
+live workbench (dead dev API + map canvas, [[project-screenshot-hang]]). A clean
+full-suite gate is additionally blocked while the concurrent session's
+uncommitted `ACT_COPY` WIP sits in the working tree (it would test their
+incomplete work, not my committed code). Follow-up: register the four captures in
+the gallery, then batch-screenshot; run the clean full suite once the tree is
+clear. Per CLAUDE.md no visual pass is claimed without a screenshot.
+
+Log: [[log/2026-06-09-atlas-act-tier0-phase3a-land-reading]] (no separate ADR --
+each capture is an instance of the EcologyCapture multi-mode pattern, already
+recorded; the catchment fixed-scaffold + "decode never fabricates" decisions
+mirror the provision-balance ADR).
+
 > **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
 > delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
 > canonical working line, `feat/structured-capture-forms` is an ancestor.
