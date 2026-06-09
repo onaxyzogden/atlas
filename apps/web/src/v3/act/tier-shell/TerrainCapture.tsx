@@ -817,8 +817,8 @@ export function TerrainCapture({
             </span>
           </div>
           <div className={css.aspectHint}>
-            In the southern hemisphere, N-facing = warm/productive · S-facing =
-            cool/sheltered
+            In the southern hemisphere, N-facing = warm/productive &middot;
+            S-facing = cool/sheltered
           </div>
           <div className={css.dirChips} data-testid="aspect-chips">
             {COMPASS_DIRS.map((dir) => {
@@ -1065,9 +1065,6 @@ function LandformBody({
         ) : (
           <div className={css.lfList}>
             {model.features.map((f) => {
-              const meta =
-                (f.size || '--') +
-                (f.elevation ? ` · ${f.elevation} m ASL` : '');
               return (
                 <div key={f.id} className={css.lfCard}>
                   <div className={css.lfHead}>
@@ -1080,7 +1077,10 @@ function LandformBody({
                     <span className={css.lfName}>
                       {f.name || 'Unnamed feature'}
                     </span>
-                    <span className={css.lfMeta}>{meta}</span>
+                    <span className={css.lfMeta}>
+                      {f.size || '--'}
+                      {f.elevation ? <> &middot; {f.elevation} m ASL</> : ''}
+                    </span>
                     <button
                       type="button"
                       className={css.lfDel}
