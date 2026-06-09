@@ -118,6 +118,15 @@ import {
   type TerrainModel,
 } from './TerrainCapture.js';
 import {
+  ClimateCapture,
+  climateModeFor,
+  decodeClimate,
+  isClimateValid,
+  summariseClimate,
+  type ClimateMode,
+  type ClimateModel,
+} from './ClimateCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -163,6 +172,8 @@ export interface DecisionPanelTarget {
   isProvisionBalance?: boolean;
   /** true => render TerrainCapture (self-routing on itemId via terrainModeFor). */
   isTerrain?: boolean;
+  /** true => render ClimateCapture (self-routing on itemId via climateModeFor). */
+  isClimate?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -387,6 +398,16 @@ export default function DecisionWorkingPanel({
     ? decodeTerrain(terrainMode, draft)
     : null;
 
+  // Climate is a 6-mode capture (rainfall/wind/temperature/solar/fire/
+  // microclimate) routed by climateModeFor(itemId). Decode once for validity,
+  // the gate note, the record summary, and the body renderer (mirrors terrain).
+  const climateMode: ClimateMode | null = decision.isClimate
+    ? climateModeFor(decision.itemId)
+    : null;
+  const climateModel: ClimateModel | null = climateMode
+    ? decodeClimate(climateMode, draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -419,6 +440,8 @@ export default function DecisionWorkingPanel({
     valid = isProvisionBalanceValid(provisionModel!);
   } else if (terrainMode) {
     valid = isTerrainValid(terrainModel!);
+  } else if (climateMode) {
+    valid = isClimateValid(climateModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -571,6 +594,8 @@ export default function DecisionWorkingPanel({
       summary = summariseProvisionBalance(provisionModel!);
     } else if (terrainMode) {
       summary = summariseTerrain(terrainModel!);
+    } else if (climateMode) {
+      summary = summariseClimate(climateModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -710,6 +735,13 @@ export default function DecisionWorkingPanel({
           <TerrainCapture
             key={decision.itemId}
             mode={terrainMode}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : climateMode ? (
+          <ClimateCapture
+            key={decision.itemId}
+            mode={climateMode}
             value={draft}
             onChange={setDraft}
           />

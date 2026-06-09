@@ -21,6 +21,7 @@ import { boundaryModeFor } from './BoundaryCaptureLegacy.js';
 import { stakeholderModeFor } from './StakeholderCapture.js';
 import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
 import { terrainModeFor } from './TerrainCapture.js';
+import { climateModeFor } from './ClimateCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -103,6 +104,16 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     showGroups: true,
     modeFor: (itemId) =>
       itemId.startsWith('s2-terrain-') ? terrainModeFor(itemId) : null,
+  },
+  // S2 climate: 6 items, 2 decision groups (showGroups true), no map/register
+  // strips. modeFor returns the raw ClimateMode key, which DecisionList maps to
+  // its badge label via MODE_LABELS.
+  's2-climate': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('s2-climate-') ? climateModeFor(itemId) : null,
   },
 };
 

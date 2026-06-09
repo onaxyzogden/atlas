@@ -154,6 +154,12 @@ export function buildDecisionTarget(
   // for every other id.
   const isTerrain = item.id.startsWith('s2-terrain-');
 
+  // Climate is a 6-item objective (s2-climate-c1..-c6); detected by id prefix.
+  // The panel's isClimate body-router arm (ClimateCapture self-routes on itemId
+  // via climateModeFor) takes precedence over any matched generic form. False
+  // for every other id.
+  const isClimate = item.id.startsWith('s2-climate-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -197,6 +203,7 @@ export function buildDecisionTarget(
     isAssumptions,
     isProvisionBalance,
     isTerrain,
+    isClimate,
     deferLabel,
     deferrable,
   };

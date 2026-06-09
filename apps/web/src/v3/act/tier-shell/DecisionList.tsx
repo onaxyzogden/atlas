@@ -99,6 +99,13 @@ const MODE_LABELS: Record<string, string> = {
   elevation: 'Map analysis',
   landform: 'Landform inventory',
   erosion: 'Risk survey',
+  // Climate modes (U-S2.2).
+  rainfall: 'Climate data',
+  temperature: 'Climate data',
+  wind: 'Map',
+  solar: 'Map',
+  fire: 'Risk survey',
+  microclimate: 'Field survey',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

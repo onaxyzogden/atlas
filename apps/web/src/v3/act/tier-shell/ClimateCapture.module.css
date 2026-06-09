@@ -1,0 +1,824 @@
+/* ClimateCapture.module.css
+ *
+ * Styles for the 6-mode climate/sectors capture (rainfall / wind / temperature
+ * / solar / fire / microclimate). Ported from olos_climate_sectors.html
+ * p1..p6. Token vocabulary mirrors TerrainCapture.module.css. ASCII-only;
+ * every glyph is a lucide icon. No bare hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  (--am)  -> --color-stage-act (#d9a036)
+ *   blue   (--bl)  -> --color-info       (#5b8eaf)
+ *   green  (--gn)  -> --color-success     (#6b8f6b)
+ *   red    (--rd)  -> --color-error       (#c4493a)
+ *   gold   (--gl)  -> --color-stage-act   (reused for the moderate-risk tier)
+ *   teal / pine / sage accents -> nearest of info / success (no parallel tokens)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared section label ---------- */
+
+.secLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.secOptional {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ---------- Shared textarea ---------- */
+
+.textarea {
+  width: 100%;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  resize: none;
+  min-height: 52px;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color 130ms ease;
+}
+
+.textarea:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ===================================================================== */
+/* CLIMATE DATA FIELD (rainfall + temperature)                           */
+/* ===================================================================== */
+
+.climateField {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+}
+
+.cfTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.cfLbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.cfSub {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.cfInputRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cfInput {
+  flex: 1;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  text-align: right;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.cfInput:focus {
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.cfUnit {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.cfInterp {
+  font-size: 10.5px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm, 5px);
+  line-height: 1.4;
+}
+
+.cfInterp[data-tone='pass'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.cfInterp[data-tone='warn'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.cfInterp[data-tone='info'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 14%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ===================================================================== */
+/* SEASONAL RAINFALL BARS (rainfall)                                     */
+/* ===================================================================== */
+
+.barsWrap {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 11px 12px;
+}
+
+.barsLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 8px;
+}
+
+.barsSub {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 9px;
+}
+
+.rainInputs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.rainInpCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.rainSeasonLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--color-text-muted, #565c63);
+  letter-spacing: 0.04em;
+}
+
+.rainInp {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 5px 4px;
+  font-size: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  text-align: center;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.rainInp:focus {
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.rainBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 48px;
+  padding: 0 4px;
+}
+
+.rbarCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+}
+
+.rbar {
+  width: 100%;
+  background: var(--color-info, #5b8eaf);
+  border-radius: 2px 2px 0 0;
+  min-height: 3px;
+  transition: height 180ms ease;
+  opacity: 0.8;
+}
+
+.rbarNum {
+  font-size: 9px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.rainPattern {
+  font-size: 10.5px;
+  color: var(--color-success, #6b8f6b);
+  padding: 5px 8px;
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  border-radius: var(--radius-sm, 5px);
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* ===================================================================== */
+/* WIND / DIRECTION CHIPS (wind + solar face + fire dir)                 */
+/* ===================================================================== */
+
+.windGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dirSection {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+}
+
+.dirSecLbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 6px;
+}
+
+.dirSecHint {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.dirChips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dirChip {
+  padding: 5px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  min-width: 36px;
+  text-align: center;
+}
+
+.dirChip:hover {
+  border-color: var(--color-text-subtle, #7a808a);
+  color: var(--color-text, #1b1e22);
+}
+
+/* Default on-state (info/blue) -- used by summer wind, winter wind, growing
+ * face. Per-windtype overrides below shade the others. */
+.dirChip[data-on='true'] {
+  border-color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+.dirChip[data-on='true'][data-windtype='winter'] {
+  border-color: color-mix(in srgb, var(--color-info, #5b8eaf) 70%, var(--color-success, #6b8f6b));
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  color: color-mix(in srgb, var(--color-info, #5b8eaf) 70%, var(--color-success, #6b8f6b));
+}
+
+.dirChip[data-on='true'][data-windtype='hot'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.dirChip[data-on='true'][data-windtype='storm'] {
+  border-color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.dirChip[data-on='true'][data-fire='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* ===================================================================== */
+/* TEMPERATURE -- min/max pair + frost calendar                          */
+/* ===================================================================== */
+
+.tempPair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.frostCal {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+}
+
+.frostCalLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 8px;
+}
+
+.frostInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.frostInpRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fiLbl {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.fiSel {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 6px 8px;
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.fiSel:focus {
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.monthRow {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+  margin-bottom: 5px;
+}
+
+.mth {
+  height: 18px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #565c63);
+  background: var(--color-surface, #f5f1e8);
+}
+
+.mth[data-frost='true'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+.frostLegend {
+  display: flex;
+  gap: 10px;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.frostLegend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.flDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.flDot[data-tone='frost'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 30%, transparent);
+  border: 1px solid var(--color-info, #5b8eaf);
+}
+
+.flDot[data-tone='free'] {
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.frostFree {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-info, #5b8eaf);
+  margin-top: 7px;
+  padding: 5px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border-radius: var(--radius-sm, 5px);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+/* ===================================================================== */
+/* SOLAR -- hemisphere toggle + sun-period read-outs                     */
+/* ===================================================================== */
+
+.sunHemi {
+  display: flex;
+  gap: 5px;
+}
+
+.hemiBtn {
+  flex: 1;
+  padding: 7px 8px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.hemiBtn:hover {
+  border-color: var(--color-info, #5b8eaf);
+  color: var(--color-info, #5b8eaf);
+}
+
+.hemiBtn[data-on='true'] {
+  border-color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+  font-weight: 600;
+}
+
+.sunPeriod {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+}
+
+.spHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.spDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.spDot[data-tone='summer'] {
+  background: var(--color-stage-act, #d9a036);
+}
+
+.spDot[data-tone='winter'] {
+  background: var(--color-info, #5b8eaf);
+}
+
+.spLbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.spDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 7px;
+  line-height: 1.45;
+}
+
+.spDetail {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  padding: 5px 8px;
+  background: var(--color-surface, #f5f1e8);
+  border-radius: var(--radius-sm, 5px);
+  line-height: 1.45;
+}
+
+/* ===================================================================== */
+/* FIRE -- risk levels + single-select chips + APZ box                   */
+/* ===================================================================== */
+
+.riskLevels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.riskBtn {
+  padding: 8px 5px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.2;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.riskBtn:hover {
+  border-color: var(--color-text-subtle, #7a808a);
+}
+
+.riskBtn[data-tone='low'][data-on='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.riskBtn[data-tone='mod'][data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.riskBtn[data-tone='hgh'][data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.riskBtn[data-tone='ext'][data-on='true'] {
+  border-color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 14%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.fireSelect {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.fireSelBtn {
+  padding: 5px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.fireSelBtn:hover {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.fireSelBtn[data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: var(--color-stage-act, #d9a036);
+  font-weight: 600;
+}
+
+.apzBox {
+  border-radius: var(--radius-md, 8px);
+  padding: 11px 12px;
+}
+
+.apzBox[data-tone='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 30%, transparent);
+}
+
+.apzBox[data-tone='high'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 35%, transparent);
+}
+
+.apzBox[data-tone='extreme'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error, #c4493a) 35%, transparent);
+}
+
+.apzLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.apzBox[data-tone='low'] .apzLbl {
+  color: var(--color-success, #6b8f6b);
+}
+.apzBox[data-tone='high'] .apzLbl {
+  color: var(--color-stage-act, #d9a036);
+}
+.apzBox[data-tone='extreme'] .apzLbl {
+  color: var(--color-error, #c4493a);
+}
+
+.apzMain {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  margin-bottom: 3px;
+}
+
+.apzBox[data-tone='low'] .apzMain {
+  color: var(--color-success, #6b8f6b);
+}
+.apzBox[data-tone='high'] .apzMain {
+  color: var(--color-stage-act, #d9a036);
+}
+.apzBox[data-tone='extreme'] .apzMain {
+  color: var(--color-error, #c4493a);
+}
+
+.apzDetail {
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.apzBox[data-tone='low'] .apzDetail {
+  color: var(--color-success, #6b8f6b);
+  opacity: 0.85;
+}
+.apzBox[data-tone='high'] .apzDetail {
+  color: var(--color-stage-act, #d9a036);
+  opacity: 0.85;
+}
+.apzBox[data-tone='extreme'] .apzDetail {
+  color: var(--color-error, #c4493a);
+  opacity: 0.9;
+}
+
+/* ===================================================================== */
+/* MICROCLIMATE -- feature checklist                                     */
+/* ===================================================================== */
+
+.mcList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mcItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.mcItem[data-on='true'] {
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+}
+
+.mcChk {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  flex-shrink: 0;
+  background: var(--color-surface, #f5f1e8);
+  position: relative;
+}
+
+.mcItem[data-on='true'] .mcChk {
+  background: var(--color-success, #6b8f6b);
+  border-color: var(--color-success, #6b8f6b);
+}
+
+.mcItem[data-on='true'] .mcChk::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 3px;
+  height: 6px;
+  border: solid var(--color-surface, #f5f1e8);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.mcLbl {
+  flex: 1;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+}
+
+.mcItem[data-on='true'] .mcLbl {
+  color: var(--color-success, #6b8f6b);
+}
+
+.mcNote {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  padding: 0 10px 4px 32px;
+  line-height: 1.45;
+  font-style: italic;
+}
