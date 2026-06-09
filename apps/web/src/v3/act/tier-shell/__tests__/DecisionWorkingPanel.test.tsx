@@ -466,7 +466,7 @@ describe('DecisionWorkingPanel -- vision classify', () => {
       visionClassifySuggestions: ['Grow food', 'Restore soil'],
       initialValue: { committed: [], aspirational: [] },
     });
-    expect(screen.getByText('Suggested vision elements')).toBeTruthy();
+    expect(screen.getByText('Add from suggestions')).toBeTruthy();
     // Not the success-criteria surface.
     expect(screen.queryByText(/suggested criteria/i)).toBeNull();
   });
@@ -951,7 +951,7 @@ describe('DecisionWorkingPanel -- body-router precedence', () => {
       visionClassifySuggestions: ['Grow food', 'Restore soil'],
       initialValue: { committed: [], aspirational: [] },
     });
-    expect(screen.getByText('Suggested vision elements')).toBeTruthy();
+    expect(screen.getByText('Add from suggestions')).toBeTruthy();
     // The generic VisionFormFields label from TEXT_FIELDS must not render.
     expect(screen.queryByText('Primary purpose')).toBeNull();
   });
