@@ -476,8 +476,7 @@ export function decodeGrazing(mode: GrazingMode, value: FormValue): GrazingModel
 // encode: GrazingModel -> FormValue (lossless inverse of decode)
 // ---------------------------------------------------------------------------
 
-export function encodeGrazing(mode: GrazingMode, model: GrazingModel): FormValue {
-  void mode;
+export function encodeGrazing(_mode: GrazingMode, model: GrazingModel): FormValue {
   switch (model.kind) {
     case 'grazingMethod':
       return { grazingMethod: model.method, grazingRationale: model.rationale };
