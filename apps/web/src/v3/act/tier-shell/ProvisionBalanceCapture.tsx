@@ -299,7 +299,7 @@ const TENSION_CARDS: readonly TensionCard[] = [
     title: 'Fixed contributions vs. variable household circumstances',
     sideA: 'Contributions + shared costs',
     sideB: 'Household financial autonomy',
-    desc: 'Your financial model requires regular household contributions. What is the community process when a household temporarily cannot meet their contribution -- grace period, solidarity mechanism, or site access risk?',
+    desc: "Your financial model requires regular household contributions. What is the community's process when a household temporarily cannot meet their contribution -- grace period, solidarity mechanism, or site access risk?",
   },
 ];
 const TENSION_IDS = TENSION_CARDS.map((t) => t.id);
