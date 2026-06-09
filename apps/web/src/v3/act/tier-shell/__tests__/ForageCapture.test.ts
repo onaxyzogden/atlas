@@ -197,11 +197,11 @@ describe('decode coercion', () => {
       conditions: ['good', 'nonsense'],
       compositions: ['x', 'y'],
     }) as ForageZonesModel;
-    expect(m.zones[0].id).toBe('zone-0');
-    expect(m.zones[1].id).toBe('z-2');
+    expect(m.zones[0]!.id).toBe('zone-0');
+    expect(m.zones[1]!.id).toBe('z-2');
     // raw kept (defensive, not validated at decode)
-    expect(m.zones[1].forageType).toBe('weird');
-    expect(m.zones[1].condition).toBe('nonsense');
+    expect(m.zones[1]!.forageType).toBe('weird');
+    expect(m.zones[1]!.condition).toBe('nonsense');
   });
 
   it('zones: unknown candidate species dropped', () => {
@@ -223,11 +223,11 @@ describe('decode coercion', () => {
       expect(c.months.every((n) => n === 0 || n === 1 || n === 2)).toBe(true);
     }
     // '21' padded to 12 with zeros
-    expect(m.calendars[0].months).toEqual([2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(m.calendars[0]!.months).toEqual([2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     // '2x9120120120' -> x->0, 9->0
-    expect(m.calendars[1].months).toEqual([2, 0, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0]);
+    expect(m.calendars[1]!.months).toEqual([2, 0, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0]);
     // truncated to 12
-    expect(m.calendars[2].months).toEqual([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+    expect(m.calendars[2]!.months).toEqual([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
   });
 
   it('capacity: invalid conditionClass -> empty string', () => {
@@ -235,9 +235,9 @@ describe('decode coercion', () => {
       capZoneIds: ['z-a', 'z-b', 'z-c'],
       capClasses: ['improved-good', 'bogus-class', ''],
     }) as ForageCapacityModel;
-    expect(m.classByZone[0].conditionClass).toBe('improved-good');
-    expect(m.classByZone[1].conditionClass).toBe('');
-    expect(m.classByZone[2].conditionClass).toBe('');
+    expect(m.classByZone[0]!.conditionClass).toBe('improved-good');
+    expect(m.classByZone[1]!.conditionClass).toBe('');
+    expect(m.classByZone[2]!.conditionClass).toBe('');
   });
 
   it('constraints: missing id synthesized as con-${i}; kind kept raw', () => {
@@ -248,10 +248,10 @@ describe('decode coercion', () => {
       conDetails: ['D1', 'D2'],
       conAreas: ['0', 'TBD'],
     }) as ForageConstraintsModel;
-    expect(m.rows[0].id).toBe('con-0');
-    expect(m.rows[1].id).toBe('c-2');
-    expect(m.rows[1].kind).toBe('whatever');
-    expect(m.rows[1].areaHa).toBe('TBD');
+    expect(m.rows[0]!.id).toBe('con-0');
+    expect(m.rows[1]!.id).toBe('c-2');
+    expect(m.rows[1]!.kind).toBe('whatever');
+    expect(m.rows[1]!.areaHa).toBe('TBD');
   });
 
   it('toxic: unknown state -> not-surveyed; present/absent kept', () => {

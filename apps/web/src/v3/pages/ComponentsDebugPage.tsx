@@ -881,7 +881,7 @@ export default function ComponentsDebugPage() {
             } satisfies DecisionPanelTarget}
             resolveOptions={() => []}
             successCriteriaOptions={[]}
-            initialValue={FORAGE_DEMO_SIBLINGS["silv-sec-s3-forage-survey-c1"]}
+            initialValue={FORAGE_DEMO_SIBLINGS["silv-sec-s3-forage-survey-c1"] ?? {}}
             initialRationale=""
             deferred={false}
             recorded={false}

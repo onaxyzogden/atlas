@@ -859,7 +859,7 @@ export function ForageCapture({
             (z) => (calById.get(z.id) ?? new Array<number>(12).fill(0))[m] ?? 0,
           ),
         );
-        if (minState === 0) gapMonths.push(MONTH_NAMES[m]);
+        if (minState === 0) gapMonths.push(MONTH_NAMES[m] ?? `Month ${m + 1}`);
       }
     }
 

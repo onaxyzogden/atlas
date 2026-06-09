@@ -157,7 +157,8 @@ describe('planForagePaddockReconcile -- field map', () => {
     expect(deleteIds).toEqual([]);
     expect(upserts).toHaveLength(2);
 
-    const [p1, p2] = upserts;
+    const p1 = upserts[0]!;
+    const p2 = upserts[1]!;
     expect(p1.id).toBe(forageId('z1'));
     expect(p1.name).toBe('North flat');
     expect(p1.areaM2).toBe(8.5 * 10000);
@@ -193,9 +194,9 @@ describe('planForagePaddockReconcile -- field map', () => {
     const { upserts } = planForagePaddockReconcile(c1, [], PROJECT);
     expect(upserts).toHaveLength(1);
     // notes carry the zone name + forageType only; no "improved-good" class key.
-    expect(upserts[0].notes).toContain('improved');
-    expect(upserts[0].notes).not.toContain('improved-good');
-    expect(upserts[0].notes).not.toContain('good');
+    expect(upserts[0]!.notes).toContain('improved');
+    expect(upserts[0]!.notes).not.toContain('improved-good');
+    expect(upserts[0]!.notes).not.toContain('good');
   });
 
   it('skips zero-area zones (no upsert)', () => {
@@ -208,7 +209,7 @@ describe('planForagePaddockReconcile -- field map', () => {
     );
     const { upserts } = planForagePaddockReconcile(c1, [], PROJECT);
     expect(upserts).toHaveLength(1);
-    expect(upserts[0].id).toBe(forageId('z1'));
+    expect(upserts[0]!.id).toBe(forageId('z1'));
   });
 });
 
