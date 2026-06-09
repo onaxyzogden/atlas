@@ -136,6 +136,16 @@ describe('SuccessCriteriaCapture -- suggestion chips', () => {
     ).toBeTruthy();
   });
 
+  it('renders a thin opts-divider before the revealed "more" group only once expanded', () => {
+    renderCapture({ criteria: [] });
+    // Collapsed: no divider (the hidden chips are not in the DOM).
+    expect(screen.queryByTestId('opts-divider')).toBeNull();
+    fireEvent.click(
+      screen.getByRole('button', { name: /Show 2 more suggestions/i }),
+    );
+    expect(screen.getByTestId('opts-divider')).toBeTruthy();
+  });
+
   it('renders no toggle when options.length <= 2', () => {
     renderCapture(
       { criteria: [] },
@@ -184,6 +194,13 @@ describe('SuccessCriteriaCapture -- criteria rows', () => {
       screen.getByRole('button', { name: /Write your own criterion/i }),
     );
     expect(onChange).toHaveBeenCalledWith({ criteria: ['one', ''] });
+  });
+
+  it('uses the field-verification placeholder on each criterion row', () => {
+    renderCapture({ criteria: [''] });
+    expect(
+      screen.getByPlaceholderText('Write a criterion you can verify in the field...'),
+    ).toBeTruthy();
   });
 
   it('replaces the edited index when a row textarea changes', () => {

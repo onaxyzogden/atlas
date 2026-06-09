@@ -154,6 +154,15 @@
   color: var(--color-info, #5b8eaf);
 }
 
+/* Thin separator between the always-visible chips and the revealed "more"
+   group. Mirrors the mockup's .opts-divider {height:1px;background:var(--border)
+   ;margin:4px 0;}. Token-mapped to --color-border. */
+.optsDivider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
 .optsToggle {
   display: inline-flex;
   align-items: center;

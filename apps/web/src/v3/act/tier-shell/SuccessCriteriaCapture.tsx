@@ -22,7 +22,7 @@
  * `onChange`. The only internal UI-only state is the "show more" toggle.
  */
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Check, ChevronDown, Plus, X } from 'lucide-react';
 import type { CriterionOption } from '@ogden/shared';
 import css from './SuccessCriteriaCapture.module.css';
@@ -88,38 +88,48 @@ export default function SuccessCriteriaCapture({
           <span className={css.optsSub}>Select to add -- then edit freely</span>
         </div>
         <div className={css.optsGrid}>
-          {visibleChips.map((opt) => {
+          {visibleChips.map((opt, chipIdx) => {
             // "used" is derived from presence -- the component stays stateless and
             // rehydration-friendly. This is an intentional, documented divergence
             // from the mockup's permanent DOM flag: editing a seeded row away from
             // the exact chip text re-enables that chip.
             const used = criteria.includes(opt.text);
             const disabled = used || atMax;
+            // Thin divider between the two always-visible chips and the revealed
+            // "more" group (mockup's <div class="opts-divider">). Rendered just
+            // before the first chip past ALWAYS_VISIBLE, only present once the
+            // collapsible group is expanded (the hidden chips aren't in the DOM
+            // when collapsed, so a separator there would dangle).
+            const showDivider = hasToggle && showMore && chipIdx === ALWAYS_VISIBLE;
             return (
-              <button
-                key={opt.text}
-                type="button"
-                className={css.optChip}
-                data-domain={opt.domain}
-                data-used={used ? 'true' : 'false'}
-                disabled={disabled}
-                aria-disabled={disabled}
-                onClick={() => {
-                  if (used || atMax) return;
-                  addCriterion(opt.text);
-                }}
-              >
-                <span className={css.optIcon}>
-                  {used ? <Check size={14} /> : <Plus size={14} />}
-                </span>
-                <span className={css.optBody}>
-                  <span className={css.optText}>{opt.text}</span>
-                  <span className={css.optDomain} data-domain={opt.domain}>
-                    <span className={css.optDot} data-domain={opt.domain} />
-                    {domainLabel(opt.domain)}
+              <Fragment key={opt.text}>
+                {showDivider ? (
+                  <div className={css.optsDivider} data-testid="opts-divider" />
+                ) : null}
+                <button
+                  type="button"
+                  className={css.optChip}
+                  data-domain={opt.domain}
+                  data-used={used ? 'true' : 'false'}
+                  disabled={disabled}
+                  aria-disabled={disabled}
+                  onClick={() => {
+                    if (used || atMax) return;
+                    addCriterion(opt.text);
+                  }}
+                >
+                  <span className={css.optIcon}>
+                    {used ? <Check size={14} /> : <Plus size={14} />}
                   </span>
-                </span>
-              </button>
+                  <span className={css.optBody}>
+                    <span className={css.optText}>{opt.text}</span>
+                    <span className={css.optDomain} data-domain={opt.domain}>
+                      <span className={css.optDot} data-domain={opt.domain} />
+                      {domainLabel(opt.domain)}
+                    </span>
+                  </span>
+                </button>
+              </Fragment>
             );
           })}
         </div>
@@ -164,7 +174,7 @@ export default function SuccessCriteriaCapture({
                 <textarea
                   className={css.rowTextarea}
                   value={entry}
-                  placeholder="Describe a success criterion"
+                  placeholder="Write a criterion you can verify in the field..."
                   onChange={(e) => editCriterion(idx, e.target.value)}
                 />
                 <button
