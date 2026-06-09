@@ -1,0 +1,979 @@
+/* TerrainCapture.module.css
+ *
+ * Styles for the 5-mode terrain/topography capture (mapSource / slope /
+ * elevation / landform / erosion). Ported from olos_terrain_survey.html
+ * p1..p5. Token vocabulary mirrors ProvisionBalanceCapture.module.css.
+ * ASCII-only; every glyph is a lucide icon. No bare hex outside a var()
+ * fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  (--am)  -> --color-stage-act (#d9a036)
+ *   blue   (--bl)  -> --color-info       (#5b8eaf)
+ *   green  (--gn)  -> --color-success     (#6b8f6b)
+ *   red    (--rd)  -> --color-error       (#c4493a)
+ *   gold   (--gl)  -> --color-stage-act   (reused for the certified/highest tier)
+ *   sage / pine / teal accents -> nearest of success / info (no parallel tokens)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared section label ---------- */
+
+.secLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.secOptional {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ---------- Shared textarea ---------- */
+
+.textarea {
+  width: 100%;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  resize: none;
+  min-height: 44px;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color 130ms ease;
+}
+
+.textarea:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ===================================================================== */
+/* MAP SOURCE (p1)                                                       */
+/* ===================================================================== */
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.methodCard {
+  position: relative;
+  padding: 9px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: border-color 130ms ease, background 130ms ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.methodCard:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.methodCard[data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+
+.methodQuality {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  font-size: 8.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.methodQuality[data-quality='high'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.methodQuality[data-quality='highest'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.methodQuality[data-quality='med'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.methodQuality[data-quality='basic'] {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-muted, #565c63);
+}
+
+.methodIcon {
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 4px;
+}
+
+.methodCard[data-on='true'] .methodIcon {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.methodName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 3px;
+  line-height: 1.2;
+  padding-right: 36px;
+}
+
+.methodCard[data-on='true'] .methodName {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.methodDesc {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+  line-height: 1.35;
+}
+
+.methodWhen {
+  font-size: 9px;
+  color: var(--color-text-muted, #565c63);
+  margin-top: 4px;
+  font-style: italic;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+.methodDetail {
+  padding: 9px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.detailLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 5px;
+}
+
+.detailFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.detailField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detailFieldLbl {
+  font-size: 9px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.detailInput {
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 5px 7px;
+  font-size: 11.5px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.detailInput:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+/* ===================================================================== */
+/* SLOPE (p3)                                                            */
+/* ===================================================================== */
+
+.slopeRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slopeRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  overflow: hidden;
+}
+
+.slopeFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  opacity: 0.14;
+  transition: width 200ms ease;
+  pointer-events: none;
+}
+
+.slopeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Slope class tones (fill + dot share the row's data-tone). */
+.slopeRow[data-tone='flat'] .slopeFill,
+.slopeRow[data-tone='flat'] .slopeDot {
+  background: var(--color-info, #5b8eaf);
+}
+.slopeRow[data-tone='gentle'] .slopeFill,
+.slopeRow[data-tone='gentle'] .slopeDot {
+  background: var(--color-success, #6b8f6b);
+}
+.slopeRow[data-tone='mod'] .slopeFill,
+.slopeRow[data-tone='mod'] .slopeDot {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 70%, var(--color-stage-act, #d9a036));
+}
+.slopeRow[data-tone='steep'] .slopeFill,
+.slopeRow[data-tone='steep'] .slopeDot {
+  background: var(--color-stage-act, #d9a036);
+}
+.slopeRow[data-tone='vsteep'] .slopeFill,
+.slopeRow[data-tone='vsteep'] .slopeDot {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 55%, var(--color-error, #c4493a));
+}
+.slopeRow[data-tone='extreme'] .slopeFill,
+.slopeRow[data-tone='extreme'] .slopeDot {
+  background: var(--color-error, #c4493a);
+}
+
+.slopeLbl {
+  flex: 1;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  position: relative;
+}
+
+.slopeSub {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+  display: block;
+}
+
+.slopeInput {
+  width: 52px;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 5px 6px;
+  font-size: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  text-align: right;
+  transition: border-color 120ms ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.slopeInput:focus {
+  border-color: var(--color-info, #5b8eaf);
+}
+
+.slopePct {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  position: relative;
+}
+
+.slopeSumRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-top: 4px;
+}
+
+.slopeSumLbl {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.slopeSumVal {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.slopeSumVal[data-tone='ok'] {
+  color: var(--color-success, #6b8f6b);
+}
+
+.slopeSumVal[data-tone='over'] {
+  color: var(--color-error, #c4493a);
+}
+
+.slopeSumVal[data-tone='under'] {
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* ---------- Direction / aspect chips (shared by slope + elevation) ---------- */
+
+.aspectHint {
+  font-size: 10.5px;
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.dirChips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dirChip {
+  padding: 5px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  min-width: 36px;
+  text-align: center;
+}
+
+.dirChip:hover {
+  border-color: var(--color-text-subtle, #7a808a);
+  color: var(--color-text, #1b1e22);
+}
+
+.dirChip[data-on='true'] {
+  border-color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ===================================================================== */
+/* ELEVATION (p2)                                                        */
+/* ===================================================================== */
+
+.elevPair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.elevField {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 9px 11px;
+}
+
+.elevFieldLbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 5px;
+}
+
+.elevInput {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 6px 8px;
+  font-size: 15px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  text-align: right;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.elevInput:focus {
+  border-color: var(--color-info, #5b8eaf);
+}
+
+.elevUnit {
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+  margin-top: 2px;
+  display: block;
+}
+
+.elevRange {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-top: 6px;
+}
+
+.elevRangeLbl {
+  font-size: 11.5px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.elevRangeVal {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text, #1b1e22);
+}
+
+.elevInterp {
+  font-size: 10.5px;
+  font-style: italic;
+  text-align: right;
+}
+
+.elevInterp[data-tone='flat'] {
+  color: var(--color-stage-act, #d9a036);
+}
+.elevInterp[data-tone='gentle'] {
+  color: var(--color-success, #6b8f6b);
+}
+.elevInterp[data-tone='mod'] {
+  color: var(--color-info, #5b8eaf);
+}
+.elevInterp[data-tone='steep'] {
+  color: var(--color-stage-act, #d9a036);
+}
+.elevInterp[data-tone='extreme'] {
+  color: var(--color-error, #c4493a);
+}
+
+.divideChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.divideChip {
+  padding: 4px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.divideChip[data-on='true'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-info, #5b8eaf) 30%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ===================================================================== */
+/* LANDFORM (p4)                                                         */
+/* ===================================================================== */
+
+.lfCount {
+  color: var(--color-success, #6b8f6b);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  margin-left: 3px;
+}
+
+.lfEmpty {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--color-text-muted, #565c63);
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.lfList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lfCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.lfHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+}
+
+.lfType {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.lfType[data-tone='flat'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 18%, transparent);
+  color: var(--color-info, #5b8eaf);
+}
+.lfType[data-tone='ridge'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 18%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+.lfType[data-tone='hollow'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+.lfType[data-tone='saddle'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 14%, transparent);
+  color: color-mix(in srgb, var(--color-info, #5b8eaf) 80%, var(--color-success, #6b8f6b));
+}
+.lfType[data-tone='valley'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: color-mix(in srgb, var(--color-stage-act, #d9a036) 80%, var(--color-success, #6b8f6b));
+}
+.lfType[data-tone='bench'] {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.lfName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+  min-width: 0;
+}
+
+.lfMeta {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  white-space: nowrap;
+}
+
+.lfDel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 5px);
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.lfDel:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+}
+
+.lfImpl {
+  padding: 6px 11px 9px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  background: transparent;
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.addBtn:hover {
+  border-color: var(--color-success, #6b8f6b);
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 8%, transparent);
+}
+
+.lfAddForm {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-stage-act, #d9a036);
+  border-radius: var(--radius-md, 8px);
+  padding: 11px;
+  margin-top: 4px;
+}
+
+.afLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.afLbl:first-child {
+  margin-top: 0;
+}
+
+.afInput,
+.afSelect {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.afSelect {
+  cursor: pointer;
+}
+
+.afInput:focus,
+.afSelect:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.afInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.afGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.afRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.afAdd {
+  padding: 7px 14px;
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 40%, transparent);
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-success, #6b8f6b);
+  cursor: pointer;
+}
+
+.afCancel {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+}
+
+.lfSummary {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.lfsItem {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.lfsNum {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.lfsItem[data-tone='features'] .lfsNum,
+.lfsItem[data-tone='features'] .lfsLbl {
+  color: var(--color-success, #6b8f6b);
+}
+.lfsItem[data-tone='area'] .lfsNum,
+.lfsItem[data-tone='area'] .lfsLbl {
+  color: var(--color-info, #5b8eaf);
+}
+.lfsItem[data-tone='types'] .lfsNum,
+.lfsItem[data-tone='types'] .lfsLbl {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.lfsLbl {
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
+
+/* ===================================================================== */
+/* EROSION (p5)                                                          */
+/* ===================================================================== */
+
+.erosionTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.erosionChip,
+.erosionChipMass {
+  padding: 5px 9px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.erosionChip:hover,
+.erosionChipMass:hover {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.erosionChip[data-on='true'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.erosionChipMass[data-on='true'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  border-color: var(--color-error, #c4493a);
+  color: var(--color-error, #c4493a);
+}
+
+.riskLevels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.riskBtn {
+  padding: 8px 5px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.riskBtn:hover {
+  border-color: var(--color-text-subtle, #7a808a);
+}
+
+.riskBtn[data-tone='low'][data-on='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 14%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.riskBtn[data-tone='mod'][data-on='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.riskBtn[data-tone='hgh'][data-on='true'] {
+  border-color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 14%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.constraintBox {
+  border-radius: var(--radius-md, 8px);
+  padding: 11px 12px;
+}
+
+.constraintBox[data-tone='low'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 30%, transparent);
+}
+.constraintBox[data-tone='mod'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 30%, transparent);
+}
+.constraintBox[data-tone='hgh'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error, #c4493a) 30%, transparent);
+}
+.constraintBox[data-tone='mass'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 14%, transparent);
+  border: 2px solid var(--color-error, #c4493a);
+}
+
+.cbLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.constraintBox[data-tone='low'] .cbLbl {
+  color: var(--color-success, #6b8f6b);
+}
+.constraintBox[data-tone='mod'] .cbLbl {
+  color: var(--color-stage-act, #d9a036);
+}
+.constraintBox[data-tone='hgh'] .cbLbl,
+.constraintBox[data-tone='mass'] .cbLbl {
+  color: var(--color-error, #c4493a);
+}
+
+.cbMain {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.constraintBox[data-tone='low'] .cbMain {
+  color: var(--color-success, #6b8f6b);
+}
+.constraintBox[data-tone='mod'] .cbMain {
+  color: var(--color-stage-act, #d9a036);
+}
+.constraintBox[data-tone='hgh'] .cbMain,
+.constraintBox[data-tone='mass'] .cbMain {
+  color: var(--color-error, #c4493a);
+}
+
+.cbDetail {
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.constraintBox[data-tone='low'] .cbDetail {
+  color: var(--color-success, #6b8f6b);
+  opacity: 0.85;
+}
+.constraintBox[data-tone='mod'] .cbDetail {
+  color: var(--color-stage-act, #d9a036);
+  opacity: 0.85;
+}
+.constraintBox[data-tone='hgh'] .cbDetail,
+.constraintBox[data-tone='mass'] .cbDetail {
+  color: var(--color-error, #c4493a);
+  opacity: 0.9;
+}

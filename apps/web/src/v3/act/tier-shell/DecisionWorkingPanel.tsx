@@ -109,6 +109,15 @@ import {
   type ProvisionBalanceModel,
 } from './ProvisionBalanceCapture.js';
 import {
+  TerrainCapture,
+  terrainModeFor,
+  decodeTerrain,
+  isTerrainValid,
+  summariseTerrain,
+  type TerrainMode,
+  type TerrainModel,
+} from './TerrainCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -152,6 +161,8 @@ export interface DecisionPanelTarget {
   isAssumptions?: boolean;
   /** true => render ProvisionBalanceCapture (self-routing on itemId via provisionBalanceModeFor). */
   isProvisionBalance?: boolean;
+  /** true => render TerrainCapture (self-routing on itemId via terrainModeFor). */
+  isTerrain?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -366,6 +377,16 @@ export default function DecisionWorkingPanel({
     ? decodeProvisionBalance(provisionMode, draft)
     : null;
 
+  // Terrain is a 5-mode capture (mapSource/slope/elevation/landform/erosion)
+  // routed by terrainModeFor(itemId). Decode once for validity, the gate note,
+  // the record summary, and the body renderer (mirrors the provision pattern).
+  const terrainMode: TerrainMode | null = decision.isTerrain
+    ? terrainModeFor(decision.itemId)
+    : null;
+  const terrainModel: TerrainModel | null = terrainMode
+    ? decodeTerrain(terrainMode, draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -396,6 +417,8 @@ export default function DecisionWorkingPanel({
     valid = isAssumptionsValid(assumptionsModel!);
   } else if (provisionMode) {
     valid = isProvisionBalanceValid(provisionModel!);
+  } else if (terrainMode) {
+    valid = isTerrainValid(terrainModel!);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -501,6 +524,18 @@ export default function DecisionWorkingPanel({
                 ? 'Confirm all founding members to record'
                 : 'Select an option to record this decision';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (terrainMode) {
+      const note =
+        terrainMode === 'mapSource'
+          ? 'Select a primary data source to record'
+          : terrainMode === 'slope'
+            ? 'Allocate slope classes to total 100% to record'
+            : terrainMode === 'elevation'
+              ? 'Enter highest and lowest elevation (highest >= lowest) to record'
+              : terrainMode === 'landform'
+                ? 'Add at least one landform feature to record'
+                : 'Choose a risk level, or flag mass movement, to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -534,6 +569,8 @@ export default function DecisionWorkingPanel({
       summary = summariseAssumptions(assumptionsModel!);
     } else if (provisionMode) {
       summary = summariseProvisionBalance(provisionModel!);
+    } else if (terrainMode) {
+      summary = summariseTerrain(terrainModel!);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -666,6 +703,13 @@ export default function DecisionWorkingPanel({
           <ProvisionBalanceCapture
             key={decision.itemId}
             mode={provisionMode}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : terrainMode ? (
+          <TerrainCapture
+            key={decision.itemId}
+            mode={terrainMode}
             value={draft}
             onChange={setDraft}
           />

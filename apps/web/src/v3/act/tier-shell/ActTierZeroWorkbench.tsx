@@ -148,6 +148,12 @@ export function buildDecisionTarget(
   // takes precedence over any matched generic form. False for every other id.
   const isProvisionBalance = item.id.startsWith('ev-s1-provision-balance-');
 
+  // Terrain is a 5-item objective (s2-terrain-c1..-c5); detected by id prefix.
+  // The panel's isTerrain body-router arm (TerrainCapture self-routes on itemId
+  // via terrainModeFor) takes precedence over any matched generic form. False
+  // for every other id.
+  const isTerrain = item.id.startsWith('s2-terrain-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -190,6 +196,7 @@ export function buildDecisionTarget(
     isConstraints,
     isAssumptions,
     isProvisionBalance,
+    isTerrain,
     deferLabel,
     deferrable,
   };

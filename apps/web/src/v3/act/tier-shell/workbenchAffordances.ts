@@ -20,6 +20,7 @@
 import { boundaryModeFor } from './BoundaryCaptureLegacy.js';
 import { stakeholderModeFor } from './StakeholderCapture.js';
 import { legalGovernanceModeFor } from './EvLegalGovernanceCapture.js';
+import { terrainModeFor } from './TerrainCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -92,6 +93,16 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       itemId.startsWith('ev-s1-legal-governance-')
         ? legalGovernanceModeFor(itemId)
         : null,
+  },
+  // S2 terrain: 5 items, 3 decision groups (showGroups true), no map/register
+  // strips. modeFor returns the raw TerrainMode key, which DecisionList maps to
+  // its badge label via MODE_LABELS.
+  's2-terrain': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('s2-terrain-') ? terrainModeFor(itemId) : null,
   },
 };
 

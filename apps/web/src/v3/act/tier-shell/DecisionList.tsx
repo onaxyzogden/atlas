@@ -93,6 +93,12 @@ const MODE_LABELS: Record<string, string> = {
   financialGovernance: 'Financial governance',
   membershipRegister: 'Membership register',
   legalAdviceGate: 'Legal advice gate',
+  // Terrain modes (U-S2.1).
+  mapSource: 'Map source',
+  slope: 'Map analysis',
+  elevation: 'Map analysis',
+  landform: 'Landform inventory',
+  erosion: 'Risk survey',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
