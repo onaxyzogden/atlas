@@ -1072,6 +1072,7 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}
+            projectId={projectId}
             siblingValues={siblingValues}
           />
         ) : conflictFrameworkMode ? (

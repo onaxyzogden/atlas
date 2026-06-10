@@ -11,7 +11,7 @@
  * expected FormValue keys.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 
@@ -50,13 +50,19 @@ import {
   decodeLivestockIntent,
   encodeLivestockIntent,
   isLivestockIntentValid,
+  isStockCareCapable,
   summariseLivestockIntent,
   type LivestockIntentMode,
+  type CapacityModel,
 } from '../LivestockIntentCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
+import { useActEvidenceStore } from '../../../../store/actEvidenceStore.js';
+import { useCrewMemberStore } from '../../../../store/crewMemberStore.js';
+import type { CrewMember } from '@ogden/shared';
 
 const NOOP = (): void => {};
 const P = LIVESTOCK_INTENT_PREFIX;
+const PID = 'proj-li';
 
 // ---------------------------------------------------------------------------
 // Mode mapper
@@ -117,6 +123,7 @@ describe('decodeLivestockIntent is total and defensive', () => {
       careHours: '',
       skills: [],
       support: [],
+      carers: [],
     });
     expect(decodeLivestockIntent('compat', {})).toEqual({
       kind: 'compat',
@@ -235,6 +242,7 @@ describe('LivestockIntentCapture P1 rationale', () => {
         mode="rationale"
         value={{}}
         onChange={NOOP}
+        projectId={PID}
         itemId={`${P}-c1`}
       />,
     );
@@ -253,6 +261,7 @@ describe('LivestockIntentCapture P1 rationale', () => {
         mode="rationale"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c1`}
       />,
     );
@@ -273,6 +282,7 @@ describe('LivestockIntentCapture P2 species', () => {
         mode="species"
         value={{}}
         onChange={NOOP}
+        projectId={PID}
         itemId={`${P}-c2`}
       />,
     );
@@ -294,6 +304,7 @@ describe('LivestockIntentCapture P2 species', () => {
         mode="species"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c2`}
       />,
     );
@@ -314,6 +325,7 @@ describe('LivestockIntentCapture P3 relationship', () => {
         mode="relationship"
         value={{}}
         onChange={NOOP}
+        projectId={PID}
         itemId={`${P}-c3`}
       />,
     );
@@ -332,6 +344,7 @@ describe('LivestockIntentCapture P3 relationship', () => {
         mode="relationship"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c3`}
       />,
     );
@@ -351,6 +364,7 @@ describe('LivestockIntentCapture P4 capacity', () => {
         mode="capacity"
         value={{}}
         onChange={NOOP}
+        projectId={PID}
         itemId={`${P}-c4`}
       />,
     );
@@ -371,6 +385,7 @@ describe('LivestockIntentCapture P4 capacity', () => {
         mode="capacity"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c4`}
       />,
     );
@@ -390,6 +405,7 @@ describe('LivestockIntentCapture P4 capacity', () => {
         mode="capacity"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c4`}
       />,
     );
@@ -409,6 +425,7 @@ describe('LivestockIntentCapture P5 compat', () => {
         mode="compat"
         value={{}}
         onChange={NOOP}
+        projectId={PID}
         itemId={`${P}-c5`}
         siblingValues={{
           [`${P}-c1`]: { liRationale: 'integrated' },
@@ -435,11 +452,203 @@ describe('LivestockIntentCapture P5 compat', () => {
         mode="compat"
         value={current}
         onChange={onChange}
+        projectId={PID}
         itemId={`${P}-c5`}
       />,
     );
     fireEvent.click(screen.getByRole('checkbox'));
     expect(onChange).toHaveBeenCalled();
     expect(current.liConfirmed).toBe('yes');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Stock-care capability predicate (pure, store-free)
+// ---------------------------------------------------------------------------
+
+describe('isStockCareCapable', () => {
+  it('is true when any documented skill is a stock-care skill', () => {
+    expect(isStockCareCapable([{ name: 'Animal husbandry' }])).toBe(true);
+    expect(
+      isStockCareCapable([
+        { name: 'Fencing & earthworks' },
+        { name: 'Herd health monitoring' },
+      ]),
+    ).toBe(true);
+  });
+
+  it('is false for unrelated or empty skill lists', () => {
+    expect(isStockCareCapable([])).toBe(false);
+    expect(isStockCareCapable([{ name: 'Fencing & earthworks' }])).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// c4 capacity carers (liCarers) decode/encode + summary
+// ---------------------------------------------------------------------------
+
+describe('capacity carers (liCarers)', () => {
+  it('decodes liCarers into carers and encodes it back (multi)', () => {
+    const m = decodeLivestockIntent('capacity', {
+      liCarers: ['Aisha', 'Bilal'],
+    }) as CapacityModel;
+    expect(m.carers).toEqual(['Aisha', 'Bilal']);
+    expect(encodeLivestockIntent('capacity', m).liCarers).toEqual([
+      'Aisha',
+      'Bilal',
+    ]);
+  });
+
+  it('defaults to an empty list and roundtrips empty', () => {
+    const m = decodeLivestockIntent('capacity', {}) as CapacityModel;
+    expect(m.carers).toEqual([]);
+    expect(encodeLivestockIntent('capacity', m).liCarers).toEqual([]);
+  });
+
+  it('summary reflects linked carers (or notes none linked)', () => {
+    expect(summariseLivestockIntent('capacity', {})).toMatch(/no carer linked/i);
+    expect(
+      summariseLivestockIntent('capacity', { liCarers: ['Aisha', 'Bilal'] }),
+    ).toMatch(/carers: Aisha, Bilal/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// c4 "Daily stock-care carers" picker -- the merge/filter hook in situ
+// ---------------------------------------------------------------------------
+
+/** Build a labour-roster FormValue (the index-aligned parallel arrays decode reads). */
+function labourForm(
+  persons: ReadonlyArray<{ name: string; skill?: string; level?: string }>,
+): FormValue {
+  return {
+    rosterNames: persons.map((p) => p.name),
+    rosterRoles: persons.map(() => 'team_member'),
+    rosterSpring: persons.map(() => '10'),
+    rosterSummer: persons.map(() => '10'),
+    rosterAutumn: persons.map(() => '10'),
+    rosterWinter: persons.map(() => '10'),
+    rosterSkills: persons.map((p) =>
+      p.skill ? `${p.skill}::${p.level ?? 'capable'}` : '',
+    ),
+  };
+}
+
+function seedLabour(value: FormValue): void {
+  useActEvidenceStore.setState((s) => ({
+    visionFormData: {
+      ...s.visionFormData,
+      [PID]: { ...(s.visionFormData[PID] ?? {}), 's1-vision-labour': value },
+    },
+  }));
+}
+
+function crewMember(
+  name: string,
+  skillLevel: CrewMember['skillLevel'] = 'general',
+): CrewMember {
+  return {
+    id: `crew-${name}`,
+    projectId: PID,
+    name,
+    skillLevel,
+    weeklyHoursCap: 40,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
+  };
+}
+
+describe('LivestockIntentCapture c4 daily stock-care carers', () => {
+  afterEach(() => {
+    useActEvidenceStore.setState({ visionFormData: {} });
+    useCrewMemberStore.setState({ members: [] });
+  });
+
+  it('shows the guiding empty-state when no roster person is documented capable', () => {
+    seedLabour(labourForm([{ name: 'Carl', skill: 'Fencing & earthworks' }]));
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={{}}
+        onChange={NOOP}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    expect(screen.getByText(/with stock-care skills yet/i)).toBeTruthy();
+    expect(screen.queryByText('Carl')).toBeNull();
+  });
+
+  it('lists a roster person documented with a stock-care skill and filters out one without', () => {
+    seedLabour(
+      labourForm([
+        { name: 'Aisha', skill: 'Animal husbandry', level: 'capable' },
+        { name: 'Carl', skill: 'Fencing & earthworks' },
+      ]),
+    );
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={{}}
+        onChange={NOOP}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    expect(within(picker).getByText('Aisha')).toBeTruthy();
+    expect(within(picker).queryByText('Carl')).toBeNull();
+  });
+
+  it('does not list a crew-only person who has no documented roster skill', () => {
+    useCrewMemberStore.setState({ members: [crewMember('Dana')] });
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={{}}
+        onChange={NOOP}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    expect(screen.queryByText('Dana')).toBeNull();
+    expect(screen.getByText(/with stock-care skills yet/i)).toBeTruthy();
+  });
+
+  it('dedupes a roster+crew name match into a single entry', () => {
+    seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
+    useCrewMemberStore.setState({ members: [crewMember('Aisha', 'lead')] });
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={{}}
+        onChange={NOOP}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    expect(within(picker).getAllByText('Aisha')).toHaveLength(1);
+  });
+
+  it('selecting a carer emits liCarers on the c4 FormValue', () => {
+    seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
+    let current: FormValue = {};
+    const onChange = vi.fn((next: FormValue) => {
+      current = next;
+    });
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={current}
+        onChange={onChange}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    fireEvent.click(within(picker).getByText('Aisha'));
+    expect(onChange).toHaveBeenCalled();
+    expect(current.liCarers).toEqual(['Aisha']);
   });
 });

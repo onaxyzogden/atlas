@@ -67,6 +67,10 @@ import {
 import type { ChoiceCardOption } from './captures/controls/index.js';
 import { LIVESTOCK_SPECIES } from '../../../features/livestock/speciesData.js';
 import type { LivestockSpecies } from '../../../store/livestockStore.js';
+import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
+import { useCrewMemberStore } from '../../../store/crewMemberStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
+import { decode as decodeLabour } from './LabourInventoryCapture.js';
 import css from './LivestockIntentCapture.module.css';
 
 // ---------------------------------------------------------------------------
@@ -103,6 +107,53 @@ export function livestockIntentModeFor(itemId: string): LivestockIntentMode | nu
 }
 
 // ---------------------------------------------------------------------------
+// Stock-care capability (c4 "Operator capacity" carer linking)
+// ---------------------------------------------------------------------------
+
+/**
+ * The labour-inventory formId whose saved roster documents per-person skills.
+ * It lives on a DIFFERENT objective (s1-vision-labour) but its FormValue is
+ * globally readable via actEvidenceStore.visionFormData[projectId][formId].
+ */
+const LABOUR_FORM_ID = 's1-vision-labour';
+
+/**
+ * Skills that count as "documented capable of daily stock care". Copied
+ * VERBATIM from `laborSkillsByType` in
+ * packages/shared/src/constants/plan/fieldOptions.ts (_base / homestead /
+ * silvopasture / livestock_operation) so the set never drifts from the
+ * labour-skills catalogue. Capability is documented ONLY via the labour
+ * roster; crew and steward-team entries carry no task-specific skill.
+ */
+const STOCK_CARE_SKILLS: readonly string[] = [
+  'Animal husbandry',
+  'Small-livestock care',
+  'Animal rotation',
+  'Grazing management',
+  'Herd health monitoring',
+];
+const STOCK_CARE_SKILL_SET = new Set(STOCK_CARE_SKILLS);
+
+/** True iff any of the person's documented skills is a stock-care skill. */
+export function isStockCareCapable(
+  skills: ReadonlyArray<{ name: string }>,
+): boolean {
+  return skills.some((s) => STOCK_CARE_SKILL_SET.has(s.name));
+}
+
+/** A person who may be linked as a daily stock-care carer. */
+export interface CarerCandidate {
+  /** display name (also the stored token in CapacityModel.carers) */
+  name: string;
+  /** short role/source hint, e.g. "Team", "Lead", "Steward" */
+  role?: string;
+  /** first documented stock-care skill (for the caption) */
+  topSkill?: string;
+  /** that skill's recorded level, if any */
+  level?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Models (discriminated union by `kind`)
 // ---------------------------------------------------------------------------
 
@@ -129,6 +180,13 @@ export interface CapacityModel {
   careHours: string;
   skills: string[];
   support: string[];
+  /**
+   * Display names of the people linked as daily stock-care carers. Drawn from
+   * the merged, capability-filtered candidate set (crew + labour roster +
+   * steward team); see useStockCareCandidates. Stored by name -- adequate for
+   * the prototype slice (see plan "Deferred").
+   */
+  carers: string[];
 }
 export interface CompatModel {
   kind: 'compat';
@@ -341,6 +399,7 @@ export function decodeLivestockIntent(
         careHours: asStr(value.liCareHours),
         skills: asArr(value.liSkills),
         support: asArr(value.liSupport),
+        carers: asArr(value.liCarers),
       };
     case 'compat':
       return { kind: 'compat', confirmed: asStr(value.liConfirmed) === 'yes' };
@@ -373,6 +432,7 @@ export function encodeLivestockIntent(
         liCareHours: model.careHours,
         liSkills: [...model.skills],
         liSupport: [...model.support],
+        liCarers: [...model.carers],
       };
     case 'compat':
       return { liConfirmed: model.confirmed ? 'yes' : '' };
@@ -435,7 +495,9 @@ export function summariseLivestockIntent(
       const expLabel =
         m.experience !== '' ? EXPERIENCE_TITLE_BY_ID.get(m.experience) ?? m.experience : 'unset';
       const hrs = num(m.careHours, CARE_HOURS_DEFAULT);
-      return `Experience: ${expLabel}; ${hrs} hrs/day daily care`;
+      const carers =
+        m.carers.length > 0 ? `carers: ${m.carers.join(', ')}` : 'no carer linked';
+      return `Experience: ${expLabel}; ${hrs} hrs/day daily care; ${carers}`;
     }
     case 'compat': {
       const m = decodeLivestockIntent('compat', value) as CompatModel;
@@ -460,8 +522,88 @@ export interface LivestockIntentCaptureProps {
   onChange: (next: FormValue) => void;
   /** this capture's own checklist item id (e.g. silv-sec-s1-livestock-intent-c1). */
   itemId: string;
+  /** owning project id; capacity (c4) reads crew/labour-roster/steward stores. */
+  projectId: string;
   /** full per-item FormValue map; only compat (c5) reads c1/c2/c4 siblings. */
   siblingValues?: Record<string, FormValue>;
+}
+
+function normName(n: string): string {
+  return n.trim().toLowerCase();
+}
+
+/** Short display label for a crew member's skill level. */
+function crewRoleLabel(level: string): string {
+  switch (level) {
+    case 'lead':
+      return 'Crew lead';
+    case 'skilled':
+      return 'Skilled crew';
+    case 'apprentice':
+      return 'Apprentice';
+    case 'general':
+    default:
+      return 'Crew';
+  }
+}
+
+/**
+ * Merge crew + labour roster + steward team into the capability-filtered set of
+ * people who may be linked as daily stock-care carers. Dedupes by normalized
+ * name. A person qualifies ONLY when a labour-roster entry documents a
+ * stock-care skill; crew and steward-team entries enrich role/identity on a
+ * name match but never qualify on their own (they carry no task-specific skill).
+ * Returns a stable, name-sorted list. Subscribes to the three stores so the
+ * picker stays live.
+ */
+function useStockCareCandidates(projectId: string): CarerCandidate[] {
+  const labourForm = useActEvidenceStore(
+    (s) => s.visionFormData[projectId]?.[LABOUR_FORM_ID],
+  );
+  const crew = useCrewMemberStore((s) => s.members);
+  const project = useProjectStore((s) =>
+    s.projects.find((p) => p.id === projectId),
+  );
+
+  return React.useMemo(() => {
+    // 1. Labour roster -- the ONLY source of documented stock-care capability.
+    const roster = decodeLabour(labourForm ?? {}).roster;
+    const byName = new Map<string, CarerCandidate>();
+    for (const person of roster) {
+      const name = person.name.trim();
+      if (name === '' || !isStockCareCapable(person.skills)) continue;
+      const top = person.skills.find((s) => STOCK_CARE_SKILL_SET.has(s.name));
+      byName.set(normName(name), {
+        name,
+        role: 'Labour roster',
+        topSkill: top?.name,
+        level: top?.level,
+      });
+    }
+
+    // 2. Crew -- enrich role on a name match only (no independent capability).
+    for (const m of crew) {
+      if (m.projectId !== projectId) continue;
+      const existing = byName.get(normName(m.name));
+      if (existing) existing.role = crewRoleLabel(m.skillLevel);
+    }
+
+    // 3. Steward team -- enrich role on a name match only.
+    const team = project?.metadata?.team;
+    const stewardNames: string[] = [];
+    if (team?.primarySteward?.name) stewardNames.push(team.primarySteward.name);
+    for (const c of team?.coStewards ?? []) {
+      if (c.name) stewardNames.push(c.name);
+    }
+    for (const name of stewardNames) {
+      const existing = byName.get(normName(name));
+      if (existing) existing.role = 'Steward';
+    }
+
+    return Array.from(byName.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [labourForm, crew, project, projectId]);
 }
 
 export function LivestockIntentCapture({
@@ -469,6 +611,7 @@ export function LivestockIntentCapture({
   value,
   onChange,
   itemId,
+  projectId,
   siblingValues = {},
 }: LivestockIntentCaptureProps): React.JSX.Element {
   void itemId;
@@ -476,6 +619,10 @@ export function LivestockIntentCapture({
 
   // P2 filter is transient UI state only -- never persisted.
   const [speciesFilter, setSpeciesFilter] = React.useState<SpeciesFilter>('all');
+
+  // Called unconditionally (rules-of-hooks); only the capacity (c4) body reads
+  // it. Cheap + memoized for the other modes.
+  const carerCandidates = useStockCareCandidates(projectId);
 
   // -- P1: rationale --------------------------------------------------------
   if (mode === 'rationale') {
@@ -637,6 +784,9 @@ export function LivestockIntentCapture({
       title: e.title,
     }));
     const careHours = num(model.careHours, CARE_HOURS_DEFAULT);
+    const selectedCarers = carerCandidates.filter((c) =>
+      model.carers.includes(c.name),
+    );
     return (
       <div className={css.root} data-li-mode="capacity">
         <div>
@@ -690,6 +840,40 @@ export function LivestockIntentCapture({
             multi
             ariaLabel="Support or training needed"
           />
+        </div>
+        <div>
+          <SectionEyebrow>Daily stock-care carers</SectionEyebrow>
+          {carerCandidates.length > 0 ? (
+            <>
+              <ChipSelect
+                options={carerCandidates.map((c) => c.name)}
+                value={model.carers}
+                onChange={(next) => set({ carers: next })}
+                multi
+                ariaLabel="Daily stock-care carers"
+              />
+              {selectedCarers.length > 0 ? (
+                <ul className={css.carerList}>
+                  {selectedCarers.map((c) => (
+                    <li key={c.name} className={css.carerRow}>
+                      <span className={css.carerName}>{c.name}</span>
+                      <span className={css.carerMeta}>
+                        {[c.role, c.topSkill, c.level]
+                          .filter(Boolean)
+                          .join(' - ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          ) : (
+            <InterpretationBlock tone="info">
+              No one on the crew, labour roster, or steward team is documented
+              with stock-care skills yet. Add a stock-care skill in Labour
+              inventory to link a carer here.
+            </InterpretationBlock>
+          )}
         </div>
         <FeedsNote>
           Operator capacity feeds the{' '}
