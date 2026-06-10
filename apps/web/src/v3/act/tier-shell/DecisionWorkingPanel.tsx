@@ -216,6 +216,13 @@ import {
   type SettlementMode,
 } from './SettlementCapture.js';
 import {
+  BiosecurityCapture,
+  biosecurityModeFor,
+  isBiosecurityValid,
+  summariseBiosecurity,
+  type BiosecurityMode,
+} from './BiosecurityCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -288,6 +295,8 @@ export interface DecisionPanelTarget {
   isEnergy?: boolean;
   /** true => render SettlementCapture (self-routing on itemId via settlementModeFor). */
   isSettlement?: boolean;
+  /** true => render BiosecurityCapture (self-routing on itemId via biosecurityModeFor). */
+  isBiosecurity?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -638,6 +647,15 @@ export default function DecisionWorkingPanel({
   const settlementMode: SettlementMode | null =
     decision.isSettlement ? settlementModeFor(decision.itemId) : null;
 
+  // Biosecurity survey is a 5-mode capture (soilDisease/insectPest/weedMedia/
+  // ingress/sanitation) routed by biosecurityModeFor(itemId). Advisory only --
+  // it validates / summarises directly off the FormValue and writes no store /
+  // takes no projectId. Only sanitation (c5) gates (entry/tools/container
+  // baseline). Only the resolved mode is held here -- used by the validity,
+  // summary, body arms.
+  const biosecurityMode: BiosecurityMode | null =
+    decision.isBiosecurity ? biosecurityModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -696,6 +714,8 @@ export default function DecisionWorkingPanel({
     valid = isEnergyValid(energyMode, draft);
   } else if (settlementMode) {
     valid = isSettlementValid(settlementMode, draft);
+  } else if (biosecurityMode) {
+    valid = isBiosecurityValid(biosecurityMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -933,6 +953,8 @@ export default function DecisionWorkingPanel({
       summary = summariseEnergy(energyMode, draft);
     } else if (settlementMode) {
       summary = summariseSettlement(settlementMode, draft);
+    } else if (biosecurityMode) {
+      summary = summariseBiosecurity(biosecurityMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1184,6 +1206,15 @@ export default function DecisionWorkingPanel({
           <SettlementCapture
             key={decision.itemId}
             mode={settlementMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : biosecurityMode ? (
+          <BiosecurityCapture
+            key={decision.itemId}
+            mode={biosecurityMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

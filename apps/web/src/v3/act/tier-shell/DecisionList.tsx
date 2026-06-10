@@ -192,7 +192,6 @@ const MODE_LABELS: Record<string, string> = {
   'en-biomass': 'Biomass capacity',
   'en-demand': 'Energy demand',
   'en-distribution': 'Distribution',
-
   // Phased settlement modes (ecovillage EV-S4.4). The component's generic mode
   // keys are namespaced "st-" by workbenchAffordances. 6 modes c1..c6. Advisory
   // only (the habitability hard gates are surfaced as guidance, not enforced).
@@ -202,6 +201,14 @@ const MODE_LABELS: Record<string, string> = {
   'st-trial': 'Trial residency',
   'st-capacity': 'Carrying capacity',
   'st-gates': 'Go/no-go gates',
+  // Biosecurity survey modes (nursery NUR-S2). The component's generic mode keys
+  // are namespaced "bs-" by workbenchAffordances to keep them clear of the
+  // generic labels above. 5 modes c1..c5. Advisory only.
+  'bs-soilDisease': 'Soil-borne disease',
+  'bs-insectPest': 'Insect pests',
+  'bs-weedMedia': 'Weed & media risk',
+  'bs-ingress': 'Plant-material ingress',
+  'bs-sanitation': 'Sanitation baseline',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

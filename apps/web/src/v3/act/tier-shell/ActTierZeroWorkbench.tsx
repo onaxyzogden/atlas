@@ -258,6 +258,14 @@ export function buildDecisionTarget(
   // mode stays always recordable. False for every other id.
   const isSettlement = item.id.startsWith('ev-s4-settlement-strategy-');
 
+  // Biosecurity survey is a 5-item nursery objective
+  // (nur-sec-s2-biosecurity-survey-c1..-c5); detected by id prefix. The panel's
+  // isBiosecurity body-router arm (BiosecurityCapture self-routes on itemId via
+  // biosecurityModeFor) takes precedence over any matched generic form. Advisory
+  // only -- no store write, no projectId. Only c5 (sanitation) gates, on the
+  // entry/tools/container baseline. False for every other id.
+  const isBiosecurity = item.id.startsWith('nur-sec-s2-biosecurity-survey-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -313,6 +321,7 @@ export function buildDecisionTarget(
     isWater,
     isEnergy,
     isSettlement,
+    isBiosecurity,
     deferLabel,
     deferrable,
   };

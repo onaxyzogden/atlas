@@ -34,6 +34,7 @@ import { soilImprovementModeFor } from './SoilImprovementCapture.js';
 import { waterSystemsModeFor } from './WaterSystemsCapture.js';
 import { energyModeFor } from './EnergyCapture.js';
 import { settlementModeFor } from './SettlementCapture.js';
+import { biosecurityModeFor } from './BiosecurityCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -306,6 +307,25 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s4-settlement-strategy-')) return null;
       const m = settlementModeFor(itemId);
       return m ? `st-${m}` : null;
+    },
+  },
+
+  // S2 nursery biosecurity survey (nursery NUR-S2): 5 items, grouped
+  // (showGroups true); no map/register strips. Advisory only -- the capture
+  // writes no store and takes no projectId. biosecurityModeFor returns GENERIC
+  // mode keys (soilDisease / insectPest / weedMedia / ingress / sanitation).
+  // The badge keys are namespaced "bs-" HERE (the affordance modeFor feeds the
+  // badge only; DecisionWorkingPanel routes off its own biosecurityModeFor
+  // independently), and DecisionList carries matching bs-* labels. The
+  // component itself is left untouched.
+  'nur-sec-s2-biosecurity-survey': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('nur-sec-s2-biosecurity-survey-')) return null;
+      const m = biosecurityModeFor(itemId);
+      return m ? `bs-${m}` : null;
     },
   },
 };

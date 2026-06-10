@@ -1968,6 +1968,126 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3c-iv -- Biosecurity risk survey (nur-sec-s2-biosecurity-survey):
+          a 5-mode nursery capture (soilDisease / insectPest / weedMedia /
+          ingress / sanitation). Advisory only -- it writes no store and takes no
+          projectId, so each panel stands alone. The dummy "gallery" projectId
+          matches the sections above (the arm ignores it). */}
+      <Section title="Decision Working Panel - Biosecurity: soil-borne disease (nur-sec-s2-biosecurity-survey c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s2-biosecurity-survey-c1",
+              label: "Identify soil-borne diseases in proposed propagation areas - Phytophthora, damping off risk",
+              prompt: "Rate the site risk factors and the disease risk for each soil-borne pathogen.",
+              isBiosecurity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Biosecurity: insect pests (nur-sec-s2-biosecurity-survey c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s2-biosecurity-survey-c2",
+              label: "Identify key insect pests relevant to propagation - fungus gnats, aphids, scale",
+              prompt: "Set the propagation environment and register the presence of each insect pest.",
+              isBiosecurity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Biosecurity: weed & media risk (nur-sec-s2-biosecurity-survey c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s2-biosecurity-survey-c3",
+              label: "Assess weed contamination risk in potting mix sources",
+              prompt: "Register each media source and rate its weed and contamination risk.",
+              isBiosecurity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Biosecurity: plant-material ingress (nur-sec-s2-biosecurity-survey c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s2-biosecurity-survey-c4",
+              label: "Assess biosecurity risk from existing plant material on site",
+              prompt: "Register each ingress pathway and the quarantine or exclusion protocol it requires.",
+              isBiosecurity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Biosecurity: sanitation baseline (nur-sec-s2-biosecurity-survey c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s2-biosecurity-survey-c5",
+              label: "Define sanitation and hygiene baseline for proposed propagation areas",
+              prompt: "Select each protocol element; the named sanitation standard assembles below.",
+              isBiosecurity: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
