@@ -422,7 +422,9 @@ describe('DecisionWorkingPanel -- labour inventory', () => {
     expect(value.who).toBe('who-small');
     expect(value.skills).toContain('Fencing & earthworks::capable');
     expect(summary).toBe(summariseLabour(decode(COMPLETE_LABOUR)));
-    expect(summary).toBe('Small paid team, 20 hrs/wk, 1 skill');
+    // Legacy value (no rosterNames) decodes to a single synthetic `primary`
+    // person, so the per-person summary reports 1 person + derived team total.
+    expect(summary).toBe('1 person, 20 hrs/wk combined, 1 skill');
   });
 
   it('gate note names the missing requirements for an invalid labour draft', () => {
@@ -434,11 +436,11 @@ describe('DecisionWorkingPanel -- labour inventory', () => {
       }),
       initialValue: {},
     });
-    // who '' -> team; skills empty -> at least one skill (hours falls back to a
-    // display default of 20 in the component, but decode of {} yields 0, so the
-    // panel-side gate -- computed from decode -- names hours too).
+    // decode({}) yields a single `primary` person with 0 hours and 0 skills, so
+    // the roster-based gate names both missing requirements: weekly hours for a
+    // person and at least one skill. (WHO band no longer gates validity.)
     const gate = screen.getByText(/before recording/i);
-    expect(gate.textContent).toMatch(/team/i);
+    expect(gate.textContent).toMatch(/weekly hours/i);
     expect(gate.textContent).toMatch(/skill/i);
   });
 
