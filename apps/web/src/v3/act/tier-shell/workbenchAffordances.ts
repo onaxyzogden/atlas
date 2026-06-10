@@ -28,6 +28,7 @@ import { carryingCapacityModeFor } from './CarryingCapacityCapture.js';
 import { forageModeFor } from './ForageCapture.js';
 import { grazingModeFor } from './GrazingSystemCapture.js';
 import { livestockIntentModeFor } from './LivestockIntentCapture.js';
+import { conflictFrameworkModeFor } from './ConflictFrameworkCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -198,6 +199,20 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     modeFor: (itemId) =>
       itemId.startsWith('silv-sec-s4-grazing-design-')
         ? grazingModeFor(itemId)
+        : null,
+  },
+  // S1 conflict-resolution & community-agreement framework (ecovillage
+  // EV-S1.x): 7 items, 3 decision groups (showGroups true); no map/register
+  // strips. modeFor returns the raw ConflictFrameworkMode key (decisionProcess
+  // / disputePathway / communityAgreements / exitProcess / dissolution /
+  // reviewCadence / signOff), mapped to a badge by DecisionList MODE_LABELS.
+  'ev-s1-conflict-framework': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('ev-s1-conflict-framework-')
+        ? conflictFrameworkModeFor(itemId)
         : null,
   },
 };

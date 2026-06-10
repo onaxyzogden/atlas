@@ -150,6 +150,14 @@ const MODE_LABELS: Record<string, string> = {
   'li-relationship': 'Enterprise relationship',
   'li-capacity': 'Operator capacity',
   'li-compat': 'Compatibility review',
+  // Conflict-resolution & community-agreement framework modes (EV-S1.x).
+  decisionProcess: 'Decision model',
+  disputePathway: 'Dispute pathway',
+  communityAgreements: 'Agreements',
+  exitProcess: 'Exit process',
+  dissolution: 'Dissolution',
+  reviewCadence: 'Review cadence',
+  signOff: 'Sign-off gate',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

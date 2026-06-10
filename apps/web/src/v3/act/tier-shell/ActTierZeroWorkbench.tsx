@@ -208,6 +208,14 @@ export function buildDecisionTarget(
   // only gated mode. False for every other id.
   const isLivestockIntent = item.id.startsWith('silv-sec-s1-livestock-intent-');
 
+  // Conflict-resolution & community-agreement framework is a 7-item ecovillage
+  // objective (ev-s1-conflict-framework-c1..-c7); detected by id prefix. The
+  // panel's isConflictFramework body-router arm (ConflictFrameworkCapture
+  // self-routes on itemId via conflictFrameworkModeFor) takes precedence over
+  // any matched generic form. Each c1..c7 is self-contained (no siblingValues).
+  // False for every other id.
+  const isConflictFramework = item.id.startsWith('ev-s1-conflict-framework-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -257,6 +265,7 @@ export function buildDecisionTarget(
     isForage,
     isGrazing,
     isLivestockIntent,
+    isConflictFramework,
     deferLabel,
     deferrable,
   };

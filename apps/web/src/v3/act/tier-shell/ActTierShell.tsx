@@ -181,6 +181,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'silv-sec-s1-livestock-intent',
   'silv-sec-s3-forage-survey',
   'silv-sec-s4-grazing-design',
+  'ev-s1-conflict-framework',
 ]);
 
 /**
