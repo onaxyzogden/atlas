@@ -17,7 +17,7 @@
   align-items: baseline;
   gap: 6px;
   font-size: var(--text-3xl, 30px);
-  font-family: var(--font-serif, Georgia, serif);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
   font-weight: 600;
   line-height: 1.1;
   color: var(--color-text, #1b1e22);
