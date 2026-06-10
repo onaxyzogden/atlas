@@ -190,6 +190,15 @@ export function buildDecisionTarget(
   // the panel's siblingValues prop. False for every other id.
   const isForage = item.id.startsWith('silv-sec-s3-forage-survey-');
 
+  // Grazing system design is a 6-item silvopasture objective
+  // (silv-sec-s4-grazing-design-c1..-c6); detected by id prefix. The panel's
+  // isGrazing body-router arm (GrazingSystemCapture self-routes on itemId via
+  // grazingModeFor) takes precedence over any matched generic form. Advisory
+  // only -- no store write, no projectId (the paddock-stocking-density formula
+  // reads forage-written paddocks independently). c6 (stockingDensity) is the
+  // computed item; the arm still renders its mode body. False for every other id.
+  const isGrazing = item.id.startsWith('silv-sec-s4-grazing-design-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -237,6 +246,7 @@ export function buildDecisionTarget(
     isLandscape,
     isCarryingCapacity,
     isForage,
+    isGrazing,
     deferLabel,
     deferrable,
   };

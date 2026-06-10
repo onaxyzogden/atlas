@@ -159,6 +159,13 @@ import {
   type ForageMode,
 } from './ForageCapture.js';
 import {
+  GrazingSystemCapture,
+  grazingModeFor,
+  isGrazingValid,
+  summariseGrazing,
+  type GrazingMode,
+} from './GrazingSystemCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -215,6 +222,8 @@ export interface DecisionPanelTarget {
   isCarryingCapacity?: boolean;
   /** true => render ForageCapture (self-routing on itemId via forageModeFor). */
   isForage?: boolean;
+  /** true => render GrazingSystemCapture (self-routing on itemId via grazingModeFor). */
+  isGrazing?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -496,6 +505,14 @@ export default function DecisionWorkingPanel({
   const forageMode: ForageMode | null =
     decision.isForage ? forageModeFor(decision.itemId) : null;
 
+  // Grazing system design is a 6-mode capture (grazingMethod/paddockLayout/
+  // grazeRest/treeProtection/contingency/stockingDensity) routed by
+  // grazingModeFor(itemId). Advisory only -- it validates / summarises directly
+  // off the FormValue and writes no store / takes no projectId. Only the
+  // resolved mode is held here -- used by the validity, summary, and body arms.
+  const grazingMode: GrazingMode | null =
+    decision.isGrazing ? grazingModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -538,6 +555,8 @@ export default function DecisionWorkingPanel({
     valid = isCarryingCapacityValid(carryingCapacityMode, draft);
   } else if (forageMode) {
     valid = isForageValid(forageMode, draft);
+  } else if (grazingMode) {
+    valid = isGrazingValid(grazingMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -736,6 +755,8 @@ export default function DecisionWorkingPanel({
       );
     } else if (forageMode) {
       summary = summariseForage(forageMode, draft, siblingValues);
+    } else if (grazingMode) {
+      summary = summariseGrazing(grazingMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -917,6 +938,15 @@ export default function DecisionWorkingPanel({
             itemId={decision.itemId}
             siblingValues={siblingValues}
             projectId={projectId}
+          />
+        ) : grazingMode ? (
+          <GrazingSystemCapture
+            key={decision.itemId}
+            mode={grazingMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
           />
         ) : hasFields ? (
           <VisionFormFields

@@ -134,6 +134,13 @@ const MODE_LABELS: Record<string, string> = {
   capacity: 'Capacity calc',
   constraints: 'Constraint survey',
   toxic: 'Toxic-plant survey',
+  // Grazing system design modes (SILV-S4.20).
+  grazingMethod: 'Grazing method',
+  paddockLayout: 'Paddock layout',
+  grazeRest: 'Graze/rest targets',
+  treeProtection: 'Tree protection',
+  contingency: 'Feed-gap contingency',
+  stockingDensity: 'Stocking density',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

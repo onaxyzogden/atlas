@@ -179,6 +179,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'ev-s2-landscape-vectors',
   'ev-s2-carrying-capacity',
   'silv-sec-s3-forage-survey',
+  'silv-sec-s4-grazing-design',
 ]);
 
 /**
