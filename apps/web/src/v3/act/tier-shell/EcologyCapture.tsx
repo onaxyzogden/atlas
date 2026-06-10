@@ -1,14 +1,16 @@
 /**
  * EcologyCapture -- a multi-mode CONTROLLED capture for objective s2-ecology
- * (5 checklist items c1..c5). Ported from olos_ecology_habitat.html right-hand
- * panels p1..p5. Catalogue item order == mockup panel order (straightforward
- * 1:1):
+ * (Stratum 2, "Existing Ecology & Habitat"). Rebuilt from
+ * olos_ecology_habitat_act.html (the OLOS Act-view decision workbench). The
+ * left rail order == catalogue item order:
  *
- *   c1 -> vegetation    (mockup p1: community-type register + % of site)
- *   c2 -> species       (mockup p2: native register + invasive weed register)
- *   c3 -> corridors     (mockup p3: corridor + nesting chip groups + notes)
- *   c4 -> connectivity  (mockup p4: 4-card single-select assessment)
- *   c5 -> waterHabitat  (mockup p5: water-dependent area register)
+ *   c1     -> vegetation    (draw-on-map community survey; see note below)
+ *   c2     -> species       (native-category checklist + invasive register + SAR)
+ *   c3     -> corridors     (feature + nesting checklists + 4-step quality score)
+ *   c4     -> connectivity  (feature + barrier checklists + score + distance)
+ *   c5     -> waterHabitat  (habitat checklist + 2 setback dropdowns + none toggle)
+ *   orch-1 -> pollinator    (4 guild cards + 4-step provision score)
+ *   orch-2 -> insectary     (bloom-window table + nesting checklist + bed dropdown)
  *
  * Structure mirrors TerrainCapture / ClimateCapture (the canonical multi-mode
  * captures): an `ecologyModeFor(itemId)` mapper plus a single component that
@@ -16,28 +18,35 @@
  * feeds / gate-note / Record-Defer footer) is owned by DecisionWorkingPanel --
  * this capture renders ONLY the mode body blocks.
  *
- * IN SCOPE: the 5 universal panels ONLY. The mockup's two type-injected
- * "Orchard / Food Forest" panels (pollinator baseline p6, insectary plan p7)
- * carry the sec-inj-badge injection marker and belong to a separate
- * type-injected objective -- they are NOT part of this universal capture.
+ * SCOPE: c1-c5 are UNIVERSAL (U-S2.3). pollinator (orch-1) and insectary
+ * (orch-2) are injected into THIS objective by the orchard / food-forest type
+ * patch (ORCH>U-S2.3) -- so they are part of this capture, rendered only when
+ * the project carries the orchard type.
+ *
+ * CONTENT is region-NEUTRAL by operator decision: the mockup's controls
+ * (checklists, score chips, guild cards, bloom table, dropdowns) are reproduced
+ * but vocabulary is generic -- no region-specific weed names, species-at-risk
+ * lists, fixed setback metres, or named bloom months. The c1 vegetation survey
+ * intentionally diverges from the mockup's zone-form: it is drawn on the map
+ * (see VegetationSurveyPanel) and left unchanged here.
  *
  * Each mode persists its OWN keys in the per-item flat FormValue
  * (Record<string, string | string[]>). decode is TOTAL/defensive (non-array ->
- * empty; per-entry try/catch parse for growable lists; coerce bad types to
- * defaults; NEVER fabricate seed data -- the mockup shows seeded demo
- * communities/species/areas, but this capture starts EMPTY).
+ * empty; per-entry try/catch parse for the invasive register; unknown checklist
+ * keys / out-of-range scores / unknown dropdown values coerced to empty; NEVER
+ * fabricate seed data -- empty FormValue yields an empty model).
  *
  * CONTROLLED / pure: the model is always derived from decode(value) each render;
  * the full next model is emitted via onChange(encode(next)). Stable per-entry
- * ids (species rows, water-area rows) are minted by makeRowId() in EVENT
- * HANDLERS ONLY (never in decode/render) and used as React keys (never index).
+ * ids (invasive rows) are minted by makeRowId() in EVENT HANDLERS ONLY (never in
+ * decode/render) and used as React keys (never index).
  *
- * ASCII-only: em-dash -> " -- ", middot -> &middot; entity; all icons are
- * lucide. Apostrophes use double-quoted strings.
+ * ASCII-only: em-dash -> " -- "; all icons are lucide. Apostrophes use
+ * double-quoted strings.
  */
 
 import * as React from 'react';
-import { ArrowRight, Plus, X } from 'lucide-react';
+import { ArrowRight, Check, Plus, X } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
 import css from './EcologyCapture.module.css';
 
@@ -50,7 +59,9 @@ export type EcologyMode =
   | 'species'
   | 'corridors'
   | 'connectivity'
-  | 'waterHabitat';
+  | 'waterHabitat'
+  | 'pollinator'
+  | 'insectary';
 
 export function ecologyModeFor(itemId: string): EcologyMode | null {
   switch (itemId) {
@@ -64,13 +75,17 @@ export function ecologyModeFor(itemId: string): EcologyMode | null {
       return 'connectivity';
     case 's2-ecology-c5':
       return 'waterHabitat';
+    case 's2-ecology-orch-1':
+      return 'pollinator';
+    case 's2-ecology-orch-2':
+      return 'insectary';
     default:
       return null;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Stable id factory (species + water-area rows). Module-scoped, pure -- no
+// Stable id factory (invasive register rows). Module-scoped, pure -- no
 // import-time side-effects; CALLED ONLY IN EVENT HANDLERS.
 // ---------------------------------------------------------------------------
 
@@ -92,16 +107,7 @@ export interface VegetationModel {
   communities: Record<string, string>;
 }
 
-export type SpeciesKind = 'tree' | 'shrub' | 'grass' | 'ground';
 export type InvasivePriority = 'high' | 'mod' | 'low';
-
-export interface NativeSpecies {
-  id: string;
-  scientific: string;
-  common: string;
-  speciesKind: SpeciesKind;
-  abundance: string;
-}
 
 export interface InvasiveSpecies {
   id: string;
@@ -113,37 +119,69 @@ export interface InvasiveSpecies {
 
 export interface SpeciesModel {
   kind: 'species';
-  natives: NativeSpecies[];
+  /** keys from NATIVE_CATEGORIES that are ticked */
+  nativeCats: string[];
+  /** operator-grown invasive watchlist (region-neutral -- they name their own) */
   invasives: InvasiveSpecies[];
+  /** SAR_OPTIONS value, or '' when not assessed */
+  sar: string;
 }
 
 export interface CorridorsModel {
   kind: 'corridors';
+  /** keys from CORRIDOR_FEATURES */
   corridorTypes: string[];
+  /** keys from NESTING_OBSERVED */
   nesting: string[];
-  notes: string;
+  /** '' | '1'..'4' (CORRIDOR_SCORES) */
+  score: string;
 }
-
-export type ConnectivityRating = 'connected' | 'partial' | 'fragmented' | 'none';
 
 export interface ConnectivityModel {
   kind: 'connectivity';
-  rating: ConnectivityRating | '';
-}
-
-export type WaterAreaType = 'creek' | 'dam' | 'wetland' | 'seep' | 'soak';
-
-export interface WaterArea {
-  id: string;
-  areaType: WaterAreaType;
-  name: string;
-  description: string;
+  /** keys from CONN_FEATURES */
+  features: string[];
+  /** keys from CONN_BARRIERS */
+  barriers: string[];
+  /** '' | '1'..'4' (CONN_SCORES) */
+  score: string;
+  /** CONN_DISTANCE value, or '' */
+  distance: string;
 }
 
 export interface WaterHabitatModel {
   kind: 'waterHabitat';
-  areas: WaterArea[];
+  /** keys from WATER_HABITATS */
+  habitats: string[];
+  /** SETBACK_COND value, or '' */
+  setbackCond: string;
+  /** SETBACK_TARGET value, or '' */
+  setbackTarget: string;
   nonePresent: boolean;
+}
+
+export interface PollinatorModel {
+  kind: 'pollinator';
+  honeybee: string;
+  bumbleSpecies: string;
+  bumbleAbund: string;
+  solitaryGround: string;
+  solitaryMason: string;
+  hoverfly: string;
+  /** '' | '1'..'4' (POLL_SCORES) */
+  score: string;
+}
+
+export interface InsectaryModel {
+  kind: 'insectary';
+  bloomEarly: string;
+  bloomMid: string;
+  bloomLate: string;
+  bloomGaps: string;
+  /** keys from INSECTARY_NESTING */
+  nesting: string[];
+  /** INSECTARY_BED value, or '' */
+  bed: string;
 }
 
 export type EcologyModel =
@@ -151,11 +189,27 @@ export type EcologyModel =
   | SpeciesModel
   | CorridorsModel
   | ConnectivityModel
-  | WaterHabitatModel;
+  | WaterHabitatModel
+  | PollinatorModel
+  | InsectaryModel;
 
 // ---------------------------------------------------------------------------
-// Verbatim domain data (copied from the mockup p1..p5)
+// Domain data (region-neutral structures ported from the mockup right panels)
 // ---------------------------------------------------------------------------
+
+interface CheckSpec {
+  key: string;
+  label: string;
+  sub?: string;
+}
+interface OptionSpec {
+  value: string;
+  label: string;
+}
+interface ScoreSpec {
+  score: string;
+  label: string;
+}
 
 export interface CommunitySpec {
   key: string;
@@ -164,7 +218,7 @@ export interface CommunitySpec {
 // Single source of truth for the 7 vegetation community keys + labels. Exported
 // so the draw-on-map survey (vegetationSurveyStore / VegetationSurveyPanel /
 // VegetationSurveyLayer) reuses the exact same keys + labels rather than
-// duplicating them. The c1 survey is now drawn on the map (% auto-computed from
+// duplicating them. The c1 survey is drawn on the map (% auto-computed from
 // polygon acreage); this list still defines the canonical taxonomy.
 export const VEG_COMMUNITIES: readonly CommunitySpec[] = [
   { key: 'cleared', label: 'Cleared / Improved pasture' },
@@ -177,20 +231,22 @@ export const VEG_COMMUNITIES: readonly CommunitySpec[] = [
 ];
 const VEG_COMMUNITY_KEYS = new Set(VEG_COMMUNITIES.map((c) => c.key));
 
-interface SpeciesKindSpec {
-  id: SpeciesKind;
-  label: string;
-}
-const SPECIES_KINDS: readonly SpeciesKindSpec[] = [
-  { id: 'tree', label: 'Tree' },
-  { id: 'shrub', label: 'Shrub' },
-  { id: 'grass', label: 'Grass' },
-  { id: 'ground', label: 'Groundcover' },
+// --- species (c2) ---
+const NATIVE_CATEGORIES: readonly CheckSpec[] = [
+  { key: 'canopy', label: 'Native canopy trees' },
+  { key: 'shrub', label: 'Native shrubs / hedgerow' },
+  { key: 'grass', label: 'Native grasses & sedges' },
+  { key: 'wildflower', label: 'Native wildflowers / forbs' },
+  { key: 'riparian', label: 'Riparian / wetland-edge species' },
 ];
-const SPECIES_KIND_SET = new Set<string>(SPECIES_KINDS.map((s) => s.id));
-const SPECIES_KIND_LABEL: Record<string, string> = Object.fromEntries(
-  SPECIES_KINDS.map((s) => [s.id, s.label]),
-);
+const NATIVE_CATEGORY_KEYS = new Set(NATIVE_CATEGORIES.map((c) => c.key));
+
+const SAR_OPTIONS: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'none', label: 'None observed' },
+  { value: 'yes', label: 'Yes -- professional survey required' },
+  { value: 'uncertain', label: 'Uncertain -- further survey recommended' },
+];
 
 interface PrioritySpec {
   id: InvasivePriority;
@@ -208,85 +264,173 @@ const INVASIVE_PRIORITY_LABEL: Record<string, string> = Object.fromEntries(
   INVASIVE_PRIORITIES.map((p) => [p.id, p.label]),
 );
 
-interface ChipSpec {
-  key: string;
-  label: string;
-}
-const CORRIDOR_TYPES: readonly ChipSpec[] = [
-  { key: 'creek-line', label: 'Creek line corridor' },
-  { key: 'fence-line', label: 'Fence line trees' },
-  { key: 'remnant-strip', label: 'Remnant vegetation strip' },
-  { key: 'reveg-corridor', label: 'Revegetation corridor' },
-  { key: 'none', label: 'None identified' },
+// --- corridors (c3) ---
+const CORRIDOR_FEATURES: readonly CheckSpec[] = [
+  { key: 'watercourse', label: 'Watercourse corridor' },
+  { key: 'hedgerow', label: 'Hedgerow / fenceline to adjacent land' },
+  { key: 'woodland-edge', label: 'Woodland edge / treeline on or near boundary' },
+  { key: 'grassland-route', label: 'Open grassland movement route' },
 ];
-const CORRIDOR_TYPE_KEYS = new Set(CORRIDOR_TYPES.map((c) => c.key));
+const CORRIDOR_FEATURE_KEYS = new Set(CORRIDOR_FEATURES.map((c) => c.key));
 
-const NESTING_FEATURES: readonly ChipSpec[] = [
-  { key: 'tree-hollows', label: 'Tree hollows' },
-  { key: 'dense-shrubs', label: 'Dense shrubs' },
-  { key: 'fallen-logs', label: 'Fallen logs' },
-  { key: 'rock-piles', label: 'Rock piles' },
-  { key: 'ground-nesting', label: 'Ground nesting areas' },
+const NESTING_OBSERVED: readonly CheckSpec[] = [
+  { key: 'dense-shrub', label: 'Dense hedgerow / shrub' },
+  { key: 'tree-cavities', label: 'Mature trees with cavities' },
+  { key: 'bare-banks', label: 'Bare south-facing soil banks', sub: 'ground-nesting bees' },
+  { key: 'deadwood', label: 'Deadwood / hollow stems / standing dead trees' },
+  { key: 'riparian-margin', label: 'Riparian margin', sub: 'waterfowl / amphibian' },
 ];
-const NESTING_FEATURE_KEYS = new Set(NESTING_FEATURES.map((n) => n.key));
+const NESTING_OBSERVED_KEYS = new Set(NESTING_OBSERVED.map((n) => n.key));
 
-interface ConnCardSpec {
-  id: ConnectivityRating;
-  tone: 'sg' | 'st' | 'sa' | 'sr';
-  title: string;
-  desc: string;
-  impl: string;
-}
-const CONNECTIVITY_CARDS: readonly ConnCardSpec[] = [
-  {
-    id: 'connected',
-    tone: 'sg',
-    title: 'Well connected',
-    desc: 'Continuous or near-continuous vegetation linking this site to surrounding landscape.',
-    impl: 'Restoration will enhance an existing ecological network. Species colonisation likely without active translocation.',
-  },
-  {
-    id: 'partial',
-    tone: 'st',
-    title: 'Partially connected',
-    desc: 'Some corridors exist with gaps. Connectivity is fragmented but functional in places.',
-    impl: 'Restoration should prioritise filling corridor gaps. Strategic revegetation linking remnants is the primary design objective.',
-  },
-  {
-    id: 'fragmented',
-    tone: 'sa',
-    title: 'Fragmented',
-    desc: 'Isolated remnants with limited functional connectivity to the broader landscape.',
-    impl: 'On-site habitat value is important but the site cannot depend on immigration from outside. All target species must already be present or actively introduced.',
-  },
-  {
-    id: 'none',
-    tone: 'sr',
-    title: 'No connectivity',
-    desc: 'Site is an ecological island surrounded by cleared or heavily developed land.',
-    impl: 'Restoration must be fully self-contained. Target biodiversity outcomes must be achievable without landscape connectivity.',
-  },
+const CORRIDOR_SCORES: readonly ScoreSpec[] = [
+  { score: '1', label: 'Broken' },
+  { score: '2', label: 'Fragmented' },
+  { score: '3', label: 'Functional' },
+  { score: '4', label: 'High quality' },
 ];
-const CONNECTIVITY_BY_ID: Record<string, ConnCardSpec> = Object.fromEntries(
-  CONNECTIVITY_CARDS.map((c) => [c.id, c]),
+
+// --- connectivity (c4) ---
+const CONN_FEATURES: readonly CheckSpec[] = [
+  { key: 'hedgerow-network', label: 'Continuous hedgerow to neighbours' },
+  { key: 'riparian-extends', label: 'Riparian corridor extends past boundary both ways' },
+  { key: 'woodland-block', label: 'Woodland block within ~500 m', sub: 'colonisation source' },
+  { key: 'low-intensity', label: 'Adjacent land is low-intensity / natural' },
+];
+const CONN_FEATURE_KEYS = new Set(CONN_FEATURES.map((c) => c.key));
+
+const CONN_BARRIERS: readonly CheckSpec[] = [
+  { key: 'road', label: 'Road / highway movement break' },
+  { key: 'intensive-ag', label: 'Intensive agriculture on boundary' },
+  { key: 'fencing', label: 'Dense impermeable fencing' },
+];
+const CONN_BARRIER_KEYS = new Set(CONN_BARRIERS.map((b) => b.key));
+
+const CONN_SCORES: readonly ScoreSpec[] = [
+  { score: '1', label: 'Isolated' },
+  { score: '2', label: 'Partial' },
+  { score: '3', label: 'Connected' },
+  { score: '4', label: 'Well connected' },
+];
+const CONN_SCORE_TITLE: Record<string, string> = Object.fromEntries(
+  CONN_SCORES.map((s) => [s.score, s.label]),
 );
-const CONNECTIVITY_ID_SET = new Set<string>(CONNECTIVITY_CARDS.map((c) => c.id));
 
-interface WaterTypeSpec {
-  id: WaterAreaType;
-  label: string;
-}
-const WATER_TYPES: readonly WaterTypeSpec[] = [
-  { id: 'creek', label: 'Seasonal creek' },
-  { id: 'dam', label: 'Constructed dam' },
-  { id: 'wetland', label: 'Wetland / Swamp' },
-  { id: 'seep', label: 'Seep / Spring' },
-  { id: 'soak', label: 'Soak / Damp flat' },
+const CONN_DISTANCE: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'lt100', label: 'Less than 100 m' },
+  { value: '100-500', label: '100 -- 500 m' },
+  { value: '500-1000', label: '500 m -- 1 km' },
+  { value: 'gt1000', label: 'More than 1 km' },
 ];
-const WATER_TYPE_SET = new Set<string>(WATER_TYPES.map((w) => w.id));
-const WATER_TYPE_LABEL: Record<string, string> = Object.fromEntries(
-  WATER_TYPES.map((w) => [w.id, w.label]),
+
+// --- waterHabitat (c5) ---
+const WATER_HABITATS: readonly CheckSpec[] = [
+  { key: 'watercourse', label: 'Watercourse' },
+  { key: 'riparian-margin', label: 'Riparian margin', sub: 'native bank vegetation' },
+  { key: 'wet-meadow', label: 'Wet meadow / seasonally wet area' },
+  { key: 'seep', label: 'Seep / groundwater discharge' },
+  { key: 'ephemeral-pool', label: 'Ephemeral pool', sub: 'wet season only' },
+];
+const WATER_HABITAT_KEYS = new Set(WATER_HABITATS.map((w) => w.key));
+
+const SETBACK_COND: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'degraded', label: 'Degraded' },
+  { value: 'mixed', label: 'Mixed' },
+  { value: 'good', label: 'Good' },
+  { value: 'excellent', label: 'Excellent' },
+];
+
+const SETBACK_TARGET: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'planting', label: 'Native riparian planting' },
+  { value: 'succession', label: 'Natural succession' },
+  { value: 'none', label: 'No intervention' },
+];
+
+// --- pollinator (orch-1) ---
+const POLL_HONEYBEE: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'absent', label: 'Absent' },
+  { value: 'feral', label: 'Present -- feral or unknown' },
+  { value: 'managed', label: 'Present -- managed hives nearby' },
+];
+const POLL_BUMBLE_SPECIES: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'none', label: 'None observed' },
+  { value: '1', label: '1 species' },
+  { value: '2-3', label: '2 -- 3 species' },
+  { value: '4+', label: '4+ species' },
+];
+const POLL_BUMBLE_ABUND: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'rare', label: 'Rare' },
+  { value: 'frequent', label: 'Frequent' },
+  { value: 'abundant', label: 'Abundant' },
+];
+const POLL_SOLITARY_GROUND: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'none', label: 'None observed' },
+  { value: 'present', label: 'Present -- bare-soil nesting' },
+  { value: 'abundant', label: 'Abundant' },
+];
+const POLL_SOLITARY_MASON: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'none', label: 'None observed' },
+  { value: 'present', label: 'Present' },
+  { value: 'abundant', label: 'Abundant -- good habitat' },
+];
+const POLL_HOVERFLY: readonly OptionSpec[] = [
+  { value: '', label: 'Not assessed' },
+  { value: 'none', label: 'None observed' },
+  { value: 'occasional', label: 'Occasional' },
+  { value: 'frequent', label: 'Frequent' },
+];
+const POLL_SCORES: readonly ScoreSpec[] = [
+  { score: '1', label: 'Very low' },
+  { score: '2', label: 'Low' },
+  { score: '3', label: 'Adequate' },
+  { score: '4', label: 'Good' },
+];
+const POLL_SCORE_TITLE: Record<string, string> = Object.fromEntries(
+  POLL_SCORES.map((s) => [s.score, s.label]),
 );
+
+// --- insectary (orch-2) ---
+interface BloomWindowSpec {
+  key: 'early' | 'mid' | 'late' | 'gaps';
+  window: string;
+  crops: string;
+}
+const BLOOM_WINDOWS: readonly BloomWindowSpec[] = [
+  { key: 'early', window: 'Early', crops: 'Early-flowering crops' },
+  { key: 'mid', window: 'Mid', crops: 'Mid-season crops' },
+  { key: 'late', window: 'Late', crops: 'Late-flowering crops' },
+  { key: 'gaps', window: 'Gaps', crops: 'Post-bloom -- colony provisioning' },
+];
+const BLOOM_SUPPORT: readonly OptionSpec[] = [
+  { value: '', label: 'Not yet planned' },
+  { value: 'early-pollen', label: 'Native early-pollen shrubs' },
+  { value: 'understory', label: 'Native flowering understory shrubs' },
+  { value: 'wildflower', label: 'Mixed native wildflower sward' },
+  { value: 'composites', label: 'Late-season native composites' },
+  { value: 'annual-strip', label: 'Annual insectary strip' },
+];
+
+const INSECTARY_NESTING: readonly CheckSpec[] = [
+  { key: 'bare-bank', label: 'Bare south-facing soil bank', sub: 'ground-nesting' },
+  { key: 'stem-bundle', label: 'Hollow-stem bundle / insect hotel', sub: 'stem nesters' },
+  { key: 'deadwood', label: 'Standing deadwood retained', sub: 'cavity nesters' },
+  { key: 'hive', label: 'Managed bee hive on site', sub: 'planned' },
+];
+const INSECTARY_NESTING_KEYS = new Set(INSECTARY_NESTING.map((n) => n.key));
+
+const INSECTARY_BED: readonly OptionSpec[] = [
+  { value: '', label: 'Not planned' },
+  { value: 'integrated', label: 'Yes -- integrated into productive understory' },
+  { value: 'dedicated', label: 'Yes -- separate dedicated bed' },
+  { value: 'strips', label: 'No -- wildflower strips only' },
+];
 
 // ---------------------------------------------------------------------------
 // FormValue coercion helpers
@@ -298,11 +442,79 @@ function asArr(v: FormValue[string] | undefined): string[] {
 function asStr(v: FormValue[string] | undefined): string {
   return typeof v === 'string' ? v : '';
 }
+function asScore(v: FormValue[string] | undefined): string {
+  const s = asStr(v);
+  return s === '1' || s === '2' || s === '3' || s === '4' ? s : '';
+}
+function valueSet(opts: readonly OptionSpec[]): Set<string> {
+  return new Set(opts.filter((o) => o.value !== '').map((o) => o.value));
+}
+function asOneOf(v: FormValue[string] | undefined, set: Set<string>): string {
+  const s = asStr(v);
+  return set.has(s) ? s : '';
+}
+
+const SAR_VALUES = valueSet(SAR_OPTIONS);
+const CONN_DISTANCE_VALUES = valueSet(CONN_DISTANCE);
+const SETBACK_COND_VALUES = valueSet(SETBACK_COND);
+const SETBACK_TARGET_VALUES = valueSet(SETBACK_TARGET);
+const POLL_HONEYBEE_VALUES = valueSet(POLL_HONEYBEE);
+const POLL_BUMBLE_SPECIES_VALUES = valueSet(POLL_BUMBLE_SPECIES);
+const POLL_BUMBLE_ABUND_VALUES = valueSet(POLL_BUMBLE_ABUND);
+const POLL_SOLITARY_GROUND_VALUES = valueSet(POLL_SOLITARY_GROUND);
+const POLL_SOLITARY_MASON_VALUES = valueSet(POLL_SOLITARY_MASON);
+const POLL_HOVERFLY_VALUES = valueSet(POLL_HOVERFLY);
+const BLOOM_SUPPORT_VALUES = valueSet(BLOOM_SUPPORT);
+const INSECTARY_BED_VALUES = valueSet(INSECTARY_BED);
 
 // ---------------------------------------------------------------------------
 // decode: FormValue -> EcologyModel (TOTAL / defensive; never throws, never
 // fabricates seed data).
 // ---------------------------------------------------------------------------
+
+function decodeInvasives(value: FormValue): InvasiveSpecies[] {
+  const invasives: InvasiveSpecies[] = [];
+  let iIndex = 0;
+  for (const entry of asArr(value.ecologyInvasives)) {
+    if (typeof entry !== 'string') {
+      iIndex++;
+      continue;
+    }
+    try {
+      const parsed: unknown = JSON.parse(entry);
+      if (parsed === null || typeof parsed !== 'object') {
+        iIndex++;
+        continue;
+      }
+      const p = parsed as {
+        id?: unknown;
+        name?: unknown;
+        scientific?: unknown;
+        priority?: unknown;
+        distribution?: unknown;
+      };
+      const priority =
+        typeof p.priority === 'string' && INVASIVE_PRIORITY_SET.has(p.priority)
+          ? (p.priority as InvasivePriority)
+          : 'mod';
+      const id =
+        typeof p.id === 'string' && p.id !== ''
+          ? p.id
+          : 'legacy-invasive-' + iIndex;
+      invasives.push({
+        id,
+        name: typeof p.name === 'string' ? p.name : '',
+        scientific: typeof p.scientific === 'string' ? p.scientific : '',
+        priority,
+        distribution: typeof p.distribution === 'string' ? p.distribution : '',
+      });
+    } catch {
+      // drop malformed entry
+    }
+    iIndex++;
+  }
+  return invasives;
+}
 
 export function decodeEcology(mode: EcologyMode, value: FormValue): EcologyModel {
   switch (mode) {
@@ -320,154 +532,96 @@ export function decodeEcology(mode: EcologyMode, value: FormValue): EcologyModel
       return { kind: 'vegetation', communities };
     }
     case 'species': {
-      const natives: NativeSpecies[] = [];
-      let nIndex = 0;
-      for (const entry of asArr(value.ecologyNatives)) {
-        if (typeof entry !== 'string') {
-          nIndex++;
-          continue;
-        }
-        try {
-          const parsed: unknown = JSON.parse(entry);
-          if (parsed === null || typeof parsed !== 'object') {
-            nIndex++;
-            continue;
-          }
-          const p = parsed as {
-            id?: unknown;
-            scientific?: unknown;
-            common?: unknown;
-            speciesKind?: unknown;
-            abundance?: unknown;
-          };
-          const speciesKind =
-            typeof p.speciesKind === 'string' && SPECIES_KIND_SET.has(p.speciesKind)
-              ? (p.speciesKind as SpeciesKind)
-              : 'tree';
-          const id =
-            typeof p.id === 'string' && p.id !== ''
-              ? p.id
-              : 'legacy-native-' + nIndex;
-          natives.push({
-            id,
-            scientific: typeof p.scientific === 'string' ? p.scientific : '',
-            common: typeof p.common === 'string' ? p.common : '',
-            speciesKind,
-            abundance: typeof p.abundance === 'string' ? p.abundance : '',
-          });
-        } catch {
-          // drop malformed entry
-        }
-        nIndex++;
-      }
-      const invasives: InvasiveSpecies[] = [];
-      let iIndex = 0;
-      for (const entry of asArr(value.ecologyInvasives)) {
-        if (typeof entry !== 'string') {
-          iIndex++;
-          continue;
-        }
-        try {
-          const parsed: unknown = JSON.parse(entry);
-          if (parsed === null || typeof parsed !== 'object') {
-            iIndex++;
-            continue;
-          }
-          const p = parsed as {
-            id?: unknown;
-            name?: unknown;
-            scientific?: unknown;
-            priority?: unknown;
-            distribution?: unknown;
-          };
-          const priority =
-            typeof p.priority === 'string' && INVASIVE_PRIORITY_SET.has(p.priority)
-              ? (p.priority as InvasivePriority)
-              : 'mod';
-          const id =
-            typeof p.id === 'string' && p.id !== ''
-              ? p.id
-              : 'legacy-invasive-' + iIndex;
-          invasives.push({
-            id,
-            name: typeof p.name === 'string' ? p.name : '',
-            scientific: typeof p.scientific === 'string' ? p.scientific : '',
-            priority,
-            distribution: typeof p.distribution === 'string' ? p.distribution : '',
-          });
-        } catch {
-          // drop malformed entry
-        }
-        iIndex++;
-      }
-      return { kind: 'species', natives, invasives };
+      const nativeCats = asArr(value.ecologyNativeCats).filter((c) =>
+        NATIVE_CATEGORY_KEYS.has(c),
+      );
+      return {
+        kind: 'species',
+        nativeCats,
+        invasives: decodeInvasives(value),
+        sar: asOneOf(value.ecologySar, SAR_VALUES),
+      };
     }
     case 'corridors': {
       const corridorTypes = asArr(value.ecologyCorridorTypes).filter((c) =>
-        CORRIDOR_TYPE_KEYS.has(c),
+        CORRIDOR_FEATURE_KEYS.has(c),
       );
       const nesting = asArr(value.ecologyNesting).filter((n) =>
-        NESTING_FEATURE_KEYS.has(n),
+        NESTING_OBSERVED_KEYS.has(n),
       );
       return {
         kind: 'corridors',
         corridorTypes,
         nesting,
-        notes: asStr(value.ecologyNotes),
+        score: asScore(value.ecologyCorridorScore),
       };
     }
     case 'connectivity': {
-      const rating = asStr(value.ecologyConnectivity);
+      const features = asArr(value.ecologyConnFeatures).filter((c) =>
+        CONN_FEATURE_KEYS.has(c),
+      );
+      const barriers = asArr(value.ecologyConnBarriers).filter((b) =>
+        CONN_BARRIER_KEYS.has(b),
+      );
       return {
         kind: 'connectivity',
-        rating: CONNECTIVITY_ID_SET.has(rating)
-          ? (rating as ConnectivityRating)
-          : '',
+        features,
+        barriers,
+        score: asScore(value.ecologyConnScore),
+        distance: asOneOf(value.ecologyConnDistance, CONN_DISTANCE_VALUES),
       };
     }
     case 'waterHabitat': {
-      const areas: WaterArea[] = [];
-      let index = 0;
-      for (const entry of asArr(value.ecologyWaterAreas)) {
-        if (typeof entry !== 'string') {
-          index++;
-          continue;
-        }
-        try {
-          const parsed: unknown = JSON.parse(entry);
-          if (parsed === null || typeof parsed !== 'object') {
-            index++;
-            continue;
-          }
-          const p = parsed as {
-            id?: unknown;
-            areaType?: unknown;
-            name?: unknown;
-            description?: unknown;
-          };
-          const areaType =
-            typeof p.areaType === 'string' && WATER_TYPE_SET.has(p.areaType)
-              ? (p.areaType as WaterAreaType)
-              : 'creek';
-          const id =
-            typeof p.id === 'string' && p.id !== ''
-              ? p.id
-              : 'legacy-water-' + index;
-          areas.push({
-            id,
-            areaType,
-            name: typeof p.name === 'string' ? p.name : '',
-            description: typeof p.description === 'string' ? p.description : '',
-          });
-        } catch {
-          // drop malformed entry
-        }
-        index++;
-      }
+      const habitats = asArr(value.ecologyWaterHabitats).filter((h) =>
+        WATER_HABITAT_KEYS.has(h),
+      );
       return {
         kind: 'waterHabitat',
-        areas,
+        habitats,
+        setbackCond: asOneOf(value.ecologyWaterSetbackCond, SETBACK_COND_VALUES),
+        setbackTarget: asOneOf(
+          value.ecologyWaterSetbackTarget,
+          SETBACK_TARGET_VALUES,
+        ),
         nonePresent: asStr(value.ecologyWaterNone) === 'true',
+      };
+    }
+    case 'pollinator': {
+      return {
+        kind: 'pollinator',
+        honeybee: asOneOf(value.ecologyPollHoneybee, POLL_HONEYBEE_VALUES),
+        bumbleSpecies: asOneOf(
+          value.ecologyPollBumbleSpecies,
+          POLL_BUMBLE_SPECIES_VALUES,
+        ),
+        bumbleAbund: asOneOf(
+          value.ecologyPollBumbleAbund,
+          POLL_BUMBLE_ABUND_VALUES,
+        ),
+        solitaryGround: asOneOf(
+          value.ecologyPollSolitaryGround,
+          POLL_SOLITARY_GROUND_VALUES,
+        ),
+        solitaryMason: asOneOf(
+          value.ecologyPollSolitaryMason,
+          POLL_SOLITARY_MASON_VALUES,
+        ),
+        hoverfly: asOneOf(value.ecologyPollHoverfly, POLL_HOVERFLY_VALUES),
+        score: asScore(value.ecologyPollScore),
+      };
+    }
+    case 'insectary': {
+      const nesting = asArr(value.ecologyInsectaryNesting).filter((n) =>
+        INSECTARY_NESTING_KEYS.has(n),
+      );
+      return {
+        kind: 'insectary',
+        bloomEarly: asOneOf(value.ecologyBloomEarly, BLOOM_SUPPORT_VALUES),
+        bloomMid: asOneOf(value.ecologyBloomMid, BLOOM_SUPPORT_VALUES),
+        bloomLate: asOneOf(value.ecologyBloomLate, BLOOM_SUPPORT_VALUES),
+        bloomGaps: asOneOf(value.ecologyBloomGaps, BLOOM_SUPPORT_VALUES),
+        nesting,
+        bed: asOneOf(value.ecologyInsectaryBed, INSECTARY_BED_VALUES),
       };
     }
     default: {
@@ -491,23 +645,48 @@ export function encodeEcology(model: EcologyModel): FormValue {
       };
     case 'species':
       return {
-        ecologyNatives: model.natives.map((n) => JSON.stringify(n)),
+        ecologyNativeCats: [...model.nativeCats],
         ecologyInvasives: model.invasives.map((i) => JSON.stringify(i)),
+        ecologySar: model.sar,
       };
     case 'corridors':
       return {
         ecologyCorridorTypes: [...model.corridorTypes],
         ecologyNesting: [...model.nesting],
-        ecologyNotes: model.notes,
+        ecologyCorridorScore: model.score,
       };
     case 'connectivity':
       return {
-        ecologyConnectivity: model.rating,
+        ecologyConnFeatures: [...model.features],
+        ecologyConnBarriers: [...model.barriers],
+        ecologyConnScore: model.score,
+        ecologyConnDistance: model.distance,
       };
     case 'waterHabitat':
       return {
-        ecologyWaterAreas: model.areas.map((a) => JSON.stringify(a)),
+        ecologyWaterHabitats: [...model.habitats],
+        ecologyWaterSetbackCond: model.setbackCond,
+        ecologyWaterSetbackTarget: model.setbackTarget,
         ecologyWaterNone: model.nonePresent ? 'true' : 'false',
+      };
+    case 'pollinator':
+      return {
+        ecologyPollHoneybee: model.honeybee,
+        ecologyPollBumbleSpecies: model.bumbleSpecies,
+        ecologyPollBumbleAbund: model.bumbleAbund,
+        ecologyPollSolitaryGround: model.solitaryGround,
+        ecologyPollSolitaryMason: model.solitaryMason,
+        ecologyPollHoverfly: model.hoverfly,
+        ecologyPollScore: model.score,
+      };
+    case 'insectary':
+      return {
+        ecologyBloomEarly: model.bloomEarly,
+        ecologyBloomMid: model.bloomMid,
+        ecologyBloomLate: model.bloomLate,
+        ecologyBloomGaps: model.bloomGaps,
+        ecologyInsectaryNesting: [...model.nesting],
+        ecologyInsectaryBed: model.bed,
       };
   }
 }
@@ -521,13 +700,32 @@ export function isEcologyValid(model: EcologyModel): boolean {
     case 'vegetation':
       return Object.keys(model.communities).length >= 1;
     case 'species':
-      return model.natives.length + model.invasives.length >= 1;
+      return model.nativeCats.length + model.invasives.length >= 1;
     case 'corridors':
       return model.corridorTypes.length + model.nesting.length >= 1;
     case 'connectivity':
-      return model.rating !== '';
+      return model.score !== '';
     case 'waterHabitat':
-      return model.areas.length >= 1 || model.nonePresent;
+      return model.habitats.length >= 1 || model.nonePresent;
+    case 'pollinator':
+      return (
+        model.score !== '' ||
+        model.honeybee !== '' ||
+        model.bumbleSpecies !== '' ||
+        model.bumbleAbund !== '' ||
+        model.solitaryGround !== '' ||
+        model.solitaryMason !== '' ||
+        model.hoverfly !== ''
+      );
+    case 'insectary':
+      return (
+        model.bloomEarly !== '' ||
+        model.bloomMid !== '' ||
+        model.bloomLate !== '' ||
+        model.bloomGaps !== '' ||
+        model.nesting.length >= 1 ||
+        model.bed !== ''
+      );
   }
 }
 
@@ -542,9 +740,9 @@ export function summariseEcology(model: EcologyModel): string {
       return `${n} community type(s) recorded`;
     }
     case 'species': {
-      const nat = model.natives.length;
+      const nat = model.nativeCats.length;
       const inv = model.invasives.length;
-      return `${nat} native, ${inv} invasive species`;
+      return `${nat} native group(s), ${inv} invasive`;
     }
     case 'corridors': {
       const c = model.corridorTypes.length;
@@ -552,16 +750,205 @@ export function summariseEcology(model: EcologyModel): string {
       return `${c} corridor(s), ${nst} nesting feature(s)`;
     }
     case 'connectivity': {
-      const card = model.rating ? CONNECTIVITY_BY_ID[model.rating] : undefined;
-      return card ? card.title : 'No classification';
+      return model.score
+        ? CONN_SCORE_TITLE[model.score] ?? 'Classified'
+        : 'No classification';
     }
     case 'waterHabitat': {
-      if (model.areas.length === 0 && model.nonePresent) {
+      if (model.habitats.length === 0 && model.nonePresent) {
         return 'No water-dependent areas present';
       }
-      return `${model.areas.length} water-dependent area(s)`;
+      return `${model.habitats.length} water habitat(s)`;
+    }
+    case 'pollinator': {
+      if (model.score) {
+        return `Provision: ${POLL_SCORE_TITLE[model.score] ?? "rated"}`;
+      }
+      const guilds = [
+        model.honeybee,
+        model.bumbleSpecies,
+        model.bumbleAbund,
+        model.solitaryGround,
+        model.solitaryMason,
+        model.hoverfly,
+      ].filter((g) => g !== '').length;
+      return `${guilds} guild observation(s)`;
+    }
+    case 'insectary': {
+      const planned = [
+        model.bloomEarly,
+        model.bloomMid,
+        model.bloomLate,
+        model.bloomGaps,
+      ].filter((b) => b !== '').length;
+      return `${planned} bloom window(s), ${model.nesting.length} nesting provision(s)`;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Shared body subcomponents (region-neutral, ported from mockup controls)
+// ---------------------------------------------------------------------------
+
+function CheckRow({
+  spec,
+  on,
+  tone,
+  onToggle,
+  testid,
+}: {
+  spec: CheckSpec;
+  on: boolean;
+  tone?: 'warn';
+  onToggle: () => void;
+  testid: string;
+}): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      className={css.ckItem}
+      data-testid={testid}
+      data-on={on ? 'true' : 'false'}
+      data-tone={tone ?? 'on'}
+      aria-pressed={on}
+      onClick={onToggle}
+    >
+      <span className={css.ckBox} aria-hidden="true">
+        {on ? <Check size={10} className={css.ckTick} /> : null}
+      </span>
+      <span className={css.ckBody}>
+        <span className={css.ckName}>{spec.label}</span>
+        {spec.sub ? <span className={css.ckSub}>{spec.sub}</span> : null}
+      </span>
+    </button>
+  );
+}
+
+function ScoreChips({
+  options,
+  value,
+  group,
+  onPick,
+}: {
+  options: readonly ScoreSpec[];
+  value: string;
+  group: string;
+  onPick: (score: string) => void;
+}): React.JSX.Element {
+  return (
+    <div className={css.scoreRow} data-testid={`${group}-score`}>
+      {options.map((o) => {
+        const on = value === o.score;
+        return (
+          <button
+            key={o.score}
+            type="button"
+            className={css.scoreChip}
+            data-testid={`${group}-score-${o.score}`}
+            data-score={o.score}
+            data-on={on ? 'true' : 'false'}
+            aria-pressed={on}
+            onClick={() => onPick(on ? '' : o.score)}
+          >
+            <span className={css.scoreNum}>{o.score}</span>
+            <span className={css.scoreLabel}>{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ObsNotice({ children }: { children: React.ReactNode }): React.JSX.Element {
+  return <div className={css.obsNotice}>{children}</div>;
+}
+
+function SelRow({
+  label,
+  value,
+  options,
+  testid,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: readonly OptionSpec[];
+  testid: string;
+  onChange: (v: string) => void;
+}): React.JSX.Element {
+  return (
+    <div className={css.row}>
+      <span className={css.rowLbl}>{label}</span>
+      <select
+        className={css.sel}
+        data-testid={testid}
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((o) => (
+          <option key={o.value || '__empty'} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function GuildCard({
+  name,
+  tone,
+  testid,
+  children,
+}: {
+  name: string;
+  tone: string;
+  testid: string;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <div className={css.guildCard} data-testid={testid}>
+      <div className={css.gcHead}>
+        <span className={css.gcIcon} data-tone={tone} aria-hidden="true" />
+        <span className={css.gcName}>{name}</span>
+      </div>
+      <div className={css.gcRows}>{children}</div>
+    </div>
+  );
+}
+
+function GuildSel({
+  label,
+  value,
+  options,
+  testid,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: readonly OptionSpec[];
+  testid: string;
+  onChange: (v: string) => void;
+}): React.JSX.Element {
+  return (
+    <div className={css.gcRow}>
+      <span className={css.gcLbl}>{label}</span>
+      <select
+        className={css.gcSel}
+        data-testid={testid}
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((o) => (
+          <option key={o.value || '__empty'} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -582,8 +969,8 @@ export function EcologyCapture({
   const model = decodeEcology(mode, value);
   const emit = (next: EcologyModel): void => onChange(encodeEcology(next));
 
-  // ---------- vegetation (p1) ----------
-  // Vegetation cover is now surveyed by DRAWING community extents on the Act map
+  // ---------- vegetation (c1) ----------
+  // Vegetation cover is surveyed by DRAWING community extents on the Act map
   // (VegetationSurveyPanel + VegetationSurveyDrawHost), with % of site computed
   // automatically from polygon acreage -- no manual toggle/percent entry here.
   // In the inline workbench, DecisionWorkingPanel routes vegetation mode to
@@ -631,12 +1018,12 @@ export function EcologyCapture({
     );
   }
 
-  // ---------- species (p2) ----------
+  // ---------- species (c2) ----------
   if (model.kind === 'species') {
     return <SpeciesBody model={model} onChange={emit} />;
   }
 
-  // ---------- corridors (p3) ----------
+  // ---------- corridors (c3) ----------
   if (model.kind === 'corridors') {
     const toggleCorridor = (key: string): void =>
       emit({
@@ -652,64 +1039,53 @@ export function EcologyCapture({
           ? model.nesting.filter((n) => n !== key)
           : [...model.nesting, key],
       });
-    const setNotes = (v: string): void => emit({ ...model, notes: v });
+    const setScore = (s: string): void => emit({ ...model, score: s });
 
     return (
       <div className={css.root} data-ecology-mode="corridors">
+        <ObsNotice>
+          The watercourse setback area is typically the highest-value wildlife
+          corridor on a site. Confirm corridor continuity in the field before
+          designing crossings or plantings.
+        </ObsNotice>
+
         <div>
-          <div className={css.secLbl}>Corridor types present</div>
-          <div className={css.chipGroup} data-testid="corridor-chips">
-            {CORRIDOR_TYPES.map((c) => {
-              const on = model.corridorTypes.includes(c.key);
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  className={css.selChip}
-                  data-testid={`corridor-${c.key}`}
-                  data-on={on ? 'true' : 'false'}
-                  aria-pressed={on}
-                  onClick={() => toggleCorridor(c.key)}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
+          <div className={css.secLbl}>Corridor features present</div>
+          <div className={css.ckGroup} data-testid="corridor-checks">
+            {CORRIDOR_FEATURES.map((c) => (
+              <CheckRow
+                key={c.key}
+                spec={c}
+                on={model.corridorTypes.includes(c.key)}
+                testid={`corridor-${c.key}`}
+                onToggle={() => toggleCorridor(c.key)}
+              />
+            ))}
           </div>
         </div>
 
         <div>
-          <div className={css.secLbl}>Nesting &amp; refuge habitat</div>
-          <div className={css.chipGroup} data-testid="nesting-chips">
-            {NESTING_FEATURES.map((n) => {
-              const on = model.nesting.includes(n.key);
-              return (
-                <button
-                  key={n.key}
-                  type="button"
-                  className={css.selChip}
-                  data-testid={`nesting-${n.key}`}
-                  data-on={on ? 'true' : 'false'}
-                  data-nesting="true"
-                  aria-pressed={on}
-                  onClick={() => toggleNesting(n.key)}
-                >
-                  {n.label}
-                </button>
-              );
-            })}
+          <div className={css.secLbl}>Nesting habitat observed</div>
+          <div className={css.ckGroup} data-testid="nesting-checks">
+            {NESTING_OBSERVED.map((n) => (
+              <CheckRow
+                key={n.key}
+                spec={n}
+                on={model.nesting.includes(n.key)}
+                testid={`nesting-${n.key}`}
+                onToggle={() => toggleNesting(n.key)}
+              />
+            ))}
           </div>
         </div>
 
         <div>
-          <div className={css.secLbl}>Notes on movement patterns</div>
-          <textarea
-            className={css.textarea}
-            data-testid="corridor-notes"
-            aria-label="Notes on movement patterns"
-            value={model.notes}
-            placeholder="Describe any observed movement corridors, seasonal migration, or predator/prey patterns..."
-            onChange={(e) => setNotes(e.target.value)}
+          <div className={css.secLbl}>Corridor quality</div>
+          <ScoreChips
+            options={CORRIDOR_SCORES}
+            value={model.score}
+            group="corridor"
+            onPick={setScore}
           />
         </div>
 
@@ -725,37 +1101,75 @@ export function EcologyCapture({
     );
   }
 
-  // ---------- connectivity (p4) ----------
+  // ---------- connectivity (c4) ----------
   if (model.kind === 'connectivity') {
-    const pick = (id: ConnectivityRating): void =>
-      emit({ kind: 'connectivity', rating: model.rating === id ? '' : id });
+    const toggleFeature = (key: string): void =>
+      emit({
+        ...model,
+        features: model.features.includes(key)
+          ? model.features.filter((c) => c !== key)
+          : [...model.features, key],
+      });
+    const toggleBarrier = (key: string): void =>
+      emit({
+        ...model,
+        barriers: model.barriers.includes(key)
+          ? model.barriers.filter((b) => b !== key)
+          : [...model.barriers, key],
+      });
+    const setScore = (s: string): void => emit({ ...model, score: s });
+    const setDistance = (d: string): void => emit({ ...model, distance: d });
 
     return (
       <div className={css.root} data-ecology-mode="connectivity">
-        <div className={css.connCards} data-testid="conn-cards">
-          {CONNECTIVITY_CARDS.map((c) => {
-            const on = model.rating === c.id;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                className={css.connCard}
-                data-testid={`conn-${c.id}`}
-                data-tone={c.tone}
-                data-on={on ? 'true' : 'false'}
-                aria-pressed={on}
-                onClick={() => pick(c.id)}
-              >
-                <span className={css.connDot} aria-hidden="true" />
-                <span className={css.connBody}>
-                  <span className={css.connTitle}>{c.title}</span>
-                  <span className={css.connDesc}>{c.desc}</span>
-                  {on ? <span className={css.connImpl}>{c.impl}</span> : null}
-                </span>
-              </button>
-            );
-          })}
+        <div>
+          <div className={css.secLbl}>Connectivity features (adjacent landscape)</div>
+          <div className={css.ckGroup} data-testid="conn-feature-checks">
+            {CONN_FEATURES.map((c) => (
+              <CheckRow
+                key={c.key}
+                spec={c}
+                on={model.features.includes(c.key)}
+                testid={`conn-feature-${c.key}`}
+                onToggle={() => toggleFeature(c.key)}
+              />
+            ))}
+          </div>
         </div>
+
+        <div>
+          <div className={css.secLbl}>Barriers to movement</div>
+          <div className={css.ckGroup} data-testid="conn-barrier-checks">
+            {CONN_BARRIERS.map((b) => (
+              <CheckRow
+                key={b.key}
+                spec={b}
+                tone="warn"
+                on={model.barriers.includes(b.key)}
+                testid={`conn-barrier-${b.key}`}
+                onToggle={() => toggleBarrier(b.key)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className={css.secLbl}>Connectivity score</div>
+          <ScoreChips
+            options={CONN_SCORES}
+            value={model.score}
+            group="conn"
+            onPick={setScore}
+          />
+        </div>
+
+        <SelRow
+          label="Distance to nearest woodland / natural area"
+          value={model.distance}
+          options={CONN_DISTANCE}
+          testid="conn-distance"
+          onChange={setDistance}
+        />
 
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
@@ -769,13 +1183,271 @@ export function EcologyCapture({
     );
   }
 
-  // ---------- waterHabitat (p5) ----------
-  return <WaterHabitatBody model={model} onChange={emit} />;
+  // ---------- waterHabitat (c5) ----------
+  if (model.kind === 'waterHabitat') {
+    const toggleHabitat = (key: string): void =>
+      emit({
+        ...model,
+        nonePresent: false,
+        habitats: model.habitats.includes(key)
+          ? model.habitats.filter((h) => h !== key)
+          : [...model.habitats, key],
+      });
+    const setCond = (v: string): void => emit({ ...model, setbackCond: v });
+    const setTarget = (v: string): void => emit({ ...model, setbackTarget: v });
+    const toggleNone = (): void =>
+      emit({
+        ...model,
+        nonePresent: !model.nonePresent,
+        habitats: !model.nonePresent ? [] : model.habitats,
+      });
+
+    return (
+      <div className={css.root} data-ecology-mode="waterHabitat">
+        <ObsNotice>
+          Visit in the wet season where possible. The watercourse setback is a
+          protected zone -- document its ecological character before any works.
+        </ObsNotice>
+
+        <div>
+          <div className={css.secLbl}>Water-dependent habitats present</div>
+          <div className={css.ckGroup} data-testid="water-checks">
+            {WATER_HABITATS.map((w) => (
+              <CheckRow
+                key={w.key}
+                spec={w}
+                on={model.habitats.includes(w.key)}
+                testid={`water-${w.key}`}
+                onToggle={() => toggleHabitat(w.key)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <SelRow
+          label="Setback condition"
+          value={model.setbackCond}
+          options={SETBACK_COND}
+          testid="water-setback-cond"
+          onChange={setCond}
+        />
+        <SelRow
+          label="Setback targeted for"
+          value={model.setbackTarget}
+          options={SETBACK_TARGET}
+          testid="water-setback-target"
+          onChange={setTarget}
+        />
+
+        <button
+          type="button"
+          className={css.noneAffirm}
+          data-testid="water-none"
+          data-on={model.nonePresent ? 'true' : 'false'}
+          aria-pressed={model.nonePresent}
+          onClick={toggleNone}
+        >
+          <span className={css.vegChk} aria-hidden="true" />
+          No water-dependent areas present on this site
+        </button>
+
+        <div className={css.feedsBlock}>
+          <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
+          <div className={css.feedsTxt}>
+            Water-dependent habitat areas are flagged as{' '}
+            <strong>design-sensitive zones</strong> in Tier 3. They become
+            exclusion zones for earthworks and intensive land use in Tier 4.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- pollinator (orch-1) ----------
+  if (model.kind === 'pollinator') {
+    const set = (patch: Partial<PollinatorModel>): void =>
+      emit({ ...model, ...patch });
+
+    return (
+      <div className={css.root} data-ecology-mode="pollinator">
+        <ObsNotice>
+          Observe during the active bloom window, on a warm still day, for a
+          representative read of the pollinator community.
+        </ObsNotice>
+
+        <div className={css.guildGrid} data-testid="pollinator-guilds">
+          <GuildCard name="Honeybee (managed / social)" tone="act" testid="guild-honeybee">
+            <GuildSel
+              label="Presence"
+              value={model.honeybee}
+              options={POLL_HONEYBEE}
+              testid="poll-honeybee"
+              onChange={(v) => set({ honeybee: v })}
+            />
+          </GuildCard>
+
+          <GuildCard name="Bumblebees" tone="success" testid="guild-bumble">
+            <GuildSel
+              label="Species seen"
+              value={model.bumbleSpecies}
+              options={POLL_BUMBLE_SPECIES}
+              testid="poll-bumble-species"
+              onChange={(v) => set({ bumbleSpecies: v })}
+            />
+            <GuildSel
+              label="Abundance"
+              value={model.bumbleAbund}
+              options={POLL_BUMBLE_ABUND}
+              testid="poll-bumble-abund"
+              onChange={(v) => set({ bumbleAbund: v })}
+            />
+          </GuildCard>
+
+          <GuildCard name="Solitary bees (native)" tone="info" testid="guild-solitary">
+            <GuildSel
+              label="Ground-nesting"
+              value={model.solitaryGround}
+              options={POLL_SOLITARY_GROUND}
+              testid="poll-solitary-ground"
+              onChange={(v) => set({ solitaryGround: v })}
+            />
+            <GuildSel
+              label="Mason / leafcutter"
+              value={model.solitaryMason}
+              options={POLL_SOLITARY_MASON}
+              testid="poll-solitary-mason"
+              onChange={(v) => set({ solitaryMason: v })}
+            />
+          </GuildCard>
+
+          <GuildCard name="Hoverflies / syrphid flies" tone="info" testid="guild-hoverfly">
+            <GuildSel
+              label="Presence"
+              value={model.hoverfly}
+              options={POLL_HOVERFLY}
+              testid="poll-hoverfly"
+              onChange={(v) => set({ hoverfly: v })}
+            />
+          </GuildCard>
+        </div>
+
+        <div>
+          <div className={css.secLbl}>Overall pollination provision</div>
+          <ScoreChips
+            options={POLL_SCORES}
+            value={model.score}
+            group="poll"
+            onPick={(s) => set({ score: s })}
+          />
+        </div>
+
+        <div className={css.feedsBlock}>
+          <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
+          <div className={css.feedsTxt}>
+            Pollinator baseline feeds <strong>Tier 4: Guild design</strong> --
+            low provision flags a need for dedicated insectary and forage
+            plantings in the orchard understory.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- insectary (orch-2) ----------
+  const insectary = model;
+  const setBloom = (key: BloomWindowSpec['key'], v: string): void => {
+    if (key === 'early') emit({ ...insectary, bloomEarly: v });
+    else if (key === 'mid') emit({ ...insectary, bloomMid: v });
+    else if (key === 'late') emit({ ...insectary, bloomLate: v });
+    else emit({ ...insectary, bloomGaps: v });
+  };
+  const bloomValue = (key: BloomWindowSpec['key']): string => {
+    if (key === 'early') return insectary.bloomEarly;
+    if (key === 'mid') return insectary.bloomMid;
+    if (key === 'late') return insectary.bloomLate;
+    return insectary.bloomGaps;
+  };
+  const toggleNesting = (key: string): void =>
+    emit({
+      ...insectary,
+      nesting: insectary.nesting.includes(key)
+        ? insectary.nesting.filter((n) => n !== key)
+        : [...insectary.nesting, key],
+    });
+  const setBed = (v: string): void => emit({ ...insectary, bed: v });
+
+  return (
+    <div className={css.root} data-ecology-mode="insectary">
+      <div>
+        <div className={css.secLbl}>Bloom-window coverage</div>
+        <div className={css.bloomTable} data-testid="bloom-table">
+          <div className={css.bloomHead}>
+            <span>Window</span>
+            <span>Crop demand</span>
+            <span>Support planting</span>
+          </div>
+          {BLOOM_WINDOWS.map((b) => (
+            <div key={b.key} className={css.bloomRow}>
+              <span className={css.bloomWindow}>{b.window}</span>
+              <span className={css.bloomCrops}>{b.crops}</span>
+              <select
+                className={css.bloomSel}
+                data-testid={`bloom-${b.key}`}
+                aria-label={`${b.window} bloom-window support planting`}
+                value={bloomValue(b.key)}
+                onChange={(e) => setBloom(b.key, e.target.value)}
+              >
+                {BLOOM_SUPPORT.map((o) => (
+                  <option key={o.value || '__empty'} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className={css.secLbl}>Nesting-habitat provision</div>
+        <div className={css.ckGroup} data-testid="insectary-nesting-checks">
+          {INSECTARY_NESTING.map((n) => (
+            <CheckRow
+              key={n.key}
+              spec={n}
+              on={insectary.nesting.includes(n.key)}
+              testid={`insectary-nesting-${n.key}`}
+              onToggle={() => toggleNesting(n.key)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <SelRow
+        label="Dedicated insectary bed or zone"
+        value={insectary.bed}
+        options={INSECTARY_BED}
+        testid="insectary-bed"
+        onChange={setBed}
+      />
+
+      <div className={css.feedsBlock}>
+        <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
+        <div className={css.feedsTxt}>
+          The insectary plan feeds <strong>Tier 4: Understory planting</strong>
+          {' '}-- bloom-window gaps become explicit planting prescriptions to
+          carry beneficial insects through the season.
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
-// Species body -- two growable registers (natives + invasives). Row id minting
-// happens here, in handlers only. UI-only add-form state lives in this body.
+// Species body -- native-category checklist + growable invasive watchlist
+// (region-neutral: operator names their own weeds) + species-of-concern
+// dropdown. Invasive row id minting happens here, in handlers only; UI-only
+// add-form state lives in this body.
 // ---------------------------------------------------------------------------
 
 function SpeciesBody({
@@ -785,24 +1457,12 @@ function SpeciesBody({
   model: SpeciesModel;
   onChange: (next: SpeciesModel) => void;
 }): React.JSX.Element {
-  const [nativeOpen, setNativeOpen] = React.useState(false);
-  const [nSci, setNSci] = React.useState('');
-  const [nCommon, setNCommon] = React.useState('');
-  const [nKind, setNKind] = React.useState<SpeciesKind>('tree');
-  const [nAbund, setNAbund] = React.useState('');
-
   const [invasiveOpen, setInvasiveOpen] = React.useState(false);
   const [iName, setIName] = React.useState('');
   const [iSci, setISci] = React.useState('');
   const [iPriority, setIPriority] = React.useState<InvasivePriority>('high');
   const [iDist, setIDist] = React.useState('');
 
-  const resetNative = (): void => {
-    setNSci('');
-    setNCommon('');
-    setNKind('tree');
-    setNAbund('');
-  };
   const resetInvasive = (): void => {
     setIName('');
     setISci('');
@@ -810,25 +1470,15 @@ function SpeciesBody({
     setIDist('');
   };
 
-  const addNative = (): void => {
+  const toggleNative = (key: string): void =>
     onChange({
       ...model,
-      natives: [
-        ...model.natives,
-        {
-          id: makeRowId(),
-          scientific: nSci.trim(),
-          common: nCommon.trim(),
-          speciesKind: nKind,
-          abundance: nAbund.trim(),
-        },
-      ],
+      nativeCats: model.nativeCats.includes(key)
+        ? model.nativeCats.filter((c) => c !== key)
+        : [...model.nativeCats, key],
     });
-    resetNative();
-    setNativeOpen(false);
-  };
-  const removeNative = (id: string): void =>
-    onChange({ ...model, natives: model.natives.filter((n) => n.id !== id) });
+
+  const setSar = (v: string): void => onChange({ ...model, sar: v });
 
   const addInvasive = (): void => {
     onChange({
@@ -856,135 +1506,24 @@ function SpeciesBody({
   return (
     <div className={css.root} data-ecology-mode="species">
       <div>
-        <div className={css.secLbl}>Native species -- key indicators</div>
-        {model.natives.length === 0 ? (
-          <div className={css.spEmpty} data-testid="native-empty">
-            No native species recorded yet.
-          </div>
-        ) : (
-          <div className={css.speciesRegister}>
-            {model.natives.map((n) => (
-              <div key={n.id} className={css.spRow}>
-                <span className={css.spName}>
-                  <span className={css.spSci}>
-                    {n.scientific || "Unnamed species"}
-                  </span>
-                  {n.common ? (
-                    <span className={css.spCommon}>{n.common}</span>
-                  ) : null}
-                </span>
-                <span
-                  className={css.spType}
-                  data-kind={n.speciesKind}
-                >
-                  {SPECIES_KIND_LABEL[n.speciesKind] ?? n.speciesKind}
-                </span>
-                {n.abundance ? (
-                  <span className={css.spAbund}>{n.abundance}</span>
-                ) : null}
-                <button
-                  type="button"
-                  className={css.spDel}
-                  data-testid={`native-remove-${n.id}`}
-                  aria-label={`Remove ${n.scientific || "native species"}`}
-                  onClick={() => removeNative(n.id)}
-                >
-                  <X size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        {nativeOpen ? (
-          <div className={css.addForm} data-testid="native-form">
-            <div className={css.afLbl}>Scientific name</div>
-            <input
-              type="text"
-              className={css.afInput}
-              data-testid="native-sci"
-              aria-label="Native scientific name"
-              value={nSci}
-              placeholder="e.g. Eucalyptus microcarpa"
-              onChange={(e) => setNSci(e.target.value)}
+        <div className={css.secLbl}>Native species present</div>
+        <div className={css.ckGroup} data-testid="native-checks">
+          {NATIVE_CATEGORIES.map((c) => (
+            <CheckRow
+              key={c.key}
+              spec={c}
+              on={model.nativeCats.includes(c.key)}
+              testid={`native-${c.key}`}
+              onToggle={() => toggleNative(c.key)}
             />
-            <div className={css.afLbl}>Common name</div>
-            <input
-              type="text"
-              className={css.afInput}
-              data-testid="native-common"
-              aria-label="Native common name"
-              value={nCommon}
-              placeholder="e.g. Grey box"
-              onChange={(e) => setNCommon(e.target.value)}
-            />
-            <div className={css.afGrid}>
-              <div>
-                <div className={css.afLbl}>Type</div>
-                <select
-                  className={css.afSelect}
-                  data-testid="native-kind"
-                  aria-label="Native species type"
-                  value={nKind}
-                  onChange={(e) => setNKind(e.target.value as SpeciesKind)}
-                >
-                  {SPECIES_KINDS.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <div className={css.afLbl}>Abundance</div>
-                <input
-                  type="text"
-                  className={css.afInput}
-                  data-testid="native-abund"
-                  aria-label="Native abundance"
-                  value={nAbund}
-                  placeholder="e.g. Common"
-                  onChange={(e) => setNAbund(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className={css.afRow}>
-              <button
-                type="button"
-                className={css.afAdd}
-                data-testid="native-add"
-                onClick={addNative}
-              >
-                Add to register
-              </button>
-              <button
-                type="button"
-                className={css.afCancel}
-                data-testid="native-cancel"
-                onClick={() => {
-                  resetNative();
-                  setNativeOpen(false);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={css.addBtn}
-            data-testid="native-open"
-            onClick={() => setNativeOpen(true)}
-          >
-            <Plus size={11} aria-hidden="true" /> Add native species
-          </button>
-        )}
+          ))}
+        </div>
       </div>
 
       <div className={css.fdiv} aria-hidden="true" />
 
       <div>
-        <div className={css.secLbl}>Invasive species -- weed register</div>
+        <div className={css.secLbl}>Invasive species watchlist</div>
         {model.invasives.length === 0 ? (
           <div className={css.spEmpty} data-testid="invasive-empty">
             No invasive species recorded yet.
@@ -1030,7 +1569,7 @@ function SpeciesBody({
               data-testid="invasive-name"
               aria-label="Invasive common name"
               value={iName}
-              placeholder="e.g. Blackberry"
+              placeholder="name the species observed on this site"
               onChange={(e) => setIName(e.target.value)}
             />
             <div className={css.afLbl}>Scientific name</div>
@@ -1040,7 +1579,7 @@ function SpeciesBody({
               data-testid="invasive-sci"
               aria-label="Invasive scientific name"
               value={iSci}
-              placeholder="e.g. Rubus fruticosus agg."
+              placeholder="optional"
               onChange={(e) => setISci(e.target.value)}
             />
             <div className={css.afGrid}>
@@ -1070,7 +1609,7 @@ function SpeciesBody({
                   data-testid="invasive-dist"
                   aria-label="Invasive distribution"
                   value={iDist}
-                  placeholder="e.g. Creek banks, scattered"
+                  placeholder="e.g. watercourse banks, scattered"
                   onChange={(e) => setIDist(e.target.value)}
                 />
               </div>
@@ -1082,7 +1621,7 @@ function SpeciesBody({
                 data-testid="invasive-add"
                 onClick={addInvasive}
               >
-                Add to register
+                Add to watchlist
               </button>
               <button
                 type="button"
@@ -1109,192 +1648,20 @@ function SpeciesBody({
         )}
       </div>
 
+      <SelRow
+        label="Species of conservation concern"
+        value={model.sar}
+        options={SAR_OPTIONS}
+        testid="species-sar"
+        onChange={setSar}
+      />
+
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
           Each High-priority invasive generates a{' '}
-          <strong>weed control Act task</strong>. Native indicator species
-          inform <strong>revegetation species selection</strong> in Tier 4.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Water habitat body -- a growable register of water-dependent areas plus a
-// "none present" affirmation. Row id minting happens here, in handlers only.
-// ---------------------------------------------------------------------------
-
-function WaterHabitatBody({
-  model,
-  onChange,
-}: {
-  model: WaterHabitatModel;
-  onChange: (next: WaterHabitatModel) => void;
-}): React.JSX.Element {
-  const [formOpen, setFormOpen] = React.useState(false);
-  const [draftType, setDraftType] = React.useState<WaterAreaType>('creek');
-  const [draftName, setDraftName] = React.useState('');
-  const [draftDesc, setDraftDesc] = React.useState('');
-
-  const resetForm = (): void => {
-    setDraftType('creek');
-    setDraftName('');
-    setDraftDesc('');
-  };
-
-  const addArea = (): void => {
-    onChange({
-      ...model,
-      nonePresent: false,
-      areas: [
-        ...model.areas,
-        {
-          id: makeRowId(),
-          areaType: draftType,
-          name: draftName.trim(),
-          description: draftDesc.trim(),
-        },
-      ],
-    });
-    resetForm();
-    setFormOpen(false);
-  };
-  const removeArea = (id: string): void =>
-    onChange({ ...model, areas: model.areas.filter((a) => a.id !== id) });
-
-  const toggleNone = (): void =>
-    onChange({
-      ...model,
-      nonePresent: !model.nonePresent,
-      areas: !model.nonePresent ? [] : model.areas,
-    });
-
-  return (
-    <div className={css.root} data-ecology-mode="waterHabitat">
-      <div>
-        <div className={css.secLbl}>Water-dependent areas identified</div>
-        {model.areas.length === 0 ? (
-          <div className={css.spEmpty} data-testid="water-empty">
-            No water-dependent areas registered yet.
-          </div>
-        ) : (
-          <div className={css.waterList}>
-            {model.areas.map((a) => (
-              <div key={a.id} className={css.waterRow}>
-                <div className={css.waterHead}>
-                  <span className={css.waterType}>
-                    {WATER_TYPE_LABEL[a.areaType] ?? a.areaType}
-                  </span>
-                  <span className={css.waterName}>
-                    {a.name || "Unnamed area"}
-                  </span>
-                  <button
-                    type="button"
-                    className={css.spDel}
-                    data-testid={`water-remove-${a.id}`}
-                    aria-label={`Remove ${a.name || "water area"}`}
-                    onClick={() => removeArea(a.id)}
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-                {a.description ? (
-                  <div className={css.waterDesc}>{a.description}</div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        )}
-        {formOpen ? (
-          <div className={css.addForm} data-testid="water-form">
-            <div className={css.afLbl}>Area type</div>
-            <select
-              className={css.afSelect}
-              data-testid="water-type"
-              aria-label="Water area type"
-              value={draftType}
-              onChange={(e) => setDraftType(e.target.value as WaterAreaType)}
-            >
-              {WATER_TYPES.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.label}
-                </option>
-              ))}
-            </select>
-            <div className={css.afLbl}>Name or reference</div>
-            <input
-              type="text"
-              className={css.afInput}
-              data-testid="water-name"
-              aria-label="Water area name"
-              value={draftName}
-              placeholder="e.g. SE boundary creek line"
-              onChange={(e) => setDraftName(e.target.value)}
-            />
-            <div className={css.afLbl}>Description</div>
-            <input
-              type="text"
-              className={css.afInput}
-              data-testid="water-desc"
-              aria-label="Water area description"
-              value={draftDesc}
-              placeholder="e.g. Flows Jun -- Oct, riparian fringe ~8m each side"
-              onChange={(e) => setDraftDesc(e.target.value)}
-            />
-            <div className={css.afRow}>
-              <button
-                type="button"
-                className={css.afAdd}
-                data-testid="water-add"
-                onClick={addArea}
-              >
-                Add to register
-              </button>
-              <button
-                type="button"
-                className={css.afCancel}
-                data-testid="water-cancel"
-                onClick={() => {
-                  resetForm();
-                  setFormOpen(false);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={css.addBtn}
-            data-testid="water-open"
-            onClick={() => setFormOpen(true)}
-          >
-            <Plus size={11} aria-hidden="true" /> Add water-dependent area
-          </button>
-        )}
-      </div>
-
-      <button
-        type="button"
-        className={css.noneAffirm}
-        data-testid="water-none"
-        data-on={model.nonePresent ? 'true' : 'false'}
-        aria-pressed={model.nonePresent}
-        onClick={toggleNone}
-      >
-        <span className={css.vegChk} aria-hidden="true" />
-        No water-dependent areas present on this site
-      </button>
-
-      <div className={css.feedsBlock}>
-        <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
-        <div className={css.feedsTxt}>
-          Water-dependent habitat areas are flagged as{' '}
-          <strong>design-sensitive zones</strong> in Tier 3. They become
-          exclusion zones for earthworks and intensive land use in Tier 4.
+          <strong>weed control Act task</strong>. Native indicator groups inform{' '}
+          <strong>revegetation species selection</strong> in Tier 4.
         </div>
       </div>
     </div>

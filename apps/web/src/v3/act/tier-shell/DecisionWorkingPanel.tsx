@@ -931,17 +931,19 @@ export default function DecisionWorkingPanel({
                 : 'Choose a risk level, or flag mass movement, to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (ecologyMode) {
-      const note =
-        ecologyMode === 'vegetation'
-          ? 'Record at least one community type to record'
-          : ecologyMode === 'species'
-            ? 'Add at least one native or invasive species to record'
-            : ecologyMode === 'corridors'
-              ? 'Select at least one corridor or nesting feature to record'
-              : ecologyMode === 'connectivity'
-                ? 'Choose a connectivity classification to record'
-                : 'Add a water-dependent area, or affirm none present, to record';
-      gateNote = <div className={css.gateNote}>{note}</div>;
+      const ecologyNotes: Record<EcologyMode, string> = {
+        vegetation: 'Record at least one community type to record',
+        species: 'Tick a native group, or log an invasive, to record',
+        corridors: 'Select at least one corridor or nesting feature to record',
+        connectivity: 'Choose a connectivity score to record',
+        waterHabitat: 'Flag a water habitat, or affirm none present, to record',
+        pollinator: 'Set a guild observation or the provision score to record',
+        insectary:
+          'Plan a bloom window, nesting provision, or insectary bed to record',
+      };
+      gateNote = (
+        <div className={css.gateNote}>{ecologyNotes[ecologyMode]}</div>
+      );
     } else if (landscapeMode) {
       const note =
         landscapeMode === 'landUse'

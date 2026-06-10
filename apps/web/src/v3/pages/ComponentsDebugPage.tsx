@@ -764,6 +764,145 @@ export default function ComponentsDebugPage() {
         </PanelFrame>
       </Section>
 
+      <Section title="Decision Working Panel - Ecology & habitat: species (s2-ecology c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-c2",
+              label: "Inventory native and invasive species",
+              prompt: "Tick the native groups present, log any invasive species, and flag species of conservation concern.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Ecology & habitat: corridors (s2-ecology c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-c3",
+              label: "Assess wildlife corridors and nesting habitat",
+              prompt: "Record the corridor features and nesting habitat present, then rate overall corridor quality.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Ecology & habitat: connectivity (s2-ecology c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-c4",
+              label: "Rate landscape connectivity",
+              prompt: "Record connectivity features and barriers in the adjacent landscape, then score overall connectivity.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Ecology & habitat: water habitat (s2-ecology c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-c5",
+              label: "Document water-dependent habitats",
+              prompt: "Flag the water-dependent habitats present and the condition and intent for the setback zone.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      {/* Orchard / food-forest type-injected ecology panels (ORCH>U-S2.3). */}
+      <Section title="Decision Working Panel - Ecology & habitat: pollinator baseline (s2-ecology orch-1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-orch-1",
+              label: "Survey the pollinator baseline",
+              prompt: "Record the pollinator guilds observed during the active bloom window and rate overall pollination provision.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Ecology & habitat: insectary plan (s2-ecology orch-2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s2-ecology-orch-2",
+              label: "Plan the insectary and bloom succession",
+              prompt: "Plan support planting across the bloom windows, nesting provision, and any dedicated insectary bed.",
+              isEcology: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
       <Section title="Decision Working Panel - Landscape context: surrounding land use (ev-s2-landscape-vectors c1)">
         <PanelFrame>
           <DecisionWorkingPanel

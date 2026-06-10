@@ -120,6 +120,9 @@ const MODE_LABELS: Record<string, string> = {
   corridors: 'Map',
   connectivity: 'Assessment',
   waterHabitat: 'Map',
+  // Ecology modes injected by the orchard / food-forest type (ORCH>U-S2.3).
+  pollinator: 'Observation',
+  insectary: 'Plan',
   // Landscape & vectors modes (EV-S2.7).
   landUse: 'Map',
   sprayRisk: 'Risk survey',

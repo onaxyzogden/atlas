@@ -161,10 +161,12 @@ export function buildDecisionTarget(
   // for every other id.
   const isClimate = item.id.startsWith('s2-climate-');
 
-  // Ecology is a 5-item objective (s2-ecology-c1..-c5); detected by id prefix.
-  // The panel's isEcology body-router arm (EcologyCapture self-routes on itemId
-  // via ecologyModeFor) takes precedence over any matched generic form. False
-  // for every other id.
+  // Ecology is a universal 5-item objective (s2-ecology-c1..-c5), plus the two
+  // orchard / food-forest type-injected panels (s2-ecology-orch-1 pollinator,
+  // -orch-2 insectary); all detected by the shared id prefix. The panel's
+  // isEcology body-router arm (EcologyCapture self-routes on itemId via
+  // ecologyModeFor) takes precedence over any matched generic form. False for
+  // every other id.
   const isEcology = item.id.startsWith('s2-ecology-');
 
   // Landscape context is a 6-item ecovillage objective
