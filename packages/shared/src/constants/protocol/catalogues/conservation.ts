@@ -28,6 +28,7 @@ export const CONSERVATION_PRIMARY_PROTOCOLS: readonly StandardProtocolTemplate[]
     source: 'primary',
     sourceTypeId: 'conservation',
     stratumId: 's2-land-reading',
+    objectiveId: 's2-ecology',
     severityTier: 'watch',
     condition: 'IF the [monitoring interval] arrives',
     response: 'Survey indicator species and habitat condition against the baseline.',

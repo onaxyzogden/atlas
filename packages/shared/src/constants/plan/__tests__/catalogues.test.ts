@@ -298,18 +298,12 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
     expect(itemIds.has('s1-vision-c3')).toBe(true);
   });
 
-  it('carries the s1-vision-c4 secondary-type answerSpec recap item', () => {
-    // c4 is answerSpec-driven (projectSecondaryType over
-    // projectTypeRecord.secondaryTypeIds); optional, and partitioned into the
-    // "Purpose & intent" decision group alongside the primary-type c1.
+  it('s1-vision-c4 is removed (covered by c1 primary-purpose definition)', () => {
+    // c4 ("Confirm any secondary land uses") was removed because the primary
+    // purpose defined in c1 already captures land use type; the item was redundant.
     const vision = findPlanStratumObjectiveIn(objectives, 's1-vision');
     const c4 = vision?.checklist.find((i) => i.id === 's1-vision-c4');
-    expect(c4).toBeDefined();
-    expect(c4?.optional).toBe(true);
-    expect(c4?.answerSpec?.optionSetId).toBe('projectSecondaryType');
-    expect(c4?.answerSpec?.sourceField).toBe(
-      'projectTypeRecord.secondaryTypeIds',
-    );
+    expect(c4).toBeUndefined();
   });
 
   it('carries the s1-vision-steward stewardship answerSpec recap item', () => {

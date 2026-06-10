@@ -42,6 +42,7 @@ export const REGEN_FARM_PRIMARY_PROTOCOLS: readonly StandardProtocolTemplate[] =
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     stratumId: 's2-land-reading',
+    objectiveId: 's2-terrain',
     severityTier: 'watch',
     condition: 'IF the [soil monitoring interval] arrives',
     response: 'Re-test soil organic matter and compare against the baseline trend.',
