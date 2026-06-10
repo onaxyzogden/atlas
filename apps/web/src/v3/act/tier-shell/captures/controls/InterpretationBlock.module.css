@@ -1,7 +1,7 @@
 .block {
   border-radius: var(--radius-md, 8px);
   padding: 10px 12px;
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   line-height: 1.5;
 }
 .block[data-tone='pass'] {

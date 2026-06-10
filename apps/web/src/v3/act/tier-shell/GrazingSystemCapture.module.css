@@ -46,7 +46,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.5;
 }
@@ -71,7 +71,7 @@
 }
 
 .fieldLbl {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -182,7 +182,7 @@
 }
 
 .methodDesc {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.4;
 }
@@ -212,7 +212,7 @@
 }
 
 .seasonBadge {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-pill, 8px);
@@ -236,7 +236,7 @@
 }
 
 .feedGapNote {
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
   color: var(--color-error, #c4493a);
   line-height: 1.4;
@@ -261,7 +261,7 @@
 }
 
 .stageBadge {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: var(--radius-pill, 8px);
@@ -291,7 +291,7 @@
 }
 
 .stageYears {
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   color: var(--color-text-muted, #565c63);
 }
@@ -306,7 +306,7 @@
   align-items: flex-start;
   gap: 6px;
   margin-bottom: 4px;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.4;
 }
@@ -372,7 +372,7 @@
 }
 
 .tierLevel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   padding: 2px 9px;
   border-radius: var(--radius-pill, 8px);
@@ -409,7 +409,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 9.5px;
+  font-size: 12px;
   font-style: italic;
   color: var(--color-text-muted, #565c63);
   margin-top: 6px;
@@ -423,7 +423,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 9.5px;
+  font-size: 12px;
   font-style: italic;
   color: var(--color-text-muted, #565c63);
   padding: 4px 8px;

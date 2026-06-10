@@ -22,7 +22,7 @@
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
   background: var(--color-surface-2, rgba(255, 255, 255, 0.05));
   color: var(--color-text-secondary, #b9c2bd);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -56,7 +56,7 @@
 }
 
 .detailLabel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -74,7 +74,7 @@
   align-self: flex-start;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   background: var(--color-surface-2, rgba(255, 255, 255, 0.06));
   color: var(--color-text-secondary, #b9c2bd);
@@ -118,7 +118,7 @@
 .toolChip {
   padding: 2px 7px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   background: var(--color-surface-2, rgba(255, 255, 255, 0.06));
   color: var(--color-text-secondary, #b9c2bd);
@@ -127,7 +127,7 @@
 
 .toolMore {
   padding: 2px 4px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-tertiary, #7c8780);
 }
 
@@ -151,7 +151,7 @@
 }
 
 .flowHint {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--color-text-tertiary, #7c8780);
 }

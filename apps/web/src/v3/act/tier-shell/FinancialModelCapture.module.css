@@ -120,7 +120,7 @@
 }
 .hhHName {
   flex: 1;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -129,7 +129,7 @@
 .hhHAmt {
   width: 92px;
   text-align: right;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -138,7 +138,7 @@
 .hhHBasis {
   width: 104px;
   text-align: right;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -164,7 +164,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #ffffff;
   flex-shrink: 0;
@@ -290,7 +290,7 @@
   flex: 1;
 }
 .htTrigger {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted, #565c63);
   background: var(--color-surface-sunken, #f4f5f6);
@@ -326,7 +326,7 @@
   color: var(--color-stage-act, #d9a036);
 }
 .rsLbl {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   text-align: center;
 }
@@ -430,7 +430,7 @@
   flex: 1;
 }
 .msStatus {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -445,7 +445,7 @@
   gap: 6px;
 }
 .msOpt {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   border: 1px solid var(--color-border, #d6d9dd);
   border-radius: 999px;

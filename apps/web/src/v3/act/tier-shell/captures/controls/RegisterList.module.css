@@ -4,7 +4,7 @@
   gap: 10px;
 }
 .empty {
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   margin: 0;
 }
@@ -29,7 +29,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   padding: 6px 10px;
   border-radius: var(--radius-md, 8px);
   border: 1px solid var(--color-border, #d4d8de);
@@ -42,7 +42,7 @@
   align-items: center;
   gap: 6px;
   align-self: flex-start;
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   padding: 6px 10px;
   border-radius: var(--radius-md, 8px);
   border: 1px solid var(--color-border, #d4d8de);

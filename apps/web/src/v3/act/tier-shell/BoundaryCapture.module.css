@@ -16,7 +16,7 @@
 }
 .regCount {
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 .row {
@@ -121,7 +121,7 @@
   gap: 4px;
 }
 .triBtn {
-  font-size: 11px;
+  font-size: 12px;
   padding: 4px 9px;
   border-radius: 6px;
   border: 1px solid var(--color-border, #d4d8de);
@@ -148,7 +148,7 @@
   color: var(--color-text, #1b1e22);
 }
 .actNote {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-error, #c45a4a);
 }

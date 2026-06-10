@@ -30,7 +30,7 @@
   color: var(--color-text, #1b1e22);
 }
 .unit {
-  font-size: var(--text-xs, 11px);
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-muted, #565b63);
 }
@@ -39,7 +39,7 @@
   align-items: center;
   justify-content: center;
   padding: 4px 10px;
-  font-size: var(--text-xs, 11px);
+  font-size: 12px;
   font-weight: 600;
   border: 1px solid var(--color-border, #d4d8de);
   border-radius: var(--radius-md, 8px);

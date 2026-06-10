@@ -4,7 +4,7 @@
   gap: 6px;
 }
 .label {
-  font-size: var(--text-xs, 11px);
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted, #565b63);
 }

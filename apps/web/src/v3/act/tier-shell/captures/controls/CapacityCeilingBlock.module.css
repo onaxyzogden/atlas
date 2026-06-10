@@ -8,7 +8,7 @@
   background: var(--color-surface-alt, #f6f7f9);
 }
 .label {
-  font-size: var(--text-xs, 11px);
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted, #565b63);
 }
@@ -28,7 +28,7 @@
   color: var(--color-text-muted, #565b63);
 }
 .note {
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-muted, #565b63);
 }

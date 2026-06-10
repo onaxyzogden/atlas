@@ -41,7 +41,7 @@
 }
 
 .optsSub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -209,7 +209,7 @@
 }
 
 .secNote {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-subtle, #7a808a);
 }
@@ -253,7 +253,7 @@
   background: transparent;
   color: var(--color-stage-act, #d9a036);
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
 }

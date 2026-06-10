@@ -122,7 +122,7 @@
 }
 
 .projectTileTypes {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.25;
@@ -231,7 +231,7 @@
 }
 
 .tierMeta {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
@@ -259,7 +259,7 @@
 }
 
 .railEyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -375,7 +375,7 @@
   border-radius: 999px;
   background: var(--color-gold-brand, #c4a265);
   color: #1f1d1a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
 }
@@ -441,7 +441,7 @@
 }
 
 .objEyebrow {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -460,7 +460,7 @@
   max-width: 100%;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -514,7 +514,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
   font-variant-numeric: tabular-nums;
 }
@@ -526,7 +526,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -620,7 +620,7 @@
 }
 
 .toolsLabel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -628,7 +628,7 @@
 }
 
 .toolsHint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
 }
 
@@ -760,7 +760,7 @@
 }
 
 .toolHint {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.3;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
   overflow: hidden;
@@ -813,7 +813,7 @@
 }
 
 .toolCatCount {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
   background: var(--color-surface);
   border-radius: 999px;
@@ -842,7 +842,7 @@
   border-radius: var(--radius-md, 8px);
   color: var(--color-text, #f2ede3);
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.2;
   text-align: center;

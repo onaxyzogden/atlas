@@ -25,7 +25,7 @@
 }
 
 .chEyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -55,7 +55,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -65,7 +65,7 @@
 
 .decCount {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: none;
@@ -90,7 +90,7 @@
  * margin collapses naturally as the first flex row. */
 .dGroup {
   margin-top: 6px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -218,7 +218,7 @@
   border-radius: 6px;
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
   background: var(--color-surface-alt, #f3efe6);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -308,7 +308,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
   color: var(--color-text-subtle, #7a808a);
   font-family: var(--font-sans, 'Inter', sans-serif);
@@ -332,7 +332,7 @@
 }
 
 .cgateLbl {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;

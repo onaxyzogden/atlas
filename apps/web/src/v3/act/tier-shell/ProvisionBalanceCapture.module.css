@@ -23,7 +23,7 @@
 /* ---------- Shared section label ---------- */
 
 .secLbl {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
 }
 
@@ -58,7 +58,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.5;
 }
@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
 }
 
@@ -166,7 +166,7 @@
 .matrixOpt {
   padding: 4px 8px;
   border-radius: var(--radius-sm, 5px);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
@@ -239,7 +239,7 @@
 .summaryLblC,
 .summaryLblH,
 .summaryLblP {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.04em;
 }
 
@@ -321,20 +321,20 @@
 }
 
 .cardDesc {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.45;
 }
 
 .cardRef {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   font-style: italic;
   margin-top: 3px;
 }
 
 .cardQualifier {
-  font-size: 10.5px;
+  font-size: 12px;
   font-style: italic;
   margin-top: 5px;
   padding: 5px 8px;
@@ -354,7 +354,7 @@
   background: color-mix(in srgb, var(--color-stage-act, #d9a036) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 25%, transparent);
   border-radius: var(--radius-md, 8px);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-subtle, #7a808a);
 }
@@ -414,14 +414,14 @@
 }
 
 .entUnit {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   white-space: nowrap;
 }
 
 .entNote {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   margin-top: 4px;
   font-style: italic;
@@ -488,7 +488,7 @@
 }
 
 .tensionSideA {
-  font-size: 10px;
+  font-size: 12px;
   padding: 2px 7px;
   border-radius: 10px;
   font-weight: 500;
@@ -498,7 +498,7 @@
 }
 
 .tensionSideB {
-  font-size: 10px;
+  font-size: 12px;
   padding: 2px 7px;
   border-radius: 10px;
   font-weight: 500;
@@ -508,13 +508,13 @@
 }
 
 .tensionArrow {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
 .tensionDesc {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-error, #c4493a);
   opacity: 0.85;
   line-height: 1.5;
@@ -522,7 +522,7 @@
 }
 
 .resolveLbl {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -537,7 +537,7 @@
   border: 1px solid color-mix(in srgb, var(--color-error, #c4493a) 30%, transparent);
   border-radius: var(--radius-sm, 5px);
   padding: 7px 9px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-family: inherit;
   color: var(--color-text, #1b1e22);
   outline: none;
@@ -561,7 +561,7 @@
   align-items: center;
   gap: 5px;
   margin-top: 5px;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-success, #6b8f6b);
 }
 
@@ -581,7 +581,7 @@
 }
 
 .ratifyCount {
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   color: var(--color-text-muted, #565c63);
 }
@@ -590,7 +590,7 @@
   padding: 16px 0;
   text-align: center;
   color: var(--color-text-muted, #565c63);
-  font-size: 11.5px;
+  font-size: 12px;
   font-style: italic;
   line-height: 1.6;
 }
@@ -661,7 +661,7 @@
 }
 
 .memberStatus {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   margin-top: 1px;
   display: inline-flex;
@@ -686,7 +686,7 @@
 .memberBtnOff {
   padding: 4px 9px;
   border-radius: var(--radius-sm, 5px);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
@@ -734,7 +734,7 @@
 }
 
 .offdocLbl {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-stage-act, #d9a036);
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -748,7 +748,7 @@
   border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 30%, transparent);
   border-radius: var(--radius-sm, 5px);
   padding: 6px 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-family: inherit;
   color: var(--color-text, #1b1e22);
   outline: none;
@@ -769,7 +769,7 @@
   background: var(--color-stage-act, #d9a036);
   border: none;
   border-radius: var(--radius-sm, 5px);
-  font-size: 11px;
+  font-size: 12px;
   font-family: inherit;
   font-weight: 600;
   color: var(--color-surface, #f5f1e8);
@@ -814,7 +814,7 @@
   background: transparent;
   border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
   border-radius: var(--radius-md, 8px);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-muted, #565c63);
   cursor: pointer;

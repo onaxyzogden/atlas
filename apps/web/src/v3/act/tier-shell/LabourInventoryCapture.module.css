@@ -36,7 +36,7 @@
 
 .secSub {
   font-weight: 400;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   margin-left: 6px;
 }
@@ -99,7 +99,7 @@
 }
 
 .whoSub {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.3;
   color: var(--color-text-subtle, #7a808a);
 }
@@ -150,7 +150,7 @@
 }
 
 .hoursUnit {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   margin-top: 2px;
 }
@@ -167,7 +167,7 @@
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
   background: var(--color-surface-raised, #faf7ef);
   color: var(--color-text-subtle, #7a808a);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
 }
@@ -190,7 +190,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -212,7 +212,7 @@
 }
 
 .capNote {
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
   line-height: 1.4;
   color: var(--color-text-muted, #565c63);
@@ -272,7 +272,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-subtle, #7a808a);
 }
@@ -358,7 +358,7 @@
 }
 
 .seasonUnit {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   margin-left: 1px;
 }
@@ -372,7 +372,7 @@
 }
 
 .rhythmLbl {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -417,7 +417,7 @@
 }
 
 .rhythmColLbl {
-  font-size: 8px;
+  font-size: 12px;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   color: var(--color-text-subtle, #7a808a);
 }
@@ -431,7 +431,7 @@
 }
 
 .skillCategory {
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -549,7 +549,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -578,7 +578,7 @@
   border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
   background: transparent;
   color: var(--color-text-muted, #565c63);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 120ms ease, color 120ms ease;
@@ -618,7 +618,7 @@
   border: none;
   background: var(--color-stage-act, #d9a036);
   color: var(--color-surface, #ffffff);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -648,7 +648,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-muted, #565c63);
 }
@@ -659,7 +659,7 @@
 }
 
 .gateNote {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
   text-align: center;
   color: var(--color-text-subtle, #7a808a);
@@ -720,7 +720,7 @@
   flex: none;
   padding: 2px 7px;
   border-radius: 20px;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-text-muted, #565c63);
@@ -762,7 +762,7 @@
 
 .rosterStats {
   flex: none;
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   color: var(--color-text-subtle, #7a808a);
   white-space: nowrap;
@@ -797,7 +797,7 @@
 }
 
 .subLabel {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -815,7 +815,7 @@
   border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
   background: transparent;
   color: var(--color-text-muted, #565c63);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 120ms ease, color 120ms ease;
@@ -854,13 +854,13 @@
 }
 
 .teamTotalUnit {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text, #1b1e22);
 }
 
 .teamTotalNote {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   margin-left: auto;
 }

@@ -17,7 +17,7 @@
 
 .secLabel {
   display: block;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -104,7 +104,7 @@
 }
 
 .personYou {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-warning, #d4944a);
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -117,13 +117,13 @@
 }
 
 .personRole {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #8a8680);
   margin-top: 1px;
 }
 
 .personAccess {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   margin-top: 3px;
   line-height: 1.4;
@@ -200,7 +200,7 @@
 }
 
 .roleDesc {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #8a8680);
   line-height: 1.45;
 }
@@ -213,7 +213,7 @@
 }
 
 .accessChip {
-  font-size: 9.5px;
+  font-size: 12px;
   padding: 2px 7px;
   border-radius: 10px;
   font-weight: 500;
@@ -246,7 +246,7 @@
 }
 
 .teamCount {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   font-family: var(--font-mono, "DM Mono", monospace);
 }
@@ -283,7 +283,7 @@
 
 .tmRoleBadge {
   display: inline-block;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 500;
   padding: 1px 8px;
   border-radius: 8px;
@@ -316,7 +316,7 @@
 }
 
 .tmEmail {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   margin-top: 1px;
 }
@@ -399,7 +399,7 @@
 }
 
 .fieldLabel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -437,7 +437,7 @@
 .rsBtn {
   padding: 5px 10px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   border: 1px solid var(--color-border-subtle, #353530);
   background: var(--color-surface-raised, #252520);
@@ -470,7 +470,7 @@
 }
 
 .roleHint {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   line-height: 1.5;
   padding: 6px 9px;
@@ -508,7 +508,7 @@
 }
 
 .inviteFootnote {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   text-align: center;
   margin-top: 6px;
@@ -534,7 +534,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #8a8680);
   line-height: 1.5;
 }

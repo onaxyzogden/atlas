@@ -24,6 +24,6 @@
   font-weight: 600;
 }
 .cardDesc {
-  font-size: var(--text-xs, 12px);
+  font-size: 12px;
   color: var(--color-text-muted, #565b63);
 }

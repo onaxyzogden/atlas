@@ -64,7 +64,7 @@
 }
 
 .uploadHint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -221,7 +221,7 @@
   padding: 3px 8px;
   border-radius: 6px;
   background: var(--color-surface-raised, #fff);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -417,7 +417,7 @@
 }
 
 .fieldNote {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 

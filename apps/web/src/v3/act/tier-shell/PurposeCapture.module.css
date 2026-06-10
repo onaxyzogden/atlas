@@ -27,7 +27,7 @@
 
 .secLabel {
   display: block;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -100,7 +100,7 @@
 }
 
 .cardName {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text, #ede9e0);
   font-family: var(--font-sans, 'Inter', sans-serif);
@@ -118,7 +118,7 @@
 }
 
 .cardDesc {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   line-height: 1.4;
 }
@@ -133,7 +133,7 @@
 }
 
 .primaryBadge {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 1px 7px;
@@ -145,7 +145,7 @@
 }
 
 .secondaryBadge {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 1px 7px;
@@ -157,7 +157,7 @@
 }
 
 .capabilityBadge {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   padding: 1px 6px;
   border-radius: 8px;
@@ -170,7 +170,7 @@
 /* ---------- read-only note ---------- */
 
 .readOnlyNote {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   font-style: italic;
   display: flex;
@@ -182,7 +182,7 @@
 /* ---------- elaboration field ---------- */
 
 .fieldLabel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -191,7 +191,7 @@
 }
 
 .fieldSubLabel {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #4a4845);
   font-style: italic;
   margin-bottom: 5px;
@@ -241,7 +241,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #8a8680);
   line-height: 1.5;
 }

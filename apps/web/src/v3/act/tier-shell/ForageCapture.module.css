@@ -45,7 +45,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   line-height: 1.5;
 }
@@ -72,7 +72,7 @@
 }
 
 .fieldLbl {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -119,7 +119,7 @@
 }
 
 .calZoneName {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text, #1b1e22);
 }
@@ -128,7 +128,7 @@
   display: flex;
   gap: 12px;
   margin-top: 4px;
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
 }
 
@@ -190,7 +190,7 @@
 }
 
 .dseUnit {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-success, #6b8f6b);
   margin-left: 2px;
 }
@@ -202,7 +202,7 @@
   padding: 6px 9px;
   background: var(--color-surface, #f5f1e8);
   border-radius: var(--radius-sm, 5px);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
@@ -224,7 +224,7 @@
 }
 
 .netLbl {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -239,7 +239,7 @@
 }
 
 .netRowLbl {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -299,14 +299,14 @@
 }
 
 .toxicSci {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--color-text-muted, #565c63);
   font-style: italic;
   margin-top: 1px;
 }
 
 .toxicXref {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-stage-act, #d9a036);
   margin-top: 4px;
   padding: 3px 8px;
@@ -323,7 +323,7 @@
 .toxicBtn {
   padding: 3px 8px;
   border-radius: var(--radius-sm, 5px);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
   background: var(--color-surface, #f5f1e8);

@@ -12,7 +12,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
   letter-spacing: 0.02em;

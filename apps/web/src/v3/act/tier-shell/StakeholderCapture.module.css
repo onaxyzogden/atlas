@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -47,7 +47,7 @@
 }
 
 .secCount {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -131,7 +131,7 @@
 .mapLbl {
   position: absolute;
   font-family: var(--font-mono, 'Courier New', monospace);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .mapLblN1 {
@@ -172,7 +172,7 @@
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #d4d8de);
   border-radius: 5px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   cursor: not-allowed;
 }
@@ -203,7 +203,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   flex: none;
 }
@@ -211,7 +211,7 @@
 .avSmall {
   width: 26px;
   height: 26px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .avN {
@@ -248,7 +248,7 @@
 }
 
 .crRole {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -294,7 +294,7 @@
   background: var(--color-surface-alt, #f6f7f9);
   border: 1px solid var(--color-border, #d4d8de);
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #565b63);
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
@@ -328,7 +328,7 @@
 }
 
 .authCatName {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -346,7 +346,7 @@
   background: var(--color-surface-alt, #f6f7f9);
   border: 1px solid var(--color-border, #d4d8de);
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #565b63);
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
@@ -376,7 +376,7 @@
   background: transparent;
   border: 1px dashed var(--color-border, #d4d8de);
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
@@ -418,7 +418,7 @@
 }
 
 .fieldLbl {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -550,14 +550,14 @@
 }
 
 .scDesc {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #565b63);
   line-height: 1.45;
 }
 
 .scConsequence {
   margin-top: 4px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-style: italic;
   line-height: 1.4;
   color: var(--color-text-subtle, #7a808a);
@@ -607,7 +607,7 @@
 }
 
 .apRole {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-subtle, #7a808a);
 }
 
@@ -626,7 +626,7 @@
 .chPill {
   padding: 4px 9px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 12px;
   border: 1px solid var(--color-border, #d4d8de);
   background: var(--color-surface, #fff);
   color: var(--color-text-muted, #565b63);
@@ -687,7 +687,7 @@
   margin: 0;
   padding: 12px 0;
   text-align: center;
-  font-size: 11.5px;
+  font-size: 12px;
   font-style: italic;
   line-height: 1.6;
   color: var(--color-text-subtle, #7a808a);
@@ -712,7 +712,7 @@
 }
 
 .feedsTxt {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-muted, #565b63);
 }
@@ -741,7 +741,7 @@
 }
 
 .guidanceTxt {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
   color: var(--color-accent, #6b5bd4);
 }
