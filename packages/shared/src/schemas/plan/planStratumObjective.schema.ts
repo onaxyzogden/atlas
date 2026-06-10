@@ -243,6 +243,16 @@ export const PlanDecisionChecklistItemSchema = z.object({
    * item, so the static seed + catalogues validate unchanged.
    */
   formulaBinding: ObjectiveFormulaBindingSchema.optional(),
+  /**
+   * Optional DISPLAY-ONLY capture-mode badge label rendered after the item
+   * label on Tier-1+ Plan/Act surfaces (mockup `.mb-*` chip), transcribed
+   * VERBATIM from the prototype badge (ASCII-only). Purely decorative metadata
+   * -- it does NOT route a working panel (Tier-1+ has no bespoke capture
+   * components). Distinct from the Tier-0 `DecisionList` `modeFor` raw-key
+   * mechanism (see DecisionList.tsx MODE_LABELS), which is unchanged. Absent on
+   * every existing item, so the static seed + catalogues validate unchanged.
+   */
+  mode: z.string().min(1).optional(),
 });
 export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema

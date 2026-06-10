@@ -381,26 +381,32 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-social-fabric-c1',
         'Map existing relationships between founding members - duration, depth, shared history',
+        { mode: 'Relationship map' },
       ),
       ck(
         'ev-s2-social-fabric-c2',
         'Identify prior community or cooperative living experience in the founding group',
+        { mode: 'Experience register' },
       ),
       ck(
         'ev-s2-social-fabric-c3',
         'Record any prior attempts at intentional community on this land or by this group',
+        { mode: 'Prior attempts' },
       ),
       ck(
         'ev-s2-social-fabric-c4',
         'Assess founding group cohesion - areas of strong alignment and known tension',
+        { mode: 'Cohesion map' },
       ),
       ck(
         'ev-s2-social-fabric-c5',
         'Identify skills gaps in the founding group - facilitation, building, farming, legal, financial',
+        { mode: 'Skills matrix' },
       ),
       ck(
         'ev-s2-social-fabric-c6',
         'Record external community relationships that could support establishment - networks, mentors, advisors',
+        { mode: 'External networks' },
       ),
     ],
     decisionGroups: [
@@ -498,20 +504,28 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-energy-potential-c1',
         'Assess solar generation potential - roof area, ground-mount zones, shading analysis',
+        { mode: 'Capacity calc' },
       ),
       ck(
         'ev-s3-energy-potential-c2',
         'Assess wind generation potential - speed, consistency, regulatory constraints',
+        { mode: 'Capacity calc' },
       ),
-      ck('ev-s3-energy-potential-c3', 'Assess micro-hydro potential if running water present'),
-      ck('ev-s3-energy-potential-c4', 'Assess biomass and wood fuel production capacity'),
+      ck('ev-s3-energy-potential-c3', 'Assess micro-hydro potential if running water present', {
+        mode: 'Assessment',
+      }),
+      ck('ev-s3-energy-potential-c4', 'Assess biomass and wood fuel production capacity', {
+        mode: 'Capacity calc',
+      }),
       ck(
         'ev-s3-energy-potential-c5',
         'Estimate total community energy demand for intended population',
+        { mode: 'Capacity calc' },
       ),
       ck(
         'ev-s3-energy-potential-c6',
         'Map distribution infrastructure requirements - grid connection, battery storage, micro-grid',
+        { mode: 'Strategic choice' },
       ),
     ],
     decisionGroups: [
@@ -537,22 +551,27 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-infra-condition-c1',
         'Inventory all existing communal or shared buildings with condition assessment',
+        { mode: 'Inventory' },
       ),
       ck(
         'ev-s3-infra-condition-c2',
         'Assess structural integrity and code compliance of existing buildings',
+        { mode: 'Assessment' },
       ),
       ck(
         'ev-s3-infra-condition-c3',
         'Record existing utility infrastructure - water, power, drainage, communications',
+        { mode: 'Inventory' },
       ),
       ck(
         'ev-s3-infra-condition-c4',
         'Assess road and track condition for communal vehicle and pedestrian use',
+        { mode: 'Assessment' },
       ),
       ck(
         'ev-s3-infra-condition-c5',
         'Identify reuse, renovation, or demolition requirements for each existing element',
+        { mode: 'Strategic choice' },
       ),
     ],
     decisionGroups: [
@@ -581,26 +600,32 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-settlement-strategy-c1',
         'Define founding cohort - who moves in during Phase 1 and under what criteria',
+        { mode: 'Cohort definition' },
       ),
       ck(
         'ev-s4-settlement-strategy-c2',
         'Define infrastructure habitability threshold per cohort - what must be complete before each group arrives',
+        { mode: 'Habitability gates' },
       ),
       ck(
         'ev-s4-settlement-strategy-c3',
         'Sequence subsequent cohort arrivals against infrastructure completion milestones',
+        { mode: 'Arrival sequence' },
       ),
       ck(
         'ev-s4-settlement-strategy-c4',
         'Define trial residency period before full membership for each new household',
+        { mode: 'Trial residency' },
       ),
       ck(
         'ev-s4-settlement-strategy-c5',
         'Establish maximum population per phase aligned with carrying capacity',
+        { mode: 'Carrying capacity' },
       ),
       ck(
         'ev-s4-settlement-strategy-c6',
         'Define go/no-go criteria for each settlement phase - hard gates, not aspirational targets',
+        { mode: 'Go/no-go gates' },
       ),
     ],
     decisionGroups: [
@@ -708,24 +733,31 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-food-system-c1',
         'Confirm food system approach from Stratum 1 provision balance - communal, individual, or hybrid',
+        { mode: 'Confirmation' },
       ),
       ck(
         'ev-s4-food-system-c2',
         'Define communal food production commitments - crops, volume, labour contribution model',
+        { mode: 'Crop commitments' },
       ),
       ck(
         'ev-s4-food-system-c3',
         'Define individual plot allocation - size, location, tenure, maintenance obligations',
+        { mode: 'Plot register' },
       ),
       ck(
         'ev-s4-food-system-c4',
         'Define food sharing and distribution protocol for communal harvests',
+        { mode: 'Distribution' },
       ),
       ck(
         'ev-s4-food-system-c5',
         'Define seed saving, variety selection, and food sovereignty strategy',
+        { mode: 'Seed sovereignty' },
       ),
-      ck('ev-s4-food-system-c6', 'Establish food system governance - decisions, labour, disputes'),
+      ck('ev-s4-food-system-c6', 'Establish food system governance - decisions, labour, disputes', {
+        mode: 'Food governance',
+      }),
     ],
     decisionGroups: [
       dg('ev-s4-food-system-dg1', 'Production approach & commitments', ['ev-s4-food-system-c1', 'ev-s4-food-system-c2'], []),
@@ -752,26 +784,32 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-financial-model-c1',
         'Define member buy-in contribution - amount, payment schedule, what it covers',
+        { mode: 'Buy-in' },
       ),
       ck(
         'ev-s4-financial-model-c2',
         'Define ongoing communal cost contributions - monthly or annual levy structure',
+        { mode: 'Levy structure' },
       ),
       ck(
         'ev-s4-financial-model-c3',
         'Define communal fund governance - how funds are held, authorised, and audited',
+        { mode: 'Fund governance' },
       ),
       ck(
         'ev-s4-financial-model-c4',
         'Define financial hardship protocol - how the community supports members in difficulty',
+        { mode: 'Hardship protocol' },
       ),
       ck(
         'ev-s4-financial-model-c5',
         'Define capital reserve strategy - how the community saves for major infrastructure renewal',
+        { mode: 'Reserves' },
       ),
       ck(
         'ev-s4-financial-model-c6',
         'Confirm financial model is agreed by all founding members before any construction begins',
+        { mode: 'Member agreement' },
       ),
     ],
     decisionGroups: [

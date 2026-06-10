@@ -410,3 +410,31 @@ describe('DecisionChecklist - expand / collapse all', () => {
     ).toBeNull();
   });
 });
+
+describe('DecisionChecklist - Tier-1+ mode badge', () => {
+  const objective = mkObjective({
+    checklist: [
+      ck('c1', 'Crop commitments decision', { mode: 'Crop commitments' }),
+      ck('c2', 'Plain decision'),
+    ],
+    decisionGroups: [],
+  });
+
+  it('renders the mode badge only for a mode-bearing item, verbatim', () => {
+    render(
+      <DecisionChecklist
+        projectId="proj-test"
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const card = screen.getByTestId('plan-decision-group-obj-1-all');
+    // Badge lives in the expanded item row.
+    expand(card, 'Decisions');
+    const badge = within(card).getByTestId('mode-badge-c1');
+    expect(badge.textContent).toBe('Crop commitments');
+    // The item without a mode gets no badge.
+    expect(within(card).queryByTestId('mode-badge-c2')).toBeNull();
+  });
+});

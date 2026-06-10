@@ -52,6 +52,7 @@ import { evaluateAndRaiseFlags } from '../protocols/evaluateAndRaiseFlags.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { resolveAnswerSpec } from '../../strata/resolveAnswerSpec.js';
 import AnswerRecap from './AnswerRecap.js';
+import ModeBadge from '../../plan/strata/ModeBadge.js';
 import {
   useActEvidenceStore,
   EMPTY_CAPTURE,
@@ -642,6 +643,7 @@ export default function ActTierExecutionPanel({
                 <span>
                   {item.label}
                   {!item.optional && <span className={styles.req}> *</span>}
+                  {item.mode ? <ModeBadge label={item.mode} itemId={item.id} /> : null}
                 </span>
               </label>
             );

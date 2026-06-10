@@ -32,6 +32,7 @@ import { findProjectType } from '@ogden/shared';
 import { findObjectiveGlobally } from '../objectiveCatalog.js';
 import type { VisionDerivedItem, VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import { C, F, CA } from '../spine/tokens.js';
+import ModeBadge from './ModeBadge.js';
 
 interface Props {
   /** Owning project id — threaded to the per-card "Open in Act" deep link. */
@@ -605,6 +606,7 @@ function ReadOnlyItemRow({
         >
           {item.label}
         </span>
+        {item.mode ? <ModeBadge label={item.mode} itemId={item.id} /> : null}
 
         <div
           style={{

@@ -71,7 +71,7 @@ export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
 export function ck(
   id: string,
   label: string,
-  opts: { feedHint?: string; feedNote?: string } = {},
+  opts: { feedHint?: string; feedNote?: string; mode?: string } = {},
 ): PlanDecisionChecklistItem {
   return {
     id,
@@ -80,6 +80,7 @@ export function ck(
     optional: false,
     ...(opts.feedHint ? { feedHint: opts.feedHint } : {}),
     ...(opts.feedNote ? { feedNote: opts.feedNote } : {}),
+    ...(opts.mode ? { mode: opts.mode } : {}),
   };
 }
 

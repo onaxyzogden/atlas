@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PlanStratumObjectiveSchema,
+  PlanDecisionChecklistItemSchema,
   PatchRecordSchema,
   type PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
@@ -1149,5 +1150,69 @@ describe('s1-boundaries 7-item mixed-mode surface', () => {
     expect(byId.get('s1-boundaries-c7')!.feedNote).toContain(
       'prerequisites on Act handoff packages',
     );
+  });
+});
+
+describe('catalogue conformance - Tier-1+ decision mode badge', () => {
+  it('the optional mode field accepts a label and is absent-safe', () => {
+    // With a mode label.
+    expect(() =>
+      PlanDecisionChecklistItemSchema.parse({
+        id: 'x',
+        label: 'y',
+        feedsInto: [],
+        optional: false,
+        mode: 'Crop commitments',
+      }),
+    ).not.toThrow();
+    // Without mode (regression guard: every existing item omits it).
+    expect(() =>
+      PlanDecisionChecklistItemSchema.parse({
+        id: 'x',
+        label: 'y',
+        feedsInto: [],
+        optional: false,
+      }),
+    ).not.toThrow();
+    // An empty mode string is rejected (min(1)).
+    expect(() =>
+      PlanDecisionChecklistItemSchema.parse({
+        id: 'x',
+        label: 'y',
+        feedsInto: [],
+        optional: false,
+        mode: '',
+      }),
+    ).toThrow();
+  });
+
+  // Representative mode per prototyped ecovillage objective, transcribed verbatim
+  // from the OLOS prototype badges. Guards against checklist re-ordering silently
+  // mis-attributing a badge to the wrong decision.
+  const EXPECTED_MODES: Record<string, string> = {
+    'ev-s2-social-fabric-c1': 'Relationship map',
+    'ev-s2-social-fabric-c6': 'External networks',
+    'ev-s3-energy-potential-c1': 'Capacity calc',
+    'ev-s3-energy-potential-c6': 'Strategic choice',
+    'ev-s3-infra-condition-c1': 'Inventory',
+    'ev-s3-infra-condition-c5': 'Strategic choice',
+    'ev-s4-settlement-strategy-c1': 'Cohort definition',
+    'ev-s4-settlement-strategy-c6': 'Go/no-go gates',
+    'ev-s4-food-system-c2': 'Crop commitments',
+    'ev-s4-food-system-c6': 'Food governance',
+    'ev-s4-financial-model-c1': 'Buy-in',
+    'ev-s4-financial-model-c6': 'Member agreement',
+  };
+
+  it('attaches the verbatim prototype mode to the expected ecovillage items', () => {
+    const itemById = new Map(
+      ECOVILLAGE_PRIMARY_OBJECTIVES.flatMap((o) =>
+        o.checklist.map((c) => [c.id, c] as const),
+      ),
+    );
+    for (const [itemId, expectedMode] of Object.entries(EXPECTED_MODES)) {
+      expect(itemById.get(itemId), itemId).toBeDefined();
+      expect(itemById.get(itemId)!.mode, itemId).toBe(expectedMode);
+    }
   });
 });
