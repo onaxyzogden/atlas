@@ -986,6 +986,150 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3c-i -- Grazing system design (silv-sec-s4-grazing-design): a
+          6-mode silvopasture capture (grazingMethod / paddockLayout / grazeRest
+          / treeProtection / contingency / stockingDensity). Advisory only -- it
+          writes no store and reads no siblings, so each panel stands alone. The
+          dummy "gallery" projectId matches the sections above (the arm ignores
+          it). */}
+      <Section title="Decision Working Panel - Grazing: method (silv-sec-s4-grazing-design c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c1",
+              label: "Define the grazing method - rotational, cell, or set-stocking - and the rationale",
+              prompt: "Pick the grazing method and record why it fits the site, stock, and labour.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Grazing: paddock layout (silv-sec-s4-grazing-design c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c2",
+              label: "Define paddock or cell layout and target mob size per move",
+              prompt: "Add each paddock or cell and set the target mob size per move.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Grazing: graze/rest (silv-sec-s4-grazing-design c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c3",
+              label: "Define graze-period and rest-period targets per season tied to recovery indicators",
+              prompt: "Set graze and rest periods for each season, tied to pasture recovery indicators.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Grazing: tree protection (silv-sec-s4-grazing-design c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c4",
+              label: "Define tree-protection rules - exclusion windows for young plantings, browse limits",
+              prompt: "Set per-stage exclusion windows and browse limits that protect young plantings.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Grazing: contingency (silv-sec-s4-grazing-design c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c5",
+              label: "Define the feed-gap contingency - supplementary feed, destocking, or agistment triggers",
+              prompt: "Configure the contingency tiers and the trigger that escalates each one.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Grazing: stocking density (silv-sec-s4-grazing-design c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-grazing-design-c6",
+              label: "Run the paddock stocking density check to confirm the grazing design is within surveyed carrying capacity",
+              prompt: "Enter the designed flock breakdown; OLOS checks stocking density against surveyed carrying capacity.",
+              isGrazing: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

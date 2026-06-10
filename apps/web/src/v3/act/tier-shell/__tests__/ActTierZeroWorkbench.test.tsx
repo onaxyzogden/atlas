@@ -350,6 +350,30 @@ describe('buildDecisionTarget -- boundary detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- grazing detection', () => {
+  it('flags isGrazing for a silv-sec-s4-grazing-design-* decision', () => {
+    const grazingItem: PlanDecisionChecklistItem = {
+      id: 'silv-sec-s4-grazing-design-c1',
+      label: 'Choose a grazing method',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(grazingItem);
+    expect(target.isGrazing).toBe(true);
+  });
+
+  it('does NOT flag isGrazing for a forage decision', () => {
+    const forageItem: PlanDecisionChecklistItem = {
+      id: 'silv-sec-s3-forage-survey-c1',
+      label: 'Map existing pasture and understorey forage by zone',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(forageItem);
+    expect(target.isGrazing).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

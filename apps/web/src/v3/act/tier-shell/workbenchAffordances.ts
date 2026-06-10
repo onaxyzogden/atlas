@@ -26,6 +26,7 @@ import { ecologyModeFor } from './EcologyCapture.js';
 import { landscapeModeFor } from './LandscapeContextCapture.js';
 import { carryingCapacityModeFor } from './CarryingCapacityCapture.js';
 import { forageModeFor } from './ForageCapture.js';
+import { grazingModeFor } from './GrazingSystemCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -163,6 +164,20 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     modeFor: (itemId) =>
       itemId.startsWith('silv-sec-s3-forage-survey-')
         ? forageModeFor(itemId)
+        : null,
+  },
+  // S4 grazing system design (silvopasture): 6 items, grouped (showGroups
+  // true); no map/register strips. Advisory only -- the capture writes no
+  // store and takes no projectId. modeFor returns the raw GrazingMode key
+  // (grazingMethod / paddockLayout / grazeRest / treeProtection / contingency
+  // / stockingDensity), which DecisionList's MODE_LABELS maps to a human badge.
+  'silv-sec-s4-grazing-design': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) =>
+      itemId.startsWith('silv-sec-s4-grazing-design-')
+        ? grazingModeFor(itemId)
         : null,
   },
 };

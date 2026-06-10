@@ -1,0 +1,432 @@
+/* GrazingSystemCapture.module.css
+ *
+ * Styles for the 6-mode grazing-system / rotation capture (grazingMethod /
+ * paddockLayout / grazeRest / treeProtection / contingency / stockingDensity).
+ * Ported from olos_grazing_system_design.html P1..P6. Token vocabulary mirrors
+ * ForageCapture.module.css. ASCII-only; every glyph is a lucide icon. No bare
+ * hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  -> --color-stage-act (#d9a036)
+ *   blue   -> --color-info       (#5b8eaf)
+ *   green  -> --color-success     (#6b8f6b)
+ *   red    -> --color-error       (#c4493a)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared divider ---------- */
+
+.fdiv {
+  height: 1px;
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  margin: 2px 0;
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ---------- Shared field stack (register rows) ---------- */
+
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+
+.textInput {
+  width: 100%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text, #1b1e22);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.textInput:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.textInput::placeholder {
+  color: var(--color-text-muted, #565c63);
+}
+
+.textArea {
+  min-height: 44px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* ===================================================================== */
+/* P1 GRAZING METHOD -- selectable method cards                          */
+/* ===================================================================== */
+
+.methodCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 130ms ease, background 130ms ease;
+}
+
+.methodCard:hover:not([data-disabled='true']) {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.methodCard[data-selected='true'] {
+  border-color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 10%, transparent);
+}
+
+.methodCard[data-disabled='true'] {
+  border-color: color-mix(in srgb, var(--color-error, #c4493a) 30%, transparent);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 6%, transparent);
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.methodDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  background: var(--color-text-muted, #565c63);
+}
+
+.methodCard[data-selected='true'] .methodDot {
+  background: var(--color-success, #6b8f6b);
+}
+
+.methodCard[data-disabled='true'] .methodDot {
+  background: var(--color-error, #c4493a);
+}
+
+.methodBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.methodTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 2px;
+}
+
+.methodCard[data-selected='true'] .methodTitle {
+  color: var(--color-success, #6b8f6b);
+}
+
+.methodCheck {
+  margin-left: 6px;
+  color: var(--color-success, #6b8f6b);
+  vertical-align: middle;
+}
+
+.methodDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.4;
+}
+
+/* ===================================================================== */
+/* P3 GRAZE/REST -- 4 season rows                                        */
+/* ===================================================================== */
+
+.seasonCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.seasonCard[data-feedgap='true'] {
+  border-color: color-mix(in srgb, var(--color-error, #c4493a) 35%, transparent);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 5%, transparent);
+}
+
+.seasonHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.seasonBadge {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 8px);
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text, #1b1e22);
+}
+
+.seasonBadge[data-feedgap='true'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.seasonPeriods {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.seasonPeriods > * {
+  flex: 1;
+}
+
+.feedGapNote {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-error, #c4493a);
+  line-height: 1.4;
+}
+
+/* ===================================================================== */
+/* P4 TREE PROTECTION -- 3 stacked stage cards                           */
+/* ===================================================================== */
+
+.stageCard {
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.stageHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+}
+
+.stageBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 8px);
+  flex-shrink: 0;
+}
+
+.stageBadge[data-tone='excluded'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.stageBadge[data-tone='controlled'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.stageBadge[data-tone='integrated'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.stageName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.stageYears {
+  font-size: 10px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-muted, #565c63);
+}
+
+.stageBody {
+  padding: 8px 11px 10px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.stageRule {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.4;
+}
+
+.stageRule:last-child {
+  margin-bottom: 0;
+}
+
+.stageRuleDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+  background: var(--color-text-muted, #565c63);
+}
+
+.stageRule[data-tone='excluded'] .stageRuleDot {
+  background: var(--color-error, #c4493a);
+}
+
+.stageRule[data-tone='controlled'] .stageRuleDot {
+  background: var(--color-stage-act, #d9a036);
+}
+
+.stageRule[data-tone='integrated'] .stageRuleDot {
+  background: var(--color-success, #6b8f6b);
+}
+
+.stageNote {
+  margin-top: 8px;
+}
+
+/* ===================================================================== */
+/* P5 CONTINGENCY -- 4 tiers                                             */
+/* ===================================================================== */
+
+.tierCard {
+  padding: 9px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border-left: 3px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
+  margin-bottom: 6px;
+}
+
+.tierCard[data-tone='pass'] {
+  border-left-color: var(--color-success, #6b8f6b);
+}
+
+.tierCard[data-tone='warn'] {
+  border-left-color: var(--color-stage-act, #d9a036);
+}
+
+.tierCard[data-tone='fail'] {
+  border-left-color: var(--color-error, #c4493a);
+}
+
+.tierHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tierLevel {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill, 8px);
+}
+
+.tierLevel[data-tone='pass'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.tierLevel[data-tone='warn'] {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+}
+
+.tierLevel[data-tone='fail'] {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+}
+
+.tierName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.tierFields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tierRef {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+  margin-top: 6px;
+}
+
+/* ===================================================================== */
+/* P6 STOCKING DENSITY -- flock register + total                         */
+/* ===================================================================== */
+
+.densityRef {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+  padding: 4px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border-radius: var(--radius-sm, 5px);
+}
