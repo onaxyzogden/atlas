@@ -31,6 +31,9 @@ import { livestockIntentModeFor } from './LivestockIntentCapture.js';
 import { conflictFrameworkModeFor } from './ConflictFrameworkCapture.js';
 import { husbandryModeFor } from './HusbandryCapture.js';
 import { soilImprovementModeFor } from './SoilImprovementCapture.js';
+import { waterSystemsModeFor } from './WaterSystemsCapture.js';
+import { energyModeFor } from './EnergyCapture.js';
+import { settlementModeFor } from './SettlementCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -251,6 +254,58 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('s5-soil-improvement-')) return null;
       const m = soilImprovementModeFor(itemId);
       return m ? `si-${m}` : null;
+    },
+  },
+
+  // s4-water-strategy is a universal advisory Tier-0 capture (in-slice). It
+  // writes no store and takes no projectId. waterSystemsModeFor returns GENERIC
+  // mode keys (demand / sources / strategy / storage / harvesting / drought).
+  // The badge keys are namespaced "wt-" HERE (the affordance modeFor feeds the
+  // badge only; DecisionWorkingPanel routes off its own waterSystemsModeFor
+  // independently), and DecisionList carries matching wt-* labels.
+  's4-water-strategy': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('s4-water-strategy-')) return null;
+      const m = waterSystemsModeFor(itemId);
+      return m ? `wt-${m}` : null;
+    },
+  },
+
+  // ev-s3-energy-potential is an ecovillage advisory Tier-0 capture
+  // (out-of-slice). It writes no store and takes no projectId. energyModeFor
+  // returns GENERIC mode keys (solar / wind / hydro / biomass / demand /
+  // distribution). The badge keys are namespaced "en-" HERE (the affordance
+  // modeFor feeds the badge only; DecisionWorkingPanel routes off its own
+  // energyModeFor independently), and DecisionList carries matching en-* labels.
+  'ev-s3-energy-potential': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s3-energy-potential-')) return null;
+      const m = energyModeFor(itemId);
+      return m ? `en-${m}` : null;
+    },
+  },
+
+  // ev-s4-settlement-strategy is an ecovillage advisory Tier-0 capture
+  // (out-of-slice). It writes no store and takes no projectId. settlementModeFor
+  // returns GENERIC mode keys (cohort / threshold / sequence / trial / capacity
+  // / gates). The badge keys are namespaced "st-" HERE (the affordance modeFor
+  // feeds the badge only; DecisionWorkingPanel routes off its own
+  // settlementModeFor independently), and DecisionList carries matching st-*
+  // labels.
+  'ev-s4-settlement-strategy': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s4-settlement-strategy-')) return null;
+      const m = settlementModeFor(itemId);
+      return m ? `st-${m}` : null;
     },
   },
 };

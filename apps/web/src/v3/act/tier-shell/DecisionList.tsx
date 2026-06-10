@@ -175,6 +175,33 @@ const MODE_LABELS: Record<string, string> = {
   'si-equipment': 'Equipment plan',
   'si-priority': 'Zone priorities',
   'si-baseline': 'Baseline targets',
+  // Water strategy modes (U-S4.2). The component's generic mode keys are
+  // namespaced "wt-" by workbenchAffordances. 6 modes c1..c6. Advisory only.
+  'wt-demand': 'Water demand',
+  'wt-sources': 'Source options',
+  'wt-strategy': 'Supply strategy',
+  'wt-storage': 'Storage sizing',
+  'wt-harvesting': 'Harvesting approach',
+  'wt-drought': 'Drought protocol',
+  // Energy systems modes (ecovillage EV-S3.5). The component's generic mode
+  // keys are namespaced "en-" by workbenchAffordances. 6 modes c1..c6. Advisory
+  // only (c3 hydro is conditional but still recordable).
+  'en-solar': 'Solar potential',
+  'en-wind': 'Wind potential',
+  'en-hydro': 'Micro-hydro',
+  'en-biomass': 'Biomass capacity',
+  'en-demand': 'Energy demand',
+  'en-distribution': 'Distribution',
+
+  // Phased settlement modes (ecovillage EV-S4.4). The component's generic mode
+  // keys are namespaced "st-" by workbenchAffordances. 6 modes c1..c6. Advisory
+  // only (the habitability hard gates are surfaced as guidance, not enforced).
+  'st-cohort': 'Cohort definition',
+  'st-threshold': 'Habitability gates',
+  'st-sequence': 'Arrival sequence',
+  'st-trial': 'Trial residency',
+  'st-capacity': 'Carrying capacity',
+  'st-gates': 'Go/no-go gates',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

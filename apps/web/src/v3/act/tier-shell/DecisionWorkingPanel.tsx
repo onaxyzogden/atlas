@@ -195,6 +195,27 @@ import {
   type SoilImprovementMode,
 } from './SoilImprovementCapture.js';
 import {
+  WaterSystemsCapture,
+  waterSystemsModeFor,
+  isWaterSystemsValid,
+  summariseWaterSystems,
+  type WaterSystemsMode,
+} from './WaterSystemsCapture.js';
+import {
+  EnergyCapture,
+  energyModeFor,
+  isEnergyValid,
+  summariseEnergy,
+  type EnergyMode,
+} from './EnergyCapture.js';
+import {
+  SettlementCapture,
+  settlementModeFor,
+  isSettlementValid,
+  summariseSettlement,
+  type SettlementMode,
+} from './SettlementCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -261,6 +282,12 @@ export interface DecisionPanelTarget {
   isHusbandry?: boolean;
   /** true => render SoilImprovementCapture (self-routing on itemId via soilImprovementModeFor). */
   isSoil?: boolean;
+  /** true => render WaterSystemsCapture (self-routing on itemId via waterSystemsModeFor). */
+  isWater?: boolean;
+  /** true => render EnergyCapture (self-routing on itemId via energyModeFor). */
+  isEnergy?: boolean;
+  /** true => render SettlementCapture (self-routing on itemId via settlementModeFor). */
+  isSettlement?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -590,6 +617,27 @@ export default function DecisionWorkingPanel({
   const soilMode: SoilImprovementMode | null =
     decision.isSoil ? soilImprovementModeFor(decision.itemId) : null;
 
+  // Same advisory shape as soil: in-slice universal water strategy capture,
+  // no store write, no projectId, no mode gates. waterSystemsModeFor resolves
+  // c1..c6; held here for the validity, summary, and body arms below.
+  const waterMode: WaterSystemsMode | null =
+    decision.isWater ? waterSystemsModeFor(decision.itemId) : null;
+
+  // Same advisory shape as soil/water: out-of-slice ecovillage energy systems
+  // capture, no store write, no projectId, no mode gates. energyModeFor
+  // resolves c1..c6; held here for the validity, summary, and body arms below.
+  const energyMode: EnergyMode | null =
+    decision.isEnergy ? energyModeFor(decision.itemId) : null;
+
+  // Same advisory shape as soil/water/energy: out-of-slice ecovillage phased
+  // settlement capture, no store write, no projectId. No blocking mode gates --
+  // the habitability hard gates declared in scopeNotes are surfaced as guidance
+  // in the threshold/gates modes, so every mode stays always recordable.
+  // settlementModeFor resolves c1..c6; held here for the validity, summary, and
+  // body arms below.
+  const settlementMode: SettlementMode | null =
+    decision.isSettlement ? settlementModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -642,6 +690,12 @@ export default function DecisionWorkingPanel({
     valid = isHusbandryValid(husbandryMode, draft);
   } else if (soilMode) {
     valid = isSoilImprovementValid(soilMode, draft);
+  } else if (waterMode) {
+    valid = isWaterSystemsValid(waterMode, draft);
+  } else if (energyMode) {
+    valid = isEnergyValid(energyMode, draft);
+  } else if (settlementMode) {
+    valid = isSettlementValid(settlementMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -873,6 +927,12 @@ export default function DecisionWorkingPanel({
       summary = summariseHusbandry(husbandryMode, draft);
     } else if (soilMode) {
       summary = summariseSoilImprovement(soilMode, draft);
+    } else if (waterMode) {
+      summary = summariseWaterSystems(waterMode, draft);
+    } else if (energyMode) {
+      summary = summariseEnergy(energyMode, draft);
+    } else if (settlementMode) {
+      summary = summariseSettlement(settlementMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1097,6 +1157,33 @@ export default function DecisionWorkingPanel({
           <SoilImprovementCapture
             key={decision.itemId}
             mode={soilMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : waterMode ? (
+          <WaterSystemsCapture
+            key={decision.itemId}
+            mode={waterMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : energyMode ? (
+          <EnergyCapture
+            key={decision.itemId}
+            mode={energyMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : settlementMode ? (
+          <SettlementCapture
+            key={decision.itemId}
+            mode={settlementMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

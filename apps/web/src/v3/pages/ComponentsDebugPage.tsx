@@ -1520,6 +1520,454 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3e -- Water systems strategy (s4-water-strategy, universal
+          U-S4.2): a 6-mode advisory capture (demand / sources / strategy /
+          storage / harvesting / drought). In-slice (universal). Advisory only --
+          it writes no store and takes no projectId. No covenant gate applies
+          (water strategy), so all 6 modes are always recordable. Content is
+          transcribed verbatim from the OLOS water-systems-strategy mockup
+          (base panels p1..p6). The dummy "gallery" projectId is ignored. */}
+      <Section title="Decision Working Panel - Water: demand (s4-water-strategy c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c1",
+              label: "Assess total water demand across all enterprises and domestic use",
+              prompt: "Review the per-enterprise water demand and record site-specific commitments.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Water: sources (s4-water-strategy c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c2",
+              label: "Evaluate water source options - rainfall, groundwater, surface water, municipal",
+              prompt: "Review the source options and note reliability and licensing constraints.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Water: strategy (s4-water-strategy c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c3",
+              label: "Select primary and backup water supply strategy",
+              prompt: "Review the candidate supply strategies and confirm the selected approach.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Water: storage (s4-water-strategy c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c4",
+              label: "Define storage capacity requirements",
+              prompt: "Review the storage sizing calculation and confirm the capacity target.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Water: harvesting (s4-water-strategy c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c5",
+              label: "Select water harvesting approach appropriate to site",
+              prompt: "Review the harvesting approaches and note which fit the site.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Water: drought (s4-water-strategy c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s4-water-strategy-c6",
+              label: "Define water conservation priorities and drought response protocol",
+              prompt: "Review the tiered drought response protocol and confirm the thresholds.",
+              isWater: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      {/* EnergyCapture gallery (ecovillage ev-s3-energy-potential, EV-S3.5): a
+          6-mode advisory capture (solar / wind / hydro / biomass / demand /
+          distribution). OUT of the active Homestead+Silvopasture slice
+          (ecovillage source), so it does not resolve in the live slice project
+          -- these gallery panels are the visual sign-off surface. Advisory only
+          -- it writes no store and takes no projectId. No covenant gate applies
+          (energy-systems assessment); the c3 hydro mode is conditional but
+          still always recordable. Content is transcribed verbatim from the OLOS
+          energy-systems mockup (panels p1..p6). The dummy "gallery" projectId is
+          ignored. */}
+      <Section title="Decision Working Panel - Energy: solar (ev-s3-energy-potential c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c1",
+              label: "Assess solar generation potential - roof area, ground-mount zones, shading analysis",
+              prompt: "Review the rooftop and ground-mount solar potential and record site commitments.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Energy: wind (ev-s3-energy-potential c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c2",
+              label: "Assess wind generation potential - speed, consistency, regulatory constraints",
+              prompt: "Review the wind speed and regulatory constraints and note the turbine-scale decision.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Energy: hydro (ev-s3-energy-potential c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c3",
+              label: "Assess micro-hydro potential if running water present",
+              prompt: "Review the micro-hydro sizing, or record as not applicable if no watercourse.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Energy: biomass (ev-s3-energy-potential c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c4",
+              label: "Assess biomass and wood fuel production capacity",
+              prompt: "Review the woodland yield and thermal equivalent and note the heating end-uses.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Energy: demand (ev-s3-energy-potential c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c5",
+              label: "Estimate total community energy demand for intended population",
+              prompt: "Review the per-category demand and confirm the community total.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Energy: distribution (ev-s3-energy-potential c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-energy-potential-c6",
+              label: "Map distribution infrastructure requirements - grid connection, battery storage, micro-grid",
+              prompt: "Review the generation/demand balance and confirm the distribution architecture.",
+              isEnergy: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      {/* SettlementCapture gallery (ecovillage ev-s4-settlement-strategy,
+          EV-S4.4): a 6-mode advisory capture (cohort / habitability gates /
+          arrival sequence / trial residency / carrying capacity / go-no-go
+          gates). OUT of the active Homestead+Silvopasture slice (ecovillage
+          source), so it does not resolve in the live slice project -- these
+          gallery panels are the visual sign-off surface. Advisory only -- it
+          writes no store and takes no projectId. The objective's habitability
+          thresholds are HARD GATES (welfare + legal risk); isSettlementValid
+          stays always-true (advisory, consistent with water/soil/energy) and
+          the hard-gate framing is surfaced prominently as a warn block in the
+          c2 (habitability) and c6 (go/no-go) bodies rather than enforced as a
+          record-blocking validity rule. Member cost-sharing references in the
+          mockup are ordinary co-owner cost-sharing -- reviewed Amanah CLEAN
+          (no riba, gharar, or bay` ma laysa `indak / CSRA / salam), so no
+          scopeNotes flag applies. Content is transcribed verbatim from the OLOS
+          phased-settlement mockup (panels p1..p6). The dummy "gallery" projectId
+          is ignored. */}
+      <Section title="Decision Working Panel - Settlement: cohort (ev-s4-settlement-strategy c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c1",
+              label: "Define founding cohort - who moves in during Phase 1 and under what criteria",
+              prompt: "Review the phased cohorts and confirm who moves in during Phase 1.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Settlement: habitability (ev-s4-settlement-strategy c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c2",
+              label: "Define infrastructure habitability threshold per cohort - what must be complete before each group arrives",
+              prompt: "Review the hard habitability thresholds that must be verified before each cohort arrives.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Settlement: sequence (ev-s4-settlement-strategy c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c3",
+              label: "Sequence subsequent cohort arrivals against infrastructure completion milestones",
+              prompt: "Review the phase milestones and confirm the arrival sequence against them.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Settlement: trial (ev-s4-settlement-strategy c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c4",
+              label: "Define trial residency period before full membership for each new household",
+              prompt: "Review the trial residency terms, criteria, and outcomes for new households.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Settlement: capacity (ev-s4-settlement-strategy c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c5",
+              label: "Establish maximum population per phase aligned with carrying capacity",
+              prompt: "Review the water, land, and governance limits and confirm the carrying-capacity ceiling.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Settlement: go/no-go (ev-s4-settlement-strategy c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-settlement-strategy-c6",
+              label: "Define go/no-go criteria for each settlement phase - hard gates, not aspirational targets",
+              prompt: "Review the per-phase hard go/no-go criteria and their current pass/blocked/pending state.",
+              isSettlement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

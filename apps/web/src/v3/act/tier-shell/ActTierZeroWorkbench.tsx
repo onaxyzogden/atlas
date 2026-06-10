@@ -232,6 +232,32 @@ export function buildDecisionTarget(
   // every other id.
   const isSoil = item.id.startsWith('s5-soil-improvement-');
 
+  // Water strategy is a 6-item universal objective
+  // (s4-water-strategy-c1..-c6); detected by id prefix. The panel's isWater
+  // body-router arm (WaterSystemsCapture self-routes on itemId via
+  // waterSystemsModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId, no gating mode. False for
+  // every other id.
+  const isWater = item.id.startsWith('s4-water-strategy-');
+
+  // Energy systems is a 6-item ecovillage objective
+  // (ev-s3-energy-potential-c1..-c6); detected by id prefix. The panel's
+  // isEnergy body-router arm (EnergyCapture self-routes on itemId via
+  // energyModeFor) takes precedence over any matched generic form. Advisory
+  // only -- no store write, no projectId, no gating mode (the c3 hydro mode is
+  // conditional but still always recordable). False for every other id.
+  const isEnergy = item.id.startsWith('ev-s3-energy-potential-');
+
+  // Phased settlement is a 6-item ecovillage objective
+  // (ev-s4-settlement-strategy-c1..-c6); detected by id prefix. The panel's
+  // isSettlement body-router arm (SettlementCapture self-routes on itemId via
+  // settlementModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId. The habitability hard gates
+  // declared in the objective scopeNotes are SURFACED as guidance in the
+  // threshold/gates modes, not enforced as a blocking validity gate, so the
+  // mode stays always recordable. False for every other id.
+  const isSettlement = item.id.startsWith('ev-s4-settlement-strategy-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -284,6 +310,9 @@ export function buildDecisionTarget(
     isConflictFramework,
     isHusbandry,
     isSoil,
+    isWater,
+    isEnergy,
+    isSettlement,
     deferLabel,
     deferrable,
   };
