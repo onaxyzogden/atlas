@@ -2,6 +2,24 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "web-silv-wt",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd .claude\\worktrees\\silvopasture-act\\apps\\web && node ..\\..\\..\\..\\..\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5260 --strictPort"],
+      "port": 5260
+    },
+    {
+      "name": "web-forage-wt",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd .claude\\worktrees\\forage-capture\\apps\\web && node ..\\..\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5250 --strictPort"],
+      "port": 5250
+    },
+    {
+      "name": "web-husbandry-wt",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd .claude\\worktrees\\husbandry-capture\\apps\\web && node ..\\..\\..\\..\\..\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5211 --strictPort"],
+      "port": 5211
+    },
+    {
       "name": "web",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd apps\\web && npx vite"],

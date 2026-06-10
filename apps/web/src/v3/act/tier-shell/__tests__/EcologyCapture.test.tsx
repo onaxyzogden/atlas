@@ -66,8 +66,10 @@ import type { FormValue } from '../actToolCatalog.js';
 
 function renderMode(mode: EcologyMode, value: FormValue) {
   const onChange = vi.fn();
-  render(<EcologyCapture mode={mode} value={value} onChange={onChange} />);
-  return { onChange };
+  const { unmount } = render(
+    <EcologyCapture mode={mode} value={value} onChange={onChange} />,
+  );
+  return { onChange, unmount };
 }
 
 // ---------------------------------------------------------------------------
@@ -133,12 +135,21 @@ describe('vegetation -- decode / encode / validity / summarise / render', () => 
     expect(summariseEcology(ok)).toBe('1 community type(s) recorded');
   });
 
-  it('renders the community list and toggles a community', () => {
-    const { onChange } = renderMode('vegetation', {});
+  it('renders read-only: empty state when nothing drawn, recorded %s otherwise', () => {
+    // Vegetation cover is now surveyed by drawing on the map; the capture body
+    // is a read-only display with no manual toggle/percent inputs.
+    const { unmount } = renderMode('vegetation', {});
+    expect(screen.getByTestId('veg-empty')).toBeTruthy();
+    expect(screen.queryByTestId('veg-cleared')).toBeNull();
+    expect(screen.queryByTestId('veg-pct-cleared')).toBeNull();
+    unmount();
+
+    renderMode('vegetation', {
+      ecologyCommunities: ['cleared::40', 'riparian::5'],
+    });
     expect(screen.getByText('Cleared / Improved pasture')).toBeTruthy();
-    fireEvent.click(screen.getByTestId('veg-cleared'));
-    const emitted = onChange.mock.calls[0]![0] as FormValue;
-    expect(emitted.ecologyCommunities).toContain('cleared::');
+    expect(screen.getByText('40%')).toBeTruthy();
+    expect(screen.getByText('5%')).toBeTruthy();
   });
 });
 

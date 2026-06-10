@@ -157,11 +157,16 @@ export type EcologyModel =
 // Verbatim domain data (copied from the mockup p1..p5)
 // ---------------------------------------------------------------------------
 
-interface CommunitySpec {
+export interface CommunitySpec {
   key: string;
   label: string;
 }
-const VEG_COMMUNITIES: readonly CommunitySpec[] = [
+// Single source of truth for the 7 vegetation community keys + labels. Exported
+// so the draw-on-map survey (vegetationSurveyStore / VegetationSurveyPanel /
+// VegetationSurveyLayer) reuses the exact same keys + labels rather than
+// duplicating them. The c1 survey is now drawn on the map (% auto-computed from
+// polygon acreage); this list still defines the canonical taxonomy.
+export const VEG_COMMUNITIES: readonly CommunitySpec[] = [
   { key: 'cleared', label: 'Cleared / Improved pasture' },
   { key: 'native-grass', label: 'Native grassland / Natural pasture' },
   { key: 'grassy-woodland', label: 'Grassy woodland / Scattered trees' },
@@ -578,66 +583,40 @@ export function EcologyCapture({
   const emit = (next: EcologyModel): void => onChange(encodeEcology(next));
 
   // ---------- vegetation (p1) ----------
+  // Vegetation cover is now surveyed by DRAWING community extents on the Act map
+  // (VegetationSurveyPanel + VegetationSurveyDrawHost), with % of site computed
+  // automatically from polygon acreage -- no manual toggle/percent entry here.
+  // In the inline workbench, DecisionWorkingPanel routes vegetation mode to
+  // <VegetationSurveySummary> (which owns the "Open map survey" action); this
+  // branch is a read-only fallback display of whatever percentages have been
+  // recorded, kept so the controlled component still renders for that mode.
   if (model.kind === 'vegetation') {
-    const toggleCommunity = (key: string): void => {
-      const next = { ...model.communities };
-      if (key in next) {
-        delete next[key];
-      } else {
-        next[key] = '';
-      }
-      emit({ kind: 'vegetation', communities: next });
-    };
-    const setPct = (key: string, v: string): void =>
-      emit({
-        kind: 'vegetation',
-        communities: { ...model.communities, [key]: v },
-      });
-
+    const recorded = VEG_COMMUNITIES.filter((c) => c.key in model.communities);
     return (
       <div className={css.root} data-ecology-mode="vegetation">
         <div>
           <div className={css.secLbl}>
-            Community types present{' '}
-            <span className={css.secOptional}>-- % of site</span>
+            Community types recorded{' '}
+            <span className={css.secOptional}>-- % of site (drawn on map)</span>
           </div>
-          <div className={css.vegList} data-testid="veg-list">
-            {VEG_COMMUNITIES.map((c) => {
-              const on = c.key in model.communities;
-              return (
-                <div
-                  key={c.key}
-                  className={css.vegRow}
-                  data-on={on ? 'true' : 'false'}
-                >
-                  <button
-                    type="button"
-                    className={css.vegToggle}
-                    data-testid={`veg-${c.key}`}
-                    data-on={on ? 'true' : 'false'}
-                    aria-pressed={on}
-                    onClick={() => toggleCommunity(c.key)}
-                  >
-                    <span className={css.vegChk} aria-hidden="true" />
+          {recorded.length === 0 ? (
+            <div className={css.spEmpty} data-testid="veg-empty">
+              No community extents drawn yet. Open the map survey to draw each
+              community and have its percentage computed automatically.
+            </div>
+          ) : (
+            <div className={css.vegList} data-testid="veg-list">
+              {recorded.map((c) => {
+                const pct = model.communities[c.key] ?? '';
+                return (
+                  <div key={c.key} className={css.vegRow} data-on="true">
                     <span className={css.vegName}>{c.label}</span>
-                  </button>
-                  <input
-                    type="number"
-                    className={css.vegPct}
-                    data-testid={`veg-pct-${c.key}`}
-                    aria-label={`${c.label} percent of site`}
-                    value={model.communities[c.key] ?? ''}
-                    min={0}
-                    max={100}
-                    placeholder="0"
-                    disabled={!on}
-                    onChange={(e) => setPct(c.key, e.target.value)}
-                  />
-                  <span className={css.vegUnit}>%</span>
-                </div>
-              );
-            })}
-          </div>
+                    <span className={css.vegUnit}>{pct === '' ? '0' : pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className={css.feedsBlock}>

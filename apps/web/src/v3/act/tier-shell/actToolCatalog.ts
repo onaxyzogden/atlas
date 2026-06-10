@@ -23,9 +23,11 @@
 // strings only and stays free of these deps; the rail joins ids against this
 // catalogue.
 //
-// Analysis-only prototype tools (slope, aspect, dem) are intentionally OMITTED:
-// they have no draw tool and no store, so showing an un-armable button is worse
-// than not showing it.
+// Analysis-only prototype tools (aspect, dem) are intentionally OMITTED: they
+// have no draw tool and no store, so showing an un-armable button is worse than
+// not showing it. SLOPE is now drawable: s2-terrain-c2 exposes six per-class
+// draw tools (slope-flat … slope-extreme) backed by slopeSurveyStore, surfaced
+// only while the slope rail-takeover forces the map branch (mirrors veg-survey).
 
 import {
   Mountain,
@@ -443,6 +445,53 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     arm: { kind: 'map', mapToolId: 'observe.topography.erosion-flag' },
   },
 
+  // s2-terrain-c2 draw-on-map slope survey. Six per-class polygon-draw tools;
+  // the armed tool itself encodes which slope class the next polygon joins
+  // (SlopeSurveyDrawHost reads it via SLOPE_CLASS_BY_TOOL). Surfaced only while
+  // the slope rail-takeover is open; % of site is auto-computed from acreage.
+  'slope-flat': {
+    id: 'slope-flat',
+    label: 'Draw flat (0–2%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-flat' },
+  },
+  'slope-gentle': {
+    id: 'slope-gentle',
+    label: 'Draw gentle (2–5%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-gentle' },
+  },
+  'slope-moderate': {
+    id: 'slope-moderate',
+    label: 'Draw moderate (5–10%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-moderate' },
+  },
+  'slope-steep': {
+    id: 'slope-steep',
+    label: 'Draw steep (10–20%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-steep' },
+  },
+  'slope-vsteep': {
+    id: 'slope-vsteep',
+    label: 'Draw very steep (20–30%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-vsteep' },
+  },
+  'slope-extreme': {
+    id: 'slope-extreme',
+    label: 'Draw extreme (>30%)',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'act.terrain.slope-extreme' },
+  },
+
   // ---- Climate & Sectors ----
   'sun-sector': {
     id: 'sun-sector',
@@ -568,6 +617,18 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   },
 
   // ---- Ecology & Habitat ----
+  // s2-ecology-c1 draw-on-map vegetation survey. Arms the polygon-draw tool the
+  // VegetationSurveyDrawHost guards on; the active community (which colour the
+  // polygon takes + which register it joins) is chosen in VegetationSurveyPanel.
+  // Surfaced only while the survey rail-takeover is open (ActTierShell forces it
+  // into the bottom tray); it auto-computes % of site from drawn acreage.
+  'vegetation-survey': {
+    id: 'vegetation-survey',
+    label: 'Draw vegetation community',
+    icon: Trees,
+    category: 'ecology-habitat',
+    arm: { kind: 'map', mapToolId: 'act.ecology.veg-survey' },
+  },
   vegetation: {
     id: 'vegetation',
     label: 'Vegetation cover',

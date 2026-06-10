@@ -136,6 +136,8 @@ import {
   type EcologyMode,
   type EcologyModel,
 } from './EcologyCapture.js';
+import VegetationSurveySummary from '../ecology/VegetationSurveySummary.js';
+import SlopeSurveySummary from '../terrain/SlopeSurveySummary.js';
 import {
   LandscapeContextCapture,
   landscapeModeFor,
@@ -1191,6 +1193,16 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
           />
+        ) : terrainMode === 'slope' ? (
+          // s2-terrain-c2 slope distribution is drawn on the map (per-class
+          // polygons → auto-% of site) instead of hand-typed; the aspects
+          // multi-select stays inline. Mirrors the ecology 'vegetation' case.
+          <SlopeSurveySummary
+            key={decision.itemId}
+            projectId={projectId}
+            value={draft}
+            onChange={setDraft}
+          />
         ) : terrainMode ? (
           <TerrainCapture
             key={decision.itemId}
@@ -1202,6 +1214,13 @@ export default function DecisionWorkingPanel({
           <ClimateCapture
             key={decision.itemId}
             mode={climateMode}
+            value={draft}
+            onChange={setDraft}
+          />
+        ) : ecologyMode === 'vegetation' ? (
+          <VegetationSurveySummary
+            key={decision.itemId}
+            projectId={projectId}
             value={draft}
             onChange={setDraft}
           />

@@ -2325,3 +2325,115 @@ Silvopasture slice, gallery-verified meanwhile. Verified: bounded vitest 104/105
 is foreign s1-vision labour-badge breakage from commit `91f52d3f`); my files + all wiring
 tsc-clean (package gate red only on foreign terrain/slopeSurvey WIP); ASCII-only; not pushed.
 Log [[log/2026-06-10-atlas-adaptive-management-tier0]].
+
+## Vegetation-survey rail-takeover: s2-ecology-c1 draw-on-map community survey (2026-06-10)
+
+Converted the `s2-ecology-c1` vegetation decision ("Vegetation survey") from an inline Tier-0
+checklist (toggle 7 community types + hand-type a % of site) to a **draw-on-map survey** -- the
+first of the draw-on-map rail-takeovers (the slope survey below mirrors it). While the Act map is
+loaded the right rail lists the 7 vegetation communities and the bottom tray offers a polygon
+draw tool; the steward draws each community's extent and the per-community **% of total site
+area** is computed automatically from polygon acreage, with an "Unclassified / not yet surveyed"
+remainder. Reuses the existing store-driven rail-takeover pattern (the SectorsEditor / as-built
+popover precedent): `useVegetationSurveyStore.open(projectId)` flips `active`, `ActTierShell`
+forces the map branch over the Tier-0 workbench and swaps `VegetationSurveyPanel` into the right
+rail. ADR [[decisions/2026-06-10-atlas-vegetation-survey-draw]].
+
+**Design (operator-confirmed):**
+1. **Draw-only, % auto** -- manual toggle + percent entry removed for `mode === 'vegetation'`
+   only; the panel/summary show each community's auto-computed %. The other 4 ecology subtasks
+   (species / corridors / connectivity / waterHabitat) stay inline and unchanged.
+2. **Dedicated survey layer.** Drawn polygons live in a NEW `vegetationSurveyStore`
+   (semantically "observed existing vegetation"), **not** the Plan `designElementsStore` -- so
+   they never appear as designed elements on the Plan map.
+3. **Single tool + in-panel community picker** (the choice the slope survey later inverted): one
+   `act.ecology.veg-survey` map tool; the store carries an `activeCommunity` set by the panel
+   row, and `VegetationSurveyDrawHost` tags the completed polygon with it.
+
+`selectVegetationSurveyTotals(features, siteAcres)` is the pure auto-% selector: per-community
+summed acres -> `pct = siteAcres > 0 ? (acres / siteAcres) * 100 : 0` (divide-by-zero guarded),
+plus `totalAcres`, per-community `count`, and `unclassifiedPct = clamp(100 - Σpct, >= 0)`.
+Per-feature acreage = `turf.area(geom) * 0.000247105` (same constant as design elements).
+`siteAcres` is read from `project.location.acreage` (acreage lives on `ProjectLocation`, not
+`Project`). On "Done" the computed totals encode back into the existing `ecologyCommunities`
+FormValue (`['cleared::25', ...]`) so the downstream Tier-3 zone-allocation feed + summary text
+keep working untouched; the draft-sync effect only fires when `features.length > 0` so an empty
+survey never clobbers legacy hand-typed values.
+
+**New files:** `store/vegetationSurveyStore.ts` (persisted `byProject` + ephemeral
+`active`/`activeProjectId`/`activeCommunity` takeover flags + `selectVegetationSurveyTotals`;
+`VEG_COMMUNITY_COLORS`; `ogden-vegetation-survey` persist v1);
+`v3/act/ecology/{VegetationSurveyPanel,VegetationSurveyDrawHost,VegetationSurveyLayer,VegetationSurveySummary}.tsx`
+(+ two `.module.css`). **Edits:** `EcologyCapture.tsx` (export `VEG_COMMUNITIES` as the single
+source of community keys/labels; remove the editable inputs for `mode === 'vegetation'` only),
+`DecisionWorkingPanel.tsx` (`ecologyMode === 'vegetation'` route -> read-only summary +
+"Open map survey"), `ActTierShell.tsx` (`surveyActive` forces the map branch + mounts
+`VegetationSurveyLayer` / `VegetationSurveyDrawHost` + swaps the right rail + mutual-exclusion
+with the sectors / as-built takeovers), `actToolCatalog.ts` (`vegetation-survey` tool,
+`category: 'ecology-habitat'`), `useMapToolStore.ts` (`act.ecology.veg-survey` MapToolId),
+`objectiveActTools.ts` (`s2-ecology` override), `syncManifest.ts` (`ogden-vegetation-survey`
+blob -- the coverage-guard test fails otherwise).
+
+**Amanah:** ecological land-reading / measurement only -- no riba, gharar, or ethical exposure.
+
+**Verified:** whole-tree `tsc --noEmit` clean (apps/web + packages/shared, exit 0). The
+substantive promise ("percentages calculated automatically") is pinned by a NEW deterministic
+**13/13** unit suite `store/__tests__/vegetationSurveyStore.test.ts` (forks pool per
+[[feedback-vitest-bounded-runs]]): empty -> 100% unclassified, single-community pct, multi-polygon
+summing + count, independent communities + shrinking remainder, clamp at 0 when overdrawn,
+divide-by-zero -> 0% (not NaN), ignores non-finite/negative acreage, plus the byProject mutations
++ ephemeral-flag behaviours. `preview_screenshot` was the **known transient map-view hang**
+([[project-screenshot-hang]]: dead `/api/v1` proxy + WebGL canvas) -- the live turf->% on a
+physically drawn polygon is the one path not exercised in-browser; it is the same pure selector
+the 13 tests pin. ASCII-only; committed to **main**, **not pushed**.
+Log [[log/2026-06-10-atlas-vegetation-survey-draw]].
+
+## Slope-survey rail-takeover: s2-terrain-c2 draw-on-map slope distribution (2026-06-10)
+
+Converted the `s2-terrain-c2` slope decision ("Identify slope gradients and aspects across
+the site") from hand-typed per-class percentages to a **draw-on-map survey**, the third
+rail-takeover after vegetation-survey (`s2-ecology-c1`) and the sectors editor. The steward
+draws each slope class's extent on the Act map and the per-class **% of total site area** is
+computed automatically from polygon acreage, with an "Unclassified / not yet surveyed"
+remainder. Mirrors the vegetation-survey stack at every layer
+([[decisions/2026-06-10-atlas-slope-survey-draw-tools]]).
+
+**Two adaptations vs. the veg precedent:**
+1. **Six per-class bottom-rail tools** (`act.terrain.slope-flat` … `slope-extreme`) instead of
+   one tool + an in-panel class picker. The armed map tool itself encodes which class the next
+   polygon joins -- so there is **no `activeClass`** in the store; `SlopeSurveyDrawHost` reads
+   the armed tool at completion time via `SLOPE_CLASS_BY_TOOL`. The panel rows are a second
+   arming surface (toggle on/off).
+2. **Aspects stay manual.** Drawing automates only the class % allocation; the compass
+   `aspects` multi-select (reusing `TerrainCapture.COMPASS_DIRS`) remains inline in
+   `SlopeSurveySummary`. Because `DecisionWorkingPanel` passes `onChange={setDraft}` (whole-
+   FormValue replace), every write emits **both** `terrainSlope` and `terrainAspects` together;
+   the slope-sync effect fires only when `features.length > 0` so legacy hand-typed values are
+   never clobbered by an empty survey.
+
+**Validity gate relaxed:** because "% of site" partial surveys sum to < 100 until the whole
+site is drawn, the slope branch of `isTerrainValid` was relaxed from `|sum - 100| <= 2` to
+`slopeSum > 0` (>= 1 class allocated). `encode/decodeTerrain` round-trip `key::pct` unchanged.
+
+**New files:** `store/slopeSurveyStore.ts` (persisted `byProject` + ephemeral takeover flag +
+`selectSlopeSurveyTotals`); `v3/act/terrain/{SlopeSurveyDrawHost,SlopeSurveyLayer,SlopeSurveyPanel,SlopeSurveySummary}.tsx`
+(+ two `.module.css`). **Edits:** `TerrainCapture.tsx` (export `SLOPE_CLASSES` / `SlopeClass` /
+`COMPASS_DIRS` + relax gate), `DecisionWorkingPanel.tsx` (`terrainMode === 'slope'` route before
+the generic `TerrainCapture` branch, mirroring `ecologyMode === 'vegetation'`),
+`ActTierShell.tsx` (`slopeOpen`/`slopeActive` + `&& !slopeActive` in `showTierZeroWorkbench` +
+DiagnoseMap children + `rightBody` precedence + sectors mutual-exclusion close), `actToolCatalog.ts`
+(6 `slope-*` tools, `category: 'terrain-survey'`, `Triangle` icon), `useMapToolStore.ts` (6
+`MapToolId` literals), `objectiveActTools.ts` (append 6 ids to `s2-terrain` override + comment),
+`syncManifest.ts` (`ogden-slope-survey` blob, persist v1).
+
+**Amanah:** topographic land-reading / measurement only -- no riba, gharar, or ethical exposure.
+
+**Verified:** `packages/shared` + `apps/web` `tsc --noEmit` both clean (the app's `lint` script
+*is* tsc -- no separate ESLint gate); `actToolCoverage` 17/17 (forks pool) -- the 6 new catalog
+ids resolve. Live DOM proof in the running app (project `75cfb3ed…`, s2-terrain-c2): inline
+`SlopeSurveySummary` mounts (empty-state + "Open map survey" + aspect chips); the takeover
+renders the map canvas, `SlopeSurveyPanel` (6 class rows + Unclassified), and all 6 bottom-tray
+draw tools; arming a row reactively flips its `aria-pressed` + the panel hint. `preview_screenshot`
+timed out (the known transient map-view hang per [[project-screenshot-hang]], not a defect) --
+DOM evidence stands in. ASCII-only; committed to **main**, **not pushed**.
+Log [[log/2026-06-10-atlas-slope-survey-draw-tools]].

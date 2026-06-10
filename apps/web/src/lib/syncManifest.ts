@@ -122,6 +122,8 @@ import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
 import { useStakeholderRegisterStore } from '../store/stakeholderRegisterStore.js';
+import { useVegetationSurveyStore } from '../store/vegetationSurveyStore.js';
+import { useSlopeSurveyStore } from '../store/slopeSurveyStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -923,6 +925,14 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // Act Tier-0 stakeholder register: rows keyed byProject[projectId][stakeholderId].
   // Persist v2 (v1→v2 migration: commsChannel string → commsChannels array).
   blob('ogden-stakeholder-register', useStakeholderRegisterStore, 'byProject', 2, byKey('byProject', null, {})),
+  // s2-ecology-c1 drawn vegetation-community survey: polygons keyed
+  // byProject[projectId][featureId]. Persist v1. Ephemeral takeover flag
+  // (active/activeCommunity) is partialized out, so only byProject syncs.
+  blob('ogden-vegetation-survey', useVegetationSurveyStore, 'byProject', 1, byKey('byProject', null, {})),
+  // s2-terrain-c2 drawn slope-class survey: polygons keyed
+  // byProject[projectId][featureId]. Persist v1. Ephemeral takeover flag
+  // (active/activeProjectId) is partialized out, so only byProject syncs.
+  blob('ogden-slope-survey', useSlopeSurveyStore, 'byProject', 1, byKey('byProject', null, {})),
 ];
 
 /**

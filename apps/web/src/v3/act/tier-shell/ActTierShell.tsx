@@ -88,6 +88,14 @@ import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
 import { useActAsBuiltPopoverStore } from '../asBuilt/actAsBuiltPopoverStore.js';
 import SectorsEditorPanel from '../sectors/SectorsEditorPanel.js';
 import { useActSectorsEditorStore } from '../sectors/actSectorsEditorStore.js';
+import VegetationSurveyPanel from '../ecology/VegetationSurveyPanel.js';
+import VegetationSurveyLayer from '../ecology/VegetationSurveyLayer.js';
+import VegetationSurveyDrawHost from '../ecology/VegetationSurveyDrawHost.js';
+import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.js';
+import SlopeSurveyPanel from '../terrain/SlopeSurveyPanel.js';
+import SlopeSurveyLayer from '../terrain/SlopeSurveyLayer.js';
+import SlopeSurveyDrawHost from '../terrain/SlopeSurveyDrawHost.js';
+import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
 import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
@@ -469,6 +477,26 @@ export default function ActTierShell() {
   // closing/saving clears `active` and reverts the rail.
   const asBuiltActive = useActAsBuiltPopoverStore((s) => s.active != null);
   const sectorsEditorActive = useActSectorsEditorStore((s) => s.active);
+  // s2-ecology-c1 draw-on-map vegetation survey takeover. When active for THIS
+  // project, the Tier-0 ecology workbench is overridden by the map shell (see
+  // showTierZeroWorkbench below): the right rail swaps to VegetationSurveyPanel
+  // and the canvas mounts the survey layer + draw host. Mirrors the
+  // sectors-editor / as-built rail-takeover pattern.
+  const surveyOpen = useVegetationSurveyStore(
+    (s) => s.active && s.activeProjectId === id,
+  );
+  // Only force the map while the ecology objective is the active route. If the
+  // steward navigates to another objective the store stays "open" but latent
+  // (like the sectors editor), so returning to s2-ecology resumes the survey.
+  const surveyActive = surveyOpen && objectiveId === 's2-ecology';
+  // s2-terrain-c2 draw-on-map slope survey takeover. Same rail-takeover pattern
+  // as the vegetation survey: forces the map shell + swaps the right rail to
+  // SlopeSurveyPanel + mounts the slope layer & draw host, but only while the
+  // terrain objective is the active route.
+  const slopeOpen = useSlopeSurveyStore(
+    (s) => s.active && s.activeProjectId === id,
+  );
+  const slopeActive = slopeOpen && objectiveId === 's2-terrain';
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
   // Form-arm state: which category's tabbed form popup is open (local UI state,
@@ -927,8 +955,14 @@ export default function ActTierShell() {
   // hydrate. Falls back to the resolved-objective check so an in-app selection
   // whose route change hasn't landed yet still swaps.
   const showTierZeroWorkbench =
-    isTierZeroObjectiveId(objectiveId) ||
-    (selectedObjective != null && isTierZeroObjective(selectedObjective));
+    (isTierZeroObjectiveId(objectiveId) ||
+      (selectedObjective != null && isTierZeroObjective(selectedObjective))) &&
+    // The vegetation-survey takeover forces the map branch even though
+    // s2-ecology is a Tier-0 objective (its c1 decision is surveyed on the map).
+    !surveyActive &&
+    // Likewise the slope-survey takeover forces the map branch for s2-terrain
+    // (its c2 slope decision is drawn on the map).
+    !slopeActive;
 
   return (
     <div className={styles.tierShell}>
@@ -1043,10 +1077,13 @@ export default function ActTierShell() {
                         projectId={id}
                         map={map}
                         onOpenEditor={() => {
-                          // Mutually-exclusive rail takeovers: clear any as-built
-                          // session before arming the sectors editor so the rail
-                          // never has two claimants.
+                          // Mutually-exclusive rail takeovers: clear any as-built,
+                          // vegetation-survey, or slope-survey session before
+                          // arming the sectors editor so the rail never has two
+                          // claimants.
                           useActAsBuiltPopoverStore.getState().close();
+                          useVegetationSurveyStore.getState().close();
+                          useSlopeSurveyStore.getState().close();
                           useActSectorsEditorStore.getState().open();
                         }}
                       />
@@ -1067,6 +1104,29 @@ export default function ActTierShell() {
                         triggeredCount={triggeredCount}
                       />
                       <ActDrawHost map={map} projectId={params.projectId ?? null} />
+                      {/*
+                        s2-ecology-c1 vegetation survey: the layer renders all
+                        drawn community polygons (colour-coded fill/line/label);
+                        the draw host arms only when `act.ecology.veg-survey` is
+                        the active tool (prefix-guarded), writing each polygon to
+                        the dedicated vegetationSurveyStore (NOT designElements).
+                      */}
+                      <VegetationSurveyLayer map={map} projectId={id} />
+                      <VegetationSurveyDrawHost
+                        map={map}
+                        projectId={params.projectId ?? null}
+                      />
+                      {/*
+                        s2-terrain-c2 slope survey: same shape as the vegetation
+                        survey, but the draw host arms on any of the six
+                        `act.terrain.slope-*` tools (the armed tool encodes the
+                        class), writing each polygon to slopeSurveyStore.
+                      */}
+                      <SlopeSurveyLayer map={map} projectId={id} />
+                      <SlopeSurveyDrawHost
+                        map={map}
+                        projectId={params.projectId ?? null}
+                      />
                       {/*
                         ADR-7 tension: the Act canvas adds execution placements
                         via Observe/Plan draw tools (one armed at a time). These
@@ -1117,7 +1177,21 @@ export default function ActTierShell() {
               </div>
             ) : (
               <div className={styles.rightRail}>
-                {asBuiltActive ? (
+                {surveyActive ? (
+                  // Highest-precedence rail takeover: the vegetation-survey panel
+                  // (7 community rows + live auto-%). Opened from the s2-ecology-c1
+                  // decision's "Open map survey" button; Done clears `active`.
+                  <div className={styles.rightBody}>
+                    <VegetationSurveyPanel projectId={id} />
+                  </div>
+                ) : slopeActive ? (
+                  // Slope-survey rail takeover (6 per-class rows + live auto-%).
+                  // Opened from the s2-terrain-c2 decision's "Open map survey"
+                  // button; Done disarms the slope tool + clears `active`.
+                  <div className={styles.rightBody}>
+                    <SlopeSurveyPanel projectId={id} />
+                  </div>
+                ) : asBuiltActive ? (
                   // While an as-built deviation is being recorded the rail is
                   // taken over by the as-built form (panel variant): the
                   // Dashboard/Objective toggle is hidden and reappears when the

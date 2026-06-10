@@ -116,8 +116,23 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // ---------- S2 — Land Reading ----------
   // Terrain & topography: contour map, elevation high points, drainage divides,
-  // runoff, erosion. gap: c2 slope/aspect (analysis-only, no draw tool).
-  's2-terrain': ['contour', 'high-point', 'drainage', 'runoff-path', 'erosion'],
+  // runoff, erosion. c2 slope is now drawable via six per-class survey tools
+  // (slope-flat … slope-extreme), surfaced only while the slope rail-takeover
+  // forces the map branch (mirrors the veg-survey tool). gap: c2 aspect stays a
+  // manual compass multi-select (not drawable).
+  's2-terrain': [
+    'contour',
+    'high-point',
+    'drainage',
+    'runoff-path',
+    'erosion',
+    'slope-flat',
+    'slope-gentle',
+    'slope-moderate',
+    'slope-steep',
+    'slope-vsteep',
+    'slope-extreme',
+  ],
   // Climate & sectors: sun/wind/fire sectors, frost pockets, hazard zones.
   // gap: c1 rainfall averages (data).
   's2-climate': [
@@ -129,7 +144,10 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   ],
   // Existing ecology & habitat: vegetation communities, pasture/grassland,
   // wildlife corridors, water-dependent habitat. gap: c4 connectivity (analysis).
-  's2-ecology': ['adopt-water', 'vegetation', 'pasture', 'wildlife-sector', 'watercourse'],
+  // 'vegetation-survey' arms the c1 draw-on-map community survey; it only renders
+  // a usable bottom-tray button while the survey rail-takeover is open (s2-ecology
+  // is Tier-0, so the map + tray mount only when useVegetationSurveyStore.active).
+  's2-ecology': ['vegetation-survey', 'adopt-water', 'vegetation', 'pasture', 'wildlife-sector', 'watercourse'],
   // Existing infrastructure & access: full coverage of the 5 items.
   's2-infrastructure': [
     'adopt-building',

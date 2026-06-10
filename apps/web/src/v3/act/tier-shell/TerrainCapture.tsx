@@ -237,14 +237,18 @@ const DATASET_FIELDS: readonly DatasetField[] = [
   { key: 'coverage', label: 'Coverage', placeholder: 'Full / Partial' },
 ];
 
-interface SlopeClass {
+export interface SlopeClass {
   key: string;
   label: string;
   sub: string;
   /** css var token for the fill / dot colour. */
   tone: 'flat' | 'gentle' | 'mod' | 'steep' | 'vsteep' | 'extreme';
 }
-const SLOPE_CLASSES: readonly SlopeClass[] = [
+// Exported so the slope-survey store / panel / summary (apps/web/src/v3/act/
+// terrain/) reuse the single class list + range labels rather than redeclaring
+// them. The `key` values are the canonical slope class keys (mirror
+// SlopeClassKey in slopeSurveyStore).
+export const SLOPE_CLASSES: readonly SlopeClass[] = [
   { key: 'flat', label: 'Flat', sub: '0-2%', tone: 'flat' },
   { key: 'gentle', label: 'Gentle', sub: '2-5%', tone: 'gentle' },
   { key: 'moderate', label: 'Moderate', sub: '5-10%', tone: 'mod' },
@@ -254,7 +258,9 @@ const SLOPE_CLASSES: readonly SlopeClass[] = [
 ];
 const SLOPE_KEYS = new Set(SLOPE_CLASSES.map((c) => c.key));
 
-const COMPASS_DIRS: readonly string[] = [
+// Exported so SlopeSurveySummary reuses the same compass set for the aspects
+// multi-select (drawing automates only the slope %s, not the aspects field).
+export const COMPASS_DIRS: readonly string[] = [
   'N',
   'NE',
   'E',
@@ -583,7 +589,12 @@ export function isTerrainValid(model: TerrainModel): boolean {
     case 'mapSource':
       return model.method !== '';
     case 'slope':
-      return Math.abs(slopeSum(model.allocations) - 100) <= 2;
+      // Relaxed from "sum ~= 100" to ">= 1 class allocated": slope is now
+      // surveyed by drawing polygons whose % is computed as % of TOTAL site
+      // area (slopeSurveyStore), so allocations legitimately sum to < 100 until
+      // the whole site is drawn (the remainder is "unclassified"). Any positive
+      // allocation is a valid partial survey.
+      return slopeSum(model.allocations) > 0;
     case 'elevation': {
       const hi = Number.parseFloat(model.highest);
       const lo = Number.parseFloat(model.lowest);

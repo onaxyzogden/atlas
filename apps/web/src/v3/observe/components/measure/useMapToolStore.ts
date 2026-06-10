@@ -161,7 +161,17 @@ export type MapToolId =
   // Act Module — Maintenance event log (click an irrigation feature)
   | 'act.maintain.log-event'
   // Act Module — Livestock move log (click a paddock)
-  | 'act.livestock.log-move';
+  | 'act.livestock.log-move'
+  // Act Module — s2-ecology-c1 vegetation survey (draw community polygon)
+  | 'act.ecology.veg-survey'
+  // Act Module — s2-terrain-c2 slope survey (one draw tool per slope class;
+  // the armed tool encodes which class the next polygon joins)
+  | 'act.terrain.slope-flat'
+  | 'act.terrain.slope-gentle'
+  | 'act.terrain.slope-moderate'
+  | 'act.terrain.slope-steep'
+  | 'act.terrain.slope-vsteep'
+  | 'act.terrain.slope-extreme';
 
 export interface MapToolState {
   activeTool: MapToolId | null;
