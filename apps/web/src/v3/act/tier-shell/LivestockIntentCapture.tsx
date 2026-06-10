@@ -143,7 +143,7 @@ export function isStockCareCapable(
 
 /** A person who may be linked as a daily stock-care carer. */
 export interface CarerCandidate {
-  /** display name (also the stored token in CapacityModel.carers) */
+  /** display name (also the stored token in primaryCarer / reliefCarers) */
   name: string;
   /** short role/source hint, e.g. "Team", "Lead", "Steward" */
   role?: string;
@@ -181,12 +181,18 @@ export interface CapacityModel {
   skills: string[];
   support: string[];
   /**
-   * Display names of the people linked as daily stock-care carers. Drawn from
-   * the merged, capability-filtered candidate set (crew + labour roster +
-   * steward team); see useStockCareCandidates. Stored by name -- adequate for
-   * the prototype slice (see plan "Deferred").
+   * Display name of the single person accountable for daily stock care, or "".
+   * Drawn from the merged, capability-filtered candidate set (crew + labour
+   * roster + steward team); see useStockCareCandidates. Stored by name --
+   * adequate for the prototype slice (see plan "Deferred").
    */
-  carers: string[];
+  primaryCarer: string;
+  /**
+   * Display names of optional relief / backup carers (never includes
+   * primaryCarer; the relief picker excludes it). Same candidate set as
+   * primaryCarer.
+   */
+  reliefCarers: string[];
 }
 export interface CompatModel {
   kind: 'compat';
@@ -391,7 +397,13 @@ export function decodeLivestockIntent(
         relationship: RELATIONSHIP_IDS.has(raw) ? raw : '',
       };
     }
-    case 'capacity':
+    case 'capacity': {
+      // New keys take precedence; fall back to the legacy flat `liCarers`
+      // (first -> primary, rest -> relief) so pre-split records still decode.
+      const newPrimary = asStr(value.liPrimaryCarer);
+      const newRelief = asArr(value.liReliefCarers);
+      const legacy = asArr(value.liCarers);
+      const hasNew = newPrimary !== '' || newRelief.length > 0;
       return {
         kind: 'capacity',
         experience: asStr(value.liExperience),
@@ -399,8 +411,10 @@ export function decodeLivestockIntent(
         careHours: asStr(value.liCareHours),
         skills: asArr(value.liSkills),
         support: asArr(value.liSupport),
-        carers: asArr(value.liCarers),
+        primaryCarer: hasNew ? newPrimary : legacy[0] ?? '',
+        reliefCarers: hasNew ? newRelief : legacy.slice(1),
       };
+    }
     case 'compat':
       return { kind: 'compat', confirmed: asStr(value.liConfirmed) === 'yes' };
     default: {
@@ -432,7 +446,8 @@ export function encodeLivestockIntent(
         liCareHours: model.careHours,
         liSkills: [...model.skills],
         liSupport: [...model.support],
-        liCarers: [...model.carers],
+        liPrimaryCarer: model.primaryCarer,
+        liReliefCarers: [...model.reliefCarers],
       };
     case 'compat':
       return { liConfirmed: model.confirmed ? 'yes' : '' };
@@ -495,9 +510,13 @@ export function summariseLivestockIntent(
       const expLabel =
         m.experience !== '' ? EXPERIENCE_TITLE_BY_ID.get(m.experience) ?? m.experience : 'unset';
       const hrs = num(m.careHours, CARE_HOURS_DEFAULT);
-      const carers =
-        m.carers.length > 0 ? `carers: ${m.carers.join(', ')}` : 'no carer linked';
-      return `Experience: ${expLabel}; ${hrs} hrs/day daily care; ${carers}`;
+      const carerPart =
+        m.primaryCarer !== ''
+          ? `primary carer: ${m.primaryCarer}${
+              m.reliefCarers.length > 0 ? ` (+${m.reliefCarers.length} relief)` : ''
+            }`
+          : 'no carer linked';
+      return `${carerPart}; Experience: ${expLabel}; ${hrs} hrs/day daily care`;
     }
     case 'compat': {
       const m = decodeLivestockIntent('compat', value) as CompatModel;
@@ -784,11 +803,81 @@ export function LivestockIntentCapture({
       title: e.title,
     }));
     const careHours = num(model.careHours, CARE_HOURS_DEFAULT);
-    const selectedCarers = carerCandidates.filter((c) =>
-      model.carers.includes(c.name),
+    const primaryOptions: ChoiceCardOption[] = carerCandidates.map((c) => ({
+      id: c.name,
+      title: c.name,
+    }));
+    // Relief never offers the person already named as primary.
+    const reliefOptions = carerCandidates
+      .filter((c) => c.name !== model.primaryCarer)
+      .map((c) => c.name);
+    const primaryCandidate = carerCandidates.find(
+      (c) => c.name === model.primaryCarer,
+    );
+    const reliefSelected = carerCandidates.filter((c) =>
+      model.reliefCarers.includes(c.name),
     );
     return (
       <div className={css.root} data-li-mode="capacity">
+        <div>
+          <SectionEyebrow>Daily stock-care carers</SectionEyebrow>
+          {carerCandidates.length > 0 ? (
+            <div className={css.carerPickers}>
+              <div>
+                <SectionEyebrow>Primary / lead carer</SectionEyebrow>
+                <ChoiceCardGrid
+                  options={primaryOptions}
+                  value={model.primaryCarer !== '' ? [model.primaryCarer] : []}
+                  onChange={(next) => set({ primaryCarer: next[0] ?? '' })}
+                  columns={2}
+                  ariaLabel="Primary / lead carer"
+                />
+              </div>
+              <div>
+                <SectionEyebrow>Relief / backup carers</SectionEyebrow>
+                <ChipSelect
+                  options={reliefOptions}
+                  value={model.reliefCarers}
+                  onChange={(next) => set({ reliefCarers: next })}
+                  multi
+                  ariaLabel="Relief / backup carers"
+                />
+              </div>
+              {primaryCandidate || reliefSelected.length > 0 ? (
+                <ul className={css.carerList}>
+                  {primaryCandidate ? (
+                    <li key={`p-${primaryCandidate.name}`} className={css.carerRow}>
+                      <span className={css.carerTag}>Primary</span>
+                      <span className={css.carerName}>{primaryCandidate.name}</span>
+                      <span className={css.carerMeta}>
+                        {[primaryCandidate.role, primaryCandidate.topSkill, primaryCandidate.level]
+                          .filter(Boolean)
+                          .join(' - ')}
+                      </span>
+                    </li>
+                  ) : null}
+                  {reliefSelected.map((c) => (
+                    <li key={`r-${c.name}`} className={css.carerRow}>
+                      <span className={css.carerTag}>Relief</span>
+                      <span className={css.carerName}>{c.name}</span>
+                      <span className={css.carerMeta}>
+                        {[c.role, c.topSkill, c.level]
+                          .filter(Boolean)
+                          .join(' - ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : (
+            <InterpretationBlock tone="info">
+              No one on the crew, labour roster, or steward team is documented
+              with stock-care skills yet. Add a stock-care skill in Labour
+              inventory to link a carer here.
+            </InterpretationBlock>
+          )}
+        </div>
         <div>
           <SectionEyebrow>Experience level</SectionEyebrow>
           <ChoiceCardGrid
@@ -840,40 +929,6 @@ export function LivestockIntentCapture({
             multi
             ariaLabel="Support or training needed"
           />
-        </div>
-        <div>
-          <SectionEyebrow>Daily stock-care carers</SectionEyebrow>
-          {carerCandidates.length > 0 ? (
-            <>
-              <ChipSelect
-                options={carerCandidates.map((c) => c.name)}
-                value={model.carers}
-                onChange={(next) => set({ carers: next })}
-                multi
-                ariaLabel="Daily stock-care carers"
-              />
-              {selectedCarers.length > 0 ? (
-                <ul className={css.carerList}>
-                  {selectedCarers.map((c) => (
-                    <li key={c.name} className={css.carerRow}>
-                      <span className={css.carerName}>{c.name}</span>
-                      <span className={css.carerMeta}>
-                        {[c.role, c.topSkill, c.level]
-                          .filter(Boolean)
-                          .join(' - ')}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          ) : (
-            <InterpretationBlock tone="info">
-              No one on the crew, labour roster, or steward team is documented
-              with stock-care skills yet. Add a stock-care skill in Labour
-              inventory to link a carer here.
-            </InterpretationBlock>
-          )}
         </div>
         <FeedsNote>
           Operator capacity feeds the{' '}

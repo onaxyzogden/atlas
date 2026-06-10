@@ -965,7 +965,7 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   },
   'silv-sec-s1-livestock-intent-c4': {
     id: 'silv-sec-s1-livestock-intent-c4', label: 'Experience & labour', icon: HardHat, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c4', prompt: 'Identify operator livestock experience and labour availability for daily stock care' },
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c4', prompt: 'Who will do daily stock care, and do they have the experience and hours for it?' },
   },
   'silv-sec-s1-livestock-intent-c5': {
     id: 'silv-sec-s1-livestock-intent-c5', label: 'Confirm fit', icon: HelpCircle, category: 'vision',

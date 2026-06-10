@@ -123,7 +123,8 @@ describe('decodeLivestockIntent is total and defensive', () => {
       careHours: '',
       skills: [],
       support: [],
-      carers: [],
+      primaryCarer: '',
+      reliefCarers: [],
     });
     expect(decodeLivestockIntent('compat', {})).toEqual({
       kind: 'compat',
@@ -484,32 +485,60 @@ describe('isStockCareCapable', () => {
 });
 
 // ---------------------------------------------------------------------------
-// c4 capacity carers (liCarers) decode/encode + summary
+// c4 capacity carers (primaryCarer + reliefCarers) decode/encode + migration
 // ---------------------------------------------------------------------------
 
-describe('capacity carers (liCarers)', () => {
-  it('decodes liCarers into carers and encodes it back (multi)', () => {
+describe('capacity carers (primary + relief)', () => {
+  it('decodes the split keys and encodes them back', () => {
     const m = decodeLivestockIntent('capacity', {
+      liPrimaryCarer: 'Aisha',
+      liReliefCarers: ['Bilal', 'Carl'],
+    }) as CapacityModel;
+    expect(m.primaryCarer).toBe('Aisha');
+    expect(m.reliefCarers).toEqual(['Bilal', 'Carl']);
+    const encoded = encodeLivestockIntent('capacity', m);
+    expect(encoded.liPrimaryCarer).toBe('Aisha');
+    expect(encoded.liReliefCarers).toEqual(['Bilal', 'Carl']);
+  });
+
+  it('defaults to empty and roundtrips empty', () => {
+    const m = decodeLivestockIntent('capacity', {}) as CapacityModel;
+    expect(m.primaryCarer).toBe('');
+    expect(m.reliefCarers).toEqual([]);
+    const encoded = encodeLivestockIntent('capacity', m);
+    expect(encoded.liPrimaryCarer).toBe('');
+    expect(encoded.liReliefCarers).toEqual([]);
+  });
+
+  it('migrates a legacy flat liCarers list (first -> primary, rest -> relief)', () => {
+    const m = decodeLivestockIntent('capacity', {
+      liCarers: ['Aisha', 'Bilal', 'Carl'],
+    }) as CapacityModel;
+    expect(m.primaryCarer).toBe('Aisha');
+    expect(m.reliefCarers).toEqual(['Bilal', 'Carl']);
+  });
+
+  it('prefers the new keys over a stale legacy liCarers when both exist', () => {
+    const m = decodeLivestockIntent('capacity', {
+      liPrimaryCarer: 'Dana',
+      liReliefCarers: [],
       liCarers: ['Aisha', 'Bilal'],
     }) as CapacityModel;
-    expect(m.carers).toEqual(['Aisha', 'Bilal']);
-    expect(encodeLivestockIntent('capacity', m).liCarers).toEqual([
-      'Aisha',
-      'Bilal',
-    ]);
+    expect(m.primaryCarer).toBe('Dana');
+    expect(m.reliefCarers).toEqual([]);
   });
 
-  it('defaults to an empty list and roundtrips empty', () => {
-    const m = decodeLivestockIntent('capacity', {}) as CapacityModel;
-    expect(m.carers).toEqual([]);
-    expect(encodeLivestockIntent('capacity', m).liCarers).toEqual([]);
-  });
-
-  it('summary reflects linked carers (or notes none linked)', () => {
+  it('summary reflects the primary carer and relief count (or notes none linked)', () => {
     expect(summariseLivestockIntent('capacity', {})).toMatch(/no carer linked/i);
     expect(
-      summariseLivestockIntent('capacity', { liCarers: ['Aisha', 'Bilal'] }),
-    ).toMatch(/carers: Aisha, Bilal/);
+      summariseLivestockIntent('capacity', {
+        liPrimaryCarer: 'Aisha',
+        liReliefCarers: ['Bilal', 'Carl'],
+      }),
+    ).toMatch(/primary carer: Aisha \(\+2 relief\)/);
+    expect(
+      summariseLivestockIntent('capacity', { liPrimaryCarer: 'Aisha' }),
+    ).toMatch(/primary carer: Aisha(?!.*relief)/);
   });
 });
 
@@ -595,7 +624,7 @@ describe('LivestockIntentCapture c4 daily stock-care carers', () => {
         itemId={`${P}-c4`}
       />,
     );
-    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    const picker = screen.getByRole('group', { name: 'Primary / lead carer' });
     expect(within(picker).getByText('Aisha')).toBeTruthy();
     expect(within(picker).queryByText('Carl')).toBeNull();
   });
@@ -627,11 +656,11 @@ describe('LivestockIntentCapture c4 daily stock-care carers', () => {
         itemId={`${P}-c4`}
       />,
     );
-    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    const picker = screen.getByRole('group', { name: 'Primary / lead carer' });
     expect(within(picker).getAllByText('Aisha')).toHaveLength(1);
   });
 
-  it('selecting a carer emits liCarers on the c4 FormValue', () => {
+  it('selecting a primary carer emits liPrimaryCarer on the c4 FormValue', () => {
     seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
     let current: FormValue = {};
     const onChange = vi.fn((next: FormValue) => {
@@ -646,9 +675,30 @@ describe('LivestockIntentCapture c4 daily stock-care carers', () => {
         itemId={`${P}-c4`}
       />,
     );
-    const picker = screen.getByRole('group', { name: 'Daily stock-care carers' });
+    const picker = screen.getByRole('group', { name: 'Primary / lead carer' });
     fireEvent.click(within(picker).getByText('Aisha'));
     expect(onChange).toHaveBeenCalled();
-    expect(current.liCarers).toEqual(['Aisha']);
+    expect(current.liPrimaryCarer).toBe('Aisha');
+  });
+
+  it('excludes the chosen primary carer from the relief options', () => {
+    seedLabour(
+      labourForm([
+        { name: 'Aisha', skill: 'Animal husbandry' },
+        { name: 'Bilal', skill: 'Herd health monitoring' },
+      ]),
+    );
+    render(
+      <LivestockIntentCapture
+        mode="capacity"
+        value={{ liPrimaryCarer: 'Aisha' }}
+        onChange={NOOP}
+        projectId={PID}
+        itemId={`${P}-c4`}
+      />,
+    );
+    const relief = screen.getByRole('group', { name: 'Relief / backup carers' });
+    expect(within(relief).queryByText('Aisha')).toBeNull();
+    expect(within(relief).getByText('Bilal')).toBeTruthy();
   });
 });

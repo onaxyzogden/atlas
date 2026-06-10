@@ -102,6 +102,13 @@
   color: var(--color-success, #6b8f6b);
 }
 
+/* Primary + relief carer pickers (c4 capacity) */
+.carerPickers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* Linked stock-care carers caption (c4 capacity) */
 .carerList {
   list-style: none;
@@ -116,6 +123,17 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
+}
+
+/* Primary / Relief role pill on each caption row */
+.carerTag {
+  flex-shrink: 0;
+  min-width: 48px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
 }
 
 .carerName {
