@@ -360,6 +360,7 @@ describe('LivestockIntentCapture P3 relationship', () => {
 
 describe('LivestockIntentCapture P4 capacity', () => {
   it('renders experience levels, a care-hours stepper, and skill options', () => {
+    seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
     render(
       <LivestockIntentCapture
         mode="capacity"
@@ -377,6 +378,7 @@ describe('LivestockIntentCapture P4 capacity', () => {
   });
 
   it('stepping care hours writes liCareHours', () => {
+    seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
     let current: FormValue = {};
     const onChange = vi.fn((next: FormValue) => {
       current = next;
@@ -397,6 +399,7 @@ describe('LivestockIntentCapture P4 capacity', () => {
   });
 
   it('selecting an experience level writes liExperience', () => {
+    seedLabour(labourForm([{ name: 'Aisha', skill: 'Animal husbandry' }]));
     let current: FormValue = {};
     const onChange = vi.fn((next: FormValue) => {
       current = next;
@@ -606,6 +609,8 @@ describe('LivestockIntentCapture c4 daily stock-care carers', () => {
     );
     expect(screen.getByText(/with stock-care skills yet/i)).toBeTruthy();
     expect(screen.queryByText('Carl')).toBeNull();
+    // Gated sections must be absent when no capable carer exists.
+    expect(screen.queryByText(/Experience level/i)).toBeNull();
   });
 
   it('lists a roster person documented with a stock-care skill and filters out one without', () => {

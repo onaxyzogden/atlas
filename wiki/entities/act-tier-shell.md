@@ -2221,6 +2221,54 @@ Commit `3fd0e235` (7 files, +2297) on `main`, explicit pathspec, **not pushed**.
 Log [[log/2026-06-10-atlas-conflict-framework-tier0]]. **Deferred:** bind c7 to
 the project's real member roster (replacing the static 4 households).
 
+## LivestockIntentCapture c4 -- carer link + UI revamp (2026-06-10)
+
+Two sequential commits on `main` completed the c4 "Operator capacity" decision:
+
+**`ce24986f` -- Link c4 to documented stock-care carers.**
+A new "Daily stock-care carers" section (the sixth and last section in the body)
+let the operator link one or more roster people whose stock-care capability is
+documented in the Labour inventory (`s1-vision-labour`). The section added
+`projectId` as a new required prop so the capture could reach live stores; the
+prop was threaded via `DecisionWorkingPanel`. `useStockCareCandidates(projectId)`
+merges crew + labour roster + steward team, **hard-filtering to people who hold
+at least one stock-care skill** (`STOCK_CARE_SKILLS = ['Animal husbandry',
+'Small-livestock care', 'Animal rotation', 'Grazing management', 'Herd health
+monitoring']`, verbatim from `laborSkillsByType`), deduping by normalised name,
+enriching role from crew/steward on name-match. The candidate set is sourced
+exclusively from the labour roster; crew and steward entries may enrich role but
+confer no independent capability. Empty-state: "No one on the crew, labour roster,
+or steward team is documented with stock-care skills yet." FormValue key:
+`liCarers` (flat string[]). `c4` stayed non-gating throughout.
+
+**`f85787ef` -- UI update: lead with WHO, split primary vs relief.**
+Following operator feedback on the live capture three changes were made:
+
+1. **Fix duplicated title/hint.** `actToolCatalog.ts` c4 `arm.prompt` was the
+   same sentence as the bold title (set in the checklist `label`); replaced with
+   a distinct question: "Who will do daily stock care, and do they have the
+   experience and hours for it?".
+
+2. **Reorder -- lead with carers.** The carers block moved to the **top** of the
+   capacity body (before Experience level). New section order: Daily stock-care
+   carers -> Experience level -> Prior species -> Daily care hours -> Key skills
+   -> Support or training needed.
+
+3. **Primary vs relief split.** The flat `liCarers` multi-select was replaced by:
+   - **Primary / lead carer** -- `ChoiceCardGrid` single-select; persists as
+     `liPrimaryCarer: string`.
+   - **Relief / backup carers** -- `ChipSelect` multi; options always exclude the
+     chosen primary; persists as `liReliefCarers: string[]`.
+   Legacy `liCarers` migrates on decode: `[0]` -> primary, `slice(1)` -> relief.
+   The `CapacityModel` dropped `carers` in favour of `primaryCarer + reliefCarers`.
+   Summary leads with `"primary carer: <name> (+N relief)"` or `"no carer linked"`.
+   Caption rows carry a `.carerTag` Primary/Relief pill.
+
+`useStockCareCandidates` and the documented-capability filter are unchanged.
+`c4` stays non-gating. Pushed `f85787ef`. **93/93 vitest green; tsc clean** (the
+pre-existing foreign `ObserveAnnotationLayers.tsx:253` `placedZones` error is not
+from this surface). Screenshot confirmed reorder + empty-state on `/v3/components`.
+
 > **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
 > delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
 > canonical working line, `feat/structured-capture-forms` is an ancestor.

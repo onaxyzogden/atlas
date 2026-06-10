@@ -878,64 +878,68 @@ export function LivestockIntentCapture({
             </InterpretationBlock>
           )}
         </div>
-        <div>
-          <SectionEyebrow>Experience level</SectionEyebrow>
-          <ChoiceCardGrid
-            options={expOptions}
-            value={model.experience !== '' ? [model.experience] : []}
-            onChange={(next) => set({ experience: next[0] ?? '' })}
-            columns={2}
-            ariaLabel="Experience level"
-          />
-        </div>
-        <div>
-          <SectionEyebrow>Prior species experience</SectionEyebrow>
-          <ChipSelect
-            options={PRIOR_SPECIES_OPTIONS}
-            value={model.priorSpecies}
-            onChange={(next) => set({ priorSpecies: next })}
-            multi
-            ariaLabel="Prior species experience"
-          />
-        </div>
-        <div>
-          <SectionEyebrow>Daily care hours available</SectionEyebrow>
-          <Stepper
-            value={careHours}
-            onChange={(next) => set({ careHours: String(next) })}
-            min={0.5}
-            max={12}
-            step={0.5}
-            unit="hrs/day"
-            ariaLabel="Daily care hours available"
-          />
-        </div>
-        <div>
-          <SectionEyebrow>Key skills available</SectionEyebrow>
-          <ChipSelect
-            options={SKILL_OPTIONS}
-            value={model.skills}
-            onChange={(next) => set({ skills: next })}
-            multi
-            ariaLabel="Key skills available"
-          />
-        </div>
-        <div>
-          <SectionEyebrow>Support or training needed</SectionEyebrow>
-          <ChipSelect
-            options={SUPPORT_OPTIONS}
-            value={model.support}
-            onChange={(next) => set({ support: next })}
-            multi
-            ariaLabel="Support or training needed"
-          />
-        </div>
-        <FeedsNote>
-          Operator capacity feeds the{' '}
-          <strong>husbandry framework and labour plan</strong>. Daily care hours
-          and skill gaps shape the support, training, and relief arrangements
-          recorded later.
-        </FeedsNote>
+        {carerCandidates.length > 0 ? (
+          <>
+            <div>
+              <SectionEyebrow>Experience level</SectionEyebrow>
+              <ChoiceCardGrid
+                options={expOptions}
+                value={model.experience !== '' ? [model.experience] : []}
+                onChange={(next) => set({ experience: next[0] ?? '' })}
+                columns={2}
+                ariaLabel="Experience level"
+              />
+            </div>
+            <div>
+              <SectionEyebrow>Prior species experience</SectionEyebrow>
+              <ChipSelect
+                options={PRIOR_SPECIES_OPTIONS}
+                value={model.priorSpecies}
+                onChange={(next) => set({ priorSpecies: next })}
+                multi
+                ariaLabel="Prior species experience"
+              />
+            </div>
+            <div>
+              <SectionEyebrow>Daily care hours available</SectionEyebrow>
+              <Stepper
+                value={careHours}
+                onChange={(next) => set({ careHours: String(next) })}
+                min={0.5}
+                max={12}
+                step={0.5}
+                unit="hrs/day"
+                ariaLabel="Daily care hours available"
+              />
+            </div>
+            <div>
+              <SectionEyebrow>Key skills available</SectionEyebrow>
+              <ChipSelect
+                options={SKILL_OPTIONS}
+                value={model.skills}
+                onChange={(next) => set({ skills: next })}
+                multi
+                ariaLabel="Key skills available"
+              />
+            </div>
+            <div>
+              <SectionEyebrow>Support or training needed</SectionEyebrow>
+              <ChipSelect
+                options={SUPPORT_OPTIONS}
+                value={model.support}
+                onChange={(next) => set({ support: next })}
+                multi
+                ariaLabel="Support or training needed"
+              />
+            </div>
+            <FeedsNote>
+              Operator capacity feeds the{' '}
+              <strong>husbandry framework and labour plan</strong>. Daily care hours
+              and skill gaps shape the support, training, and relief arrangements
+              recorded later.
+            </FeedsNote>
+          </>
+        ) : null}
       </div>
     );
   }
