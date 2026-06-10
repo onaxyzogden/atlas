@@ -490,7 +490,7 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
           {/* Filter bar */}
           <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', gap: 5, flexWrap: 'wrap', flexShrink: 0, background: C.bg2 }}>
             {['all', ...allTypes].map((t) => (
-              <button key={t} onClick={() => setActiveFilter(t)} style={{ padding: '3px 10px', borderRadius: 10, border: `1px solid ${t === activeFilter ? lens.color : C.border}`, background: t === activeFilter ? lens.color + '20' : 'transparent', color: t === activeFilter ? lens.color : C.textTertiary, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, textTransform: t === 'all' ? 'none' : 'capitalize' }}>
+              <button key={t} onClick={() => setActiveFilter(t)} style={{ padding: '4px 12px', borderRadius: 16, border: `1px solid ${t === activeFilter ? lens.color : C.border}`, background: t === activeFilter ? lens.color + '20' : 'transparent', color: t === activeFilter ? lens.color : C.textTertiary, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, textTransform: t === 'all' ? 'none' : 'capitalize' }}>
                 {TYPE_ICON[t] || ''} {t === 'all' ? 'All types' : t.replace('_', ' ')}
               </button>
             ))}
@@ -560,13 +560,21 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
   const isSuperseded = pt.isSuperseded;
   const isDivergence = pt.isDivergence;
   const rowColor = isDivergenceSection ? C.amber : lensColor;
+  // Mockup data-log convention: colour the entry icon + value by observation
+  // TYPE (measurement/trace/logged), not the lens colour. Falls back to the
+  // lens colour for any unmapped type. Divergence keeps amber.
+  const TYPE_COLOR: Record<string, string> = {
+    measurement: C.teal, gps_trace: C.blue, gps_point: C.blue, logged_result: C.green,
+    observation_note: C.green, species: C.sage, photo: C.blue, declaration: C.gold,
+  };
+  const typeColor = isDivergence ? C.amber : (TYPE_COLOR[pt.type] ?? rowColor);
 
   return (
     <div style={{ borderBottom: `1px solid ${C.border}`, background: isExpanded ? C.bg3 : isSuperseded ? C.bg + '80' : 'transparent', opacity: isSuperseded ? 0.55 : 1, transition: 'background 0.15s' }}>
       {/* Row summary */}
       <div onClick={onToggle} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         {/* Type icon */}
-        <div style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0, marginTop: 1, background: isDivergence ? C.amberDim : rowColor + '18', border: `1px solid ${isDivergence ? C.amber + '40' : rowColor + '30'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: isDivergence ? C.amber : rowColor }}>
+        <div style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0, marginTop: 1, background: isDivergence ? C.amberDim : typeColor + '18', border: `1px solid ${isDivergence ? C.amber + '40' : typeColor + '30'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: isDivergence ? C.amber : typeColor }}>
           {isDivergence ? '▲' : (TYPE_ICON[pt.type] || '·')}
         </div>
 
@@ -580,7 +588,7 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
               <span style={{ fontSize: 10, background: C.greenDim, border: `1px solid ${C.green}30`, borderRadius: 4, padding: '1px 5px', color: C.green, fontFamily: F.sans, fontWeight: 600 }}>REPLACES EARLIER</span>
             )}
           </div>
-          <div style={{ fontSize: 13, color: rowColor, fontFamily: F.mono, fontWeight: 600, marginBottom: 3 }}>{pt.value}</div>
+          <div style={{ fontSize: 13, color: typeColor, fontFamily: F.mono, fontWeight: 600, marginBottom: 3 }}>{pt.value}</div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>{pt.location}</span>
             <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>·</span>
@@ -869,13 +877,15 @@ function TopographySpecialised({ data }: { data: TopographyData }) {
     <div>
       <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Elevation Zones</div>
       {data.elevationZones.map((z, i) => (
-        <div key={i} style={{ marginBottom: 8, padding: '8px 10px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: z.color, fontFamily: F.sans }}>{z.label}</span>
-            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{z.area}</span>
+        <div key={i} style={{ marginBottom: 4, padding: '8px 12px', background: C.bg4, borderRadius: 7, border: `1px solid ${C.borderLight}`, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          {/* Colored indicator bar (mockup .zone-indicator) */}
+          <div style={{ width: 3, borderRadius: 2, alignSelf: 'stretch', flexShrink: 0, marginTop: 1, background: z.color }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, fontFamily: F.sans, marginBottom: 1 }}>{z.label}</div>
+            <div style={{ fontSize: 11, color: C.textSecondary }}>{z.aspect}</div>
+            <div style={{ fontSize: 11, color: C.textTertiary, fontStyle: 'italic', marginTop: 2 }}>{z.use}</div>
           </div>
-          <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 1 }}>{z.aspect}</div>
-          <div style={{ fontSize: 11, color: C.textTertiary, fontStyle: 'italic' }}>{z.use}</div>
+          <span style={{ fontSize: 12, fontWeight: 600, fontFamily: F.mono, color: C.textSecondary, flexShrink: 0, marginTop: 1 }}>{z.area}</span>
         </div>
       ))}
       <div style={{ height: 1, background: C.border, margin: '12px 0' }} />
