@@ -28,7 +28,6 @@ import styles from './ActTierShell.module.css';
 import detail from './ActTierObjectiveRail.module.css';
 
 /** Max act-tool chips shown inline before collapsing to a "+N more" note. */
-const MAX_TOOL_CHIPS = 6;
 
 // Source filter (All / Universal / Primary / Secondary) — parity with the Plan
 // ObjectiveColumn. Purely a view filter over the rendered list; it never
@@ -285,49 +284,12 @@ export default function ActTierObjectiveRail({
                 {activeObjective.focusedQuestion}
               </p>
 
-              <div className={detail.detailRow}>
-                <span className={detail.detailLabel}>Decision progress</span>
-                <span
-                  className={detail.progress}
-                  data-state={activeProgress.state}
-                >
-                  {activeProgressLabel}
-                </span>
-              </div>
-
-              {activeObjective.completionGate && (
-                <div className={detail.detailRow}>
-                  <span className={detail.detailLabel}>Completion gate</span>
-                  <span className={detail.gate}>
-                    {activeObjective.completionGate}
-                  </span>
-                </div>
-              )}
-
               {activeObjective.actHandoff && (
                 <div className={detail.detailRow}>
                   <span className={detail.detailLabel}>Act handoff</span>
                   <span className={detail.handoff}>
                     {activeObjective.actHandoff}
                   </span>
-                </div>
-              )}
-
-              {tools.length > 0 && (
-                <div className={detail.detailRow}>
-                  <span className={detail.detailLabel}>Tools</span>
-                  <div className={detail.toolChips}>
-                    {tools.slice(0, MAX_TOOL_CHIPS).map((tool) => (
-                      <span key={tool.id} className={detail.toolChip}>
-                        {tool.label}
-                      </span>
-                    ))}
-                    {tools.length > MAX_TOOL_CHIPS && (
-                      <span className={detail.toolMore}>
-                        +{tools.length - MAX_TOOL_CHIPS} more
-                      </span>
-                    )}
-                  </div>
                 </div>
               )}
 

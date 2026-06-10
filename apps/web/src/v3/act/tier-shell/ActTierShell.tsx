@@ -975,16 +975,16 @@ export default function ActTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
-                mode={showTierZeroWorkbench ? 'objectives' : railMode}
-                onModeChange={showTierZeroWorkbench ? NOOP_RAIL_MODE : handleRailModeChange}
-                triggeredCount={showTierZeroWorkbench ? 0 : triggeredCount}
-                triggeredIds={showTierZeroWorkbench ? EMPTY_TRIGGERED_IDS : triggeredIds}
+                mode={railMode}
+                onModeChange={handleRailModeChange}
+                triggeredCount={triggeredCount}
+                triggeredIds={triggeredIds}
                 projectId={id}
                 primaryTypeId={primaryTypeId}
                 secondaryTypeIds={secondaryTypeIds}
                 activeStratumId={selectedStratumId}
-                selectedProtocolId={showTierZeroWorkbench ? null : selectedProtocolId}
-                onSelectProtocol={showTierZeroWorkbench ? NOOP_PROTOCOL : handleSelectProtocol}
+                selectedProtocolId={selectedProtocolId}
+                onSelectProtocol={handleSelectProtocol}
                 bulkActivation={!showTierZeroWorkbench}
               />
             )
