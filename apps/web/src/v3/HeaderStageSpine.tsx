@@ -26,6 +26,8 @@ import { useCompassData } from './compass/useCompassData.js';
 import { usePlanCompassData } from './plan/compass/usePlanCompassData.js';
 import { useActCompassData } from './act/compass/useActCompassData.js';
 import type { Stage } from './compass/compassTypes.js';
+import { useProjectStore } from '../store/projectStore.js';
+import { resolveObjectivesForProject } from './plan/strata/useProjectObjectives.js';
 
 const ROUTE_RE =
   /^\/v3\/project\/([^/]+)\/(observe|plan|act|report)(?:\/|$)/;
@@ -33,6 +35,10 @@ const ROUTE_RE =
 // Capture the stratum id when the steward is on a Plan stratum route
 // (plan/stratum/$stratumId[/objective/...]) so switching to Act can preserve it.
 const PLAN_STRATUM_RE = /^\/v3\/project\/[^/]+\/plan\/stratum\/([^/]+)/;
+
+// Capture the objectiveId when on act/tier-shell/$objectiveId. The $ anchor
+// excludes act/tier-shell/stratum/$stratumId (two segments, so no match).
+const ACT_OBJECTIVE_RE = /^\/v3\/project\/[^/]+\/act\/tier-shell\/([^/]+)$/;
 
 /** observe section → Observe active; report → none highlighted. */
 function sectionToStage(section: string): Stage | null {
@@ -91,12 +97,31 @@ export default function HeaderStageSpine() {
           to: '/v3/project/$projectId/plan/command-centre',
           params: { projectId },
         });
-      } else {
-        navigate({
-          to: '/v3/project/$projectId/plan',
-          params: { projectId },
-        });
+        return;
       }
+      // Mirror Plan->Act stratum forwarding: when on act/tier-shell/$objectiveId,
+      // carry the selected objective into the Plan stratum+objective route.
+      const actObjectiveId = ACT_OBJECTIVE_RE.exec(pathname)?.[1] ?? null;
+      if (actObjectiveId) {
+        const project = useProjectStore
+          .getState()
+          .projects.find((p) => p.id === projectId || p.serverId === projectId);
+        if (project) {
+          const { objectives } = resolveObjectivesForProject(project);
+          const obj = objectives.find((o) => o.id === actObjectiveId);
+          if (obj) {
+            navigate({
+              to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
+              params: { projectId, stratumId: obj.stratumId, objectiveId: actObjectiveId },
+            });
+            return;
+          }
+        }
+      }
+      navigate({
+        to: '/v3/project/$projectId/plan',
+        params: { projectId },
+      });
       return;
     }
     if (stage === 'act') {
