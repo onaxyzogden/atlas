@@ -1,7 +1,7 @@
 # Act Tier Shell
 
 **Type:** module (v3 Act surface) · **Status:** active (default Act page) · **Surface:** Atlas web (`apps/web`)
-**Path:** `apps/web/src/v3/act/tier-shell/` · **Branch:** `feat/atlas-permaculture`
+**Path:** `apps/web/src/v3/act/tier-shell/` · **Branch:** `main`
 
 The real, store-backed Act page, promoted from the throwaway 4-rail
 map-centric prototype on 2026-05-30 ([[decisions/2026-05-30-atlas-act-tier-shell-promotion]]).

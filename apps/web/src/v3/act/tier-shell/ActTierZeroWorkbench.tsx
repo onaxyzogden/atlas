@@ -199,6 +199,15 @@ export function buildDecisionTarget(
   // computed item; the arm still renders its mode body. False for every other id.
   const isGrazing = item.id.startsWith('silv-sec-s4-grazing-design-');
 
+  // Livestock enterprise intent is a 5-item silvopasture objective
+  // (silv-sec-s1-livestock-intent-c1..-c5); detected by id prefix. The panel's
+  // isLivestockIntent body-router arm (LivestockIntentCapture self-routes on
+  // itemId via livestockIntentModeFor) takes precedence over any matched generic
+  // form. Advisory only -- no store write, no projectId. c5 (compat) reads the
+  // c1/c2/c4 sibling FormValues via the panel's siblingValues prop and is the
+  // only gated mode. False for every other id.
+  const isLivestockIntent = item.id.startsWith('silv-sec-s1-livestock-intent-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -247,6 +256,7 @@ export function buildDecisionTarget(
     isCarryingCapacity,
     isForage,
     isGrazing,
+    isLivestockIntent,
     deferLabel,
     deferrable,
   };

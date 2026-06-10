@@ -141,6 +141,15 @@ const MODE_LABELS: Record<string, string> = {
   treeProtection: 'Tree protection',
   contingency: 'Feed-gap contingency',
   stockingDensity: 'Stocking density',
+  // Livestock enterprise intent modes (SILV-S1.20). The component's generic
+  // mode keys are namespaced "li-" by workbenchAffordances to avoid colliding
+  // with the species / capacity labels above (forage / carrying-capacity own
+  // those). 5 modes c1..c5.
+  'li-rationale': 'Integration rationale',
+  'li-species': 'Candidate species',
+  'li-relationship': 'Enterprise relationship',
+  'li-capacity': 'Operator capacity',
+  'li-compat': 'Compatibility review',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

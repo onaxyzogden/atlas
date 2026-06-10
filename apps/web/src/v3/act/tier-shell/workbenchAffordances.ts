@@ -27,6 +27,7 @@ import { landscapeModeFor } from './LandscapeContextCapture.js';
 import { carryingCapacityModeFor } from './CarryingCapacityCapture.js';
 import { forageModeFor } from './ForageCapture.js';
 import { grazingModeFor } from './GrazingSystemCapture.js';
+import { livestockIntentModeFor } from './LivestockIntentCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -152,6 +153,25 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       itemId.startsWith('ev-s2-carrying-capacity-')
         ? carryingCapacityModeFor(itemId)
         : null,
+  },
+  // S1 livestock enterprise intent (silvopasture SILV-S1.20): 5 items, grouped
+  // (showGroups true); no map/register strips. Advisory only -- the capture
+  // writes no store and takes no projectId. livestockIntentModeFor returns
+  // GENERIC mode keys (rationale / species / relationship / capacity / compat),
+  // two of which (species, capacity) collide with the forage / carrying-capacity
+  // labels already in DecisionList MODE_LABELS. So the badge keys are namespaced
+  // "li-" HERE (the affordance modeFor feeds the badge only; DecisionWorkingPanel
+  // routes off its own livestockIntentModeFor independently), and DecisionList
+  // carries matching li-* labels. The component itself is left untouched.
+  'silv-sec-s1-livestock-intent': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('silv-sec-s1-livestock-intent-')) return null;
+      const m = livestockIntentModeFor(itemId);
+      return m ? `li-${m}` : null;
+    },
   },
   // S3 forage / pasture survey (silvopasture): 5 items, grouped (showGroups
   // true); no map/register strips. modeFor returns the raw ForageMode key

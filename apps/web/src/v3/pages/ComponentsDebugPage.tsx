@@ -1130,6 +1130,128 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3c-ii -- Livestock enterprise intent (silv-sec-s1-livestock-intent):
+          a 5-mode silvopasture capture (rationale / species / relationship /
+          capacity / compat). Advisory only -- it writes no store and takes no
+          projectId. c5 (compat) reads the c1/c2/c4 siblings via siblingValues;
+          with the empty gallery values its context rows show "Not set" / "None
+          selected", which is a valid empty-state render. The dummy "gallery"
+          projectId matches the sections above (the arm ignores it). */}
+      <Section title="Decision Working Panel - Livestock intent: rationale (silv-sec-s1-livestock-intent c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s1-livestock-intent-c1",
+              label: "Define the integration rationale - grazing as a land-management tool, a production enterprise, or both",
+              prompt: "Pick the rationale that sets how livestock are tiered in the design.",
+              isLivestockIntent: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Livestock intent: species (silv-sec-s1-livestock-intent c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s1-livestock-intent-c2",
+              label: "Identify candidate species and classes of stock under consideration - ruminants, poultry, mixed",
+              prompt: "Select the candidate species; each carries its own stocking density and paddock minimum.",
+              isLivestockIntent: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Livestock intent: relationship (silv-sec-s1-livestock-intent c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s1-livestock-intent-c3",
+              label: "Define how livestock relate to the primary enterprise - complementary, supplementary, or competing for land",
+              prompt: "Pick the enterprise relationship that drives the integration matrix.",
+              isLivestockIntent: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Livestock intent: capacity (silv-sec-s1-livestock-intent c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s1-livestock-intent-c4",
+              label: "Identify operator livestock experience and labour availability for daily stock care",
+              prompt: "Record experience, prior species, daily care hours, skills, and support needs.",
+              isLivestockIntent: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Livestock intent: compat (silv-sec-s1-livestock-intent c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s1-livestock-intent-c5",
+              label: "Confirm livestock intent is compatible with the primary enterprise vision and site scale",
+              prompt: "Review the compatibility checks and confirm the intent fits the vision and site scale.",
+              isLivestockIntent: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

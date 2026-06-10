@@ -14,6 +14,7 @@ import { describe, it, expect } from 'vitest';
 import { workbenchAffordancesFor } from '../workbenchAffordances.js';
 import { boundaryModeFor } from '../BoundaryCaptureLegacy.js';
 import { grazingModeFor } from '../GrazingSystemCapture.js';
+import { livestockIntentModeFor } from '../LivestockIntentCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -95,6 +96,31 @@ describe('workbenchAffordancesFor -- silv-sec-s4-grazing-design', () => {
     expect(got).toBe('grazingMethod');
     // Prefix guard: a foreign id under the same mapper returns null.
     expect(aff.modeFor!('silv-sec-s3-forage-survey-c1')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- silv-sec-s1-livestock-intent', () => {
+  const aff = workbenchAffordancesFor('silv-sec-s1-livestock-intent');
+
+  it('carries no strips, shows decision groups (advisory -- no map/register)', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces livestock modes "li-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 maps to the rationale mode, namespaced to avoid the global
+    // species / capacity label collision.
+    const got = aff.modeFor!('silv-sec-s1-livestock-intent-c1');
+    expect(got).toBe('li-rationale');
+    expect(got).toBe(`li-${livestockIntentModeFor('silv-sec-s1-livestock-intent-c1')}`);
+    // The colliding modes are namespaced: c2 -> li-species, c4 -> li-capacity.
+    expect(aff.modeFor!('silv-sec-s1-livestock-intent-c2')).toBe('li-species');
+    expect(aff.modeFor!('silv-sec-s1-livestock-intent-c4')).toBe('li-capacity');
+    expect(aff.modeFor!('silv-sec-s1-livestock-intent-c5')).toBe('li-compat');
+    // Prefix guard: a foreign id under the same mapper returns null.
+    expect(aff.modeFor!('silv-sec-s4-grazing-design-c1')).toBeNull();
   });
 });
 

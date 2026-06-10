@@ -179,6 +179,39 @@ describe('DecisionWorkingPanel -- body router', () => {
     });
     expect(screen.getByLabelText(label)).toBeTruthy();
   });
+
+  it('renders LivestockIntentCapture (not the textarea fallback) when isLivestockIntent is true', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 'silv-sec-s1-livestock-intent-c1',
+        label: 'Define the integration rationale',
+        isLivestockIntent: true,
+      }),
+    });
+    // c1 routes to the rationale body (distinctive eyebrow + a verbatim option).
+    expect(screen.getByText(/why livestock on this site/i)).toBeTruthy();
+    expect(screen.getByText('Land management tool')).toBeTruthy();
+  });
+});
+
+describe('DecisionWorkingPanel -- livestock intent compat gate (advisory)', () => {
+  it('disables Record until the c5 compatibility confirm is checked', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 'silv-sec-s1-livestock-intent-c5',
+        label: 'Confirm livestock intent is compatible',
+        isLivestockIntent: true,
+      }),
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    // compat is the only gated mode: unconfirmed -> Record locked.
+    expect(btn.disabled).toBe(true);
+    const confirm = screen.getByRole('checkbox') as HTMLInputElement;
+    fireEvent.click(confirm);
+    expect(btn.disabled).toBe(false);
+  });
 });
 
 describe('DecisionWorkingPanel -- record gate', () => {

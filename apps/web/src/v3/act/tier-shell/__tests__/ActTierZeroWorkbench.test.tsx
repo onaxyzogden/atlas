@@ -374,6 +374,32 @@ describe('buildDecisionTarget -- grazing detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- livestock intent detection', () => {
+  it('flags isLivestockIntent for a silv-sec-s1-livestock-intent-* decision', () => {
+    const livestockItem: PlanDecisionChecklistItem = {
+      id: 'silv-sec-s1-livestock-intent-c1',
+      label: 'Define the integration rationale',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(livestockItem);
+    expect(target.isLivestockIntent).toBe(true);
+    // It must NOT collide with the grazing flag.
+    expect(target.isGrazing).toBe(false);
+  });
+
+  it('does NOT flag isLivestockIntent for a grazing decision', () => {
+    const grazingItem: PlanDecisionChecklistItem = {
+      id: 'silv-sec-s4-grazing-design-c1',
+      label: 'Choose a grazing method',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(grazingItem);
+    expect(target.isLivestockIntent).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

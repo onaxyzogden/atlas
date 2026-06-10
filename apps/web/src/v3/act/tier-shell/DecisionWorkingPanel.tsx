@@ -167,6 +167,13 @@ import {
   type GrazingMode,
 } from './GrazingSystemCapture.js';
 import {
+  LivestockIntentCapture,
+  livestockIntentModeFor,
+  isLivestockIntentValid,
+  summariseLivestockIntent,
+  type LivestockIntentMode,
+} from './LivestockIntentCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -225,6 +232,8 @@ export interface DecisionPanelTarget {
   isForage?: boolean;
   /** true => render GrazingSystemCapture (self-routing on itemId via grazingModeFor). */
   isGrazing?: boolean;
+  /** true => render LivestockIntentCapture (self-routing on itemId via livestockIntentModeFor). */
+  isLivestockIntent?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -519,6 +528,15 @@ export default function DecisionWorkingPanel({
   const grazingMode: GrazingMode | null =
     decision.isGrazing ? grazingModeFor(decision.itemId) : null;
 
+  // Livestock enterprise intent is a 5-mode capture (rationale/species/
+  // relationship/capacity/compat) routed by livestockIntentModeFor(itemId).
+  // Advisory only -- it validates / summarises directly off the FormValue and
+  // writes no store / takes no projectId. compat (c5) reads c1/c2/c4 via
+  // siblingValues. Only the resolved mode is held here -- used by the validity,
+  // summary, and body arms.
+  const livestockIntentMode: LivestockIntentMode | null =
+    decision.isLivestockIntent ? livestockIntentModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -563,6 +581,8 @@ export default function DecisionWorkingPanel({
     valid = isForageValid(forageMode, draft);
   } else if (grazingMode) {
     valid = isGrazingValid(grazingMode, draft);
+  } else if (livestockIntentMode) {
+    valid = isLivestockIntentValid(livestockIntentMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -767,6 +787,8 @@ export default function DecisionWorkingPanel({
       summary = summariseForage(forageMode, draft, siblingValues);
     } else if (grazingMode) {
       summary = summariseGrazing(grazingMode, draft, siblingValues);
+    } else if (livestockIntentMode) {
+      summary = summariseLivestockIntent(livestockIntentMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -954,6 +976,15 @@ export default function DecisionWorkingPanel({
           <GrazingSystemCapture
             key={decision.itemId}
             mode={grazingMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : livestockIntentMode ? (
+          <LivestockIntentCapture
+            key={decision.itemId}
+            mode={livestockIntentMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}
