@@ -7,13 +7,14 @@
  * buttons, or any panel chrome (those belong to the DecisionWorkingPanel, a
  * later task -- mirroring how SuccessCriteriaCapture omits panel chrome).
  *
- * --- Per-person roster (2026-06) ---
+ * --- Per-person roster (2026-06) — semantic clarity: per-season hours primary ---
  * Availability is captured PER PERSON, not as a single guessed team aggregate.
- * The `roster` array is the source of truth: each `PersonAvailability` carries
- * that person's weekly `hours`, their own four-season curve, and their own
- * skill+level list. The "whole team combined" hours, the team seasonal curve,
- * and the union skill list become DERIVED read-only totals (`deriveTeam`) that
- * feed the unchanged Capacity signal + annual-rhythm viz.
+ * The `roster` array is the source of truth: each `PersonAvailability` specifies
+ * absolute hours worked in each season (spring/summer/autumn/winter); the
+ * baseline weekly hours (average of the four seasons) is DERIVED. Skills and role
+ * are per-person. The "whole team combined" hours (average of summed seasons),
+ * team seasonal curve (per-season sums), and union skill list become DERIVED
+ * read-only totals (`deriveTeam`) that feed the unchanged Capacity signal + viz.
  *
  * --- Central contract: flat FormValue encoding ---
  * The component reasons with a rich `LabourModel` but the parent persists a FLAT
@@ -85,8 +86,7 @@ export type PersonRole =
 export interface PersonAvailability {
   name: string;
   role?: PersonRole;
-  /** This person's weekly hours, 0 = unset. */
-  hours: number;
+  /** Absolute hours worked in each season. Baseline weekly hours is derived as average(spring, summer, autumn, winter). */
   seasonal: { spring: number; summer: number; autumn: number; winter: number };
   skills: { name: string; level: SkillLevel }[];
 }
@@ -94,12 +94,12 @@ export interface PersonAvailability {
 export interface LabourModel {
   /** Selected WHO band id, '' = none. Context + initial row-count seed only. */
   who: string;
-  /** Source of truth: per-person availability rows. */
+  /** Source of truth: per-person availability rows. Each person specifies absolute hours per season. */
   roster: PersonAvailability[];
-  // --- DERIVED from `roster` on encode; kept as fields for back-compat reads. ---
-  /** Whole-team combined weekly hours = sum of roster[].hours. */
+  // --- DERIVED on every compute (encode + render); kept as fields for back-compat reads. ---
+  /** Whole-team combined weekly hours = average of (sum of spring + sum of summer + ...) / 4. */
   hours: number;
-  /** Per-season sum across the roster. */
+  /** Per-season sum across all roster people (each specifies absolute hours per season). */
   seasonal: { spring: number; summer: number; autumn: number; winter: number };
   /** Union of roster skills by name, keeping the HIGHEST level. */
   skills: { name: string; level: SkillLevel }[];
@@ -125,7 +125,10 @@ const SEASON_TREND: Record<
   winter: { Arrow: ArrowDown, dir: 'down' },
 };
 
-/** Per-person seasonal default (mockup curve), used to seed a fresh roster row. */
+/**
+ * Per-person seasonal default (absolute hours per season), used to seed a fresh roster row.
+ * Baseline weekly hours derived as (25+20+30+10)/4 ≈ 21.25 h/wk.
+ */
 const DEFAULT_SEASONAL: LabourModel['seasonal'] = {
   spring: 25,
   summer: 20,
@@ -133,12 +136,12 @@ const DEFAULT_SEASONAL: LabourModel['seasonal'] = {
   winter: 10,
 };
 
-/**
- * Per-person starting hours for a freshly-seeded roster row -- deliberately LOW
- * so that seeding N people does not balloon the derived team total past the old
- * single-20h default before the steward has entered real numbers.
- */
-const DEFAULT_PERSON_HOURS = 10;
+/** Compute baseline weekly hours from a person's per-season values (simple average). */
+function getBaselineHours(seasonal: LabourModel['seasonal']): number {
+  return Math.round(
+    (seasonal.spring + seasonal.summer + seasonal.autumn + seasonal.winter) / 4,
+  );
+}
 
 /**
  * Skill delimiter inside a single person's packed `rosterSkills` cell. ASCII Unit
@@ -252,10 +255,9 @@ export function encode(model: LabourModel): FormValue {
     autumn: String(team.seasonal.autumn),
     winter: String(team.seasonal.winter),
     skills: team.skills.map((s) => `${s.name}::${s.level}`),
-    // --- per-person roster, index-aligned parallel arrays ---
+    // --- per-person roster, index-aligned parallel arrays (per-season hours only, no separate baseline) ---
     rosterNames: model.roster.map((p) => p.name),
     rosterRoles: model.roster.map((p) => p.role ?? ''),
-    rosterHours: model.roster.map((p) => String(p.hours)),
     rosterSpring: model.roster.map((p) => String(p.seasonal.spring)),
     rosterSummer: model.roster.map((p) => String(p.seasonal.summer)),
     rosterAutumn: model.roster.map((p) => String(p.seasonal.autumn)),
@@ -265,9 +267,10 @@ export function encode(model: LabourModel): FormValue {
 }
 
 /**
- * Sum a roster into the whole-team totals: hours and each season add up; skills
- * union by name, keeping the HIGHEST level (LEVELS index order
- * beginner < capable < expert).
+ * Sum a roster into whole-team totals: seasonal hours add up (per person specifies
+ * absolute hours per season); baseline weekly hours is derived as the average of
+ * the team seasonal totals. Skills union by name, keeping the HIGHEST level
+ * (LEVELS index order beginner < capable < expert).
  */
 export function deriveTeam(roster: PersonAvailability[]): {
   hours: number;
@@ -275,10 +278,8 @@ export function deriveTeam(roster: PersonAvailability[]): {
   skills: { name: string; level: SkillLevel }[];
 } {
   const seasonal = { spring: 0, summer: 0, autumn: 0, winter: 0 };
-  let hours = 0;
   const byName = new Map<string, SkillLevel>();
   for (const p of roster) {
-    hours += p.hours;
     seasonal.spring += p.seasonal.spring;
     seasonal.summer += p.seasonal.summer;
     seasonal.autumn += p.seasonal.autumn;
@@ -290,6 +291,7 @@ export function deriveTeam(roster: PersonAvailability[]): {
       }
     }
   }
+  const hours = getBaselineHours(seasonal);
   const skills = Array.from(byName, ([name, level]) => ({ name, level }));
   return { hours, seasonal, skills };
 }
@@ -346,8 +348,8 @@ export function decode(value: FormValue): LabourModel {
   let roster: PersonAvailability[];
   if (names.length > 0) {
     // New shape: reconstruct each person from the index-aligned parallel arrays.
+    // Each person specifies per-season absolute hours; baseline is derived.
     const roles = asArray(value.rosterRoles);
-    const hoursArr = asArray(value.rosterHours);
     const springArr = asArray(value.rosterSpring);
     const summerArr = asArray(value.rosterSummer);
     const autumnArr = asArray(value.rosterAutumn);
@@ -356,7 +358,6 @@ export function decode(value: FormValue): LabourModel {
     roster = names.map((name, i) => ({
       name,
       role: toRole(roles[i] ?? ''),
-      hours: toNonNegInt(hoursArr[i]),
       seasonal: {
         spring: toNonNegInt(springArr[i]),
         summer: toNonNegInt(summerArr[i]),
@@ -367,24 +368,21 @@ export function decode(value: FormValue): LabourModel {
     }));
   } else {
     // Legacy back-compat: an old saved decision has no `rosterNames`. Collapse
-    // its combined hours/seasonal/skills into ONE synthetic `primary` person so
-    // it renders as a 1-person roster and re-encodes to identical derived fields.
+    // its combined seasonal/skills into ONE synthetic `primary` person. The old
+    // `hours` field is ignored; per-season values are treated as absolute hours
+    // and baseline is derived as their average.
     const rawSkills = Array.isArray(value.skills) ? value.skills : [];
     const skills = rawSkills
       .filter((s): s is string => typeof s === 'string' && s.length > 0)
       .map(parseSkillToken);
-    const legacyHours = toNonNegInt(value.hours);
     const legacySeasonal = {
       spring: toNonNegInt(value.spring),
       summer: toNonNegInt(value.summer),
       autumn: toNonNegInt(value.autumn),
       winter: toNonNegInt(value.winter),
     };
-    const hasLegacy =
-      legacyHours > 0 || skills.length > 0 || hasAnySeasonal(legacySeasonal);
-    roster = hasLegacy
-      ? [{ name: '', role: 'primary', hours: legacyHours, seasonal: legacySeasonal, skills }]
-      : [];
+    const hasLegacy = skills.length > 0 || hasAnySeasonal(legacySeasonal);
+    roster = hasLegacy ? [{ name: '', role: 'primary', seasonal: legacySeasonal, skills }] : [];
   }
 
   const team = deriveTeam(roster);
@@ -396,7 +394,6 @@ function blankPerson(role: PersonRole = 'team_member'): PersonAvailability {
   return {
     name: '',
     role,
-    hours: DEFAULT_PERSON_HOURS,
     seasonal: { ...DEFAULT_SEASONAL },
     skills: [],
   };
@@ -421,14 +418,13 @@ function roleLabel(role: PersonRole | undefined): string {
  * Build a seed roster from the sibling StewardCapture decision: an always-present
  * `primary` "You" row plus one row per invited team_member/contractor (landowners
  * are skipped -- they steward the land, they are not labour). Each seeded row
- * starts at the low DEFAULT_PERSON_HOURS so seeding does not balloon the derived
- * team total before the steward enters real numbers.
+ * specifies DEFAULT_SEASONAL hours per season, so per-person baselines start low
+ * and don't balloon the derived team total before the steward enters real numbers.
  */
 export function rosterSeedFrom(steward: StewardModel): PersonAvailability[] {
   const primary: PersonAvailability = {
     name: 'You',
     role: 'primary',
-    hours: DEFAULT_PERSON_HOURS,
     seasonal: { ...DEFAULT_SEASONAL },
     skills: [],
   };
@@ -437,7 +433,6 @@ export function rosterSeedFrom(steward: StewardModel): PersonAvailability[] {
     .map((inv) => ({
       name: inv.name,
       role: inv.role as PersonRole,
-      hours: DEFAULT_PERSON_HOURS,
       seasonal: { ...DEFAULT_SEASONAL },
       skills: [] as { name: string; level: SkillLevel }[],
     }));
@@ -457,8 +452,8 @@ export function summariseLabour(model: LabourModel): string {
 }
 
 export function isLabourValid(model: LabourModel): boolean {
-  // Ready once at least one person carries real hours and at least one skill.
-  return model.roster.some((p) => p.hours > 0 && p.skills.length >= 1);
+  // Ready once at least one person carries real seasonal hours and at least one skill.
+  return model.roster.some((p) => hasAnySeasonal(p.seasonal) && p.skills.length >= 1);
 }
 
 // --------------------------------------------------------------------------
@@ -477,7 +472,6 @@ export interface LabourInventoryCaptureProps {
   rosterSeed?: PersonAvailability[];
 }
 
-const clampPersonHours = (n: number): number => Math.max(0, Math.min(120, n));
 const clampSeason = (n: number): number => Math.max(0, Math.min(80, n));
 
 /** Default blank rows for a WHO band when no roster is persisted and no seed. */
@@ -545,9 +539,6 @@ export default function LabourInventoryCapture({
   };
   const removePerson = (i: number) =>
     emit({ ...model, roster: model.roster.filter((_, j) => j !== i) });
-
-  const adjustPersonHours = (i: number, delta: number) =>
-    updatePerson(i, { hours: clampPersonHours(model.roster[i]!.hours + delta) });
 
   const adjustPersonSeason = (i: number, s: Season, delta: number) => {
     const p = model.roster[i]!;
@@ -677,7 +668,7 @@ export default function LabourInventoryCapture({
                     onChange={(e) => updatePerson(i, { name: e.target.value })}
                   />
                   <span className={css.rosterStats}>
-                    {p.hours}h/wk &middot; {p.skills.length}{' '}
+                    {getBaselineHours(p.seasonal)}h/wk &middot; {p.skills.length}{' '}
                     {p.skills.length === 1 ? 'skill' : 'skills'}
                   </span>
                   {p.role === 'primary' ? null : (
@@ -694,28 +685,12 @@ export default function LabourInventoryCapture({
 
                 {open ? (
                   <div className={css.rosterRowBody}>
-                    <div className={css.subLabel}>Weekly hours</div>
-                    <div className={css.hoursStepper}>
-                      <button
-                        type="button"
-                        className={css.stepBtn}
-                        aria-label={`Decrease hours for ${p.name || 'person'}`}
-                        onClick={() => adjustPersonHours(i, -5)}
-                      >
-                        <Minus size={18} />
-                      </button>
+                    <div className={css.subLabel}>Weekly hours (derived from seasonal)</div>
+                    <div className={css.hoursStepper} style={{ pointerEvents: 'none' }}>
                       <span className={css.hoursVal}>
-                        <span className={css.hoursNum}>{p.hours}</span>
+                        <span className={css.hoursNum}>{getBaselineHours(p.seasonal)}</span>
                         <span className={css.hoursUnit}>hrs / week</span>
                       </span>
-                      <button
-                        type="button"
-                        className={css.stepBtn}
-                        aria-label={`Increase hours for ${p.name || 'person'}`}
-                        onClick={() => adjustPersonHours(i, 5)}
-                      >
-                        <Plus size={18} />
-                      </button>
                     </div>
 
                     <div className={css.subLabel}>Seasonal availability</div>

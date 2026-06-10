@@ -87,8 +87,7 @@ function person(over: Partial<PersonAvailability> = {}): PersonAvailability {
   return {
     name: 'Sam',
     role: 'team_member',
-    hours: 10,
-    seasonal: { spring: 5, summer: 5, autumn: 5, winter: 5 },
+    seasonal: { spring: 10, summer: 10, autumn: 10, winter: 10 },
     skills: [],
     ...over,
   };
@@ -126,15 +125,13 @@ describe('LabourInventoryCapture -- encode/decode', () => {
         person({
           name: 'You',
           role: 'primary',
-          hours: 20,
-          seasonal: { spring: 10, summer: 80, autumn: 0, winter: 35 },
+          seasonal: { spring: 25, summer: 20, autumn: 22, winter: 15 },
           skills: [{ name: 'Fencing & earthworks', level: 'expert' }],
         }),
         person({
           name: 'Amal',
           role: 'contractor',
-          hours: 12,
-          seasonal: { spring: 1, summer: 2, autumn: 3, winter: 4 },
+          seasonal: { spring: 14, summer: 12, autumn: 13, winter: 10 },
           skills: [
             { name: 'A::B', level: 'capable' },
             { name: 'Planting & propagation', level: 'beginner' },
@@ -148,7 +145,7 @@ describe('LabourInventoryCapture -- encode/decode', () => {
 
   it('round-trips a person with zero skills (empty packed cell)', () => {
     const m = modelOf(
-      [person({ name: 'Solo', role: 'primary', hours: 8, skills: [] })],
+      [person({ name: 'Solo', role: 'primary', seasonal: { spring: 10, summer: 8, autumn: 8, winter: 6 }, skills: [] })],
       'who-solo',
     );
     const fv = encode(m);
@@ -159,15 +156,15 @@ describe('LabourInventoryCapture -- encode/decode', () => {
   it('emits the legacy team-total fields recomputed from the roster', () => {
     const fv = encode(
       modelOf([
-        person({ hours: 10, seasonal: { spring: 1, summer: 2, autumn: 3, winter: 4 } }),
-        person({ hours: 15, seasonal: { spring: 5, summer: 6, autumn: 7, winter: 8 } }),
+        person({ seasonal: { spring: 10, summer: 10, autumn: 10, winter: 10 } }),
+        person({ seasonal: { spring: 15, summer: 15, autumn: 15, winter: 15 } }),
       ]),
     );
     expect(fv.hours).toBe('25');
-    expect(fv.spring).toBe('6');
-    expect(fv.summer).toBe('8');
-    expect(fv.autumn).toBe('10');
-    expect(fv.winter).toBe('12');
+    expect(fv.spring).toBe('25');
+    expect(fv.summer).toBe('25');
+    expect(fv.autumn).toBe('25');
+    expect(fv.winter).toBe('25');
     expect(Array.isArray(fv.rosterNames)).toBe(true);
   });
 
@@ -184,7 +181,7 @@ describe('LabourInventoryCapture -- encode/decode', () => {
   it('decodes a legacy value (no rosterNames) into a single primary person', () => {
     const legacy: FormValue = {
       who: 'who-family',
-      hours: '20',
+      hours: '20', // old baseline (ignored under new model)
       spring: '25',
       summer: '20',
       autumn: '30',
@@ -194,15 +191,14 @@ describe('LabourInventoryCapture -- encode/decode', () => {
     const m = decode(legacy);
     expect(m.roster).toHaveLength(1);
     expect(m.roster[0]!.role).toBe('primary');
-    expect(m.roster[0]!.hours).toBe(20);
     expect(m.roster[0]!.seasonal).toEqual({
       spring: 25,
       summer: 20,
       autumn: 30,
       winter: 10,
     });
-    // derived totals equal the old combined fields -> no downstream drift
-    expect(m.hours).toBe(20);
+    // baseline derived as average of seasonal: (25+20+30+10)/4 = 21.25 ≈ 21
+    expect(m.hours).toBe(21);
     expect(m.seasonal).toEqual({ spring: 25, summer: 20, autumn: 30, winter: 10 });
     expect(m.skills).toEqual([
       { name: 'General land maintenance', level: 'capable' },
@@ -210,14 +206,20 @@ describe('LabourInventoryCapture -- encode/decode', () => {
     ]);
   });
 
-  it('decode coerces garbage hours to 0 and an unknown level to beginner', () => {
+  it('decode coerces garbage seasonal values to 0 and an unknown level to beginner', () => {
     const m = decode({
       rosterNames: ['Sam'],
       rosterRoles: ['team_member'],
-      rosterHours: ['not-a-number'],
+      rosterSpring: ['not-a-number'],
+      rosterSummer: ['garbage'],
       rosterSkills: ['Fencing::notalevel'],
     });
-    expect(m.roster[0]!.hours).toBe(0);
+    expect(m.roster[0]!.seasonal).toEqual({
+      spring: 0,
+      summer: 0,
+      autumn: 0,
+      winter: 0,
+    });
     expect(m.roster[0]!.skills).toEqual([{ name: 'Fencing', level: 'beginner' }]);
   });
 });
@@ -227,13 +229,15 @@ describe('LabourInventoryCapture -- encode/decode', () => {
 // --------------------------------------------------------------------------
 
 describe('deriveTeam', () => {
-  it('sums hours and each season across the roster', () => {
+  it('sums each season across the roster; baseline is average of seasonal totals', () => {
     const t = deriveTeam([
-      person({ hours: 10, seasonal: { spring: 1, summer: 2, autumn: 3, winter: 4 } }),
-      person({ hours: 15, seasonal: { spring: 5, summer: 6, autumn: 7, winter: 8 } }),
+      person({ seasonal: { spring: 10, summer: 8, autumn: 9, winter: 7 } }),
+      person({ seasonal: { spring: 15, summer: 12, autumn: 14, winter: 11 } }),
     ]);
-    expect(t.hours).toBe(25);
-    expect(t.seasonal).toEqual({ spring: 6, summer: 8, autumn: 10, winter: 12 });
+    // Seasonal sum: spring 25, summer 20, autumn 23, winter 18
+    expect(t.seasonal).toEqual({ spring: 25, summer: 20, autumn: 23, winter: 18 });
+    // Baseline: (25 + 20 + 23 + 18) / 4 = 86 / 4 = 21.5 ≈ 22
+    expect(t.hours).toBe(22);
   });
 
   it('unions skills by name, keeping the highest level', () => {
@@ -259,35 +263,37 @@ describe('LabourInventoryCapture -- summary & validity', () => {
   it('summariseLabour reports people count, combined hours, and skill count', () => {
     const s = summariseLabour(
       modelOf([
-        person({ hours: 20, skills: [{ name: 'a', level: 'beginner' }] }),
-        person({ hours: 25, skills: [{ name: 'b', level: 'capable' }] }),
+        person({ seasonal: { spring: 24, summer: 20, autumn: 22, winter: 16 }, skills: [{ name: 'a', level: 'beginner' }] }),
+        person({ seasonal: { spring: 26, summer: 25, autumn: 27, winter: 19 }, skills: [{ name: 'b', level: 'capable' }] }),
       ]),
     );
     expect(s).toMatch(/2 people/);
+    // Team seasonal: spring 50, summer 45, autumn 49, winter 35 = 179 total
+    // Baseline: (50+45+49+35)/4 = 179/4 = 44.75 ≈ 45
     expect(s).toMatch(/45 hrs\/wk combined/);
     expect(s).toMatch(/2 skills/);
   });
 
   it('summariseLabour singularizes one person / one skill', () => {
     const s = summariseLabour(
-      modelOf([person({ hours: 5, skills: [{ name: 'a', level: 'beginner' }] })]),
+      modelOf([person({ seasonal: { spring: 6, summer: 5, autumn: 5, winter: 4 }, skills: [{ name: 'a', level: 'beginner' }] })]),
     );
     expect(s).toMatch(/1 person\b/);
     expect(s).toMatch(/1 skill\b/);
   });
 
-  it('isLabourValid requires one person with both hours>0 and a skill', () => {
+  it('isLabourValid requires one person with both seasonal hours>0 and a skill', () => {
     expect(
       isLabourValid(
-        modelOf([person({ hours: 10, skills: [{ name: 'a', level: 'beginner' }] })]),
+        modelOf([person({ seasonal: { spring: 12, summer: 10, autumn: 11, winter: 8 }, skills: [{ name: 'a', level: 'beginner' }] })]),
       ),
     ).toBe(true);
     expect(
       isLabourValid(
-        modelOf([person({ hours: 0, skills: [{ name: 'a', level: 'beginner' }] })]),
+        modelOf([person({ seasonal: { spring: 0, summer: 0, autumn: 0, winter: 0 }, skills: [{ name: 'a', level: 'beginner' }] })]),
       ),
     ).toBe(false);
-    expect(isLabourValid(modelOf([person({ hours: 10, skills: [] })]))).toBe(false);
+    expect(isLabourValid(modelOf([person({ seasonal: { spring: 10, summer: 10, autumn: 10, winter: 10 }, skills: [] })]))).toBe(false);
     expect(isLabourValid(modelOf([]))).toBe(false);
   });
 });
@@ -331,32 +337,33 @@ describe('LabourInventoryCapture -- roster UI', () => {
             person({
               name: 'You',
               role: 'primary',
-              hours: 20,
+              seasonal: { spring: 24, summer: 20, autumn: 22, winter: 16 },
               skills: [{ name: 'Fencing & earthworks', level: 'expert' }],
             }),
-            person({ name: 'Amal', role: 'team_member', hours: 10 }),
+            person({ name: 'Amal', role: 'team_member', seasonal: { spring: 12, summer: 10, autumn: 11, winter: 8 } }),
           ],
           'who-small',
         ),
       ),
     );
     expect(screen.getAllByTestId('roster-row').length).toBe(2);
-    // first row open -> its per-person hours stepper is present
+    // first row open -> its per-person baseline hours display is present (read-only)
     expect(
-      screen.getByRole('button', { name: /increase hours for You/i }),
+      screen.getByText(/derived from seasonal/i),
     ).toBeTruthy();
   });
 
-  it('editing a person hours re-emits the roster and the recomputed team total', () => {
+  it('editing a person seasonal hours re-emits the roster and the recomputed team total', () => {
     const { onChange } = renderCapture(
       encode(
-        modelOf([person({ name: 'You', role: 'primary', hours: 10, skills: [] })], 'who-solo'),
+        modelOf([person({ name: 'You', role: 'primary', seasonal: { spring: 10, summer: 10, autumn: 10, winter: 10 }, skills: [] })], 'who-solo'),
       ),
     );
-    fireEvent.click(screen.getByRole('button', { name: /increase hours for You/i }));
+    fireEvent.click(screen.getByRole('button', { name: /increase spring for You/i }));
     const arg = onChange.mock.calls[0]![0] as FormValue;
-    expect((arg.rosterHours as string[])[0]).toBe('15');
-    expect(arg.hours).toBe('15'); // derived whole-team total
+    expect((arg.rosterSpring as string[])[0]).toBe('15');
+    // Derived team baseline: ((15+10+10+10)/4) ≈ 11
+    expect(arg.hours).toBe('11');
   });
 
   it('"Add a person" appends a roster row', () => {
@@ -403,7 +410,7 @@ describe('LabourInventoryCapture -- roster UI', () => {
             person({
               name: 'You',
               role: 'primary',
-              hours: 10,
+              seasonal: { spring: 12, summer: 10, autumn: 11, winter: 8 },
               skills: [{ name: 'a', level: 'beginner' }],
             }),
           ],

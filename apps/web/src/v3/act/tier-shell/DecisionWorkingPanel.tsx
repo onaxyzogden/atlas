@@ -174,6 +174,13 @@ import {
   type LivestockIntentMode,
 } from './LivestockIntentCapture.js';
 import {
+  ConflictFrameworkCapture,
+  conflictFrameworkModeFor,
+  isConflictFrameworkValid,
+  summariseConflictFramework,
+  type ConflictFrameworkMode,
+} from './ConflictFrameworkCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -234,6 +241,8 @@ export interface DecisionPanelTarget {
   isGrazing?: boolean;
   /** true => render LivestockIntentCapture (self-routing on itemId via livestockIntentModeFor). */
   isLivestockIntent?: boolean;
+  /** true => render ConflictFrameworkCapture (self-routing on itemId via conflictFrameworkModeFor). */
+  isConflictFramework?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -536,6 +545,16 @@ export default function DecisionWorkingPanel({
   // summary, and body arms.
   const livestockIntentMode: LivestockIntentMode | null =
     decision.isLivestockIntent ? livestockIntentModeFor(decision.itemId) : null;
+  // Conflict-resolution & community-agreement framework is a 7-mode capture
+  // (decisionProcess/disputePathway/communityAgreements/exitProcess/dissolution/
+  // reviewCadence/signOff) routed by conflictFrameworkModeFor(itemId). Each mode
+  // is self-contained (no sibling reads), so only the resolved mode is held here
+  // -- used by validity, gate-note, summary, and body-router arms below. The
+  // signOff (c7) mode is a pre-land-work HARD GATE.
+  const conflictFrameworkMode: ConflictFrameworkMode | null =
+    decision.isConflictFramework
+      ? conflictFrameworkModeFor(decision.itemId)
+      : null;
 
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
@@ -583,6 +602,8 @@ export default function DecisionWorkingPanel({
     valid = isGrazingValid(grazingMode, draft);
   } else if (livestockIntentMode) {
     valid = isLivestockIntentValid(livestockIntentMode, draft);
+  } else if (conflictFrameworkMode) {
+    valid = isConflictFrameworkValid(conflictFrameworkMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -645,9 +666,16 @@ export default function DecisionWorkingPanel({
           : 'Add at least one authority contact to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLabourInventory && labourModel) {
-      // Ready once at least one roster person carries hours + a skill.
+      // Ready once at least one roster person carries seasonal hours + a skill.
       const missing: string[] = [];
-      if (!labourModel.roster.some((p) => p.hours > 0)) {
+      // Check if any person has seasonal hours (import hasAnySeasonal helper if needed)
+      const hasAnyHours = labourModel.roster.some((p) =>
+        p.seasonal.spring > 0 ||
+        p.seasonal.summer > 0 ||
+        p.seasonal.autumn > 0 ||
+        p.seasonal.winter > 0,
+      );
+      if (!hasAnyHours) {
         missing.push('weekly hours for a person');
       }
       if (!labourModel.roster.some((p) => p.skills.length >= 1)) {
@@ -736,6 +764,18 @@ export default function DecisionWorkingPanel({
           Select a pathway (confirm, defer, or redesign) to record
         </div>
       );
+    } else if (conflictFrameworkMode) {
+      const note =
+        conflictFrameworkMode === 'signOff'
+          ? 'All 4 founding households must sign before land work unlocks'
+          : conflictFrameworkMode === 'communityAgreements'
+            ? 'Adopt at least one community agreement to record'
+            : conflictFrameworkMode === 'decisionProcess'
+              ? 'Choose a primary decision model and quorum to record'
+              : conflictFrameworkMode === 'disputePathway'
+                ? 'Choose a resolver for all 3 dispute tiers to record'
+                : 'Complete the required selections to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -789,6 +829,8 @@ export default function DecisionWorkingPanel({
       summary = summariseGrazing(grazingMode, draft, siblingValues);
     } else if (livestockIntentMode) {
       summary = summariseLivestockIntent(livestockIntentMode, draft, siblingValues);
+    } else if (conflictFrameworkMode) {
+      summary = summariseConflictFramework(conflictFrameworkMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -990,6 +1032,15 @@ export default function DecisionWorkingPanel({
             itemId={decision.itemId}
             siblingValues={siblingValues}
           />
+        ) : conflictFrameworkMode ? (
+          <ConflictFrameworkCapture
+            key={decision.itemId}
+            mode={conflictFrameworkMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            projectId={projectId}
+          />
         ) : hasFields ? (
           <VisionFormFields
             fields={fields ?? []}
@@ -1008,16 +1059,6 @@ export default function DecisionWorkingPanel({
             }
           />
         )}
-      </div>
-
-      {/* ---------- Footer ---------- */}
-      <div className={css.foot}>
-        {decision.feedsLabel ? (
-          <div className={css.feedsBlock}>
-            <ArrowRight size={14} className={css.feedsIcon} aria-hidden="true" />
-            <div className={css.feedsTxt}>{decision.feedsLabel}</div>
-          </div>
-        ) : null}
 
         <div className={css.ratBlock}>
           <div className={css.secLbl}>
@@ -1033,6 +1074,16 @@ export default function DecisionWorkingPanel({
             onBlur={() => onSaveRationale(rationaleDraft)}
           />
         </div>
+      </div>
+
+      {/* ---------- Footer ---------- */}
+      <div className={css.foot}>
+        {decision.feedsLabel ? (
+          <div className={css.feedsBlock}>
+            <ArrowRight size={14} className={css.feedsIcon} aria-hidden="true" />
+            <div className={css.feedsTxt}>{decision.feedsLabel}</div>
+          </div>
+        ) : null}
 
         {gateNote}
 
