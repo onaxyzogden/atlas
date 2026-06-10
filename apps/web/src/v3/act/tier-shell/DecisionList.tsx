@@ -237,6 +237,15 @@ const MODE_LABELS: Record<string, string> = {
   'pi-compostCapacity': 'Compost capacity',
   'pi-mediaSourcing': 'Media sourcing',
 
+  // Adaptive-management protocol modes (ecovillage EV-S7.9). The component's
+  // generic mode keys are namespaced "am-" by workbenchAffordances to keep them
+  // clear of the generic labels above. 5 modes c1..c5. Advisory only.
+  'am-review': 'Annual review',
+  'am-triggers': 'Decision triggers',
+  'am-escalation': 'Escalation',
+  'am-documentation': 'Documentation',
+  'am-fiveyear': '5-year review',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The

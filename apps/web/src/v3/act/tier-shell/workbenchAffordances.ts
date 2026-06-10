@@ -37,6 +37,7 @@ import { settlementModeFor } from './SettlementCapture.js';
 import { biosecurityModeFor } from './BiosecurityCapture.js';
 import { financialModelModeFor } from './FinancialModelCapture.js';
 import { propagationInfraModeFor } from './PropagationInfraCapture.js';
+import { adaptiveManagementModeFor } from './AdaptiveManagementCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -390,6 +391,25 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('nur-sec-s1-propagation-infra-survey-')) return null;
       const m = propagationInfraModeFor(itemId);
       return m ? `pi-${m}` : null;
+    },
+  },
+
+  // Adaptive-management protocol (ev-s7-adaptive-management, EV-S7.9): 5 decisions
+  // grouped (showGroups true) under three decision groups; no map/register strips.
+  // Advisory form-only -- the capture writes no store and takes no projectId.
+  // adaptiveManagementModeFor returns mode keys (review / triggers / escalation /
+  // documentation / fiveyear); badge keys are namespaced "am-" HERE (the affordance
+  // modeFor feeds the badge only; DecisionWorkingPanel routes off its own
+  // adaptiveManagementModeFor independently), and DecisionList carries matching
+  // am-* labels.
+  'ev-s7-adaptive-management': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s7-adaptive-management-')) return null;
+      const m = adaptiveManagementModeFor(itemId);
+      return m ? `am-${m}` : null;
     },
   },
 };

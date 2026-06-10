@@ -1,0 +1,402 @@
+/* AdaptiveManagementCapture.module.css
+ *
+ * Styles for the 5-mode adaptive-management capture (review / triggers /
+ * escalation / documentation / fiveyear). Ported from
+ * olos_adaptive_management_act.html p1..p5. The mockup is dark-themed; like the
+ * sibling captures (PropagationInfraCapture / FinancialModelCapture) this renders
+ * in the LIGHT workbench, so the mockup palette is mapped to design tokens with
+ * hex fallbacks rather than reproduced raw. ASCII-only; every glyph is a lucide
+ * icon. No bare hex outside a var() fallback or a scoped accent var.
+ *
+ * Palette mapping (mockup raw-hex -> app token / scoped accent var):
+ *   teal   --tl  -> --color-stage-plan (#38a3a5)  (group 1: review / triggers, eco)
+ *   amber  --am  -> --color-stage-act  (#d9a036)  (group 2: escalation / docs, social)
+ *   mauve  --mv  -> (#9b7ec8 scoped)              (group 3: 5-year review)
+ *   gold   --gl  -> --color-gold-brand  (#b08a3a) (financial trigger domain)
+ *   rose   --rose-> (#c4507a scoped)              (community escalation tier)
+ *   blue   --bl  -> --color-info        (#5b8eaf) (feeds note)
+ */
+
+.root {
+  /* Scoped accent vars: prefer a theme token, fall back to the mockup hue. */
+  --am-teal: var(--color-stage-plan, #38a3a5);
+  --am-amber: var(--color-stage-act, #d9a036);
+  --am-mauve: #9b7ec8;
+  --am-gold: var(--color-gold-brand, #b08a3a);
+  --am-rose: #c4507a;
+  --am-info: var(--color-info, #5b8eaf);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hintInline {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 9.5px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--am-info) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--am-info) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--am-info);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--am-info);
+  font-weight: 500;
+}
+
+/* ---------- Shared labelled dropdown row (mockup .row) ---------- */
+
+.rowGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.rowLbl {
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Shared toggle-list row (agenda / doc / outcome) ---------- */
+
+.toggleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.toggleRow:hover {
+  border-color: var(--color-text-muted, #565c63);
+}
+
+.toggleRow[data-on='true'][data-tone='teal'] {
+  background: color-mix(in srgb, var(--am-teal) 12%, transparent);
+  border-color: color-mix(in srgb, var(--am-teal) 38%, transparent);
+}
+
+.toggleRow[data-on='true'][data-tone='amber'] {
+  background: color-mix(in srgb, var(--am-amber) 12%, transparent);
+  border-color: color-mix(in srgb, var(--am-amber) 38%, transparent);
+}
+
+.toggleRow[data-on='true'][data-tone='mauve'] {
+  background: color-mix(in srgb, var(--am-mauve) 12%, transparent);
+  border-color: color-mix(in srgb, var(--am-mauve) 38%, transparent);
+}
+
+.toggleDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  flex-shrink: 0;
+  margin-top: 3px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.toggleRow[data-on='true'][data-tone='teal'] .toggleDot {
+  background: var(--am-teal);
+  border-color: var(--am-teal);
+}
+
+.toggleRow[data-on='true'][data-tone='amber'] .toggleDot {
+  background: var(--am-amber);
+  border-color: var(--am-amber);
+}
+
+.toggleRow[data-on='true'][data-tone='mauve'] .toggleDot {
+  background: var(--am-mauve);
+  border-color: var(--am-mauve);
+}
+
+.toggleBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.toggleName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted, #565c63);
+}
+
+.toggleRow[data-on='true'][data-tone='teal'] .toggleName {
+  color: var(--am-teal);
+}
+.toggleRow[data-on='true'][data-tone='amber'] .toggleName {
+  color: var(--am-amber);
+}
+.toggleRow[data-on='true'][data-tone='mauve'] .toggleName {
+  color: var(--am-mauve);
+}
+
+.toggleDesc {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.4;
+}
+
+.toggleSource {
+  font-size: 9.5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ===================================================================== */
+/* P2 TRIGGERS -- domain-coloured cards + threshold + response selects    */
+/* ===================================================================== */
+
+.triggerItem {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+
+.triggerItem[data-tone='eco'] {
+  border-left: 3px solid var(--am-teal);
+}
+.triggerItem[data-tone='soc'] {
+  border-left: 3px solid var(--am-amber);
+}
+.triggerItem[data-tone='fin'] {
+  border-left: 3px solid var(--am-gold);
+}
+
+.tiHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.tiDomain {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.tiDomain[data-tone='eco'] {
+  background: color-mix(in srgb, var(--am-teal) 14%, transparent);
+  color: var(--am-teal);
+  border-color: color-mix(in srgb, var(--am-teal) 30%, transparent);
+}
+.tiDomain[data-tone='soc'] {
+  background: color-mix(in srgb, var(--am-amber) 14%, transparent);
+  color: var(--am-amber);
+  border-color: color-mix(in srgb, var(--am-amber) 30%, transparent);
+}
+.tiDomain[data-tone='fin'] {
+  background: color-mix(in srgb, var(--am-gold) 14%, transparent);
+  color: var(--am-gold);
+  border-color: color-mix(in srgb, var(--am-gold) 30%, transparent);
+}
+
+.tiName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+}
+
+.tiThreshold {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  padding: 4px 8px;
+  background: var(--color-surface, #ffffff);
+  border-radius: var(--radius-sm, 4px);
+  border-left: 2px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.tiThreshold[data-tone='eco'] {
+  border-left-color: var(--am-teal);
+}
+.tiThreshold[data-tone='soc'] {
+  border-left-color: var(--am-amber);
+}
+.tiThreshold[data-tone='fin'] {
+  border-left-color: var(--am-gold);
+}
+
+.tiRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tiRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tiLbl {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===================================================================== */
+/* P3 ESCALATION -- 2 tiers + per-row response selects                    */
+/* ===================================================================== */
+
+.escTier {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+
+.escTier[data-tone='eco'] {
+  border-left: 3px solid var(--am-teal);
+}
+.escTier[data-tone='soc'] {
+  border-left: 3px solid var(--am-rose);
+}
+
+.etHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.etIcon {
+  flex-shrink: 0;
+}
+.escTier[data-tone='eco'] .etIcon {
+  color: var(--am-teal);
+}
+.escTier[data-tone='soc'] .etIcon {
+  color: var(--am-rose);
+}
+
+.etTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+}
+
+.etTriggerTxt {
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.etRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.etRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.etLbl {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===================================================================== */
+/* P5 5-YEAR REVIEW -- structure section + scope list                     */
+/* ===================================================================== */
+
+.fiveSection {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+
+.fysLbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 7px;
+}
+
+.fysRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fysRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fysLblR {
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+  min-width: 0;
+}

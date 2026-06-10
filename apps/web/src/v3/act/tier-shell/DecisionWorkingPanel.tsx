@@ -237,6 +237,13 @@ import {
   type PropagationInfraMode,
 } from './PropagationInfraCapture.js';
 import {
+  AdaptiveManagementCapture,
+  adaptiveManagementModeFor,
+  isAdaptiveManagementValid,
+  summariseAdaptiveManagement,
+  type AdaptiveManagementMode,
+} from './AdaptiveManagementCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -315,6 +322,8 @@ export interface DecisionPanelTarget {
   isFinancialModel?: boolean;
   /** true => render PropagationInfraCapture (self-routing on itemId via propagationInfraModeFor). */
   isPropagationInfra?: boolean;
+  /** true => render AdaptiveManagementCapture (self-routing on itemId via adaptiveManagementModeFor). */
+  isAdaptiveManagement?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -696,6 +705,15 @@ export default function DecisionWorkingPanel({
       ? propagationInfraModeFor(decision.itemId)
       : null;
 
+  // Adaptive management protocol (ev-s7-adaptive-management c1..c5: review /
+  // triggers / escalation / documentation / fiveyear) routed by
+  // adaptiveManagementModeFor(itemId). Advisory only -- validates / summarises
+  // directly off the FormValue, writes no store / takes no projectId.
+  const adaptiveManagementMode: AdaptiveManagementMode | null =
+    decision.isAdaptiveManagement
+      ? adaptiveManagementModeFor(decision.itemId)
+      : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -760,6 +778,8 @@ export default function DecisionWorkingPanel({
     valid = isFinancialModelValid(financialModelMode, draft);
   } else if (propagationInfraMode) {
     valid = isPropagationInfraValid(propagationInfraMode, draft);
+  } else if (adaptiveManagementMode) {
+    valid = isAdaptiveManagementValid(adaptiveManagementMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1004,6 +1024,12 @@ export default function DecisionWorkingPanel({
     } else if (propagationInfraMode) {
       summary = summarisePropagationInfra(
         propagationInfraMode,
+        draft,
+        siblingValues,
+      );
+    } else if (adaptiveManagementMode) {
+      summary = summariseAdaptiveManagement(
+        adaptiveManagementMode,
         draft,
         siblingValues,
       );
@@ -1285,6 +1311,15 @@ export default function DecisionWorkingPanel({
           <PropagationInfraCapture
             key={decision.itemId}
             mode={propagationInfraMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : adaptiveManagementMode ? (
+          <AdaptiveManagementCapture
+            key={decision.itemId}
+            mode={adaptiveManagementMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

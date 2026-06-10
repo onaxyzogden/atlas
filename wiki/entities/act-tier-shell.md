@@ -2274,3 +2274,54 @@ from this surface). Screenshot confirmed reorder + empty-state on `/v3/component
 > canonical working line, `feat/structured-capture-forms` is an ancestor.
 > Phase 3 continues on `main`; nothing pushed without an explicit ask
 > ([[project-structured-capture-on-main]], [[project-branch-rebase]]).
+
+## AdaptiveManagementCapture -- ecovillage EV-S7.9 advisory protocol (2026-06-10)
+
+Bespoke advisory Act capture for `ev-s7-adaptive-management` (Ecovillage x Stratum 7,
+"A sound adaptive management protocol", 5 checklist items c1..c5), ported pixel-faithfully
+from operator mockup `olos_adaptive_management_act.html` panels p1..p5. The objective was
+already fully authored in the Plan catalogue (`ecovillage.ts` EV-S7.9) but resolved to the
+generic checklist/text Act surface; this capture supplies the designed decision-workbench
+body, continuing the advisory-capture line after PropagationInfraCapture
+([[log/2026-06-10-atlas-propagation-infra-survey-merge]]).
+
+**5 modes (c1..c5 -> mockup p1..p5):**
+- `review` (c1) -- annual-review timing/duration/facilitator dropdowns + 7-row agenda
+  toggle-list (each row tagged with an `ai-source` AI-provenance marker).
+- `triggers` (c2) -- 4 decision-trigger cards (ecological / ecological / social / financial),
+  each verbatim threshold text + per-row response dropdown(s).
+- `escalation` (c3) -- 2 escalation tiers (ecological / community), per-row dropdowns +
+  a "filed in" dropdown.
+- `documentation` (c4) -- 6-row "what gets documented" toggle-list + 3 dropdowns
+  (filed in / effective from / notified).
+- `fiveyear` (c5) -- review-structure (4 dropdowns) + 6-row "scope" toggle-list.
+
+**Advisory pure-FormValue contract** (identical to PropagationInfra / Biosecurity): no
+`projectId`, no store adapter, no map filter, no `handleFormDataSave` branch; the panel
+passes `siblingValues` for signature uniformity only. `decodeAdaptiveManagement(mode, value)`
+is total/defensive -- never throws, never fabricates the mockup's UI demo defaults (empty
+`FormValue` decodes to all-toggles-off / selects-""); `encodeAdaptiveManagement` is its
+lossless inverse. Toggle-lists serialize as `string[]` name-subsets; per-row dropdowns as
+fixed-length positional `string[]` arrays; numeric/selection fields as raw strings.
+`isAdaptiveManagementValid(mode, value)` is 2-arg (own value only); `summariseAdaptiveManagement(mode, value, siblingValues?)`
+is 3-arg and defensive on empty.
+
+**6-site wiring** per the established recipe -- with a discovered gap-close: on resume, three
+of the six sites (`TIER_ZERO_OBJECTIVE_IDS`, `workbenchAffordances` import+MAP-entry,
+`DecisionList` MODE_LABELS) were absent, so the capture rendered only in the `/v3/components`
+gallery and never mounted in the live workbench. All three were completed (additions placed
+adjacent to TRACKED/HEAD lines for clean surgical staging). MODE_LABELS namespaced `am-`
+(Annual review / Decision triggers / Escalation / Documentation / 5-year review) per the
+`pi-`/`li-`/`hb-` precedent; `DecisionWorkingPanel` routes off its own un-namespaced
+`adaptiveManagementModeFor`.
+
+**Amanah:** governance/ecology/process surface -- the p2 capital-reserve trigger and the
+financial dropdowns are **monitoring thresholds, not advance-sale instruments** (no riba/gharar,
+no CSA/salam framing) ([[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]).
+
+**Mounting:** `ev-s7-adaptive-management` is an ecovillage S7 objective; mounts live once an
+Ecovillage-type project reaches Stratum 7 -- build-ahead relative to the active Homestead +
+Silvopasture slice, gallery-verified meanwhile. Verified: bounded vitest 104/105 (the 1 fail
+is foreign s1-vision labour-badge breakage from commit `91f52d3f`); my files + all wiring
+tsc-clean (package gate red only on foreign terrain/slopeSurvey WIP); ASCII-only; not pushed.
+Log [[log/2026-06-10-atlas-adaptive-management-tier0]].

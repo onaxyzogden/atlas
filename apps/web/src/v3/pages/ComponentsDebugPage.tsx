@@ -2368,6 +2368,126 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Adaptive management protocol (ev-s7-adaptive-management): a 5-mode
+          ecovillage S7 capture (review / triggers / escalation / documentation
+          / fiveyear). Advisory only -- it writes no store and reads no siblings,
+          so each panel stands alone. The dummy "gallery" projectId matches the
+          sections above (the arm ignores it). */}
+      <Section title="Decision Working Panel - Adaptive: annual review (ev-s7-adaptive-management c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-adaptive-management-c1",
+              label: "Define annual management review process - land data and social health data reviewed together",
+              prompt: "Set how the annual review runs -- who attends, what land and social-health data it weighs, and how findings are logged.",
+              isAdaptiveManagement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Adaptive: decision triggers (ev-s7-adaptive-management c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-adaptive-management-c2",
+              label: "Define decision triggers - what monitoring outcomes require a plan change",
+              prompt: "Define each monitoring trigger and the plan change it forces once its threshold is crossed.",
+              isAdaptiveManagement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Adaptive: escalation (ev-s7-adaptive-management c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-adaptive-management-c3",
+              label: "Define escalation process for unexpected ecological or community events",
+              prompt: "Set the escalation path for unexpected ecological or community events -- who is alerted, how fast, and who decides.",
+              isAdaptiveManagement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Adaptive: documentation (ev-s7-adaptive-management c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-adaptive-management-c4",
+              label: "Specify documentation requirements for all plan changes and their rationale",
+              prompt: "Check what gets documented for each plan change and set where it is filed, when it takes effect, and who is notified.",
+              isAdaptiveManagement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Adaptive: 5-year review (ev-s7-adaptive-management c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-adaptive-management-c5",
+              label: "Define 5-year comprehensive review against Stratum 1 vision and ecological outcome targets",
+              prompt: "Set how the 5-year review is structured, then choose which dimensions it puts back under scrutiny.",
+              isAdaptiveManagement: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

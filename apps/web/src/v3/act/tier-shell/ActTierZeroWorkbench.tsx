@@ -291,6 +291,16 @@ export function buildDecisionTarget(
     'nur-sec-s1-propagation-infra-survey-',
   );
 
+  // Adaptive management protocol is a 5-item ecovillage S7 objective
+  // (ev-s7-adaptive-management-c1..-c5); detected by id prefix. The panel's
+  // isAdaptiveManagement body-router arm (AdaptiveManagementCapture self-routes
+  // on itemId via adaptiveManagementModeFor) takes precedence over any matched
+  // generic form. Advisory only -- no store write, no projectId. Each mode gates
+  // on at least one entry (agenda / response / doc / scope item). The financial
+  // trigger and capital-reserve thresholds are monitoring signals, not
+  // advance-sale instruments -- fiqh-clear. False for every other id.
+  const isAdaptiveManagement = item.id.startsWith('ev-s7-adaptive-management-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -349,6 +359,7 @@ export function buildDecisionTarget(
     isBiosecurity,
     isFinancialModel,
     isPropagationInfra,
+    isAdaptiveManagement,
     deferLabel,
     deferrable,
   };
