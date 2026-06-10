@@ -154,15 +154,33 @@ describe('workbenchAffordancesFor -- nur-sec-s1-propagation-infra-survey', () =>
   });
 });
 
-describe('workbenchAffordancesFor -- empty fallback (any id routes safely)', () => {
-  it('returns the EMPTY shape for a vision objective with no entry', () => {
-    const aff = workbenchAffordancesFor('s1-vision');
+describe('workbenchAffordancesFor -- s1-vision', () => {
+  const aff = workbenchAffordancesFor('s1-vision');
+
+  it('carries no strips and shows the catalogue decision groups', () => {
     expect(aff.mapStrips).toHaveLength(0);
     expect(aff.registerStrip).toBeNull();
-    expect(aff.showGroups).toBe(false);
-    expect(aff.modeFor).toBeNull();
+    expect(aff.showGroups).toBe(true);
   });
 
+  it('maps each checklist item to its namespaced vs-* artifact badge key', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    expect(aff.modeFor!('s1-vision-c1')).toBe('vs-purpose');
+    expect(aff.modeFor!('s1-vision-c2')).toBe('vs-criteria');
+    expect(aff.modeFor!('s1-vision-steward')).toBe('vs-steward');
+    expect(aff.modeFor!('s1-vision-labour')).toBe('vs-labour');
+    expect(aff.modeFor!('s1-vision-c3')).toBe('vs-capital');
+    expect(aff.modeFor!('s1-vision-constraints')).toBe('vs-constraints');
+    expect(aff.modeFor!('s1-vision-classify')).toBe('vs-classify');
+    expect(aff.modeFor!('s1-vision-assumptions')).toBe('vs-assumptions');
+  });
+
+  it('returns null for an unmapped vision id (no stray badge)', () => {
+    expect(aff.modeFor!('s1-vision-unknown')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- empty fallback (any id routes safely)', () => {
   it('returns the EMPTY shape for an arbitrary future S2 objective without throwing', () => {
     const aff = workbenchAffordancesFor('s2-fake-carrying-capacity');
     expect(aff.mapStrips).toHaveLength(0);

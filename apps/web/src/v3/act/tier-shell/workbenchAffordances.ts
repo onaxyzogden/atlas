@@ -70,7 +70,32 @@ const EMPTY_AFFORDANCES: WorkbenchObjectiveAffordances = Object.freeze({
   modeFor: null,
 });
 
+// S1 vision, goals & stewardship capacity (universal U-S1.1): 8 checklist items
+// (one optional steward) across the catalogue's 2 existing decision groups
+// (Purpose & intent / Capacity & constraints). showGroups true; no map/register
+// strips. Unlike the other objectives, the items have no "capture mode" -- they
+// have artifact TYPES -- so the resolver is a STATIC itemId -> namespaced "vs-"
+// key map (matching the li-/hb-/si- namespacing convention used to avoid label
+// collisions). DecisionList carries matching vs-* labels, icons, and a per-kind
+// badge color via MODE_BADGE_KIND.
+const VISION_ARTIFACT_BADGE: Record<string, string> = {
+  's1-vision-c1': 'vs-purpose',
+  's1-vision-c2': 'vs-criteria',
+  's1-vision-steward': 'vs-steward',
+  's1-vision-labour': 'vs-labour',
+  's1-vision-c3': 'vs-capital',
+  's1-vision-constraints': 'vs-constraints',
+  's1-vision-classify': 'vs-classify',
+  's1-vision-assumptions': 'vs-assumptions',
+};
+
 const MAP: Record<string, WorkbenchObjectiveAffordances> = {
+  's1-vision': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => VISION_ARTIFACT_BADGE[itemId] ?? null,
+  },
   's1-boundaries': {
     mapStrips: [
       {

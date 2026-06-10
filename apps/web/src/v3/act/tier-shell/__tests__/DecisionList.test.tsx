@@ -259,6 +259,58 @@ describe('DecisionList -- mode badges', () => {
     );
   });
 
+  it('maps each vision artifact key to its label and per-kind data-kind', () => {
+    const onSelectItem = vi.fn();
+    const obj = makeObjective({
+      checklist: [
+        { id: 'v-purpose', label: 'Purpose row', feedsInto: [], optional: false },
+        { id: 'v-criteria', label: 'Criteria row', feedsInto: [], optional: false },
+        { id: 'v-steward', label: 'Steward row', feedsInto: [], optional: false },
+        { id: 'v-labour', label: 'Labour row', feedsInto: [], optional: false },
+        { id: 'v-capital', label: 'Capital row', feedsInto: [], optional: false },
+        { id: 'v-constraints', label: 'Constraints row', feedsInto: [], optional: false },
+        { id: 'v-classify', label: 'Classify row', feedsInto: [], optional: false },
+        { id: 'v-assumptions', label: 'Assumptions row', feedsInto: [], optional: false },
+      ],
+    } as Partial<PlanStratumObjective>);
+    const modes: Record<string, string> = {
+      'v-purpose': 'vs-purpose',
+      'v-criteria': 'vs-criteria',
+      'v-steward': 'vs-steward',
+      'v-labour': 'vs-labour',
+      'v-capital': 'vs-capital',
+      'v-constraints': 'vs-constraints',
+      'v-classify': 'vs-classify',
+      'v-assumptions': 'vs-assumptions',
+    };
+    render(
+      <DecisionList
+        objective={obj}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        modeFor={(itemId) => modes[itemId] ?? null}
+      />,
+    );
+    expect(screen.getByTestId('mode-badge-v-purpose').textContent).toMatch(/^Purpose statement$/);
+    expect(screen.getByTestId('mode-badge-v-criteria').textContent).toMatch(/^Success criteria$/);
+    expect(screen.getByTestId('mode-badge-v-steward').textContent).toMatch(/^Steward$/);
+    expect(screen.getByTestId('mode-badge-v-labour').textContent).toMatch(/^Labour inventory$/);
+    expect(screen.getByTestId('mode-badge-v-capital').textContent).toMatch(/^Capital inventory$/);
+    expect(screen.getByTestId('mode-badge-v-constraints').textContent).toMatch(/^Non-negotiables$/);
+    expect(screen.getByTestId('mode-badge-v-classify').textContent).toMatch(/^Committed \/ aspirational$/);
+    expect(screen.getByTestId('mode-badge-v-assumptions').textContent).toMatch(/^Assumptions register$/);
+    // Per-kind color families surface via data-kind (mockup palette).
+    expect(screen.getByTestId('mode-badge-v-purpose').getAttribute('data-kind')).toBe('doc');
+    expect(screen.getByTestId('mode-badge-v-assumptions').getAttribute('data-kind')).toBe('doc');
+    expect(screen.getByTestId('mode-badge-v-criteria').getAttribute('data-kind')).toBe('assess');
+    expect(screen.getByTestId('mode-badge-v-steward').getAttribute('data-kind')).toBe('neutral');
+    expect(screen.getByTestId('mode-badge-v-labour').getAttribute('data-kind')).toBe('labour');
+    expect(screen.getByTestId('mode-badge-v-capital').getAttribute('data-kind')).toBe('capital');
+    expect(screen.getByTestId('mode-badge-v-constraints').getAttribute('data-kind')).toBe('decision');
+    expect(screen.getByTestId('mode-badge-v-classify').getAttribute('data-kind')).toBe('decision');
+  });
+
   it('maps each stakeholder mode key to its human label', () => {
     const onSelectItem = vi.fn();
     const obj = makeObjective({

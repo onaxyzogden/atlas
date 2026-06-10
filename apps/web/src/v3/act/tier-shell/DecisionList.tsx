@@ -31,6 +31,13 @@ import {
   Map as MapIcon,
   MapPin,
   Scale,
+  Target,
+  Users,
+  UserCheck,
+  Coins,
+  Lock,
+  Columns,
+  HelpCircle,
 } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
@@ -229,6 +236,19 @@ const MODE_LABELS: Record<string, string> = {
   'pi-mediaInputs': 'On-site media',
   'pi-compostCapacity': 'Compost capacity',
   'pi-mediaSourcing': 'Media sourcing',
+
+  // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
+  // Unlike the other families these are not capture "modes" -- they are static
+  // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The
+  // "vs-" namespace keeps them clear of the generic labels above. 8 items.
+  'vs-purpose': 'Purpose statement',
+  'vs-criteria': 'Success criteria',
+  'vs-steward': 'Steward',
+  'vs-labour': 'Labour inventory',
+  'vs-capital': 'Capital inventory',
+  'vs-constraints': 'Non-negotiables',
+  'vs-classify': 'Committed / aspirational',
+  'vs-assumptions': 'Assumptions register',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
@@ -239,6 +259,31 @@ const MODE_ICONS: Record<string, typeof Check> = {
   map: MapIcon,
   mapEntry: MapPin,
   decision: Scale,
+  // Vision artifact badges (U-S1.1) -- icon parity with the reference mockup.
+  'vs-purpose': FileText,
+  'vs-criteria': Target,
+  'vs-steward': UserCheck,
+  'vs-labour': Users,
+  'vs-capital': Coins,
+  'vs-constraints': Lock,
+  'vs-classify': Columns,
+  'vs-assumptions': HelpCircle,
+};
+
+// Raw mode key -> badge color "kind", surfaced as a data-kind attribute on the
+// badge span so DecisionList.module.css can color it per artifact family
+// (mockup palette: doc=parchment/gold, assess=amber, labour=blue, capital=gold,
+// decision/neutral=grey). Only the vision (vs-*) keys appear here, so every
+// other objective keeps the default uniform-amber badge (no data-kind).
+const MODE_BADGE_KIND: Record<string, string> = {
+  'vs-purpose': 'doc',
+  'vs-assumptions': 'doc',
+  'vs-criteria': 'assess',
+  'vs-steward': 'neutral',
+  'vs-labour': 'labour',
+  'vs-capital': 'capital',
+  'vs-constraints': 'decision',
+  'vs-classify': 'decision',
 };
 
 export default function DecisionList({
@@ -339,6 +384,11 @@ export default function DecisionList({
                       {modeLabel ? (
                         <span
                           className={css.dModeBadge}
+                          data-kind={
+                            rawMode
+                              ? (MODE_BADGE_KIND[rawMode] ?? undefined)
+                              : undefined
+                          }
                           data-testid={`mode-badge-${item.id}`}
                         >
                           {ModeIcon ? (
