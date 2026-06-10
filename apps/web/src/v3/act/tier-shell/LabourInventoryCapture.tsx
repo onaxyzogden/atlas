@@ -44,7 +44,7 @@
  * (which rows are expanded + the per-row custom-skill composer text).
  */
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
   ArrowDown,
   ArrowRight,
@@ -61,9 +61,33 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { LABOUR_SKILL_CATEGORIES } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import type { StewardModel } from './StewardCapture.js';
 import css from './LabourInventoryCapture.module.css';
+
+const SKILL_TO_CATEGORY = new Map<string, string>(
+  LABOUR_SKILL_CATEGORIES.flatMap(({ label, skills }) =>
+    skills.map((s) => [s, label]),
+  ),
+);
+
+function groupByCategory(
+  names: string[],
+): { label: string | null; names: string[] }[] {
+  const remaining = new Set(names);
+  const groups: { label: string | null; names: string[] }[] = [];
+  for (const { label, skills } of LABOUR_SKILL_CATEGORIES) {
+    const present = skills.filter((s) => remaining.has(s));
+    if (present.length > 0) {
+      groups.push({ label, names: present });
+      for (const s of present) remaining.delete(s);
+    }
+  }
+  const custom = names.filter((n) => remaining.has(n));
+  if (custom.length > 0) groups.push({ label: null, names: custom });
+  return groups;
+}
 
 // --------------------------------------------------------------------------
 // Model + contract types
@@ -735,51 +759,64 @@ export default function LabourInventoryCapture({
 
                     <div className={css.subLabel}>Skill areas</div>
                     <div className={css.skillsList}>
-                      {rowNames.map((name) => {
-                        const entry = skillByName.get(name);
-                        const checked = entry != null;
-                        return (
-                          <div
-                            key={name}
-                            className={css.skillRow}
-                            data-testid="skill-row"
-                            data-checked={checked ? 'true' : 'false'}
-                          >
-                            <button
-                              type="button"
-                              className={css.skillToggle}
-                              aria-pressed={checked}
-                              aria-label={`${name} for ${p.name || 'person'}`}
-                              onClick={() => togglePersonSkill(i, name)}
-                            >
-                              <span className={css.skillCheck}>
-                                {checked ? <Check size={11} /> : null}
-                              </span>
-                              <span className={css.skillName}>{name}</span>
-                            </button>
-                            <span className={css.levelDots}>
-                              {LEVELS.map((lvl) => {
-                                const litIdx = entry ? LEVELS.indexOf(entry.level) : -1;
-                                const lit =
-                                  entry != null && LEVELS.indexOf(lvl) <= litIdx;
-                                return (
-                                  <button
-                                    key={lvl}
-                                    type="button"
-                                    className={css.lvlDot}
-                                    data-level={lvl}
-                                    data-lit={lit ? 'true' : 'false'}
-                                    aria-label={`Set ${name} to ${lvl}`}
-                                    onClick={() => {
-                                      if (checked) setPersonLevel(i, name, lvl);
-                                    }}
-                                  />
-                                );
-                              })}
-                            </span>
-                          </div>
-                        );
-                      })}
+                      {groupByCategory(rowNames).map((group) => (
+                        <Fragment key={group.label ?? '__custom__'}>
+                          {group.label !== null && (
+                            <div className={css.skillCategory}>
+                              {group.label}
+                            </div>
+                          )}
+                          {group.names.map((name) => {
+                            const entry = skillByName.get(name);
+                            const checked = entry != null;
+                            return (
+                              <div
+                                key={name}
+                                className={css.skillRow}
+                                data-testid="skill-row"
+                                data-checked={checked ? 'true' : 'false'}
+                              >
+                                <button
+                                  type="button"
+                                  className={css.skillToggle}
+                                  aria-pressed={checked}
+                                  aria-label={`${name} for ${p.name || 'person'}`}
+                                  onClick={() => togglePersonSkill(i, name)}
+                                >
+                                  <span className={css.skillCheck}>
+                                    {checked ? <Check size={11} /> : null}
+                                  </span>
+                                  <span className={css.skillName}>{name}</span>
+                                </button>
+                                <span className={css.levelDots}>
+                                  {LEVELS.map((lvl) => {
+                                    const litIdx = entry
+                                      ? LEVELS.indexOf(entry.level)
+                                      : -1;
+                                    const lit =
+                                      entry != null &&
+                                      LEVELS.indexOf(lvl) <= litIdx;
+                                    return (
+                                      <button
+                                        key={lvl}
+                                        type="button"
+                                        className={css.lvlDot}
+                                        data-level={lvl}
+                                        data-lit={lit ? 'true' : 'false'}
+                                        aria-label={`Set ${name} to ${lvl}`}
+                                        onClick={() => {
+                                          if (checked)
+                                            setPersonLevel(i, name, lvl);
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </Fragment>
+                      ))}
                     </div>
                     {composerRow === i ? (
                       <div className={css.addSkillForm}>

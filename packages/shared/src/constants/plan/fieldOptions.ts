@@ -82,6 +82,68 @@ export function resolveLabourSkills(
 }
 
 /**
+ * Ordered category definitions covering every skill across all project types.
+ * Used by LabourInventoryCapture to render the flat `skillSuggestions` list
+ * with labelled category groups. Skills absent from the resolved list for a
+ * given project are simply never displayed; the map acts as a pure display hint.
+ * Custom user-added skills (not in any category) render without a header.
+ */
+export const LABOUR_SKILL_CATEGORIES: readonly {
+  label: string;
+  skills: readonly string[];
+}[] = [
+  {
+    label: 'Animal care',
+    skills: [
+      'Animal husbandry',
+      'Small-livestock care',
+      'Grazing management',
+      'Herd health monitoring',
+      'Animal rotation',
+      'Pasture and forage management',
+    ],
+  },
+  {
+    label: 'Land & structures',
+    skills: [
+      'General land maintenance',
+      'Fencing & earthworks',
+      'Basic carpentry',
+      'Equipment operation',
+    ],
+  },
+  {
+    label: 'Water & growing',
+    skills: [
+      'Water systems & irrigation',
+      'Irrigation maintenance',
+      'Planting & propagation',
+      'Composting',
+      'Kitchen-garden management',
+      'Food preservation',
+      'Cover-crop management',
+      'Soil sampling and testing',
+      'Intensive bed preparation',
+      'Succession planting',
+      'Harvest and post-harvest handling',
+    ],
+  },
+  {
+    label: 'Trees & woodland',
+    skills: ['Tree planting and protection'],
+  },
+  {
+    label: 'Planning & records',
+    skills: [
+      'Design & survey',
+      'Rotational planning',
+      'Record keeping',
+      'General manual labor',
+    ],
+  },
+];
+
+/**
  * Triple-bottom-line domain tag for a success criterion. Used by the Act
  * tier-0 success-criteria capture UI to balance ecological, economic, and
  * stewardship outcomes when an operator selects/curates criteria.
@@ -256,6 +318,8 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Food preservation',
       'Small-livestock care',
       'Kitchen-garden management',
+      'Grazing management',
+      'Herd health monitoring',
     ],
     regenerative_farm: [
       'Cover-crop management',
@@ -271,6 +335,9 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Tree planting and protection',
       'Pasture and forage management',
       'Animal rotation',
+      'Small-livestock care',
+      'Grazing management',
+      'Herd health monitoring',
     ],
     livestock_operation: [
       'Animal husbandry',

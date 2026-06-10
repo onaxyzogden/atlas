@@ -430,6 +430,20 @@
   gap: 5px;
 }
 
+.skillCategory {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-top: 8px;
+  margin-bottom: 1px;
+}
+
+.skillCategory:first-child {
+  margin-top: 0;
+}
+
 .skillRow {
   display: flex;
   align-items: center;
