@@ -154,11 +154,17 @@ interface LayerSpec {
    *  as an independent overlay row in BaseMapCard and must not also be
    *  ANDed with the `observeAnnotations` master). When omitted, the
    *  group falls under the `observeAnnotations` master toggle. PLAN-
-   *  stage-only keys (`sunPath`, `zoneRings`, `waterRouter`) are excluded —
-   *  Observe annotation specs never gate on them. */
+   *  stage-only keys (`sunPath`, `zoneRings`, `seededZones`, `placedZones`,
+   *  `waterRouter`) are excluded — Observe annotation specs never gate on
+   *  them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones' | 'waterRouter'
+    | 'observeAnnotations'
+    | 'sunPath'
+    | 'zoneRings'
+    | 'seededZones'
+    | 'placedZones'
+    | 'waterRouter'
   >;
 }
 
