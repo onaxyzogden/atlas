@@ -602,52 +602,50 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
 
       {/* Expanded detail */}
       {isExpanded && (
-        <div style={{ padding: '0 14px 14px 48px', borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+        <div style={{ padding: '2px 16px 14px 52px' }}>
 
           {/* Proof record */}
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Proof Record</div>
+            <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Proof Record</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               {(pt.photos ?? 0) > 0 && (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 11, color: C.textSecondary }}>⊡ {pt.photos} photo{(pt.photos ?? 0) > 1 ? 's' : ''}</span>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
+                  <span style={{ fontSize: 10, color: C.textSecondary }}>⊡ {pt.photos} photo{(pt.photos ?? 0) > 1 ? 's' : ''}</span>
                 </div>
               )}
               {(pt.gpsPoints ?? 0) > 0 && (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 11, color: C.textSecondary }}>• {pt.gpsPoints} GPS point{(pt.gpsPoints ?? 0) > 1 ? 's' : ''}</span>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
+                  <span style={{ fontSize: 10, color: C.textSecondary }}>• {pt.gpsPoints} GPS point{(pt.gpsPoints ?? 0) > 1 ? 's' : ''}</span>
                 </div>
               )}
               {pt.measurements && (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 11, color: C.textSecondary }}>⊞ {pt.measurements}</span>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
+                  <span style={{ fontSize: 10, color: C.textSecondary }}>⊞ {pt.measurements}</span>
                 </div>
               )}
             </div>
             {pt.notes && (
-              <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.6, fontFamily: F.sans, fontStyle: 'italic', padding: '8px 10px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, lineHeight: 1.5, fontFamily: F.sans, fontStyle: 'italic', padding: '7px 10px', background: C.bg4, borderLeft: `2px solid ${C.borderLight}`, borderRadius: '0 5px 5px 0' }}>
                 "{pt.notes}"
               </div>
             )}
           </div>
 
           {/* Source + cycle */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
-            <div style={{ background: C.bg4, borderRadius: 5, padding: '6px 8px', border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Source task</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Source task</div>
               <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.sourceTask}</div>
             </div>
-            <div style={{ background: C.bg4, borderRadius: 5, padding: '6px 8px', border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Plan objective</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Plan objective</div>
               <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.planObjective}</div>
             </div>
           </div>
 
           {/* Timestamps + cycle */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Observed: {pt.observedAt}</span>
-            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Recorded: {pt.recordedAt}</span>
-            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{pt.cycle}</span>
+          <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono, marginBottom: 8 }}>
+            Observed: {pt.observedAt} · Recorded: {pt.recordedAt} · {pt.cycle}
           </div>
 
           {/* Supersession notice */}
@@ -682,13 +680,13 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
           {pt.tags && pt.tags.length > 0 && (
             <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {pt.tags.map((tag) => (
-                <span key={tag} style={{ fontSize: 10, color: C.textTertiary, background: C.bg4, border: `1px solid ${C.border}`, borderRadius: 3, padding: '2px 5px', fontFamily: F.mono }}>{tag}</span>
+                <span key={tag} style={{ fontSize: 9, color: C.textTertiary, background: C.bg4, border: `1px solid ${C.borderLight}`, borderRadius: 5, padding: '1px 7px', fontFamily: F.sans }}>{tag}</span>
               ))}
             </div>
           )}
 
           {/* View on map */}
-          <button style={{ marginTop: 10, fontSize: 11, color: lensColor, background: lensColor + '10', border: `1px solid ${lensColor}30`, borderRadius: 5, padding: '4px 10px', cursor: 'pointer', fontFamily: F.sans, fontWeight: 600 }}>⊹ View on map</button>
+          <button style={{ marginTop: 10, fontSize: 11, color: C.textSecondary, background: 'transparent', border: `1px solid ${C.borderLight}`, borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontFamily: F.sans, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 5 }}>⊹ View on map</button>
         </div>
       )}
     </div>
