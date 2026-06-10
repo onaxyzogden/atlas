@@ -685,20 +685,17 @@ export default function LabourInventoryCapture({
 
                 {open ? (
                   <div className={css.rosterRowBody}>
-                    <div className={css.subLabel}>Weekly hours (derived from seasonal)</div>
-                    <div className={css.hoursStepper} style={{ pointerEvents: 'none' }}>
-                      <span className={css.hoursVal}>
-                        <span className={css.hoursNum}>{getBaselineHours(p.seasonal)}</span>
-                        <span className={css.hoursUnit}>hrs / week</span>
-                      </span>
-                    </div>
-
                     <div className={css.subLabel}>Seasonal availability</div>
                     <div className={css.seasonGrid}>
                       {SEASONS.map((s) => {
                         const { Arrow, dir } = SEASON_TREND[s];
+                        const isCurrent = s === getCurrentSeason();
                         return (
-                          <div key={s} className={css.seasonCard}>
+                          <div
+                            key={s}
+                            className={css.seasonCard}
+                            data-current={isCurrent ? 'true' : undefined}
+                          >
                             <div className={css.seasonName}>
                               <span>{capitalize(s)}</span>
                               <span
@@ -921,6 +918,15 @@ export default function LabourInventoryCapture({
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Returns the current season based on the Northern Hemisphere calendar month. */
+function getCurrentSeason(): Season {
+  const m = new Date().getMonth(); // 0-based
+  if (m >= 2 && m <= 4) return 'spring';
+  if (m >= 5 && m <= 7) return 'summer';
+  if (m >= 8 && m <= 10) return 'autumn';
+  return 'winter';
 }
 
 function dedupe(list: readonly string[]): string[] {

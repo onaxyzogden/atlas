@@ -263,6 +263,11 @@
   background: var(--color-surface-raised, #faf7ef);
 }
 
+.seasonCard[data-current='true'] {
+  border-color: var(--color-accent, #7c6f3e);
+  background: var(--color-accent-subtle, rgba(124, 111, 62, 0.08));
+}
+
 .seasonName {
   display: flex;
   align-items: center;

@@ -347,10 +347,6 @@ describe('LabourInventoryCapture -- roster UI', () => {
       ),
     );
     expect(screen.getAllByTestId('roster-row').length).toBe(2);
-    // first row open -> its per-person baseline hours display is present (read-only)
-    expect(
-      screen.getByText(/derived from seasonal/i),
-    ).toBeTruthy();
   });
 
   it('editing a person seasonal hours re-emits the roster and the recomputed team total', () => {
