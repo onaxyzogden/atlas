@@ -200,7 +200,7 @@ const DECISION_STEPS: readonly StepSpec[] = [
   {
     num: 2,
     title: 'Clarifying questions only',
-    desc: 'No advocacy -- ensure everyone understands before discussion begins.',
+    desc: 'A valid clarifying question seeks to understand, not persuade -- "What did you mean by X?" is valid; "Wouldn\'t X cause Y?" embeds a position and is redirected. The facilitator holds this boundary and may pause to name advocacy when it appears. Time-box: 10 minutes.',
   },
   {
     num: 3,
