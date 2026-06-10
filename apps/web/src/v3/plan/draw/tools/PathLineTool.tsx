@@ -26,6 +26,8 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const TYPE_OPTIONS: { value: PathType; label: string }[] = (
@@ -47,7 +49,7 @@ const ACCESSIBLE_OPTIONS = [
   { value: 'yes', label: 'Yes' },
 ];
 
-export default function PathLineTool({ map, projectId, getSnapTargets }: Props) {
+export default function PathLineTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addPath = usePathStore((s) => s.addPath);
   const updatePath = usePathStore((s) => s.updatePath);
   const deletePath = usePathStore((s) => s.deletePath);
@@ -69,6 +71,7 @@ export default function PathLineTool({ map, projectId, getSnapTargets }: Props) 
       addPath({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Path',
         type,
         color: PATH_TYPE_CONFIG[type].color,

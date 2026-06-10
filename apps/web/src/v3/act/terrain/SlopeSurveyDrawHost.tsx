@@ -26,6 +26,8 @@ import { useMapboxDrawTool } from '../../observe/components/draw/useMapboxDrawTo
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 /** acres -- identical constant + best-effort guard as useDesignElementDrawTool. */
@@ -37,7 +39,7 @@ function polygonAcres(geom: GeoJSON.Polygon): number {
   }
 }
 
-export default function SlopeSurveyDrawHost({ map, projectId }: Props) {
+export default function SlopeSurveyDrawHost({ map, projectId, sourceObjectiveId }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const addFeature = useSlopeSurveyStore((s) => s.addFeature);
 
@@ -57,9 +59,10 @@ export default function SlopeSurveyDrawHost({ map, projectId }: Props) {
         slopeClass,
         geometry,
         acreage: polygonAcres(geometry),
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
       });
     },
-    [projectId, addFeature],
+    [projectId, addFeature, sourceObjectiveId],
   );
 
   const previewColor = armedClass ? SLOPE_CLASS_COLORS[armedClass] : undefined;

@@ -62,6 +62,13 @@ interface Args {
   snap?: boolean;
   /** Snap-target source builder; only consulted when `snap` is true. */
   getSnapTargets?: () => SnapTargets;
+  /**
+   * Plan objective active in the Act tier when the draw tool is armed
+   * (Phase-5 provenance stamp). Threaded onto every element this hook
+   * persists — both the single-draw `persist` path and the hex-fill bulk
+   * path. Undefined for Plan/Vision-canvas draws made outside an objective.
+   */
+  sourceObjectiveId?: string | null;
 }
 
 /** Validate a candidate point placement against parcel boundary + same-
@@ -144,6 +151,7 @@ function stampHexFill(
   projectId: string,
   parcelBoundary: GeoJSON.Polygon | undefined,
   view: PlanViewLike,
+  sourceObjectiveId: string | null | undefined,
 ): { stamped: number; skipped: number } {
   const spacing = spec.defaultSpacingM;
   if (!spacing || spacing <= 0) return { stamped: 0, skipped: 0 };
@@ -199,6 +207,7 @@ function stampHexFill(
   const nowIso = new Date().toISOString();
   const elements: DesignElement[] = accepted.map((coords, i) => ({
     id: `de-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}`,
+    ...(sourceObjectiveId ? { sourceObjectiveId } : {}),
     category: spec.category,
     kind: spec.kind,
     geometry: { type: 'Point', coordinates: coords },
@@ -243,6 +252,7 @@ export function useDesignElementDrawTool({
   parcelBoundary,
   snap,
   getSnapTargets,
+  sourceObjectiveId,
 }: Args) {
   const spec = findElementSpec(kind);
   const currentView = usePlanView();
@@ -291,6 +301,7 @@ export function useDesignElementDrawTool({
       }) => {
         addDesignElement(projectId, {
           id: `de-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          ...(sourceObjectiveId ? { sourceObjectiveId } : {}),
           category: spec.category,
           kind: spec.kind,
           geometry: geom,
@@ -331,7 +342,7 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, kind, projectId, onComplete, currentView],
+    [spec, kind, projectId, onComplete, currentView, sourceObjectiveId],
   );
 
   // Continuous-point flow for trees and other point design elements:
@@ -362,10 +373,10 @@ export function useDesignElementDrawTool({
         onComplete?.();
         return;
       }
-      stampHexFill(geom, spec, projectId, parcelBoundary, currentView);
+      stampHexFill(geom, spec, projectId, parcelBoundary, currentView, sourceObjectiveId);
       onComplete?.();
     },
-    [spec, projectId, parcelBoundary, currentView, onComplete],
+    [spec, projectId, parcelBoundary, currentView, onComplete, sourceObjectiveId],
   );
 
   useContinuousPointDrawTool({

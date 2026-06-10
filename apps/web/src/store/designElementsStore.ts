@@ -21,6 +21,8 @@ import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 
 export interface DesignElement {
   id: string;
+  /** Plan objective active in the Act tier when this element was drawn (Phase-5 provenance stamp); undefined for legacy or non-objective draws. */
+  sourceObjectiveId?: string;
   category: DesignCategory;
   /** Stable element kind (`paddock`, `pond`, `barn`, …) — keys into elementCatalog. */
   kind: string;

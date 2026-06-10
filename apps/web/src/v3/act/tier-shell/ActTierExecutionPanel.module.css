@@ -290,6 +290,110 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
+/* ---- Placed features (objective-scoped, derived) ----------------------- */
+.pfList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pfGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.pfGroupHeading {
+  padding: 8px 2px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.pfRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  font-size: 12px;
+  color: var(--color-text, #f2ede3);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.pfRow:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 6%, transparent);
+}
+
+.pfSwatch {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.pfRowMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pfRowLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pfRowMeta {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.pfActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Focus + delete fade in on row hover/focus to keep the list calm. */
+.pfActions > .pfActionBtn {
+  opacity: 0;
+  transition: opacity 80ms ease;
+}
+
+.pfRow:hover .pfActions > .pfActionBtn,
+.pfRow:focus-within .pfActions > .pfActionBtn {
+  opacity: 1;
+}
+
+.pfActionBtn {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pfActionBtn:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 10%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.pfActionBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pfActionBtnDanger:hover {
+  color: #d98b6f;
+}
+
 /* ---- Per-objective activity feed (recorded observations) --------------- */
 
 .actyList {

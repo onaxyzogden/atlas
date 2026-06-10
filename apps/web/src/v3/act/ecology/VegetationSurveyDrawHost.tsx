@@ -24,6 +24,8 @@ import { useMapboxDrawTool } from '../../observe/components/draw/useMapboxDrawTo
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 /** acres -- identical constant + best-effort guard as useDesignElementDrawTool. */
@@ -35,7 +37,7 @@ function polygonAcres(geom: GeoJSON.Polygon): number {
   }
 }
 
-export default function VegetationSurveyDrawHost({ map, projectId }: Props) {
+export default function VegetationSurveyDrawHost({ map, projectId, sourceObjectiveId }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const activeCommunity = useVegetationSurveyStore((s) => s.activeCommunity);
   const addFeature = useVegetationSurveyStore((s) => s.addFeature);
@@ -53,9 +55,10 @@ export default function VegetationSurveyDrawHost({ map, projectId }: Props) {
         community,
         geometry,
         acreage: polygonAcres(geometry),
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
       });
     },
-    [projectId, addFeature],
+    [projectId, addFeature, sourceObjectiveId],
   );
 
   const previewColor = activeCommunity

@@ -25,6 +25,8 @@ export type PathType =
 export interface DesignPath {
   id: string;
   projectId: string;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp); undefined for legacy or non-objective draws. */
+  sourceObjectiveId?: string;
   name: string;
   type: PathType;
   color: string;

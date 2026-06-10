@@ -147,7 +147,7 @@ function formatAcres(ac: number | undefined): string | undefined {
 // Row builders
 // ─────────────────────────────────────────────────────────────────────────
 
-function builtToRow(e: BuiltEnvironmentEntity): PlacedFeatureRow {
+export function builtToRow(e: BuiltEnvironmentEntity): PlacedFeatureRow {
   const spec = getBuiltEnvironmentKind(e.kind);
   const kindLabel = spec?.label ?? e.kind;
   const groupLabel = `${kindLabel}${pluralSuffix(kindLabel)}`;
@@ -169,7 +169,7 @@ function builtToRow(e: BuiltEnvironmentEntity): PlacedFeatureRow {
   };
 }
 
-function designToRow(el: DesignElement): PlacedFeatureRow {
+export function designToRow(el: DesignElement): PlacedFeatureRow {
   const spec = findElementSpec(el.kind);
   const kindLabel = spec?.label ?? el.kind;
   const groupLabel = `${kindLabel}${pluralSuffix(kindLabel)}`;
@@ -187,7 +187,7 @@ function designToRow(el: DesignElement): PlacedFeatureRow {
   };
 }
 
-function zoneToRow(z: LandZone): PlacedFeatureRow {
+export function zoneToRow(z: LandZone): PlacedFeatureRow {
   const catCfg = ZONE_CATEGORY_CONFIG[z.category];
   const catLabel = catCfg?.label ?? z.category;
   return {

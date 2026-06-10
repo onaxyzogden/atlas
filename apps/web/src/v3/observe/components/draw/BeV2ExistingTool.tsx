@@ -58,6 +58,9 @@ interface Props {
   snap?: boolean;
   /** Snap-target source builder; only consulted when `snap` is true. */
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5
+   *  provenance stamp). Observe rail omits it; the Plan/Act rail supplies it. */
+  sourceObjectiveId?: string | null;
 }
 
 const GEOM_TO_MODE: Readonly<Record<BuiltEnvironmentGeometryType, DrawMode>> = {
@@ -80,6 +83,7 @@ export default function BeV2ExistingTool({
   state = 'existing',
   snap,
   getSnapTargets,
+  sourceObjectiveId,
 }: Props) {
   const spec = getBuiltEnvironmentKind(kind);
 
@@ -109,6 +113,7 @@ export default function BeV2ExistingTool({
       kind: spec.kind,
       state,
       geometry: geom,
+      ...(sourceObjectiveId ? { sourceObjectiveId } : {}),
       ...(customId ? { proposed: { customModelId: customId } } : {}),
     });
   };

@@ -44,6 +44,8 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
@@ -88,7 +90,7 @@ const SPECIES_COLOR: Record<LivestockSpecies, string> = {
   bees:        '#d4b94a',
 };
 
-export default function PaddockTool({ map, projectId, getSnapTargets }: Props) {
+export default function PaddockTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addPaddock = useLivestockStore((s) => s.addPaddock);
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
   const deletePaddock = useLivestockStore((s) => s.deletePaddock);
@@ -111,6 +113,7 @@ export default function PaddockTool({ map, projectId, getSnapTargets }: Props) {
       addPaddock({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Paddock',
         color: SPECIES_COLOR[species],
         geometry: geom,

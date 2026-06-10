@@ -73,6 +73,13 @@ interface Props {
    * dedicated-store `switch` runs, so there is no double-mount.
    */
   variant?: 'current' | 'vision';
+  /**
+   * Plan objective active in the Act tier shell when a feature is drawn
+   * (Phase-5 provenance stamp). Threaded into every derive-covered tool so
+   * the create payload carries `sourceObjectiveId`. The standalone Plan rail
+   * omits it (undefined), and the derive path lists those features regardless.
+   */
+  sourceObjectiveId?: string | null;
 }
 
 export default function PlanDrawHost({
@@ -80,6 +87,7 @@ export default function PlanDrawHost({
   projectId,
   parcelBoundary,
   variant = 'current',
+  sourceObjectiveId,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   // Shared snap-target builder (existing fences / paddocks / structures /
@@ -104,6 +112,7 @@ export default function PlanDrawHost({
           projectId={projectId}
           kind={kind}
           parcelBoundary={parcelBoundary}
+          sourceObjectiveId={sourceObjectiveId}
         />
       </div>
     );
@@ -123,6 +132,7 @@ export default function PlanDrawHost({
           state="proposed"
           snap
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       </div>
     );
@@ -136,11 +146,18 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
     case 'plan.water-management.storage':
-      tool = <WaterStorageTool map={map} projectId={projectId} />;
+      tool = (
+        <WaterStorageTool
+          map={map}
+          projectId={projectId}
+          sourceObjectiveId={sourceObjectiveId}
+        />
+      );
       break;
     case 'plan.water-management.swale':
       tool = (
@@ -148,11 +165,18 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
     case 'plan.water-management.sink':
-      tool = <WaterSinkTool map={map} projectId={projectId} />;
+      tool = (
+        <WaterSinkTool
+          map={map}
+          projectId={projectId}
+          sourceObjectiveId={sourceObjectiveId}
+        />
+      );
       break;
     case 'plan.zone-circulation.zone':
       tool = (
@@ -160,11 +184,18 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
     case 'plan.zone-circulation.zone-seed-anchor':
-      tool = <ZoneSeedAnchorTool map={map} projectId={projectId} />;
+      tool = (
+        <ZoneSeedAnchorTool
+          map={map}
+          projectId={projectId}
+          sourceObjectiveId={sourceObjectiveId}
+        />
+      );
       break;
     case 'plan.zone-circulation.path':
       tool = (
@@ -172,6 +203,7 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
@@ -184,6 +216,7 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
@@ -208,6 +241,7 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;
@@ -217,6 +251,7 @@ export default function PlanDrawHost({
           map={map}
           projectId={projectId}
           getSnapTargets={getSnapTargets}
+          sourceObjectiveId={sourceObjectiveId}
         />
       );
       break;

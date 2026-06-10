@@ -77,6 +77,9 @@ import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
 import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
 import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
 import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
+import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
+import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
+import { useMapFocusStore } from '../../../store/mapFocusStore.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -176,6 +179,24 @@ export default function ActTierExecutionPanel({
 
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
+
+  // -------------------------------------------------------------------------
+  // Placed features -- objective-scoped, DERIVED from the objective's armed
+  // map tools (see objectiveFeatureRegistry). Lists every map feature/element
+  // the steward has drawn into the stores this objective's tools write to,
+  // each with click-to-focus (mapFocusStore -> DiagnoseMap) + per-row delete.
+  // -------------------------------------------------------------------------
+  const placed = useObjectivePlacedFeatures(objective, projectId);
+  const focusMap = useMapFocusStore((s) => s.focus);
+  const placedGroups = useMemo(() => {
+    const byGroup = new Map<string, ObjectivePlacedRow[]>();
+    for (const row of placed.rows) {
+      const list = byGroup.get(row.groupLabel) ?? [];
+      list.push(row);
+      byGroup.set(row.groupLabel, list);
+    }
+    return Array.from(byGroup.entries());
+  }, [placed.rows]);
 
   // Plan deep-link (Act "executes" what Plan "decides"): for the guild
   // objective (legacyCardSectionId 'plan-guild-builder'), surface the existing
@@ -649,6 +670,79 @@ export default function ActTierExecutionPanel({
             );
           })}
         </div>
+      </section>
+
+      <section className={styles.execSection}>
+        <h4 className={styles.execSectionTitle}>Placed features</h4>
+        {placed.total === 0 ? (
+          <p className={styles.execEmpty}>
+            No map features placed for this objective yet. Use the tools on the
+            map to draw or place features.
+          </p>
+        ) : (
+          <div className={styles.pfList}>
+            {placedGroups.map(([groupLabel, groupRows]) => (
+              <div key={groupLabel} className={styles.pfGroup}>
+                <div className={styles.pfGroupHeading}>
+                  {groupLabel} ({groupRows.length})
+                </div>
+                {groupRows.map((row) => (
+                  <div key={row.rowKey} className={styles.pfRow}>
+                    <span
+                      className={styles.pfSwatch}
+                      style={{ background: row.color }}
+                      aria-hidden="true"
+                    />
+                    <span className={styles.pfRowMain}>
+                      <span className={styles.pfRowLabel} title={row.label}>
+                        {row.label}
+                      </span>
+                      {row.meta && (
+                        <span className={styles.pfRowMeta}>{row.meta}</span>
+                      )}
+                    </span>
+                    <span className={styles.pfActions}>
+                      <button
+                        type="button"
+                        className={styles.pfActionBtn}
+                        onClick={() => {
+                          if (row.centroid) {
+                            focusMap({
+                              projectId,
+                              center: row.centroid,
+                              zoom: 17,
+                            });
+                          }
+                        }}
+                        disabled={!row.centroid}
+                        title={row.centroid ? 'Focus on map' : 'No location'}
+                      >
+                        Focus
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.pfActionBtn} ${styles.pfActionBtnDanger}`}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Remove "${row.label}" from the map?`,
+                            )
+                          ) {
+                            row.remove();
+                          }
+                        }}
+                        title="Delete"
+                        aria-label={`Delete ${row.label}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className={styles.execSection}>

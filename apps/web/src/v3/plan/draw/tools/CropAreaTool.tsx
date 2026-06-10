@@ -42,6 +42,8 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const TYPE_OPTIONS: { value: CropAreaType; label: string }[] = [
@@ -84,7 +86,7 @@ const IRRIGATION_OPTIONS = [
   { value: 'none',      label: 'None' },
 ];
 
-export default function CropAreaTool({ map, projectId, getSnapTargets }: Props) {
+export default function CropAreaTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addCropArea = useCropStore((s) => s.addCropArea);
   const updateCropArea = useCropStore((s) => s.updateCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);
@@ -106,6 +108,7 @@ export default function CropAreaTool({ map, projectId, getSnapTargets }: Props) 
       addCropArea({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Crop area',
         color: TYPE_COLOR[type],
         type,

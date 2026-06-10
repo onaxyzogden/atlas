@@ -23,6 +23,8 @@ interface Props {
   projectId: string;
   kind: string;
   parcelBoundary?: GeoJSON.Polygon;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 export default function PlanDesignElementHost({
@@ -30,6 +32,7 @@ export default function PlanDesignElementHost({
   projectId,
   kind,
   parcelBoundary,
+  sourceObjectiveId,
 }: Props) {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
@@ -41,6 +44,7 @@ export default function PlanDesignElementHost({
     parcelBoundary,
     snap: true,
     getSnapTargets,
+    sourceObjectiveId,
   });
   if (liveArea === null && liveLength === null) return null;
   return (

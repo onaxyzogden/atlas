@@ -25,9 +25,11 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
-export default function ZoneSeedAnchorTool({ map, projectId }: Props) {
+export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId }: Props) {
   const projects = useProjectStore((s) => s.projects);
   const zones = useZoneStore((s) => s.zones);
   const addZone = useZoneStore((s) => s.addZone);
@@ -45,7 +47,9 @@ export default function ZoneSeedAnchorTool({ map, projectId }: Props) {
         existingZones: zones,
         anchorPoint,
       });
-      seeded.forEach(addZone);
+      seeded.forEach((z) =>
+        addZone({ ...z, sourceObjectiveId: sourceObjectiveId ?? undefined }),
+      );
       if (seeded.length === 0) {
         toast.info(
           'No zones seeded — these Z-levels are already ring-seeded here.',

@@ -79,6 +79,7 @@ import MapSheetExportControl from '../../plan/MapSheetExportControl.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanDataLayers from '../../plan/layers/PlanDataLayers.js';
+import DesignElementLayers from '../../plan/canvas/layers/DesignElementLayers.js';
 import StageShell from '../../_shell/StageShell.js';
 import ActDataLayers from '../layers/ActDataLayers.js';
 import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
@@ -1049,7 +1050,7 @@ export default function ActTierShell() {
               />
             ) : (
               <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary}>
+                <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary} projectId={id}>
                   {({ map }) => (
                     <>
                       <BaseMapCard stage="act" />
@@ -1066,6 +1067,19 @@ export default function ActTierShell() {
                       />
                       <ObserveAnnotationLayers map={map} projectId={id} />
                       <PlanDataLayers map={map} projectId={id} editable={false} />
+                      {/* Design-elements (orchard / silvopasture / pasture-mix /
+                          trees / hedgerow / spring / road…) persist to
+                          designElementsStore via PlanDesignElementHost. Act
+                          places them (PlanDrawHost is mounted below) but, until
+                          now, never rendered them. Mounted read-only — Act shows
+                          Plan geometry, does not edit it (same stance as
+                          PlanDataLayers editable={false}). */}
+                      <DesignElementLayers
+                        map={map}
+                        projectId={id}
+                        view="current"
+                        activeModule={null}
+                      />
                       <ActStructureClickHandler map={map} projectId={id} />
                       <ActFeatureClickHandler map={map} projectId={id} />
                       <ActDataLayers
@@ -1115,6 +1129,7 @@ export default function ActTierShell() {
                       <VegetationSurveyDrawHost
                         map={map}
                         projectId={params.projectId ?? null}
+                        sourceObjectiveId={objectiveId}
                       />
                       {/*
                         s2-terrain-c2 slope survey: same shape as the vegetation
@@ -1126,6 +1141,7 @@ export default function ActTierShell() {
                       <SlopeSurveyDrawHost
                         map={map}
                         projectId={params.projectId ?? null}
+                        sourceObjectiveId={objectiveId}
                       />
                       {/*
                         ADR-7 tension: the Act canvas adds execution placements
@@ -1158,6 +1174,7 @@ export default function ActTierShell() {
                         projectId={id}
                         variant="current"
                         parcelBoundary={safeBoundary}
+                        sourceObjectiveId={objectiveId}
                       />
                     </>
                   )}

@@ -180,6 +180,12 @@ export const BuiltEnvironmentEntity = z.object({
   updatedAt: z.string().datetime({ offset: true }),
   /** Server-assigned UUID after backend sync. Undefined = client-only. */
   serverId: z.string().optional(),
+  /** Plan objective active in the Act tier when this entity was drawn
+   *  (Phase-5 provenance stamp). Optional/additive — legacy entities and
+   *  features drawn outside an objective context load with this undefined;
+   *  the Act "Placed features" derive path covers them regardless. Included
+   *  in `CreateBuiltEnvironmentInput` (not omitted) so draw tools can set it. */
+  sourceObjectiveId: z.string().optional(),
   /** When true, the canvas suppresses this entity. Steward-side display
    *  flag set by the PlacedFeaturesCard visibility toggle; data is
    *  preserved. Optional — undefined / false = shown. */

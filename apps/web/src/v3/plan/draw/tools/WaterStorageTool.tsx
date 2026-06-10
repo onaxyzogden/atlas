@@ -18,13 +18,15 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const STORAGE_OPTIONS: { value: StorageNodeKind; label: string }[] = (
   Object.keys(STORAGE_LABEL) as StorageNodeKind[]
 ).map((k) => ({ value: k, label: STORAGE_LABEL[k] }));
 
-export default function WaterStorageTool({ map, projectId }: Props) {
+export default function WaterStorageTool({ map, projectId, sourceObjectiveId }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -42,6 +44,7 @@ export default function WaterStorageTool({ map, projectId }: Props) {
       addWaterNode({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Storage',
         kind: 'storage',
         center: anchor,

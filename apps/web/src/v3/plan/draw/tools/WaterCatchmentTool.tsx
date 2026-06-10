@@ -29,13 +29,15 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const SURFACE_OPTIONS: { value: CatchmentSurface; label: string }[] = (
   Object.keys(SURFACE_LABEL) as CatchmentSurface[]
 ).map((k) => ({ value: k, label: SURFACE_LABEL[k] }));
 
-export default function WaterCatchmentTool({ map, projectId, getSnapTargets }: Props) {
+export default function WaterCatchmentTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -55,6 +57,7 @@ export default function WaterCatchmentTool({ map, projectId, getSnapTargets }: P
       addWaterNode({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Catchment',
         kind: 'catchment',
         center: centroid,

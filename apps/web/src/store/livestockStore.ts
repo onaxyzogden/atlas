@@ -30,6 +30,8 @@ export type PastureQuality = 'poor' | 'fair' | 'good' | 'excellent';
 export interface Paddock {
   id: string;
   projectId: string;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp); undefined for legacy or non-objective draws. */
+  sourceObjectiveId?: string;
   name: string;
   color: string;
   geometry: GeoJSON.Polygon;
@@ -90,6 +92,8 @@ export type FenceLineMobility = 'permanent' | 'temporary-strip';
 export interface FenceLine {
   id: string;
   projectId: string;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp); undefined for legacy or non-objective draws. */
+  sourceObjectiveId?: string;
   name: string;
   geometry: GeoJSON.LineString;
   fenceType: FenceType;

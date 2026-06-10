@@ -41,6 +41,8 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const Z_OPTIONS = [
@@ -58,7 +60,7 @@ const optionsForZ = (z: string | number | undefined): { value: ZoneCategory; lab
   return list.map((k) => ({ value: k, label: ZONE_CATEGORY_CONFIG[k].label }));
 };
 
-export default function ZonePolygonTool({ map, projectId, getSnapTargets }: Props) {
+export default function ZonePolygonTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addZone = useZoneStore((s) => s.addZone);
   const updateZone = useZoneStore((s) => s.updateZone);
   const deleteZone = useZoneStore((s) => s.deleteZone);
@@ -99,6 +101,7 @@ export default function ZonePolygonTool({ map, projectId, getSnapTargets }: Prop
       addZone({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Zone',
         category,
         color: ZONE_CATEGORY_CONFIG[category].color,

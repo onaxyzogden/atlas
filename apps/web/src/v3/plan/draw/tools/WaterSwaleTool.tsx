@@ -29,9 +29,11 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
-export default function WaterSwaleTool({ map, projectId, getSnapTargets }: Props) {
+export default function WaterSwaleTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -59,6 +61,7 @@ export default function WaterSwaleTool({ map, projectId, getSnapTargets }: Props
         addWaterNode({
           id,
           projectId,
+          sourceObjectiveId: sourceObjectiveId ?? undefined,
           name: 'Swale',
           kind: 'swale',
           center: anchor,

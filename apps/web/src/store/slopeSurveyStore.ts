@@ -75,6 +75,8 @@ export const SLOPE_CLASS_BY_TOOL: Record<string, SlopeClassKey> =
 
 export interface SlopeSurveyFeature {
   id: string;
+  /** Plan objective active in the Act tier when this feature was drawn (Phase-5 provenance stamp); undefined for legacy or non-objective draws. */
+  sourceObjectiveId?: string;
   slopeClass: SlopeClassKey;
   geometry: GeoJSON.Polygon;
   /** acres -- turf.area(geom) * 0.000247105 (same constant as design elements). */

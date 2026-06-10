@@ -21,6 +21,7 @@ import {
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
 import { useBasemapStore } from "../observe/components/measure/useMapToolStore.js";
+import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import css from "./DiagnoseMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
@@ -54,6 +55,12 @@ export interface DiagnoseMapProps {
   zoom?: number;
   /** Parcel boundary polygon. When present, drives viewport + centroid. */
   boundary?: GeoJSON.Polygon;
+  /**
+   * Owning project id. When set, Map-Focus requests (mapFocusStore) are only
+   * consumed if their `projectId` matches — guards against a stale request
+   * from another project's canvas. Drives the "Placed features" row → fly-to.
+   */
+  projectId?: string | null;
   /** Optional homestead-placement control rendered as a small map toolbar. */
   homestead?: HomesteadControl;
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
@@ -81,6 +88,7 @@ export default function DiagnoseMap({
   centroid,
   zoom = 14,
   boundary,
+  projectId,
   homestead,
   children,
 }: DiagnoseMapProps) {
@@ -279,6 +287,25 @@ export default function DiagnoseMap({
       map.off("click", onClick);
     };
   }, [map, placing, homestead]);
+
+  // Consume Map-Focus requests targeting this project: fly the canvas to a
+  // feature centroid when a "Placed features" row is clicked in the Act
+  // objective panel (mirrors DesignMap's ProvePage "Fix on Map" consumer).
+  // requestedAt is monotonic, so re-clicking the same row refires even when
+  // the camera already sits on the feature.
+  const focusRequest = useMapFocusStore((s) => s.request);
+  const clearFocus = useMapFocusStore((s) => s.clear);
+  useEffect(() => {
+    if (!map || !focusRequest) return;
+    if (projectId && focusRequest.projectId !== projectId) return;
+    map.flyTo({
+      center: focusRequest.center,
+      zoom: focusRequest.zoom ?? Math.max(map.getZoom(), 15),
+      duration: 1200,
+      essential: true,
+    });
+    clearFocus();
+  }, [map, focusRequest, projectId, clearFocus]);
 
   if (!hasMapToken) {
     return (

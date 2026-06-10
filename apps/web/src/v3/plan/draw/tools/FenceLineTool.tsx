@@ -46,6 +46,8 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
+  sourceObjectiveId?: string | null;
 }
 
 const FENCE_OPTIONS: { value: FenceType; label: string }[] = [
@@ -62,7 +64,7 @@ const MOBILITY_OPTIONS: { value: FenceLineMobility; label: string }[] = [
   { value: 'temporary-strip', label: 'Temporary strip wire' },
 ];
 
-export default function FenceLineTool({ map, projectId, getSnapTargets }: Props) {
+export default function FenceLineTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
   const addFenceLine = useLivestockStore((s) => s.addFenceLine);
   const updateFenceLine = useLivestockStore((s) => s.updateFenceLine);
   const deleteFenceLine = useLivestockStore((s) => s.deleteFenceLine);
@@ -81,6 +83,7 @@ export default function FenceLineTool({ map, projectId, getSnapTargets }: Props)
       addFenceLine({
         id,
         projectId,
+        sourceObjectiveId: sourceObjectiveId ?? undefined,
         name: 'Fence',
         geometry: geom,
         fenceType: 'temporary',
