@@ -216,6 +216,14 @@ export function buildDecisionTarget(
   // False for every other id.
   const isConflictFramework = item.id.startsWith('ev-s1-conflict-framework-');
 
+  // Husbandry & welfare framework is a 6-item silvopasture objective
+  // (silv-sec-s4-husbandry-framework-c1..-c6); detected by id prefix. The
+  // panel's isHusbandry body-router arm (HusbandryCapture self-routes on itemId
+  // via husbandryModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId. Only c4 (halal) gates, on a
+  // pathway acknowledgement. False for every other id.
+  const isHusbandry = item.id.startsWith('silv-sec-s4-husbandry-framework-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -266,6 +274,7 @@ export function buildDecisionTarget(
     isGrazing,
     isLivestockIntent,
     isConflictFramework,
+    isHusbandry,
     deferLabel,
     deferrable,
   };

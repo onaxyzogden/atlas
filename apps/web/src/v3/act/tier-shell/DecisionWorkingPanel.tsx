@@ -181,6 +181,13 @@ import {
   type ConflictFrameworkMode,
 } from './ConflictFrameworkCapture.js';
 import {
+  HusbandryCapture,
+  husbandryModeFor,
+  isHusbandryValid,
+  summariseHusbandry,
+  type HusbandryMode,
+} from './HusbandryCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -243,6 +250,8 @@ export interface DecisionPanelTarget {
   isLivestockIntent?: boolean;
   /** true => render ConflictFrameworkCapture (self-routing on itemId via conflictFrameworkModeFor). */
   isConflictFramework?: boolean;
+  /** true => render HusbandryCapture (self-routing on itemId via husbandryModeFor). */
+  isHusbandry?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -556,6 +565,14 @@ export default function DecisionWorkingPanel({
       ? conflictFrameworkModeFor(decision.itemId)
       : null;
 
+  // Husbandry & welfare framework is a 6-mode capture (health/breeding/welfare/
+  // halal/records/labour) routed by husbandryModeFor(itemId). Advisory only --
+  // it validates / summarises directly off the FormValue and writes no store /
+  // takes no projectId. Only halal (c4) gates (pathway acknowledgement). Only
+  // the resolved mode is held here -- used by the validity, summary, body arms.
+  const husbandryMode: HusbandryMode | null =
+    decision.isHusbandry ? husbandryModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -604,6 +621,8 @@ export default function DecisionWorkingPanel({
     valid = isLivestockIntentValid(livestockIntentMode, draft);
   } else if (conflictFrameworkMode) {
     valid = isConflictFrameworkValid(conflictFrameworkMode, draft);
+  } else if (husbandryMode) {
+    valid = isHusbandryValid(husbandryMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -831,6 +850,8 @@ export default function DecisionWorkingPanel({
       summary = summariseLivestockIntent(livestockIntentMode, draft, siblingValues);
     } else if (conflictFrameworkMode) {
       summary = summariseConflictFramework(conflictFrameworkMode, draft);
+    } else if (husbandryMode) {
+      summary = summariseHusbandry(husbandryMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1040,6 +1061,15 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             projectId={projectId}
+          />
+        ) : husbandryMode ? (
+          <HusbandryCapture
+            key={decision.itemId}
+            mode={husbandryMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
           />
         ) : hasFields ? (
           <VisionFormFields

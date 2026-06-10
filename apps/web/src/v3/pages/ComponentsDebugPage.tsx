@@ -1252,6 +1252,152 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3c-iii -- Husbandry & welfare framework
+          (silv-sec-s4-husbandry-framework): a 6-mode silvopasture capture
+          (health / breeding / welfare / halal / records / labour). Advisory only
+          -- it writes no store and takes no projectId. c4 (halal) foregrounds the
+          niyyah of halal stewardship and the dhakah conditions (incl. Tasmiyah),
+          carries an explicit pig-output exclusion, and is the only gated mode (a
+          pathway acknowledgement). The dummy "gallery" projectId is ignored by
+          the arm. */}
+      <Section title="Decision Working Panel - Husbandry: health (silv-sec-s4-husbandry-framework c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c1",
+              label: "Define animal health program - vaccination, parasite management, and veterinary relationship",
+              prompt: "Review the health program and record the veterinary relationship.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Husbandry: breeding (silv-sec-s4-husbandry-framework c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c2",
+              label: "Define breeding or replacement strategy and seasonal husbandry calendar",
+              prompt: "Pick the breeding strategy that sets the joining and replacement rhythm.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Husbandry: welfare (silv-sec-s4-husbandry-framework c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c3",
+              label: "Define daily welfare standard - feed, water, shade, and handling stress minimisation",
+              prompt: "Review the welfare domains and record site-specific commitments.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Husbandry: halal (silv-sec-s4-husbandry-framework c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c4",
+              label: "Define humane and halal handling and slaughter-pathway intent where stock is raised for meat",
+              prompt: "Review the halal handling pathway and acknowledge the slaughter-pathway intent.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Husbandry: records (silv-sec-s4-husbandry-framework c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c5",
+              label: "Define record-keeping for stock numbers, health events, and movements",
+              prompt: "Review the record-keeping framework and note the tools and cadence.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Husbandry: labour (silv-sec-s4-husbandry-framework c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "silv-sec-s4-husbandry-framework-c6",
+              label: "Confirm the husbandry framework is consistent with available labour and the welfare standard",
+              prompt: "Review the seasonal labour profile and confirm the framework fits available labour.",
+              isHusbandry: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

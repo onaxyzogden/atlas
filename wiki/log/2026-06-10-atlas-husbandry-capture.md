@@ -1,0 +1,35 @@
+# 2026-06-10 -- HusbandryCapture (Phase 3c-iii) built + wired
+
+**Objective:** Land Phase 3c-iii: build and wire the advisory `HusbandryCapture` (`silv-sec-s4-husbandry-framework`, SILV-S4.22, "A sound livestock husbandry & welfare framework", 6 items c1..c6) into the Tier-0 Act workbench. Per its own scope note the **Amanah copy-review gate comes first** -- the husbandry framing (especially halal slaughter copy) had to clear Scholar-style review BEFORE any wiring -- and it must honour the new pig ruling on the output/yield side ([[fiqh-pigs-working-role-not-meat]]). Continues the advisory-capture line of ForageCapture / GrazingSystemCapture / LivestockIntentCapture ([[log/2026-06-10-atlas-livestock-intent-merge]]).
+
+## What landed
+
+**HusbandryCapture (`silv-sec-s4-husbandry-framework`, SILV-S4.22, 6 modes)** -- an S4 advisory capture answering "is the husbandry, health, and welfare framework sound, humane, and halal?". Modes c1..c6 (3 decision groups): `health` (animal-health program: vaccination / parasite / vet) / `breeding` (strategy + seasonal calendar) / `welfare` (five welfare domains) / `halal` (humane + halal handling, the ONLY gating mode) / `records` (NLIS + stock/health/halal/zakat registers) / `labour` (seasonal labour fit).
+
+- **Advisory pure-FormValue contract**, mirroring GrazingSystemCapture / LivestockIntentCapture: **no `projectId`, no store adapter**; the panel passes `siblingValues` (unused by every husbandry mode). `decodeHusbandry` is total/defensive (`asStr` coerces non-strings to `''`; an out-of-set breeding-strategy raw value -- e.g. raw `ai` -- decodes to `null` via the `BREEDING_IDS` guard); `encodeHusbandry` is its lossless inverse. `isHusbandryValid` gates on `halal` alone (pathway acknowledgement === `true`); c1-c3, c5-c6 are always-valid advisory inputs. `summariseHusbandry`/`isHusbandryValid` take `(mode, value)` only -- 2 args, NO siblingValues (unlike forage/grazing/livestock-intent's 3-arg signatures); the body arm still passes `siblingValues` for signature uniformity.
+- **6-site workbench wiring (the established recipe):** `ActTierShell` `TIER_ZERO_OBJECTIVE_IDS`; `ActTierZeroWorkbench` `isHusbandry = item.id.startsWith('silv-sec-s4-husbandry-framework-')` derivation + return field; `DecisionWorkingPanel` import + `isHusbandry?` interface flag + mode decode + validity arm + summary arm (2-arg) + body arm; `workbenchAffordances` MAP entry (advisory: no strips, `showGroups:true`); `DecisionList` MODE_LABELS (6 `hb-*` entries); `ComponentsDebugPage` c1..c6 gallery.
+
+## MODE_LABELS namespacing (`hb-`)
+
+The component's generic mode keys (`health` / `welfare` / `records` / `labour`) would risk colliding with the global `DecisionList` MODE_LABELS map. Following the `li-` precedent set by LivestockIntentCapture, the affordance layer **namespaces** every husbandry mode `hb-`: `workbenchAffordances.modeFor` returns `hb-${husbandryModeFor(itemId)}`, and `DecisionList` carries six matching `hb-health` / `hb-breeding` / `hb-welfare` / `hb-halal` / `hb-records` / `hb-labour` labels. Applied pre-emptively (clean keys, no actual collision yet) so the generic names never clash. The component is untouched; `DecisionWorkingPanel` routes off its own `husbandryModeFor` independently.
+
+## Amanah -- copy-review gate cleared BEFORE wiring (operator-approved 2026-06-10)
+
+The c4 `halal` mode is the covenant-sensitive surface. The framing cleared Scholar-style review with two authored deltas:
+
+- **Delta A (Tasmiyah).** The c4 `HALAL_REQUIREMENTS` dhakah list explicitly includes **Tasmiyah** -- pronouncing the name of Allah (Bismillah, Allahu akbar) at the moment of slaughter -- alongside: a live and healthy animal, the swift single cut severing the throat vessels, full blood drainage, keeping the blade out of the animal's sight (ihsan), and qiblah orientation. c4 also foregrounds the niyyah of halal stewardship; the `welfare` mode renders the Sahih Muslim 1955 ihsan hadith ("Allah has prescribed excellence/ihsan in all things... let him spare suffering to the animal he slaughters").
+- **Delta B (pig-output exclusion).** c4 carries an explicit interpretation block: the slaughter / meat pathway applies ONLY to stock raised for meat. Working animals kept for non-food ecological or labour roles -- e.g. **pigs (khinzir)** for land-clearing, tilling, or waste/forage cycling -- are **categorically excluded from the slaughter-for-consumption pathway; their flesh is never taken as human food.** This honours the pig ruling on the OUTPUT/YIELD side while the upstream working presence stays permitted, and **resolves the carried-forward flag** from the livestock-intent merge ([[fiqh-pigs-working-role-not-meat]]).
+- **Commercial / certified-abattoir + off-farm sale pathway DEFERRED, not authored.** Only the on-farm traditional halal pathway is described; an `info`-tone block notes the commercial-abattoir pathway is deferred. This is consistent with the Amanah discipline around premature sale-channel framing ([[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]). Two regression tests assert delta A and delta B render; the suite asserts the deferred commercial strings (`/Certified halal abattoir -- commercial sale/i`, `/If selling halal-certified meat commercially/i`, `/AQIS/i`) are ABSENT and that `halal` mode has exactly one checkbox.
+
+## Verification
+
+- web `tsc` EXIT 0 (8 GB heap, `NODE_OPTIONS=--max-old-space-size=8192`). `@ogden/shared` NOT touched by this work (no catalogue edit), so its `tsc` is moot.
+- Bounded vitest (`--pool=forks --no-file-parallelism --testTimeout=20000`, [[feedback-vitest-bounded-runs]]) run FROM the worktree's `apps/web`: **HusbandryCapture 22/22** (incl. the two covenant-delta regressions) + the four wiring-site suites **131/131** -- `DecisionList` 23, `workbenchAffordances` 13, `ActTierZeroWorkbench` 38, `DecisionWorkingPanel` (body-router render; the `useRouter must be used inside a <RouterProvider>` lines are pre-existing stderr noise, not failures). ASCII-only throughout.
+
+## State
+
+Worktree `claude/husbandry-capture` based on `origin/main`. HusbandryCapture (`HusbandryCapture.tsx` 758 + `.module.css` 184 + `.test.tsx`) added; the 6 wiring sites + this wiki update committed. **NOT pushed -- awaiting operator sign-off** ([[project-structured-capture-on-main]], [[project-branch-rebase]]). The concurrent main-tree Tier-1+ `ModeBadge` workstream (`ModeBadge.tsx`, `ecovillage.ts`, `DecisionChecklist.tsx`, schema/authoring edits) lives in a separate worktree and was never touched here ([[feedback-no-deletion]]). Screenshot gate deferred (silvopasture captures are not in the `/v3/components` map-free harness and the live workbench has a dead dev API + map canvas, [[project-screenshot-hang]]); the c1..c6 gallery sections were added so a later batch screenshot can close it.
+
+## Next session
+
+Phase 3d soil/food, 3e water/energy/settlement, 3f finance (Amanah-screened at kickoff). Optionally promote the pig ruling into a proper `wiki/` page to close the dangling `[[fiqh-pigs-working-role-not-meat]]` link. Entity [[entities/act-tier-shell]].

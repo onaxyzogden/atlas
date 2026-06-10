@@ -29,6 +29,7 @@ import { forageModeFor } from './ForageCapture.js';
 import { grazingModeFor } from './GrazingSystemCapture.js';
 import { livestockIntentModeFor } from './LivestockIntentCapture.js';
 import { conflictFrameworkModeFor } from './ConflictFrameworkCapture.js';
+import { husbandryModeFor } from './HusbandryCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -214,6 +215,24 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       itemId.startsWith('ev-s1-conflict-framework-')
         ? conflictFrameworkModeFor(itemId)
         : null,
+  },
+  // S4 husbandry & welfare framework (silvopasture SILV-S4.22): 6 items, grouped
+  // (showGroups true); no map/register strips. Advisory only -- the capture
+  // writes no store and takes no projectId. husbandryModeFor returns GENERIC
+  // mode keys (health / breeding / welfare / halal / records / labour). The
+  // badge keys are namespaced "hb-" HERE (the affordance modeFor feeds the badge
+  // only; DecisionWorkingPanel routes off its own husbandryModeFor
+  // independently), and DecisionList carries matching hb-* labels. The component
+  // itself is left untouched.
+  'silv-sec-s4-husbandry-framework': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('silv-sec-s4-husbandry-framework-')) return null;
+      const m = husbandryModeFor(itemId);
+      return m ? `hb-${m}` : null;
+    },
   },
 };
 

@@ -158,6 +158,15 @@ const MODE_LABELS: Record<string, string> = {
   dissolution: 'Dissolution',
   reviewCadence: 'Review cadence',
   signOff: 'Sign-off gate',
+  // Husbandry & welfare framework modes (SILV-S4.22). The component's generic
+  // mode keys are namespaced "hb-" by workbenchAffordances to keep them clear of
+  // the generic labels above. 6 modes c1..c6.
+  'hb-health': 'Health program',
+  'hb-breeding': 'Breeding strategy',
+  'hb-welfare': 'Welfare standard',
+  'hb-halal': 'Halal handling',
+  'hb-records': 'Record-keeping',
+  'hb-labour': 'Labour fit',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
