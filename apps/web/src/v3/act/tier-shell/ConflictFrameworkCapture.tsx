@@ -37,7 +37,7 @@ import { ArrowRight, Check, Info, Lock, ShieldCheck, TriangleAlert } from 'lucid
 
 import type { FormValue } from './actToolCatalog.js';
 import {
-  ChipSelect,
+  Dropdown,
   InterpretationBlock,
   SectionEyebrow,
   StatusPill,
@@ -869,7 +869,7 @@ export interface ConflictFrameworkCaptureProps {
   projectId: string;
 }
 
-/** Labelled single-select row backed by ChipSelect (stores the chosen label). */
+/** Labelled single-select row backed by Dropdown (stores the chosen label). */
 function SelectRow({
   spec,
   value,
@@ -882,11 +882,10 @@ function SelectRow({
   return (
     <div className={css.field}>
       <span className={css.fieldLbl}>{spec.label}</span>
-      <ChipSelect
-        multi={false}
+      <Dropdown
         options={spec.options}
-        value={value !== '' && spec.options.includes(value) ? [value] : []}
-        onChange={(next) => onChange(next[0] ?? '')}
+        value={value}
+        onChange={onChange}
         ariaLabel={spec.label}
       />
     </div>

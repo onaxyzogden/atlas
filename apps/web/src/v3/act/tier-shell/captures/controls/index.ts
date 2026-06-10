@@ -7,6 +7,9 @@ export type { StatusPillProps, StatusPillTone } from './StatusPill.js';
 export { ChipSelect } from './ChipSelect.js';
 export type { ChipSelectProps } from './ChipSelect.js';
 
+export { Dropdown } from './Dropdown.js';
+export type { DropdownProps } from './Dropdown.js';
+
 export { ChoiceCardGrid } from './ChoiceCardGrid.js';
 export type {
   ChoiceCardGridProps,

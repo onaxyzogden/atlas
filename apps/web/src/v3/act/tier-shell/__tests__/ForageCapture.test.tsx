@@ -126,7 +126,9 @@ describe('ForageCapture P1 zones', () => {
       <ForageCapture mode="zones" value={current} onChange={onChange} itemId={`${FORAGE_PREFIX}-c1`} projectId="p" />,
     );
     // one empty zone now exists; pick a forage type
-    fireEvent.click(screen.getByText('Native grassland'));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Forage type' }), {
+      target: { value: 'Native grassland' },
+    });
     rerender(
       <ForageCapture mode="zones" value={current} onChange={onChange} itemId={`${FORAGE_PREFIX}-c1`} projectId="p" />,
     );
@@ -253,7 +255,9 @@ describe('ForageCapture P3 capacity', () => {
       />,
     );
     // South paddock is improved; choose "Improved -- Good / 10" (10 DSE/ha)
-    fireEvent.click(screen.getByText('Improved -- Good / 10'));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Condition class for South paddock' }), {
+      target: { value: 'Improved -- Good / 10' },
+    });
     rerender(
       <ForageCapture
         mode="capacity"

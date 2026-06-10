@@ -46,7 +46,7 @@ import type { LivestockSpecies, Paddock } from '../../../store/livestockStore.js
 import {
   AmountRow,
   CapacityCeilingBlock,
-  ChipSelect,
+  Dropdown,
   ChoiceCardGrid,
   InterpretationBlock,
   MonthCalendarGrid,
@@ -735,20 +735,18 @@ export function ForageCapture({
               <div className={css.fieldStack}>
                 <div className={css.field}>
                   <span className={css.fieldLbl}>Forage type</span>
-                  <ChipSelect
-                    multi={false}
+                  <Dropdown
                     options={FORAGE_TYPES.map((t) => t.label)}
                     value={
                       zone.forageType !== '' &&
                       FORAGE_LABEL_BY_VALUE.has(zone.forageType)
-                        ? [FORAGE_LABEL_BY_VALUE.get(zone.forageType) as string]
-                        : []
+                        ? (FORAGE_LABEL_BY_VALUE.get(zone.forageType) as string)
+                        : ''
                     }
-                    onChange={(next) => {
-                      const label = next[0];
+                    onChange={(label) => {
                       update({
                         forageType:
-                          label !== undefined
+                          label !== ''
                             ? (FORAGE_VALUE_BY_LABEL.get(label) ?? '')
                             : '',
                       });
@@ -776,20 +774,18 @@ export function ForageCapture({
                 />
                 <div className={css.field}>
                   <span className={css.fieldLbl}>Condition</span>
-                  <ChipSelect
-                    multi={false}
+                  <Dropdown
                     options={CONDITION_GRADES.map((g) => g.label)}
                     value={
                       zone.condition !== '' &&
                       COND_LABEL_BY_VALUE.has(zone.condition)
-                        ? [COND_LABEL_BY_VALUE.get(zone.condition) as string]
-                        : []
+                        ? (COND_LABEL_BY_VALUE.get(zone.condition) as string)
+                        : ''
                     }
-                    onChange={(next) => {
-                      const label = next[0];
+                    onChange={(label) => {
                       update({
                         condition:
-                          label !== undefined
+                          label !== ''
                             ? (COND_VALUE_BY_LABEL.get(label) ?? '')
                             : '',
                       });
@@ -981,15 +977,13 @@ export function ForageCapture({
                       <span className={css.dseUnit}>DSE</span>
                     </span>
                   </div>
-                  <ChipSelect
-                    multi={false}
+                  <Dropdown
                     options={classes.map((c) => CONDITION_CLASS_LABELS[c])}
-                    value={cls !== '' ? [CONDITION_CLASS_LABELS[cls]] : []}
-                    onChange={(next) => {
-                      const label = next[0];
+                    value={cls !== '' ? CONDITION_CLASS_LABELS[cls] : ''}
+                    onChange={(label) => {
                       writeZone(
                         z.id,
-                        label !== undefined
+                        label !== ''
                           ? (CLASS_VALUE_BY_LABEL.get(label) ?? '')
                           : '',
                       );
@@ -1064,20 +1058,19 @@ export function ForageCapture({
               <div className={css.fieldStack}>
                 <div className={css.field}>
                   <span className={css.fieldLbl}>Kind</span>
-                  <ChipSelect
-                    multi={false}
+                  <Dropdown
                     options={['Shade / shelter', 'Tree-protection exclusion']}
                     value={
                       row.kind === 'exclusion'
-                        ? ['Tree-protection exclusion']
+                        ? 'Tree-protection exclusion'
                         : row.kind === 'shelter'
-                          ? ['Shade / shelter']
-                          : []
+                          ? 'Shade / shelter'
+                          : ''
                     }
-                    onChange={(next) =>
+                    onChange={(label) =>
                       update({
                         kind:
-                          next[0] === 'Tree-protection exclusion'
+                          label === 'Tree-protection exclusion'
                             ? 'exclusion'
                             : 'shelter',
                       })

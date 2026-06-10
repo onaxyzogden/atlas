@@ -46,7 +46,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
 import {
   AmountRow,
-  ChipSelect,
+  Dropdown,
   InterpretationBlock,
   RegisterList,
   SectionEyebrow,
@@ -764,19 +764,17 @@ export function GrazingSystemCapture({
                 />
                 <div className={css.field}>
                   <span className={css.fieldLbl}>Status</span>
-                  <ChipSelect
-                    multi={false}
+                  <Dropdown
                     options={STATUS_LABELS.map((s) => s.label)}
                     value={
                       STATUS_LABEL_BY_VALUE.has(pad.status)
-                        ? [STATUS_LABEL_BY_VALUE.get(pad.status) as string]
-                        : []
+                        ? (STATUS_LABEL_BY_VALUE.get(pad.status) as string)
+                        : ''
                     }
-                    onChange={(next) => {
-                      const label = next[0];
+                    onChange={(label) => {
                       update({
                         status:
-                          label !== undefined
+                          label !== ''
                             ? (STATUS_VALUE_BY_LABEL.get(label) ?? 'ok')
                             : 'ok',
                       });

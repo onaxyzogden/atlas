@@ -190,9 +190,9 @@ describe('decisionProcess -- decode / encode / validity / summarise / render', (
     expect(
       screen.getByText(/All 4 required for: new membership/),
     ).toBeTruthy();
-    fireEvent.click(
-      screen.getByText('Consensus -- everyone must agree'),
-    );
+    fireEvent.change(screen.getByRole('combobox', { name: 'Primary model' }), {
+      target: { value: 'Consensus -- everyone must agree' },
+    });
     expect(onChange).toHaveBeenCalled();
     const emitted = onChange.mock.calls[0]![0] as FormValue;
     expect(emitted.cfPrimaryModel).toBe('Consensus -- everyone must agree');
