@@ -2160,6 +2160,67 @@ derived whole-team summary block. One explicit-path commit `98bbd73c` on `main`
 left unstaged (only my four hunks committed, via `git apply --cached`). Log
 [[log/2026-06-09-act-labour-per-person-roster]].
 
+## ConflictFrameworkCapture: ev-s1-conflict-framework 7-decision Tier-0 surface (SP1 Group 4, 2026-06-10)
+
+Closes the last SP1 ecovillage-S1 governance objective: **"A sound conflict
+resolution & community agreement framework"** (`ev-s1-conflict-framework`). It had
+no bespoke Act capture -- its decisions fell through to the generic form/textarea
+fallback and the objective landed on the map shell, not the Tier-0 inline
+workbench. Adopted the operator's `olos_governance_decision_dispute.html` mockup,
+whose 7 decisions + 3 groups map 1:1 onto the catalogue's c1..c7 / dg1-dg3.
+
+**`ConflictFrameworkCapture.tsx`** (+1275) is one controlled multi-mode capture
+modelled on `ProvisionBalanceCapture` / `ForageCapture`: flat `FormValue`,
+lucide-only icons, ASCII-only, ids minted only in handlers, decode TOTAL and
+**never fabricates seed data**. `conflictFrameworkModeFor(itemId)` maps the 7
+items to `decisionProcess` (c1) / `disputePathway` (c2) / `communityAgreements`
+(c3) / `exitProcess` (c4) / `dissolution` (c5) / `reviewCadence` (c6) / `signOff`
+(c7); a foreign id returns `null`. Unlike ProvisionBalance there are **no
+`siblingValues`** -- every c-item is self-contained. FormValue keys are
+`cf`-prefixed; agreements toggle via `.agreeCheck` buttons (aria-label = item
+label, separate non-interactive title div); signatures serialize as
+`cfSignatures` = `string[]` of `householdId::status`.
+
+**c3 communityAgreements** preserves verbatim the one Islamic provision: "Halal
+food standards observed in communal kitchen -- applies to all communal food
+preparation" ([[feedback-csa-in-catalogues]] no-silent-omit discipline).
+
+**c7 signOff is the pre-land-work HARD GATE.** `FOUNDING_HOUSEHOLDS` is a module
+constant of the mockup's **4 STATIC households** (mc1 Sarah Mitchell / mc2 Marcus
+Delacroix / mc3 Aroha & James Ngai / mc4 Elif Yildiz & family) carrying a
+`SIMPLIFICATIONS:` header noting real-member wiring is a deferred follow-up.
+`isConflictFrameworkValid('signOff', value)` returns true only when **every**
+household is `signed` OR `reservations` (reservations recorded but non-blocking --
+operator decision 2026-06-09). Live-verified: "Record this decision" disabled at
+0/4, gate box flips to `pass` tone ("4/4 households signed ... Land work may now
+begin.") and the button enables at 4/4.
+
+**Wiring** mirrors Forage: `TIER_ZERO_OBJECTIVE_IDS` entry; `isConflictFramework`
+flag in `buildDecisionTarget`; `workbenchAffordances` MAP entry (`showGroups:true`
++ `modeFor`); 7 `DecisionList` MODE_LABELS (Decision model / Dispute pathway /
+Agreements / Exit process / Dissolution / Review cadence / Sign-off gate). The
+`DecisionWorkingPanel` body-router arm (import + resolved mode + validity/gate/
+summary/body arms) was authored here but **folded into the foreign labour commit
+`23a2e8c2`** ("refactor(labour): eliminate hours/seasonal ambiguity") by an
+out-of-band rebase -- already committed, so excluded from this slice's commit.
+
+**Verified:** web + shared `tsc` clean; bounded `--pool=forks`
+([[feedback-vitest-bounded-runs]]) 81/81 green (ConflictFramework 32, DecisionList
+23, workbenchAffordances 9, actToolCoverage 17). Live preview in ecovillage
+project `0d5dd16c` ("kawartha lakes", dev strata-unlock): 3-pane Tier-0 workbench,
+3 group headers + 7 mode badges, c1 body on load, c3 halal string, c7 gate
+locked->unlocked. Screenshot tool hung (known transient, no console errors);
+structured DOM-probe fallback per CLAUDE.md ([[project-screenshot-hang]]).
+
+**Amanah:** community-governance / conflict-resolution / member-exit / dissolution
+surface -- halal; no sale, advance-purchase, financing, CSRA, or salam framing;
+the single Islamic provision preserved verbatim. Cleared without Scholar-Council
+routing ([[fiqh-csra-erased-2026-05-04]]).
+
+Commit `3fd0e235` (7 files, +2297) on `main`, explicit pathspec, **not pushed**.
+Log [[log/2026-06-10-atlas-conflict-framework-tier0]]. **Deferred:** bind c7 to
+the project's real member roster (replacing the static 4 households).
+
 > **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
 > delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
 > canonical working line, `feat/structured-capture-forms` is an ancestor.
