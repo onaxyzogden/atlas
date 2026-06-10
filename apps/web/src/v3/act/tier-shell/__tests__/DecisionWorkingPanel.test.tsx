@@ -457,7 +457,10 @@ describe('DecisionWorkingPanel -- labour inventory', () => {
     expect(summary).toBe(summariseLabour(decode(COMPLETE_LABOUR)));
     // Legacy value (no rosterNames) decodes to a single synthetic `primary`
     // person, so the per-person summary reports 1 person + derived team total.
-    expect(summary).toBe('1 person, 20 hrs/wk combined, 1 skill');
+    // The 21 hrs/wk total follows origin/main's labour refactor (0a2b1bff:
+    // per-season absolute hours as source of truth); line 457 pins the same
+    // value dynamically, this literal just makes the regression legible.
+    expect(summary).toBe('1 person, 21 hrs/wk combined, 1 skill');
   });
 
   it('gate note names the missing requirements for an invalid labour draft', () => {
