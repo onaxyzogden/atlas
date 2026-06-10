@@ -280,6 +280,17 @@ export function buildDecisionTarget(
   // every other id.
   const isFinancialModel = item.id.startsWith('ev-s4-financial-model-');
 
+  // Propagation infrastructure survey is a 5-item nursery objective
+  // (nur-sec-s1-propagation-infra-survey-c1..-c5); detected by id prefix. The
+  // panel's isPropagationInfra body-router arm (PropagationInfraCapture
+  // self-routes on itemId via propagationInfraModeFor) takes precedence over any
+  // matched generic form. Advisory only -- no store write, no projectId. The c4
+  // compost calculator is always recordable; c1/c2/c3/c5 gate on at least one
+  // entry. False for every other id.
+  const isPropagationInfra = item.id.startsWith(
+    'nur-sec-s1-propagation-infra-survey-',
+  );
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -337,6 +348,7 @@ export function buildDecisionTarget(
     isSettlement,
     isBiosecurity,
     isFinancialModel,
+    isPropagationInfra,
     deferLabel,
     deferrable,
   };

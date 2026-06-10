@@ -400,6 +400,31 @@ describe('buildDecisionTarget -- livestock intent detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- propagation-infra detection', () => {
+  it('flags isPropagationInfra for a nur-sec-s1-propagation-infra-survey-* decision', () => {
+    const propItem: PlanDecisionChecklistItem = {
+      id: 'nur-sec-s1-propagation-infra-survey-c1',
+      label:
+        'Inventory existing propagation infrastructure - glasshouses, shade houses, benches, misting systems',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(propItem);
+    expect(target.isPropagationInfra).toBe(true);
+  });
+
+  it('does NOT flag isPropagationInfra for the sibling biosecurity decision', () => {
+    const bioItem: PlanDecisionChecklistItem = {
+      id: 'nur-sec-s2-biosecurity-survey-c1',
+      label: 'Identify soil-borne diseases in proposed propagation areas',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(bioItem);
+    expect(target.isPropagationInfra).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

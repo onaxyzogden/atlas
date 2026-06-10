@@ -189,6 +189,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'ev-s4-settlement-strategy',
   'nur-sec-s2-biosecurity-survey',
   'ev-s4-financial-model',
+  'nur-sec-s1-propagation-infra-survey',
 ]);
 
 /**

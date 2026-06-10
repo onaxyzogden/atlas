@@ -220,6 +220,15 @@ const MODE_LABELS: Record<string, string> = {
   'fi-hardship': 'Hardship protocol',
   'fi-reserves': 'Reserves',
   'fi-ratify': 'Member agreement',
+
+  // Propagation-infrastructure survey modes (nursery NRS-S1.1). The component's
+  // generic mode keys are namespaced "pi-" by workbenchAffordances to keep them
+  // clear of the generic labels above. 5 modes c1..c5. Advisory only.
+  'pi-infraInventory': 'Structure inventory',
+  'pi-condition': 'Condition & capacity',
+  'pi-mediaInputs': 'On-site media',
+  'pi-compostCapacity': 'Compost capacity',
+  'pi-mediaSourcing': 'Media sourcing',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

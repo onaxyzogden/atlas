@@ -230,6 +230,13 @@ import {
   type FinancialModelMode,
 } from './FinancialModelCapture.js';
 import {
+  PropagationInfraCapture,
+  propagationInfraModeFor,
+  isPropagationInfraValid,
+  summarisePropagationInfra,
+  type PropagationInfraMode,
+} from './PropagationInfraCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -306,6 +313,8 @@ export interface DecisionPanelTarget {
   isBiosecurity?: boolean;
   /** true => render FinancialModelCapture (self-routing on itemId via financialModelModeFor). */
   isFinancialModel?: boolean;
+  /** true => render PropagationInfraCapture (self-routing on itemId via propagationInfraModeFor). */
+  isPropagationInfra?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -675,6 +684,18 @@ export default function DecisionWorkingPanel({
   const financialModelMode: FinancialModelMode | null =
     decision.isFinancialModel ? financialModelModeFor(decision.itemId) : null;
 
+  // Propagation-infrastructure survey is a 5-mode capture (infraInventory /
+  // condition / mediaInputs / compostCapacity / mediaSourcing) routed by
+  // propagationInfraModeFor(itemId). Advisory only -- it validates / summarises
+  // directly off the FormValue and writes no store / takes no projectId. The c4
+  // compost calculator is always recordable; c1/c2/c3/c5 gate on at least one
+  // entry. Only the resolved mode is held here -- used by the validity, summary,
+  // body arms.
+  const propagationInfraMode: PropagationInfraMode | null =
+    decision.isPropagationInfra
+      ? propagationInfraModeFor(decision.itemId)
+      : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -737,6 +758,8 @@ export default function DecisionWorkingPanel({
     valid = isBiosecurityValid(biosecurityMode, draft);
   } else if (financialModelMode) {
     valid = isFinancialModelValid(financialModelMode, draft);
+  } else if (propagationInfraMode) {
+    valid = isPropagationInfraValid(propagationInfraMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -978,6 +1001,12 @@ export default function DecisionWorkingPanel({
       summary = summariseBiosecurity(biosecurityMode, draft, siblingValues);
     } else if (financialModelMode) {
       summary = summariseFinancialModel(financialModelMode, draft);
+    } else if (propagationInfraMode) {
+      summary = summarisePropagationInfra(
+        propagationInfraMode,
+        draft,
+        siblingValues,
+      );
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1247,6 +1276,15 @@ export default function DecisionWorkingPanel({
           <FinancialModelCapture
             key={decision.itemId}
             mode={financialModelMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : propagationInfraMode ? (
+          <PropagationInfraCapture
+            key={decision.itemId}
+            mode={propagationInfraMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

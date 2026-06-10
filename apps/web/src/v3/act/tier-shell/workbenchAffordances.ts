@@ -36,6 +36,7 @@ import { energyModeFor } from './EnergyCapture.js';
 import { settlementModeFor } from './SettlementCapture.js';
 import { biosecurityModeFor } from './BiosecurityCapture.js';
 import { financialModelModeFor } from './FinancialModelCapture.js';
+import { propagationInfraModeFor } from './PropagationInfraCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -345,6 +346,25 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s4-financial-model-')) return null;
       const m = financialModelModeFor(itemId);
       return m ? `fi-${m}` : null;
+    },
+  },
+
+  // S1 nursery propagation-infrastructure survey (nursery NRS-S1.1): 5 items,
+  // grouped (showGroups true); no map/register strips. Advisory only -- the
+  // capture writes no store and takes no projectId. propagationInfraModeFor
+  // returns GENERIC mode keys (infraInventory / condition / mediaInputs /
+  // compostCapacity / mediaSourcing). The badge keys are namespaced "pi-" HERE
+  // (the affordance modeFor feeds the badge only; DecisionWorkingPanel routes
+  // off its own propagationInfraModeFor independently), and DecisionList carries
+  // matching pi-* labels.
+  'nur-sec-s1-propagation-infra-survey': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('nur-sec-s1-propagation-infra-survey-')) return null;
+      const m = propagationInfraModeFor(itemId);
+      return m ? `pi-${m}` : null;
     },
   },
 };

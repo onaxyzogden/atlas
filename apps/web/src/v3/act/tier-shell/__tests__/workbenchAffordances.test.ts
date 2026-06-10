@@ -15,6 +15,7 @@ import { workbenchAffordancesFor } from '../workbenchAffordances.js';
 import { boundaryModeFor } from '../BoundaryCaptureLegacy.js';
 import { grazingModeFor } from '../GrazingSystemCapture.js';
 import { livestockIntentModeFor } from '../LivestockIntentCapture.js';
+import { propagationInfraModeFor } from '../PropagationInfraCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -121,6 +122,35 @@ describe('workbenchAffordancesFor -- silv-sec-s1-livestock-intent', () => {
     expect(aff.modeFor!('silv-sec-s1-livestock-intent-c5')).toBe('li-compat');
     // Prefix guard: a foreign id under the same mapper returns null.
     expect(aff.modeFor!('silv-sec-s4-grazing-design-c1')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- nur-sec-s1-propagation-infra-survey', () => {
+  const aff = workbenchAffordancesFor('nur-sec-s1-propagation-infra-survey');
+
+  it('carries no strips, shows decision groups (advisory -- no map/register)', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces propagation-infra modes "pi-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 maps to the structure-inventory mode, namespaced to keep clear of the
+    // global mode-label table.
+    const got = aff.modeFor!('nur-sec-s1-propagation-infra-survey-c1');
+    expect(got).toBe('pi-infraInventory');
+    expect(got).toBe(
+      `pi-${propagationInfraModeFor('nur-sec-s1-propagation-infra-survey-c1')}`,
+    );
+    expect(aff.modeFor!('nur-sec-s1-propagation-infra-survey-c4')).toBe(
+      'pi-compostCapacity',
+    );
+    expect(aff.modeFor!('nur-sec-s1-propagation-infra-survey-c5')).toBe(
+      'pi-mediaSourcing',
+    );
+    // Prefix guard: the sibling biosecurity objective returns null here.
+    expect(aff.modeFor!('nur-sec-s2-biosecurity-survey-c1')).toBeNull();
   });
 });
 

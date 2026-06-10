@@ -2246,6 +2246,128 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3d-i -- Propagation infrastructure & media survey
+          (nur-sec-s1-propagation-infra-survey): a 5-mode nursery capture
+          (infraInventory / condition / mediaInputs / compostCapacity /
+          mediaSourcing). Advisory only -- it writes no store and takes no
+          projectId, so each panel stands alone; c4 is a LIVE compost calculator.
+          The dummy "gallery" projectId matches the sections above (the arm
+          ignores it). */}
+      <Section title="Decision Working Panel - Propagation: structure inventory (nur-sec-s1-propagation-infra-survey c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s1-propagation-infra-survey-c1",
+              label: "Inventory existing propagation infrastructure - glasshouses, shade houses, benches, misting systems",
+              prompt: "Register every structure that could be used for propagation, with its type, name, area, and approximate age.",
+              isPropagationInfra: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Propagation: condition & capacity (nur-sec-s1-propagation-infra-survey c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s1-propagation-infra-survey-c2",
+              label: "Assess condition and capacity of each existing structure",
+              prompt: "Rate the condition of each structure and record its usable propagation area.",
+              isPropagationInfra: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Propagation: on-site media (nur-sec-s1-propagation-infra-survey c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s1-propagation-infra-survey-c3",
+              label: "Identify on-site growing media inputs - compost, woodchip, soil, leaf mould",
+              prompt: "Check each on-site media input available and estimate its annual volume.",
+              isPropagationInfra: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Propagation: compost capacity (nur-sec-s1-propagation-infra-survey c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s1-propagation-infra-survey-c4",
+              label: "Assess compost production capacity - turning space, feedstock, maturation time",
+              prompt: "Set bays, bay volume, and maturation time; the annual compost production calculates below.",
+              isPropagationInfra: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Propagation: media sourcing (nur-sec-s1-propagation-infra-survey c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "nur-sec-s1-propagation-infra-survey-c5",
+              label: "Identify local growing media components available - perlite, coir, sand, biochar sources",
+              prompt: "Set the availability of each off-site media component against its supplier and cost reference.",
+              isPropagationInfra: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
