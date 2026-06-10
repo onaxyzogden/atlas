@@ -2437,3 +2437,70 @@ draw tools; arming a row reactively flips its `aria-pressed` + the panel hint. `
 timed out (the known transient map-view hang per [[project-screenshot-hang]], not a defect) --
 DOM evidence stands in. ASCII-only; committed to **main**, **not pushed**.
 Log [[log/2026-06-10-atlas-slope-survey-draw-tools]].
+
+## Placed-features list in the right rail: objective-scoped (2026-06-10)
+
+`ActTierExecutionPanel` gained a **"Placed features"** section between the Checklist and
+Evidence sections that lists exactly the map features the steward has drawn for the selected
+objective -- closing the gap where the objective rail enumerated checklist/evidence/activity but
+never the actual placements. Each row shows swatch/icon · label · kind · area; clicking a row
+flies the Act canvas to the feature; the per-row `×` deletes it from its store after
+`window.confirm`. Operator brief: *"when map features drawn/placed, present a list of the
+selected objective's map features/elements in the right sidebar."* Extends the stage-scoped
+[[placed-features-card]] rather than forking it.
+
+**The derive seam (single source of truth for `mapToolId` -> store).** New
+`apps/web/src/features/shared/placedFeatures/objectiveFeatureRegistry.ts` resolves which stores
+an objective's features live in, by joining the existing chain:
+`getObjectiveActTools(objective)` (catalogue-id strings, `@ogden/shared`) -> `ACT_TOOL_CATALOG`
+-> keep `arm.kind === 'map'` -> `arm.mapToolId` -> `matchedDescriptors(ids)`. Each
+`PlacedFeatureDescriptor` carries `list(projectId)` / `toRow(rec)` / a bound `remove()` closure,
+keyed by `MapToolId` literal or prefix matcher (built-env matches
+`observe.built-environment.*` **or** `plan.structures-subsystems.be.*` -- NOT
+`…structure`; design elements via `DESIGN_ELEMENT_MAP_TOOL_IDS`). Covers **all 9** placed-feature
+stores: crops, paddocks+fences (livestock), built-env (V2), land-design elements, water systems
+(the 4 water tools all write `waterNodes`), zones, paths, vegetation survey, slope survey.
+`useObjectivePlacedFeatures.ts` is the objective-scoped derive hook (Zustand-v5 stable-snapshot
+`useMemo`, never a fresh array from a selector); it **unions** the tool-derived set with a
+forward-looking `rec.sourceObjectiveId === objective.id` match so stamped features are exact and
+legacy/derive features still appear. The new `pf*` CSS classes live in
+`ActTierExecutionPanel.module.css`.
+
+**Fly-to consumer.** `DiagnoseMap.tsx` (the Act shell canvas) gained a Map-Focus consumer effect
+mirroring `DesignMap` -- reads `useMapFocusStore.request`/`clear`, guards on `projectId`,
+`map.flyTo({ center, zoom })`. Without it the rail row clicks no-op on the Act canvas (the focus
+store was previously consumed only by `DesignMap` + `ProvePage`). Row click ->
+`useMapFocusStore.getState().focus({ projectId, center: row.centroid, zoom: 17 })`.
+
+**Phase 5 -- additive `sourceObjectiveId` provenance stamp (hybrid association).** Per the
+operator-confirmed "derive now, tag going forward" decision, each feature record interface gained
+an **optional** `sourceObjectiveId?: string` (the 8 web stores + the shared
+[[shared-package]] `BuiltEnvironmentEntity` Zod schema -- additive, so it flows into
+`CreateBuiltEnvironmentInput` automatically since that field is not omitted). `ActTierShell`
+threads its route-param `objectiveId` into `PlanDrawHost` (-> all 12 derive-covered child tools:
+4 water, 2 zone, path, crop, paddock, fence-line, `PlanDesignElementHost`/`useDesignElementDrawTool`,
+`BeV2ExistingTool`), `VegetationSurveyDrawHost`, and `SlopeSurveyDrawHost`; each create payload
+stamps `sourceObjectiveId: sourceObjectiveId ?? undefined` (spread-guard for the Zod-backed
+built-env create). Non-derive-covered Plan tools (Structure, Guild, FertilityInfra,
+FlowConnector, Utility*, BufferRing, EcologicalNote, MonitoringTransect, Slaughter/ColdChain/
+MarketNode, ScheduleMove) are deliberately **not** stamped -- their stores aren't surfaced by the
+registry. The stamp is additive/back-compat: legacy and non-objective draws load with it
+undefined and still derive into the list; `byKey`/`syncManifest` spread whole records
+structurally so no schema/persist bump was needed.
+
+**Amanah:** enumerate / focus / delete the steward's own map placements -- land-reading and UI
+plumbing only, no riba/gharar/`bay' ma laysa 'indak` surface.
+
+**Verified:** `apps/web` `tsc --noEmit -p tsconfig.json` EXIT 0 (8GB heap, `${PIPESTATUS[0]}`
+per [[feedback-vitest-bounded-runs]] discipline -- `| head` masks the real code); bounded
+`vitest run --pool=forks --testTimeout=20000 src/features/shared/placedFeatures` **31/31** green
+(registry resolution incl. prefix-match + unknown->undefined, multi-store derive, log/form-only
+objective -> [], plus the unchanged `usePlacedFeatures`/`PlacedFeaturesCard` suites -- proving the
+derive path still renders legacy records). Phases 0-4 (registry, derive hook, panel section,
+fly-to consumer, per-row delete) shipped across prior sessions; Phase 5 stamping completed this
+session. Preview walkthrough on `:5200` deferred to next session (the one step the type/test
+gates can't exercise; mind the [[project-screenshot-hang]] map-view caveat). Commit `f3e2860a`
+("feat(act): objective-scoped \"Placed features\" list in the right rail"), 33 files, explicit
+pathspec (the foreign `actToolCatalog.ts`/`objectiveActTools.ts` + the in-flight EcologyCapture
+cluster left unstaged), on **main**, **not pushed**.
+Log [[log/2026-06-10-atlas-act-placed-features-objective-list]].

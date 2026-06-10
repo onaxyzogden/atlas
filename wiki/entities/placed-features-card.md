@@ -137,3 +137,34 @@ State is local `useState` — ephemeral, no persist.
     flipped `aria-pressed`, and changed title to "Show on map";
     clicking again restored all three. Confirms hook ↔ store ↔ UI
     plumbing end-to-end.
+
+## Objective-scoped extension — Act tier (added 2026-06-10)
+
+The stage-scoped card above (Observe/Plan, 3 stores) was **extended**, not
+forked, into an objective-scoped "Placed features" list inside the Act tier's
+`ActTierExecutionPanel` (see [[act-tier-shell]] for the panel-side detail). Two
+net-new modules in this same `placedFeatures/` folder:
+
+- `objectiveFeatureRegistry.ts` — the single `mapToolId -> store` resolution
+  (`PlacedFeatureDescriptor` per family: `list` / `toRow` / bound `remove()`),
+  matched by `MapToolId` literal or prefix. Exports `objectiveMapToolIds`,
+  `matchedDescriptors`, `matchedSources`. Covers **all 9** placed-feature stores
+  (vs. the card's 3): crops, paddocks+fences, built-env V2, land-design, water
+  systems (4 water tools → `waterNodes`), zones, paths, veg survey, slope survey.
+- `useObjectivePlacedFeatures.ts` — objective derive hook joining
+  `getObjectiveActTools(objective)` → catalog `arm.kind==='map'` → `mapToolId` →
+  `matchedDescriptors` → rows, **unioned** with a forward-looking
+  `sourceObjectiveId === objective.id` match.
+- `__tests__/objectiveFeatureRegistry.test.ts` — 14 pure resolution/derive cases.
+
+`usePlacedFeatures.ts` was touched to extend `centroidOf` for water-store records
+(`center: [lng,lat]` tuple + `swaleGeometry`, which lack a plain `.geometry`) and
+to export the shared `*ToRow` builders for the registry to reuse.
+
+**Phase 5 provenance.** Every placed-feature record gained an optional additive
+`sourceObjectiveId?: string` (the 8 web stores + the shared `BuiltEnvironmentEntity`
+Zod schema), stamped at draw time from the Act tier's active objective — so the
+objective-scoped list can tighten from derive-by-tools to exact per-objective over
+time without a backfill. Legacy/non-objective draws keep it undefined and still
+derive in. Commit `f3e2860a` (main, not pushed); Log
+[[log/2026-06-10-atlas-act-placed-features-objective-list]].
