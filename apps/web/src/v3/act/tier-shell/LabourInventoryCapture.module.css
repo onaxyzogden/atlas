@@ -649,3 +649,199 @@
 .gateNote[data-ready='true'] {
   color: var(--color-success, #6b8f6b);
 }
+
+/* ---------- roster -- per-person availability rows ---------- */
+
+.roster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rosterRow {
+  border-radius: var(--radius-md, 8px);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-raised, #faf7ef);
+  overflow: hidden;
+  transition: border-color 120ms ease;
+}
+
+.rosterRow[data-open='true'] {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.rosterRowHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+}
+
+.rosterChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.rosterChevron:hover {
+  color: var(--color-stage-act, #d9a036);
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.personRole {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted, #565c63);
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.personRole[data-role='primary'] {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 14%, transparent);
+}
+
+.personRole[data-role='contractor'] {
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+}
+
+.personName {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text, #1b1e22);
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.personName:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.personName:focus {
+  border-color: var(--color-stage-act, #d9a036);
+  background: var(--color-surface, #ffffff);
+}
+
+.rosterStats {
+  flex: none;
+  font-size: 10px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--color-text-subtle, #7a808a);
+  white-space: nowrap;
+}
+
+.rosterRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.rosterRemove:hover {
+  color: var(--color-error, #c4493a);
+  background: color-mix(in srgb, var(--color-error, #c4493a) 10%, transparent);
+}
+
+.rosterRowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 4px 11px 12px;
+  border-top: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+}
+
+.subLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-top: 5px;
+}
+
+.rosterAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px dashed var(--color-border, rgba(84, 92, 100, 0.16));
+  background: transparent;
+  color: var(--color-text-muted, #565c63);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.rosterAdd:hover {
+  border-color: var(--color-stage-act, #d9a036);
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* ---------- whole-team derived totals (read-only) ---------- */
+
+.teamSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.teamTotalLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.teamTotalNum {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-stage-act, #d9a036);
+}
+
+.teamTotalUnit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+.teamTotalNote {
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+  margin-left: auto;
+}

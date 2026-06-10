@@ -48,6 +48,7 @@ import LabourInventoryCapture, {
   decode,
   isLabourValid,
   summariseLabour,
+  rosterSeedFrom,
   type LabourModel,
 } from './LabourInventoryCapture.js';
 import VisionClassifyCapture, {
@@ -378,6 +379,11 @@ export default function DecisionWorkingPanel({
   const labourModel: LabourModel | null = decision.isLabourInventory
     ? decode(draft)
     : null;
+  // Pre-fill the labour roster from the sibling StewardCapture decision's invited
+  // people (names + roles); shown until the roster is persisted (first edit).
+  const labourRosterSeed = decision.isLabourInventory
+    ? rosterSeedFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}))
+    : undefined;
 
   // Decode the draft into the classify model once -- reused by validity, the
   // record summary, and the body renderer (mirrors the labour pattern above).
@@ -600,10 +606,14 @@ export default function DecisionWorkingPanel({
           : 'Add at least one authority contact to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
     } else if (decision.isLabourInventory && labourModel) {
+      // Ready once at least one roster person carries hours + a skill.
       const missing: string[] = [];
-      if (labourModel.who === '') missing.push('team');
-      if (labourModel.hours <= 0) missing.push('weekly hours');
-      if (labourModel.skills.length < 1) missing.push('at least one skill');
+      if (!labourModel.roster.some((p) => p.hours > 0)) {
+        missing.push('weekly hours for a person');
+      }
+      if (!labourModel.roster.some((p) => p.skills.length >= 1)) {
+        missing.push('at least one skill');
+      }
       gateNote = (
         <div className={css.gateNote}>
           Add <strong>{missing.join(', ')}</strong> before recording
@@ -810,6 +820,7 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             skillSuggestions={labourSkillSuggestions ?? []}
+            rosterSeed={labourRosterSeed}
           />
         ) : decision.isBoundary ? (
           <BoundaryCapture
