@@ -263,6 +263,30 @@ describe('computeCompost', () => {
     expect(r.annual).toBe(0);
     expect(r.tone).toBe('warn');
   });
+
+  it('does not leak NaN/Infinity on non-finite weeks (falls back to default)', () => {
+    const r = computeCompost({
+      kind: 'compostCapacity',
+      bays: '3',
+      volPerBay: '1.4',
+      weeks: 'abc',
+      feedstock: [],
+    });
+    expect(Number.isFinite(r.annual)).toBe(true);
+    expect(Number.isFinite(r.turnovers)).toBe(true);
+  });
+
+  it('guards against division when weeks is 0 (turnovers and annual are 0)', () => {
+    const r = computeCompost({
+      kind: 'compostCapacity',
+      bays: '3',
+      volPerBay: '1.4',
+      weeks: '0',
+      feedstock: [],
+    });
+    expect(r.turnovers).toBe(0);
+    expect(r.annual).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

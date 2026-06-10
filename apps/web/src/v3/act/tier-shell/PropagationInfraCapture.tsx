@@ -150,6 +150,8 @@ const DEF_VOL_PER_BAY = 1.4;
 const DEF_WEEKS = 8;
 // Rough: a ~36 m2 usable propagation space needs ~20 m3/yr compost (mockup p4).
 const COMPOST_NEED = 20;
+const WEEKS_PER_YEAR = 52;
+const SURPLUS_MULTIPLIER = 1.1;
 
 // -- mediaSourcing (c5) -- off-site component register (mockup p5) --
 export type AvailState = 's' | 'a' | 'o';
@@ -158,7 +160,6 @@ export interface SourceComponentSpec {
   name: string;
   supplier: string;
   cost: string;
-  /** demo availability in the mockup; NOT persisted (decode defaults to ""). */
 }
 export const SOURCE_COMPONENTS: readonly SourceComponentSpec[] = [
   {
@@ -470,7 +471,7 @@ export function computeCompost(model: CompostCapacityModel): CompostResult {
   const bays = num(model.bays, DEF_BAYS);
   const volPerBay = num(model.volPerBay, DEF_VOL_PER_BAY);
   const weeks = num(model.weeks, DEF_WEEKS);
-  const turnovers = weeks > 0 ? Math.floor(52 / weeks) : 0;
+  const turnovers = weeks > 0 ? Math.floor(WEEKS_PER_YEAR / weeks) : 0;
   const annualRaw = bays * volPerBay * turnovers;
   // Round to one decimal place (mirrors the mockup's toFixed(1)).
   const annual = Math.round(annualRaw * 10) / 10;
@@ -478,7 +479,7 @@ export function computeCompost(model: CompostCapacityModel): CompostResult {
 
   let tone: 'pass' | 'warn';
   let interpretation: string;
-  if (annual >= COMPOST_NEED * 1.1) {
+  if (annual >= COMPOST_NEED * SURPLUS_MULTIPLIER) {
     tone = 'pass';
     const ratio = (annual / COMPOST_NEED).toFixed(1);
     interpretation = `Surplus -- approximately ${ratio}x estimated need for a ~36 m2 usable space. Excess can supply other site uses.`;
@@ -674,6 +675,9 @@ export function PropagationInfraCapture({
             <span className={css.sumN}>{total}</span>
             <span className={css.sumLbl}>m2 total</span>
           </div>
+          {/* Static 0 by design: mirrors the mockup, whose own JS never updates this. */}
+          {/* "assessed" counts condition-rated structures (a c2 datum) -- the advisory */}
+          {/* contract forbids cross-reading sibling items, so it cannot be wired live. */}
           <div className={css.sumItem}>
             <span className={css.sumN}>0</span>
             <span className={css.sumLbl}>assessed</span>
