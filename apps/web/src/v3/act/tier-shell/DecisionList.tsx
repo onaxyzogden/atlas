@@ -209,6 +209,17 @@ const MODE_LABELS: Record<string, string> = {
   'bs-weedMedia': 'Weed & media risk',
   'bs-ingress': 'Plant-material ingress',
   'bs-sanitation': 'Sanitation baseline',
+
+  // Financial contribution model modes (ecovillage EV-S4.8). The component's
+  // generic mode keys are namespaced "fi-" by workbenchAffordances. 6 modes
+  // c1..c6, matching the catalogue mode badges verbatim. Advisory only (the
+  // member-agreement gate is surfaced as guidance, not enforced).
+  'fi-buyin': 'Buy-in',
+  'fi-levy': 'Levy structure',
+  'fi-fundgov': 'Fund governance',
+  'fi-hardship': 'Hardship protocol',
+  'fi-reserves': 'Reserves',
+  'fi-ratify': 'Member agreement',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the

@@ -223,6 +223,13 @@ import {
   type BiosecurityMode,
 } from './BiosecurityCapture.js';
 import {
+  FinancialModelCapture,
+  financialModelModeFor,
+  isFinancialModelValid,
+  summariseFinancialModel,
+  type FinancialModelMode,
+} from './FinancialModelCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -297,6 +304,8 @@ export interface DecisionPanelTarget {
   isSettlement?: boolean;
   /** true => render BiosecurityCapture (self-routing on itemId via biosecurityModeFor). */
   isBiosecurity?: boolean;
+  /** true => render FinancialModelCapture (self-routing on itemId via financialModelModeFor). */
+  isFinancialModel?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -656,6 +665,16 @@ export default function DecisionWorkingPanel({
   const biosecurityMode: BiosecurityMode | null =
     decision.isBiosecurity ? biosecurityModeFor(decision.itemId) : null;
 
+  // Same advisory shape as soil/water/energy/settlement: out-of-slice ecovillage
+  // financial contribution model, no store write, no projectId. No blocking mode
+  // gates -- the member-agreement gate declared in scopeNotes (no construction
+  // until all founding households confirm) is surfaced as guidance in the ratify
+  // mode, so every mode stays always recordable. Amanah-reviewed CLEAN (co-owner
+  // cost-sharing only). financialModelModeFor resolves c1..c6; held here for the
+  // validity, summary, and body arms below.
+  const financialModelMode: FinancialModelMode | null =
+    decision.isFinancialModel ? financialModelModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -716,6 +735,8 @@ export default function DecisionWorkingPanel({
     valid = isSettlementValid(settlementMode, draft);
   } else if (biosecurityMode) {
     valid = isBiosecurityValid(biosecurityMode, draft);
+  } else if (financialModelMode) {
+    valid = isFinancialModelValid(financialModelMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -955,6 +976,8 @@ export default function DecisionWorkingPanel({
       summary = summariseSettlement(settlementMode, draft);
     } else if (biosecurityMode) {
       summary = summariseBiosecurity(biosecurityMode, draft, siblingValues);
+    } else if (financialModelMode) {
+      summary = summariseFinancialModel(financialModelMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1215,6 +1238,15 @@ export default function DecisionWorkingPanel({
           <BiosecurityCapture
             key={decision.itemId}
             mode={biosecurityMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : financialModelMode ? (
+          <FinancialModelCapture
+            key={decision.itemId}
+            mode={financialModelMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

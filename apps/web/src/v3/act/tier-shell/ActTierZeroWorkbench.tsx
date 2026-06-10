@@ -266,6 +266,20 @@ export function buildDecisionTarget(
   // entry/tools/container baseline. False for every other id.
   const isBiosecurity = item.id.startsWith('nur-sec-s2-biosecurity-survey-');
 
+  // Financial contribution model is a 6-item ecovillage objective
+  // (ev-s4-financial-model-c1..-c6); detected by id prefix. The panel's
+  // isFinancialModel body-router arm (FinancialModelCapture self-routes on
+  // itemId via financialModelModeFor) takes precedence over any matched generic
+  // form. Advisory only -- no store write, no projectId. The member-agreement
+  // gate declared in the objective scopeNotes (no construction until all
+  // founding households confirm) is SURFACED as guidance in the ratify mode,
+  // not enforced as a blocking validity gate, so the mode stays always
+  // recordable. Amanah-reviewed CLEAN: co-owner cost-sharing only (buy-in =
+  // equity in the commons, levy, interest-free hardship deferral, pooled
+  // reserve) -- no riba/gharar/bay`-ma-laysa-`indak/advance-purchase. False for
+  // every other id.
+  const isFinancialModel = item.id.startsWith('ev-s4-financial-model-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -322,6 +336,7 @@ export function buildDecisionTarget(
     isEnergy,
     isSettlement,
     isBiosecurity,
+    isFinancialModel,
     deferLabel,
     deferrable,
   };

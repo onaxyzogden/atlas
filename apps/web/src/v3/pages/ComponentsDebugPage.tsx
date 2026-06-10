@@ -2088,6 +2088,164 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* FinancialModelCapture gallery (ecovillage ev-s4-financial-model,
+          EV-S4.8): a 6-mode advisory capture (buy-in / levy structure / fund
+          governance / hardship protocol / reserves / member agreement). OUT of
+          the active Homestead+Silvopasture slice (ecovillage source), so it does
+          not resolve in the live slice project -- these gallery panels are the
+          visual sign-off surface. Advisory only -- it writes no store and takes
+          no projectId. The objective's member-agreement gate (no construction
+          until every founding household confirms) is a HARD GATE in operator
+          intent; isFinancialModelValid stays always-true (advisory, consistent
+          with water/soil/energy/settlement) and the gate framing is surfaced
+          prominently as a warn block in the c6 (member agreement) body rather
+          than enforced as a record-blocking validity rule. AMANAH-reviewed
+          CLEAN: every recorded mechanism is ordinary co-owner cost-sharing --
+          buy-in is equity in the commons (not advance-purchase), the levy funds
+          shared operations, the Tier-1 hardship deferral is interest-free
+          forbearance (qard-hasan-like), the reserve is pooled communal savings;
+          no riba, gharar, or bay` ma laysa `indak / CSRA / salam, so no
+          scopeNotes flag applies. Content is transcribed verbatim from the OLOS
+          financial-contribution-model mockup (panels p1..p6). The dummy
+          "gallery" projectId is ignored. */}
+      <Section title="Decision Working Panel - Financial model: buy-in (ev-s4-financial-model c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c1",
+              label: "Define member buy-in contribution - amount, payment schedule, what it covers",
+              prompt: "Review the buy-in components and per-household contributions and confirm the model.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Financial model: levy (ev-s4-financial-model c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c2",
+              label: "Define ongoing communal cost contributions - monthly or annual levy structure",
+              prompt: "Review the monthly levy components and per-household basis.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Financial model: fund governance (ev-s4-financial-model c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c3",
+              label: "Define communal fund governance - how funds are held, authorised, and audited",
+              prompt: "Review the custody, spending-authority, and transparency arrangements.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Financial model: hardship (ev-s4-financial-model c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c4",
+              label: "Define financial hardship protocol - how the community supports members in difficulty",
+              prompt: "Review the three-tier hardship response from short-term deferral to exit.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Financial model: reserves (ev-s4-financial-model c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c5",
+              label: "Define capital reserve strategy - how the community saves for major infrastructure renewal",
+              prompt: "Review the reserve target, contribution rate, and draw trigger events.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Financial model: member agreement (ev-s4-financial-model c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s4-financial-model-c6",
+              label: "Confirm financial model is agreed by all founding members before any construction begins",
+              prompt: "Review the financial-model summary and each founding household's confirmation position.",
+              isFinancialModel: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

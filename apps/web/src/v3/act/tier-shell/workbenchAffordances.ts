@@ -35,6 +35,7 @@ import { waterSystemsModeFor } from './WaterSystemsCapture.js';
 import { energyModeFor } from './EnergyCapture.js';
 import { settlementModeFor } from './SettlementCapture.js';
 import { biosecurityModeFor } from './BiosecurityCapture.js';
+import { financialModelModeFor } from './FinancialModelCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -326,6 +327,24 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('nur-sec-s2-biosecurity-survey-')) return null;
       const m = biosecurityModeFor(itemId);
       return m ? `bs-${m}` : null;
+    },
+  },
+
+  // ev-s4-financial-model is an ecovillage advisory Tier-0 capture
+  // (out-of-slice). It writes no store and takes no projectId.
+  // financialModelModeFor returns GENERIC mode keys (buyin / levy / fundgov /
+  // hardship / reserves / ratify). The badge keys are namespaced "fi-" HERE (the
+  // affordance modeFor feeds the badge only; DecisionWorkingPanel routes off its
+  // own financialModelModeFor independently), and DecisionList carries matching
+  // fi-* labels.
+  'ev-s4-financial-model': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s4-financial-model-')) return null;
+      const m = financialModelModeFor(itemId);
+      return m ? `fi-${m}` : null;
     },
   },
 };

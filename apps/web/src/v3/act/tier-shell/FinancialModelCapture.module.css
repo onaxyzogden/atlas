@@ -1,0 +1,460 @@
+/*
+ * FinancialModelCapture.module.css -- styling for the 6-mode advisory
+ * ev-s4-financial-model capture. Mirrors the class vocabulary of
+ * SettlementCapture.module.css (root / fieldLbl / notesArea / feeds* / dataList
+ * / dataRow / dr*) and adds financial-specific blocks: household tables
+ * (buy-in / levy), fund-governance sections, three hardship tiers, the capital
+ * reserve summary + trigger list, and the ratification brief + member roster.
+ *
+ * ASCII-only. Colours resolve through design tokens with hex fallbacks
+ * (amber -> --color-stage-act, blue -> --color-info, green -> --color-success,
+ * red -> --color-error-600, slate -> --color-text-muted).
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---- shared field + notes ---- */
+.fieldLbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.notesArea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text, #1f2328);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.notesArea:focus {
+  outline: none;
+  border-color: var(--color-stage-act, #d9a036);
+  box-shadow: 0 0 0 3px rgba(217, 160, 54, 0.16);
+}
+
+/* ---- feeds note ---- */
+.feedsBlock {
+  border-left: 3px solid var(--color-info, #5b8eaf);
+  background: rgba(91, 142, 175, 0.08);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+}
+.feedsTxt {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}
+.feedsTxt strong {
+  color: var(--color-text, #1f2328);
+  font-weight: 600;
+}
+
+/* ---- data rows (label / value) ---- */
+.dataList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-border, #d6d9dd);
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.dataRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--color-surface, #ffffff);
+}
+.drLbl {
+  font-size: 12.5px;
+  color: var(--color-text-muted, #565c63);
+  flex: 1;
+}
+.drVal {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text, #1f2328);
+  text-align: right;
+}
+
+.refNote {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---- household table (buy-in / levy) ---- */
+.hhTable {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.hhHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  background: var(--color-surface-sunken, #f4f5f6);
+  border-bottom: 1px solid var(--color-border, #d6d9dd);
+}
+.hhHName {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+.hhHAmt {
+  width: 92px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+.hhHBasis {
+  width: 104px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+.hhRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-subtle, #eceef0);
+}
+.hhNameCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.hhAv {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.av_1 {
+  background: var(--color-stage-act, #d9a036);
+}
+.av_2 {
+  background: var(--color-info, #5b8eaf);
+}
+.av_3 {
+  background: var(--color-success, #6b8f6b);
+}
+.av_4 {
+  background: var(--color-accent, #8a6fa8);
+}
+.hhNm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #1f2328);
+}
+.hhAmt {
+  width: 92px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #1f2328);
+}
+.hhBasis {
+  width: 104px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--color-text-muted, #565c63);
+}
+.hhReduced {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 600;
+}
+.hhTotalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--color-surface-sunken, #f4f5f6);
+}
+.hhTotalLbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted, #565c63);
+}
+.hhTotalVal {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-stage-act, #d9a036);
+}
+
+/* ---- fund governance ---- */
+.fundList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fundSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fsLbl {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text, #1f2328);
+}
+
+/* ---- hardship tiers ---- */
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hardshipTier {
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tierActive {
+  border-color: var(--color-stage-act, #d9a036);
+  background: rgba(217, 160, 54, 0.06);
+}
+.htHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.htNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.htNum_1 {
+  background: var(--color-success, #6b8f6b);
+}
+.htNum_2 {
+  background: var(--color-stage-act, #d9a036);
+}
+.htNum_3 {
+  background: var(--color-error-600, #c0392b);
+}
+.htTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text, #1f2328);
+  flex: 1;
+}
+.htTrigger {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-muted, #565c63);
+  background: var(--color-surface-sunken, #f4f5f6);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.htNote {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---- capital reserves ---- */
+.reserveSummary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.rsItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 8px;
+  background: var(--color-surface-sunken, #f4f5f6);
+}
+.rsN {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-stage-act, #d9a036);
+}
+.rsLbl {
+  font-size: 11px;
+  color: var(--color-text-muted, #565c63);
+  text-align: center;
+}
+.triggerList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.triggerItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 8px;
+  opacity: 0.55;
+}
+.triOn {
+  opacity: 1;
+  border-color: var(--color-success, #6b8f6b);
+  background: rgba(107, 143, 107, 0.07);
+}
+.triDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  background: var(--color-border, #d6d9dd);
+}
+.triOn .triDot {
+  background: var(--color-success, #6b8f6b);
+}
+.triTxt {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text, #1f2328);
+}
+
+/* ---- ratification ---- */
+.ratifyBrief {
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.rbHeader {
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text, #1f2328);
+  background: var(--color-surface-sunken, #f4f5f6);
+  border-bottom: 1px solid var(--color-border, #d6d9dd);
+}
+.rbRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-subtle, #eceef0);
+}
+.rbKey {
+  font-size: 12.5px;
+  color: var(--color-text-muted, #565c63);
+  flex: 1;
+}
+.rbVal {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+}
+.rbOk {
+  color: var(--color-text, #1f2328);
+}
+.rbWarn {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.memberSign {
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.msHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.msName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #1f2328);
+  flex: 1;
+}
+.msStatus {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  background: var(--color-surface-sunken, #f4f5f6);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.msOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.msOpt {
+  font-size: 11.5px;
+  color: var(--color-text-muted, #565c63);
+  border: 1px solid var(--color-border, #d6d9dd);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.ratifyGate {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--color-text-muted, #565c63);
+}
