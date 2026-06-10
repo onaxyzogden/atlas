@@ -30,6 +30,7 @@ import { grazingModeFor } from './GrazingSystemCapture.js';
 import { livestockIntentModeFor } from './LivestockIntentCapture.js';
 import { conflictFrameworkModeFor } from './ConflictFrameworkCapture.js';
 import { husbandryModeFor } from './HusbandryCapture.js';
+import { soilImprovementModeFor } from './SoilImprovementCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -232,6 +233,24 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('silv-sec-s4-husbandry-framework-')) return null;
       const m = husbandryModeFor(itemId);
       return m ? `hb-${m}` : null;
+    },
+  },
+  // S5 soil improvement strategy (universal U-S5.3): 5 items, grouped
+  // (showGroups true); no map/register strips. Advisory only -- the capture
+  // writes no store and takes no projectId. soilImprovementModeFor returns
+  // GENERIC mode keys (fertility / schedule / equipment / priority / baseline).
+  // The badge keys are namespaced "si-" HERE (the affordance modeFor feeds the
+  // badge only; DecisionWorkingPanel routes off its own soilImprovementModeFor
+  // independently), and DecisionList carries matching si-* labels. The
+  // component itself is left untouched.
+  's5-soil-improvement': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('s5-soil-improvement-')) return null;
+      const m = soilImprovementModeFor(itemId);
+      return m ? `si-${m}` : null;
     },
   },
 };

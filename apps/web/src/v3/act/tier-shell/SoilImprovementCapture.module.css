@@ -1,0 +1,445 @@
+/* SoilImprovementCapture.module.css
+ *
+ * Styles for the 5-mode soil improvement strategy capture (fertility /
+ * schedule / equipment / priority / baseline) for the universal objective
+ * s5-soil-improvement. Token vocabulary mirrors HusbandryCapture.module.css /
+ * LivestockIntentCapture.module.css. ASCII-only; no bare hex outside a var()
+ * fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   amber  -> --color-stage-act (#d9a036)
+ *   blue   -> --color-info       (#5b8eaf)
+ *   green  -> --color-success     (#6b8f6b)
+ *   slate  -> --color-text-muted  (#565c63)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Notes textarea ---------- */
+
+.fieldLbl {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.notesArea {
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 9px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-family: inherit;
+  font-size: 11.5px;
+  color: var(--color-text, #1b1e22);
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.notesArea:focus {
+  outline: none;
+  border-color: var(--color-info, #5b8eaf);
+}
+
+/* ---------- Feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ---------- Zone tone accents (shared by zone cards + schedule zone chips) ---------- */
+
+.zone_intensive {
+  --si-tone: var(--color-success, #6b8f6b);
+}
+.zone_moderate {
+  --si-tone: var(--color-info, #5b8eaf);
+}
+.zone_minimal {
+  --si-tone: var(--color-stage-act, #d9a036);
+}
+.zone_none {
+  --si-tone: var(--color-text-muted, #565c63);
+}
+
+/* ---------- P1: zone fertility cards ---------- */
+
+.zoneList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zoneCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-left: 3px solid var(--si-tone, var(--color-border, rgba(84, 92, 100, 0.16)));
+  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
+  overflow: hidden;
+}
+
+.zoneHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  background: color-mix(in srgb, var(--si-tone, #565c63) 8%, transparent);
+}
+
+.zoneBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: var(--si-tone, #565c63);
+  background: color-mix(in srgb, var(--si-tone, #565c63) 16%, transparent);
+}
+
+.zoneName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.zoneIntensity {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: var(--si-tone, #565c63);
+  background: color-mix(in srgb, var(--si-tone, #565c63) 16%, transparent);
+}
+
+.zoneBody {
+  padding: 7px 11px 9px;
+  border-top: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zoneRow {
+  display: flex;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+}
+
+.zoneMethod {
+  font-size: 9.5px;
+  font-weight: 600;
+  width: 64px;
+  flex-shrink: 0;
+  padding-top: 1px;
+  color: var(--si-tone, #565c63);
+}
+
+.zoneText {
+  flex: 1;
+}
+
+/* ---------- P2: application rates table ---------- */
+
+.appTable {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.atHeader {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 88px;
+  padding: 5px 11px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  gap: 6px;
+}
+
+.atRow {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 88px;
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.1));
+  align-items: center;
+  gap: 6px;
+}
+
+.atRow:last-child {
+  border-bottom: none;
+}
+
+.atZone {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  text-align: center;
+  color: var(--si-tone, #565c63);
+  background: color-mix(in srgb, var(--si-tone, #565c63) 16%, transparent);
+}
+
+.atInput {
+  font-size: 11px;
+  color: var(--color-text, #1b1e22);
+}
+
+.atRate {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.atTiming {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- P3: equipment rows ---------- */
+
+.equipList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.equipRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.equipBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.equipTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.equipDetail {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.equipStatus {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.status_have {
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+}
+
+.status_hire {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+}
+
+.status_buy {
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 16%, transparent);
+}
+
+/* ---------- P4: priority zones ---------- */
+
+.priorityList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.priorityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 11px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.priorityRank {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-muted, #565c63);
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.priorityBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.priorityName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 2px;
+}
+
+.priorityRationale {
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+}
+
+.priorityTarget {
+  font-size: 10px;
+  margin-top: 5px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.prio_go {
+  color: var(--color-success, #6b8f6b);
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+}
+
+.prio_info {
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+}
+
+.prio_defer {
+  color: var(--color-stage-act, #d9a036);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 12%, transparent);
+}
+
+.prio_later {
+  color: var(--color-text-subtle, #7a808a);
+  background: color-mix(in srgb, var(--color-text-muted, #565c63) 10%, transparent);
+}
+
+/* ---------- P5: monitoring baseline ---------- */
+
+.baselineRef {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+  padding: 4px 8px;
+  background: var(--color-surface-raised, #faf7ef);
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
+
+.baselineTable {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.btHeader {
+  display: grid;
+  grid-template-columns: 1fr 64px 64px 64px;
+  padding: 5px 11px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  gap: 6px;
+}
+
+.btRow {
+  display: grid;
+  grid-template-columns: 1fr 64px 64px 64px;
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.1));
+  align-items: center;
+  gap: 6px;
+}
+
+.btRow:last-child {
+  border-bottom: none;
+}
+
+.btTargetRow {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 6%, transparent);
+}
+
+.btIndicator {
+  font-size: 11.5px;
+  color: var(--color-text, #1b1e22);
+}
+
+.btTargetRow .btIndicator {
+  font-style: italic;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.btNum {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  text-align: right;
+}
+
+.btTargetRow .btNum {
+  color: var(--color-success, #6b8f6b);
+}
+
+.methodNote {
+  padding: 7px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  font-size: 10.5px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  margin-top: 6px;
+}

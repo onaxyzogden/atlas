@@ -224,6 +224,14 @@ export function buildDecisionTarget(
   // pathway acknowledgement. False for every other id.
   const isHusbandry = item.id.startsWith('silv-sec-s4-husbandry-framework-');
 
+  // Soil improvement strategy is a 5-item universal objective
+  // (s5-soil-improvement-c1..-c5); detected by id prefix. The panel's isSoil
+  // body-router arm (SoilImprovementCapture self-routes on itemId via
+  // soilImprovementModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId, no gating mode. False for
+  // every other id.
+  const isSoil = item.id.startsWith('s5-soil-improvement-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -275,6 +283,7 @@ export function buildDecisionTarget(
     isLivestockIntent,
     isConflictFramework,
     isHusbandry,
+    isSoil,
     deferLabel,
     deferrable,
   };

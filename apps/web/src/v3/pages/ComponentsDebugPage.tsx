@@ -1398,6 +1398,128 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3d -- Soil improvement strategy (s5-soil-improvement, universal
+          U-S5.3): a 5-mode advisory capture (fertility / schedule / equipment /
+          priority / baseline). Advisory only -- it writes no store and takes no
+          projectId. No covenant gate applies (soil fertility), so all 5 modes
+          are always recordable. Content is transcribed verbatim from the OLOS
+          soil-fertility-programme mockup. The dummy "gallery" projectId is
+          ignored by the arm. */}
+      <Section title="Decision Working Panel - Soil: fertility (s5-soil-improvement c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s5-soil-improvement-c1",
+              label: "Design soil improvement program by zone - composting, mulching, cover cropping",
+              prompt: "Review the per-zone fertility program and record site-specific commitments.",
+              isSoil: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Soil: schedule (s5-soil-improvement c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s5-soil-improvement-c2",
+              label: "Specify application rates and timing for each zone",
+              prompt: "Review the application-rate schedule and note adjustments by zone.",
+              isSoil: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Soil: equipment (s5-soil-improvement c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s5-soil-improvement-c3",
+              label: "Define machinery and equipment requirements",
+              prompt: "Review the equipment list and record have / hire / buy status.",
+              isSoil: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Soil: priority (s5-soil-improvement c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s5-soil-improvement-c4",
+              label: "Define priority zones for first-cycle improvement",
+              prompt: "Review the ranked priority zones and confirm the first-cycle sequence.",
+              isSoil: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Soil: baseline (s5-soil-improvement c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "s5-soil-improvement-c5",
+              label: "Establish soil health monitoring baseline for improvement tracking",
+              prompt: "Review the baseline indicators and note the Year 0 data sources.",
+              isSoil: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

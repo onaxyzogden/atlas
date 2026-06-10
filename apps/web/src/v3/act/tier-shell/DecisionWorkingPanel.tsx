@@ -188,6 +188,13 @@ import {
   type HusbandryMode,
 } from './HusbandryCapture.js';
 import {
+  SoilImprovementCapture,
+  soilImprovementModeFor,
+  isSoilImprovementValid,
+  summariseSoilImprovement,
+  type SoilImprovementMode,
+} from './SoilImprovementCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -252,6 +259,8 @@ export interface DecisionPanelTarget {
   isConflictFramework?: boolean;
   /** true => render HusbandryCapture (self-routing on itemId via husbandryModeFor). */
   isHusbandry?: boolean;
+  /** true => render SoilImprovementCapture (self-routing on itemId via soilImprovementModeFor). */
+  isSoil?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -573,6 +582,14 @@ export default function DecisionWorkingPanel({
   const husbandryMode: HusbandryMode | null =
     decision.isHusbandry ? husbandryModeFor(decision.itemId) : null;
 
+  // Soil improvement strategy is a 5-mode capture (fertility/schedule/equipment/
+  // priority/baseline) routed by soilImprovementModeFor(itemId). Advisory only --
+  // it validates / summarises directly off the FormValue and writes no store /
+  // takes no projectId. No mode gates (every mode always recordable). Only the
+  // resolved mode is held here -- used by the validity, summary, body arms.
+  const soilMode: SoilImprovementMode | null =
+    decision.isSoil ? soilImprovementModeFor(decision.itemId) : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -623,6 +640,8 @@ export default function DecisionWorkingPanel({
     valid = isConflictFrameworkValid(conflictFrameworkMode, draft);
   } else if (husbandryMode) {
     valid = isHusbandryValid(husbandryMode, draft);
+  } else if (soilMode) {
+    valid = isSoilImprovementValid(soilMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -852,6 +871,8 @@ export default function DecisionWorkingPanel({
       summary = summariseConflictFramework(conflictFrameworkMode, draft);
     } else if (husbandryMode) {
       summary = summariseHusbandry(husbandryMode, draft);
+    } else if (soilMode) {
+      summary = summariseSoilImprovement(soilMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1066,6 +1087,15 @@ export default function DecisionWorkingPanel({
           <HusbandryCapture
             key={decision.itemId}
             mode={husbandryMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : soilMode ? (
+          <SoilImprovementCapture
+            key={decision.itemId}
+            mode={soilMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

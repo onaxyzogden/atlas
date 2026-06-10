@@ -167,6 +167,14 @@ const MODE_LABELS: Record<string, string> = {
   'hb-halal': 'Halal handling',
   'hb-records': 'Record-keeping',
   'hb-labour': 'Labour fit',
+  // Soil improvement strategy modes (U-S5.3). The component's generic mode keys
+  // are namespaced "si-" by workbenchAffordances to keep them clear of the
+  // generic labels above. 5 modes c1..c5. Advisory only.
+  'si-fertility': 'Fertility program',
+  'si-schedule': 'Application schedule',
+  'si-equipment': 'Equipment plan',
+  'si-priority': 'Zone priorities',
+  'si-baseline': 'Baseline targets',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
