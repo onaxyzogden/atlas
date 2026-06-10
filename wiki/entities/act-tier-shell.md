@@ -2071,6 +2071,31 @@ templates moved; `feedsInto` / `feedHint` / `feedNote` stay in
 [[entities/observe-dashboard]]. Amanah: pure copy reword, no finance framing
 ([[fiqh-csra-erased-2026-05-04]]).
 
+## Labour per-person roster (2026-06-09)
+
+`LabourInventoryCapture` (decision `s1-vision-labour`) was reworked from a single
+guessed "whole team combined" weekly-hours figure into a **per-person roster**.
+Each `PersonAvailability` carries its own weekly hours, four-season curve, and
+skill+level list; the combined team hours, seasonal curve, and union skill list
+become **derived read-only totals** (`deriveTeam`) that feed the unchanged
+Capacity signal (`getCapBand`) and annual-rhythm chart. The change is strictly
+additive: the legacy flat `hours`/`spring..winter`/`skills` keys are still
+emitted, now recomputed from the roster, so downstream Act pacing is untouched and
+no persisted decisions migrate. The roster persists as index-aligned parallel
+`string[]` arrays (mirroring StewardCapture) plus a U+001F-packed `name::level`
+cell per person; `decode` is back-compat — a value with no `rosterNames` collapses
+into one synthetic `primary` person whose derived totals equal the old combined
+fields. The roster **pre-fills from the sibling StewardCapture decision**
+(`s1-vision-steward`) via the exported `rosterSeedFrom` helper (primary "You" +
+each invited `team_member`/`contractor`, landowners skipped), wired through a new
+`rosterSeed?` prop in `DecisionWorkingPanel` (display precedence: persisted >
+seed > WHO-band default rows). UI is a list of expandable per-person rows over a
+derived whole-team summary block. One explicit-path commit `98bbd73c` on `main`
+(**not pushed**); tsc clean; 19 bounded vitest green; DOM-proven on
+`/v3/components`. A foreign-WIP footer reorder in `DecisionWorkingPanel.tsx` was
+left unstaged (only my four hunks committed, via `git apply --cached`). Log
+[[log/2026-06-09-act-labour-per-person-roster]].
+
 > **Branch note (2026-06-08):** the entire Phase 1 + Phase 2 structured-capture
 > delta was merged into `main` out-of-band (merge `763415ee`); `main` is now the
 > canonical working line, `feat/structured-capture-forms` is an ancestor.
