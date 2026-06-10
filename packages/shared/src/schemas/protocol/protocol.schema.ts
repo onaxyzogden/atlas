@@ -127,6 +127,14 @@ export const StandardProtocolTemplateSchema = z.object({
    */
   stratumId: PlanStratumId.optional(),
   /**
+   * Optional objective-level anchor. When present, this protocol monitors the
+   * baseline established by the named objective (e.g. 's1-vision', 's2-terrain',
+   * 'ev-s1-legal-governance'). Absent = stratum-wide (default behaviour, identical
+   * to today). objectiveId sits INSIDE the stratum grouping; stratumId must still
+   * be set when objectiveId is set.
+   */
+  objectiveId: z.string().min(1).optional(),
+  /**
    * Provenance layer (universal/primary/secondary). Drives the per-type
    * composition + sort. OPTIONAL for back-compat; the resolver treats an absent
    * value as the universal layer (rank 0), mirroring resolveProjectObjectives.
