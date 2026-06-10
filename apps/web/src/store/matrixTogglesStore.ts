@@ -29,6 +29,7 @@ export type MatrixToggleKey =
   | 'sunPath'
   | 'zoneRings'
   | 'seededZones'
+  | 'placedZones'
   | 'scheduledMoves'
   | 'waterRouter';
 
@@ -66,6 +67,12 @@ export interface MatrixTogglesState {
    */
   seededZones: boolean;
   /**
+   * ALL stages — visibility of hand-drawn ("manual") Plan zones on the shared
+   * plan-data layers. Defaults ON so existing stewards keep the current
+   * always-visible behavior.
+   */
+  placedZones: boolean;
+  /**
    * PLAN cross-stage surfacing — renders ACT-stage unfulfilled scheduled
    * livestock moves on the Plan-stage map as centroid badges over the
    * destination paddock or structure. Read-only: editing the plan
@@ -96,6 +103,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       sunPath: false,
       zoneRings: false,
       seededZones: true,
+      placedZones: true,
       scheduledMoves: false,
       waterRouter: false,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
@@ -110,6 +118,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           sunPath: value,
           zoneRings: value,
           seededZones: value,
+          placedZones: value,
           scheduledMoves: value,
           waterRouter: value,
         })),
@@ -144,11 +153,15 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
+      // v15 (2026-06-10): added placedZones — visibility toggle for hand-drawn
+      //  ("manual") Plan zones on the shared plan-data layers (all stages).
+      //  Defaults ON so existing stewards keep the current always-visible
+      //  behavior.
       // v14 (2026-05-25): added waterRouter — Rec #3 v2 Plan-stage overlay
       //  (flow arrows + suggested catchment pins for low-in-watershed water
       //  elements). Defaults off so existing stewards don't inherit an
       //  unfamiliar layer.
-      version: 14,
+      version: 15,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState> & {
           // v13 drop list: retained here so the migrate signature is
@@ -167,6 +180,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           sunPath: prev.sunPath ?? false,
           zoneRings: prev.zoneRings ?? false,
           seededZones: prev.seededZones ?? true,
+          placedZones: prev.placedZones ?? true,
           scheduledMoves: prev.scheduledMoves ?? false,
           waterRouter: prev.waterRouter ?? false,
         } as MatrixTogglesState;

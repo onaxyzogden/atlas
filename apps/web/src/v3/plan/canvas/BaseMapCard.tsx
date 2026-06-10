@@ -40,6 +40,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'sunPath', label: 'Sun path (hourly trajectory traces)', swatch: '#d68a4a' },
   { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
   { key: 'seededZones', label: 'Home centre / Daily touch / Weekly touch / Main crops / Forage / Wilderness', swatch: '#7a9a4a' },
+  { key: 'placedZones', label: 'Placed zones (hand-drawn in Plan)', swatch: '#7a8c62' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
   { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
 ];

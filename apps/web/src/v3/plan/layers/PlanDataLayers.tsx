@@ -497,6 +497,7 @@ export default function PlanDataLayers({
   const openForm = useInlineFormStore((s) => s.open);
   const { field: utilPhaseField } = usePhaseFieldSpec(projectId);
   const seededZonesVisible = useMatrixTogglesStore((s) => s.seededZones);
+  const placedZonesVisible = useMatrixTogglesStore((s) => s.placedZones);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const lensMode = useLayeringLensStore((s) => s.mode);
   const allEnterprises = useEnterpriseStore((s) => s.enterprises);
@@ -1400,6 +1401,23 @@ export default function PlanDataLayers({
         ['coalesce', ['get', 'seedProvenance'], 'manual'],
         'ring-seed',
       ];
+      // Placed-zones visibility (matrixTogglesStore.placedZones). Manual zones
+      // have seedProvenance:'manual' (or absent, coalesced to 'manual').
+      // The 'all' guard keeps non-zone features always visible.
+      const hidePlacedFilter = [
+        '!',
+        ['all',
+          ['==', ['get', 'kind'], 'zone'],
+          ['==', ['coalesce', ['get', 'seedProvenance'], 'manual'], 'manual'],
+        ],
+      ];
+      const hideAllZonesFilter = ['!=', ['get', 'kind'], 'zone'];
+      // Combined filter: null = show all, otherwise the appropriate filter.
+      const polyVisFilter =
+        seededZonesVisible && placedZonesVisible ? null
+        : !seededZonesVisible && !placedZonesVisible ? hideAllZonesFilter
+        : !seededZonesVisible ? hideSeedFilter
+        : hidePlacedFilter;
       const seedLineFilter = seededZonesVisible
         ? ['==', ['get', 'seedProvenance'], 'ring-seed']
         : ['==', ['literal', 0], 1];
@@ -1427,14 +1445,14 @@ export default function PlanDataLayers({
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
-        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
+        ...(polyVisFilter ? { filter: polyVisFilter as never } : {}),
         paint: { 'fill-color': colorExpr as never, 'fill-opacity': fillOpacityExpr as never },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
         type: 'line',
         source: polySid,
-        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
+        ...(polyVisFilter ? { filter: polyVisFilter as never } : {}),
         paint: {
           'line-color': colorExpr as never,
           'line-width': 1.5,
@@ -1698,16 +1716,16 @@ export default function PlanDataLayers({
         // takes effect (ensureLayer is a no-op once the layer exists).
         map.setFilter(
           `${LAYER_PREFIX}poly-fill`,
-          (seededZonesVisible ? null : hideSeedFilter) as never,
+          polyVisFilter as never,
         );
         map.setFilter(
           `${LAYER_PREFIX}poly-line`,
-          (seededZonesVisible ? null : hideSeedFilter) as never,
+          polyVisFilter as never,
         );
         if (map.getLayer(`${LAYER_PREFIX}label`)) {
           map.setFilter(
             `${LAYER_PREFIX}label`,
-            (seededZonesVisible ? null : hideSeedFilter) as never,
+            polyVisFilter as never,
           );
         }
         if (map.getLayer(`${LAYER_PREFIX}poly-seed-line`)) {
@@ -1746,7 +1764,7 @@ export default function PlanDataLayers({
         id: `${LAYER_PREFIX}label`,
         type: 'symbol',
         source: labelSid,
-        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
+        ...(polyVisFilter ? { filter: polyVisFilter as never } : {}),
         layout: {
           // 2026-05-11 — Polygon features (zones, paddocks, crop areas,
           // catchments, setback rings) stamp `acresLabel` on their props
@@ -1853,6 +1871,7 @@ export default function PlanDataLayers({
     structures,
     projectId,
     seededZonesVisible,
+    placedZonesVisible,
   ]);
 
   // Click-to-edit + drag-to-move for guild points. Uses the same
