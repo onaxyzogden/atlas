@@ -70,3 +70,16 @@ same pure selector as the production veg survey.
 **Branch hygiene:** on **main**, the canonical line per [[project-structured-capture-on-main]].
 Committed this slice on explicit request; **not pushed** (push still requires the operator's
 go-ahead).
+
+**Commit provenance (annotated after the fact):** this slice did NOT land as a discrete
+slope commit. While it was being staged, a concurrent session ran a sweeping commit --
+`5f996a91 feat(act): draw-on-map vegetation survey (s2-ecology-c1) with auto-calculated %` --
+that captured the **entire working tree**: the slope files + this wiki documentation + the
+sibling vegetation survey + (incidentally) a foreign `.claude/launch.json` change that was
+meant to stay unstaged. So the slope work shares hash `5f996a91` with the vegetation survey
+and is filed under a commit *labelled* for veg. HEAD compiles (the 6 `noUncheckedIndexedAccess`
+fixes in `slopeSurveyStore.ts` / `SlopeSurveyPanel.tsx` / `SlopeSurveySummary.tsx` are included
+and verified: `packages/shared` + `apps/web` tsc EXIT 0, `actToolCoverage` 17/17). This is the
+external-sweep hazard recorded in [[project-branch-rebase]] /
+[[feedback-commit-immediately-on-rebased-branches]]. As of this annotation `5f996a91` is one of
+5 local `main` commits ahead of `origin/main`, still **unpushed**.
