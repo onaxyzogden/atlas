@@ -1,0 +1,383 @@
+/* ExitSuccessionCapture.module.css
+ *
+ * Styles for the 5-mode member-exit / land-succession capture (exit process /
+ * dwelling transfer / land reversion / dissolution / legal review). Ported from
+ * olos_exit_succession_act.html p1..p5. Token vocabulary mirrors
+ * ProvisionBalanceCapture.module.css. ASCII-only; every glyph is a lucide icon.
+ * No bare hex outside a var() fallback.
+ *
+ * Token substitution notes (mockup raw-hex -> app token):
+ *   Exit / transfer accent (--am amber)  -> --color-stage-act (#d9a036)
+ *   Reversion / dissolution (--rd red)   -> --color-error      (#c4493a)
+ *   Legal review accent     (--sl slate) -> --color-info       (#5b8eaf)
+ *   Settlement-payment stage (--gn green)-> --color-success    (#6b8f6b)
+ *   Feeds info block        (--bl blue)  -> --color-info        (#5b8eaf)
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Shared section label ---------- */
+
+.secLbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 6px;
+}
+
+.secOptional {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Shared labeled select row ---------- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 4px;
+}
+
+.rowLbl {
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+  line-height: 1.35;
+}
+
+.select {
+  flex-shrink: 0;
+  max-width: 58%;
+  background: var(--color-surface, #f5f1e8);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 5px);
+  padding: 5px 8px;
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text-subtle, #7a808a);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.select:focus {
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--color-info, #5b8eaf);
+  font-weight: 500;
+}
+
+/* ===================================================================== */
+/* EXIT PROCESS STAGES (p1)                                              */
+/* ===================================================================== */
+
+.stage {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+
+.stageHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.stageNum {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  flex-shrink: 0;
+}
+
+.stageNum1 {
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 16%, transparent);
+  color: var(--color-stage-act, #d9a036);
+  border: 1px solid color-mix(in srgb, var(--color-stage-act, #d9a036) 30%, transparent);
+}
+
+.stageNum2 {
+  background: color-mix(in srgb, var(--color-error, #c4493a) 16%, transparent);
+  color: var(--color-error, #c4493a);
+  border: 1px solid color-mix(in srgb, var(--color-error, #c4493a) 30%, transparent);
+}
+
+.stageNum3 {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+  border: 1px solid color-mix(in srgb, var(--color-success, #6b8f6b) 30%, transparent);
+}
+
+.stageTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+}
+
+.stageTiming {
+  font-size: 9.5px;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.stageRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stageRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.stageRowLbl {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  flex: 1;
+}
+
+/* ===================================================================== */
+/* PRICING MODEL (p2)                                                    */
+/* ===================================================================== */
+
+.pricingList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pricingCard {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+  width: 100%;
+  text-align: left;
+}
+
+.pricingCard:hover {
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.pricingCard[data-on='true'] {
+  border-color: color-mix(in srgb, var(--color-stage-act, #d9a036) 55%, transparent);
+  background: color-mix(in srgb, var(--color-stage-act, #d9a036) 10%, transparent);
+}
+
+.pmHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.pmDot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.pricingCard[data-on='true'] .pmDot {
+  background: var(--color-stage-act, #d9a036);
+  border-color: var(--color-stage-act, #d9a036);
+}
+
+.pmTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.pricingCard[data-on='true'] .pmTitle {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.pmDesc {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  margin-left: 19px;
+}
+
+.pmUse {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+  margin-left: 19px;
+  margin-top: 2px;
+}
+
+/* ===================================================================== */
+/* DISSOLUTION PROVISIONS (p4)                                           */
+/* ===================================================================== */
+
+.dissItem {
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+
+.dissHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dissIcon {
+  color: var(--color-error, #c4493a);
+  flex-shrink: 0;
+}
+
+.dissName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+}
+
+.dissRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.warningBox {
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--color-error, #c4493a) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error, #c4493a) 25%, transparent);
+  border-radius: var(--radius-md, 8px);
+  font-size: 11px;
+  color: var(--color-error, #c4493a);
+  line-height: 1.5;
+}
+
+.warningBox strong {
+  font-weight: 600;
+}
+
+/* ===================================================================== */
+/* LEGAL REVIEW (p5)                                                     */
+/* ===================================================================== */
+
+.legalList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legalCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+  width: 100%;
+  text-align: left;
+}
+
+.legalCheck[data-on='true'] {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-info, #5b8eaf) 40%, transparent);
+}
+
+.lcDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+  margin-top: 3px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.legalCheck[data-on='true'] .lcDot {
+  background: var(--color-info, #5b8eaf);
+  border-color: var(--color-info, #5b8eaf);
+}
+
+.lcBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.lcName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.35;
+}
+
+.legalCheck[data-on='true'] .lcName {
+  color: var(--color-info, #5b8eaf);
+}
+
+.lcDesc {
+  font-size: 10.5px;
+  color: var(--color-text-muted, #565c63);
+  line-height: 1.4;
+  margin-top: 2px;
+}

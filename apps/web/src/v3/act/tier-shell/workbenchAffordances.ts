@@ -38,6 +38,7 @@ import { biosecurityModeFor } from './BiosecurityCapture.js';
 import { financialModelModeFor } from './FinancialModelCapture.js';
 import { propagationInfraModeFor } from './PropagationInfraCapture.js';
 import { adaptiveManagementModeFor } from './AdaptiveManagementCapture.js';
+import { exitSuccessionModeFor } from './ExitSuccessionCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -410,6 +411,24 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s7-adaptive-management-')) return null;
       const m = adaptiveManagementModeFor(itemId);
       return m ? `am-${m}` : null;
+    },
+  },
+
+  // Member exit & land succession (ev-s7-exit-succession): 5 decisions grouped
+  // (showGroups true) under three decision groups; no map/register strips.
+  // Advisory form-only -- the capture writes no store and takes no projectId.
+  // exitSuccessionModeFor returns mode keys (exitProcess / dwellingTransfer /
+  // landReversion / dissolution / legalReview); badge keys are namespaced "es-"
+  // HERE (the affordance modeFor feeds the badge only; DecisionWorkingPanel
+  // routes off its own exitSuccessionModeFor independently).
+  'ev-s7-exit-succession': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s7-exit-succession-')) return null;
+      const m = exitSuccessionModeFor(itemId);
+      return m ? `es-${m}` : null;
     },
   },
 };

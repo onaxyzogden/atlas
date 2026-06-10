@@ -135,6 +135,25 @@ Grouped by the plan's sub-phases 3a–3f. Item ids are c1–c5/c6 within each ob
 | `olos_communal_infra_survey.html` | `ev-s3-infra-condition` | NEW `InfraConditionCapture` | RegisterList, StatusPill | |
 | `olos_communal_waste.html` | `ev-s3-waste-cycling` / `ev-s5-sanitation-waste` | NEW `WasteCyclingCapture` | ChoiceCardGrid (method), InterpretationBlock | |
 
+### 3g — Exit & succession (S7, ecovillage) — **50th mockup (from Downloads, not the original 49)**
+
+**BUILT (2026-06-10).** `olos_exit_succession_act.html` arrived in `C:\Users\MY OWN AXIS\Downloads`
+(not the `Documents\OLOS UI` set of 49). Triage: it is a verbatim match for the **already-authored**
+objective `ev-s7-exit-succession` (ref EV-S7.8, "A sound member exit & land succession protocol",
+Ecovillage primary, Stratum 7 — Phasing & Resourcing; [`ecovillage.ts:1381`](../../../../../../packages/shared/src/constants/plan/catalogues/ecovillage.ts)).
+Same title / focused question / scopeNote / 5 checklist items (c1–c5) / 3 decision groups / completion
+gate. Objective layer needed **no change**; only the capture + routing were missing. S7 is not in
+`TIER_ZERO_OBJECTIVE_IDS`, so `ev-s7-exit-succession` was added to the set (Phase-2-style routing).
+
+**Amanah — operator-CLEARED for verbatim transcription (2026-06-10).** Same co-owner cost-sharing /
+asset-transfer domain as `ev-s1-provision-balance` (buy-in settlement, CLT resale formula, dissolution
+distribution). No salam / advance-sale / CSRA framing present. Copy transcribed verbatim with the
+objective's existing scopeNote; never reworded or omitted.
+
+| Mockup | Objective / item id | Arm | Action | Control primitives | Amanah |
+|---|---|---|---|---|---|
+| `olos_exit_succession_act.html` | `ev-s7-exit-succession` / c1–c5 | NEW `ExitSuccessionCapture` (`exitSuccessionModeFor`) | **Build (2026-06-10)** — 5 modes (exitProcess / dwellingTransfer / landReversion / dissolution / legalReview); add id to `TIER_ZERO_OBJECTIVE_IDS` | staged select-rows (notice/settlement/payment), pricing-model radio, dissolution select groups + warning box, legal-review scope toggles | ⚠ finance — screened CLEAR (co-owner cost-sharing / asset-transfer; verbatim per 2026-06-10) |
+
 ---
 
 ## Deferred — NOT workbench third-column (Plan-stage surfaces / objective triage needed)

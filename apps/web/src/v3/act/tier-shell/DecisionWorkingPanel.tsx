@@ -237,6 +237,13 @@ import {
   type PropagationInfraMode,
 } from './PropagationInfraCapture.js';
 import {
+  ExitSuccessionCapture,
+  exitSuccessionModeFor,
+  isExitSuccessionValid,
+  summariseExitSuccession,
+  type ExitSuccessionMode,
+} from './ExitSuccessionCapture.js';
+import {
   AdaptiveManagementCapture,
   adaptiveManagementModeFor,
   isAdaptiveManagementValid,
@@ -322,6 +329,8 @@ export interface DecisionPanelTarget {
   isFinancialModel?: boolean;
   /** true => render PropagationInfraCapture (self-routing on itemId via propagationInfraModeFor). */
   isPropagationInfra?: boolean;
+  /** true => render ExitSuccessionCapture (self-routing on itemId via exitSuccessionModeFor). */
+  isExitSuccession?: boolean;
   /** true => render AdaptiveManagementCapture (self-routing on itemId via adaptiveManagementModeFor). */
   isAdaptiveManagement?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
@@ -705,6 +714,15 @@ export default function DecisionWorkingPanel({
       ? propagationInfraModeFor(decision.itemId)
       : null;
 
+  // Member-exit / land-succession is a 5-mode capture (exitProcess /
+  // dwellingTransfer / landReversion / dissolution / legalReview) routed by
+  // exitSuccessionModeFor(itemId). Advisory only -- validates / summarises
+  // directly off the FormValue, writes no store / takes no projectId.
+  const exitSuccessionMode: ExitSuccessionMode | null =
+    decision.isExitSuccession
+      ? exitSuccessionModeFor(decision.itemId)
+      : null;
+
   // Adaptive management protocol (ev-s7-adaptive-management c1..c5: review /
   // triggers / escalation / documentation / fiveyear) routed by
   // adaptiveManagementModeFor(itemId). Advisory only -- validates / summarises
@@ -778,6 +796,8 @@ export default function DecisionWorkingPanel({
     valid = isFinancialModelValid(financialModelMode, draft);
   } else if (propagationInfraMode) {
     valid = isPropagationInfraValid(propagationInfraMode, draft);
+  } else if (exitSuccessionMode) {
+    valid = isExitSuccessionValid(exitSuccessionMode, draft);
   } else if (adaptiveManagementMode) {
     valid = isAdaptiveManagementValid(adaptiveManagementMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
@@ -1027,6 +1047,8 @@ export default function DecisionWorkingPanel({
         draft,
         siblingValues,
       );
+    } else if (exitSuccessionMode) {
+      summary = summariseExitSuccession(exitSuccessionMode, draft);
     } else if (adaptiveManagementMode) {
       summary = summariseAdaptiveManagement(
         adaptiveManagementMode,
@@ -1315,6 +1337,13 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             siblingValues={siblingValues}
+          />
+        ) : exitSuccessionMode ? (
+          <ExitSuccessionCapture
+            key={decision.itemId}
+            mode={exitSuccessionMode}
+            value={draft}
+            onChange={setDraft}
           />
         ) : adaptiveManagementMode ? (
           <AdaptiveManagementCapture

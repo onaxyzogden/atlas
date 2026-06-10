@@ -291,6 +291,13 @@ export function buildDecisionTarget(
     'nur-sec-s1-propagation-infra-survey-',
   );
 
+  // Member-exit / land-succession is a 5-item ecovillage S7 objective
+  // (ev-s7-exit-succession-c1..-c5); detected by id prefix. The panel's
+  // isExitSuccession body-router arm (ExitSuccessionCapture self-routes on
+  // itemId via exitSuccessionModeFor) renders the form. Advisory only -- no
+  // store write, no projectId. False for every other id.
+  const isExitSuccession = item.id.startsWith('ev-s7-exit-succession-');
+
   // Adaptive management protocol is a 5-item ecovillage S7 objective
   // (ev-s7-adaptive-management-c1..-c5); detected by id prefix. The panel's
   // isAdaptiveManagement body-router arm (AdaptiveManagementCapture self-routes
@@ -359,6 +366,7 @@ export function buildDecisionTarget(
     isBiosecurity,
     isFinancialModel,
     isPropagationInfra,
+    isExitSuccession,
     isAdaptiveManagement,
     deferLabel,
     deferrable,

@@ -425,6 +425,31 @@ describe('buildDecisionTarget -- propagation-infra detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- exit-succession detection', () => {
+  it('flags isExitSuccession for an ev-s7-exit-succession-* decision', () => {
+    const exitItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-exit-succession-c1',
+      label:
+        'Define exit process - notice period, financial settlement calculation, timeline',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(exitItem);
+    expect(target.isExitSuccession).toBe(true);
+  });
+
+  it('does NOT flag isExitSuccession for the sibling provision-balance decision', () => {
+    const provItem: PlanDecisionChecklistItem = {
+      id: 'ev-s1-provision-balance-c1',
+      label: 'Map which provisions are communal, hybrid, or household',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(provItem);
+    expect(target.isExitSuccession).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

@@ -191,6 +191,7 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'ev-s4-financial-model',
   'nur-sec-s1-propagation-infra-survey',
   'ev-s7-adaptive-management',
+  'ev-s7-exit-succession',
 ]);
 
 /**

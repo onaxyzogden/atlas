@@ -2488,6 +2488,127 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Phase 3g -- Member exit & land succession (ev-s7-exit-succession): a
+          5-mode ecovillage S7 capture (exitProcess / dwellingTransfer /
+          landReversion / dissolution / legalReview). Advisory only -- it writes
+          no store and reads no siblings, so each panel stands alone. Finance copy
+          (buy-in basis, settlement, asset distribution) is operator-cleared for
+          verbatim transcription; no salam / advance-sale present. */}
+      <Section title="Decision Working Panel - Exit: exit process (ev-s7-exit-succession c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-exit-succession-c1",
+              label: "Define exit process - notice period, financial settlement calculation, timeline",
+              prompt: "Set the notice of intent, financial settlement basis, and settlement payment timing for a departing member.",
+              isExitSuccession: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Exit: dwelling transfer (ev-s7-exit-succession c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-exit-succession-c2",
+              label: "Define dwelling transfer process - who buys, at what price, by what method",
+              prompt: "Pick the dwelling pricing model and the transfer mechanics for when a member exits.",
+              isExitSuccession: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Exit: land reversion (ev-s7-exit-succession c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-exit-succession-c3",
+              label: "Define land share reversion to communal ownership on exit",
+              prompt: "Set the tenure model, reversion trigger, private-zone boundary, and agricultural-contribution handling.",
+              isExitSuccession: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Exit: dissolution (ev-s7-exit-succession c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-exit-succession-c4",
+              label: "Define community dissolution protocol - how assets and liabilities are distributed",
+              prompt: "Set the dissolution trigger, asset distribution, and liability handling, with the wind-down warning.",
+              isExitSuccession: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Exit: legal review (ev-s7-exit-succession c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s7-exit-succession-c5",
+              label: "Obtain legal review of exit and succession protocol before any member moves on-site",
+              prompt: "Confirm the review-scope items and set the advisor, review timing, signatories, and filing.",
+              isExitSuccession: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }
