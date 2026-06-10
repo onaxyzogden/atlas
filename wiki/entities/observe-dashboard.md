@@ -579,6 +579,39 @@ be live-previewed (dead dev API on :3000, no project in localStorage, `/v3`
 [[log/2026-06-09-olos-uiux-copy-module]]. Amanah: pure copy reword, no finance
 framing ([[fiqh-csra-erased-2026-05-04]]).
 
+## Lens slide-up restyled toward the topography mockup (2026-06-10, `8918fec6`, `74b0235d`)
+
+Two explicit-path, single-file commits on `main` (`apps/web/src/v3/observe/lens/components.tsx`;
+not pushed) bring the `module-bar` lens `DomainDetailSlideUp` closer to the
+`olos_observe_topography.html` reference. Three operator-confirmed constraints held across both:
+**keep the cool app palette** (no `tokens.ts` retune -- the `de054364` cool-slate decision
+stands), **slide-up only** (no rails/spine/canvas changes), and **keep the existing font/icon
+stack** (Playfair Display + Unicode glyph icons; no Lora serif, no Tabler webfont). Structural
+fidelity on the cool surface, deliberately not a warm pixel match.
+
+- **Iteration 1 (`8918fec6`)** -- slide-up frame + entry colour convention. `TopographySpecialised`
+  zone cards gain a 3px colour indicator bar (mockup `.zone-indicator`) + `C.textPrimary` name +
+  right-aligned mono area; filter chips become pills (radius 16, `4px 12px`); **`DataPointRow`**
+  entry icon tile + mono value are coloured by observation **type** (measurement=teal,
+  trace/point=blue, logged/note=green) per the mockup data-log convention instead of the single
+  lens colour -- shared by every lens slide-up, lens-colour fallback for unmapped types.
+- **Iteration 2 (`74b0235d`)** -- the expanded `DataPointRow` proof-record (`isExpanded` subtree),
+  eight edits A-H (18+/20-): seamless detail container (drop top divider, indent 52px);
+  smaller/lighter/tracked proof-record label; mockup-spec pills (radius 6, font 10, lighter
+  border); quote note as a left-bar accent (`border-left:2px`, radius `0 5px 5px 0`) not a full
+  box; borderless uppercase Source/Plan-objective stacks (**wording preserved** -- "Plan objective",
+  NOT the mockup's "Pre-objective"; restyle, not copy edit); one-line middot timestamp; tags
+  radius 5 / font 9 / sans; neutral ghost "View on map" button. Supersession/divergence notices
+  left unchanged (live semantic chrome, no mockup analogue).
+
+`tokens.ts`/`mockData.ts` byte-untouched. tsc: `components.tsx` type-clean each iteration (the
+only tree error, `useDesignElementDrawTool.ts(374,7) TS2554`, is foreign uncommitted WIP, pre-existing).
+Iteration 1 DOM-proven live; **iteration 2 live proof NOT obtainable** -- the prototype renderer
+hung on mount across three clean single-instance server starts ([[project-screenshot-hang]]), so
+it rests on the audited diff + type-cleanliness + the presentational-only nature of the change,
+disclosed per CLAUDE.md. Foreign "epitaxy" WIP left untouched.
+[[log/2026-06-10-atlas-observe-slideup-topography-restyle]].
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
