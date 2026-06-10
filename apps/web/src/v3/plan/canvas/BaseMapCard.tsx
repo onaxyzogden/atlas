@@ -32,7 +32,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   // petals + manual sector arrows in one rose). See ADR
   // wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md.
   { key: 'sectors', label: 'Sector compass (solar · wind · hazards · views)', swatch: '#c4a265' },
-  { key: 'zones', label: 'Permaculture zones (steward-drawn in Observe)', swatch: '#b07c4a' },
+  { key: 'zones', label: 'Permaculture zones', swatch: '#b07c4a' },
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
   { key: 'builtEnvironment', label: 'Built environment (buildings · utilities · fences)', swatch: '#8a8e94' },
@@ -40,7 +40,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'sunPath', label: 'Sun path (hourly trajectory traces)', swatch: '#d68a4a' },
   { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
   { key: 'seededZones', label: 'Home centre / Daily touch / Weekly touch / Main crops / Forage / Wilderness', swatch: '#7a9a4a' },
-  { key: 'placedZones', label: 'Placed zones (hand-drawn in Plan)', swatch: '#7a8c62' },
+  { key: 'placedZones', label: 'Placed zones', swatch: '#7a8c62' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
   { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
 ];

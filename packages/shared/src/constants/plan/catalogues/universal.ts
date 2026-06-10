@@ -57,7 +57,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       // Act stage shows that selection read-only instead of re-asking in prose.
       ckA(
         's1-vision-c1',
-        'State the primary purpose of this land project in plain language',
+        'Define the primary purpose and land use type for this project',
         {
           fieldType: 'single_select',
           optionSetId: 'projectPrimaryType',
@@ -76,24 +76,6 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
           editRoute: { kind: 'wizard-step', step: 'vision' },
         },
       ),
-      // Secondary land uses were chosen as secondary TYPES in the creation
-      // wizard (or via the Plan header's SecondaryAddModal); show that
-      // multi-select read-only instead of re-asking. Optional - not every
-      // project has a secondary type, and an unset value falls through to a
-      // plain checkbox without dragging required progress.
-      {
-        ...ckA(
-          's1-vision-c4',
-          'Confirm any secondary land uses layered onto this project',
-          {
-            fieldType: 'multi_select',
-            optionSetId: 'projectSecondaryType',
-            sourceField: 'projectTypeRecord.secondaryTypeIds',
-            editRoute: { kind: 'plan-type' },
-          },
-        ),
-        optional: true,
-      },
       // Primary steward + co-stewards were named in the creation wizard's Team
       // step; show that roster read-only here instead of re-asking. Optional -
       // an unset team falls through to a plain checkbox without dragging
@@ -134,7 +116,6 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     decisionGroups: [
       dg('s1-vision-dg1', 'Purpose & intent', [
         's1-vision-c1',
-        's1-vision-c4',
         's1-vision-c2',
         's1-vision-steward',
         's1-vision-classify',
