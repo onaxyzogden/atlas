@@ -15,9 +15,9 @@ import {
 } from '../projectStore';
 
 describe('shell-mode defaults — new shells are main for all projects', () => {
-  it('Plan: builtin and non-builtin both default to stratum-spine', () => {
-    expect(getPlanShellMode({ isBuiltin: true })).toBe('stratum-spine');
-    expect(getPlanShellMode({ isBuiltin: false })).toBe('stratum-spine');
+  it('Plan: builtin and non-builtin both default to tier-shell', () => {
+    expect(getPlanShellMode({ isBuiltin: true })).toBe('tier-shell');
+    expect(getPlanShellMode({ isBuiltin: false })).toBe('tier-shell');
   });
 
   it('Act: builtin and non-builtin both default to tier-shell', () => {

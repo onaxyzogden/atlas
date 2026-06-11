@@ -67,6 +67,14 @@ interface Props {
   onSelectProtocol: (templateId: string) => void;
   /** Act-only: enable the protocol bulk-activation toolbar in the panel. */
   bulkActivation?: boolean;
+  /**
+   * Hide the Objectives/Protocols mode toggle and force the objectives list.
+   * The Plan tier shell (PlanTierShell) reuses this rail purely as an objectives
+   * list — it has no standing-protocol library mode — so it passes `true` to
+   * suppress the toggle. Additive + defaulted `false` so Act callers are
+   * unchanged (the toggle still renders for Act).
+   */
+  hideModeToggle?: boolean;
 }
 
 export default function ActTierObjectiveRail({
@@ -86,7 +94,11 @@ export default function ActTierObjectiveRail({
   selectedProtocolId,
   onSelectProtocol,
   bulkActivation = false,
+  hideModeToggle = false,
 }: Props) {
+  // When the toggle is hidden (Plan tier shell), the rail is always the
+  // objectives list regardless of the incoming `mode`.
+  const effectiveMode: RailMode = hideModeToggle ? 'objectives' : mode;
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
 
   // Source filter (parity with Plan ObjectiveColumn). The bar only shows when
@@ -114,15 +126,17 @@ export default function ActTierObjectiveRail({
 
   return (
     <div className={styles.railPanel}>
-      <div className={styles.railModeBar}>
-        <ActRailModeToggle
-          mode={mode}
-          onChange={onModeChange}
-          attentionCount={triggeredCount}
-        />
-      </div>
+      {!hideModeToggle && (
+        <div className={styles.railModeBar}>
+          <ActRailModeToggle
+            mode={mode}
+            onChange={onModeChange}
+            attentionCount={triggeredCount}
+          />
+        </div>
+      )}
 
-      {mode === 'protocols' ? (
+      {effectiveMode === 'protocols' ? (
         // .olos-spine-root activates the `--spine-*` custom properties the shared
         // protocol cards are styled with (declared in spine-theme.css, imported by
         // ProtocolLayerPanel). Without this scope the cards render "naked" — the

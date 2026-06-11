@@ -141,28 +141,31 @@ export interface LocalProject {
 }
 
 /**
- * Which Plan-stage navigation shell a project renders. `stratum-spine` is
- * the OLOS Plan Navigation Spec v1 default for new projects; `module-bar`
- * is the legacy module-driven shell preserved behind a toggle so the
- * 52 existing module cards remain reachable during the Phase 1–7
- * migration. Removed in Phase 7 once every card has been folded into
- * a stratum objective via `legacyCardSectionId`.
+ * Which Plan-stage navigation shell a project renders. `tier-shell` is the
+ * map-centric 4-rail default (stratum spine + left objectives + center
+ * EDITABLE design canvas + bottom categorized tools + right dashboard/detail)
+ * that mirrors the Act tier shell; `stratum-spine` is the dark/gold 3-column
+ * Plan Navigation Spec v1 spine; `module-bar` is the legacy module-driven
+ * shell. All three are preserved behind `PlanNavToggle` (no deletion). The two
+ * legacy shells are removed in Phase 7 once every legacy module card has been
+ * folded into a stratum objective via `legacyCardSectionId`.
  */
-export type PlanShellMode = 'stratum-spine' | 'module-bar';
+export type PlanShellMode = 'tier-shell' | 'stratum-spine' | 'module-bar';
 
 /**
  * Canonical accessor for a project's Plan shell mode. Explicit per-
  * project values win; everything else — including builtin samples (MTC,
- * "351 House") — now defaults to the `stratum-spine`. Builtins were
- * formerly pinned to `module-bar`; their curated content is surfaced in
- * the spine via `legacyCardSectionId` reference cards. The `module-bar`
- * shell stays reachable per project via `PlanNavToggle`.
+ * "351 House") — now defaults to `tier-shell`, the promoted 4-rail tier
+ * shell (mirrors the Act `getActShellMode` promotion). Projects that
+ * previously persisted `stratum-spine` or `module-bar` keep that choice (no
+ * persist migration). Every mode stays reachable per project via
+ * `PlanNavToggle`.
  */
 export function getPlanShellMode(
   project: Pick<LocalProject, 'planShellMode' | 'isBuiltin'>,
 ): PlanShellMode {
   if (project.planShellMode) return project.planShellMode;
-  return 'stratum-spine';
+  return 'tier-shell';
 }
 
 /**

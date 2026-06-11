@@ -84,6 +84,7 @@ import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import PlanReadyCue from './components/PlanReadyCue.js';
 import PlanStratumShell from './strata/PlanStratumShell.js';
+import PlanTierShell from './tier-shell/PlanTierShell.js';
 import css from './PlanLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -441,6 +442,17 @@ export default function PlanLayout() {
       onCloseSlideUp={() => setSlideUpOpen(false)}
     />
   );
+
+  // Promoted default: the 4-rail map-centric Plan tier shell (mirrors Act).
+  // PlanTierShell is fully self-contained — it owns its own spine, rails,
+  // canvas, stores, and spine-sync effects (ported from this layout), reading
+  // stratum/objective straight off the existing Plan route params — so it
+  // returns before any of this layout's module-bar scaffolding is built. The
+  // legacy 'stratum-spine' and 'module-bar' branches below stay reachable only
+  // via the per-project PlanNavToggle (no-deletion).
+  if (planShellMode === 'tier-shell') {
+    return <PlanTierShell />;
+  }
 
   if (planShellMode === 'stratum-spine') {
     return (

@@ -644,11 +644,13 @@ const v3PlanSynthesisRoute = createRoute({
   path: 'plan/synthesis',
   component: PlanSynthesisPage,
 });
-// OLOS Plan Navigation Spec v1 - stratum-spine routes. Both render PlanLayout,
-// which reads `planShellMode` and branches into PlanStratumShell when the stratum
-// spine is the active shell. The static `plan/stratum/...` prefix resolves
-// BEFORE `plan/$module` so the legacy module routes remain reachable for
-// projects that have flipped the toggle to module-bar.
+// OLOS Plan Navigation Spec v1 - stratum routes. Both render PlanLayout, which
+// reads `planShellMode` and branches: the promoted default `tier-shell` renders
+// PlanTierShell (the 4-rail map-centric shell — it reads $stratumId/$objectiveId
+// straight off these params, mirroring how Act drives act/tier-shell), while the
+// legacy `stratum-spine` renders PlanStratumShell. The static `plan/stratum/...`
+// prefix resolves BEFORE `plan/$module` so the legacy module routes remain
+// reachable for projects that have flipped the toggle to module-bar.
 const v3PlanStratumRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/stratum/$stratumId',

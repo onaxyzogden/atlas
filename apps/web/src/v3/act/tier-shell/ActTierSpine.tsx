@@ -39,6 +39,13 @@ interface Props {
    * type is set. Null renders a muted "Types not set" placeholder.
    */
   projectTypeLabel: string | null;
+  /**
+   * Accessible label for the stratum tablist. Defaults to "Act strata"; the
+   * Plan tier shell (PlanTierShell) reuses this presentational spine and passes
+   * "Plan strata" so the a11y label matches the surface. Additive + defaulted
+   * so Act callers are unchanged.
+   */
+  ariaLabel?: string;
 }
 
 export default function ActTierSpine({
@@ -50,6 +57,7 @@ export default function ActTierSpine({
   onSelectStratum,
   projectTitle,
   projectTypeLabel,
+  ariaLabel = 'Act strata',
 }: Props) {
   return (
     <div className={styles.spineRow}>
@@ -64,7 +72,7 @@ export default function ActTierSpine({
           {projectTypeLabel ?? 'Types not set'}
         </span>
       </div>
-      <div className={styles.spine} role="tablist" aria-label="Act strata">
+      <div className={styles.spine} role="tablist" aria-label={ariaLabel}>
         {strata.map((stratum) => {
         const status = stratumStates[stratum.id] ?? 'available';
         const isLocked = lockedStratumIds.has(stratum.id);
