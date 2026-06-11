@@ -102,4 +102,33 @@ The session memory **"Plan gate unbound for typed projects"** (claim: `authoring
 
 ---
 
-*Audit conducted 2026-06-11 (Claude Code). Predecessors: ATLAS_DEEP_AUDIT.md (04-14), ATLAS_DEEP_AUDIT_2026-04-19.md, ATLAS_DEEP_AUDIT_2026-04-21.md.*
+## 7. Post-audit corrections & resolution log (2026-06-11 fix session)
+
+The same-day fix session executed the P1–P2 backlog and re-verified each finding firsthand before acting. Three findings turned out to be stale or false; they are corrected here so the backlog above is read against this log, not at face value.
+
+### P1
+
+| # | Status | Detail |
+|---|---|---|
+| 1 | **RESOLVED** (commit `34919805`) | Per-route `@fastify/rate-limit` overrides (60/min public JSON, 10/min PDF — env-tunable via `PORTAL_PUBLIC_RATE_LIMIT_MAX` / `PORTAL_PDF_RATE_LIMIT_MAX`) + best-effort Redis cache (`portal:v1:<token>`, 5-min TTL, 200 ms timeout, silent failure, **no negative caching**) with explicit awaited invalidation from all three portal mutations. PDF route deliberately uncached (`no-store`; unpublish stays immediate). 24/24 portal + portalCache tests green. **Still open from D2:** the CDN/ISR half remains a separate launch item; `trustProxy` is unset — behind a reverse proxy all visitors share one IP bucket (pre-launch follow-up, affects the global limiter equally). |
+| 2 | **RESOLVED** (commit `c861bf08`, out-of-band task session) | 18 junk files untracked. |
+| 3 | **RESOLVED** (commits `da54f252`, `aebb284f`) — **and the finding's CVE claim corrected** | The audit cited CVE-2023-48223 (affects fast-jwt <3.3.2 — did **not** apply). The actual `pnpm audit` showed `@fastify/jwt ^9.0.1` resolving fast-jwt **5.0.6**, vulnerable to **three criticals**: GHSA-mvf2-f6gm-w987, GHSA-rp9m-7r4c-75qg, GHSA-gmvf-9v4p-v8jc. Fixed by `@fastify/jwt ^10.1.0` → fast-jwt 6.2.4; full API suite 722 passed. CI gate added: `pnpm audit --prod --audit-level high`. Deferred residue (documented, not red in CI): vitest v2→v3 major, serialize-javascript dev-chain high, 3 pinned prod moderates (maplibre-gl→protocol-buffers-schema, bullmq→uuid, @aws-sdk→fast-xml-parser). |
+| 4 | **FINDING WAS FALSE** — real bug fixed (commit `c2f12f08`) | Scalar has been registered since 04-11 (`app.ts:419-427`, dev-only, `/api/docs`). The dep was never dead; the actual defect was the spec path (`'../../openapi.yaml'` resolved outside the package). Fixed to `'../openapi.yaml'`. |
+
+### P2
+
+| # | Status | Detail |
+|---|---|---|
+| 5 | **FINDING WAS FALSE** — nothing to build | `observeCycleStore` **is** server-synced: registered for typed-record sync at `syncManifest.ts:870` (`recordKeyedMap('currentCycleId')`); `hydrateTypedRecords` bootstraps it per-project on load; WS `record_upserted` applies multi-device updates. localStorage is the offline-first layer, not the only hydration. Flag-gated (`MULTI_USER`) by design. No stale-cycle-id corruption path exists when sync is on. |
+| 6 | **RESOLVED** (commit `911059ec`) | `layer_complete` WS bursts now coalesce via a per-project 2 s trailing debounce into one `siteDataStore.refreshProject` call for the connected project; pending refreshes cancel on connect/disconnect. Centroid/bbox derivation extracted to a shared pure helper (`siteFetchArgs.ts`). 6/6 unit tests green. |
+| 7 | **DEFERRED** (operator decision this session) | SocialFabric / InfraCondition port gets its own session (phase-3d archaeology + fiqh content decisions). |
+| 8 | **FINDING WAS PARTIALLY STALE** — residual gap resolved (commit `a9adc990`) | Since commit `96f69390` both methods ARE called by the `narrative-generation` BullMQ worker (post-Tier-3 hook → `ai_outputs` → GET route). The residual on-demand gap is now closed: `POST /ai/project/:projectId/generate-outputs` (auth + RBAC, 503 unconfigured, 5-min freshness debounce unless `force`); web `aiEnrichment` narrative/recommendation rewired to it, deleting the duplicated client-side prompts (the drift `NarrativeContextBuilder.ts` warns about). 8/8 route tests green. |
+
+### P3 (document-only, operator decision: all are intentional phase deferrals — no phase-jumping)
+
+- **#13 closed:** `stratum-web-codemod.mjs` is the **completed one-shot** 2026-05-30 `t→s` stratum-rename codemod; it already ran across apps/web (the rename is long merged). Retained at repo root for history per no-deletion policy. Not pending work.
+- #9–12, #14–17 stand as written: phased deferrals with owners in their respective backlogs (T2.1, Phase D2, launch-readiness, H5).
+
+---
+
+*Audit conducted 2026-06-11 (Claude Code). Predecessors: ATLAS_DEEP_AUDIT.md (04-14), ATLAS_DEEP_AUDIT_2026-04-19.md, ATLAS_DEEP_AUDIT_2026-04-21.md. Resolution log appended same-day by the fix session.*
