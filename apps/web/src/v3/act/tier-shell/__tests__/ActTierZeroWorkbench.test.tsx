@@ -541,10 +541,16 @@ describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
     expect(badge.textContent).toMatch(/map \+ entry/i);
   });
 
-  it('does NOT render the strip or any mode badge for s1-vision', () => {
+  it('renders no boundary strip for s1-vision, but surfaces its vision artifact badges', () => {
     renderWorkbench();
+    // s1-vision is not a boundary objective -- no map-activation strip leaks in.
     expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
-    expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
+    // ...but main's 91f52d3f gives s1-vision rows their own "vs-*" artifact badges.
+    expect(screen.getByTestId('mode-badge-s1-vision-c1').textContent).toMatch(/purpose statement/i);
+    expect(screen.getByTestId('mode-badge-s1-vision-c2').textContent).toMatch(/success criteria/i);
+    expect(screen.getByTestId('mode-badge-s1-vision-labour').textContent).toMatch(/labour inventory/i);
+    // No boundary-style mode badge sneaks in.
+    expect(screen.queryByTestId('mode-badge-s1-boundaries-c3')).toBeNull();
   });
 });
 
