@@ -3,12 +3,18 @@
 // Phase B re-skin (2026-05-31): adopts the Plan Spine prototype's read-only
 // `DecisionGroupCard` visual language (spine/DecisionGroupCard.tsx) faithfully.
 // Each decision group renders as a coloured card with a tappable header (number
-// bubble / ✓ when done), expand/collapse, a "decisions are worked through in
-// Act" banner, striped item rows with a NON-INTERACTIVE 14px checkbox, and an
-// "Open in Act →" CTA. Completion is now **display-only**: the Plan stage no
-// longer toggles items — it reads the captured completion state (the store's
-// per-item ids + the Stage Zero Vision bridge) and reflects it. "Plan decides,
-// Act executes" — the actual working-through happens in the Act stage.
+// bubble / ✓ when done), expand/collapse, a read-only banner, striped item rows
+// with a NON-INTERACTIVE 14px checkbox, and a tier-aware footer. Completion is
+// **display-only**: the Plan stage no longer toggles items — it reads the
+// captured completion state (the store's per-item ids + the Stage Zero Vision
+// bridge) and reflects it.
+//
+// Tier-aware copy (2026-06-11, after the decision workbench moved Act→Plan):
+// Tier-0 objectives now RECORD decisions in the Plan workbench (the center of
+// this same screen), so their card shows "recorded in the workbench" and NO Act
+// CTA. Spatial (non-Tier-0) objectives are decided in Plan but executed on the
+// land in Act, so theirs reads "decided in Plan, captured in Act" and keeps a
+// "Capture proof in Act →" deep-link (testid `open-in-act-trigger`).
 //
 // Production signals are preserved as read-only adornments: per-item `feedsInto`
 // chips, `optional`/`isMethodology` tags, item `expandedBySecondaryId`
@@ -33,6 +39,7 @@ import { findObjectiveGlobally } from '../objectiveCatalog.js';
 import type { VisionDerivedItem, VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import { C, F, CA } from '../spine/tokens.js';
 import ModeBadge from './ModeBadge.js';
+import { isTierZeroObjective } from '../../act/tier-shell/tierZeroObjectives.js';
 
 interface Props {
   /** Owning project id — threaded to the per-card "Open in Act" deep link. */
@@ -72,6 +79,11 @@ export default function DecisionChecklist({
   ).length;
 
   const groups = buildRenderGroups(objective, items);
+
+  // Tier-0 objectives now record decisions in the Plan workbench (the center of
+  // this same screen); spatial objectives still execute / capture proof in Act.
+  // The banner + footer copy below branches on this. ([[workbench Act->Plan]])
+  const isTierZero = isTierZeroObjective(objective);
 
   // Expansion state is lifted here (was per-card local state) so a single
   // header control can open/close every group at once. Only groups with items
@@ -180,6 +192,7 @@ export default function DecisionChecklist({
             key={group.id}
             projectId={projectId}
             objectiveId={objective.id}
+            isTierZero={isTierZero}
             group={group}
             index={i}
             isItemComplete={isItemComplete}
@@ -259,6 +272,8 @@ function buildRenderGroups(
 interface CardProps {
   projectId: string;
   objectiveId: string;
+  /** Tier-0 records decisions in the Plan workbench (this screen); spatial executes in Act. */
+  isTierZero: boolean;
   group: RenderGroup;
   index: number;
   isItemComplete: (id: string) => boolean;
@@ -277,6 +292,7 @@ interface CardProps {
 function ReadOnlyDecisionGroupCard({
   projectId,
   objectiveId,
+  isTierZero,
   group,
   index,
   isItemComplete,
@@ -398,7 +414,8 @@ function ReadOnlyDecisionGroupCard({
         ) : null}
       </div>
 
-      {/* Expanded — read-only item preview, worked through in Act */}
+      {/* Expanded — read-only item preview. Tier-0 records in the Plan
+          workbench (this screen); spatial decides in Plan, captures in Act. */}
       {expanded && hasItems ? (
         <div style={{ background: C.bg }}>
           <div
@@ -416,7 +433,9 @@ function ReadOnlyDecisionGroupCard({
                 fontStyle: 'italic',
               }}
             >
-              ⌒ Read-only preview — decisions are worked through in Act
+              {isTierZero
+                ? '⌒ Read-only summary — decisions are recorded in the workbench'
+                : '⌒ Read-only preview — decided in Plan, captured in Act'}
             </span>
           </div>
 
@@ -435,36 +454,42 @@ function ReadOnlyDecisionGroupCard({
             />
           ))}
 
-          {/* Full-width action footer — flush to card edges, clipped by parent borderRadius+overflow:hidden. */}
-          <button
-            type="button"
-            data-testid="open-in-act-trigger"
-            onClick={() =>
-              navigate({
-                to: '/v3/project/$projectId/act/field-action/$objectiveId',
-                params: { projectId, objectiveId },
-              })
-            }
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: 0,
-              padding: '11px 14px',
-              border: 'none',
-              borderTop: `1px solid ${CA('blue', 0.25)}`,
-              background: CA('blue', 0.1),
-              fontSize: 11,
-              color: C.blue,
-              fontFamily: F.sans,
-              fontWeight: 600,
-              letterSpacing: '0.01em',
-              cursor: 'pointer',
-            }}
-          >
-            Open in Act →
-          </button>
+          {/* Full-width action footer — spatial objectives only. Tier-0 records
+              decisions in the Plan workbench on this same screen, so there is no
+              Act deep-link to offer; spatial objectives still execute / capture
+              proof on the land in Act. Flush to card edges, clipped by parent
+              borderRadius+overflow:hidden. */}
+          {!isTierZero ? (
+            <button
+              type="button"
+              data-testid="open-in-act-trigger"
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/act/field-action/$objectiveId',
+                  params: { projectId, objectiveId },
+                })
+              }
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: 0,
+                padding: '11px 14px',
+                border: 'none',
+                borderTop: `1px solid ${CA('blue', 0.25)}`,
+                background: CA('blue', 0.1),
+                fontSize: 11,
+                color: C.blue,
+                fontFamily: F.sans,
+                fontWeight: 600,
+                letterSpacing: '0.01em',
+                cursor: 'pointer',
+              }}
+            >
+              Capture proof in Act →
+            </button>
+          ) : null}
         </div>
       ) : null}
 

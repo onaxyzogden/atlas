@@ -30,8 +30,19 @@ Plan strata genuinely lock (`computeAllStratumStates` + route `beforeLoad` guard
 ## Deferred
 
 1. `s2-ecology`/`s2-terrain` survey body arms render read-only summary in Plan (no Plan map takeover) — accepted default.
-2. **Stale copy:** `DecisionChecklist`'s "decisions worked through in Act" banner + "Open in Act →" CTA (`open-in-act-trigger` testid) — follow-on copy slice.
+2. ~~**Stale copy:** `DecisionChecklist`'s "decisions worked through in Act" banner + "Open in Act →" CTA.~~ **LANDED 2026-06-11** — see follow-on note below.
 3. Locked-objective deep-link can still mount the workbench (gate is on rail click, not route; Act had the same) — left for parity.
 4. Item-level Defer in Plan kept alongside Plan's objective-level deferral — coexists today.
+
+## Follow-on (2026-06-11) — Deferred #2 stale copy landed
+
+The right-rail `DecisionChecklist` (Plan, read-only) carried the migration's last stale strings: a *"decisions are worked through in Act"* banner and an *"Open in Act →"* CTA. Both are now **tier-aware**, branching on the same shared `isTierZeroObjective` predicate the two shells already import (`apps/web/src/v3/act/tier-shell/tierZeroObjectives.ts` — no new logic, no drift).
+
+- **Tier-0 objectives** (workbench now in the Plan center, same screen): the Act CTA is **removed** entirely (the deep-link routed to the Act *map* field-action surface, which Tier-0 has no use for). Banner → *"⌒ Read-only summary — decisions are recorded in the workbench"*.
+- **Spatial (non-Tier-0) objectives:** CTA **kept** and still navigates to the Act field-action route (proof is captured on the land in Act), relabeled *"Open in Act →"* → *"Capture proof in Act →"*. `data-testid="open-in-act-trigger"` unchanged (navigation test stays green). Banner → *"⌒ Read-only preview — decided in Plan, captured in Act"*.
+
+Single source file touched: `apps/web/src/v3/plan/strata/DecisionChecklist.tsx` (`isTierZero` prop threaded into `ReadOnlyDecisionGroupCard`; banner + footer branch on it; header + inline comments rewritten). Out of scope by design ([[feedback-no-deletion]]): the legacy `stratum-spine` copies (`plan/spine/DecisionGroupCard.tsx`, `DesignDetailPanel.tsx`) carry the same strings but are reachable only via the per-project toggle — left verbatim.
+
+**Verification:** `tsc --noEmit` (apps/web) EXIT 0; bounded vitest ([[feedback-vitest-bounded-runs]]) `DecisionChecklist.test.tsx` — existing spatial deep-link test + new Tier-0 CTA-removal test green. Live DOM probes (project `642169aa…`, screenshot skipped per [[project-screenshot-hang]]): Plan Tier-0 `s1-vision` card = no `open-in-act-trigger`, banner *"recorded in the workbench"*; Plan spatial `s3-hydrology` card = CTA present labeled *"Capture proof in Act →"*, banner *"decided in Plan, captured in Act"*.
 
 Amanah: pure IA/placement move — no capital/sale/advance-purchase/financing surface; verbatim `scopeNotes` byte-untouched; no riba/gharar/`bayʿ mā laysa ʿindak`/CSRA/salam ([[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]). Entities [[entities/act-tier-shell]], [[entities/plan-tier-shell]].

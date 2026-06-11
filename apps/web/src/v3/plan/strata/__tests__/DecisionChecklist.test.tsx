@@ -300,15 +300,45 @@ describe('DecisionChecklist - "Open in Act" deep link', () => {
       />,
     );
     const card = screen.getByTestId('plan-decision-group-obj-water-dg1');
-    // The "Open in Act ->" CTA lives in the expanded card body.
+    // A spatial (non-Tier-0) objective keeps the Act deep-link, now labelled
+    // "Capture proof in Act ->", in the expanded card body.
     expand(card, 'Surface flows');
     const trigger = within(card).getByTestId('open-in-act-trigger');
+    expect(trigger.textContent).toContain('Capture proof in Act');
+    expect(
+      within(card).getByText(/decided in Plan, captured in Act/),
+    ).toBeTruthy();
     fireEvent.click(trigger);
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith({
       to: '/v3/project/$projectId/act/field-action/$objectiveId',
       params: { projectId: 'mtc', objectiveId: 'obj-water' },
     });
+  });
+
+  it('drops the Act deep-link for a Tier-0 objective (decisions recorded in the Plan workbench)', () => {
+    // s1-vision is in TIER_ZERO_OBJECTIVE_IDS — its workbench moved to Plan, so
+    // there is no Act surface to deep-link to; the banner points at the
+    // in-screen workbench instead.
+    const tierZero = mkObjective({
+      id: 's1-vision',
+      checklist: [ck('c1', 'Define the vision'), ck('c2', 'Name the intent')],
+      decisionGroups: [dg('s1-vision-dg1', 'Vision & intent', ['c1', 'c2'])],
+    });
+    render(
+      <DecisionChecklist
+        projectId="mtc"
+        objective={tierZero}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const card = screen.getByTestId('plan-decision-group-s1-vision-dg1');
+    expand(card, 'Vision & intent');
+    expect(within(card).queryByTestId('open-in-act-trigger')).toBeNull();
+    expect(
+      within(card).getByText(/recorded in the workbench/),
+    ).toBeTruthy();
   });
 });
 
