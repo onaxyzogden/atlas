@@ -612,6 +612,68 @@ it rests on the audited diff + type-cleanliness + the presentational-only nature
 disclosed per CLAUDE.md. Foreign "epitaxy" WIP left untouched.
 [[log/2026-06-10-atlas-observe-slideup-topography-restyle]].
 
+## Lens live path: all panels wired to real data (2026-06-10, `d0ad3866`..`bf9c773b`)
+
+Four explicit-path commits on `main` (not pushed) close every remaining
+mock/placeholder gap in the lens dashboard's LIVE bundle path
+([[log/2026-06-10-atlas-observe-lens-live-panel-wiring.md]]):
+
+- **P1 `d0ad3866` -- DataPointRow live fields.** `toDataPoint(p, ctx)` gained a
+  `RowContext` (nowMs, prebuilt `supersedesById` reverse map, injected
+  `resolveActionTitle`/`resolveObjectiveTitle`). Honest derivations: proof pills
+  counted from `proofItems` by `proofType` (`document` deliberately excluded,
+  commented); `sourceTask` from the FieldAction title map (feed-denormalized
+  titles survive deletion); `planObjective` via `findObjectiveGlobally`;
+  `supersedesId`; `divergenceAge`; exported `deriveConfidence(p)` (high =
+  sensory/spatial AND data proof; low = zero proofs; else medium -- replaces the
+  hardcoded `'medium'`, intended honesty change); real-metadata `tags`
+  (sourceType / 'field log' / 'georeferenced'). The row's Source/Objective grid
+  renders only when either resolves (mock rows always carry both -> unchanged).
+- **P2 `a3ef3b32` -- field-log feed merge.** Pure exported
+  `mergeFeedProjections(points, feedEntries, resolveDomain)`: dedupe on
+  `sourceFeedEntryId`, project via the SHARED `routeToDataPoint` +
+  `resolveDomainByObjectiveId`, drop unresolvable feedKeys. Live lens
+  counts/pins/rows now match the dashboard's `useDomainPoints` union (intended
+  behaviour change).
+- **P3 `66337f16` -- real Timeline series.** The fabricated inline
+  `TEMPORAL_DATA` const is deleted from `components.tsx`; `LensDataBundle` gained
+  REQUIRED `temporal: Partial<Record<ObserveLensId, LensTemporal>>` (both
+  constructors supply it; only two exist). NEW pure
+  `lensData/temporalBuilders.ts` (`buildTemporalForLens(lensId, points, getSlot)`)
+  charts candidate series from bound `logged_result` rows
+  (`water.infiltrationData` / `soil.phData` / `climate.windRose` m/s -> km/h /
+  `human.capacityBars`) and bound scalar `measurement` items (slot label + unit;
+  unbound skipped -- slotIds not globally unique, charting them would fabricate
+  trends). Cycle label from the carrying point's `cycleId` (0 -> 'Baseline'),
+  one series per lens (most points wins, tie -> earliest first capture), null
+  under 2 points. Mock visuals pixel-identical via `MOCK_TEMPORAL` moved
+  VERBATIM into `mockBundle.ts`; TemporalView empty copy split ('all' -> "Select
+  a lens...", lens-empty -> "No measurement series for this lens yet"). Pinned
+  MTC outcome: temporal keys exactly [climate, human, living, water]; foundation
+  + infrastructure honestly absent (bound viz fields are structural inventories).
+- **P4 `bf9c773b` -- cycle number + history from `observeCycleStore`.**
+  `LiveBundleInput.cycleStates?` (absent -> exact status quo) + pure exported
+  `buildCycleHistory(points, cycleStates, nowMs)`: current cycle = k+1 where
+  k = max(store counters, point stamps) -- fresh project still -> Cycle 1;
+  history rows 0..k-1 (Baseline/Cycle N, per-cycle point counts, endedDaysAgo
+  from the latest per-domain advance into the next cycle, fallback 0).
+  Per-domain advances aggregated project-level; `cycle.history` is populated for
+  contract completeness but currently unrendered. Hook subscribes
+  `useObserveCycleStore((s) => s.byProject[projectId])`.
+
+Verified: tsc EXIT 0 + bounded vitest 71/71 (`--pool=forks`,
+[[feedback-vitest-bounded-runs]]) per phase AND re-run on the final committed
+tree, incl. NEW `temporalBuilders.test.ts` (8) and end-to-end pins over the real
+MTC seed. **Live DOM proof not obtainable** -- the sandboxed renderer wedged
+mid-load on BOTH Observe mounts (live project route AND the map-free mock
+prototype route) across three clean server starts with the API up
+([[project-screenshot-hang]]) -- disclosed; static grep (no `TEMPORAL_DATA` in
+`components.tsx`) + the pinned bundle tests stand in. Accepted mock micro-deltas:
+the one mock row carrying `gpsTraces: 4` now shows its pill; empty-copy split on
+never-charted lenses. Deferred: `document` proofs in pills; producer-side slot
+bindings for unbound scalars; the temporal/history Baseline-vs-`Cycle ${id+1}`
+label divergence (documented in code). `mockData.ts`/`tokens.ts` byte-untouched.
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
