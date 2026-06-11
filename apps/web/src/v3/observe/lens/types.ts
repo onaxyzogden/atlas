@@ -299,6 +299,23 @@ export interface FreshnessConfig {
   dot: boolean;
 }
 
+/** One charted reading in a lens's Timeline series. */
+export interface TemporalSeriesPoint {
+  /** Cycle label of the carrying data point: 'Baseline' (cycle 0) or 'Cycle N'. */
+  cycle: string;
+  /** Short capture date, e.g. 'Oct 24'. */
+  date: string;
+  value: number;
+  /** Where the reading was taken (zone / label / domain). */
+  location: string;
+}
+/** The Timeline (TemporalView) series for one lens: a single metric charted
+ *  across captures, ascending by capture time, always >= 2 points. */
+export interface LensTemporal {
+  metric: string;
+  points: TemporalSeriesPoint[];
+}
+
 /** The full set of data the lens surface renders, from either source. */
 export interface LensDataBundle {
   project: LensProject;
@@ -310,4 +327,6 @@ export interface LensDataBundle {
   cycle: LensCycle;
   freshness: Record<Freshness, FreshnessConfig>;
   typeIcon: Record<string, string>;
+  /** Per-lens Timeline series; a lens absent here renders the honest empty state. */
+  temporal: Partial<Record<ObserveLensId, LensTemporal>>;
 }

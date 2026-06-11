@@ -263,6 +263,51 @@ describe('buildLiveLensBundle -- specialised from seed captures', () => {
   });
 });
 
+describe('buildLiveLensBundle -- temporal series from seed captures', () => {
+  // Pins the HONEST outcome of the MTC seed: four lenses carry a chartable
+  // scalar trend; foundation + infrastructure do not (their bound viz fields
+  // are structural inventories, excluded by design) and stay absent so
+  // TemporalView renders the empty state, never a fabricated chart.
+  it('charts the four lenses whose seed captures carry a scalar trend', () => {
+    expect(Object.keys(bundle.temporal).sort()).toEqual([
+      'climate',
+      'human',
+      'living',
+      'water',
+    ]);
+  });
+
+  it('pins the water infiltration series from the seed rows', () => {
+    expect(bundle.temporal.water).toEqual({
+      metric: 'Infiltration rate (mm/hr)',
+      points: [
+        { cycle: 'Baseline', date: 'May 26', value: 46, location: 'Upper field' },
+        { cycle: 'Baseline', date: 'May 26', value: 24, location: 'Mid slope' },
+        { cycle: 'Baseline', date: 'May 26', value: 9, location: 'Creek flat' },
+      ],
+    });
+  });
+
+  it('pins the other metrics and series sizes', () => {
+    expect(bundle.temporal.living!.metric).toBe('Soil pH');
+    expect(bundle.temporal.living!.points).toHaveLength(3);
+    expect(bundle.temporal.climate!.metric).toBe('Wind speed (km/h)');
+    expect(bundle.temporal.climate!.points).toHaveLength(7);
+    expect(bundle.temporal.human!.metric).toBe('Capacity (%)');
+    expect(bundle.temporal.human!.points).toHaveLength(3);
+  });
+
+  it('stays empty without the slot resolver (no bindings -> no series)', () => {
+    const plain = buildLiveLensBundle({
+      points: POINTS,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+    });
+    expect(plain.temporal).toEqual({});
+  });
+});
+
 describe('buildDeclaredIntentPoint', () => {
   // The composer only touches project.metadata.visionProfile; a partial cast
   // keeps the fixtures minimal without standing up a full LocalProject.

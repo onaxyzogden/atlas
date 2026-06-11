@@ -369,12 +369,10 @@ export function DomainsRail({ activeLens, onSelectLens, onOpenDetail }: {
 }
 
 function TemporalView({ lens, activeLens }: { lens?: LensDisplay; activeLens: string }) {
-  const TEMPORAL_DATA: Record<string, { metric: string; points: Array<{ cycle: string; date: string; value: number; location: string }> }> = {
-    water: { metric: 'Infiltration rate (mm/hr)', points: [{ cycle: 'Baseline', date: 'Oct 24', value: 28, location: 'Zone A' }, { cycle: 'Baseline', date: 'Oct 24', value: 41, location: 'Zone B' }, { cycle: 'Baseline', date: 'Nov 24', value: 35, location: 'Zone C' }, { cycle: 'Cycle 1', date: 'Jan 25', value: 62, location: 'Zone A' }, { cycle: 'Cycle 1', date: 'Feb 25', value: 58, location: 'Zone B' }] },
-    living: { metric: 'Soil pH', points: [{ cycle: 'Baseline', date: 'Mar 24', value: 5.2, location: 'Zone 1' }, { cycle: 'Baseline', date: 'Mar 24', value: 5.4, location: 'Zone 2' }, { cycle: 'Baseline', date: 'Mar 24', value: 6.1, location: 'Zone 3' }] },
-  };
-  const data = activeLens && activeLens !== 'all' ? TEMPORAL_DATA[activeLens] : null;
-  if (!data) return <div style={{ padding: '20px 16px', textAlign: 'center' }}><div style={{ fontSize: 13, color: C.textTertiary, marginBottom: 8, fontFamily: F.sans }}>Select a lens to view its timeline</div><div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>Timeline requires ≥ 2 observations at the same location across cycles.</div></div>;
+  const { temporal } = useLensData();
+  const lensSelected = Boolean(activeLens) && activeLens !== 'all';
+  const data = lensSelected ? temporal[activeLens as ObserveLensId] ?? null : null;
+  if (!data) return <div style={{ padding: '20px 16px', textAlign: 'center' }}><div style={{ fontSize: 13, color: C.textTertiary, marginBottom: 8, fontFamily: F.sans }}>{lensSelected ? 'No measurement series for this lens yet' : 'Select a lens to view its timeline'}</div><div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>Timeline requires ≥ 2 observations at the same location across cycles.</div></div>;
   const values = data.points.map((p) => p.value), min = Math.min(...values) * 0.9, max = Math.max(...values) * 1.1, range = max - min;
   const chartH = 100, chartW = 240, pad = 16;
   const pts = data.points.map((p, i) => ({ ...p, px: pad + (i / (data.points.length - 1)) * (chartW - pad * 2), py: chartH - pad - ((p.value - min) / range) * (chartH - pad * 2) }));

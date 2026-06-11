@@ -62,6 +62,7 @@ import {
   buildSpecialisedForLens,
   type SlotResolver,
 } from './specialisedBuilders.js';
+import { buildTemporalForLens } from './temporalBuilders.js';
 import { OBSERVE_COPY } from '../../../copy/index.js';
 import type {
   BBox,
@@ -75,6 +76,7 @@ import type {
   LensDataBundle,
   LensDisplay,
   LensProject,
+  LensTemporal,
   MockObservation,
   ObserveMapData,
   ObserveMapMarker,
@@ -648,6 +650,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
   // ── lenses + domainDetail (canonical lens order) ──
   const lenses: LensDisplay[] = [];
   const domainDetail: Partial<Record<ObserveLensId, DomainDetail>> = {};
+  const temporal: Partial<Record<ObserveLensId, LensTemporal>> = {};
 
   for (const lens of OBSERVE_LENSES) {
     const domainSnaps = lens.domains.map((d) => rollups.get(d)!);
@@ -769,6 +772,11 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
       subdomains,
       specialised: buildSpecialisedForLens(lens.id, lensProofItems, getSlot),
     };
+
+    // Timeline series from the same bound captures (null = honest empty state,
+    // the lens stays absent from `temporal`).
+    const series = buildTemporalForLens(lens.id, lensActive, getSlot);
+    if (series) temporal[lens.id] = series;
   }
 
   // ── project rollup (over all 16 domains) ──
@@ -873,6 +881,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     cycle,
     freshness: FRESHNESS,
     typeIcon: LIVE_TYPE_ICON,
+    temporal,
   };
 }
 
