@@ -1,6 +1,6 @@
 # 2026-06-11 — Decision workbench moves from Act to Plan (Act becomes execution-only)
 
-**Status:** Accepted · Implemented (5 files), **NOT committed** — foreign WIP in tree, awaiting operator commit decision on `main`.
+**Status:** Accepted · Implemented · **Committed `2d564e1d`** (10 files incl. wiki, +336/-136) on `main`, not pushed; parallel guild/plan-data WIP left unstaged.
 **Branch:** `main` ([[project-structured-capture-on-main]]).
 **Plan:** `C:\Users\MY OWN AXIS\.claude\plans\the-early-tiers-stratum-objectives-mossy-turtle.md` (approved).
 

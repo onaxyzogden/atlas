@@ -1,7 +1,7 @@
 # 2026-06-11 — Decision workbench moved Act → Plan (Act execution-only)
 
 **Objective:** Transfer the interactive decision "workbench" from the Act stage to the Plan stage, re-aligning the IA with *Plan decides / Act executes + collects evidence* (reverses the earlier "Phase B" Act-decision framing).
-**Branch:** `main` ([[project-structured-capture-on-main]]). **NOT committed** — foreign WIP in tree, awaiting operator commit decision.
+**Branch:** `main` ([[project-structured-capture-on-main]]). **Committed `2d564e1d`** (10 files incl. wiki, +336/-136), not pushed; parallel guild/plan-data WIP left unstaged.
 **ADR:** [[decisions/2026-06-11-atlas-workbench-act-to-plan]].
 
 ## What shipped (5 files, 3 steps)
