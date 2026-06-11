@@ -11,6 +11,24 @@ panel toggles a dashboard / objective-execution view. `getActShellMode`
 defaults to `tier-shell`; `field-action` and `command-centre` are one toggle
 away (none deleted, per [[feedback-no-deletion]]).
 
+> **INTERACTIVE TIER-0 WORKBENCH MOVED TO PLAN (2026-06-11).** The interactive
+> decision **workbench** (`ActTierZeroWorkbench` — the ACTIVE DECISION / WORKING-ON
+> two-pane, "Record this decision" / "needs more observation") no longer mounts in
+> this shell. On the 25 `TIER_ZERO_OBJECTIVE_IDS`, `ActTierShell`'s center now renders
+> a full-width read-only `ActTierExecutionPanel` (in a new `.tierZeroExec` wrapper) —
+> **execution-only** (progress + `AnswerRecap` of the Plan-recorded decision + evidence
+> capture, NO Record/Defer/rationale). The workbench and its ~32 captures stay on disk
+> ([[feedback-no-deletion]]) and now mount in [[entities/plan-tier-shell]] via a
+> center-canvas swap; the `TIER_ZERO_OBJECTIVE_IDS` set + `isTierZeroObjective`/
+> `isTierZeroObjectiveId` predicates were extracted to the shared
+> `act/tier-shell/tierZeroObjectives.ts` so both shells share one membership source.
+> This re-aligns the IA with *Plan decides / Act executes* (reverses the "Phase B"
+> Act-decision framing). **All the Tier-0 capture-adoption sections below document the
+> workbench internals as as-built history — they still hold; only the mount surface
+> moved to Plan** (same convention as the 2026-06-05 protocol-threshold-editor
+> relocation note below). ADR [[decisions/2026-06-11-atlas-workbench-act-to-plan]];
+> Log [[log/2026-06-11-atlas-workbench-act-to-plan]].
+
 ## Purpose
 
 Give the steward a map-first Act surface where selecting a Plan objective

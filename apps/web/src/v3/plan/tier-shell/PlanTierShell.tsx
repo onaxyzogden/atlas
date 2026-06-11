@@ -98,6 +98,11 @@ import ActTierSpine from '../../act/tier-shell/ActTierSpine.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
+import ActTierZeroWorkbench from '../../act/tier-shell/ActTierZeroWorkbench.js';
+import {
+  isTierZeroObjective,
+  isTierZeroObjectiveId,
+} from '../../act/tier-shell/tierZeroObjectives.js';
 import ActFlowConnectorPopover from '../../act/asBuilt/ActFlowConnectorPopover.js';
 import { decodeSteward, stewardInvitesToQueued } from '../../act/tier-shell/StewardCapture.js';
 import { FORAGE_PREFIX, planForagePaddockReconcile } from '../../act/tier-shell/ForageCapture.js';
@@ -122,6 +127,10 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 // EMPTY_FORMS / EMPTY_FORM_DATA pattern in ActTierShell.
 const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
 const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
+// Stable empty fallbacks for the decision-rationale / deferred-decisions
+// selectors (same Zustand-v5 referential-stability reason as the form ones).
+const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
+const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const EMPTY_COMPLETED: readonly string[] = [];
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback (see ActTierShell). PLAN_STRATA is
@@ -281,6 +290,17 @@ export default function PlanTierShell() {
     ? objectiveStatuses[selectedObjective.id] ?? 'locked'
     : 'locked';
 
+  // Tier-0 swap flag: render the interactive decision workbench in place of the
+  // editable map canvas when the selected objective is a non-spatial Tier-0 one
+  // ("Plan decides" — the workbench moved here from Act). Keyed off the
+  // URL-synchronous objectiveId first so a cold deep-link never transiently
+  // mounts VisionLayoutCanvas (WebGL) before objectives hydrate; falls back to
+  // the resolved-objective check for in-app selections. Plan has no
+  // survey/slope map-takeover stores, so (unlike Act) there are no guards here.
+  const showTierZeroWorkbench =
+    isTierZeroObjectiveId(objectiveId) ||
+    (selectedObjective != null && isTierZeroObjective(selectedObjective));
+
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
@@ -375,6 +395,14 @@ export default function PlanTierShell() {
   const visionFormData = useActEvidenceStore(
     (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
   );
+  // Decision rationale + deferral state for the Tier-0 workbench (now hosted in
+  // Plan), keyed by itemId under this project. Stable empty fallbacks above.
+  const decisionRationales = useActEvidenceStore(
+    (s) => s.decisionRationale[id] ?? EMPTY_RATIONALES,
+  );
+  const deferredDecisions = useActEvidenceStore(
+    (s) => s.deferredDecisions[id] ?? EMPTY_DEFERRED,
+  );
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   const handleFormSave = useCallback(
@@ -434,6 +462,19 @@ export default function PlanTierShell() {
       }
     },
     [id, objectiveId],
+  );
+
+  const handleSaveRationale = useCallback(
+    (itemId: string, text: string) => {
+      useActEvidenceStore.getState().saveDecisionRationale(id, itemId, text);
+    },
+    [id],
+  );
+  const handleToggleDefer = useCallback(
+    (itemId: string, deferred: boolean) => {
+      useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
+    },
+    [id],
   );
 
   // ── Navigation (bound to the existing Plan routes) ────────────────────────
@@ -612,6 +653,18 @@ export default function PlanTierShell() {
           ariaLabel="Plan strata"
         />
         <div className={styles.shellWrap}>
+          {showTierZeroWorkbench && !selectedObjective ? (
+            // Tier-0 route resolved before its objective set hydrated: hold a
+            // lightweight non-map placeholder rather than mounting the WebGL
+            // VisionLayoutCanvas (which would wedge the headless preview).
+            <div
+              className={styles.tierZeroLoading}
+              role="status"
+              aria-live="polite"
+            >
+              <span className={styles.tierZeroLoadingText}>Loading…</span>
+            </div>
+          ) : (
           <StageShell
             bottomPlacement="between-rails"
             symmetricRails
@@ -641,17 +694,38 @@ export default function PlanTierShell() {
               />
             }
             canvas={
-              <div
-                style={{ position: 'relative', width: '100%', height: '100%' }}
-              >
-                <VisionLayoutCanvas
+              showTierZeroWorkbench && selectedObjective ? (
+                // Interactive decision workbench (moved here from Act): replaces
+                // the editable map for non-spatial Tier-0 objectives. Writes flow
+                // to the shared actEvidence + planStratumProgress stores via the
+                // same handlers the tools-rail form path uses.
+                <ActTierZeroWorkbench
                   projectId={id}
-                  centroid={fallbackCenter}
-                  boundary={boundary}
-                  view={activeView}
+                  objectives={stratumObjectives}
+                  activeObjectiveId={selectedObjective.id}
+                  primaryTypeId={primaryTypeId}
+                  secondaryTypeIds={secondaryTypeIds}
+                  progressByObjective={effectiveProgress.byObjective}
+                  formValues={visionFormData}
+                  rationales={decisionRationales}
+                  deferredItems={deferredDecisions}
+                  onRecord={handleFormDataSave}
+                  onSaveRationale={handleSaveRationale}
+                  onToggleDefer={handleToggleDefer}
                 />
-                <PlanPhaseTabs active={activeView} onChange={setActiveView} />
-              </div>
+              ) : (
+                <div
+                  style={{ position: 'relative', width: '100%', height: '100%' }}
+                >
+                  <VisionLayoutCanvas
+                    projectId={id}
+                    centroid={fallbackCenter}
+                    boundary={boundary}
+                    view={activeView}
+                  />
+                  <PlanPhaseTabs active={activeView} onChange={setActiveView} />
+                </div>
+              )
             }
             rightRail={
               <div className={styles.rightRail}>
@@ -712,32 +786,37 @@ export default function PlanTierShell() {
               </div>
             }
             bottomTray={
-              <PlanTierCategorizedToolsRail
-                objective={selectedObjective}
-                disabled={!params.projectId}
-                onActivate={handleActivateTool}
-                activeFormId={openFormGroup?.activeFormId ?? null}
-              />
+              showTierZeroWorkbench ? undefined : (
+                <PlanTierCategorizedToolsRail
+                  objective={selectedObjective}
+                  disabled={!params.projectId}
+                  onActivate={handleActivateTool}
+                  activeFormId={openFormGroup?.activeFormId ?? null}
+                />
+              )
             }
           />
+          )}
         </div>
-        <VisionFormsTabsModal
-          open={openFormGroup !== null}
-          title={openFormGroup?.title ?? ''}
-          tools={openFormGroup?.tools ?? []}
-          activeFormId={openFormGroup?.activeFormId ?? ''}
-          initialValues={visionForms}
-          initialData={visionFormData}
-          projectId={id}
-          metadata={project.metadata ?? null}
-          checklistItems={selectedObjective?.checklist ?? []}
-          onTabChange={(formId) =>
-            setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
-          }
-          onSave={handleFormSave}
-          onSaveData={handleFormDataSave}
-          onClose={() => setOpenFormGroup(null)}
-        />
+        {!showTierZeroWorkbench && (
+          <VisionFormsTabsModal
+            open={openFormGroup !== null}
+            title={openFormGroup?.title ?? ''}
+            tools={openFormGroup?.tools ?? []}
+            activeFormId={openFormGroup?.activeFormId ?? ''}
+            initialValues={visionForms}
+            initialData={visionFormData}
+            projectId={id}
+            metadata={project.metadata ?? null}
+            checklistItems={selectedObjective?.checklist ?? []}
+            onTabChange={(formId) =>
+              setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
+            }
+            onSave={handleFormSave}
+            onSaveData={handleFormDataSave}
+            onClose={() => setOpenFormGroup(null)}
+          />
+        )}
         {/* Material-flow popover singleton (renders through Modal). Mounted so
             the inherited Act `flow` tool arm has somewhere to render. */}
         <ActFlowConnectorPopover projectId={id} />

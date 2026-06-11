@@ -26,6 +26,19 @@ Neither felt like the other, and neither felt like Act. `ActTierShell` is effect
 - **Status engines:** uses the Plan **locking** engines (`computeAllStratumStates` + `computeAllObjectiveStatuses`), NOT Act's never-lock `computeAllActStratumStates` — Plan gates genuinely lock.
 - **Tool arming:** `handleActivateTool` dispatches on `tool.arm.kind` — `'map'` arms an editable Plan draw tool (`useMapToolStore` + `PlanDrawHost`); `'module'` opens `PlanModuleSlideUp` (`setSlideUpModule`); `'form'` opens the text/decision capture.
 
+## Tier-0 decision workbench (center-swap, 2026-06-11)
+
+On 2026-06-11 the interactive **decision workbench** moved here from the Act tier shell ([[decisions/2026-06-11-atlas-workbench-act-to-plan]], reverses the "Phase B" Act-decision framing). For the 25 non-spatial **Tier-0** objectives, `PlanTierShell`'s center swaps from the editable `VisionLayoutCanvas` to `<ActTierZeroWorkbench>` — the ACTIVE DECISION / WORKING-ON two-pane (`DecisionList` + `DecisionWorkingPanel`, ~32 bespoke captures, "Record this decision" / "Not ready — needs more observation"). This realigns the IA with *Plan decides / Act executes + collects evidence*: interactive decision recording lives where decisions are made (Plan); Act keeps only the read-only execution surface.
+
+- **Membership source of truth:** `apps/web/src/v3/act/tier-shell/tierZeroObjectives.ts` (NEW) exports `TIER_ZERO_OBJECTIVE_IDS` (25 ids, verbatim) + `isTierZeroObjective(objective)` + `isTierZeroObjectiveId(objectiveId)`, lifted out of `ActTierShell`'s private scope so both shells import one set (no drift). The workbench itself (`ActTierZeroWorkbench`/`DecisionList`/`DecisionWorkingPanel` + captures) is **imported from `act/tier-shell`, unchanged on disk** — Plan already cross-imports its siblings; nothing renamed/relocated ([[feedback-no-deletion]]).
+- **Swap flag:** `showTierZeroWorkbench = isTierZeroObjectiveId(objectiveId) || isTierZeroObjective(selectedObjective)`. When set + `selectedObjective` resolved, center = workbench; else the editable design canvas + `PlanPhaseTabs`. A cold-hydration guard renders `styles.tierZeroLoading` when `showTierZeroWorkbench && !selectedObjective` so a cold deep-link never flashes the WebGL canvas.
+- **Store wiring (shared source of truth):** `<ActTierZeroWorkbench>` props `formValues={visionFormData}`, `rationales={decisionRationales}`, `deferredItems={deferredDecisions}` (frozen `EMPTY_RATIONALES`/`EMPTY_DEFERRED` module-scope fallbacks for Zustand-v5 referential stability), `onRecord={handleFormDataSave}` (pre-existing), `onSaveRationale`/`onToggleDefer` → `actEvidenceStore.saveDecisionRationale`/`setDecisionDeferred`.
+- **Chrome suppression on Tier-0:** the bottom `PlanTierCategorizedToolsRail` and the `VisionFormsTabsModal` are both gated out when the workbench shows (tools/forms belong to the map flow, not the decision flow).
+- **Lock semantics (stricter, intended):** the workbench now sits behind Plan's prerequisite locks (`computeAllStratumStates` + route `beforeLoad` guards, [[decisions/2026-06-07-atlas-act-tier-shell-beforeload-guards]]) — a Tier-0 decision in a gated stratum can't be recorded until prerequisites complete. Act (which never locks) no longer offers an ungated edit path.
+- **Right rail unchanged:** `ObjectiveDetailPanel` (`hideMap`, already read-only) + its embedded read-only `DecisionChecklist` coexist with the interactive center. Deferred: the `DecisionChecklist` "decisions worked through in Act" banner + "Open in Act →" CTA (`open-in-act-trigger`) are now stale (follow-on copy slice).
+
+Act side is now execution-only — see the relocation banner atop [[entities/act-tier-shell]].
+
 ## Additive changes to shared Act components (reuse, not fork)
 
 Two Act presentational components gained additive, defaulted props so `PlanTierShell` reuses them without forking (no behavioral change to Act):
@@ -39,6 +52,8 @@ Two Act presentational components gained additive, defaulted props so `PlanTierS
 ## Current state
 
 Shipped and default on `main` (commit `56b8170b`, 9 files, +1179/-29; not pushed at session close). All three Plan shells verified to render: tier-shell (default, "351 House"), legacy `stratum-spine` and legacy `module-bar` (both reachable via toggle on the builtin `mtc` sample). `projectStore.shellModes.test.ts` updated — Plan defaults now assert `'tier-shell'` for builtin + non-builtin; explicit-override assertions unchanged. 17/17 tests pass; tsc clean. Screenshot proof BLOCKED by the deterministic WebGL/map-mount preview hang ([[project-screenshot-hang]]) — disclosed, fell back to DOM/structural verification.
+
+**2026-06-11 — Tier-0 decision workbench mounted here (see section above).** `tsc --noEmit` EXIT 0; bounded vitest ([[feedback-vitest-bounded-runs]]) `ActTierZeroWorkbench` + `workbenchAffordances` 67/67; live DOM probes (project `642169aa`) confirmed Plan Tier-0 `s1-vision` = workbench + no map canvas + tools tray absent, Plan non-Tier-0 `s3-systems-baseline` = map canvas + tools tray present (clean revert), Act Tier-0 `s1-vision` = execution-only `ActTierExecutionPanel`. **NOT committed** — foreign WIP in the working tree, awaiting operator commit decision on `main` ([[project-structured-capture-on-main]]). ADR [[decisions/2026-06-11-atlas-workbench-act-to-plan]]; Log [[log/2026-06-11-atlas-workbench-act-to-plan]].
 
 Amanah: pure layout/IA work — no capital, sale, advance-purchase, or financing surface; no riba/gharar/`bayʿ mā laysa ʿindak`/CSRA/salam framing ([[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]).
 

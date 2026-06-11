@@ -129,7 +129,10 @@ import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
-import ActTierZeroWorkbench from './ActTierZeroWorkbench.js';
+import {
+  isTierZeroObjective,
+  isTierZeroObjectiveId,
+} from './tierZeroObjectives.js';
 import { decodeSteward, stewardInvitesToQueued } from './StewardCapture.js';
 import { FORAGE_PREFIX, planForagePaddockReconcile } from './ForageCapture.js';
 import {
@@ -157,11 +160,6 @@ const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
 // Stable empty fallback for the visionFormData selector so it never returns a
 // fresh object (which would re-render every store update).
 const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
-// Stable empty fallbacks for the decision-rationale / deferred-decisions
-// selectors so they never return a fresh object literal (which would trigger
-// an infinite re-render under Zustand v5), matching the EMPTY_FORMS pattern.
-const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
-const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 const NOOP_RAIL_MODE = (_: RailMode) => {};
 const NOOP_PROTOCOL = (_: string) => {};
@@ -170,59 +168,6 @@ const EMPTY_TRIGGERED_IDS: readonly string[] = [];
 // noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
 // known S1 id literal so the derived stratum id stays a plain string.
 const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
-
-// Phase B/C Tier-0 swap: non-spatial foundation objectives render the inline
-// non-map decision workbench instead of the map shell. Widened incrementally
-// from a single id to a membership set as more objectives convert (Phase C
-// part 3 adds 's1-boundaries' then 's1-stakeholders' alongside the universal
-// 's1-vision').
-const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
-  's1-vision',
-  's1-boundaries',
-  's1-stakeholders',
-  'ev-s1-legal-governance',
-  'ev-s1-provision-balance',
-  's2-terrain',
-  's2-climate',
-  's2-ecology',
-  'ev-s2-landscape-vectors',
-  'ev-s2-carrying-capacity',
-  'silv-sec-s1-livestock-intent',
-  'silv-sec-s3-forage-survey',
-  'silv-sec-s4-grazing-design',
-  'ev-s1-conflict-framework',
-  'silv-sec-s4-husbandry-framework',
-  's5-soil-improvement',
-  's4-water-strategy',
-  'ev-s3-energy-potential',
-  'ev-s4-settlement-strategy',
-  'nur-sec-s2-biosecurity-survey',
-  'ev-s4-financial-model',
-  'nur-sec-s1-propagation-infra-survey',
-  'ev-s7-adaptive-management',
-  'ev-s7-exit-succession',
-  'ev-s2-social-fabric',
-  'ev-s3-infra-condition',
-]);
-
-/**
- * Tier-0 by resolved-objective identity. Used once the per-project objective
- * set has hydrated and `selectedObjective` is non-null.
- */
-function isTierZeroObjective(objective: PlanStratumObjective | null): boolean {
-  return objective != null && TIER_ZERO_OBJECTIVE_IDS.has(objective.id);
-}
-
-/**
- * Tier-0 by route identity — keys off the synchronous URL `objectiveId` so the
- * map shell is never mounted on a cold deep-link to a Tier-0 route while the
- * objective set is still hydrating (`selectedObjective` lags a tick behind the
- * route). Tests the same membership set the resolved-objective predicate uses,
- * so the two converge once hydration completes.
- */
-function isTierZeroObjectiveId(objectiveId: string | null): boolean {
-  return objectiveId != null && TIER_ZERO_OBJECTIVE_IDS.has(objectiveId);
-}
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -524,16 +469,6 @@ export default function ActTierShell() {
     (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
   );
 
-  // Decision rationale + deferral state for the Tier-0 workbench, keyed by
-  // itemId under this project. Stable empty fallbacks (see above) keep the
-  // selector referentially stable under Zustand v5.
-  const decisionRationales = useActEvidenceStore(
-    (s) => s.decisionRationale[id] ?? EMPTY_RATIONALES,
-  );
-  const deferredDecisions = useActEvidenceStore(
-    (s) => s.deferredDecisions[id] ?? EMPTY_DEFERRED,
-  );
-
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -784,19 +719,6 @@ export default function ActTierShell() {
     [id, objectiveId],
   );
 
-  const handleSaveRationale = useCallback(
-    (itemId: string, text: string) => {
-      useActEvidenceStore.getState().saveDecisionRationale(id, itemId, text);
-    },
-    [id],
-  );
-  const handleToggleDefer = useCallback(
-    (itemId: string, deferred: boolean) => {
-      useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
-    },
-    [id],
-  );
-
   const handleActivateTool = useCallback(
     // `formObjective` overrides which objective's sibling form-tools populate the
     // tabbed popup. It defaults to the URL-selected objective for normal rail
@@ -950,13 +872,15 @@ export default function ActTierShell() {
     [revealObjective, handleActivateTool, clearSearch],
   );
 
-  // Phase B swap flag: render the inline Tier-0 decision workbench in place of
-  // the map shell when the selected objective is the universal s1-vision one.
-  // Keyed off the URL-synchronous objectiveId first (not only the resolved
-  // selectedObjective) so a cold deep-link to the vision route never transiently
-  // mounts <StageShell>/<DiagnoseMap> (WebGL) during the tick before objectives
-  // hydrate. Falls back to the resolved-objective check so an in-app selection
-  // whose route change hasn't landed yet still swaps.
+  // Tier-0 swap flag: render the execution-only surface (ActTierExecutionPanel)
+  // in place of the map shell when the selected objective is a non-spatial
+  // Tier-0 one. The interactive decision workbench now lives in the Plan tier
+  // shell ("Plan decides, Act executes"); Act only surfaces the recorded
+  // decision + evidence capture. Keyed off the URL-synchronous objectiveId first
+  // (not only the resolved selectedObjective) so a cold deep-link to a Tier-0
+  // route never transiently mounts <StageShell>/<DiagnoseMap> (WebGL) during the
+  // tick before objectives hydrate. Falls back to the resolved-objective check
+  // so an in-app selection whose route change hasn't landed yet still swaps.
   const showTierZeroWorkbench =
     (isTierZeroObjectiveId(objectiveId) ||
       (selectedObjective != null && isTierZeroObjective(selectedObjective))) &&
@@ -992,7 +916,7 @@ export default function ActTierShell() {
             aria-live="polite"
           >
             <span className={styles.tierZeroLoadingText}>
-              Loading decision workbench…
+              Loading…
             </span>
           </div>
         ) : (
@@ -1036,20 +960,22 @@ export default function ActTierShell() {
           }
           canvas={
             showTierZeroWorkbench && selectedObjective ? (
-              <ActTierZeroWorkbench
-                projectId={id}
-                objectives={stratumObjectives}
-                activeObjectiveId={selectedObjective.id}
-                primaryTypeId={primaryTypeId}
-                secondaryTypeIds={secondaryTypeIds}
-                progressByObjective={effectiveProgress.byObjective}
-                formValues={visionFormData}
-                rationales={decisionRationales}
-                deferredItems={deferredDecisions}
-                onRecord={handleFormDataSave}
-                onSaveRationale={handleSaveRationale}
-                onToggleDefer={handleToggleDefer}
-              />
+              // Execution-only: the interactive decision workbench moved to the
+              // Plan tier shell. Act surfaces the recorded decision (read-only
+              // recap) plus evidence capture via ActTierExecutionPanel, in place
+              // of the map (which is meaningless for these non-spatial objectives).
+              <div className={styles.tierZeroExec}>
+                <ActTierExecutionPanel
+                  projectId={id}
+                  tier={selectedObjectiveTier}
+                  objective={selectedObjective}
+                  status={selectedObjectiveStatus}
+                  serverId={serverId}
+                  members={members}
+                  currentUserId={currentUserId}
+                  myRole={myRole}
+                />
+              </div>
             ) : (
               <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                 <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary} projectId={id}>

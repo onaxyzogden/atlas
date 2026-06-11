@@ -49,6 +49,16 @@
   color: var(--color-text-muted, #8b97a3);
 }
 
+/* Tier-0 execution-only canvas: ActTierExecutionPanel mounted full-bleed in the
+   center slot (the map is meaningless for non-spatial objectives). Scrolls
+   internally so a long checklist never blows out the StageShell grid row. */
+.tierZeroExec {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--color-bg, #14191f);
+}
+
 /* StageShell's bottom grid slot has min-width: auto (default for grid
    items), so a content-sized bottomTray like our .toolsPanel grows past the
    layout column. Scoping min-width: 0 to .tierShell keeps the fix isolated
