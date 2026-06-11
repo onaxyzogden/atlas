@@ -610,7 +610,7 @@ export function ProvisionBalanceCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Communal infrastructure feeds{' '}
-            <strong>Tier 4: Infrastructure design</strong> and the shared cost
+            <strong>S5: System Design</strong> and the shared cost
             allocation formula. Hybrid items generate individual metering
             requirements.
           </div>
@@ -651,7 +651,7 @@ export function ProvisionBalanceCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Food system approach feeds{' '}
-            <strong>Tier 5: Production zone design</strong> and determines how
+            <strong>S4: Foundation Decisions</strong> and determines how
             growing areas are allocated in the spatial framework.
           </div>
         </div>
@@ -701,7 +701,7 @@ export function ProvisionBalanceCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Financial model feeds <strong>Tier 6: Phasing &amp; resourcing</strong>{' '}
+            Financial model feeds <strong>S7: Phasing &amp; Resourcing</strong>{' '}
             and the legal entity structure recommendation for the project.
           </div>
         </div>
@@ -779,7 +779,7 @@ export function ProvisionBalanceCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Entitlement register feeds{' '}
-            <strong>Tier 4: Housing cluster design</strong> and generates the
+            <strong>S5: System Design</strong> and generates the
             tension map in decision 5.
           </div>
         </div>
