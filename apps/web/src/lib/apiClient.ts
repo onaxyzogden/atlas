@@ -275,6 +275,24 @@ export interface ApiAuthUser {
   emailVerified: boolean;
 }
 
+// ─── AI output rows (mirrors apps/api StoredAiOutput) ────────────────────────
+
+export type ServerAiOutputType = 'site_narrative' | 'design_recommendation';
+
+export interface ServerAiOutputRow {
+  id: string;
+  /** Server project id (NOT the local project id). */
+  projectId: string;
+  outputType: ServerAiOutputType;
+  content: string;
+  confidence: 'high' | 'medium' | 'low';
+  dataSources: string[];
+  caveat: string | null;
+  needsSiteVisit: boolean;
+  modelId: string;
+  generatedAt: string;
+}
+
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -704,6 +722,23 @@ export const api = {
     chat: (messages: { role: string; content: string }[], systemPrompt: string, signal?: AbortSignal) =>
       request<{ content: string; model: string; inputTokens: number; outputTokens: number }>(
         'POST', '/api/v1/ai/chat', { messages, systemPrompt }, signal,
+      ),
+
+    // On-demand server-side generation. Returns the latest row per requested
+    // output type (the server debounces: rows fresher than ~5 min are
+    // returned as-is unless `force`). Shape matches GET /projects/:id/ai-outputs.
+    generateOutputs: (
+      projectServerId: string,
+      outputTypes?: ServerAiOutputType[],
+      force?: boolean,
+    ) =>
+      request<Record<string, ServerAiOutputRow>>(
+        'POST',
+        `/api/v1/ai/project/${projectServerId}/generate-outputs`,
+        {
+          ...(outputTypes ? { outputTypes } : {}),
+          ...(force !== undefined ? { force } : {}),
+        },
       ),
   },
 

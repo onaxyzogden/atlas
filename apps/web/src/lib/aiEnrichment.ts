@@ -1,6 +1,13 @@
 /**
- * AI Enrichment Service — generates site narrative, design recommendations,
- * and assessment flag enrichment via the /api/v1/ai/chat proxy.
+ * AI Enrichment Service — site narrative, design recommendations, and
+ * assessment flag enrichment.
+ *
+ * Narrative + recommendation now go through the server's
+ * POST /ai/project/:id/generate-outputs route (server-side context build,
+ * prompts, guardrails, and ai_outputs persistence — single prompt source,
+ * no client/server drift). Flag enrichment still composes its context
+ * client-side via the /api/v1/ai/chat proxy because the flags themselves
+ * are derived in the browser from local layer data.
  *
  * All functions return null on failure (never throw). Callers use
  * existing pure-function outputs as fallback when null is returned.
@@ -8,6 +15,7 @@
 
 import type { AIOutput, AIEnrichmentResponse, AssessmentFlag, ConfidenceLevel } from '@ogden/shared';
 import { sendMessage } from './claude.js';
+import { api, type ServerAiOutputRow, type ServerAiOutputType } from './apiClient.js';
 import { buildProjectContext, SYSTEM_PROMPT } from '../features/ai/ContextBuilder.js';
 import { useSiteDataStore } from '../store/siteDataStore.js';
 import { useProjectStore } from '../store/projectStore.js';
@@ -53,130 +61,65 @@ function parseStructuredResponse(raw: string): ParsedMeta {
   return { confidence, dataSources, needsSiteVisit, caveat, content };
 }
 
-/**
- * Inline guardrail validation matching AnalysisGuardrails.validate() from
- * ClaudeClient.ts (which lives in the API package and can't be imported here).
- */
-function validateGuardrails(output: AIOutput): AIOutput {
-  const validated = { ...output };
+// ── Server-side generation (narrative + recommendation) ─────────────────
+// The prompts, guardrails, and ai_outputs persistence live in the API's
+// ClaudeClient — this is just transport + row→AIOutput mapping. The server
+// debounces (rows fresher than ~5 min are returned, not re-generated), so
+// repeat calls are cheap.
 
-  if (validated.confidence === 'low' && !validated.caveat) {
-    validated.caveat =
-      'This analysis is based on limited data. Results should be verified on-site by a qualified professional.';
+function rowToAIOutput(localProjectId: string, row: ServerAiOutputRow): AIOutput {
+  return {
+    outputId: row.id,
+    // Keep the LOCAL project id — callers key UI state by it, not by the
+    // server id the row carries.
+    projectId: localProjectId,
+    outputType: row.outputType,
+    content: row.content,
+    confidence: row.confidence,
+    dataSources: row.dataSources,
+    computedAt: row.generatedAt,
+    caveat: row.caveat ?? undefined,
+    needsSiteVisit: row.needsSiteVisit,
+    generatedAt: row.generatedAt,
+    modelId: row.modelId,
+  };
+}
+
+async function generateServerOutput(
+  projectId: string,
+  outputType: ServerAiOutputType,
+): Promise<AIOutput | null> {
+  try {
+    const serverId = useProjectStore
+      .getState()
+      .projects.find((p) => p.id === projectId)?.serverId;
+    if (!serverId) {
+      // Local-only project: the server has no layer rows to build context
+      // from. Callers fall back to pure-function outputs.
+      console.warn(`[ATLAS AI] ${outputType} skipped — project ${projectId} has no server id`);
+      return null;
+    }
+
+    const { data } = await api.ai.generateOutputs(serverId, [outputType]);
+    const row = data?.[outputType];
+    if (!row) return null;
+    return rowToAIOutput(projectId, row);
+  } catch (err) {
+    console.warn(`[ATLAS AI] ${outputType} generation failed:`, err);
+    return null;
   }
-
-  if (validated.confidence !== 'high') {
-    validated.needsSiteVisit = true;
-  }
-
-  return validated;
 }
 
 // ── Site Narrative ───────────────────────────────────────────────────────
 
-const NARRATIVE_TASK = `Generate a 2-3 paragraph site narrative for this property. Write in contemplative, plain language — as if describing the land to someone who will steward it. Cover:
-1. What this land IS (terrain, soils, hydrology, ecology)
-2. What it WANTS (natural tendencies, restoration needs)
-3. Its PRIMARY CONSTRAINTS (regulatory, physical, climatic)
-
-Cite specific data values from the layers provided. Do not invent data.
-
-Respond in this exact format:
-CONFIDENCE: high|medium|low
-DATA_SOURCES: comma-separated list of data layers you drew from
-NEEDS_SITE_VISIT: true|false
-CAVEAT: optional caveat text, or "none"
----
-(your narrative paragraphs here)`;
-
 export async function generateSiteNarrative(projectId: string): Promise<AIOutput | null> {
-  try {
-    const siteData = useSiteDataStore.getState().dataByProject[projectId];
-    const realLayers = siteData?.layers ?? [];
-    const projectContext = buildProjectContext(projectId, realLayers);
-    const systemPrompt = `${SYSTEM_PROMPT}\n\n${NARRATIVE_TASK}`;
-    const userMessage = projectContext;
-
-    const response = await sendMessage(
-      [{ role: 'user', content: userMessage }],
-      systemPrompt,
-    );
-
-    const parsed = parseStructuredResponse(response.content);
-
-    const output: AIOutput = {
-      outputId: crypto.randomUUID(),
-      projectId,
-      outputType: 'site_narrative',
-      content: parsed.content,
-      confidence: parsed.confidence,
-      dataSources: parsed.dataSources,
-      computedAt: new Date().toISOString(),
-      caveat: parsed.caveat,
-      needsSiteVisit: parsed.needsSiteVisit,
-      generatedAt: new Date().toISOString(),
-      modelId: response.model,
-    };
-
-    return validateGuardrails(output);
-  } catch (err) {
-    console.warn('[ATLAS AI] Site narrative generation failed:', err);
-    return null;
-  }
+  return generateServerOutput(projectId, 'site_narrative');
 }
 
 // ── Design Recommendation ────────────────────────────────────────────────
 
-const RECOMMENDATION_TASK = `Generate 3-5 prioritized design interventions for this property, given its project type and site conditions. Each recommendation must:
-- Name the intervention clearly
-- Cite which data layer(s) informed it (e.g., "Based on soil data: Loam, pH 6.1-6.8")
-- Explain WHY it fits this specific land
-- Note any prerequisites or phasing considerations
-
-Order by priority. Be specific to THIS property — not generic permaculture advice.
-
-Respond in this exact format:
-CONFIDENCE: high|medium|low
-DATA_SOURCES: comma-separated list of data layers you drew from
-NEEDS_SITE_VISIT: true|false
-CAVEAT: optional caveat text, or "none"
----
-(your numbered recommendations here)`;
-
 export async function generateDesignRecommendation(projectId: string): Promise<AIOutput | null> {
-  try {
-    const siteData = useSiteDataStore.getState().dataByProject[projectId];
-    const realLayers = siteData?.layers ?? [];
-    const projectContext = buildProjectContext(projectId, realLayers);
-    const systemPrompt = `${SYSTEM_PROMPT}\n\n${RECOMMENDATION_TASK}`;
-    const userMessage = projectContext;
-
-    const response = await sendMessage(
-      [{ role: 'user', content: userMessage }],
-      systemPrompt,
-    );
-
-    const parsed = parseStructuredResponse(response.content);
-
-    const output: AIOutput = {
-      outputId: crypto.randomUUID(),
-      projectId,
-      outputType: 'design_recommendation',
-      content: parsed.content,
-      confidence: parsed.confidence,
-      dataSources: parsed.dataSources,
-      computedAt: new Date().toISOString(),
-      caveat: parsed.caveat,
-      needsSiteVisit: parsed.needsSiteVisit,
-      generatedAt: new Date().toISOString(),
-      modelId: response.model,
-    };
-
-    return validateGuardrails(output);
-  } catch (err) {
-    console.warn('[ATLAS AI] Design recommendation generation failed:', err);
-    return null;
-  }
+  return generateServerOutput(projectId, 'design_recommendation');
 }
 
 // ── Assessment Enrichment ────────────────────────────────────────────────
