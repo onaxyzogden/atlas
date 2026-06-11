@@ -23,6 +23,10 @@ import {
 import { usePresenceStore } from '../store/presenceStore.js';
 import { useProjectStore } from '../store/projectStore.js';
 import { api } from './apiClient.js';
+import {
+  scheduleLayerCompleteRefresh,
+  cancelLayerCompleteRefreshes,
+} from './layerRefresh.js';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -294,12 +298,15 @@ function handleRecordDeleted(event: WsEvent) {
 }
 
 function handleLayerComplete(event: WsEvent) {
-  // Mark layers stale — the dashboard/map will re-fetch on next access
-  // For now, log it. The siteDataStore can be triggered to re-fetch.
   const payload = event.payload as Record<string, unknown>;
   console.info(`[WS] Layer complete: ${payload.layerType} (confidence: ${payload.confidence})`);
 
-  // TODO: trigger useSiteDataStore re-fetch for the active project
+  // The socket is joined to exactly one project room, so every
+  // layer_complete belongs to the connected (active) project. The pipeline
+  // emits one event per layer; the debounce coalesces the burst into a
+  // single refreshProject call once the run settles.
+  if (!currentProjectServerId) return;
+  scheduleLayerCompleteRefresh(currentProjectServerId);
 }
 
 function handleExportReady(event: WsEvent) {
@@ -483,6 +490,8 @@ export const wsService = {
     reconnectDelay = RECONNECT_BASE_MS;
     hasConnectedThisSession = false;
 
+    // A refresh still pending for the previous project must not fire now.
+    cancelLayerCompleteRefreshes();
     usePresenceStore.getState().clear();
     connectWs(projectServerId, token);
   },
@@ -500,6 +509,7 @@ export const wsService = {
       reconnectTimer = null;
     }
     stopHeartbeat();
+    cancelLayerCompleteRefreshes();
 
     if (ws) {
       try { ws.close(1000, 'Client disconnecting'); } catch { /* */ }

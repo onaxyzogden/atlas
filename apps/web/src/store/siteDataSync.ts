@@ -32,10 +32,10 @@
  * on re-evaluation so Vite hot-reloads don't stack subscriptions.
  */
 
-import * as turf from '@turf/turf';
 import { debounce, type DebouncedFn } from '../lib/debounce.js';
 import { useProjectStore, type LocalProject } from './projectStore.js';
 import { useSiteDataStore, abortFetchForProject } from './siteDataStore.js';
+import { deriveSiteFetchArgs } from './siteFetchArgs.js';
 
 // ── Per-project debouncers ────────────────────────────────────────────────
 // Each project gets its own debouncer keyed by id so rapid boundary edits
@@ -76,23 +76,9 @@ function dropProject(projectId: string): void {
  * invalid mid-edit). The next valid setState will retry.
  */
 export function scheduleSiteDataFetch(project: LocalProject): void {
-  if (!project.parcelBoundaryGeojson) return;
-  try {
-    const centroid = turf.centroid(project.parcelBoundaryGeojson);
-    const coords = centroid.geometry.coordinates;
-    const lng = coords[0] ?? 0;
-    const lat = coords[1] ?? 0;
-    const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
-    const bbox: [number, number, number, number] = [
-      turfBbox[0],
-      turfBbox[1],
-      turfBbox[2],
-      turfBbox[3],
-    ];
-    getDebouncer(project.id)(project.id, [lng, lat], project.country, bbox);
-  } catch {
-    /* invalid geometry — wait for the next setState */
-  }
+  const args = deriveSiteFetchArgs(project);
+  if (!args) return; // no boundary, or invalid geometry — wait for the next setState
+  getDebouncer(project.id)(project.id, args.center, args.country, args.bbox);
 }
 
 // ── Subscribe to project-store changes ────────────────────────────────────
