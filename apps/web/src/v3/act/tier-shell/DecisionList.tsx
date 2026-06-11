@@ -259,6 +259,17 @@ const MODE_LABELS: Record<string, string> = {
   'sf-skills': 'Skills matrix',
   'sf-networks': 'External networks',
 
+  // Communal-infrastructure survey (ev-s3-infra-condition) badge labels. Keys
+  // namespaced "ic-" by workbenchAffordances. 5 modes c1..c5; values match the
+  // catalogue mode: badge strings verbatim. c1/c3 share "Inventory" and c2/c4
+  // share "Assessment" -- distinct mode keys, same label string (fine).
+  // Advisory only.
+  'ic-buildings': 'Inventory',
+  'ic-compliance': 'Assessment',
+  'ic-utilities': 'Inventory',
+  'ic-access': 'Assessment',
+  'ic-reuse': 'Strategic choice',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The

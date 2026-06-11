@@ -17,6 +17,7 @@ import { grazingModeFor } from '../GrazingSystemCapture.js';
 import { livestockIntentModeFor } from '../LivestockIntentCapture.js';
 import { propagationInfraModeFor } from '../PropagationInfraCapture.js';
 import { socialFabricModeFor } from '../SocialFabricCapture.js';
+import { infraConditionModeFor } from '../InfraConditionCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -201,6 +202,29 @@ describe('workbenchAffordancesFor -- ev-s2-social-fabric', () => {
     // The bare objective id (no -cN suffix) and a sibling id return null.
     expect(aff.modeFor!('ev-s2-social-fabric')).toBeNull();
     expect(aff.modeFor!('ev-s4-food-system-c1')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- ev-s3-infra-condition', () => {
+  const aff = workbenchAffordancesFor('ev-s3-infra-condition');
+
+  it('carries no strips, shows decision groups (advisory -- no map/register)', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces infra-condition modes "ic-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 maps to the buildings mode, namespaced to keep clear of the global
+    // mode-label table.
+    const got = aff.modeFor!('ev-s3-infra-condition-c1');
+    expect(got).toBe('ic-buildings');
+    expect(got).toBe(`ic-${infraConditionModeFor('ev-s3-infra-condition-c1')}`);
+    expect(aff.modeFor!('ev-s3-infra-condition-c5')).toBe('ic-reuse');
+    // The bare objective id (no -cN suffix) and a sibling id return null.
+    expect(aff.modeFor!('ev-s3-infra-condition')).toBeNull();
+    expect(aff.modeFor!('ev-s2-social-fabric-c1')).toBeNull();
   });
 });
 

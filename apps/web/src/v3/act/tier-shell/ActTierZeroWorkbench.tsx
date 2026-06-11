@@ -317,6 +317,13 @@ export function buildDecisionTarget(
   // Advisory only -- no store write, no projectId. False for every other id.
   const isSocialFabric = item.id.startsWith('ev-s2-social-fabric-');
 
+  // Infra-condition survey is a 5-item Family (Ummah) secondary objective
+  // (ev-s3-infra-condition-c1..-c5); detected by id prefix. The panel's
+  // isInfraCondition body-router arm (InfraConditionCapture self-routes on itemId
+  // via infraConditionModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId. False for every other id.
+  const isInfraCondition = item.id.startsWith('ev-s3-infra-condition-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -378,6 +385,7 @@ export function buildDecisionTarget(
     isExitSuccession,
     isAdaptiveManagement,
     isSocialFabric,
+    isInfraCondition,
     deferLabel,
     deferrable,
   };

@@ -2891,6 +2891,128 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Communal-infrastructure condition (ev-s3-infra-condition):
+          a 5-mode Environment primary capture (buildings / compliance /
+          utilities / access / reuse). Advisory: no store, no projectId. c2
+          surfaces the verbatim friable-asbestos OH&S obligation; c5 is the
+          genuine validity gate -- it stays invalid until every element carries
+          a non-pending disposition (2 seeded pending: old dairy + creek ford).
+          The dummy "gallery" projectId is ignored by the arm. */}
+      <Section title="Decision Working Panel - Infra condition: inventory communal buildings (ev-s3-infra-condition c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-infra-condition-c1",
+              label: "Inventory communal buildings",
+              prompt: "Inventory all existing communal or shared buildings with condition assessment.",
+              isInfraCondition: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Infra condition: assess integrity & compliance (ev-s3-infra-condition c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-infra-condition-c2",
+              label: "Assess structural integrity and compliance",
+              prompt: "Assess structural integrity and code compliance of existing buildings.",
+              isInfraCondition: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Infra condition: record utility infrastructure (ev-s3-infra-condition c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-infra-condition-c3",
+              label: "Record utility infrastructure",
+              prompt: "Record existing utility infrastructure - water, power, drainage, communications.",
+              isInfraCondition: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Infra condition: assess road and track condition (ev-s3-infra-condition c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-infra-condition-c4",
+              label: "Assess road and track condition",
+              prompt: "Assess road and track condition for communal vehicle and pedestrian use.",
+              isInfraCondition: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Infra condition: decide reuse, renovation, or demolition (ev-s3-infra-condition c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s3-infra-condition-c5",
+              label: "Decide reuse, renovation, or demolition",
+              prompt: "Identify reuse, renovation, or demolition requirements for each existing element.",
+              isInfraCondition: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

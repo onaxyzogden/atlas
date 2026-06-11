@@ -40,6 +40,7 @@ import { propagationInfraModeFor } from './PropagationInfraCapture.js';
 import { adaptiveManagementModeFor } from './AdaptiveManagementCapture.js';
 import { exitSuccessionModeFor } from './ExitSuccessionCapture.js';
 import { socialFabricModeFor } from './SocialFabricCapture.js';
+import { infraConditionModeFor } from './InfraConditionCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -448,6 +449,23 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     modeFor: (itemId) => {
       const m = socialFabricModeFor(itemId);
       return m ? `sf-${m}` : null;
+    },
+  },
+
+  // S3 infra-condition survey (Family EV-S3): 5 items, grouped (showGroups
+  // true); no map/register strips. Advisory only -- the capture writes no store
+  // and takes no projectId. infraConditionModeFor returns GENERIC mode keys
+  // (buildings / compliance / utilities / access / reuse). The badge keys are
+  // namespaced "ic-" HERE (the affordance modeFor feeds the badge only;
+  // DecisionWorkingPanel routes off its own infraConditionModeFor
+  // independently), and DecisionList carries matching ic-* labels.
+  'ev-s3-infra-condition': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      const m = infraConditionModeFor(itemId);
+      return m ? `ic-${m}` : null;
     },
   },
 };

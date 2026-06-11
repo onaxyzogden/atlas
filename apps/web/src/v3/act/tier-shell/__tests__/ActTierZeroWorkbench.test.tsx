@@ -474,6 +474,30 @@ describe('buildDecisionTarget -- social-fabric detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- infra-condition detection', () => {
+  it('flags isInfraCondition for an ev-s3-infra-condition-* decision', () => {
+    const icItem: PlanDecisionChecklistItem = {
+      id: 'ev-s3-infra-condition-c1',
+      label: 'Inventory communal buildings',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(icItem);
+    expect(target.isInfraCondition).toBe(true);
+  });
+
+  it('does NOT flag isInfraCondition for the sibling social-fabric decision', () => {
+    const sfItem: PlanDecisionChecklistItem = {
+      id: 'ev-s2-social-fabric-c1',
+      label: 'Map founding relationships',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(sfItem);
+    expect(target.isInfraCondition).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

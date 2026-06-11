@@ -260,6 +260,13 @@ import {
   type SocialFabricMode,
 } from './SocialFabricCapture.js';
 import {
+  InfraConditionCapture,
+  infraConditionModeFor,
+  isInfraConditionValid,
+  summariseInfraCondition,
+  type InfraConditionMode,
+} from './InfraConditionCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -344,6 +351,8 @@ export interface DecisionPanelTarget {
   isAdaptiveManagement?: boolean;
   /** true => render SocialFabricCapture (self-routing on itemId via socialFabricModeFor). */
   isSocialFabric?: boolean;
+  /** true => render InfraConditionCapture (self-routing on itemId via infraConditionModeFor). */
+  isInfraCondition?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -752,6 +761,15 @@ export default function DecisionWorkingPanel({
     ? socialFabricModeFor(decision.itemId)
     : null;
 
+  // Infra-condition survey is a 5-mode capture (buildings / compliance /
+  // utilities / access / reuse) routed by infraConditionModeFor(itemId).
+  // Advisory only -- it validates / summarises directly off the FormValue and
+  // writes no store / takes no projectId. Only the resolved mode is held here --
+  // used by the validity, summary, body arms.
+  const infraConditionMode: InfraConditionMode | null = decision.isInfraCondition
+    ? infraConditionModeFor(decision.itemId)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -822,6 +840,8 @@ export default function DecisionWorkingPanel({
     valid = isAdaptiveManagementValid(adaptiveManagementMode, draft);
   } else if (socialFabricMode) {
     valid = isSocialFabricValid(socialFabricMode, draft);
+  } else if (infraConditionMode) {
+    valid = isInfraConditionValid(infraConditionMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1081,6 +1101,8 @@ export default function DecisionWorkingPanel({
       );
     } else if (socialFabricMode) {
       summary = summariseSocialFabric(socialFabricMode, draft, siblingValues);
+    } else if (infraConditionMode) {
+      summary = summariseInfraCondition(infraConditionMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1401,6 +1423,15 @@ export default function DecisionWorkingPanel({
           <SocialFabricCapture
             key={decision.itemId}
             mode={socialFabricMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : infraConditionMode ? (
+          <InfraConditionCapture
+            key={decision.itemId}
+            mode={infraConditionMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}
