@@ -668,9 +668,13 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s4-infra-strategy-c5',
         'Resolve conflicts between communal infrastructure investment and individual dwelling needs',
       ),
+      ck(
+        'ev-s4-infra-strategy-c6',
+        'Confirm the infrastructure list against Stratum 3 reuse, renovation, and demolition decisions for existing structures',
+      ),
     ],
     decisionGroups: [
-      dg('ev-s4-infra-strategy-dg1', 'Infrastructure list & priority', ['ev-s4-infra-strategy-c1', 'ev-s4-infra-strategy-c2'], []),
+      dg('ev-s4-infra-strategy-dg1', 'Infrastructure list & priority', ['ev-s4-infra-strategy-c1', 'ev-s4-infra-strategy-c2', 'ev-s4-infra-strategy-c6'], []),
       dg('ev-s4-infra-strategy-dg2', 'Ownership & cost-sharing', ['ev-s4-infra-strategy-c3', 'ev-s4-infra-strategy-c4'], []),
       dg('ev-s4-infra-strategy-dg3', 'Communal vs. individual balance', ['ev-s4-infra-strategy-c5'], []),
     ],
@@ -811,10 +815,14 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm financial model is agreed by all founding members before any construction begins',
         { mode: 'Member agreement' },
       ),
+      ck(
+        'ev-s4-financial-model-c7',
+        'Confirm communal fund governance follows the Stratum 1 financial governance rules - holding, authorisation, and reporting',
+      ),
     ],
     decisionGroups: [
       dg('ev-s4-financial-model-dg1', 'Member buy-in & levies', ['ev-s4-financial-model-c1', 'ev-s4-financial-model-c2'], []),
-      dg('ev-s4-financial-model-dg2', 'Fund governance & hardship', ['ev-s4-financial-model-c3', 'ev-s4-financial-model-c4'], []),
+      dg('ev-s4-financial-model-dg2', 'Fund governance & hardship', ['ev-s4-financial-model-c3', 'ev-s4-financial-model-c4', 'ev-s4-financial-model-c7'], []),
       dg('ev-s4-financial-model-dg3', 'Reserves & member agreement', ['ev-s4-financial-model-c5', 'ev-s4-financial-model-c6'], []),
     ],
     completionGate:
@@ -857,9 +865,13 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s5-cluster-layout-c6',
         'Confirm cluster layouts against fire egress and emergency access requirements',
       ),
+      ck(
+        'ev-s5-cluster-layout-c7',
+        'Confirm total dwelling counts across clusters stay within the Stratum 2 maximum sustainable population',
+      ),
     ],
     decisionGroups: [
-      dg('ev-s5-cluster-layout-dg1', 'Cluster & private zone layout', ['ev-s5-cluster-layout-c1', 'ev-s5-cluster-layout-c2'], []),
+      dg('ev-s5-cluster-layout-dg1', 'Cluster & private zone layout', ['ev-s5-cluster-layout-c1', 'ev-s5-cluster-layout-c2', 'ev-s5-cluster-layout-c7'], []),
       dg('ev-s5-cluster-layout-dg2', 'Shared spaces & dwelling standards', ['ev-s5-cluster-layout-c3', 'ev-s5-cluster-layout-c4'], []),
       dg('ev-s5-cluster-layout-dg3', 'Screening & egress', ['ev-s5-cluster-layout-c5', 'ev-s5-cluster-layout-c6'], []),
     ],
@@ -899,11 +911,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s5-communal-systems-c6',
         'Confirm communal building designs are financially achievable within Stratum 4 model',
       ),
+      ck(
+        'ev-s5-communal-systems-c7',
+        'Confirm communal building designs against Stratum 3 reuse and renovation decisions for existing structures',
+      ),
     ],
     decisionGroups: [
       dg('ev-s5-communal-systems-dg1', 'Kitchen & meeting hall', ['ev-s5-communal-systems-c1', 'ev-s5-communal-systems-c2'], ['Infrastructure & Access']),
       dg('ev-s5-communal-systems-dg2', 'Workshop & service facilities', ['ev-s5-communal-systems-c3', 'ev-s5-communal-systems-c4'], ['Infrastructure & Access']),
-      dg('ev-s5-communal-systems-dg3', 'Materials & financial fit', ['ev-s5-communal-systems-c5', 'ev-s5-communal-systems-c6'], []),
+      dg('ev-s5-communal-systems-dg3', 'Materials & financial fit', ['ev-s5-communal-systems-c5', 'ev-s5-communal-systems-c6', 'ev-s5-communal-systems-c7'], []),
     ],
     completionGate:
       'Communal infrastructure systems design approved. All shared buildings specified and financially confirmed.',
@@ -926,6 +942,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('ev-s5-sanitation-waste-c2', 'Design grey water collection, treatment, and reuse network'),
       ck(
+        'ev-s5-sanitation-waste-c7',
+        'Confirm treatment capacity against the Stratum 3 waste volumes and soil treatment capacity findings',
+      ),
+      ck(
         'ev-s5-sanitation-waste-c3',
         'Design communal organic waste processing - compost bays, worm farms, biodigester',
       ),
@@ -937,7 +957,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
     ],
     decisionGroups: [
-      dg('ev-s5-sanitation-waste-dg1', 'Sewage & grey water', ['ev-s5-sanitation-waste-c1', 'ev-s5-sanitation-waste-c2'], []),
+      dg('ev-s5-sanitation-waste-dg1', 'Sewage & grey water', ['ev-s5-sanitation-waste-c1', 'ev-s5-sanitation-waste-c2', 'ev-s5-sanitation-waste-c7'], []),
       dg('ev-s5-sanitation-waste-dg2', 'Organic waste & recycling', ['ev-s5-sanitation-waste-c3', 'ev-s5-sanitation-waste-c4'], []),
       dg('ev-s5-sanitation-waste-dg3', 'Setbacks & compliance', ['ev-s5-sanitation-waste-c5', 'ev-s5-sanitation-waste-c6'], []),
     ],
@@ -962,6 +982,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('ev-s5-energy-system-c2', 'Design battery or thermal storage capacity'),
       ck(
+        'ev-s5-energy-system-c7',
+        'Confirm generation and storage sizing against the Stratum 3 energy demand and generation potential assessment',
+      ),
+      ck(
         'ev-s5-energy-system-c3',
         'Design micro-grid distribution network to all dwellings and communal buildings',
       ),
@@ -976,7 +1000,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
     ],
     decisionGroups: [
-      dg('ev-s5-energy-system-dg1', 'Generation & storage', ['ev-s5-energy-system-c1', 'ev-s5-energy-system-c2'], []),
+      dg('ev-s5-energy-system-dg1', 'Generation & storage', ['ev-s5-energy-system-c1', 'ev-s5-energy-system-c2', 'ev-s5-energy-system-c7'], []),
       dg('ev-s5-energy-system-dg2', 'Distribution & metering', ['ev-s5-energy-system-c3', 'ev-s5-energy-system-c4'], []),
       dg('ev-s5-energy-system-dg3', 'Backup & financial fit', ['ev-s5-energy-system-c5', 'ev-s5-energy-system-c6'], []),
     ],
@@ -1004,6 +1028,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Design individual plot allocation - sizes, boundaries, access, water points',
       ),
       ck(
+        'ev-s5-food-zones-c7',
+        'Confirm growing area allocation against the Stratum 2 food production potential estimate for the intended population',
+      ),
+      ck(
         'ev-s5-food-zones-c3',
         'Design orchard and food forest zones - species placement, access, harvest paths',
       ),
@@ -1018,7 +1046,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
     ],
     decisionGroups: [
-      dg('ev-s5-food-zones-dg1', 'Communal growing & plots', ['ev-s5-food-zones-c1', 'ev-s5-food-zones-c2'], []),
+      dg('ev-s5-food-zones-dg1', 'Communal growing & plots', ['ev-s5-food-zones-c1', 'ev-s5-food-zones-c2', 'ev-s5-food-zones-c7'], []),
       dg('ev-s5-food-zones-dg2', 'Orchard & nursery zones', ['ev-s5-food-zones-c3', 'ev-s5-food-zones-c4'], ['Vegetation & Succession']),
       dg('ev-s5-food-zones-dg3', 'Storage & strategy fit', ['ev-s5-food-zones-c5', 'ev-s5-food-zones-c6'], []),
     ],
@@ -1047,6 +1075,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define financial health indicators - communal fund levels, arrears, capital reserve status',
       ),
       ck(
+        'ev-s6-social-monitoring-c7',
+        'Baseline social health indicators against the Stratum 2 founding group cohesion and relationship findings',
+      ),
+      ck(
         'ev-s6-social-monitoring-c3',
         'Design regular community check-in process - format, frequency, facilitation',
       ),
@@ -1058,7 +1090,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ev-s6-social-monitoring-c6', 'Specify record-keeping system for community health data'),
     ],
     decisionGroups: [
-      dg('ev-s6-social-monitoring-dg1', 'Social & financial indicators', ['ev-s6-social-monitoring-c1', 'ev-s6-social-monitoring-c2'], []),
+      dg('ev-s6-social-monitoring-dg1', 'Social & financial indicators', ['ev-s6-social-monitoring-c1', 'ev-s6-social-monitoring-c2', 'ev-s6-social-monitoring-c7'], []),
       dg('ev-s6-social-monitoring-dg2', 'Check-in & feedback process', ['ev-s6-social-monitoring-c3', 'ev-s6-social-monitoring-c4'], []),
       dg('ev-s6-social-monitoring-dg3', 'Escalation & record-keeping', ['ev-s6-social-monitoring-c5', 'ev-s6-social-monitoring-c6'], []),
     ],
@@ -1091,13 +1123,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('ev-s6-maintenance-protocol-c4', 'Design inspection and condition reporting system'),
       ck(
+        'ev-s6-maintenance-protocol-c6',
+        'Set inspection baselines from the Stratum 3 communal infrastructure condition survey',
+      ),
+      ck(
         'ev-s6-maintenance-protocol-c5',
         'Define escalation process for urgent or major maintenance needs',
       ),
     ],
     decisionGroups: [
       dg('ev-s6-maintenance-protocol-dg1', 'Schedule & responsibility', ['ev-s6-maintenance-protocol-c1', 'ev-s6-maintenance-protocol-c2'], []),
-      dg('ev-s6-maintenance-protocol-dg2', 'Funding & inspection', ['ev-s6-maintenance-protocol-c3', 'ev-s6-maintenance-protocol-c4'], []),
+      dg('ev-s6-maintenance-protocol-dg2', 'Funding & inspection', ['ev-s6-maintenance-protocol-c3', 'ev-s6-maintenance-protocol-c4', 'ev-s6-maintenance-protocol-c6'], []),
       dg('ev-s6-maintenance-protocol-dg3', 'Escalation', ['ev-s6-maintenance-protocol-c5'], []),
     ],
     completionGate:
@@ -1135,11 +1171,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s6-coordination-feedback-c5',
         'Define decision triggers - when individual household behaviour requires community response',
       ),
+      ck(
+        'ev-s6-coordination-feedback-c6',
+        'Confirm decision triggers operate through the Stratum 1 decision-making process and community agreements',
+      ),
     ],
     decisionGroups: [
       dg('ev-s6-coordination-feedback-dg1', 'Energy & water cascades', ['ev-s6-coordination-feedback-c1', 'ev-s6-coordination-feedback-c2'], []),
       dg('ev-s6-coordination-feedback-dg2', 'Food sharing & communication', ['ev-s6-coordination-feedback-c3', 'ev-s6-coordination-feedback-c4'], []),
-      dg('ev-s6-coordination-feedback-dg3', 'Decision triggers', ['ev-s6-coordination-feedback-c5'], []),
+      dg('ev-s6-coordination-feedback-dg3', 'Decision triggers', ['ev-s6-coordination-feedback-c5', 'ev-s6-coordination-feedback-c6'], []),
     ],
     completionGate:
       'Communal systems coordination protocols approved. All feedback mechanisms between communal systems and household decisions defined.',
@@ -1165,6 +1205,10 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Design planning compliance monitoring system - track all conditions, review dates, and obligations',
       ),
       ck(
+        'ev-s6-external-relations-c7',
+        'Ground engagement priorities in the Stratum 2 planning environment and prior community context findings',
+      ),
+      ck(
         'ev-s6-external-relations-c3',
         'Define community spokesperson and external relations protocol',
       ),
@@ -1179,7 +1223,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ev-s6-external-relations-c6', 'Define annual community external relations review'),
     ],
     decisionGroups: [
-      dg('ev-s6-external-relations-dg1', 'Neighbour & planning monitoring', ['ev-s6-external-relations-c1', 'ev-s6-external-relations-c2'], []),
+      dg('ev-s6-external-relations-dg1', 'Neighbour & planning monitoring', ['ev-s6-external-relations-c1', 'ev-s6-external-relations-c2', 'ev-s6-external-relations-c7'], []),
       dg('ev-s6-external-relations-dg2', 'Spokesperson & complaints', ['ev-s6-external-relations-c3', 'ev-s6-external-relations-c4'], []),
       dg('ev-s6-external-relations-dg3', 'Authority relationship & review', ['ev-s6-external-relations-c5', 'ev-s6-external-relations-c6'], []),
     ],
@@ -1215,13 +1259,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Schedule subsequent cohort arrivals against infrastructure completion milestones',
       ),
       ck(
+        'ev-s7-settlement-plan-c6',
+        'Confirm scheduled cohort sizes keep total population within the Stratum 2 maximum sustainable population',
+      ),
+      ck(
         'ev-s7-settlement-plan-c5',
         'Define who enforces habitability thresholds - not self-reported by arriving households',
       ),
     ],
     decisionGroups: [
       dg('ev-s7-settlement-plan-dg1', 'Cohort & habitability items', ['ev-s7-settlement-plan-c1', 'ev-s7-settlement-plan-c2'], []),
-      dg('ev-s7-settlement-plan-dg2', 'Arrival criteria & scheduling', ['ev-s7-settlement-plan-c3', 'ev-s7-settlement-plan-c4'], []),
+      dg('ev-s7-settlement-plan-dg2', 'Arrival criteria & scheduling', ['ev-s7-settlement-plan-c3', 'ev-s7-settlement-plan-c4', 'ev-s7-settlement-plan-c6'], []),
       dg('ev-s7-settlement-plan-dg3', 'Threshold enforcement', ['ev-s7-settlement-plan-c5'], []),
     ],
     completionGate:
@@ -1250,13 +1298,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('ev-s7-financial-plan-c4', 'Define financial reporting schedule to all members'),
       ck(
+        'ev-s7-financial-plan-c6',
+        'Confirm fund holding and reporting follow the Stratum 1 financial governance rules',
+      ),
+      ck(
         'ev-s7-financial-plan-c5',
         'Confirm all founding member contributions are committed before construction begins',
       ),
     ],
     decisionGroups: [
       dg('ev-s7-financial-plan-dg1', 'Capital requirement & schedule', ['ev-s7-financial-plan-c1', 'ev-s7-financial-plan-c2'], []),
-      dg('ev-s7-financial-plan-dg2', 'Fund structure & reporting', ['ev-s7-financial-plan-c3', 'ev-s7-financial-plan-c4'], []),
+      dg('ev-s7-financial-plan-dg2', 'Fund structure & reporting', ['ev-s7-financial-plan-c3', 'ev-s7-financial-plan-c4', 'ev-s7-financial-plan-c6'], []),
       dg('ev-s7-financial-plan-dg3', 'Contribution commitment', ['ev-s7-financial-plan-c5'], []),
     ],
     completionGate:
@@ -1291,11 +1343,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define go/no-go criteria for each system launch - tested and confirmed, not planned',
       ),
       ck('ev-s7-launch-sequence-c5', 'Confirm sequencing against Phase 1 implementation plan'),
+      ck(
+        'ev-s7-launch-sequence-c6',
+        'Confirm the launch order covers every communal infrastructure commitment from the Stratum 1 provision balance',
+      ),
     ],
     decisionGroups: [
       dg('ev-s7-launch-sequence-dg1', 'Water & sanitation sequencing', ['ev-s7-launch-sequence-c1', 'ev-s7-launch-sequence-c2'], []),
       dg('ev-s7-launch-sequence-dg2', 'Energy & go/no-go', ['ev-s7-launch-sequence-c3', 'ev-s7-launch-sequence-c4'], []),
-      dg('ev-s7-launch-sequence-dg3', 'Plan alignment', ['ev-s7-launch-sequence-c5'], []),
+      dg('ev-s7-launch-sequence-dg3', 'Plan alignment', ['ev-s7-launch-sequence-c5', 'ev-s7-launch-sequence-c6'], []),
     ],
     completionGate:
       'Communal systems launch sequence approved. Water, sanitation, and energy sequenced before dependent activities.',
@@ -1322,11 +1378,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s7-onboarding-c4',
         'Design orientation program for new members - governance, systems, agreements',
       ),
+      ck(
+        'ev-s7-onboarding-c6',
+        'Include the Stratum 1 community agreements and dispute resolution pathway in new member orientation',
+      ),
       ck('ev-s7-onboarding-c5', 'Define mentorship or buddy system for new household integration'),
     ],
     decisionGroups: [
       dg('ev-s7-onboarding-dg1', 'Application & trial', ['ev-s7-onboarding-c1', 'ev-s7-onboarding-c2'], []),
-      dg('ev-s7-onboarding-dg2', 'Membership & orientation', ['ev-s7-onboarding-c3', 'ev-s7-onboarding-c4'], []),
+      dg('ev-s7-onboarding-dg2', 'Membership & orientation', ['ev-s7-onboarding-c3', 'ev-s7-onboarding-c4', 'ev-s7-onboarding-c6'], []),
       dg('ev-s7-onboarding-dg3', 'Mentorship', ['ev-s7-onboarding-c5'], []),
     ],
     completionGate:
@@ -1405,13 +1465,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define community dissolution protocol - how assets and liabilities are distributed',
       ),
       ck(
+        'ev-s7-exit-succession-c6',
+        'Confirm land reversion and dissolution terms against the Stratum 1 legal entity and tenure model',
+      ),
+      ck(
         'ev-s7-exit-succession-c5',
         'Obtain legal review of exit and succession protocol before any member moves on-site',
       ),
     ],
     decisionGroups: [
       dg('ev-s7-exit-succession-dg1', 'Exit & dwelling transfer', ['ev-s7-exit-succession-c1', 'ev-s7-exit-succession-c2'], []),
-      dg('ev-s7-exit-succession-dg2', 'Land reversion & dissolution', ['ev-s7-exit-succession-c3', 'ev-s7-exit-succession-c4'], []),
+      dg('ev-s7-exit-succession-dg2', 'Land reversion & dissolution', ['ev-s7-exit-succession-c3', 'ev-s7-exit-succession-c4', 'ev-s7-exit-succession-c6'], []),
       dg('ev-s7-exit-succession-dg3', 'Legal review', ['ev-s7-exit-succession-c5'], []),
     ],
     completionGate:

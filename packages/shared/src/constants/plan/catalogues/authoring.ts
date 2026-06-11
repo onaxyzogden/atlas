@@ -67,16 +67,27 @@ export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
  * Build a checklist item. None of the transcribed RegenFarm / Residential
  * items are authored as optional or methodology, so the helper takes just
  * id + label and applies the schema defaults (feedsInto: [], optional: false).
+ *
+ * `feeds` declares the downstream stratum-objective ids this item feeds into
+ * (surfaced as "Feeds" chips in the Plan DecisionChecklist and the Act tier
+ * shell). Omit it to keep the schema default of `[]`. Targets must reference
+ * objectives in a strictly LATER stratum; the spineTraceability conformance
+ * test enforces referential integrity against UNIVERSAL_PLAN_OBJECTIVES.
  */
 export function ck(
   id: string,
   label: string,
-  opts: { feedHint?: string; feedNote?: string; mode?: string } = {},
+  opts: {
+    feedHint?: string;
+    feedNote?: string;
+    mode?: string;
+    feeds?: string[];
+  } = {},
 ): PlanDecisionChecklistItem {
   return {
     id,
     label,
-    feedsInto: [],
+    feedsInto: opts.feeds ? [...opts.feeds] : [],
     optional: false,
     ...(opts.feedHint ? { feedHint: opts.feedHint } : {}),
     ...(opts.feedNote ? { feedNote: opts.feedNote } : {}),

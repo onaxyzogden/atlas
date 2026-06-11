@@ -100,7 +100,7 @@ Decision: [decisions/2026-05-29-atlas-per-type-objective-model.md](../decisions/
 | `constants/plan/projectTypes.ts` | 14-entry `PROJECT_TYPES` table `{id,label,ordinal,canBePrimary,canBeSecondary,description}` (`livestock_operation` ordinal 13 added 2026-06-03); `PRIMARY_TYPES` (13) / `SECONDARY_TYPES` (8) views; `findProjectType(id)`. The wizard reads this table; the Zod `ProjectType` enum keeps a `moontrance` sentinel (validates but never offered). |
 | `constants/plan/relationshipMatrix.ts` | `getPairRelation`, `isCompatibleSecondary`, `getActiveTensions`; `RelationCell` ('M'\|'A'\|'X'\|'NA'); `DesignTension`; the 12 named design tensions (2 added 2026-06-03: livestock_operation x wellness @ s4, livestock_operation x market_garden @ s5). The compile-strict `Record<PrimaryTypeId>` carries 13 primary cells per secondary row. `residential.regenerative_farm = 'M'` is the encoded modifying pair; `residential.homestead = 'NA'` (incompatible -- "Homestead+Residential" was a stale plan-doc label). |
 | `constants/plan/catalogues/{universal,regenFarm,ecovillage,agritourism,wellness,silvopasture,orchard,nursery,homestead,education,conservation,marketGarden,offGrid,livestockOperation,residential}.ts` | The encoded catalogues: Universal-19, Regenerative-Farm primary (13), Ecovillage primary (31), Agritourism primary (29), Wellness primary (27) + Wellness secondary (5 additive, no patches), Silvopasture primary (26; 45 with universal), Orchard primary (25; 44 with universal), Nursery secondary (8 additive, no patches), Homestead primary (15), Education primary (22), Conservation primary (30), Market Garden primary (24), Off-Grid primary (27), **Livestock Operation primary (23; 42 with universal -- new primary-only type added 2026-06-03, binds all 6 livestock/grazing formula ids; ref prefix `LVS`)**, Residential secondary (6 additive + **5** patch records). With Livestock, **12 of the 13 selectable primaries now carry their own encoded layer**; only **Nursery** as a *primary* still resolves universal-only (its encoded catalogue is secondary-only). Adding a primary = a file + **five** edits to `catalogues/index.ts` (import + re-export + `getPrimaryCatalogue` arm + `ALL_CATALOGUE_OBJECTIVES` union + header-comment) plus, for a *new* type, its taxonomy id (`PROJECT_TYPE_IDS`, `ProjectType` superset, `PROJECT_TYPES` row) and a `relationshipMatrix` column cell in all 8 secondary rows. Agritourism is `canBeSecondary:true` in the taxonomy but its doc carries only a primary layer, so it is registered `getPrimaryCatalogue`-only; `getSecondaryCatalogue` serves Residential + Wellness. Silvopasture + Orchard ship primary-only (2026-05-30): each doc carries `->` universal-augmentation blocks and a secondary layer that are **deferred** pending operator source files -- no primary-to-universal patch seam exists yet (`resolveProjectObjectives` collects patches from secondaries only). See [[log/2026-05-30-atlas-silvo-orchard-catalogue]], [[log/2026-06-02-olos-food-forest-adoption]]. **Coverage gap:** the 5 newer primaries (Homestead/Education/Conservation/Market Garden/Off-Grid) are NOT in `catalogues.test.ts`/`shortTitle.test.ts` `ALL_AUTHORED`, so they are typecheck-guarded only; closing this needs the `OBJECTIVE_REF` regex to add `HMS|EDU|CON|MGD|OFG`. |
-| `constants/plan/catalogues/authoring.ts` | Catalogue Authoring Standards v1.4 rubric constants (id-namespacing, item-count bounds, Ref format) consumed by `__tests__/catalogues.test.ts`. |
+| `constants/plan/catalogues/authoring.ts` | Catalogue Authoring Standards v1.4 rubric constants (id-namespacing, item-count bounds, Ref format) consumed by `__tests__/catalogues.test.ts`. **Extended additively 2026-06-11** — `ck()` gained an optional `feeds?: string[]` opt (emits `feedsInto: opts.feeds ?? []`); `ckA`/`ckF` untouched, every prior `ck()` call byte-identical in output. See feedsInto wiring note below. |
 | `constants/plan/catalogues/index.ts` | Barrel: catalogue union + lookup helpers. |
 | `relationships/resolveProjectObjectives.ts` | Pure `resolveProjectObjectives({primaryTypeId, secondaryTypeIds})` -> 19 Universal (deep-copied) + primary + secondary-additive (dedup by id) + modifying patches applied **last**, each injected item stamped `expandedBySecondaryId`; a missing patch target is skipped + recorded (`SkippedPatch`), never thrown; gate amendments concatenate onto `completionGate`. Also `findPlanTierObjectiveIn(resolved, id)`; types `ResolveProjectObjectivesInput`/`Deps`, `ResolvedProjectObjectives`, `ResolveProvenance`, `SecondaryResolutionFlag`. **Physically in `relationships/` but main-barrel exported** (not the `@ogden/shared/relationships` subpath). |
 | `relationships/actStratumExecution.ts` | **Added 2026-05-30.** Pure Act-stage execution rollup, main-barrel exported. `computeActStratumExecution(actions)` -> per-`stratumId` `{total, verified, inFlight, notStarted}` in one pass (reads only `{stratumId?, status}`; actions with no `stratumId` skipped); `actStratumStateFromCounts(counts)` -> `PlanStratumState`; `computeAllActStratumStates(stratumIds, actions)`. **Deliberately NOT `computeStratumState`** (the Plan-side `stratumState.ts` returns `locked` for empty / prereq-gated strata): Act execution reaches every stratum, so this **never returns `locked`** -- empty/undefined -> `available`; any `in_progress\|submitted\|diverged\|blocked` (IN_FLIGHT) -> `active`; `total>0 && all verified` -> `complete`; else `available`. Backs the web Act tier shell ([[web-app]] "Act Tier Shell"). ADR [[2026-05-30-atlas-act-tier-shell-promotion]]. |
@@ -148,6 +148,29 @@ the sourceSecondaryId stamping and shared-constant immutability. Per the
 2026-05-31 rulings: R1 (authored item membership), R2 (verbatim feed strings),
 extended override + "author meaningful labels" for rows the doc doesn't
 enumerate. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
+
+**feedsInto forward wiring + upstream-cite backfill 2026-06-11 (stratum
+traceability audit remediation).** The [2026-06-11 stratum traceability audit](../../STRATUM_TRACEABILITY_AUDIT_2026-06-11.md)
+verdict was structural PASS / content MIXED: the spine gate
+(`STRATUM_PREREQS`) chains every S4–S7 objective transitively to S1–S3, but
+many S4+ items carried no *content-level* cite back to a survey, and all 31
+S2/S3 `universal.ts` survey items declared `feedsInto: []`. Three backlog
+items closed: **#3** authored explicit upstream cites into the transitive-only
+types (agritourism, ecovillage, education — 13 education `ck()` items under its
+"Tier N" convention); **#1** wired the 31 universal S2/S3 survey items to their
+5 transitive-only S4/S5 consumers (`s4-zones` x13, `s5-water-infrastructure`
+x10, `s4-water-strategy` x7, `s5-soil-improvement` x6, `s5-access` x6;
+`s4-direction` deliberately excluded as the synthesis objective); **#2** added
+`__tests__/spineTraceability.conformance.test.ts` (14 assertions) guarding
+forward-only acyclic feeds, target referential integrity, and a ≥1-feed floor
+per named consumer. `feedsInto` is display-only ("Feeds" chips at
+[DecisionChecklist.tsx:631]; Act Tier-0 label derivation) — a dangling target
+degrades to a raw-id label, never a gate. Backlog #4 (reverse "Informed by"
+chips) unblocked but not executed. Logs:
+[[log/2026-06-11-atlas-stratum-traceability-audit]],
+[[log/2026-06-11-atlas-upstream-cites-agritourism-ecovillage]],
+[[log/2026-06-11-atlas-education-cites-feedsinto-wiring]],
+[[log/2026-06-11-atlas-spine-traceability-conformance-test]].
 
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration

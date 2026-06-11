@@ -260,11 +260,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's2-terrain-c1',
         'Produce or obtain topographic map with contour intervals appropriate to scale',
+        { feeds: ['s4-zones', 's5-access', 's5-water-infrastructure'] },
       ),
-      ck('s2-terrain-c2', 'Identify slope gradients and aspects across the site'),
-      ck('s2-terrain-c3', 'Map elevation range and drainage divides'),
-      ck('s2-terrain-c4', 'Identify flat areas, ridgelines, saddles, and hollows'),
-      ck('s2-terrain-c5', 'Note areas of instability, erosion, or landslip risk'),
+      ck('s2-terrain-c2', 'Identify slope gradients and aspects across the site', {
+        feeds: ['s4-zones', 's5-access'],
+      }),
+      ck('s2-terrain-c3', 'Map elevation range and drainage divides', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
+      ck('s2-terrain-c4', 'Identify flat areas, ridgelines, saddles, and hollows', {
+        feeds: ['s4-zones', 's5-water-infrastructure'],
+      }),
+      ck('s2-terrain-c5', 'Note areas of instability, erosion, or landslip risk', {
+        feeds: ['s5-access', 's5-soil-improvement'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -294,12 +303,16 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What are the climate patterns and energy sectors that must be accommodated in all design decisions?',
     checklist: [
-      ck('s2-climate-c1', 'Record annual and seasonal rainfall averages and variability'),
-      ck('s2-climate-c2', 'Map prevailing wind directions by season'),
-      ck('s2-climate-c3', 'Record temperature range, frost dates, and heat event frequency'),
-      ck('s2-climate-c4', 'Map sun angles and shade zones by season'),
-      ck('s2-climate-c5', 'Identify fire risk sectors and direction'),
-      ck('s2-climate-c6', 'Note microclimate variations across the site'),
+      ck('s2-climate-c1', 'Record annual and seasonal rainfall averages and variability', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
+      ck('s2-climate-c2', 'Map prevailing wind directions by season', { feeds: ['s4-zones'] }),
+      ck('s2-climate-c3', 'Record temperature range, frost dates, and heat event frequency', {
+        feeds: ['s4-zones'],
+      }),
+      ck('s2-climate-c4', 'Map sun angles and shade zones by season', { feeds: ['s4-zones'] }),
+      ck('s2-climate-c5', 'Identify fire risk sectors and direction', { feeds: ['s4-zones'] }),
+      ck('s2-climate-c6', 'Note microclimate variations across the site', { feeds: ['s4-zones'] }),
     ],
     decisionGroups: [
       dg(
@@ -329,11 +342,17 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What ecological communities, species, and habitat values are present on the site?',
     checklist: [
-      ck('s2-ecology-c1', 'Record existing vegetation communities by zone'),
-      ck('s2-ecology-c2', 'Identify native and invasive species present'),
-      ck('s2-ecology-c3', 'Note wildlife corridors, nesting sites, and movement patterns'),
-      ck('s2-ecology-c4', 'Assess habitat connectivity to surrounding landscape'),
-      ck('s2-ecology-c5', 'Record water-dependent habitat areas'),
+      ck('s2-ecology-c1', 'Record existing vegetation communities by zone', { feeds: ['s4-zones'] }),
+      ck('s2-ecology-c2', 'Identify native and invasive species present', { feeds: ['s4-zones'] }),
+      ck('s2-ecology-c3', 'Note wildlife corridors, nesting sites, and movement patterns', {
+        feeds: ['s4-zones', 's5-access'],
+      }),
+      ck('s2-ecology-c4', 'Assess habitat connectivity to surrounding landscape', {
+        feeds: ['s4-zones'],
+      }),
+      ck('s2-ecology-c5', 'Record water-dependent habitat areas', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -363,14 +382,23 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What infrastructure, access routes, and services currently exist on the site?',
     checklist: [
-      ck('s2-infrastructure-c1', 'Map all existing roads, tracks, and pathways'),
+      ck('s2-infrastructure-c1', 'Map all existing roads, tracks, and pathways', {
+        feeds: ['s5-access'],
+      }),
       ck(
         's2-infrastructure-c2',
         'Record all existing buildings and structures with condition assessment',
+        { feeds: ['s4-zones'] },
       ),
-      ck('s2-infrastructure-c3', 'Map utility services - water, power, communications, waste'),
-      ck('s2-infrastructure-c4', 'Identify legal access points and access constraints'),
-      ck('s2-infrastructure-c5', 'Record existing fencing and boundary structures'),
+      ck('s2-infrastructure-c3', 'Map utility services - water, power, communications, waste', {
+        feeds: ['s4-water-strategy', 's4-zones'],
+      }),
+      ck('s2-infrastructure-c4', 'Identify legal access points and access constraints', {
+        feeds: ['s5-access'],
+      }),
+      ck('s2-infrastructure-c5', 'Record existing fencing and boundary structures', {
+        feeds: ['s4-zones'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -399,11 +427,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     shortTitle: 'How water moves across the site',
     focusedQuestion: 'How does water move through and across this site?',
     checklist: [
-      ck('s3-hydrology-c1', 'Map all surface water flows - seasonal and permanent'),
-      ck('s3-hydrology-c2', 'Identify catchment areas and their contribution to site water'),
-      ck('s3-hydrology-c3', 'Locate springs, seeps, and water table indicators'),
-      ck('s3-hydrology-c4', 'Assess runoff patterns and infiltration rates by zone'),
-      ck('s3-hydrology-c5', 'Map existing drainage infrastructure and its performance'),
+      ck('s3-hydrology-c1', 'Map all surface water flows - seasonal and permanent', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
+      ck('s3-hydrology-c2', 'Identify catchment areas and their contribution to site water', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
+      ck('s3-hydrology-c3', 'Locate springs, seeps, and water table indicators', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
+      }),
+      ck('s3-hydrology-c4', 'Assess runoff patterns and infiltration rates by zone', {
+        feeds: ['s5-water-infrastructure', 's5-soil-improvement'],
+      }),
+      ck('s3-hydrology-c5', 'Map existing drainage infrastructure and its performance', {
+        feeds: ['s5-water-infrastructure'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -436,11 +474,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's3-soil-c1',
         'Conduct soil profile assessment at representative locations across site',
+        { feeds: ['s5-soil-improvement'] },
       ),
-      ck('s3-soil-c2', 'Record soil texture, structure, and colour by horizon'),
-      ck('s3-soil-c3', 'Test soil pH, organic matter, and basic nutrient levels'),
-      ck('s3-soil-c4', 'Assess drainage class and water retention characteristics'),
-      ck('s3-soil-c5', 'Map soil type variation across the site'),
+      ck('s3-soil-c2', 'Record soil texture, structure, and colour by horizon', {
+        feeds: ['s5-soil-improvement', 's5-water-infrastructure'],
+      }),
+      ck('s3-soil-c3', 'Test soil pH, organic matter, and basic nutrient levels', {
+        feeds: ['s5-soil-improvement'],
+      }),
+      ck('s3-soil-c4', 'Assess drainage class and water retention characteristics', {
+        feeds: ['s5-soil-improvement', 's5-water-infrastructure'],
+      }),
+      ck('s3-soil-c5', 'Map soil type variation across the site', {
+        feeds: ['s4-zones', 's5-soil-improvement'],
+      }),
     ],
     decisionGroups: [
       dg(

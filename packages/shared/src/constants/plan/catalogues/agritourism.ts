@@ -745,12 +745,17 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-circulation-strategy-c6',
         'Confirm circulation route is compatible with emergency evacuation requirements',
       ),
+      ck(
+        'ag-s4-circulation-strategy-c7',
+        'Ground the arrival and circulation route in the Stratum 2 visitor access and arrival experience findings',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-circulation-strategy-dg1', 'Guest zones & route', [
         'ag-s4-circulation-strategy-c1',
         'ag-s4-circulation-strategy-c2',
         'ag-s4-circulation-strategy-c5',
+        'ag-s4-circulation-strategy-c7',
       ]),
       dg('ag-s4-circulation-strategy-dg2', 'Boundaries & wayfinding', [
         'ag-s4-circulation-strategy-c3',
@@ -795,6 +800,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-service-model-c5',
         'Confirm service model is achievable within steward capacity and licensing framework',
       ),
+      ck(
+        'ag-s4-service-model-c6',
+        'Confirm each offering serves the Stratum 1 guest experience vision and hospitality identity',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-service-model-dg1', 'Accommodation & dining offer', [
@@ -805,6 +814,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-service-model-c3',
         'ag-s4-service-model-c4',
         'ag-s4-service-model-c5',
+        'ag-s4-service-model-c6',
       ]),
     ],
     completionGate:
@@ -842,11 +852,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-food-strategy-c5',
         'Confirm farm-to-guest supply chain is consistent with food safety requirements',
       ),
+      ck(
+        'ag-s4-food-strategy-c6',
+        'Confirm priority enterprises against the Stratum 3 food production capacity and seasonal gap findings',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-food-strategy-dg1', 'Production-to-menu mapping', [
         'ag-s4-food-strategy-c1',
         'ag-s4-food-strategy-c2',
+        'ag-s4-food-strategy-c6',
       ]),
       dg('ag-s4-food-strategy-dg2', 'Sourcing & preparation', [
         'ag-s4-food-strategy-c3',
@@ -893,11 +908,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-safety-compliance-c6',
         'Confirm all compliance obligations are met before first guest arrival',
       ),
+      ck(
+        'ag-s4-safety-compliance-c7',
+        'Ground evacuation and first aid planning in the Stratum 3 emergency access and safety conditions survey',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-safety-compliance-dg1', 'Emergency & first aid', [
         'ag-s4-safety-compliance-c1',
         'ag-s4-safety-compliance-c2',
+        'ag-s4-safety-compliance-c7',
       ]),
       dg('ag-s4-safety-compliance-dg2', 'Hazard & food safety', [
         'ag-s4-safety-compliance-c3',
@@ -969,6 +989,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c11',
         'Route any membership / season-pass instrument to Scholar Council review before adoption; surface it explicitly, never as a default or recommended model; use no CSRA / salam advance-purchase framing',
       ),
+      ck(
+        'ag-s4-revenue-model-c12',
+        'Confirm pricing and occupancy targets against the Stratum 1 commercial proposition and visitor capacity limits',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-revenue-model-dg1', 'Pricing & booking terms', [
@@ -980,6 +1004,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c4',
         'ag-s4-revenue-model-c5',
         'ag-s4-revenue-model-c6',
+        'ag-s4-revenue-model-c12',
       ]),
       dg('ag-s4-revenue-model-dg3', 'Membership structure & fiqh routing (optional)', [
         'ag-s4-revenue-model-c7',
@@ -1033,11 +1058,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-biosecurity-zoning-c6',
         'Confirm the strategy is consistent with the AG-S4.4 guest circulation / zoning decision',
       ),
+      ck(
+        'ag-s4-biosecurity-zoning-c7',
+        'Confirm buffer and separation decisions respect the Stratum 1 operational boundaries for farm activities incompatible with guests',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-biosecurity-zoning-dg1', 'Contamination pathways & buffers', [
         'ag-s4-biosecurity-zoning-c1',
         'ag-s4-biosecurity-zoning-c2',
+        'ag-s4-biosecurity-zoning-c7',
       ]),
       dg('ag-s4-biosecurity-zoning-dg2', 'Entry hygiene & arrivals control', [
         'ag-s4-biosecurity-zoning-c3',
@@ -1141,6 +1171,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-dining-infra-c5',
         'Confirm kitchen and dining design meets food safety compliance requirements',
       ),
+      ck(
+        'ag-s5-dining-infra-c6',
+        'Size food storage and preparation design against the Stratum 3 food production capacity and storage findings',
+      ),
     ],
     decisionGroups: [
       dg('ag-s5-dining-infra-dg1', 'Kitchen design & equipment', [
@@ -1151,6 +1185,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-dining-infra-c3',
         'ag-s5-dining-infra-c4',
         'ag-s5-dining-infra-c5',
+        'ag-s5-dining-infra-c6',
       ], ['Infrastructure & Access']),
     ],
     completionGate:
@@ -1188,6 +1223,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-programming-infra-c5',
         'Confirm all programming infrastructure meets safety requirements for public access',
       ),
+      ck(
+        'ag-s5-programming-infra-c6',
+        'Confirm programming infrastructure serves the Stratum 1 guest experience vision and visitor types',
+      ),
     ],
     decisionGroups: [
       dg('ag-s5-programming-infra-dg1', 'Tour & trail routes', [
@@ -1198,6 +1237,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-programming-infra-c3',
         'ag-s5-programming-infra-c4',
         'ag-s5-programming-infra-c5',
+        'ag-s5-programming-infra-c6',
       ], ['Infrastructure & Access']),
     ],
     completionGate:
@@ -1235,12 +1275,17 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-sanitation-infra-c5',
         'Confirm sanitation design meets regulatory requirements for accommodation type',
       ),
+      ck(
+        'ag-s5-sanitation-infra-c6',
+        'Size fixtures and hot water against the Stratum 3 guest water and sanitation demand assessment',
+      ),
     ],
     decisionGroups: [
       dg('ag-s5-sanitation-infra-dg1', 'Fixture & layout sizing', [
         'ag-s5-sanitation-infra-c1',
         'ag-s5-sanitation-infra-c2',
         'ag-s5-sanitation-infra-c3',
+        'ag-s5-sanitation-infra-c6',
       ], ['Water & Hydrology']),
       dg('ag-s5-sanitation-infra-dg2', 'Waste system & compliance', [
         'ag-s5-sanitation-infra-c4',
@@ -1286,6 +1331,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s5-safety-infra-c6',
         'Confirm all safety infrastructure meets regulatory requirements',
       ),
+      ck(
+        'ag-s5-safety-infra-c7',
+        'Confirm emergency access points align with the Stratum 3 emergency vehicle access and evacuation route survey',
+      ),
     ],
     decisionGroups: [
       dg('ag-s5-safety-infra-dg1', 'Evacuation & fire equipment', [
@@ -1295,6 +1344,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       dg('ag-s5-safety-infra-dg2', 'First aid & vehicle access', [
         'ag-s5-safety-infra-c3',
         'ag-s5-safety-infra-c4',
+        'ag-s5-safety-infra-c7',
       ], ['Infrastructure & Access']),
       dg('ag-s5-safety-infra-dg3', 'Hazard signage & compliance', [
         'ag-s5-safety-infra-c5',
@@ -1479,6 +1529,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s6-experience-feedback-c5',
         'Define quality improvement process - how feedback triggers operational changes',
       ),
+      ck(
+        'ag-s6-experience-feedback-c6',
+        'Derive satisfaction indicators from the Stratum 1 guest experience vision and hospitality identity',
+      ),
     ],
     decisionGroups: [
       dg('ag-s6-experience-feedback-dg1', 'Feedback collection', [
@@ -1488,6 +1542,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       dg('ag-s6-experience-feedback-dg2', 'Satisfaction & repeat metrics', [
         'ag-s6-experience-feedback-c2',
         'ag-s6-experience-feedback-c3',
+        'ag-s6-experience-feedback-c6',
       ]),
       dg('ag-s6-experience-feedback-dg3', 'Quality improvement loop', [
         'ag-s6-experience-feedback-c5',
@@ -1528,11 +1583,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s6-compliance-monitoring-c5',
         'Define annual external relations review',
       ),
+      ck(
+        'ag-s6-compliance-monitoring-c6',
+        'Build the compliance calendar from the Stratum 1 regulatory framework permits and renewal obligations',
+      ),
     ],
     decisionGroups: [
       dg('ag-s6-compliance-monitoring-dg1', 'Compliance calendar & ownership', [
         'ag-s6-compliance-monitoring-c1',
         'ag-s6-compliance-monitoring-c2',
+        'ag-s6-compliance-monitoring-c6',
       ]),
       dg('ag-s6-compliance-monitoring-dg2', 'Neighbour & complaint relations', [
         'ag-s6-compliance-monitoring-c3',
@@ -1580,11 +1640,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s6-food-integration-c5',
         'Define review cadence and owner for the farm-to-guest loop - who reviews produce tracking and gap data each season and decides next-season adjustments',
       ),
+      ck(
+        'ag-s6-food-integration-c6',
+        'Baseline produce and gap tracking against the Stratum 3 food production capacity survey',
+      ),
     ],
     decisionGroups: [
       dg('ag-s6-food-integration-dg1', 'Produce & gap tracking', [
         'ag-s6-food-integration-c1',
         'ag-s6-food-integration-c2',
+        'ag-s6-food-integration-c6',
       ]),
       dg('ag-s6-food-integration-dg2', 'Menu planning & adjustment', [
         'ag-s6-food-integration-c3',
@@ -1679,11 +1744,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s7-staffing-training-c5',
         'Confirm all required certifications are obtained before first guest arrival',
       ),
+      ck(
+        'ag-s7-staffing-training-c6',
+        'Align recruitment timing with the Stratum 2 peak season and operating weeks findings',
+      ),
     ],
     decisionGroups: [
       dg('ag-s7-staffing-training-dg1', 'Staffing & recruitment', [
         'ag-s7-staffing-training-c1',
         'ag-s7-staffing-training-c3',
+        'ag-s7-staffing-training-c6',
       ]),
       dg('ag-s7-staffing-training-dg2', 'Training & certification', [
         'ag-s7-staffing-training-c2',
@@ -1726,6 +1796,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s7-booking-system-c5',
         'Confirm booking system is operational before any marketing begins',
       ),
+      ck(
+        'ag-s7-booking-system-c6',
+        'Confirm availability settings enforce the Stratum 1 visitor capacity and visit type limits',
+      ),
     ],
     decisionGroups: [
       dg('ag-s7-booking-system-dg1', 'Platform & payment', [
@@ -1736,6 +1810,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s7-booking-system-c3',
         'ag-s7-booking-system-c4',
         'ag-s7-booking-system-c5',
+        'ag-s7-booking-system-c6',
       ]),
     ],
     completionGate:
@@ -1777,6 +1852,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s7-phased-launch-c6',
         'Define go/no-go criteria for scaling beyond Phase 1',
       ),
+      ck(
+        'ag-s7-phased-launch-c7',
+        'Confirm full launch capacity stays within the Stratum 1 visitor capacity and seasonal limits',
+      ),
     ],
     decisionGroups: [
       dg('ag-s7-phased-launch-dg1', 'Soft launch & gate', [
@@ -1786,6 +1865,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       dg('ag-s7-phased-launch-dg2', 'Full launch & ramp-up', [
         'ag-s7-phased-launch-c3',
         'ag-s7-phased-launch-c4',
+        'ag-s7-phased-launch-c7',
       ]),
       dg('ag-s7-phased-launch-dg3', 'Viability & scaling gates', [
         'ag-s7-phased-launch-c5',
