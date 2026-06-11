@@ -270,6 +270,17 @@ const MODE_LABELS: Record<string, string> = {
   'ic-access': 'Assessment',
   'ic-reuse': 'Strategic choice',
 
+  // Exit & succession framework (ev-s7-exit-succession) badge labels. Keys
+  // namespaced "es-" by workbenchAffordances (camelCase mode keys from
+  // exitSuccessionModeFor). Without these the badges fall back to the raw
+  // keys (e.g. "es-exitProcess") via the MODE_LABELS[rawMode] ?? rawMode
+  // fallback. 5 modes c1..c5.
+  'es-exitProcess': 'Exit process',
+  'es-dwellingTransfer': 'Dwelling transfer',
+  'es-landReversion': 'Land reversion',
+  'es-dissolution': 'Dissolution',
+  'es-legalReview': 'Legal review',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The
