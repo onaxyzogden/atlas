@@ -618,6 +618,11 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
                   <span style={{ fontSize: 10, color: C.textSecondary }}>• {pt.gpsPoints} GPS point{(pt.gpsPoints ?? 0) > 1 ? 's' : ''}</span>
                 </div>
               )}
+              {(pt.gpsTraces ?? 0) > 0 && (
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
+                  <span style={{ fontSize: 10, color: C.textSecondary }}>∿ {pt.gpsTraces} GPS trace{(pt.gpsTraces ?? 0) > 1 ? 's' : ''}</span>
+                </div>
+              )}
               {pt.measurements && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
                   <span style={{ fontSize: 10, color: C.textSecondary }}>⊞ {pt.measurements}</span>
@@ -631,17 +636,20 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
             )}
           </div>
 
-          {/* Source + cycle */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Source task</div>
-              <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.sourceTask}</div>
+          {/* Source + cycle -- rendered only when at least one side resolves
+              (live points without provenance skip the block entirely) */}
+          {(pt.sourceTask || pt.planObjective) && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Source task</div>
+                <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.sourceTask ?? '--'}</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Plan objective</div>
+                <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.planObjective ?? '--'}</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.textTertiary, fontFamily: F.sans }}>Plan objective</div>
-              <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.planObjective}</div>
-            </div>
-          </div>
+          )}
 
           {/* Timestamps + cycle */}
           <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono, marginBottom: 8 }}>

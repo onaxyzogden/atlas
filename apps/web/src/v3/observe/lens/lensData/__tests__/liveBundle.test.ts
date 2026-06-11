@@ -32,7 +32,9 @@ import {
   buildObservationPins,
   buildDeclaredIntentPoint,
   computeDomainRollups,
+  deriveConfidence,
 } from '../liveBundle.js';
+import type { ObserveDataPoint, FieldActionProofItem } from '@ogden/shared';
 import { OBSERVE_COPY } from '../../../../copy/index.js';
 import type { LocalProject } from '../../../../../store/projectStore.js';
 
@@ -408,5 +410,163 @@ describe('buildLiveLensBundle -- declaredIntent injection (vision-intent only)',
     const sub = withDecl.domainDetail['human']!.subdomains.find((s) => s.label === VISION_LABEL)!;
     expect(sub.points[0]!.id).toBe('declared-intent');
     expect(sub.points.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+// ── Phase: DataPointRow live fields (proof pills, resolvers, confidence, tags) ──
+
+let proofSeq = 0;
+const proof = (
+  proofType: FieldActionProofItem['proofType'],
+  extra: Partial<FieldActionProofItem> = {},
+): FieldActionProofItem =>
+  ({
+    id: `pf-${++proofSeq}`,
+    proofType,
+    capturedAt: '2026-06-01T10:00:00.000Z',
+    ...extra,
+  }) as FieldActionProofItem;
+
+// Hand-built points spread a real seed row so passthrough fields stay valid;
+// provenance fields are nulled so each test states exactly what it asserts.
+const mkPoint = (over: Partial<ObserveDataPoint>): ObserveDataPoint => ({
+  ...POINTS[0]!,
+  id: 'row-test',
+  proofItems: [],
+  sourceActionId: null,
+  sourceObjectiveId: null,
+  sourceFeedEntryId: null,
+  ...over,
+});
+
+describe('deriveConfidence', () => {
+  it('is low with zero proof items', () => {
+    expect(deriveConfidence(mkPoint({ proofItems: [] }))).toBe('low');
+  });
+
+  it('is medium with only one proof class', () => {
+    expect(deriveConfidence(mkPoint({ proofItems: [proof('photo')] }))).toBe('medium');
+    expect(deriveConfidence(mkPoint({ proofItems: [proof('measurement')] }))).toBe('medium');
+    expect(
+      deriveConfidence(mkPoint({ proofItems: [proof('gps_point'), proof('photo')] })),
+    ).toBe('medium');
+  });
+
+  it('is high with both sensory/spatial AND data proof', () => {
+    expect(
+      deriveConfidence(mkPoint({ proofItems: [proof('photo'), proof('measurement')] })),
+    ).toBe('high');
+    // 'document' counts as sensory evidence for confidence.
+    expect(
+      deriveConfidence(mkPoint({ proofItems: [proof('document'), proof('logged_result')] })),
+    ).toBe('high');
+  });
+});
+
+describe('buildLiveLensBundle -- DataPointRow live fields', () => {
+  const HYDRO_LABEL = UNIVERSAL_DOMAIN_LABELS['hydrology'];
+
+  const oldPt = mkPoint({
+    id: 'old-1',
+    domainId: 'hydrology',
+    statusOutput: 'clear',
+    capturedAt: '2026-05-01T09:00:00.000Z',
+    isSuperseded: true,
+    supersededBy: 'new-1',
+  });
+  const newPt = mkPoint({
+    id: 'new-1',
+    domainId: 'hydrology',
+    sourceType: 'task_verification',
+    statusOutput: 'clear',
+    capturedAt: '2026-05-30T09:00:00.000Z',
+    sourceActionId: 'act-1',
+    sourceObjectiveId: 'obj-1',
+    sourceFeedEntryId: 'feed-1',
+    proofItems: [
+      proof('photo'),
+      proof('photo'),
+      proof('document'), // NOT a photo pill
+      proof('gps_point'),
+      proof('gps_trace'),
+      proof('gps_trace'),
+      proof('measurement', { measurementValue: 42, measurementUnit: 'mm/hr' }),
+      proof('logged_result', { loggedResult: { rate: 42 } }),
+    ],
+  });
+  const divPt = mkPoint({
+    id: 'div-1',
+    domainId: 'hydrology',
+    sourceType: 'divergence_evidence',
+    statusOutput: 'needs_investigation',
+    capturedAt: '2026-05-31T12:00:00.000Z', // 3 days before NOW_MS
+    locationGeometry: null,
+  });
+
+  const rowBundle = buildLiveLensBundle({
+    points: [oldPt, newPt, divPt],
+    nowMs: NOW_MS,
+    projectName: 'Rowfield',
+    projectTypeLabel: 'Homestead',
+    resolveActionTitle: (id) => (id === 'act-1' ? 'Dig the swale' : undefined),
+    resolveObjectiveTitle: (id) => (id === 'obj-1' ? 'Slow the water' : undefined),
+  });
+  const hydroRows = rowBundle.domainDetail['water']!.subdomains.find(
+    (s) => s.label === HYDRO_LABEL,
+  )!.points;
+  const newRow = hydroRows.find((r) => r.id === 'new-1')!;
+  const divRow = hydroRows.find((r) => r.id === 'div-1')!;
+
+  it('counts proof pills by type, excluding documents from photos', () => {
+    expect(newRow.photos).toBe(2);
+    expect(newRow.gpsPoints).toBe(1);
+    expect(newRow.gpsTraces).toBe(2);
+    // measurement + logged_result both count as readings.
+    expect(newRow.measurements).toBe('2 readings');
+    // No data proofs -> null (pill hidden), not "0 readings".
+    expect(divRow.measurements).toBeNull();
+  });
+
+  it('resolves sourceTask / planObjective through the injected resolvers', () => {
+    expect(newRow.sourceTask).toBe('Dig the swale');
+    expect(newRow.planObjective).toBe('Slow the water');
+    // Points without provenance ids stay unresolved.
+    expect(divRow.sourceTask).toBeUndefined();
+    expect(divRow.planObjective).toBeUndefined();
+  });
+
+  it('defaults to unresolved when no resolvers are injected', () => {
+    const plain = buildLiveLensBundle({
+      points: [newPt],
+      nowMs: NOW_MS,
+      projectName: 'Rowfield',
+      projectTypeLabel: 'Homestead',
+    });
+    const row = plain.domainDetail['water']!.subdomains.find(
+      (s) => s.label === HYDRO_LABEL,
+    )!.points[0]!;
+    expect(row.sourceTask).toBeUndefined();
+    expect(row.planObjective).toBeUndefined();
+  });
+
+  it('maps the reverse supersession link onto the superseding row', () => {
+    expect(newRow.supersedesId).toBe('old-1');
+    expect(divRow.supersedesId).toBeNull();
+  });
+
+  it('derives confidence per row from real proof evidence', () => {
+    expect(newRow.confidence).toBe('high'); // photo + measurement classes
+    expect(divRow.confidence).toBe('low'); // zero proofs
+  });
+
+  it('stamps a humanized divergenceAge on divergent rows only', () => {
+    expect(divRow.divergenceAge).toBe('3 days ago');
+    expect(newRow.divergenceAge).toBeUndefined();
+  });
+
+  it('derives tags from real metadata only (provenance + georeference)', () => {
+    expect(newRow.tags).toEqual(['verified task', 'field log', 'georeferenced']);
+    // divPt: divergence evidence, no feed entry, no geometry.
+    expect(divRow.tags).toEqual(['divergence evidence']);
   });
 });

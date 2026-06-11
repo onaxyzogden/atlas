@@ -40,11 +40,13 @@ import {
 } from '@ogden/shared';
 import { format, formatDistanceStrict } from 'date-fns';
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
+import { useFieldActionStore } from '../../../../store/fieldActionStore.js';
 import {
   useProjectStore,
   normalizeProjectType,
   type LocalProject,
 } from '../../../../store/projectStore.js';
+import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
 import { FRESHNESS, TYPE_ICON } from '../mockData.js';
 import { VISION_QUESTIONS } from '../../../stage-zero/data/visionBuilderQuestions.js';
 import {
@@ -419,10 +421,66 @@ export function buildObserveMap(
 
 // ── data-point row mapping ────────────────────────────────────────────────────
 
-function toDataPoint(p: ObserveDataPoint): DataPoint {
+// Proof-class partition for the confidence heuristic: sensory/spatial evidence
+// vs numeric/data evidence. 'document' counts as evidence for confidence but is
+// deliberately NOT surfaced as a photo pill (a PDF is not a photo); a dedicated
+// document pill is a possible follow-up.
+const SENSORY_PROOFS: ReadonlySet<string> = new Set([
+  'photo',
+  'gps_point',
+  'gps_trace',
+  'document',
+]);
+const DATA_PROOFS: ReadonlySet<string> = new Set(['measurement', 'logged_result']);
+
+/**
+ * Evidence-based confidence heuristic over a point's proof items:
+ *  - 'high'   : >=1 sensory/spatial proof (photo|gps_point|gps_trace|document)
+ *               AND >=1 data proof (measurement|logged_result)
+ *  - 'low'    : zero proof items
+ *  - 'medium' : anything else (some proof, but not both classes)
+ * The declared-intent synthetic point never passes through here -- it keeps
+ * its own 'low' (buildDeclaredIntentPoint).
+ */
+export function deriveConfidence(p: ObserveDataPoint): Confidence {
+  const items = p.proofItems ?? [];
+  if (items.length === 0) return 'low';
+  const sensory = items.some((i) => SENSORY_PROOFS.has(i.proofType));
+  const data = items.some((i) => DATA_PROOFS.has(i.proofType));
+  return sensory && data ? 'high' : 'medium';
+}
+
+// Row-level context shared by every toDataPoint call in one build pass:
+// reverse supersession map + injected title resolvers (default unresolved,
+// mirroring the getSlot injection pattern -- the builder stays store-free).
+interface RowContext {
+  nowMs: number;
+  /** superseder point id -> the superseded point id it replaced */
+  supersedesById: ReadonlyMap<string, string>;
+  resolveActionTitle: (actionId: string) => string | undefined;
+  resolveObjectiveTitle: (objectiveId: string) => string | undefined;
+}
+
+function toDataPoint(p: ObserveDataPoint, ctx: RowContext): DataPoint {
   const m = readMeasurement(p);
   const divergent = DIVERGENT_STATUSES.has(p.statusOutput);
   const c = coordsOf(p);
+  const items = p.proofItems ?? [];
+  const photos = items.filter((i) => i.proofType === 'photo').length;
+  const gpsPoints = items.filter((i) => i.proofType === 'gps_point').length;
+  const gpsTraces = items.filter((i) => i.proofType === 'gps_trace').length;
+  const readings = items.filter((i) => DATA_PROOFS.has(i.proofType)).length;
+  // Tags derive from REAL metadata only (provenance + georeference) -- never
+  // invented content.
+  const tags: string[] = [
+    p.sourceType === 'task_verification'
+      ? 'verified task'
+      : p.sourceType === 'divergence_evidence'
+        ? 'divergence evidence'
+        : 'manual entry',
+  ];
+  if (p.sourceFeedEntryId) tags.push('field log');
+  if (c) tags.push('georeferenced');
   return {
     id: p.id,
     type: divergent ? 'divergence' : iconKeyForSource(p.sourceType),
@@ -431,12 +489,25 @@ function toDataPoint(p: ObserveDataPoint): DataPoint {
     observedAt: calendarDate(p.capturedAt),
     recordedAt: calendarDate(p.capturedAt),
     cycle: `Cycle ${p.cycleId + 1}`,
-    confidence: 'medium',
+    confidence: deriveConfidence(p),
     isSuperseded: p.isSuperseded,
     supersededBy: p.supersededBy ?? null,
+    supersedesId: ctx.supersedesById.get(p.id) ?? null,
+    sourceTask: p.sourceActionId
+      ? ctx.resolveActionTitle(p.sourceActionId)
+      : undefined,
+    planObjective: p.sourceObjectiveId
+      ? ctx.resolveObjectiveTitle(p.sourceObjectiveId)
+      : undefined,
     notes: m.note,
+    photos,
+    gpsPoints,
+    gpsTraces,
+    measurements: readings > 0 ? `${readings} reading${readings === 1 ? '' : 's'}` : null,
+    tags,
     isDivergence: divergent || undefined,
     divergenceStatus: divergent ? statusLabel(p.statusOutput) : undefined,
+    divergenceAge: divergent ? (humanAge(p.capturedAt, ctx.nowMs) ?? undefined) : undefined,
   };
 }
 
@@ -469,6 +540,17 @@ export interface LiveBundleInput {
    * (lens.observations, project.totalDataPoints, freshness all ignore it).
    */
   declaredIntent?: DataPoint | null;
+  /**
+   * Resolver from a point's sourceActionId to the field-action title, for the
+   * "Source task" row in the slide-up detail. Defaults to unresolved (row
+   * hidden) -- same injection pattern as getSlot, keeps the builder store-free.
+   */
+  resolveActionTitle?: (actionId: string) => string | undefined;
+  /**
+   * Resolver from a point's sourceObjectiveId to the plan-objective title, for
+   * the "Plan objective" row. Defaults to unresolved.
+   */
+  resolveObjectiveTitle?: (objectiveId: string) => string | undefined;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -492,6 +574,20 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
   const getSlot: SlotResolver = input.getSlot ?? (() => undefined);
   const activePoints = points.filter((p) => !p.isSuperseded);
   const rollups = computeDomainRollups(points, nowMs);
+
+  // Row context shared by every detail row in this pass: a reverse supersession
+  // map (superseder id -> the point it replaced) built once over ALL points,
+  // plus the injected title resolvers.
+  const supersedesById = new Map<string, string>();
+  for (const p of points) {
+    if (p.supersededBy) supersedesById.set(p.supersededBy, p.id);
+  }
+  const rowCtx: RowContext = {
+    nowMs,
+    supersedesById,
+    resolveActionTitle: input.resolveActionTitle ?? (() => undefined),
+    resolveObjectiveTitle: input.resolveObjectiveTitle ?? (() => undefined),
+  };
 
   // Active points grouped by lens (for divergence recency + detail rows).
   const activeByLens = new Map<ObserveLensId, ObserveDataPoint[]>();
@@ -595,7 +691,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
 
     // domainDetail entry (one subdomain per lens domain).
     const subdomains: Subdomain[] = lens.domains.map((d): Subdomain => {
-      const observed = (activeByDomain.get(d) ?? []).map(toDataPoint);
+      const observed = (activeByDomain.get(d) ?? []).map((p) => toDataPoint(p, rowCtx));
       // The declared-intent row is prepended to the vision-intent slide-up as a
       // declaration; it is NOT a field observation, so it is excluded from every
       // count above (obsCount, observed.length still drive totals/freshness).
@@ -855,8 +951,14 @@ export function buildDeclaredIntentPoint(
  * Live LensDataBundle for a project. Thin wrapper over `buildLiveLensBundle`:
  * reads the project's points + record from the stores and runs the pure mapper.
  */
+// Plan-objective titles resolve through the static catalogues (pure module
+// data, no store) -- a plain function, no memoization needed.
+const resolveObjectiveTitle = (objectiveId: string): string | undefined =>
+  findObjectiveGlobally(objectiveId)?.title;
+
 export function useLiveLensBundle(projectId: string): LensDataBundle {
   const byProject = useObserveDataPointStore((s) => s.byProject);
+  const actionsByProject = useFieldActionStore((s) => s.byProject);
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
   // Baseline "now" once per mount so freshness pills / ages don't flicker.
   const nowMs = useMemo(() => Date.now(), []);
@@ -868,6 +970,12 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   // Memoized on the project ref (stable from the store selector) so the derived
   // point keeps a stable identity and does not force the bundle to rebuild.
   const declaredIntent = useMemo(() => buildDeclaredIntentPoint(project), [project]);
+  // Field-action id -> title map for the "Source task" row.
+  const resolveActionTitle = useMemo(() => {
+    const titles = new Map<string, string>();
+    for (const a of actionsByProject[projectId] ?? []) titles.set(a.id, a.title);
+    return (actionId: string) => titles.get(actionId);
+  }, [actionsByProject, projectId]);
 
   return useMemo(
     () =>
@@ -880,7 +988,18 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         parcelBoundary,
         isDemoGeometry,
         declaredIntent,
+        resolveActionTitle,
+        resolveObjectiveTitle,
       }),
-    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry, declaredIntent],
+    [
+      points,
+      nowMs,
+      projectName,
+      projectTypeLabel,
+      parcelBoundary,
+      isDemoGeometry,
+      declaredIntent,
+      resolveActionTitle,
+    ],
   );
 }
