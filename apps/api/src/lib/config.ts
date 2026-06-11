@@ -10,6 +10,12 @@ const EnvSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5200,http://localhost:5300'),
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
+  // Per-IP caps for the UNAUTHENTICATED public portal routes (fixed 1-minute
+  // window). Tighter than the global limit: these are the only routes
+  // reachable without a JWT, so they bound the blast radius of a leaked
+  // share token. PDF cap is lower — each hit streams a multi-MB binary.
+  PORTAL_PUBLIC_RATE_LIMIT_MAX: z.coerce.number().default(60),
+  PORTAL_PDF_RATE_LIMIT_MAX: z.coerce.number().default(10),
   SUPABASE_URL: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
   SUPABASE_SERVICE_KEY: z.string().optional().transform((v) => v || undefined),
   S3_BUCKET: z.string().optional().transform((v) => v || undefined),

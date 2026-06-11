@@ -12,6 +12,7 @@ import type { FastifyInstance } from 'fastify';
 import { CreatePortalInput } from '@ogden/shared';
 import { NotFoundError } from '../../lib/errors.js';
 import { PdfExportService } from '../../services/pdf/PdfExportService.js';
+import { invalidateCachedPortal } from '../../services/portal/portalCache.js';
 
 function mapRow(row: Record<string, unknown>) {
   return {
@@ -71,6 +72,10 @@ export default async function portalRoutes(fastify: FastifyInstance) {
       `;
 
       if (!row) throw new NotFoundError('Portal', projectId);
+
+      // Awaited (unlike the public route's fire-and-forget write) so the
+      // 201 means the stale public payload is already evicted.
+      await invalidateCachedPortal(fastify.redis, String(row.share_token));
 
       reply.code(201);
       return {
@@ -144,6 +149,8 @@ export default async function portalRoutes(fastify: FastifyInstance) {
 
       if (!row) throw new NotFoundError('Portal', projectId);
 
+      await invalidateCachedPortal(fastify.redis, String(row.share_token));
+
       reply.code(201);
       return {
         data: { ...mapRow(row), reportShare },
@@ -171,10 +178,12 @@ export default async function portalRoutes(fastify: FastifyInstance) {
             updated_at = now()
         WHERE project_id = ${projectId}
           AND config ? 'reportShare'
-        RETURNING id
+        RETURNING id, share_token
       `;
 
       if (!row) throw new NotFoundError('Report share', projectId);
+
+      await invalidateCachedPortal(fastify.redis, String(row.share_token));
 
       return { data: { unpublished: true }, meta: undefined, error: null };
     },

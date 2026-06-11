@@ -4,22 +4,45 @@
  *
  * GET /:shareToken — return published portal config
  *
- * TODO(launch-readiness): cache + rate-limit gaps before first public URL.
- *   - Every visitor request hits PostgreSQL; a single Hacker News spike
- *     would saturate the API connection pool. Add CDN-cached static
- *     render (ISR or rendered-to-blob) before going live.
- *   - No per-request rate limit. Relies on UUIDv4 share_token secrecy and
- *     `is_published` filter. If a token leaks, `@fastify/rate-limit`
- *     should cap blast radius.
- *   See wiki/decisions/2026-05-04-p4-public-portal-section27-consolidation.md
- *   (D2 + D4 — both deferred to launch-readiness sprint).
- *   Re-confirmed open + gated to "before first public URL" in
- *   wiki/decisions/2026-05-10-deferred-todo-sweep.md.
+ * Launch-readiness (2026-06-11, closes the API half of decisions
+ * 2026-05-04 D2 + D4): both routes carry per-IP rate limits
+ * (PORTAL_PUBLIC_RATE_LIMIT_MAX / PORTAL_PDF_RATE_LIMIT_MAX, 1-minute
+ * window) so a leaked token can't saturate the DB pool, and the JSON
+ * route is served from a best-effort 5-min Redis cache (invalidated on
+ * every portal mutation in ./index.ts). The PDF route is deliberately
+ * UNCACHED: it sends `Cache-Control: no-store` because unpublish must be
+ * immediate, and the payload is a large binary.
+ * Still open from D2: CDN-cached static render (ISR/blob) — a separate
+ * launch item, tracked in the 2026-05-04 decision.
+ * NOTE: `trustProxy` is not set; behind a reverse proxy all visitors
+ * share one IP bucket. Pre-launch follow-up.
  */
 
-import type { FastifyInstance } from 'fastify';
-import { NotFoundError } from '../../lib/errors.js';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { errorResponseBuilderContext } from '@fastify/rate-limit';
+import { config } from '../../lib/config.js';
+import { AppError, NotFoundError } from '../../lib/errors.js';
 import { getStorageProvider } from '../../services/storage/StorageProvider.js';
+import {
+  getCachedPortal,
+  setCachedPortal,
+} from '../../services/portal/portalCache.js';
+
+// @fastify/rate-limit THROWS the value this builder returns, so it lands in
+// the global error handler. Returning an AppError rides the existing
+// AppError branch there, producing the standard `{data, error}` envelope
+// with the plugin's status code (429, or 403 when banned) instead of the
+// plugin's bare default payload.
+function rateLimitEnvelope(
+  _req: FastifyRequest,
+  context: errorResponseBuilderContext,
+) {
+  return new AppError(
+    'RATE_LIMITED',
+    `Rate limit exceeded, retry in ${context.after}`,
+    context.statusCode,
+  );
+}
 
 export default async function publicPortalRoutes(fastify: FastifyInstance) {
   const { db } = fastify;
@@ -27,8 +50,22 @@ export default async function publicPortalRoutes(fastify: FastifyInstance) {
   // GET /portal/:shareToken — public portal access
   fastify.get<{ Params: { shareToken: string } }>(
     '/:shareToken',
+    {
+      config: {
+        rateLimit: {
+          max: config.PORTAL_PUBLIC_RATE_LIMIT_MAX,
+          timeWindow: '1 minute',
+          errorResponseBuilder: rateLimitEnvelope,
+        },
+      },
+    },
     async (req) => {
       const { shareToken } = req.params;
+
+      const cached = await getCachedPortal(fastify.redis, shareToken);
+      if (cached) {
+        return { data: cached, meta: { cached: true }, error: null };
+      }
 
       const [row] = await db`
         SELECT
@@ -44,22 +81,23 @@ export default async function publicPortalRoutes(fastify: FastifyInstance) {
 
       if (!row) throw new NotFoundError('Portal', shareToken);
 
-      return {
-        data: {
-          id: row.id,
-          projectId: row.project_id,
-          shareToken: row.share_token,
-          isPublished: row.is_published,
-          config: row.config,
-          dataMaskingLevel: row.data_masking_level,
-          publishedAt: row.published_at,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          projectName: row.project_name,
-        },
-        meta: undefined,
-        error: null,
+      const data = {
+        id: row.id,
+        projectId: row.project_id,
+        shareToken: row.share_token,
+        isPublished: row.is_published,
+        config: row.config,
+        dataMaskingLevel: row.data_masking_level,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        projectName: row.project_name,
       };
+
+      // Fire-and-forget — a cache-write failure must not delay the response.
+      void setCachedPortal(fastify.redis, shareToken, data);
+
+      return { data, meta: { cached: false }, error: null };
     },
   );
 
@@ -71,6 +109,15 @@ export default async function publicPortalRoutes(fastify: FastifyInstance) {
   // `is_published` flag.
   fastify.get<{ Params: { shareToken: string } }>(
     '/:shareToken/report.pdf',
+    {
+      config: {
+        rateLimit: {
+          max: config.PORTAL_PDF_RATE_LIMIT_MAX,
+          timeWindow: '1 minute',
+          errorResponseBuilder: rateLimitEnvelope,
+        },
+      },
+    },
     async (req, reply) => {
       const { shareToken } = req.params;
 
