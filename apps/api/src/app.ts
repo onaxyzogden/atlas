@@ -410,8 +410,10 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   const __dirname = dirname(fileURLToPath(import.meta.url));
 
+  // Spec lives at the package root (apps/api/openapi.yaml) — one level up from
+  // both src/ (tsx dev) and the flat dist/ bundle (esbuild outbase: 'src').
   app.get('/api/v1/openapi.yaml', async (_req, reply) => {
-    const spec = readFileSync(resolve(__dirname, '../../openapi.yaml'), 'utf-8');
+    const spec = readFileSync(resolve(__dirname, '../openapi.yaml'), 'utf-8');
     reply.type('text/yaml').send(spec);
   });
 
