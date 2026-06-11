@@ -42,11 +42,20 @@ import { format, formatDistanceStrict } from 'date-fns';
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
 import { useFieldActionStore } from '../../../../store/fieldActionStore.js';
 import {
+  useObserveFeedStore,
+  type ObserveFeedEntry,
+} from '../../../../store/observeFeedStore.js';
+import {
   useProjectStore,
   normalizeProjectType,
   type LocalProject,
 } from '../../../../store/projectStore.js';
 import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
+import {
+  routeToDataPoint,
+  type ResolveDomainForObjective,
+} from '../../dashboard/domain/routeToDataPoint.js';
+import { resolveDomainByObjectiveId } from '../../dashboard/revision/resolveDomainForObjective.js';
 import { FRESHNESS, TYPE_ICON } from '../mockData.js';
 import { VISION_QUESTIONS } from '../../../stage-zero/data/visionBuilderQuestions.js';
 import {
@@ -511,6 +520,38 @@ function toDataPoint(p: ObserveDataPoint, ctx: RowContext): DataPoint {
   };
 }
 
+// ── field-log feed merge ──────────────────────────────────────────────────────
+
+/**
+ * Merge Phase 3 field-log feed entries into the point set as virtual data
+ * points (same `routeToDataPoint` projection the dashboard's `useDomainPoints`
+ * union uses), so lens counts / pins / rows match the dashboard.
+ *
+ * Dedupe contract: an entry whose id already appears in a persisted point's
+ * `sourceFeedEntryId` is skipped -- no production path persists feed entries
+ * as real points today, so this is defensive, but it is the schema-designated
+ * key for exactly this union. Entries whose feedKey cannot resolve to a
+ * domain are dropped (they stay Plan-tier-only).
+ */
+export function mergeFeedProjections(
+  points: readonly ObserveDataPoint[],
+  feedEntries: readonly ObserveFeedEntry[],
+  resolveDomain: ResolveDomainForObjective,
+): ObserveDataPoint[] {
+  if (feedEntries.length === 0) return [...points];
+  const persisted = new Set<string>();
+  for (const p of points) {
+    if (p.sourceFeedEntryId) persisted.add(p.sourceFeedEntryId);
+  }
+  const projected: ObserveDataPoint[] = [];
+  for (const e of feedEntries) {
+    if (persisted.has(e.id)) continue;
+    const pt = routeToDataPoint(e, resolveDomain);
+    if (pt) projected.push(pt);
+  }
+  return [...points, ...projected];
+}
+
 // ── the pure builder ──────────────────────────────────────────────────────────
 
 export interface LiveBundleInput {
@@ -959,10 +1000,12 @@ const resolveObjectiveTitle = (objectiveId: string): string | undefined =>
 export function useLiveLensBundle(projectId: string): LensDataBundle {
   const byProject = useObserveDataPointStore((s) => s.byProject);
   const actionsByProject = useFieldActionStore((s) => s.byProject);
+  const feedByProject = useObserveFeedStore((s) => s.byProject);
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
   // Baseline "now" once per mount so freshness pills / ages don't flicker.
   const nowMs = useMemo(() => Date.now(), []);
   const points = byProject[projectId] ?? [];
+  const feedEntries = feedByProject[projectId] ?? [];
   const projectName = project?.name ?? 'Project';
   const projectTypeLabel = resolveProjectTypeLabel(project);
   const parcelBoundary = project?.parcelBoundaryGeojson ?? null;
@@ -970,17 +1013,29 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   // Memoized on the project ref (stable from the store selector) so the derived
   // point keeps a stable identity and does not force the bundle to rebuild.
   const declaredIntent = useMemo(() => buildDeclaredIntentPoint(project), [project]);
-  // Field-action id -> title map for the "Source task" row.
+  // Field-log feed entries join the point set as virtual points (same union
+  // the dashboard renders), routed objective -> domain by the shared resolver.
+  const mergedPoints = useMemo(
+    () => mergeFeedProjections(points, feedEntries, resolveDomainByObjectiveId),
+    [points, feedEntries],
+  );
+  // Field-action id -> title map for the "Source task" row. Feed entries
+  // contribute their denormalized title (survives FieldAction deletion).
   const resolveActionTitle = useMemo(() => {
     const titles = new Map<string, string>();
     for (const a of actionsByProject[projectId] ?? []) titles.set(a.id, a.title);
+    for (const e of feedEntries) {
+      if (e.sourceActionId && !titles.has(e.sourceActionId)) {
+        titles.set(e.sourceActionId, e.sourceActionTitle);
+      }
+    }
     return (actionId: string) => titles.get(actionId);
-  }, [actionsByProject, projectId]);
+  }, [actionsByProject, projectId, feedEntries]);
 
   return useMemo(
     () =>
       buildLiveLensBundle({
-        points,
+        points: mergedPoints,
         nowMs,
         projectName,
         projectTypeLabel,
@@ -992,7 +1047,7 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         resolveObjectiveTitle,
       }),
     [
-      points,
+      mergedPoints,
       nowMs,
       projectName,
       projectTypeLabel,

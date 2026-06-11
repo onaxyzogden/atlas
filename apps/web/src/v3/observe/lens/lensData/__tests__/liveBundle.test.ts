@@ -33,8 +33,10 @@ import {
   buildDeclaredIntentPoint,
   computeDomainRollups,
   deriveConfidence,
+  mergeFeedProjections,
 } from '../liveBundle.js';
 import type { ObserveDataPoint, FieldActionProofItem } from '@ogden/shared';
+import type { ObserveFeedEntry } from '../../../../../store/observeFeedStore.js';
 import { OBSERVE_COPY } from '../../../../copy/index.js';
 import type { LocalProject } from '../../../../../store/projectStore.js';
 
@@ -568,5 +570,77 @@ describe('buildLiveLensBundle -- DataPointRow live fields', () => {
     expect(newRow.tags).toEqual(['verified task', 'field log', 'georeferenced']);
     // divPt: divergence evidence, no feed entry, no geometry.
     expect(divRow.tags).toEqual(['divergence evidence']);
+  });
+});
+
+// ── Phase: field-log feed merge ───────────────────────────────────────────────
+
+const mkEntry = (over: Partial<ObserveFeedEntry> = {}): ObserveFeedEntry => ({
+  id: 'fe-1',
+  projectId: 'mtc',
+  feedKey: 'obj-hydro',
+  sourceType: 'verified',
+  sourceActionId: 'act-9',
+  sourceActionTitle: 'Walk the contour',
+  proofItems: [],
+  capturedAt: '2026-06-01T10:00:00.000Z',
+  ...over,
+});
+
+// Stub objective -> domain resolver (the live hook injects the real
+// resolveDomainByObjectiveId; the merge contract is what is under test).
+const stubResolve = (objectiveId: string) =>
+  objectiveId === 'obj-hydro' ? ('hydrology' as const) : null;
+
+describe('mergeFeedProjections', () => {
+  it('projects resolvable entries as virtual feed: points', () => {
+    const merged = mergeFeedProjections(POINTS, [mkEntry()], stubResolve);
+    expect(merged).toHaveLength(POINTS.length + 1);
+    const virtual = merged.find((p) => p.id === 'feed:fe-1')!;
+    expect(virtual.sourceFeedEntryId).toBe('fe-1');
+    expect(virtual.domainId).toBe('hydrology');
+    expect(virtual.sourceType).toBe('task_verification');
+    expect(virtual.statusOutput).toBe('clear');
+  });
+
+  it('skips entries already persisted as real points (dedupe contract)', () => {
+    const persisted = mkPoint({ id: 'real-1', sourceFeedEntryId: 'fe-1' });
+    const merged = mergeFeedProjections([persisted], [mkEntry()], stubResolve);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]!.id).toBe('real-1');
+  });
+
+  it('drops entries whose feedKey cannot resolve to a domain', () => {
+    const merged = mergeFeedProjections(
+      POINTS,
+      [mkEntry({ id: 'fe-x', feedKey: 'unmapped-objective' })],
+      stubResolve,
+    );
+    expect(merged).toHaveLength(POINTS.length);
+  });
+
+  it('feeds the divergence rollup when a diverged entry merges in', () => {
+    const base = buildLiveLensBundle({
+      points: POINTS,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+    });
+    const merged = mergeFeedProjections(
+      POINTS,
+      [mkEntry({ id: 'fe-div', sourceType: 'diverged' })],
+      stubResolve,
+    );
+    const withFeed = buildLiveLensBundle({
+      points: merged,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+    });
+    const water = (b: typeof base) => b.lenses.find((l) => l.id === 'water')!;
+    expect(withFeed.project.totalDataPoints).toBe(base.project.totalDataPoints + 1);
+    expect(water(withFeed).observations).toBe(water(base).observations + 1);
+    // diverged -> needs_investigation -> the water divergence count rises.
+    expect(water(withFeed).divergence!.label).not.toBe(water(base).divergence!.label);
   });
 });
