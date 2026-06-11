@@ -38,6 +38,9 @@ graphify-out/cache/
 
 # Transient typecheck/scratch dumps
 _t_*.txt
+_dump_*.py
+_scan_*.py
+tsc_stratum*.txt
 .graphify_old.json
 
 # Anti-GIS snapshot output (Phase F.1) — keep the dir, ignore the PNGs.
