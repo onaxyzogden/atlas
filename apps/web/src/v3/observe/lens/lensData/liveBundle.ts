@@ -33,6 +33,7 @@ import {
   type ObserveDataPoint,
   type ObserveStatusOutput,
   type ObserveDataPointSourceType,
+  type ObserveDomainCycleState,
   type ObserveFreshness,
   type UniversalDomain,
   type ObserveLensId,
@@ -40,6 +41,7 @@ import {
 } from '@ogden/shared';
 import { format, formatDistanceStrict } from 'date-fns';
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
+import { useObserveCycleStore } from '../../../../store/observeCycleStore.js';
 import { useFieldActionStore } from '../../../../store/fieldActionStore.js';
 import {
   useObserveFeedStore,
@@ -72,6 +74,7 @@ import type {
   Freshness,
   KeyDatum,
   LensCycle,
+  LensCycleHistory,
   LensCyclePhase,
   LensDataBundle,
   LensDisplay,
@@ -594,6 +597,12 @@ export interface LiveBundleInput {
    * the "Plan objective" row. Defaults to unresolved.
    */
   resolveObjectiveTitle?: (objectiveId: string) => string | undefined;
+  /**
+   * The project's per-domain cycle states from observeCycleStore (current
+   * counter + advance history). Absent -> the cycle number falls back to the
+   * point-derived maximum, history stays empty (status quo).
+   */
+  cycleStates?: Partial<Record<UniversalDomain, ObserveDomainCycleState>>;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -602,6 +611,57 @@ const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
   { id: 'obs', label: 'Observe', color: '#5AAF72', startPct: 72, endPct: 100, days: 50 },
 ];
 const NOMINAL_TOTAL_DAYS = 180;
+
+// ── cycle number + history (observeCycleStore + point stamps) ────────────────
+
+/**
+ * Project-level cycle number + completed-cycle history. Cycles advance PER
+ * DOMAIN in observeCycleStore; the lens header shows one project-wide cycle,
+ * so this aggregates: the project is "in" cycle k+1 where k is the highest
+ * cycle id any domain counter or point stamp has reached (a fresh project --
+ * no states, no points -- stays Cycle 1, the previous behaviour).
+ *
+ * History rows cover the COMPLETED cycles 0..k-1. A cycle c "ended" at the
+ * latest `advancedAt` among the domain advance entries INTO cycle c+1;
+ * endedDaysAgo falls back to 0 when no domain logged that advance (points can
+ * carry cycle stamps with no store history, e.g. seeded data). `history` is
+ * currently unrendered by any lens component -- populated for contract
+ * completeness with the mock bundle's shape.
+ */
+export function buildCycleHistory(
+  points: readonly ObserveDataPoint[],
+  cycleStates: Partial<Record<UniversalDomain, ObserveDomainCycleState>> | undefined,
+  nowMs: number,
+): { currentNumber: number; history: LensCycleHistory[] } {
+  let k = 0;
+  for (const p of points) {
+    if (p.cycleId > k) k = p.cycleId;
+  }
+  const states = Object.values(cycleStates ?? {});
+  for (const s of states) {
+    if (s && s.currentCycleId > k) k = s.currentCycleId;
+  }
+
+  const history: LensCycleHistory[] = [];
+  for (let c = 0; c < k; c++) {
+    let endMs = -Infinity;
+    for (const s of states) {
+      for (const e of s?.history ?? []) {
+        if (e.cycleId !== c + 1) continue;
+        const ms = parseMs(e.advancedAt);
+        if (ms !== null && ms > endMs) endMs = ms;
+      }
+    }
+    history.push({
+      number: c,
+      label: c === 0 ? 'Baseline' : `Cycle ${c}`,
+      endedDaysAgo:
+        endMs > -Infinity ? Math.max(0, Math.round((nowMs - endMs) / DAY_MS)) : 0,
+      dataPoints: points.reduce((n, p) => (p.cycleId === c ? n + 1 : n), 0),
+    });
+  }
+  return { currentNumber: k + 1, history };
+}
 
 // Live row-icon table: the mock TYPE_ICON plus a glyph for the read-side
 // 'declaration' type (declared intent). mockData.ts stays byte-untouched; this
@@ -787,10 +847,11 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
   ).length;
   const missingCount = allSnaps.filter((s) => s.freshness === 'missing').length;
 
-  let cycleNumber = 1;
-  for (const p of activePoints) {
-    if (p.cycleId + 1 > cycleNumber) cycleNumber = p.cycleId + 1;
-  }
+  const { currentNumber: cycleNumber, history: cycleHistory } = buildCycleHistory(
+    activePoints,
+    input.cycleStates,
+    nowMs,
+  );
 
   const triggers: PlanRevisionTrigger[] = [];
   for (const s of allSnaps) {
@@ -862,7 +923,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     elapsed,
     nextReviewDays: Math.max(0, NOMINAL_TOTAL_DAYS - elapsed),
     phases,
-    history: [],
+    history: cycleHistory,
     staleDomains: [...staleLensLabels],
     ageingDomains: [...ageingLensLabels],
   };
@@ -1010,6 +1071,7 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   const byProject = useObserveDataPointStore((s) => s.byProject);
   const actionsByProject = useFieldActionStore((s) => s.byProject);
   const feedByProject = useObserveFeedStore((s) => s.byProject);
+  const cycleStates = useObserveCycleStore((s) => s.byProject[projectId]);
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
   // Baseline "now" once per mount so freshness pills / ages don't flicker.
   const nowMs = useMemo(() => Date.now(), []);
@@ -1054,6 +1116,7 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         declaredIntent,
         resolveActionTitle,
         resolveObjectiveTitle,
+        cycleStates,
       }),
     [
       mergedPoints,
@@ -1064,6 +1127,7 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
       isDemoGeometry,
       declaredIntent,
       resolveActionTitle,
+      cycleStates,
     ],
   );
 }

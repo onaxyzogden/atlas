@@ -28,6 +28,7 @@ import {
   MTC_OBSERVE_BUNDLE,
 } from '../../../../../data/builtinObserveDataPoints.js';
 import {
+  buildCycleHistory,
   buildLiveLensBundle,
   buildObservationPins,
   buildDeclaredIntentPoint,
@@ -35,7 +36,12 @@ import {
   deriveConfidence,
   mergeFeedProjections,
 } from '../liveBundle.js';
-import type { ObserveDataPoint, FieldActionProofItem } from '@ogden/shared';
+import type {
+  ObserveDataPoint,
+  ObserveDomainCycleState,
+  FieldActionProofItem,
+  UniversalDomain,
+} from '@ogden/shared';
 import type { ObserveFeedEntry } from '../../../../../store/observeFeedStore.js';
 import { OBSERVE_COPY } from '../../../../copy/index.js';
 import type { LocalProject } from '../../../../../store/projectStore.js';
@@ -615,6 +621,57 @@ describe('buildLiveLensBundle -- DataPointRow live fields', () => {
     expect(newRow.tags).toEqual(['verified task', 'field log', 'georeferenced']);
     // divPt: divergence evidence, no feed entry, no geometry.
     expect(divRow.tags).toEqual(['divergence evidence']);
+  });
+});
+
+describe('buildCycleHistory', () => {
+  it('keeps the status quo without cycle states (fresh project -> Cycle 1)', () => {
+    expect(buildCycleHistory([], undefined, NOW_MS)).toEqual({
+      currentNumber: 1,
+      history: [],
+    });
+    // The shared MTC bundle (all points cycle 0, no store states) pins the same.
+    expect(bundle.cycle.number).toBe(1);
+    expect(bundle.cycle.history).toEqual([]);
+  });
+
+  it('numbers the cycle and builds the Baseline row from a domain advance', () => {
+    const points = [
+      mkPoint({ id: 'c0-a', cycleId: 0 }),
+      mkPoint({ id: 'c0-b', cycleId: 0 }),
+      mkPoint({ id: 'c1-a', cycleId: 1 }),
+    ];
+    const cycleStates: Partial<Record<UniversalDomain, ObserveDomainCycleState>> = {
+      hydrology: {
+        currentCycleId: 1,
+        history: [
+          {
+            domainId: 'hydrology',
+            cycleId: 1,
+            // 3 days before NOW_MS.
+            advancedAt: '2026-05-31T12:00:00.000Z',
+            reason: 'plan_revision_confirmed',
+          },
+        ],
+      },
+      soil: { currentCycleId: 0, history: [] },
+    };
+    expect(buildCycleHistory(points, cycleStates, NOW_MS)).toEqual({
+      currentNumber: 2,
+      history: [{ number: 0, label: 'Baseline', endedDaysAgo: 3, dataPoints: 2 }],
+    });
+  });
+
+  it('takes the number from the store when it is ahead of the point stamps', () => {
+    const cycleStates: Partial<Record<UniversalDomain, ObserveDomainCycleState>> = {
+      hydrology: { currentCycleId: 2, history: [] },
+    };
+    const out = buildCycleHistory([mkPoint({ cycleId: 0 })], cycleStates, NOW_MS);
+    expect(out.currentNumber).toBe(3);
+    expect(out.history.map((h) => h.label)).toEqual(['Baseline', 'Cycle 1']);
+    // No advance entries logged -> the boundary falls back to 0 days ago.
+    expect(out.history.map((h) => h.endedDaysAgo)).toEqual([0, 0]);
+    expect(out.history.map((h) => h.dataPoints)).toEqual([1, 0]);
   });
 });
 
