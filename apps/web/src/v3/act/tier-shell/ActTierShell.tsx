@@ -201,6 +201,8 @@ const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'nur-sec-s1-propagation-infra-survey',
   'ev-s7-adaptive-management',
   'ev-s7-exit-succession',
+  'ev-s2-social-fabric',
+  'ev-s3-infra-condition',
 ]);
 
 /**

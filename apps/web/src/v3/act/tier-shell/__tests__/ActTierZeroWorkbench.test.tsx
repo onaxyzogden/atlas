@@ -450,6 +450,30 @@ describe('buildDecisionTarget -- exit-succession detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- social-fabric detection', () => {
+  it('flags isSocialFabric for an ev-s2-social-fabric-* decision', () => {
+    const sfItem: PlanDecisionChecklistItem = {
+      id: 'ev-s2-social-fabric-c1',
+      label: 'Map founding relationships',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(sfItem);
+    expect(target.isSocialFabric).toBe(true);
+  });
+
+  it('does NOT flag isSocialFabric for the sibling provision-balance decision', () => {
+    const provItem: PlanDecisionChecklistItem = {
+      id: 'ev-s1-provision-balance-c1',
+      label: 'Map which provisions are communal, hybrid, or household',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(provItem);
+    expect(target.isSocialFabric).toBe(false);
+  });
+});
+
 describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
   const BOUNDARY_OBJECTIVE: PlanStratumObjective = {
     ...ACTIVE_OBJECTIVE,

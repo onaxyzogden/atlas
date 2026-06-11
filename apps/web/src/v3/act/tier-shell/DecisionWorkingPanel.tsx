@@ -253,6 +253,13 @@ import {
   type AdaptiveManagementMode,
 } from './AdaptiveManagementCapture.js';
 import {
+  SocialFabricCapture,
+  socialFabricModeFor,
+  isSocialFabricValid,
+  summariseSocialFabric,
+  type SocialFabricMode,
+} from './SocialFabricCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -335,6 +342,8 @@ export interface DecisionPanelTarget {
   isExitSuccession?: boolean;
   /** true => render AdaptiveManagementCapture (self-routing on itemId via adaptiveManagementModeFor). */
   isAdaptiveManagement?: boolean;
+  /** true => render SocialFabricCapture (self-routing on itemId via socialFabricModeFor). */
+  isSocialFabric?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -734,6 +743,15 @@ export default function DecisionWorkingPanel({
       ? adaptiveManagementModeFor(decision.itemId)
       : null;
 
+  // Social-fabric survey is a 6-mode capture (relationships / experience /
+  // priorattempts / cohesion / skills / networks) routed by
+  // socialFabricModeFor(itemId). Advisory only -- it validates / summarises
+  // directly off the FormValue and writes no store / takes no projectId. Only
+  // the resolved mode is held here -- used by the validity, summary, body arms.
+  const socialFabricMode: SocialFabricMode | null = decision.isSocialFabric
+    ? socialFabricModeFor(decision.itemId)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -802,6 +820,8 @@ export default function DecisionWorkingPanel({
     valid = isExitSuccessionValid(exitSuccessionMode, draft);
   } else if (adaptiveManagementMode) {
     valid = isAdaptiveManagementValid(adaptiveManagementMode, draft);
+  } else if (socialFabricMode) {
+    valid = isSocialFabricValid(socialFabricMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1059,6 +1079,8 @@ export default function DecisionWorkingPanel({
         draft,
         siblingValues,
       );
+    } else if (socialFabricMode) {
+      summary = summariseSocialFabric(socialFabricMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1370,6 +1392,15 @@ export default function DecisionWorkingPanel({
           <AdaptiveManagementCapture
             key={decision.itemId}
             mode={adaptiveManagementMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : socialFabricMode ? (
+          <SocialFabricCapture
+            key={decision.itemId}
+            mode={socialFabricMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

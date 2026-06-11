@@ -39,6 +39,7 @@ import { financialModelModeFor } from './FinancialModelCapture.js';
 import { propagationInfraModeFor } from './PropagationInfraCapture.js';
 import { adaptiveManagementModeFor } from './AdaptiveManagementCapture.js';
 import { exitSuccessionModeFor } from './ExitSuccessionCapture.js';
+import { socialFabricModeFor } from './SocialFabricCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -429,6 +430,24 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s7-exit-succession-')) return null;
       const m = exitSuccessionModeFor(itemId);
       return m ? `es-${m}` : null;
+    },
+  },
+
+  // S2 social-fabric survey (Life EV-S2): 6 items, grouped (showGroups true);
+  // no map/register strips. Advisory only -- the capture writes no store and
+  // takes no projectId. socialFabricModeFor returns GENERIC mode keys
+  // (relationships / experience / priorattempts / cohesion / skills /
+  // networks). The badge keys are namespaced "sf-" HERE (the affordance modeFor
+  // feeds the badge only; DecisionWorkingPanel routes off its own
+  // socialFabricModeFor independently), and DecisionList carries matching sf-*
+  // labels.
+  'ev-s2-social-fabric': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      const m = socialFabricModeFor(itemId);
+      return m ? `sf-${m}` : null;
     },
   },
 };

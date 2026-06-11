@@ -2748,6 +2748,149 @@ export default function ComponentsDebugPage() {
           />
         </PanelFrame>
       </Section>
+
+      {/* Social-fabric survey (ev-s2-social-fabric): a 6-mode Life secondary
+          capture (relationships / experience / priorattempts / cohesion /
+          skills / networks). Advisory only -- it writes no store and takes no
+          projectId, so each panel stands alone. The dummy "gallery" projectId
+          matches the sections above (the arm ignores it). */}
+      <Section title="Decision Working Panel - Social fabric: map founding relationships (ev-s2-social-fabric c1)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c1",
+              label: "Map founding relationships",
+              prompt: "Map the existing relationships between founding members.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Social fabric: register prior experience (ev-s2-social-fabric c2)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c2",
+              label: "Register prior community experience",
+              prompt: "Identify prior community or cooperative living experience.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Social fabric: record prior attempts (ev-s2-social-fabric c3)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c3",
+              label: "Record prior attempts",
+              prompt: "Record prior attempts at intentional community on this land or by this group.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Social fabric: assess group cohesion (ev-s2-social-fabric c4)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c4",
+              label: "Assess founding group cohesion",
+              prompt: "Assess founding group cohesion across the alignment domains.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Social fabric: identify skills gaps (ev-s2-social-fabric c5)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c5",
+              label: "Identify skills gaps",
+              prompt: "Identify skills gaps in the founding group.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
+
+      <Section title="Decision Working Panel - Social fabric: record external networks (ev-s2-social-fabric c6)">
+        <PanelFrame>
+          <DecisionWorkingPanel
+            projectId="gallery"
+            decision={{
+              itemId: "ev-s2-social-fabric-c6",
+              label: "Record external networks",
+              prompt: "Record external community relationships that could support establishment.",
+              isSocialFabric: true,
+            } satisfies DecisionPanelTarget}
+            resolveOptions={() => []}
+            successCriteriaOptions={[]}
+            initialValue={{}}
+            initialRationale=""
+            deferred={false}
+            recorded={false}
+            onRecord={() => {}}
+            onSaveRationale={() => {}}
+            onToggleDefer={() => {}}
+          />
+        </PanelFrame>
+      </Section>
     </div>
   );
 }

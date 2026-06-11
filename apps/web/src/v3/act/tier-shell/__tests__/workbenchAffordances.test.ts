@@ -16,6 +16,7 @@ import { boundaryModeFor } from '../BoundaryCaptureLegacy.js';
 import { grazingModeFor } from '../GrazingSystemCapture.js';
 import { livestockIntentModeFor } from '../LivestockIntentCapture.js';
 import { propagationInfraModeFor } from '../PropagationInfraCapture.js';
+import { socialFabricModeFor } from '../SocialFabricCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -177,6 +178,29 @@ describe('workbenchAffordancesFor -- s1-vision', () => {
 
   it('returns null for an unmapped vision id (no stray badge)', () => {
     expect(aff.modeFor!('s1-vision-unknown')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- ev-s2-social-fabric', () => {
+  const aff = workbenchAffordancesFor('ev-s2-social-fabric');
+
+  it('carries no strips, shows decision groups (advisory -- no map/register)', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces social-fabric modes "sf-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 maps to the relationships mode, namespaced to keep clear of the global
+    // mode-label table.
+    const got = aff.modeFor!('ev-s2-social-fabric-c1');
+    expect(got).toBe('sf-relationships');
+    expect(got).toBe(`sf-${socialFabricModeFor('ev-s2-social-fabric-c1')}`);
+    expect(aff.modeFor!('ev-s2-social-fabric-c6')).toBe('sf-networks');
+    // The bare objective id (no -cN suffix) and a sibling id return null.
+    expect(aff.modeFor!('ev-s2-social-fabric')).toBeNull();
+    expect(aff.modeFor!('ev-s4-food-system-c1')).toBeNull();
   });
 });
 

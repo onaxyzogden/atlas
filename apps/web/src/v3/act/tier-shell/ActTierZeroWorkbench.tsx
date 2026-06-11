@@ -310,6 +310,13 @@ export function buildDecisionTarget(
   // advance-sale instruments -- fiqh-clear. False for every other id.
   const isAdaptiveManagement = item.id.startsWith('ev-s7-adaptive-management-');
 
+  // Social-fabric survey is a 6-item Life (Ummah) secondary objective
+  // (ev-s2-social-fabric-c1..-c6); detected by id prefix. The panel's
+  // isSocialFabric body-router arm (SocialFabricCapture self-routes on itemId
+  // via socialFabricModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId. False for every other id.
+  const isSocialFabric = item.id.startsWith('ev-s2-social-fabric-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -370,6 +377,7 @@ export function buildDecisionTarget(
     isPropagationInfra,
     isExitSuccession,
     isAdaptiveManagement,
+    isSocialFabric,
     deferLabel,
     deferrable,
   };

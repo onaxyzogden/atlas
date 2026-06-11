@@ -249,6 +249,16 @@ const MODE_LABELS: Record<string, string> = {
   'am-documentation': 'Documentation',
   'am-fiveyear': '5-year review',
 
+  // Social-fabric survey (ev-s2-social-fabric) badge labels. Keys namespaced
+  // "sf-" by workbenchAffordances. 6 modes c1..c6; values match the catalogue
+  // mode: badge strings verbatim. Advisory only.
+  'sf-relationships': 'Relationship map',
+  'sf-experience': 'Experience register',
+  'sf-priorattempts': 'Prior attempts',
+  'sf-cohesion': 'Cohesion map',
+  'sf-skills': 'Skills matrix',
+  'sf-networks': 'External networks',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The
