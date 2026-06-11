@@ -33,6 +33,7 @@ import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
 import AsBuiltReconciliationCard from './AsBuiltReconciliationCard.js';
 import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
+import { findUpstreamSourceObjectives } from '../objectiveCatalog.js';
 import ParameterGroup from './ParameterGroup.js';
 import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
 // Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
@@ -83,6 +84,15 @@ interface Props {
   completedItemIds: readonly string[];
   /** Slice 1.12 — items the Vision Builder bridge has pre-satisfied. */
   visionDerivedMap?: VisionDerivedMap;
+  /**
+   * Suppress the embedded MAP ACTIVATION region (strip + ObjectiveMap). The Plan
+   * tier shell (PlanTierShell) reuses this panel as its right-rail objective
+   * detail but already owns the map in the CENTER canvas, so it passes `true` to
+   * avoid a duplicate map. Additive + defaulted `false`, so the legacy
+   * PlanStratumShell (which has no center map) is unchanged and keeps its
+   * embedded map.
+   */
+  hideMap?: boolean;
 }
 
 export default function ObjectiveDetailPanel({
@@ -94,6 +104,7 @@ export default function ObjectiveDetailPanel({
   onBackToStratum,
   completedItemIds,
   visionDerivedMap,
+  hideMap = false,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
@@ -265,7 +276,17 @@ export default function ObjectiveDetailPanel({
   // OverlayBundleStrip empty-state (`bundle.length === 0`), so we never show
   // a map with a "No overlays bound to this objective." strip above it. The
   // region reappears automatically once an objective gets a non-empty bundle.
-  const hasOverlays = objective.defaultOverlayBundle.length > 0;
+  const hasOverlays = objective.defaultOverlayBundle.length > 0 && !hideMap;
+
+  // Reverse feedsInto: find upstream survey objectives whose checklist items
+  // feed into this objective. Non-empty only for transitive-only S4/S5
+  // consumers (s4-zones, s4-water-strategy, s5-access, s5-water-infrastructure,
+  // s5-soil-improvement). Keyed to objective.id because the panel is re-keyed
+  // on objective switch at the parent, so this memo is always fresh.
+  const upstreamSources = useMemo(
+    () => findUpstreamSourceObjectives(objective.id),
+    [objective.id],
+  );
 
   return (
     <section
@@ -399,6 +420,49 @@ export default function ObjectiveDetailPanel({
       )}
 
       <ActProgressBar projectId={projectId} objectiveId={objective.id} />
+
+      {upstreamSources.length > 0 && (
+        <section
+          aria-label="Upstream readings informing this objective"
+          data-testid="objective-informed-by"
+          style={{ padding: '6px 18px 10px' }}
+        >
+          <p
+            style={{
+              margin: '0 0 6px',
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: C.textTertiary,
+              fontFamily: 'var(--font-sans)',
+            }}
+          >
+            Informed by
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {upstreamSources.map((src) => (
+              <span
+                key={src.id}
+                data-testid={`informed-by-chip-${src.id}`}
+                style={{
+                  fontSize: 9,
+                  color: C.teal,
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  letterSpacing: '0.02em',
+                  background: C.bg4,
+                  borderRadius: 6,
+                  padding: '1px 6px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {src.shortTitle ?? src.title}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       <DecisionChecklist
         projectId={projectId}

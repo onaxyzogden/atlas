@@ -22,6 +22,7 @@
 // just to read a title.
 
 import {
+  allCatalogueObjectives,
   findObjectiveAcrossCatalogues,
   findPlanStratumObjective,
   type PlanStratumObjective,
@@ -37,4 +38,25 @@ export function findObjectiveGlobally(
   id: string,
 ): PlanStratumObjective | undefined {
   return findObjectiveAcrossCatalogues(id) ?? findPlanStratumObjective(id);
+}
+
+/**
+ * Reverse feedsInto lookup — find every unique objective that contributes at
+ * least one checklist item whose `feedsInto` array includes `objectiveId`.
+ * Used to render "Informed by" chips on the target objective's detail panel.
+ * Returns an empty array for objectives that nothing feeds into.
+ */
+export function findUpstreamSourceObjectives(
+  objectiveId: string,
+): PlanStratumObjective[] {
+  const seen = new Set<string>();
+  const result: PlanStratumObjective[] = [];
+  for (const obj of allCatalogueObjectives()) {
+    if (seen.has(obj.id)) continue;
+    if (obj.checklist.some((item) => item.feedsInto.includes(objectiveId))) {
+      seen.add(obj.id);
+      result.push(obj);
+    }
+  }
+  return result;
 }
