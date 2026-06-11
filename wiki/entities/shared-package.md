@@ -165,8 +165,7 @@ x10, `s4-water-strategy` x7, `s5-soil-improvement` x6, `s5-access` x6;
 forward-only acyclic feeds, target referential integrity, and a ≥1-feed floor
 per named consumer. `feedsInto` is display-only ("Feeds" chips at
 [DecisionChecklist.tsx:631]; Act Tier-0 label derivation) — a dangling target
-degrades to a raw-id label, never a gate. Backlog #4 (reverse "Informed by"
-chips) unblocked but not executed. Logs:
+degrades to a raw-id label, never a gate. Backlog #4 (reverse "Informed by" chips) closed 2026-06-11: `findUpstreamSourceObjectives(objectiveId)` in `apps/web/src/v3/plan/objectiveCatalog.ts` inverts the graph; `ObjectiveDetailPanel` renders teal chips above `DecisionChecklist` ([[log/2026-06-11-atlas-informed-by-chips]]). Logs:
 [[log/2026-06-11-atlas-stratum-traceability-audit]],
 [[log/2026-06-11-atlas-upstream-cites-agritourism-ecovillage]],
 [[log/2026-06-11-atlas-education-cites-feedsinto-wiring]],
