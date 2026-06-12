@@ -55,6 +55,7 @@ import StageShell from '../_shell/StageShell.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
+import PlacementConflictDialog from './draw/PlacementConflictDialog.js';
 import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
 import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js';
 import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
@@ -421,6 +422,7 @@ export default function PlanLayout() {
           <SectorCompassOverlay projectId={id} map={map} />
           <CoverCropPopoverEditor />
           <UtilityConflictDialog map={map} />
+          <PlacementConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           <PlanSelectionFloater
             onOpenGuildBuilder={() => {

@@ -47,6 +47,7 @@ import SectorCompassOverlay from '../../observe/components/overlays/SectorCompas
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
+import PlacementConflictDialog from '../draw/PlacementConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import PlanDataLayers from '../layers/PlanDataLayers.js';
 import PlanScheduledMovesOverlay from '../layers/PlanScheduledMovesOverlay.js';
@@ -217,6 +218,7 @@ export default function VisionLayoutCanvas({
           <InlineFeaturePopover map={map} />
           <SectorCompassOverlay projectId={projectId} map={map} />
           <UtilityConflictDialog map={map} />
+          <PlacementConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           {/* Plan-data layers in non-editable mode: paddocks / zones /
               crops / fences / structures / setbacks / flows / transects
