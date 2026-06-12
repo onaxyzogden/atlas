@@ -6,6 +6,8 @@
  * apps/api/src/lib/placementGuard.ts).
  */
 
+// Schema + type pair (zod object, embeddable in other schemas).
+export { PlacementAcknowledgment } from './types.js';
 export type {
   PlacementCandidate,
   PlacementConstraint,

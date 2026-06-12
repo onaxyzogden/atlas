@@ -23,6 +23,7 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import { DEFAULT_COEFF, SURFACE_LABEL } from '../../cards/water-management/waterMath.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -31,13 +32,15 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const SURFACE_OPTIONS: { value: CatchmentSurface; label: string }[] = (
   Object.keys(SURFACE_LABEL) as CatchmentSurface[]
 ).map((k) => ({ value: k, label: SURFACE_LABEL[k] }));
 
-export default function WaterCatchmentTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function WaterCatchmentTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -49,11 +52,22 @@ export default function WaterCatchmentTool({ map, projectId, getSnapTargets, sou
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.Polygon) => {
+  const handleComplete = async (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('wn-c');
       const areaM2 = turf.area(geom);
       const centroid = turf.centroid(geom).geometry.coordinates as [number, number];
       const surface: CatchmentSurface = 'metal_roof';
+
+      // Catchments are runoff overlays (OVERLAY_KINDS) traced over existing
+      // surfaces — buffer/setback overlap is legitimate, so in practice only
+      // the boundary-containment block applies.
+      const gate = await gatePlacement(geom, { kind: 'catchment', category: 'water' }, {
+        projectId,
+        anchor: centroid,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
+
       addWaterNode({
         id,
         projectId,
@@ -67,6 +81,7 @@ export default function WaterCatchmentTool({ map, projectId, getSnapTargets, sou
         runoffCoeff: DEFAULT_COEFF[surface],
         overflowToNodeId: null,
         phase: phaseDefault || undefined,
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: new Date().toISOString(),
       });
 

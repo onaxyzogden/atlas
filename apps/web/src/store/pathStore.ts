@@ -8,6 +8,7 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { path } from '../lib/tokens';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type PathType =
   | 'main_road'
@@ -84,6 +85,8 @@ export interface DesignPath {
    * sync returns. Absent = not yet pushed.
    */
   serverId?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }

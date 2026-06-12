@@ -31,14 +31,17 @@ import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { PLANT_DATABASE } from '../../../../data/plantCatalog.js';
 import { resolveValidPresets, findGuildPreset } from '../../../../data/guildPresets.js';
 import { autoLinkSilvopastureForPoint } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
-export default function GuildTool({ map, projectId }: Props) {
+export default function GuildTool({ map, projectId, parcelBoundary }: Props) {
   const addGuild = usePolycultureStore((s) => s.addGuild);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const removeGuild = usePolycultureStore((s) => s.removeGuild);
@@ -68,9 +71,19 @@ export default function GuildTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const id = newAnnotationId('gld');
       const anchor = geom.coordinates as [number, number];
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form; cancelled warn dialog likewise).
+      const gate = await gatePlacement(geom, { kind: 'guild', category: 'vegetation' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
+
       // Derive `centroidUv` from current map bounds — a coarse anchor that
       // the slide-up's GuildSpatialBuilderCard can refine. Falls back to
       // [0.5, 0.5] if bounds unavailable.
@@ -104,6 +117,7 @@ export default function GuildTool({ map, projectId }: Props) {
         centroidUv,
         phase: phaseDefault || undefined,
         ...(silvopastureId ? { silvopastureId } : {}),
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: new Date().toISOString(),
       });
 

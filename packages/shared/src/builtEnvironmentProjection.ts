@@ -21,6 +21,7 @@
 import type { BuiltEnvironmentEntity } from './builtEnvironment.js';
 import { canonicalizeKind } from './builtEnvironmentKinds.js';
 import type { StructureType } from './demand/structureDemand.js';
+import type { PlacementAcknowledgment } from './placementRules/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Legacy-shape interfaces
@@ -161,6 +162,8 @@ export interface ProjectedStructure {
   createdAt: string;
   updatedAt: string;
   serverId?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
 }
 
 export interface ProjectedDesignElement {
@@ -487,6 +490,7 @@ export function projectToStructures(
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       serverId: e.serverId,
+      placementAcknowledgments: e.placementAcknowledgments,
     });
   }
   return out;

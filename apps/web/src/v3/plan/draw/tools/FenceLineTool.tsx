@@ -40,6 +40,7 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -48,6 +49,8 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const FENCE_OPTIONS: { value: FenceType; label: string }[] = [
@@ -64,7 +67,7 @@ const MOBILITY_OPTIONS: { value: FenceLineMobility; label: string }[] = [
   { value: 'temporary-strip', label: 'Temporary strip wire' },
 ];
 
-export default function FenceLineTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function FenceLineTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addFenceLine = useLivestockStore((s) => s.addFenceLine);
   const updateFenceLine = useLivestockStore((s) => s.updateFenceLine);
   const deleteFenceLine = useLivestockStore((s) => s.deleteFenceLine);
@@ -73,12 +76,22 @@ export default function FenceLineTool({ map, projectId, getSnapTargets, sourceOb
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.LineString) => {
+  const handleComplete = async (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('fnc');
       const coords = geom.coordinates;
       const midIdx = Math.floor(coords.length / 2);
       const anchor = coords[midIdx] as [number, number];
       const now = new Date().toISOString();
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form). Fence lines are buffer-zone-exempt linear infrastructure;
+      // in practice boundary containment is the main rule that applies.
+      const gate = await gatePlacement(geom, { kind: 'fence-line', category: 'grazing' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       addFenceLine({
         id,
@@ -90,6 +103,7 @@ export default function FenceLineTool({ map, projectId, getSnapTargets, sourceOb
         mobility: 'temporary-strip',
         phase: phaseDefault,
         notes: '',
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

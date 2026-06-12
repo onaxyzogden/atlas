@@ -55,7 +55,17 @@ const BUFFER_ZONE_EXEMPT_KINDS = [
   'fence-line',
   'path',
   'gate',
+  'utility-run',
 ] as const;
+
+/**
+ * Planning overlays — designations of ground, not occupation of it. Zone
+ * polygons and catchment-surface outlines legitimately overlap buffer zones
+ * and drawn setback rings (a conservation zone can contain its own buffer;
+ * a runoff catchment is just a labelled surface). Only boundary containment
+ * gates them.
+ */
+const OVERLAY_KINDS = ['zone', 'catchment'] as const;
 
 /** Annotation kinds exempt from placement gating entirely (the evaluator
  *  never gates these, but the setback-respect rule also excludes them so
@@ -130,7 +140,13 @@ export const PLACEMENT_RULES: readonly PlacementRule[] = [
   {
     id: 'buffer-zone-exclusion',
     severity: 'block',
-    subject: { exceptKinds: [...BUFFER_ZONE_EXEMPT_KINDS, ...ANNOTATION_KINDS] },
+    subject: {
+      exceptKinds: [
+        ...BUFFER_ZONE_EXEMPT_KINDS,
+        ...OVERLAY_KINDS,
+        ...ANNOTATION_KINDS,
+      ],
+    },
     constraint: { type: 'zone-exclusion', zoneCategories: ['buffer'] },
     message: 'Placed inside a buffer / setback zone',
     whyItMatters:
@@ -265,7 +281,7 @@ export const PLACEMENT_RULES: readonly PlacementRule[] = [
   {
     id: 'steward-setback-respect',
     severity: 'warn',
-    subject: { exceptKinds: ANNOTATION_KINDS },
+    subject: { exceptKinds: [...ANNOTATION_KINDS, ...OVERLAY_KINDS] },
     constraint: {
       type: 'min-distance-from',
       target: { setbackRings: true, label: 'a drawn setback ring' },

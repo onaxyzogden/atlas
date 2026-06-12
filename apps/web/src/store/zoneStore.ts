@@ -17,6 +17,7 @@ import { zone } from '../lib/tokens';
 // categories without app imports; re-exported here so the ~45 existing
 // web imports keep working unchanged.
 import type { ZoneCategory } from '@ogden/shared';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type { ZoneCategory };
 
@@ -305,6 +306,8 @@ export interface LandZone {
    * false = shown.
    */
   hidden?: boolean;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

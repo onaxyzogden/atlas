@@ -23,19 +23,22 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
   getSnapTargets?: () => SnapTargets;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const KIND_OPTIONS: { value: UtilityRunKind; label: string }[] = (
   Object.keys(UTILITY_RUN_CONFIG) as UtilityRunKind[]
 ).map((k) => ({ value: k, label: UTILITY_RUN_CONFIG[k].label }));
 
-export default function UtilityRunTool({ map, projectId, getSnapTargets }: Props) {
+export default function UtilityRunTool({ map, projectId, getSnapTargets, parcelBoundary }: Props) {
   const addRun = useUtilityRunStore((s) => s.addRun);
   const updateRun = useUtilityRunStore((s) => s.updateRun);
   const deleteRun = useUtilityRunStore((s) => s.deleteRun);
@@ -45,7 +48,7 @@ export default function UtilityRunTool({ map, projectId, getSnapTargets }: Props
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.LineString) => {
+  const handleComplete = async (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('utility');
       const lengthM = turf.length(turf.feature(geom), { units: 'kilometers' }) * 1000;
       const coords = geom.coordinates;
@@ -53,6 +56,17 @@ export default function UtilityRunTool({ map, projectId, getSnapTargets }: Props
       const anchor = coords[midIdx] as [number, number];
       const now = new Date().toISOString();
       const kind: UtilityRunKind = 'water';
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form). Gates as the create-time default kind ('water'); a 'septic'
+      // kind picked on Save is not re-gated against well separation — known
+      // v1 residual, surfaced in the rollout review notes.
+      const gate = await gatePlacement(geom, { kind: 'utility-run', category: 'utility' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       addRun({
         id,
@@ -64,6 +78,7 @@ export default function UtilityRunTool({ map, projectId, getSnapTargets }: Props
         lengthM,
         notes: '',
         phase: phaseDefault || undefined,
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

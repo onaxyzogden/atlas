@@ -18,6 +18,7 @@
 
 import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
 import type { PhaseKey, PlanView } from '../v3/plan/types.js';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export interface DesignElement {
   id: string;
@@ -48,6 +49,8 @@ export interface DesignElement {
    */
   utilityConflicts?: { id: string; kind: string }[];
   utilityAcknowledgment?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   /**
    * Plan view in which this element was authored. Drives per-view visibility

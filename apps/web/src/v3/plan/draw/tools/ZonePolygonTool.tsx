@@ -28,6 +28,7 @@ import {
   type ZLevel,
 } from '../zoneSizeGuide.js';
 import DimensionPanel from '../DimensionPanel.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -43,6 +44,8 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const Z_OPTIONS = [
@@ -60,7 +63,7 @@ const optionsForZ = (z: string | number | undefined): { value: ZoneCategory; lab
   return list.map((k) => ({ value: k, label: ZONE_CATEGORY_CONFIG[k].label }));
 };
 
-export default function ZonePolygonTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function ZonePolygonTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addZone = useZoneStore((s) => s.addZone);
   const updateZone = useZoneStore((s) => s.updateZone);
   const deleteZone = useZoneStore((s) => s.deleteZone);
@@ -91,12 +94,22 @@ export default function ZonePolygonTool({ map, projectId, getSnapTargets, source
   const defaultCategoryForZ = (z: ZLevel): ZoneCategory =>
     optionsForZ(String(z))[0]?.value ?? 'food_production';
 
-  const handleComplete = (geom: GeoJSON.Polygon) => {
+  const handleComplete = async (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('zone');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const category: ZoneCategory = defaultCategoryForZ(zLevel);
+
+      // Zones are planning overlays (OVERLAY_KINDS) — only the
+      // boundary-containment block applies; overlap with buffers/setbacks
+      // is legitimate layering.
+      const gate = await gatePlacement(geom, { kind: 'zone', category: 'zone' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       addZone({
         id,
@@ -112,6 +125,7 @@ export default function ZonePolygonTool({ map, projectId, getSnapTargets, source
         areaM2,
         permacultureZone: zLevel,
         phase: phaseDefault || undefined,
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

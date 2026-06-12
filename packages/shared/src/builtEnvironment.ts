@@ -19,6 +19,7 @@
  */
 
 import { z } from 'zod';
+import { PlacementAcknowledgment } from './placementRules/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // State axis
@@ -190,6 +191,11 @@ export const BuiltEnvironmentEntity = z.object({
    *  flag set by the PlacedFeaturesCard visibility toggle; data is
    *  preserved. Optional — undefined / false = shown. */
   hidden: z.boolean().optional(),
+  /** Acknowledged warn-severity placement violations from the draw-time
+   *  placement gate (2026-06-11 plan, Phase 3.4). Additive/optional —
+   *  legacy entities load with this undefined. Included in
+   *  `CreateBuiltEnvironmentInput` so draw tools can set it. */
+  placementAcknowledgments: z.array(PlacementAcknowledgment).optional(),
 
   /** State-specific metadata blocks. Both optional — per-kind helpers
    *  enforce required-by-state. The two blocks are NOT mutually exclusive
@@ -224,6 +230,7 @@ export const UpdateBuiltEnvironmentInput = z.object({
   existing: ExistingMetadata.partial().optional(),
   proposed: ProposedMetadata.partial().optional(),
   serverId: z.string().optional(),
+  placementAcknowledgments: z.array(PlacementAcknowledgment).optional(),
 });
 export type UpdateBuiltEnvironmentInput = z.infer<typeof UpdateBuiltEnvironmentInput>;
 

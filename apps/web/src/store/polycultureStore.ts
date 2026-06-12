@@ -14,6 +14,7 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 // ── Guilds ──────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,8 @@ export interface Guild {
    * (guild `center` inside host polygon) when unset.
    */
   silvopastureId?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
 }
 

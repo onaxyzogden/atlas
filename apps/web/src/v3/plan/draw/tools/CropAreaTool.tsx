@@ -36,6 +36,7 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -44,6 +45,8 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const TYPE_OPTIONS: { value: CropAreaType; label: string }[] = [
@@ -86,7 +89,7 @@ const IRRIGATION_OPTIONS = [
   { value: 'none',      label: 'None' },
 ];
 
-export default function CropAreaTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function CropAreaTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addCropArea = useCropStore((s) => s.addCropArea);
   const updateCropArea = useCropStore((s) => s.updateCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);
@@ -97,12 +100,24 @@ export default function CropAreaTool({ map, projectId, getSnapTargets, sourceObj
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.Polygon) => {
+  const handleComplete = async (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('crop');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const type: CropAreaType = 'orchard';
+
+      // Gates with the create-time default kind ('orchard'). v1 limitation:
+      // a different type picked on Save is not re-gated — only warn-severity
+      // rules differ across crop kinds (zone affinity, nursery water
+      // proximity), so nothing blockable slips through.
+      const gate = await gatePlacement(geom, { kind: type, category: 'crop-area' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
+
       const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
 
       addCropArea({
@@ -122,6 +137,7 @@ export default function CropAreaTool({ map, projectId, getSnapTargets, sourceObj
         phase: phaseDefault,
         notes: '',
         ...(silvopastureId ? { silvopastureId } : {}),
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

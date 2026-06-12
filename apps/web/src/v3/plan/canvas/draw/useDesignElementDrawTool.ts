@@ -9,7 +9,7 @@
  * component; this hook is mounted only while a kind is active.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import {
@@ -33,6 +33,15 @@ import {
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
+import {
+  gatePlacement,
+  type PlacementAcknowledgment,
+} from '../../validation/placementGate.js';
+import { evaluatePlacement } from '../../validation/evaluatePlacement.js';
+import {
+  buildPlacementContext,
+  type PlacementContext,
+} from '../../validation/placementContext.js';
 import { usePlanView } from '../../PlanViewContext.js';
 import { useContinuousPointDrawTool } from './useContinuousPointDrawTool.js';
 import {
@@ -72,13 +81,22 @@ interface Args {
 }
 
 /** Validate a candidate point placement against parcel boundary + same-
- *  category spacing. Returns the first violation reason, or `{ ok: true }`.
- *  Exported for reuse by the polygon-fill stamp path (`stampHexFill`). */
+ *  category spacing, plus — when a pre-built placement context is passed —
+ *  block-severity placement rules. Returns the first violation reason, or
+ *  `{ ok: true }`. Exported for reuse by the polygon-fill stamp path
+ *  (`stampHexFill`).
+ *
+ *  `ctx` is optional and pre-buffered by the caller (arm-time for the live
+ *  cursor, fill-commit for stampHexFill) so this stays cheap on mousemove.
+ *  Only BLOCKS are checked here — warns need the acknowledgment dialog,
+ *  which the live cursor / bulk fill can't host; single draws surface
+ *  warns at draw-complete via `gatePlacement`. */
 export function validatePlacement(
   lngLat: [number, number],
   spec: DesignElementSpec,
   projectId: string,
   parcelBoundary: GeoJSON.Polygon | undefined,
+  ctx?: PlacementContext,
 ): { ok: true } | { ok: false; reason: string } {
   if (parcelBoundary) {
     const inside = turf.booleanPointInPolygon(
@@ -106,6 +124,17 @@ export function validatePlacement(
           reason: `Too close to existing ${n.label}`,
         };
       }
+    }
+  }
+  if (ctx) {
+    const { blocks } = evaluatePlacement(
+      { type: 'Point', coordinates: lngLat },
+      { kind: spec.kind, category: spec.category },
+      ctx,
+    );
+    const firstBlock = blocks[0];
+    if (firstBlock) {
+      return { ok: false, reason: firstBlock.message };
     }
   }
   return { ok: true };
@@ -140,11 +169,16 @@ function geometryAnchor(geom: DrawGeometry): [number, number] | null {
 
 /** Generate hex-grid stamp points inside a polygon and persist as a
  *  bulk insert. Each candidate centroid is validated against the parcel
- *  boundary + same-`category` neighbour distance via `validatePlacement`,
- *  so a fill that overlaps the parcel edge or pre-existing same-kind
- *  trees is silently clipped. Dispatches `plan:tree-stamp-summary` with
- *  the tally. The polygon itself is consumed by the caller's MapboxDraw
- *  control (auto `deleteAll` after `onComplete`); never persisted. */
+ *  boundary + same-`category` neighbour distance + block-severity
+ *  placement rules (via `validatePlacement` with the pre-built `ctx`),
+ *  so a fill that overlaps the parcel edge, pre-existing same-kind
+ *  trees, or a blocked area (e.g. a buffer zone) is silently clipped.
+ *  Tradeoff: warn-severity rules are silently ACCEPTED in bulk — a
+ *  per-centroid acknowledgment dialog across hundreds of stamps is not
+ *  workable, and clipping on warns would over-reject. The skipped tally
+ *  in `plan:tree-stamp-summary` covers blocks only. The polygon itself
+ *  is consumed by the caller's MapboxDraw control (auto `deleteAll`
+ *  after `onComplete`); never persisted. */
 function stampHexFill(
   polygon: GeoJSON.Polygon,
   spec: DesignElementSpec,
@@ -152,6 +186,7 @@ function stampHexFill(
   parcelBoundary: GeoJSON.Polygon | undefined,
   view: PlanViewLike,
   sourceObjectiveId: string | null | undefined,
+  ctx?: PlacementContext,
 ): { stamped: number; skipped: number } {
   const spacing = spec.defaultSpacingM;
   if (!spacing || spacing <= 0) return { stamped: 0, skipped: 0 };
@@ -180,7 +215,7 @@ function stampHexFill(
   const placedThisRun: GeoJSON.Position[] = [];
   let skipped = 0;
   for (const c of candidates) {
-    const result = validatePlacement(c, spec, projectId, parcelBoundary);
+    const result = validatePlacement(c, spec, projectId, parcelBoundary, ctx);
     if (!result.ok) {
       skipped += 1;
       continue;
@@ -258,7 +293,7 @@ export function useDesignElementDrawTool({
   const currentView = usePlanView();
 
   const handleComplete = useCallback(
-    (geom: DrawGeometry) => {
+    async (geom: DrawGeometry) => {
       if (!spec) return;
       const acreage =
         geom.type === 'Polygon' ? polygonAcres(geom) : undefined;
@@ -269,6 +304,29 @@ export function useDesignElementDrawTool({
         (e) => e.kind === kind,
       ).length;
       const label = `${spec.label} ${nextLetter(sameKindCount)}`;
+
+      // Placement gate FIRST (block / cancelled warn → no record; the
+      // buried-utility veto below stays its own dialog and only runs once
+      // the placement gate is clean or acknowledged). Builds a fresh
+      // context per draw-complete — the memoized live-cursor ctx is a
+      // snapshot from arm time and only covers blocks. Skipped when the
+      // anchor is degenerate, mirroring the utility-veto fall-through.
+      let placementAcks: PlacementAcknowledgment[] | undefined;
+      const gateAnchor = geometryAnchor(geom);
+      if (gateAnchor) {
+        const gate = await gatePlacement(
+          geom,
+          { kind: spec.kind, category: spec.category },
+          { projectId, anchor: gateAnchor, boundary: parcelBoundary ?? null },
+        );
+        if (!gate.ok) {
+          // Blocked or warn-cancelled — MapboxDraw has already cleared
+          // the sketch; onComplete lets the palette disarm cleanly.
+          onComplete?.();
+          return;
+        }
+        placementAcks = gate.acknowledgments;
+      }
 
       // Buried-utility safety check — ADR 2026-05-10-plan-earthwork-
       // utility-veto. Kinds with `earthworkDepthCm > 30` (pond 200,
@@ -311,6 +369,7 @@ export function useDesignElementDrawTool({
           createdAt: new Date().toISOString(),
           view: currentView,
           ...(silvopastureId ? { silvopastureId } : {}),
+          ...(placementAcks ? { placementAcknowledgments: placementAcks } : {}),
           ...extras,
         });
         onComplete?.();
@@ -342,7 +401,7 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, kind, projectId, onComplete, currentView, sourceObjectiveId],
+    [spec, kind, projectId, onComplete, currentView, sourceObjectiveId, parcelBoundary],
   );
 
   // Continuous-point flow for trees and other point design elements:
@@ -354,6 +413,19 @@ export function useDesignElementDrawTool({
   const fillEligible = isPoint && !!spec?.defaultSpacingM;
   const pointFillMode = fillEligible && stampMode === 'fill';
 
+  // Live-cursor placement context — built ONCE at arm time (memoized) so
+  // the per-mousemove validate never re-buffers rule targets. It is a
+  // snapshot: features drawn after arming aren't seen until re-arm, which
+  // is acceptable for cursor feedback because the final gate in
+  // `handleComplete` always builds a fresh context.
+  const liveCtx = useMemo(
+    () =>
+      isPoint && spec?.defaultSpacingM
+        ? buildPlacementContext(projectId, { boundary: parcelBoundary ?? null })
+        : undefined,
+    [isPoint, spec, projectId, parcelBoundary],
+  );
+
   // Spacing snap: only for point kinds with a `defaultSpacingM` in the
   // catalog (today: oak / pine / apple / shrub). Non-spacing point kinds
   // skip the ring + validation entirely. Suppressed in fill mode — the
@@ -363,7 +435,7 @@ export function useDesignElementDrawTool({
       ? {
           radiusM: spec.defaultSpacingM,
           validate: (lngLat: [number, number]) =>
-            validatePlacement(lngLat, spec, projectId, parcelBoundary),
+            validatePlacement(lngLat, spec, projectId, parcelBoundary, liveCtx),
         }
       : undefined;
 
@@ -373,7 +445,13 @@ export function useDesignElementDrawTool({
         onComplete?.();
         return;
       }
-      stampHexFill(geom, spec, projectId, parcelBoundary, currentView, sourceObjectiveId);
+      // Fresh context per fill (one-shot, not per-centroid) — blocks clip
+      // individual centroids; warn-severity rules are silently accepted in
+      // bulk because a per-centroid acknowledgment dialog isn't workable.
+      const ctx = buildPlacementContext(projectId, {
+        boundary: parcelBoundary ?? null,
+      });
+      stampHexFill(geom, spec, projectId, parcelBoundary, currentView, sourceObjectiveId, ctx);
       onComplete?.();
     },
     [spec, projectId, parcelBoundary, currentView, onComplete, sourceObjectiveId],

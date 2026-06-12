@@ -22,16 +22,19 @@ import { UTILITY_POINT_TYPE_OPTIONS } from './utilityPointTypes.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const DEFAULT_TYPE: UtilityType = 'rain_catchment';
 
-export default function UtilityPointTool({ map, projectId }: Props) {
+export default function UtilityPointTool({ map, projectId, parcelBoundary }: Props) {
   const addUtility = useUtilityStore((s) => s.addUtility);
   const updateUtility = useUtilityStore((s) => s.updateUtility);
   const deleteUtility = useUtilityStore((s) => s.deleteUtility);
@@ -41,10 +44,23 @@ export default function UtilityPointTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const id = crypto.randomUUID();
       const center = geom.coordinates as [number, number];
       const now = new Date().toISOString();
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form). Gates as the create-time default kind ('rain_catchment');
+      // this tool only offers the 11 non-BE utility types, so the
+      // well/septic block rules never apply here — those kinds are
+      // authored via the be.* tools (canonical-ownership ADR 2026-05-22).
+      const gate = await gatePlacement(geom, { kind: DEFAULT_TYPE, category: 'utility' }, {
+        projectId,
+        anchor: center,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
+
       const draft: Utility = {
         id,
         projectId,
@@ -53,6 +69,7 @@ export default function UtilityPointTool({ map, projectId }: Props) {
         center,
         phase: phaseDefault,
         notes: '',
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       };

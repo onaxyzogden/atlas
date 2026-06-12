@@ -13,6 +13,7 @@ import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { STORAGE_LABEL } from '../../cards/water-management/waterMath.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -20,13 +21,15 @@ interface Props {
   projectId: string;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const STORAGE_OPTIONS: { value: StorageNodeKind; label: string }[] = (
   Object.keys(STORAGE_LABEL) as StorageNodeKind[]
 ).map((k) => ({ value: k, label: STORAGE_LABEL[k] }));
 
-export default function WaterStorageTool({ map, projectId, sourceObjectiveId }: Props) {
+export default function WaterStorageTool({ map, projectId, sourceObjectiveId, parcelBoundary }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -37,10 +40,20 @@ export default function WaterStorageTool({ map, projectId, sourceObjectiveId }: 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const id = newAnnotationId('wn-s');
       const anchor = geom.coordinates as [number, number];
       const storageKind: StorageNodeKind = 'cistern';
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form; cancelled warn dialog likewise).
+      const gate = await gatePlacement(geom, { kind: 'storage', category: 'water' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
+
       addWaterNode({
         id,
         projectId,
@@ -52,6 +65,7 @@ export default function WaterStorageTool({ map, projectId, sourceObjectiveId }: 
         capacityL: 0,
         overflowToNodeId: null,
         phase: phaseDefault || undefined,
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: new Date().toISOString(),
       });
 

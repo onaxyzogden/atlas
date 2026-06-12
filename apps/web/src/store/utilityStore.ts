@@ -8,6 +8,7 @@ import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { utility } from '../lib/tokens';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type UtilityType =
   | 'solar_panel'
@@ -71,6 +72,8 @@ export interface Utility {
    * the create sync returns. Absent = not yet pushed.
    */
   serverId?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }

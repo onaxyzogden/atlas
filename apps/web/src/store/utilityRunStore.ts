@@ -24,6 +24,7 @@ import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type UtilityRunKind = 'water' | 'septic' | 'power' | 'data';
 
@@ -42,6 +43,8 @@ export interface UtilityRun {
   phase?: string;
   /** Multi-Enterprise tag from `enterpriseStore`. Optional. */
   enterprise?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }

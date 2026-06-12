@@ -38,6 +38,7 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -46,6 +47,8 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
@@ -90,7 +93,7 @@ const SPECIES_COLOR: Record<LivestockSpecies, string> = {
   bees:        '#d4b94a',
 };
 
-export default function PaddockTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function PaddockTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addPaddock = useLivestockStore((s) => s.addPaddock);
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
   const deletePaddock = useLivestockStore((s) => s.deletePaddock);
@@ -101,12 +104,22 @@ export default function PaddockTool({ map, projectId, getSnapTargets, sourceObje
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.Polygon) => {
+  const handleComplete = async (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('pad');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const species: LivestockSpecies = 'sheep';
+
+      // Placement gate runs BEFORE the skeleton record: a block (or a
+      // cancelled warn dialog) leaves no record and no form — the tool
+      // stays armed for a redraw.
+      const gate = await gatePlacement(geom, { kind: 'paddock', category: 'grazing' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
 
@@ -128,6 +141,7 @@ export default function PaddockTool({ map, projectId, getSnapTargets, sourceObje
         phase: phaseDefault,
         notes: '',
         ...(silvopastureId ? { silvopastureId } : {}),
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

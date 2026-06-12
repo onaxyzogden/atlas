@@ -13,6 +13,7 @@ import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
 
@@ -143,6 +144,8 @@ export interface WaterNode {
   utilityConflicts?: { id: string; kind: string }[];
   /** Free-text acknowledgment captured when overriding the conflict veto. */
   utilityAcknowledgment?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
 }
 
 // ── Watercourses (natural drainage — distinct from built earthworks) ────────

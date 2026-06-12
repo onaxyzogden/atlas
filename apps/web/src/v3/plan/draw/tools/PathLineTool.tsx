@@ -20,6 +20,7 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -28,6 +29,8 @@ interface Props {
   getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const TYPE_OPTIONS: { value: PathType; label: string }[] = (
@@ -49,7 +52,7 @@ const ACCESSIBLE_OPTIONS = [
   { value: 'yes', label: 'Yes' },
 ];
 
-export default function PathLineTool({ map, projectId, getSnapTargets, sourceObjectiveId }: Props) {
+export default function PathLineTool({ map, projectId, getSnapTargets, sourceObjectiveId, parcelBoundary }: Props) {
   const addPath = usePathStore((s) => s.addPath);
   const updatePath = usePathStore((s) => s.updatePath);
   const deletePath = usePathStore((s) => s.deletePath);
@@ -59,7 +62,7 @@ export default function PathLineTool({ map, projectId, getSnapTargets, sourceObj
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimValues = useDimensionValues();
 
-  const handleComplete = (geom: GeoJSON.LineString) => {
+  const handleComplete = async (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('path');
       const lengthM = turf.length(turf.feature(geom), { units: 'kilometers' }) * 1000;
       const coords = geom.coordinates;
@@ -67,6 +70,16 @@ export default function PathLineTool({ map, projectId, getSnapTargets, sourceObj
       const anchor = coords[midIdx] as [number, number];
       const now = new Date().toISOString();
       const type: PathType = 'pedestrian_path';
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form). Paths are buffer-zone-exempt access infrastructure; in
+      // practice boundary containment is the main rule that applies.
+      const gate = await gatePlacement(geom, { kind: 'path', category: 'access' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       addPath({
         id,
@@ -80,6 +93,7 @@ export default function PathLineTool({ map, projectId, getSnapTargets, sourceObj
         phase: phaseDefault,
         notes: '',
         usageFrequency: 'weekly',
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: now,
         updatedAt: now,
       });

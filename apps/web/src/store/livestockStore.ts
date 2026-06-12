@@ -9,6 +9,7 @@ import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type FenceType = 'electric' | 'post_wire' | 'post_rail' | 'woven_wire' | 'temporary' | 'none';
 export type LivestockSpecies = 'sheep' | 'cattle' | 'goats' | 'poultry' | 'pigs' | 'horses' | 'ducks_geese' | 'rabbits' | 'bees';
@@ -76,6 +77,8 @@ export interface Paddock {
    */
   draft?: boolean;
   generationId?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -105,6 +108,8 @@ export interface FenceLine {
   generationId?: string;
   phase: string;
   notes: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }

@@ -509,6 +509,9 @@ export const useBuiltEnvironmentStoreV2 = create<BuiltEnvironmentV2State>()(
                 ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
                 ...(patch.state ? { state: patch.state } : {}),
                 ...(patch.serverId !== undefined ? { serverId: patch.serverId } : {}),
+                ...(patch.placementAcknowledgments !== undefined
+                  ? { placementAcknowledgments: patch.placementAcknowledgments }
+                  : {}),
                 existing: patch.existing
                   ? { ...e.existing, ...patch.existing }
                   : e.existing,

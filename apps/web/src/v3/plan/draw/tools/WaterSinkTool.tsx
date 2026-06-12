@@ -16,6 +16,7 @@ import {
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../utilityConflictStore.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 /** Approximate infiltration-bed / wetland excavation depth. */
@@ -26,9 +27,11 @@ interface Props {
   projectId: string;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
-export default function WaterSinkTool({ map, projectId, sourceObjectiveId }: Props) {
+export default function WaterSinkTool({ map, projectId, sourceObjectiveId, parcelBoundary }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -39,9 +42,19 @@ export default function WaterSinkTool({ map, projectId, sourceObjectiveId }: Pro
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const id = newAnnotationId('wn-x');
       const anchor = geom.coordinates as [number, number];
+
+      // Placement gate FIRST (block / cancelled warn → no record, no form);
+      // the buried-utility veto below stays its own dialog and only runs
+      // once the placement gate is clean or acknowledged.
+      const gate = await gatePlacement(geom, { kind: 'sink', category: 'earthworks' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       const conflicts = depthTriggersVeto(SINK_DEPTH_CM)
         ? checkUtilityConflicts(geom, projectId)
@@ -60,6 +73,7 @@ export default function WaterSinkTool({ map, projectId, sourceObjectiveId }: Pro
           center: anchor,
           phase: phaseDefault || undefined,
           createdAt: new Date().toISOString(),
+          ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
           ...extras,
         });
         openInlineForm();

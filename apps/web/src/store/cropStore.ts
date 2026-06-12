@@ -10,6 +10,7 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 export type CropAreaType = 'orchard' | 'row_crop' | 'garden_bed' | 'food_forest' | 'windbreak' | 'shelterbelt' | 'silvopasture' | 'nursery' | 'market_garden' | 'pollinator_strip';
 
@@ -90,6 +91,8 @@ export interface CropArea {
    * never a financial or yield-as-return notion.
    */
   coverCropPlan?: CropCoverWindow[];
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
   updatedAt: string;
 }

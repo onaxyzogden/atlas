@@ -38,9 +38,26 @@
  * normalization bugs are silent; duplicate list entries are not.
  */
 
+import { z } from 'zod';
 import type { ZoneCategory } from '../constants/zoneCategories.js';
 
 export type PlacementSeverity = 'block' | 'warn';
+
+/**
+ * One acknowledged warn-severity violation, persisted on the placed record
+ * (`placementAcknowledgments` on the client stores; mirrored into
+ * `properties.placementAcknowledgments` jsonb on synced design_features).
+ * Mirrors the buried-utility veto's `utilityAcknowledgment` precedent.
+ * A zod schema (not a bare interface) so `BuiltEnvironmentEntity` and the
+ * API's design-feature schema can embed it.
+ */
+export const PlacementAcknowledgment = z.object({
+  ruleId: z.string().min(1),
+  message: z.string(),
+  acknowledgment: z.string().min(3),
+  acknowledgedAt: z.string(),
+});
+export type PlacementAcknowledgment = z.infer<typeof PlacementAcknowledgment>;
 
 /** The thing being placed or moved, as the evaluator sees it. */
 export interface PlacementCandidate {

@@ -22,6 +22,7 @@ import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 
 const FLOW_CONNECTOR_LEGACY_KEY = 'ogden-flow-connectors';
 
@@ -302,6 +303,8 @@ export interface FertilityInfra {
    * fertility unit belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
+  /** Draw-time placement-gate acknowledgments (warn-severity, steward-confirmed). */
+  placementAcknowledgments?: PlacementAcknowledgment[];
   createdAt: string;
 }
 

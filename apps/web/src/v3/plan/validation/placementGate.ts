@@ -29,15 +29,13 @@ import {
   type PlacementContext,
   type PlacementGeometry,
 } from './placementContext.js';
-import type { PlacementCandidate } from '@ogden/shared/placementRules';
+import type {
+  PlacementAcknowledgment,
+  PlacementCandidate,
+} from '@ogden/shared/placementRules';
 
-/** One acknowledged warn, persisted on the placed record. */
-export interface PlacementAcknowledgment {
-  ruleId: string;
-  message: string;
-  acknowledgment: string;
-  acknowledgedAt: string;
-}
+/** Re-exported so callers persist acks without a second import path. */
+export type { PlacementAcknowledgment };
 
 export interface PlacementGateResult {
   ok: boolean;

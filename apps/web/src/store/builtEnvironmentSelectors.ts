@@ -323,6 +323,9 @@ export function addStructure(structure: Structure): void {
   };
   if (structure.name !== undefined) input.label = structure.name;
   if (structure.notes !== undefined) input.notes = structure.notes;
+  if (structure.placementAcknowledgments !== undefined) {
+    input.placementAcknowledgments = structure.placementAcknowledgments;
+  }
   const created = v2.create(input);
   if (structure.serverId !== undefined) {
     v2.updateMetadata(created.id, { serverId: structure.serverId });
@@ -340,6 +343,9 @@ export function updateStructure(
   if (updates.name !== undefined) update.label = updates.name;
   if (updates.notes !== undefined) update.notes = updates.notes;
   if (updates.serverId !== undefined) update.serverId = updates.serverId;
+  if (updates.placementAcknowledgments !== undefined) {
+    update.placementAcknowledgments = updates.placementAcknowledgments;
+  }
   const proposed = buildProposedFromStructure(updates);
   if (Object.keys(proposed).length > 0) update.proposed = proposed;
   v2.updateMetadata(id, update);

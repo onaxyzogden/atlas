@@ -34,11 +34,14 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 // Order: structural practices first, then biological practices.
@@ -53,7 +56,7 @@ const TYPE_OPTIONS: { value: FertilityInfraType; label: string }[] = [
   { value: 'rotational_grazing',  label: 'Rotational grazing' },
 ];
 
-export default function FertilityInfraTool({ map, projectId }: Props) {
+export default function FertilityInfraTool({ map, projectId, parcelBoundary }: Props) {
   const addFertilityInfra = useClosedLoopStore((s) => s.addFertilityInfra);
   const updateFertilityInfra = useClosedLoopStore((s) => s.updateFertilityInfra);
   const removeFertilityInfra = useClosedLoopStore((s) => s.removeFertilityInfra);
@@ -64,10 +67,21 @@ export default function FertilityInfraTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const id = newAnnotationId('fert');
       const anchor = geom.coordinates as [number, number];
       const type: FertilityInfraType = 'composter';
+
+      // Placement gate BEFORE the skeleton record (block → no record, no
+      // form). Gates as the create-time default kind ('composter'); a type
+      // switched on Save is not re-gated — fertility kinds share the same
+      // rule set (only warn severities apply), so nothing blockable slips.
+      const gate = await gatePlacement(geom, { kind: type, category: 'fertility' }, {
+        projectId,
+        anchor,
+        boundary: parcelBoundary ?? null,
+      });
+      if (!gate.ok) return;
 
       addFertilityInfra({
         id,
@@ -77,6 +91,7 @@ export default function FertilityInfraTool({ map, projectId }: Props) {
         scaleNote: '',
         notes: '',
         phase: phaseDefault || undefined,
+        ...(gate.acknowledgments ? { placementAcknowledgments: gate.acknowledgments } : {}),
         createdAt: new Date().toISOString(),
       });
 

@@ -39,11 +39,14 @@ import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import * as turf from '@turf/turf';
+import { gatePlacement } from '../../validation/placementGate.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Parcel boundary for the placement gate's containment rule. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 // Order: dwellings → gathering / spiritual → agricultural → utility /
@@ -95,7 +98,7 @@ function midCost(type: StructureType): number {
   return Math.round((lo + hi) / 2);
 }
 
-export default function StructureTool({ map, projectId }: Props) {
+export default function StructureTool({ map, projectId, parcelBoundary }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
@@ -105,7 +108,7 @@ export default function StructureTool({ map, projectId }: Props) {
   // Place a structure with explicit dimensions. Used by both the freehand
   // (point → template defaults) and dimensions (custom width/depth/rotation)
   // paths. Anchors the popover at the placement centre.
-  const placeStructure = (
+  const placeStructure = async (
     center: [number, number],
     widthM: number,
     depthM: number,
@@ -115,6 +118,20 @@ export default function StructureTool({ map, projectId }: Props) {
     const type: StructureType = 'cabin';
     const tpl = STRUCTURE_TEMPLATES[type];
     const now = new Date().toISOString();
+    const footprint = createFootprintPolygon(center, widthM, depthM, rotationDeg);
+
+    // Placement gate BEFORE the skeleton record: a block (or a cancelled
+    // warn dialog) leaves no record and no form — the tool stays armed.
+    // Gates with the create-time default kind ('cabin'); a type switched
+    // on Save is re-gated in onSave below, because structure kinds carry
+    // different block-severity rules (e.g. 'well' ↔ septic separation).
+    const gate = await gatePlacement(footprint, { kind: type, category: 'structure' }, {
+      projectId,
+      anchor: center,
+      boundary: parcelBoundary ?? null,
+    });
+    if (!gate.ok) return;
+    const placedAcks = gate.acknowledgments;
 
     addStructure({
       id,
@@ -122,7 +139,7 @@ export default function StructureTool({ map, projectId }: Props) {
       name: tpl.label,
       type,
       center,
-      geometry: createFootprintPolygon(center, widthM, depthM, rotationDeg),
+      geometry: footprint,
       rotationDeg,
       widthM,
       depthM,
@@ -130,6 +147,7 @@ export default function StructureTool({ map, projectId }: Props) {
       costEstimate: midCost(type),
       infrastructureReqs: [...tpl.infrastructureReqs],
       notes: '',
+      ...(placedAcks ? { placementAcknowledgments: placedAcks } : {}),
       createdAt: now,
       updatedAt: now,
     });
@@ -163,7 +181,7 @@ export default function StructureTool({ map, projectId }: Props) {
         enterprise: enterpriseDefault,
         rotationDeg,
       },
-      onSave: (values) => {
+      onSave: async (values) => {
         const nextType = values.type as StructureType;
         const nextTpl = STRUCTURE_TEMPLATES[nextType] ?? tpl;
         const rawRot = Number(values.rotationDeg);
@@ -181,6 +199,28 @@ export default function StructureTool({ map, projectId }: Props) {
           nextDepth,
           nextRotation,
         );
+        // Re-gate on type change only — rules are keyed by kind, and the
+        // create-time gate ran as 'cabin' (e.g. switching to 'well' must
+        // check the block-severity septic separation). On !ok the update
+        // is NOT applied: the record keeps its create-time type, and the
+        // gate's toast / cancelled dialog already told the steward why.
+        let acks = placedAcks;
+        if (typeChanged) {
+          const regate = await gatePlacement(
+            geometry,
+            { kind: nextType, category: 'structure' },
+            {
+              projectId,
+              anchor: center,
+              boundary: parcelBoundary ?? null,
+              excludeFeatureId: id,
+            },
+          );
+          if (!regate.ok) return;
+          if (regate.acknowledgments) {
+            acks = [...(placedAcks ?? []), ...regate.acknowledgments];
+          }
+        }
         updateStructure(id, {
           name: String(values.name ?? nextTpl.label).trim() || nextTpl.label,
           type: nextType,
@@ -192,6 +232,7 @@ export default function StructureTool({ map, projectId }: Props) {
           enterprise: String(values.enterprise ?? '') || undefined,
           costEstimate: midCost(nextType),
           infrastructureReqs: [...nextTpl.infrastructureReqs],
+          ...(acks !== placedAcks ? { placementAcknowledgments: acks } : {}),
         });
       },
       onCancel: () => removeStructure(id),
@@ -202,10 +243,10 @@ export default function StructureTool({ map, projectId }: Props) {
     map,
     mode: 'draw_point',
     enabled: dimMode === 'freehand',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       const center = geom.coordinates as [number, number];
       const tpl = STRUCTURE_TEMPLATES['cabin'];
-      placeStructure(center, tpl.widthM, tpl.depthM, 0);
+      await placeStructure(center, tpl.widthM, tpl.depthM, 0);
     },
   });
 
@@ -214,12 +255,12 @@ export default function StructureTool({ map, projectId }: Props) {
     shape: 'rect',
     values: dimValues,
     enabled: dimMode === 'dimensions',
-    onComplete: (geom) => {
+    onComplete: async (geom) => {
       // Dimensions hook always commits a Polygon for shape='rect'; centroid
       // becomes the structure centre.
       const polygon = geom as GeoJSON.Polygon;
       const center = turf.centroid(polygon).geometry.coordinates as [number, number];
-      placeStructure(
+      await placeStructure(
         center,
         dimValues.widthM,
         dimValues.depthM,
