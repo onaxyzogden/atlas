@@ -202,8 +202,13 @@ every item of a member objective classifies `workbench-capture` unless an
 (`completionPathAudit.ratchet.test.ts` + pinned `completionPathGaps.baseline.json`)
 and `scripts/audit-checklist-completion-paths.ts` (`--write-baseline`).
 Pinned 2026-06-11: 2029 items / 355 objectives, 610 `no-path`.
-Pinned 2026-06-12: `no-path` 546, universal prefix 0, `workbench-capture`
-136, evidence-backed 368. Decisions:
+Pinned 2026-06-12 (universal close): `no-path` 546, universal prefix 0,
+`workbench-capture` 136, evidence-backed 368. Pinned 2026-06-12 (ev- close,
+commit `ae3a72be`): `no-path` 484, `ev-` prefix 0, `workbench-capture` 198,
+evidence-backed 430 -- 10 ecovillage decision objectives joined the app-layer
+`TIER_ZERO_OBJECTIVE_IDS` (29 -> 39), closing the entire `ev-` no-path tier via
+workbench membership alone (all 10 non-spatial, plain `ck()`, already grouped).
+Decisions:
 [decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md),
 [decisions/2026-06-12-atlas-workbench-capture-gap-closure.md](../decisions/2026-06-12-atlas-workbench-capture-gap-closure.md).
 

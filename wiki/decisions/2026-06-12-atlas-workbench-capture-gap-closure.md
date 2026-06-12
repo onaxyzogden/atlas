@@ -36,3 +36,21 @@ Investigation split the 23 into two distinct problems:
 ## Amanah
 
 Classification/routing only — no capital, sale, or financing surface. The deferred `s7-resource-plan-c4` capital worksheet is flagged ahead of time: it must be designed Amanah-clean (donation / restricted donation / qard ḥasan / in-kind / sponsorship channels only, no CSRA/salam — [[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]).
+
+---
+
+## Follow-on 2026-06-12 — `ev-` tier closed + generic decision-group rendering (commit `ae3a72be`)
+
+The same pattern was applied to the **next priority tier, `ev-` (62 no-path)**. All 62 items belong to exactly **10 objectives** — `ev-s4-food-system`, `ev-s4-infra-strategy`, the four S6 protocols (`coordination-feedback`, `external-relations`, `maintenance-protocol`, `social-monitoring`), and the four S7 plans (`financial-plan`, `launch-sequence`, `onboarding`, `settlement-plan`). Every one is **non-spatial, plain `ck()`, `[]` in `objectiveActTools.ts`, no descriptor entry, and already carries non-empty `decisionGroups`**. The spatial `ev-` objectives already classify `objective-map` (not `no-path`), so this tier closed via **workbench membership alone** — no map/form arms to add. The 10 ids were appended to `TIER_ZERO_OBJECTIVE_IDS` (29 → 39).
+
+**New decision — generic decision-group rendering.** Operator asked that the generic 2-pane workbench render decision-group dividers for *any* grouped objective, not only descriptor objectives. `DecisionList` already reads `objective.decisionGroups` and renders dividers; the only gate was its `showGroups` prop, sourced solely from `affordances.showGroups` (always `false` for `EMPTY_AFFORDANCES` objectives). The fix derives the gate at the `ActTierZeroWorkbench` call site:
+
+```ts
+const showGroups = hasWorkbenchAffordanceEntry(activeObjective.id)
+  ? affordances.showGroups                      // descriptor objectives keep their authored boolean
+  : activeObjective.decisionGroups.length > 0;  // non-descriptor objectives derive from group presence
+```
+
+A new `hasWorkbenchAffordanceEntry(id)` predicate (`objectiveId in MAP`) distinguishes the two. **Why not a blanket `affordances.showGroups || groups.length>0`:** `s1-stakeholders` has non-empty `decisionGroups` but is authored `showGroups: false` on purpose (it uses a register-strip narrative, not dividers) — a blanket OR would wrongly add dividers to it. Crash-safety is guaranteed: `decisionGroups` is always an array (defaulted in `stratumObjectives.ts`), and `catalogues.test.ts:842`'s full-partition invariant means a grouped objective can never orphan an item. Render tests pin both the generic divider rendering (count == `decisionGroups.length`) and the `s1-stakeholders` flat-rendering regression.
+
+**Numbers (2026-06-12 ev- baseline):** `no-path` **546 → 484** (`ev-` prefix **62 → 0**); `workbench-capture` **136 → 198**; evidence-backed **368 → 430**. Web suites 75/75 (ActTierZeroWorkbench 63 inc. 4 new ev- tests; tierZero drift guard at 39; ratchet), shared classifier 9/9, `pnpm -r typecheck` EXIT 0. `ev-s7-financial-plan` routed through the generic textarea (narrative capture, not a contribution instrument); the bespoke Amanah-clean financial worksheet stays deferred under the same channel constraints above. **Next tier: `orch-`.**
