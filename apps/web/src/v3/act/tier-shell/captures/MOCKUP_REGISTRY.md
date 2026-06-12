@@ -154,6 +154,35 @@ objective's existing scopeNote; never reworded or omitted.
 |---|---|---|---|---|---|
 | `olos_exit_succession_act.html` | `ev-s7-exit-succession` / c1–c5 | NEW `ExitSuccessionCapture` (`exitSuccessionModeFor`) | **Build (2026-06-10)** — 5 modes (exitProcess / dwellingTransfer / landReversion / dissolution / legalReview); add id to `TIER_ZERO_OBJECTIVE_IDS` | staged select-rows (notice/settlement/payment), pricing-model radio, dissolution select groups + warning box, legal-review scope toggles | ⚠ finance — screened CLEAR (co-owner cost-sharing / asset-transfer; verbatim per 2026-06-10) |
 
+### 3h — Settlement plan & onboarding (S7, ecovillage) — **community work-plan source captures**
+
+**BUILT (2026-06-12).** Two already-authored Ecovillage S7 objectives gained their captures +
+routing as the operator-facing source for the community work-plan engine
+([`generateCommunityWorkPlan.ts`](../../../../../../packages/shared/src/communityWork/generateCommunityWorkPlan.ts),
+Phase 4 consumer). Both objectives pre-existed in
+[`ecovillage.ts`](../../../../../../packages/shared/src/constants/plan/catalogues/ecovillage.ts);
+only the captures + routing were missing. S7 is not in `TIER_ZERO_OBJECTIVE_IDS`, so both ids were
+added (Phase-2-style routing). Each capture exposes a pure adapter (`settlementPhasesFrom` /
+`onboardingPipelineFrom`) producing the engine input shapes — no store, no projectId, advisory only.
+
+- **Badge namespaces:** `sp-` (settlement-plan) and `ob-` (onboarding) — deliberately **NOT** `st-`,
+  which belongs to the distinct `ev-s4-settlement-strategy` objective.
+- **Steward decisions baked in:** c5 settlement enforcement is a HARD GATE (decision 3) surfacing the
+  verbatim scopeNotes warn block; c2 onboarding trial = duration + expectations + review criteria,
+  **no** mid-trial cadence field (decision 4); c6 settlement capacityFit = manual maxPopulation +
+  display-only derived strip via siblings + confirm toggle (decision 5); c3 settlement criteria =
+  independent register seeded display-only from c2, bakes on first edit (decision 6).
+
+**Amanah — CLEAR (no capital instrument present).** Both objectives carry community-integration copy
+only (selection, trial residency, habitability thresholds, community agreements, mentorship). The
+habitability + Stratum-1 inclusion strings are transcribed **verbatim**. No advance-sale / salam /
+CSRA framing anywhere — neither objective touches capital contribution.
+
+| Mockup | Objective / item id | Arm | Action | Control primitives | Amanah |
+|---|---|---|---|---|---|
+| (operator settlement-plan surface) | `ev-s7-settlement-plan` / c1–c6 | NEW `SettlementPlanCapture` (`settlementPlanModeFor`) | **Build (2026-06-12)** — 6 modes (cohort / thresholds / criteria / schedule / capacityFit / enforcement); `sp-` badges; add id to `TIER_ZERO_OBJECTIVE_IDS`; adapter `settlementPhasesFrom` | textarea + date (cohort), threshold/criteria/schedule RegisterLists, Stepper (maxPop) + derived strip + confirm toggle, enforcer Dropdown + not-self-reported ack (hard gate), StatusPill | clear — habitability thresholds transcribed verbatim; c5 not-self-reported HARD GATE (decision 3); no capital copy |
+| (operator onboarding surface) | `ev-s7-onboarding` / c1–c6 | NEW `OnboardingCapture` (`onboardingModeFor`) | **Build (2026-06-12)** — 6 modes (application / trial / membership / orientation / inclusions / mentorship); `ob-` badges; add id to `TIER_ZERO_OBJECTIVE_IDS`; adapter `onboardingPipelineFrom` | application/orientation RegisterLists, Dropdown (trial duration) + textareas (no cadence field — decision 4), membership textareas, Stratum-1 inclusion toggles (verbatim), ChoiceCardGrid + Stepper (mentorship) | clear — Stratum-1 inclusions transcribed verbatim; community-integration only, no capital copy |
+
 ---
 
 ## Deferred — NOT workbench third-column (Plan-stage surfaces / objective triage needed)

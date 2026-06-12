@@ -268,6 +268,21 @@ import {
   type InfraConditionMode,
 } from './InfraConditionCapture.js';
 import {
+  SettlementPlanCapture,
+  settlementPlanModeFor,
+  isSettlementPlanValid,
+  summariseSettlementPlan,
+  SETTLEMENT_SCOPE_NOTES,
+  type SettlementPlanMode,
+} from './SettlementPlanCapture.js';
+import {
+  OnboardingCapture,
+  onboardingModeFor,
+  isOnboardingValid,
+  summariseOnboarding,
+  type OnboardingMode,
+} from './OnboardingCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -354,6 +369,10 @@ export interface DecisionPanelTarget {
   isSocialFabric?: boolean;
   /** true => render InfraConditionCapture (self-routing on itemId via infraConditionModeFor). */
   isInfraCondition?: boolean;
+  /** true => render SettlementPlanCapture (self-routing on itemId via settlementPlanModeFor). */
+  isSettlementPlan?: boolean;
+  /** true => render OnboardingCapture (self-routing on itemId via onboardingModeFor). */
+  isOnboarding?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -777,6 +796,25 @@ export default function DecisionWorkingPanel({
     ? infraConditionModeFor(decision.itemId)
     : null;
 
+  // Phased settlement plan is a 6-mode capture (cohort / thresholds / criteria /
+  // schedule / capacityFit / enforcement) routed by settlementPlanModeFor(itemId).
+  // Advisory only -- validates / summarises off the FormValue, writes no store /
+  // takes no projectId. c3/c6 read sibling FormValues; c5 carries the
+  // steward-decision-3 not-self-reported hard gate (its isValid returns false
+  // until acknowledged). Only the resolved mode is held here.
+  const settlementPlanMode: SettlementPlanMode | null = decision.isSettlementPlan
+    ? settlementPlanModeFor(decision.itemId)
+    : null;
+
+  // Membership onboarding is a 6-mode capture (application / trial / membership /
+  // orientation / inclusions / mentorship) routed by onboardingModeFor(itemId).
+  // Advisory only -- validates / summarises off the FormValue, writes no store /
+  // takes no projectId. Community-integration copy only; no capital instrument.
+  // Only the resolved mode is held here.
+  const onboardingMode: OnboardingMode | null = decision.isOnboarding
+    ? onboardingModeFor(decision.itemId)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -849,6 +887,12 @@ export default function DecisionWorkingPanel({
     valid = isSocialFabricValid(socialFabricMode, draft);
   } else if (infraConditionMode) {
     valid = isInfraConditionValid(infraConditionMode, draft);
+  } else if (settlementPlanMode) {
+    // c3/c6 are sibling-aware; pass siblingValues like provision does. c5 hard
+    // gate (steward decision 3) lives inside isSettlementPlanValid.
+    valid = isSettlementPlanValid(settlementPlanMode, draft, siblingValues);
+  } else if (onboardingMode) {
+    valid = isOnboardingValid(onboardingMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1023,6 +1067,37 @@ export default function DecisionWorkingPanel({
                 ? 'Choose a resolver for all 3 dispute tiers to record'
                 : 'Complete the required selections to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (settlementPlanMode) {
+      // c5 enforcement is a HARD GATE (steward decision 3): surface the verbatim
+      // scopeNotes so the operator sees WHY recording is blocked until the
+      // not-self-reported acknowledgement is on. Other modes get a short note.
+      const note =
+        settlementPlanMode === 'enforcement'
+          ? SETTLEMENT_SCOPE_NOTES
+          : settlementPlanMode === 'cohort'
+            ? 'Describe the founding cohort and set an arrival date to record'
+            : settlementPlanMode === 'thresholds'
+              ? 'Add at least one habitability threshold to record'
+              : settlementPlanMode === 'criteria'
+                ? 'Add at least one arrival criterion to record'
+                : settlementPlanMode === 'schedule'
+                  ? 'Add at least one subsequent cohort arrival to record'
+                  : 'Set a max population and confirm the capacity fit to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (onboardingMode) {
+      const note =
+        onboardingMode === 'application'
+          ? 'Add at least one application / selection step to record'
+          : onboardingMode === 'trial'
+            ? 'Set a trial duration, expectations, and review criteria to record'
+            : onboardingMode === 'membership'
+              ? 'Define membership criteria and a confirmation process to record'
+              : onboardingMode === 'orientation'
+                ? 'Add at least one orientation topic to record'
+                : onboardingMode === 'inclusions'
+                  ? 'Confirm both Stratum-1 inclusions in orientation to record'
+                  : 'Choose at least one mentorship model to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -1110,6 +1185,10 @@ export default function DecisionWorkingPanel({
       summary = summariseSocialFabric(socialFabricMode, draft, siblingValues);
     } else if (infraConditionMode) {
       summary = summariseInfraCondition(infraConditionMode, draft, siblingValues);
+    } else if (settlementPlanMode) {
+      summary = summariseSettlementPlan(settlementPlanMode, draft, siblingValues);
+    } else if (onboardingMode) {
+      summary = summariseOnboarding(onboardingMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1441,6 +1520,24 @@ export default function DecisionWorkingPanel({
           <InfraConditionCapture
             key={decision.itemId}
             mode={infraConditionMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : settlementPlanMode ? (
+          <SettlementPlanCapture
+            key={decision.itemId}
+            mode={settlementPlanMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : onboardingMode ? (
+          <OnboardingCapture
+            key={decision.itemId}
+            mode={onboardingMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

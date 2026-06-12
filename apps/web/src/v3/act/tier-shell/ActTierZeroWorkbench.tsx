@@ -327,6 +327,23 @@ export function buildDecisionTarget(
   // Advisory only -- no store write, no projectId. False for every other id.
   const isInfraCondition = item.id.startsWith('ev-s3-infra-condition-');
 
+  // Phased settlement plan is a 6-item ecovillage S7 objective
+  // (ev-s7-settlement-plan-c1..-c6); detected by id prefix. The panel's
+  // isSettlementPlan body-router arm (SettlementPlanCapture self-routes on itemId
+  // via settlementPlanModeFor) takes precedence over any matched generic form.
+  // Advisory only -- no store write, no projectId. c3/c6 read sibling values;
+  // c5 carries the steward-decision-3 not-self-reported hard gate. False for
+  // every other id.
+  const isSettlementPlan = item.id.startsWith('ev-s7-settlement-plan-');
+
+  // Membership onboarding is a 6-item ecovillage S7 objective
+  // (ev-s7-onboarding-c1..-c6); detected by id prefix. The panel's isOnboarding
+  // body-router arm (OnboardingCapture self-routes on itemId via
+  // onboardingModeFor) takes precedence over any matched generic form. Advisory
+  // only -- no store write, no projectId. Community-integration copy only; no
+  // capital instrument. False for every other id.
+  const isOnboarding = item.id.startsWith('ev-s7-onboarding-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -389,6 +406,8 @@ export function buildDecisionTarget(
     isAdaptiveManagement,
     isSocialFabric,
     isInfraCondition,
+    isSettlementPlan,
+    isOnboarding,
     deferLabel,
     deferrable,
   };

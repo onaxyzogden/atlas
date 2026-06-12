@@ -429,6 +429,101 @@ describe('buildDecisionTarget -- propagation-infra detection', () => {
   });
 });
 
+describe('buildDecisionTarget -- settlement-plan detection', () => {
+  it('flags isSettlementPlan for an ev-s7-settlement-plan-* decision', () => {
+    const spItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-settlement-plan-c1',
+      label: 'Define founding cohort composition and arrival date',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(spItem);
+    expect(target.isSettlementPlan).toBe(true);
+  });
+
+  it('flags isSettlementPlan for all c1..c6 items of ev-s7-settlement-plan', () => {
+    for (const suffix of ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']) {
+      const item: PlanDecisionChecklistItem = {
+        id: `ev-s7-settlement-plan-${suffix}`,
+        label: `Settlement plan item ${suffix}`,
+        feedsInto: [],
+        optional: false,
+      } as PlanDecisionChecklistItem;
+      expect(buildDecisionTarget(item).isSettlementPlan).toBe(true);
+    }
+  });
+
+  it('does NOT flag isSettlementPlan for the near-name ev-s4-settlement-strategy', () => {
+    const stratItem: PlanDecisionChecklistItem = {
+      id: 'ev-s4-settlement-strategy-c1',
+      label: 'Define cohort model',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(stratItem);
+    expect(target.isSettlementPlan).toBe(false);
+    // ev-s4-settlement-strategy routes to isSettlement (distinct capture)
+    expect(target.isSettlement).toBe(true);
+  });
+
+  it('does NOT flag isSettlementPlan for an exit-succession decision', () => {
+    const exitItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-exit-succession-c1',
+      label: 'Define exit process',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    expect(buildDecisionTarget(exitItem).isSettlementPlan).toBe(false);
+  });
+});
+
+describe('buildDecisionTarget -- onboarding detection', () => {
+  it('flags isOnboarding for an ev-s7-onboarding-* decision', () => {
+    const obItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-onboarding-c1',
+      label: 'Design application and selection process',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(obItem);
+    expect(target.isOnboarding).toBe(true);
+  });
+
+  it('flags isOnboarding for all c1..c6 items of ev-s7-onboarding', () => {
+    for (const suffix of ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']) {
+      const item: PlanDecisionChecklistItem = {
+        id: `ev-s7-onboarding-${suffix}`,
+        label: `Onboarding item ${suffix}`,
+        feedsInto: [],
+        optional: false,
+      } as PlanDecisionChecklistItem;
+      expect(buildDecisionTarget(item).isOnboarding).toBe(true);
+    }
+  });
+
+  it('does NOT flag isOnboarding for the settlement-plan objective', () => {
+    const spItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-settlement-plan-c1',
+      label: 'Define founding cohort',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    const target = buildDecisionTarget(spItem);
+    expect(target.isOnboarding).toBe(false);
+    expect(target.isSettlementPlan).toBe(true);
+  });
+
+  it('does NOT flag isOnboarding for an exit-succession decision', () => {
+    const exitItem: PlanDecisionChecklistItem = {
+      id: 'ev-s7-exit-succession-c1',
+      label: 'Define exit process',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    expect(buildDecisionTarget(exitItem).isOnboarding).toBe(false);
+  });
+});
+
 describe('buildDecisionTarget -- exit-succession detection', () => {
   it('flags isExitSuccession for an ev-s7-exit-succession-* decision', () => {
     const exitItem: PlanDecisionChecklistItem = {
@@ -857,7 +952,11 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
   });
 
   it('recording via the generic fallback fires onRecord with the item id', () => {
-    const objective = byId.get('ev-s7-settlement-plan')!;
+    // ev-s7-settlement-plan now routes to SettlementPlanCapture (bespoke capture,
+    // not the generic textarea). ev-s7-financial-plan has no workbenchAffordances
+    // entry and no bespoke capture flag, so its c1 items still use the generic
+    // textarea fallback and correctly test this path.
+    const objective = byId.get('ev-s7-financial-plan')!;
     const { onRecord } = renderWorkbench({
       objectives: [objective],
       activeObjectiveId: objective.id,
@@ -865,7 +964,7 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
     // The generic fallback textarea is labelled with the item's own label.
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
-      target: { value: 'Bounded settlement plan approved for cycle 1.' },
+      target: { value: 'Bounded financial plan approved for cycle 1.' },
     });
     const btn = screen.getByRole('button', {
       name: /record this decision/i,
@@ -1130,6 +1229,97 @@ describe('ActTierZeroWorkbench -- un-prioritized tail (ag-/ofg-/well-/edu-/con-/
     expect(c11).toBeDefined();
     expect(c11.label).toMatch(/Scholar Council/);
     expect(screen.getAllByText(c11.label).length).toBeGreaterThan(0);
+  });
+});
+
+describe('ActTierZeroWorkbench -- settlement-plan objective (sp- badges + no generic textarea)', () => {
+  // ev-s7-settlement-plan now has a workbenchAffordances entry with showGroups:true
+  // and modeFor returning sp-* keys. Each checklist item must show its sp-* badge
+  // and NOT render the generic fallback textarea (SettlementPlanCapture renders instead).
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+
+  it('renders sp-* mode badges on settlement-plan decision rows', () => {
+    const objective = byId.get('ev-s7-settlement-plan')!;
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // c1 -> sp-cohort badge
+    expect(screen.getByTestId('mode-badge-ev-s7-settlement-plan-c1')).toBeTruthy();
+    // c5 -> sp-enforcement badge
+    expect(screen.getByTestId('mode-badge-ev-s7-settlement-plan-c5')).toBeTruthy();
+  });
+
+  it('selecting c1 routes to SettlementPlanCapture (no generic textarea)', () => {
+    const objective = byId.get('ev-s7-settlement-plan')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // Default selection is c1; SettlementPlanCapture renders -- the composition
+    // textarea is present with its specific aria-label (not a generic fallback).
+    expect(screen.getByLabelText('Founding cohort composition')).toBeTruthy();
+    // No generic fallback textarea labelled with the item label
+    const c1 = objective.checklist[0]!;
+    expect(screen.queryByLabelText(c1.label)).toBeNull();
+  });
+
+  it('renders decision-group dividers for the settlement-plan objective', () => {
+    const objective = byId.get('ev-s7-settlement-plan')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // ev-s7-settlement-plan has a descriptor entry with showGroups:true and
+    // decisionGroups; dividers should render.
+    if (objective.decisionGroups.length > 0) {
+      expect(screen.getAllByTestId('decision-group').length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('ActTierZeroWorkbench -- onboarding objective (ob- badges + no generic textarea)', () => {
+  // ev-s7-onboarding now has a workbenchAffordances entry with showGroups:true
+  // and modeFor returning ob-* keys.
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+
+  it('renders ob-* mode badges on onboarding decision rows', () => {
+    const objective = byId.get('ev-s7-onboarding')!;
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // c1 -> ob-application badge
+    expect(screen.getByTestId('mode-badge-ev-s7-onboarding-c1')).toBeTruthy();
+    // c5 -> ob-mentorship badge
+    expect(screen.getByTestId('mode-badge-ev-s7-onboarding-c5')).toBeTruthy();
+  });
+
+  it('selecting c1 routes to OnboardingCapture (no generic textarea)', () => {
+    const objective = byId.get('ev-s7-onboarding')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // Default selection is c1 (application); OnboardingCapture renders --
+    // the "Add step" button from RegisterList is present (not a generic textarea).
+    expect(screen.getByText(/Add step/i)).toBeTruthy();
+    // No generic fallback textarea labelled with the c1 item label
+    const c1 = objective.checklist[0]!;
+    expect(screen.queryByLabelText(c1.label)).toBeNull();
+  });
+
+  it('renders decision-group dividers for the onboarding objective', () => {
+    const objective = byId.get('ev-s7-onboarding')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    if (objective.decisionGroups.length > 0) {
+      expect(screen.getAllByTestId('decision-group').length).toBeGreaterThan(0);
+    }
   });
 });
 

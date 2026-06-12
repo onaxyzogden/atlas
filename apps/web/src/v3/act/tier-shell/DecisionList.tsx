@@ -281,6 +281,25 @@ const MODE_LABELS: Record<string, string> = {
   'es-dissolution': 'Dissolution',
   'es-legalReview': 'Legal review',
 
+  // Phased settlement plan (ev-s7-settlement-plan) badge labels. Keys namespaced
+  // "sp-" by workbenchAffordances (NOT "st-", which belongs to
+  // ev-s4-settlement-strategy). 6 modes from settlementPlanModeFor.
+  'sp-cohort': 'Founding cohort',
+  'sp-thresholds': 'Habitability thresholds',
+  'sp-criteria': 'Arrival criteria',
+  'sp-schedule': 'Arrival schedule',
+  'sp-capacityFit': 'Capacity fit',
+  'sp-enforcement': 'Threshold enforcement',
+
+  // Membership onboarding & integration (ev-s7-onboarding) badge labels. Keys
+  // namespaced "ob-" by workbenchAffordances. 6 modes from onboardingModeFor.
+  'ob-application': 'Application',
+  'ob-trial': 'Trial residency',
+  'ob-membership': 'Membership',
+  'ob-orientation': 'Orientation',
+  'ob-inclusions': 'Stratum-1 inclusions',
+  'ob-mentorship': 'Mentorship',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The

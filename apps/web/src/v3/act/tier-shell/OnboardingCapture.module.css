@@ -1,0 +1,219 @@
+/* OnboardingCapture.module.css
+ *
+ * Styles for the 6-mode onboarding capture (application / trial / membership /
+ * orientation / inclusions / mentorship) of objective ev-s7-onboarding. Renders
+ * in the LIGHT workbench; palette maps to design tokens with hex fallbacks
+ * rather than raw hues. ASCII-only; every glyph is a lucide icon. No bare hex
+ * outside a var() fallback or a scoped accent var.
+ */
+
+.root {
+  --ob-teal: var(--color-stage-plan, #38a3a5);
+  --ob-info: var(--color-info, #5b8eaf);
+  --ob-ok: var(--color-success, #3f8f5b);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeHint {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hintInline {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 9.5px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- Shared labelled row ---------- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.rowLbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Inputs ---------- */
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 56px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ob-teal) 50%, transparent);
+  outline-offset: 1px;
+}
+
+/* ---------- Register rows ---------- */
+
+.regRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.orientMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.regInput {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 4px);
+  padding: 6px 8px;
+}
+
+.regInputSm {
+  box-sizing: border-box;
+  min-width: 0;
+  flex: 1 1 120px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 4px);
+  padding: 6px 8px;
+}
+
+.regInput:focus-visible,
+.regInputSm:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ob-teal) 50%, transparent);
+  outline-offset: 1px;
+}
+
+/* ---------- c6 inclusions (verbatim Stratum-1 toggles) ---------- */
+
+.inclusionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inclusionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 9px 11px;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.inclusionRow:hover {
+  border-color: var(--color-text-muted, #565c63);
+}
+
+.inclusionRow[data-on='true'] {
+  background: color-mix(in srgb, var(--ob-ok) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ob-ok) 40%, transparent);
+}
+
+.signDot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  flex-shrink: 0;
+  margin-top: 3px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.inclusionRow[data-on='true'] .signDot {
+  background: var(--ob-ok);
+  border-color: var(--ob-ok);
+}
+
+.inclusionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inclusionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1b1e22);
+}
+
+.inclusionDesc {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.45;
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--ob-info) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ob-info) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--ob-info);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--ob-info);
+  font-weight: 500;
+}

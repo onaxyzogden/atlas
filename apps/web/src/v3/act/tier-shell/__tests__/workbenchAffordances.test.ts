@@ -18,6 +18,8 @@ import { livestockIntentModeFor } from '../LivestockIntentCapture.js';
 import { propagationInfraModeFor } from '../PropagationInfraCapture.js';
 import { socialFabricModeFor } from '../SocialFabricCapture.js';
 import { infraConditionModeFor } from '../InfraConditionCapture.js';
+import { settlementPlanModeFor } from '../SettlementPlanCapture.js';
+import { onboardingModeFor } from '../OnboardingCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -225,6 +227,71 @@ describe('workbenchAffordancesFor -- ev-s3-infra-condition', () => {
     // The bare objective id (no -cN suffix) and a sibling id return null.
     expect(aff.modeFor!('ev-s3-infra-condition')).toBeNull();
     expect(aff.modeFor!('ev-s2-social-fabric-c1')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- ev-s7-settlement-plan', () => {
+  const aff = workbenchAffordancesFor('ev-s7-settlement-plan');
+
+  it('carries no strips, shows decision groups, and provides a non-null modeFor', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces settlement-plan modes "sp-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 -> cohort, namespaced sp-cohort
+    const got = aff.modeFor!('ev-s7-settlement-plan-c1');
+    expect(got).toBe('sp-cohort');
+    expect(got).toBe(`sp-${settlementPlanModeFor('ev-s7-settlement-plan-c1')}`);
+    // All 6 modes
+    expect(aff.modeFor!('ev-s7-settlement-plan-c2')).toBe('sp-thresholds');
+    expect(aff.modeFor!('ev-s7-settlement-plan-c3')).toBe('sp-criteria');
+    expect(aff.modeFor!('ev-s7-settlement-plan-c4')).toBe('sp-schedule');
+    expect(aff.modeFor!('ev-s7-settlement-plan-c6')).toBe('sp-capacityFit');
+    expect(aff.modeFor!('ev-s7-settlement-plan-c5')).toBe('sp-enforcement');
+    // Prefix guard: the near-name settlement-strategy returns null
+    expect(aff.modeFor!('ev-s4-settlement-strategy-c1')).toBeNull();
+  });
+
+  it('NEGATIVE: near-name ev-s4-settlement-strategy has a DIFFERENT namespace (st-) in its own descriptor', () => {
+    const strategyAff = workbenchAffordancesFor('ev-s4-settlement-strategy');
+    // ev-s4-settlement-strategy uses st- namespace; ev-s7-settlement-plan uses sp-
+    expect(strategyAff.modeFor).not.toBeNull();
+    const strategyMode = strategyAff.modeFor!('ev-s4-settlement-strategy-c1');
+    expect(strategyMode).not.toBeNull();
+    expect(strategyMode!.startsWith('st-')).toBe(true);
+    // The settlement-plan affordance must NOT accept a settlement-strategy id
+    expect(aff.modeFor!('ev-s4-settlement-strategy-c1')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- ev-s7-onboarding', () => {
+  const aff = workbenchAffordancesFor('ev-s7-onboarding');
+
+  it('carries no strips, shows decision groups, and provides a non-null modeFor', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces onboarding modes "ob-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 -> application, namespaced ob-application
+    const got = aff.modeFor!('ev-s7-onboarding-c1');
+    expect(got).toBe('ob-application');
+    expect(got).toBe(`ob-${onboardingModeFor('ev-s7-onboarding-c1')}`);
+    // All 6 modes
+    expect(aff.modeFor!('ev-s7-onboarding-c2')).toBe('ob-trial');
+    expect(aff.modeFor!('ev-s7-onboarding-c3')).toBe('ob-membership');
+    expect(aff.modeFor!('ev-s7-onboarding-c4')).toBe('ob-orientation');
+    expect(aff.modeFor!('ev-s7-onboarding-c6')).toBe('ob-inclusions');
+    expect(aff.modeFor!('ev-s7-onboarding-c5')).toBe('ob-mentorship');
+    // Prefix guard: the settlement-plan objective returns null here
+    expect(aff.modeFor!('ev-s7-settlement-plan-c1')).toBeNull();
+    // Bare objective id returns null
+    expect(aff.modeFor!('ev-s7-onboarding')).toBeNull();
   });
 });
 

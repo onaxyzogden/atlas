@@ -41,6 +41,8 @@ import { adaptiveManagementModeFor } from './AdaptiveManagementCapture.js';
 import { exitSuccessionModeFor } from './ExitSuccessionCapture.js';
 import { socialFabricModeFor } from './SocialFabricCapture.js';
 import { infraConditionModeFor } from './InfraConditionCapture.js';
+import { settlementPlanModeFor } from './SettlementPlanCapture.js';
+import { onboardingModeFor } from './OnboardingCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -431,6 +433,45 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s7-exit-succession-')) return null;
       const m = exitSuccessionModeFor(itemId);
       return m ? `es-${m}` : null;
+    },
+  },
+
+  // Phased settlement plan (ev-s7-settlement-plan, ref EV-S7.4): 6 decisions
+  // grouped (showGroups true); no map/register strips. Advisory form-only -- the
+  // capture writes no store and takes no projectId. settlementPlanModeFor returns
+  // mode keys (cohort / thresholds / criteria / schedule / capacityFit /
+  // enforcement); badge keys are namespaced "sp-" HERE (NOT "st-", which belongs
+  // to the distinct ev-s4-settlement-strategy objective). The affordance modeFor
+  // feeds the badge only; DecisionWorkingPanel routes off its own
+  // settlementPlanModeFor independently, and DecisionList carries matching sp-*
+  // labels.
+  'ev-s7-settlement-plan': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s7-settlement-plan-')) return null;
+      const m = settlementPlanModeFor(itemId);
+      return m ? `sp-${m}` : null;
+    },
+  },
+
+  // Membership onboarding & integration (ev-s7-onboarding, ref EV-S7.7): 6
+  // decisions grouped (showGroups true); no map/register strips. Advisory
+  // form-only -- the capture writes no store and takes no projectId.
+  // onboardingModeFor returns mode keys (application / trial / membership /
+  // orientation / inclusions / mentorship); badge keys are namespaced "ob-" HERE.
+  // The affordance modeFor feeds the badge only; DecisionWorkingPanel routes off
+  // its own onboardingModeFor independently, and DecisionList carries matching
+  // ob-* labels.
+  'ev-s7-onboarding': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s7-onboarding-')) return null;
+      const m = onboardingModeFor(itemId);
+      return m ? `ob-${m}` : null;
     },
   },
 
