@@ -213,7 +213,16 @@ Pinned 2026-06-12 (orch- close, commit `a4197f40`): `no-path` 440, `orch-` and
 joined `TIER_ZERO_OBJECTIVE_IDS` (39 -> 47). The audit's "map arm" suggestions
 on ~8 orch items were vocabulary, not mechanism (items reference zones/site but
 capture decisions/confirmations, never geometry); the catalogue read is
-authoritative over the report's suggested-capture heuristic. Next tier: `silv-`.
+authoritative over the report's suggested-capture heuristic.
+Pinned 2026-06-12 (silv-/nur-sec-/hms- close, commit `59869ce8`): `no-path` 382,
+`silv-`/`silv-sec-`/`nur-sec-`/`hms-` prefixes all 0, evidence-backed 532 -- the
+final 11 priority-tier objectives joined `TIER_ZERO_OBJECTIVE_IDS` (47 -> 58).
+**The committed priority list (universal -> ev- -> orch- -> silv- -> nur-sec- ->
+hms-) is COMPLETE**; remaining no-path is the un-prioritized tail (`ag-` 76,
+`ofg-` 66, `well-` 55, `edu-` 48, `con-` 44, `lvs-` 40, ...) -- next-tier
+selection is a fresh operator decision. `nur-sec-s1-water-survey` is the
+membership set's first measurement/survey-flavored member (textarea honest for
+recorded test results; bespoke log capture deferred).
 Decisions:
 [decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md),
 [decisions/2026-06-12-atlas-workbench-capture-gap-closure.md](../decisions/2026-06-12-atlas-workbench-capture-gap-closure.md).
