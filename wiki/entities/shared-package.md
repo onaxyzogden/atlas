@@ -208,6 +208,12 @@ commit `ae3a72be`): `no-path` 484, `ev-` prefix 0, `workbench-capture` 198,
 evidence-backed 430 -- 10 ecovillage decision objectives joined the app-layer
 `TIER_ZERO_OBJECTIVE_IDS` (29 -> 39), closing the entire `ev-` no-path tier via
 workbench membership alone (all 10 non-spatial, plain `ck()`, already grouped).
+Pinned 2026-06-12 (orch- close, commit `a4197f40`): `no-path` 440, `orch-` and
+`orch-sec-` prefixes 0, evidence-backed 474 -- 8 orchard decision objectives
+joined `TIER_ZERO_OBJECTIVE_IDS` (39 -> 47). The audit's "map arm" suggestions
+on ~8 orch items were vocabulary, not mechanism (items reference zones/site but
+capture decisions/confirmations, never geometry); the catalogue read is
+authoritative over the report's suggested-capture heuristic. Next tier: `silv-`.
 Decisions:
 [decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md),
 [decisions/2026-06-12-atlas-workbench-capture-gap-closure.md](../decisions/2026-06-12-atlas-workbench-capture-gap-closure.md).
