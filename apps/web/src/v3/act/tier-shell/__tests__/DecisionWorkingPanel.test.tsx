@@ -1218,14 +1218,17 @@ describe('DecisionWorkingPanel -- defer label regression', () => {
     ).toBeTruthy();
   });
 
-  it('shows the legacy deferred string when a non-steward target is deferred', () => {
+  it('shows the deferred-state string ("On hold", not "Deferred") when a non-steward target is deferred', () => {
+    // The deferred-state label avoids "Deferred" so it does not collide with
+    // Plan's objective-level "Deferred" status (the workbench renders in Plan).
     renderPanel({
       decision: makeDecision({ isSuccessCriteria: true }),
       deferred: true,
     });
     expect(
-      screen.getByRole('button', { name: /deferred -- needs observation/i }),
+      screen.getByRole('button', { name: /on hold -- needs observation/i }),
     ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /deferred/i })).toBeNull();
   });
 });
 

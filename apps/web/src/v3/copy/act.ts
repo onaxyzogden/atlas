@@ -22,7 +22,10 @@ export const ACT_COPY = {
     whyThese: "Why these?",
     whyTheseOptional: "(optional)",
     deferActive: "Not ready -- needs more observation",
-    deferDeferred: "Deferred -- needs observation",
+    // Deferred-state label. Avoids the word "Deferred" so it does not collide
+    // with Plan's objective-level "Deferred" status (left-rail card + Restore);
+    // the workbench now renders only in Plan, so this is the item-level affordance.
+    deferDeferred: "On hold -- needs observation",
     /** Toggled-state label when a decision carries a custom defer label. */
     addLater: "Will add later",
     decisionPlaceholder: "Capture this decision in your own words.",
