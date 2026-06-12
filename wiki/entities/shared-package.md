@@ -223,6 +223,18 @@ hms-) is COMPLETE**; remaining no-path is the un-prioritized tail (`ag-` 76,
 selection is a fresh operator decision. `nur-sec-s1-water-survey` is the
 membership set's first measurement/survey-flavored member (textarea honest for
 recorded test results; bespoke log capture deferred).
+Pinned 2026-06-12 (tail close, commit `8bb95559`): **`no-path` 0 -- the audit's
+gap-closure arc is COMPLETE**; evidence-backed 914 of 2029 items;
+objective-level-only 1115; 4 known unmatched form arms remain. The entire
+un-prioritized tail (68 objectives / 10 prefixes) joined `TIER_ZERO_OBJECTIVE_IDS`
+(58 -> 126) in one slice per explicit operator ruling, including the two
+fiqh-flagged objectives with guardrails verbatim (`ag-s4-revenue-model` c7-c11
+Scholar Council-gated -- c11 label pinned by render test; `lvs-s7-marketing` c3
+herd-share/CSA flag). All 68 verified plain `ck()` with zero special-kind items.
+New rendering fact: `DecisionList` group dividers fire per label *transition* in
+checklist order, not per group (`ag-s4-revenue-model`: 4 non-contiguous groups ->
+6 dividers). Remaining work on this front is bespoke captures only (operator
+mockups pending).
 Decisions:
 [decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md),
 [decisions/2026-06-12-atlas-workbench-capture-gap-closure.md](../decisions/2026-06-12-atlas-workbench-capture-gap-closure.md).
