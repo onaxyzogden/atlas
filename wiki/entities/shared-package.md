@@ -191,14 +191,21 @@ re-exports the alias); re-exported from this subpath.
 ## Completion-path classifier (`relationships/objectiveCompletionPaths.ts`)
 **Added 2026-06-11** to the `@ogden/shared/relationships` subpath. Per-item
 classification of how a checklist item can be completed in-app:
-`auto-answer | auto-formula | form-capture | objective-map | objective-log |
-objective-flow | no-path` (only the first three are per-item
-evidence-backed). Takes an injected `ActToolArmIndex` (shared can't import
-the app-layer tool catalog). Consumed by the web ratchet test
+`auto-answer | auto-formula | form-capture | workbench-capture |
+objective-map | objective-log | objective-flow | no-path` (only the first
+four are per-item evidence-backed). Takes an injected `ActToolArmIndex`
+(shared can't import the app-layer tool catalog) and, since 2026-06-12, an
+injected `workbenchObjectiveIds: ReadonlySet<string>` (`ClassifyOptions`) —
+every item of a member objective classifies `workbench-capture` unless an
+`auto-*` or matching form arm beats it; callers inject the app-layer
+`TIER_ZERO_OBJECTIVE_IDS`. Consumed by the web ratchet test
 (`completionPathAudit.ratchet.test.ts` + pinned `completionPathGaps.baseline.json`)
 and `scripts/audit-checklist-completion-paths.ts` (`--write-baseline`).
-Pinned 2026-06-11: 2029 items / 355 objectives, 610 `no-path`. Decision:
-[decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md).
+Pinned 2026-06-11: 2029 items / 355 objectives, 610 `no-path`.
+Pinned 2026-06-12: `no-path` 546, universal prefix 0, `workbench-capture`
+136, evidence-backed 368. Decisions:
+[decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md),
+[decisions/2026-06-12-atlas-workbench-capture-gap-closure.md](../decisions/2026-06-12-atlas-workbench-capture-gap-closure.md).
 
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration
