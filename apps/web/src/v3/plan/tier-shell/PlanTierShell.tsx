@@ -103,6 +103,13 @@ import {
   isTierZeroObjective,
   isTierZeroObjectiveId,
 } from '../../act/tier-shell/tierZeroObjectives.js';
+// s2-ecology / s2-terrain survey map takeover (mirrors ActTierShell). Stores are
+// shell-agnostic singletons keyed by projectId; the panels are the Act survey
+// panels reused unchanged. The layer/draw-host mount inside VisionLayoutCanvas.
+import VegetationSurveyPanel from '../../act/ecology/VegetationSurveyPanel.js';
+import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.js';
+import SlopeSurveyPanel from '../../act/terrain/SlopeSurveyPanel.js';
+import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
 import ActFlowConnectorPopover from '../../act/asBuilt/ActFlowConnectorPopover.js';
 import { decodeSteward, stewardInvitesToQueued } from '../../act/tier-shell/StewardCapture.js';
 import { FORAGE_PREFIX, planForagePaddockReconcile } from '../../act/tier-shell/ForageCapture.js';
@@ -290,16 +297,34 @@ export default function PlanTierShell() {
     ? objectiveStatuses[selectedObjective.id] ?? 'locked'
     : 'locked';
 
+  // s2-ecology / s2-terrain draw-on-map survey takeover (mirrors ActTierShell:433-447).
+  // When a survey is open for THIS project AND its objective is the active route,
+  // the Tier-0 workbench yields to the editable map canvas (see the
+  // showTierZeroWorkbench gate below) so the steward can draw community/slope
+  // polygons; the right rail swaps to the survey panel and VisionLayoutCanvas
+  // mounts the survey layer + draw host. The store stays "open" but latent on
+  // other objectives, so returning to s2-ecology/s2-terrain resumes the survey.
+  const surveyOpen = useVegetationSurveyStore(
+    (s) => s.active && s.activeProjectId === id,
+  );
+  const surveyActive = surveyOpen && objectiveId === 's2-ecology';
+  const slopeOpen = useSlopeSurveyStore(
+    (s) => s.active && s.activeProjectId === id,
+  );
+  const slopeActive = slopeOpen && objectiveId === 's2-terrain';
+
   // Tier-0 swap flag: render the interactive decision workbench in place of the
   // editable map canvas when the selected objective is a non-spatial Tier-0 one
   // ("Plan decides" — the workbench moved here from Act). Keyed off the
   // URL-synchronous objectiveId first so a cold deep-link never transiently
   // mounts VisionLayoutCanvas (WebGL) before objectives hydrate; falls back to
-  // the resolved-objective check for in-app selections. Plan has no
-  // survey/slope map-takeover stores, so (unlike Act) there are no guards here.
+  // the resolved-objective check for in-app selections. An armed survey on
+  // s2-ecology/s2-terrain suppresses the workbench so the map takeover wins.
   const showTierZeroWorkbench =
-    isTierZeroObjectiveId(objectiveId) ||
-    (selectedObjective != null && isTierZeroObjective(selectedObjective));
+    (isTierZeroObjectiveId(objectiveId) ||
+      (selectedObjective != null && isTierZeroObjective(selectedObjective))) &&
+    !surveyActive &&
+    !slopeActive;
 
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
@@ -722,12 +747,31 @@ export default function PlanTierShell() {
                     centroid={fallbackCenter}
                     boundary={boundary}
                     view={activeView}
+                    surveyActive={surveyActive}
+                    slopeActive={slopeActive}
+                    sourceObjectiveId={objectiveId}
                   />
                   <PlanPhaseTabs active={activeView} onChange={setActiveView} />
                 </div>
               )
             }
             rightRail={
+              // Survey rail takeover (mirrors ActTierShell:1126-1139): while a
+              // survey is armed on s2-ecology/s2-terrain, the panel replaces the
+              // dashboard/detail toggle. Done in the panel clears the store.
+              surveyActive ? (
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <VegetationSurveyPanel projectId={id} />
+                  </div>
+                </div>
+              ) : slopeActive ? (
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <SlopeSurveyPanel projectId={id} />
+                  </div>
+                </div>
+              ) : (
               <div className={styles.rightRail}>
                 <div
                   className={styles.rightToggle}
@@ -784,6 +828,7 @@ export default function PlanTierShell() {
                   )}
                 </div>
               </div>
+              )
             }
             bottomTray={
               showTierZeroWorkbench ? undefined : (

@@ -55,6 +55,14 @@ import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
 import PlanSelectionFloater from '../PlanSelectionFloater.js';
+// s2-ecology / s2-terrain survey map takeover (mirrors ActTierShell). These four
+// hosts are the Act survey components, reused unchanged — they only need the
+// MapLibre `map` this canvas owns privately, so they mount inside the DiagnoseMap
+// render-prop here rather than in PlanTierShell.
+import VegetationSurveyLayer from '../../act/ecology/VegetationSurveyLayer.js';
+import VegetationSurveyDrawHost from '../../act/ecology/VegetationSurveyDrawHost.js';
+import SlopeSurveyLayer from '../../act/terrain/SlopeSurveyLayer.js';
+import SlopeSurveyDrawHost from '../../act/terrain/SlopeSurveyDrawHost.js';
 import type { PlanView } from '../types.js';
 
 /**
@@ -72,6 +80,16 @@ interface Props {
   centroid: [number, number];
   boundary: GeoJSON.Polygon | undefined;
   view: PlanView;
+  /**
+   * s2-ecology vegetation-survey takeover armed: mount the survey layer +
+   * draw host on this canvas (PlanTierShell drives the flag from the shared
+   * vegetationSurveyStore). Defaulted off so non-Plan callers are unaffected.
+   */
+  surveyActive?: boolean;
+  /** s2-terrain slope-survey takeover armed (slopeSurveyStore). */
+  slopeActive?: boolean;
+  /** Active objective id, stamped onto survey polygons as their source. */
+  sourceObjectiveId?: string | null;
 }
 
 interface DrawHostProps {
@@ -104,6 +122,9 @@ export default function VisionLayoutCanvas({
   centroid,
   boundary,
   view,
+  surveyActive = false,
+  slopeActive = false,
+  sourceObjectiveId = null,
 }: Props) {
   // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
   // Vision draw lifecycle mounts only when the mapped kind is non-null.
@@ -225,6 +246,38 @@ export default function VisionLayoutCanvas({
             parcelBoundary={boundary}
             variant="vision"
           />
+          {/*
+            s2-ecology-c1 vegetation survey takeover (Plan): the layer renders
+            every drawn community polygon; the draw host arms only when the
+            `act.ecology.veg-survey` tool is active (prefix-guarded), writing to
+            the shared vegetationSurveyStore. Both reuse the Act components
+            unchanged. Mounted here because they need this canvas's `map`.
+          */}
+          {surveyActive && (
+            <>
+              <VegetationSurveyLayer map={map} projectId={projectId} />
+              <VegetationSurveyDrawHost
+                map={map}
+                projectId={projectId}
+                sourceObjectiveId={sourceObjectiveId}
+              />
+            </>
+          )}
+          {/*
+            s2-terrain-c2 slope survey takeover (Plan): same shape as the
+            vegetation survey; the draw host arms on the `act.terrain.slope-*`
+            tools (the armed tool encodes the class), writing to slopeSurveyStore.
+          */}
+          {slopeActive && (
+            <>
+              <SlopeSurveyLayer map={map} projectId={projectId} />
+              <SlopeSurveyDrawHost
+                map={map}
+                projectId={projectId}
+                sourceObjectiveId={sourceObjectiveId}
+              />
+            </>
+          )}
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}
