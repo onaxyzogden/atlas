@@ -32,6 +32,8 @@ import {
 import { findElementSpec } from '../elementCatalog.js';
 import type { DesignCategory } from '../elementCatalog.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
+import { gatePlacement } from '../../validation/placementGate.js';
+import type { PlacementGeometry } from '../../validation/placementContext.js';
 
 /**
  * Maps a design-element category to the Plan objective (module) it belongs to.
@@ -72,10 +74,41 @@ interface Props {
    *  Null = full design-element set (no focus). Mirrors the strict
    *  single-objective rail/overlay focus. */
   activeModule?: PlanModule | null;
+  /** Parcel boundary for the drag-move placement gate's containment rule.
+   *  Only threaded on editable mounts (Plan Current); other mounts leave it
+   *  undefined and the boundary rule no-ops on drag re-validation. */
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const SOURCE_PREFIX = 'design-el-';
 const LAYER_PREFIX = 'design-el-';
+
+/**
+ * Representative anchor for the drag-move placement gate — mirrors
+ * `dragGateAnchor` in PlanDataLayers: Point = the point, LineString = the
+ * middle vertex, Polygon = turf centroid. Null (degenerate geometry) means
+ * the move commits ungated, same as the draw tools' fall-through.
+ */
+function dragGateAnchor(
+  geom: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon,
+): [number, number] | null {
+  try {
+    if (geom.type === 'Point') {
+      const [lng, lat] = geom.coordinates;
+      return lng != null && lat != null ? [lng, lat] : null;
+    }
+    if (geom.type === 'LineString') {
+      const mid = geom.coordinates[Math.floor(geom.coordinates.length / 2)];
+      const lng = mid?.[0];
+      const lat = mid?.[1];
+      return lng != null && lat != null ? [lng, lat] : null;
+    }
+    const [lng, lat] = turf.centroid(geom).geometry.coordinates;
+    return lng != null && lat != null ? [lng, lat] : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function DesignElementLayers({
   map,
@@ -85,6 +118,7 @@ export default function DesignElementLayers({
   onHoverChange,
   onSelect,
   activeModule = null,
+  parcelBoundary,
 }: Props) {
   // Opt into draft rows so the generated-design review layer renders;
   // every other consumer excludes drafts by default (ADR 2026-05-14).
@@ -583,9 +617,53 @@ export default function DesignElementLayers({
       const onUp = () => {
         map.off('mousemove', onMove);
         map.off('mouseup', onUp);
+        const d = down;
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
+        if (!d?.dragging) return;
+
+        // Drag-move re-validation (mouseup only — never on mousemove). The
+        // live mousemove writes already left the final geometry in the
+        // store; gate it as the same {kind, category} candidate the draw
+        // tool used, so draw-time and move-time rules can't diverge. There
+        // is no zundo temporal middleware on designElementsStore, so no
+        // undo-window protocol applies: a rejected (or warn-cancelled) move
+        // simply restores the original geometry.
+        const el2 = getDesignElementsForProject(projectId).find(
+          (x) => x.id === d.id,
+        );
+        if (!el2) return;
+        const finalGeom = el2.geometry;
+        const anchor = dragGateAnchor(finalGeom);
+        if (!anchor) return; // degenerate — ungated commit, mirrors draw fall-through
+        const spec = findElementSpec(el2.kind);
+        void (async () => {
+          const gate = await gatePlacement(
+            finalGeom as PlacementGeometry,
+            { kind: el2.kind, category: spec?.category ?? 'custom' },
+            {
+              projectId,
+              anchor,
+              boundary: parcelBoundary ?? null,
+              excludeFeatureId: d.id,
+            },
+          );
+          if (!gate.ok) {
+            // Block, or steward cancelled the warn dialog — the gate's
+            // toast/dialog already explained why. Snap back.
+            updateDesignElement(projectId, d.id, { geometry: d.origGeom });
+            return;
+          }
+          if (gate.acknowledgments?.length) {
+            updateDesignElement(projectId, d.id, {
+              placementAcknowledgments: [
+                ...(el2.placementAcknowledgments ?? []),
+                ...gate.acknowledgments,
+              ],
+            });
+          }
+        })();
       };
 
       map.on('mousemove', onMove);
@@ -609,7 +687,7 @@ export default function DesignElementLayers({
         /* map disposed */
       }
     };
-  }, [map, projectId, onSelect]);
+  }, [map, projectId, onSelect, parcelBoundary]);
 
   // Drive feature-state highlight off selectedId. Re-runs on FC changes
   // because source.setData() wipes feature-state.

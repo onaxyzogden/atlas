@@ -100,7 +100,12 @@ import type { StructureType } from '@ogden/shared';
 import type { PlanModule } from '../types.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
-import { beginDragUndoWindow } from './dragUndo.js';
+import { beginDragUndoWindow, type DragUndoWindow } from './dragUndo.js';
+import {
+  gatePlacement,
+  type PlacementAcknowledgment,
+} from '../validation/placementGate.js';
+import type { PlacementGeometry } from '../validation/placementContext.js';
 import { setCursorIntent } from '../canvas/mapCursorIntentStore.js';
 import {
   buildZoneEditSchema,
@@ -130,6 +135,79 @@ function silvopastureHostOptions(projectId: string) {
   );
 }
 
+/**
+ * Re-validate a drag-move against the placement rules before committing
+ * the undo window (Phase 3.5 of the 2026-06-11 placement plan). Runs on
+ * mouseup only — never during the drag. Outcomes:
+ *   - block, or warn cancelled in the dialog → restore the original
+ *     geometry via `applyOrig` while temporal recording is still paused,
+ *     then `cancel()` the window, so the aborted drag leaves no undo
+ *     entry (the gate's toast / dialog already told the steward why);
+ *   - clean or warn acknowledged → commit as before, with any new
+ *     acknowledgments handed to `applyFinal` to merge onto the record.
+ * The moved feature passes its own id as `excludeFeatureId` so distance
+ * rules don't measure it against itself. While the warn dialog is open
+ * the feature stays at the dragged position as a live preview.
+ */
+function gateDragCommit(opts: {
+  geometry: GeoJSON.Geometry;
+  candidate: { kind: string; category: string };
+  projectId: string;
+  boundary: GeoJSON.Polygon | undefined;
+  excludeFeatureId: string;
+  undoWindow: DragUndoWindow;
+  applyOrig: () => void;
+  applyFinal: (acks?: PlacementAcknowledgment[]) => void;
+}): void {
+  const anchor = dragGateAnchor(opts.geometry);
+  if (!anchor) {
+    // Degenerate geometry — commit ungated, mirroring the draw tools'
+    // anchor-failure fall-through.
+    opts.undoWindow.commit(opts.applyOrig, () => opts.applyFinal());
+    return;
+  }
+  void (async () => {
+    const gate = await gatePlacement(
+      opts.geometry as PlacementGeometry,
+      opts.candidate,
+      {
+        projectId: opts.projectId,
+        anchor,
+        boundary: opts.boundary ?? null,
+        excludeFeatureId: opts.excludeFeatureId,
+      },
+    );
+    if (!gate.ok) {
+      opts.applyOrig();
+      opts.undoWindow.cancel();
+      return;
+    }
+    opts.undoWindow.commit(opts.applyOrig, () => opts.applyFinal(gate.acknowledgments));
+  })();
+}
+
+/** Dialog/toast anchor for a moved feature: point coords, line midpoint,
+ *  polygon centroid. Null on degenerate geometry (caller skips the gate). */
+function dragGateAnchor(geom: GeoJSON.Geometry): [number, number] | null {
+  try {
+    if (geom.type === 'Point') return geom.coordinates as [number, number];
+    if (geom.type === 'LineString') {
+      const coords = geom.coordinates;
+      if (coords.length === 0) return null;
+      return coords[Math.floor(coords.length / 2)] as [number, number];
+    }
+    if (geom.type === 'Polygon') {
+      return turf.centroid(turf.feature(geom)).geometry.coordinates as [
+        number,
+        number,
+      ];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 interface Props {
   map: MaplibreMap;
   projectId: string;
@@ -140,6 +218,12 @@ interface Props {
    * relocated. Defaults to true (Plan stage behavior).
    */
   editable?: boolean;
+  /**
+   * Parcel boundary for the drag-move placement gate's containment rule.
+   * Only meaningful on editable mounts (the Plan Current map); read-only
+   * mounts omit it and the gate never runs there anyway.
+   */
+  parcelBoundary?: GeoJSON.Polygon;
   /**
    * When a single Plan objective is focused in the map (via the compass's
    * "Open on Map"), only features belonging to that module stay rendered —
@@ -300,6 +384,7 @@ export default function PlanDataLayers({
   map,
   projectId,
   editable = true,
+  parcelBoundary,
   activeModule = null,
 }: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
@@ -1968,16 +2053,35 @@ export default function PlanDataLayers({
         map.dragPan.enable();
         setCursorIntent(null);
         if (wasDrag) {
-          undoWindow.commit(
-            () => updateGuild(id2, { center: origCenter }),
-            () =>
+          const finalCenter: [number, number] = [
+            origCenter[0] + lastDLng,
+            origCenter[1] + lastDLat,
+          ];
+          gateDragCommit({
+            geometry: { type: 'Point', coordinates: finalCenter },
+            candidate: { kind: 'guild', category: 'vegetation' },
+            projectId,
+            boundary: parcelBoundary,
+            excludeFeatureId: id2,
+            undoWindow,
+            applyOrig: () => updateGuild(id2, { center: origCenter }),
+            applyFinal: (acks) => {
+              const cur = usePolycultureStore
+                .getState()
+                .guilds.find((x) => x.id === id2);
               updateGuild(id2, {
-                center: [
-                  origCenter[0] + lastDLng,
-                  origCenter[1] + lastDLat,
-                ],
-              }),
-          );
+                center: finalCenter,
+                ...(acks?.length
+                  ? {
+                      placementAcknowledgments: [
+                        ...(cur?.placementAcknowledgments ?? []),
+                        ...acks,
+                      ],
+                    }
+                  : {}),
+              });
+            },
+          });
           return;
         }
         const anchor: [number, number] = ev?.lngLat
@@ -2060,7 +2164,7 @@ export default function PlanDataLayers({
         /* map already disposed */
       }
     };
-  }, [map, activeTool, setSelection, updateGuild, openForm, editable]);
+  }, [map, activeTool, setSelection, updateGuild, openForm, editable, projectId, parcelBoundary]);
 
   // Per-member drag-to-place + click-to-edit on guild member dots. Mirrors
   // the guild centroid block above; the write target is
@@ -2769,21 +2873,44 @@ export default function PlanDataLayers({
         map.dragPan.enable();
         setCursorIntent(null);
         if (wasDrag) {
-          undoWindow.commit(
-            () =>
+          const finalGeom = translateByDelta(origGeom, lastDLng, lastDLat);
+          const finalCenter: [number, number] = [
+            origCenter[0] + lastDLng,
+            origCenter[1] + lastDLat,
+          ];
+          // Gate as the record's actual type — a moved 'well' must
+          // re-check the block-severity septic separation, not a generic
+          // structure rule set.
+          const stType =
+            getAllStructures().find((s) => s.id === id)?.type ?? 'cabin';
+          gateDragCommit({
+            geometry: finalGeom,
+            candidate: { kind: stType, category: 'structure' },
+            projectId,
+            boundary: parcelBoundary,
+            excludeFeatureId: id,
+            undoWindow,
+            applyOrig: () =>
               updateStructure(id, {
                 center: origCenter,
                 geometry: origGeom,
               }),
-            () =>
+            applyFinal: (acks) => {
+              const cur = getAllStructures().find((s) => s.id === id);
               updateStructure(id, {
-                center: [
-                  origCenter[0] + lastDLng,
-                  origCenter[1] + lastDLat,
-                ],
-                geometry: translateByDelta(origGeom, lastDLng, lastDLat),
-              }),
-          );
+                center: finalCenter,
+                geometry: finalGeom,
+                ...(acks?.length
+                  ? {
+                      placementAcknowledgments: [
+                        ...(cur?.placementAcknowledgments ?? []),
+                        ...acks,
+                      ],
+                    }
+                  : {}),
+              });
+            },
+          });
           return;
         }
         // Click (no drag) → open edit popover.
@@ -2880,7 +3007,7 @@ export default function PlanDataLayers({
         /* map already disposed */
       }
     };
-  }, [map, activeTool, updateStructure, openForm, editable]);
+  }, [map, activeTool, updateStructure, openForm, editable, projectId, parcelBoundary]);
 
   // Click-to-edit + drag-to-translate for non-structure polygon kinds
   // (zone, crop, paddock). Translates by lng/lat delta — no synthetic
@@ -3024,19 +3151,32 @@ export default function PlanDataLayers({
         map.dragPan.enable();
         setCursorIntent(null);
         if (wasDrag) {
-          undoWindow.commit(
-            () => {
+          const finalGeom = translateByDelta(origGeom, lastDLng, lastDLat);
+          // Same candidate each draw tool used (zone/orchard/paddock/
+          // catchment) so draw-time and move-time rules can't diverge.
+          const candidate =
+            k2 === 'zone'
+              ? { kind: 'zone', category: 'zone' }
+              : k2 === 'crop'
+                ? { kind: 'orchard', category: 'crop-area' }
+                : k2 === 'paddock'
+                  ? { kind: 'paddock', category: 'grazing' }
+                  : { kind: 'catchment', category: 'water' };
+          gateDragCommit({
+            geometry: finalGeom,
+            candidate,
+            projectId,
+            boundary: parcelBoundary,
+            excludeFeatureId: id2,
+            undoWindow,
+            applyOrig: () => {
               writeRecordGeometry(k2, id2, origGeom);
               if (k2 === 'water_catchment' && origCenter) {
                 updateWaterNode(id2, { center: origCenter });
               }
             },
-            () => {
-              writeRecordGeometry(
-                k2,
-                id2,
-                translateByDelta(origGeom, lastDLng, lastDLat),
-              );
+            applyFinal: (acks) => {
+              writeRecordGeometry(k2, id2, finalGeom, acks);
               if (k2 === 'water_catchment' && origCenter) {
                 updateWaterNode(id2, {
                   center: [
@@ -3046,7 +3186,7 @@ export default function PlanDataLayers({
                 });
               }
             },
-          );
+          });
           return;
         }
         // Click (no drag) → open edit popover.
@@ -3097,19 +3237,71 @@ export default function PlanDataLayers({
       }
       return null;
     };
+    // `acks` rides along on the gated drag-commit write so an
+    // acknowledged move lands as ONE recorded update (one undo entry),
+    // not a geometry write plus a separate metadata write.
     const writeRecordGeometry = (
       k: string,
       id: string,
       geom: GeoJSON.Geometry,
+      acks?: PlacementAcknowledgment[],
     ) => {
       if (k === 'zone' && geom.type === 'Polygon') {
-        updateZone(id, { geometry: geom });
+        const r = useZoneStore.getState().zones.find((x) => x.id === id);
+        updateZone(id, {
+          geometry: geom,
+          ...(acks?.length
+            ? {
+                placementAcknowledgments: [
+                  ...(r?.placementAcknowledgments ?? []),
+                  ...acks,
+                ],
+              }
+            : {}),
+        });
       } else if (k === 'crop' && geom.type === 'Polygon') {
-        updateCropArea(id, { geometry: geom });
+        const r = useCropStore.getState().cropAreas.find((x) => x.id === id);
+        updateCropArea(id, {
+          geometry: geom,
+          ...(acks?.length
+            ? {
+                placementAcknowledgments: [
+                  ...(r?.placementAcknowledgments ?? []),
+                  ...acks,
+                ],
+              }
+            : {}),
+        });
       } else if (k === 'paddock' && geom.type === 'Polygon') {
-        updatePaddock(id, { geometry: geom });
+        const r = useLivestockStore
+          .getState()
+          .paddocks.find((x) => x.id === id);
+        updatePaddock(id, {
+          geometry: geom,
+          ...(acks?.length
+            ? {
+                placementAcknowledgments: [
+                  ...(r?.placementAcknowledgments ?? []),
+                  ...acks,
+                ],
+              }
+            : {}),
+        });
       } else if (k === 'water_catchment' && geom.type === 'Polygon') {
-        updateWaterNode(id, { geometry: geom });
+        const r = useWaterSystemsStore
+          .getState()
+          .waterNodes.find((x) => x.id === id);
+        updateWaterNode(id, {
+          geometry: geom,
+          ...(acks?.length
+            ? {
+                placementAcknowledgments: [
+                  ...(r?.placementAcknowledgments ?? []),
+                  ...acks,
+                ],
+              }
+            : {}),
+        });
       }
     };
     const buildPolyEditSchema = (k: string, id: string) => {
@@ -3172,6 +3364,8 @@ export default function PlanDataLayers({
     setSelection,
     openForm,
     editable,
+    projectId,
+    parcelBoundary,
   ]);
 
   // Click-to-edit + drag-to-translate for path + water-swale lines.
@@ -3304,8 +3498,23 @@ export default function PlanDataLayers({
         map.dragPan.enable();
         setCursorIntent(null);
         if (wasDrag) {
-          undoWindow.commit(
-            () => {
+          const finalGeom = translateByDelta(origGeom, lastDLng, lastDLat);
+          // Same candidates the draw tools used (path / utility-run /
+          // swale) so draw-time and move-time rules can't diverge.
+          const candidate =
+            k2 === 'path'
+              ? { kind: 'path', category: 'access' }
+              : k2 === 'utility'
+                ? { kind: 'utility-run', category: 'utility' }
+                : { kind: 'swale', category: 'earthworks' };
+          gateDragCommit({
+            geometry: finalGeom,
+            candidate,
+            projectId,
+            boundary: parcelBoundary,
+            excludeFeatureId: id2,
+            undoWindow,
+            applyOrig: () => {
               if (k2 === 'path') {
                 updatePath(id2, { geometry: origGeom });
               } else if (k2 === 'utility') {
@@ -3317,14 +3526,42 @@ export default function PlanDataLayers({
                 }
               }
             },
-            () => {
-              const finalGeom = translateByDelta(origGeom, lastDLng, lastDLat);
+            applyFinal: (acks) => {
+              const ackPatch = (
+                existing: PlacementAcknowledgment[] | undefined,
+              ) =>
+                acks?.length
+                  ? {
+                      placementAcknowledgments: [
+                        ...(existing ?? []),
+                        ...acks,
+                      ],
+                    }
+                  : {};
               if (k2 === 'path') {
-                updatePath(id2, { geometry: finalGeom });
+                const r = usePathStore
+                  .getState()
+                  .paths.find((x) => x.id === id2);
+                updatePath(id2, {
+                  geometry: finalGeom,
+                  ...ackPatch(r?.placementAcknowledgments),
+                });
               } else if (k2 === 'utility') {
-                updateUtilityRun(id2, { geometry: finalGeom });
+                const r = useUtilityRunStore
+                  .getState()
+                  .runs.find((x) => x.id === id2);
+                updateUtilityRun(id2, {
+                  geometry: finalGeom,
+                  ...ackPatch(r?.placementAcknowledgments),
+                });
               } else {
-                updateWaterNode(id2, { swaleGeometry: finalGeom });
+                const r = useWaterSystemsStore
+                  .getState()
+                  .waterNodes.find((x) => x.id === id2);
+                updateWaterNode(id2, {
+                  swaleGeometry: finalGeom,
+                  ...ackPatch(r?.placementAcknowledgments),
+                });
                 if (origCenter) {
                   updateWaterNode(id2, {
                     center: [
@@ -3335,7 +3572,7 @@ export default function PlanDataLayers({
                 }
               }
             },
-          );
+          });
           return;
         }
         const anchor: [number, number] = ev?.lngLat
@@ -3399,6 +3636,8 @@ export default function PlanDataLayers({
     setSelection,
     openForm,
     editable,
+    projectId,
+    parcelBoundary,
   ]);
 
   // Click-to-edit + drag-to-translate for fertility-infra and water
@@ -3522,26 +3761,75 @@ export default function PlanDataLayers({
         map.dragPan.enable();
         setCursorIntent(null);
         if (wasDrag) {
-          undoWindow.commit(
-            () => {
+          const finalCenter: [number, number] = [
+            origCenter2[0] + lastDLng,
+            origCenter2[1] + lastDLat,
+          ];
+          // Mirror the draw-time candidates: fertility gates as the
+          // record's actual kind (draw-time only had the 'composter'
+          // default), storage as {storage, water}, sink as
+          // {sink, earthworks}.
+          const candidate =
+            k2 === 'fertility'
+              ? {
+                  kind:
+                    useClosedLoopStore
+                      .getState()
+                      .fertilityInfra.find((x) => x.id === id2)?.type ??
+                    'composter',
+                  category: 'fertility',
+                }
+              : k2 === 'water_storage'
+                ? { kind: 'storage', category: 'water' }
+                : { kind: 'sink', category: 'earthworks' };
+          gateDragCommit({
+            geometry: { type: 'Point', coordinates: finalCenter },
+            candidate,
+            projectId,
+            boundary: parcelBoundary,
+            excludeFeatureId: id2,
+            undoWindow,
+            applyOrig: () => {
               if (k2 === 'fertility') {
                 updateFertilityInfra(id2, { center: origCenter2 });
               } else {
                 updateWaterNode(id2, { center: origCenter2 });
               }
             },
-            () => {
-              const finalCenter: [number, number] = [
-                origCenter2[0] + lastDLng,
-                origCenter2[1] + lastDLat,
-              ];
+            applyFinal: (acks) => {
               if (k2 === 'fertility') {
-                updateFertilityInfra(id2, { center: finalCenter });
+                const r = useClosedLoopStore
+                  .getState()
+                  .fertilityInfra.find((x) => x.id === id2);
+                updateFertilityInfra(id2, {
+                  center: finalCenter,
+                  ...(acks?.length
+                    ? {
+                        placementAcknowledgments: [
+                          ...(r?.placementAcknowledgments ?? []),
+                          ...acks,
+                        ],
+                      }
+                    : {}),
+                });
               } else {
-                updateWaterNode(id2, { center: finalCenter });
+                const r = useWaterSystemsStore
+                  .getState()
+                  .waterNodes.find((x) => x.id === id2);
+                updateWaterNode(id2, {
+                  center: finalCenter,
+                  ...(acks?.length
+                    ? {
+                        placementAcknowledgments: [
+                          ...(r?.placementAcknowledgments ?? []),
+                          ...acks,
+                        ],
+                      }
+                    : {}),
+                });
               }
             },
-          );
+          });
           return;
         }
         const anchor: [number, number] = ev?.lngLat
@@ -3600,6 +3888,8 @@ export default function PlanDataLayers({
     setSelection,
     openForm,
     editable,
+    projectId,
+    parcelBoundary,
   ]);
 
   // Click-to-edit for typed utility points (`utilityStore`, C2/C4). A
