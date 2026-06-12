@@ -11,11 +11,18 @@
  *     never fabricates seed data).
  *   - encode round-trips losslessly (including minted ids).
  *   - validity per mode (matrix all-7, food/financial set, entitlement
- *     floorArea>0, tension all-3, ratify >=1 AND none pending).
+ *     floorArea>0, tension all-APPLICABLE, ratify >=1 AND none pending).
  *   - summarise strings per mode.
  *   - a render assertion per mode (distinctive label/control present).
  *   - one interaction per mode (toggle a domain, pick a card, edit an
  *     entitlement, resolve a tension, add+confirm a member).
+ *   - deriveTensionCards: which of the 3 verbatim cards apply from the
+ *     c1/c2/c3/c4 sibling answers (unanswered keeps a card; answered
+ *     non-triggering drops it; t2 carries the c4 garden area).
+ *   - ratifySeedFrom + the display-only seed: pending rows from steward
+ *     invites (contractors/blank names skipped), shown only while
+ *     unpersisted, baked in full on first edit, never resurrected after
+ *     the operator empties a persisted list.
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -60,14 +67,30 @@ import {
   encodeProvisionBalance,
   isProvisionBalanceValid,
   summariseProvisionBalance,
+  deriveTensionCards,
+  ratifySeedFrom,
   type ProvisionBalanceMode,
+  type RatifyMember,
 } from '../ProvisionBalanceCapture.js';
+import type { StewardModel } from '../StewardCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
-function renderMode(mode: ProvisionBalanceMode, value: FormValue) {
+function renderMode(
+  mode: ProvisionBalanceMode,
+  value: FormValue,
+  extra: {
+    siblingValues?: Record<string, FormValue>;
+    ratifySeed?: RatifyMember[];
+  } = {},
+) {
   const onChange = vi.fn();
   render(
-    <ProvisionBalanceCapture mode={mode} value={value} onChange={onChange} />,
+    <ProvisionBalanceCapture
+      mode={mode}
+      value={value}
+      onChange={onChange}
+      {...extra}
+    />,
   );
   return { onChange };
 }
@@ -480,5 +503,190 @@ describe('ratify -- decode / validity / summarise / render', () => {
     const afterConfirm = confirmOnChange.mock.calls.at(-1)![0] as FormValue;
     const confirmed = JSON.parse((afterConfirm.ratifyMembers as string[])[0]!);
     expect(confirmed.status).toBe('confirmed');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deriveTensionCards -- sibling-derived applicability
+// ---------------------------------------------------------------------------
+
+describe('deriveTensionCards', () => {
+  it('keeps all 3 verbatim cards when no sibling is answered', () => {
+    const cards = deriveTensionCards({});
+    expect(cards.map((c) => c.id)).toEqual(['t1', 't2', 't3']);
+    // Without a recorded garden entitlement t2 carries NO fabricated area.
+    expect(cards[1]!.sideB).toBe('Individual kitchen garden');
+  });
+
+  it('drops t1 when c1 energy is answered as non-hybrid; keeps it for H', () => {
+    const household = deriveTensionCards({
+      'ev-s1-provision-balance-c1': { provisionMatrix: ['energy::P'] },
+    });
+    expect(household.map((c) => c.id)).toEqual(['t2', 't3']);
+
+    const hybrid = deriveTensionCards({
+      'ev-s1-provision-balance-c1': { provisionMatrix: ['energy::H'] },
+    });
+    expect(hybrid.map((c) => c.id)).toEqual(['t1', 't2', 't3']);
+  });
+
+  it('drops t2 for a non-hybrid food system; derives the garden area for hybrid', () => {
+    const individual = deriveTensionCards({
+      'ev-s1-provision-balance-c2': { foodSystem: 'individual' },
+    });
+    expect(individual.map((c) => c.id)).toEqual(['t1', 't3']);
+
+    const hybrid = deriveTensionCards({
+      'ev-s1-provision-balance-c2': { foodSystem: 'hybrid' },
+      'ev-s1-provision-balance-c4': { entGarden: '30' },
+    });
+    const t2 = hybrid.find((c) => c.id === 't2');
+    expect(t2?.sideB).toBe('Individual kitchen garden (30 m2)');
+  });
+
+  it('drops t3 for pooled or income-scaled models; keeps it for fixed obligations', () => {
+    for (const model of ['income', 'sliding']) {
+      const cards = deriveTensionCards({
+        'ev-s1-provision-balance-c3': { financialModel: model },
+      });
+      expect(cards.map((c) => c.id)).toEqual(['t1', 't2']);
+    }
+    for (const model of ['contrib', 'clt', 'separate']) {
+      const cards = deriveTensionCards({
+        'ev-s1-provision-balance-c3': { financialModel: model },
+      });
+      expect(cards.map((c) => c.id)).toEqual(['t1', 't2', 't3']);
+    }
+  });
+
+  it('returns no cards when every answered sibling is non-triggering', () => {
+    expect(
+      deriveTensionCards({
+        'ev-s1-provision-balance-c1': { provisionMatrix: ['energy::C'] },
+        'ev-s1-provision-balance-c2': { foodSystem: 'communal' },
+        'ev-s1-provision-balance-c3': { financialModel: 'income' },
+      }),
+    ).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tension -- sibling-aware validity / summary / render
+// ---------------------------------------------------------------------------
+
+describe('tension with siblings', () => {
+  const ONLY_T1: Record<string, FormValue> = {
+    'ev-s1-provision-balance-c1': { provisionMatrix: ['energy::H'] },
+    'ev-s1-provision-balance-c2': { foodSystem: 'individual' },
+    'ev-s1-provision-balance-c3': { financialModel: 'income' },
+  };
+  const NONE: Record<string, FormValue> = {
+    'ev-s1-provision-balance-c1': { provisionMatrix: ['energy::C'] },
+    'ev-s1-provision-balance-c2': { foodSystem: 'communal' },
+    'ev-s1-provision-balance-c3': { financialModel: 'sliding' },
+  };
+
+  it('validity gates only the applicable tensions', () => {
+    const model = decodeProvisionBalance('tension', {
+      tensionResolutions: ['t1::aggregated metering only'],
+    });
+    // Without siblings every card applies (pre-derivation behaviour).
+    expect(isProvisionBalanceValid(model)).toBe(false);
+    // With siblings narrowing to t1, the single resolution suffices.
+    expect(isProvisionBalanceValid(model, ONLY_T1)).toBe(true);
+    // Zero applicable tensions => trivially valid; stale resolutions ignored.
+    expect(isProvisionBalanceValid(decodeProvisionBalance('tension', {}), NONE)).toBe(true);
+  });
+
+  it('summary counts only the applicable tensions', () => {
+    const model = decodeProvisionBalance('tension', {
+      tensionResolutions: ['t1::a', 't2::stale'],
+    });
+    expect(summariseProvisionBalance(model, ONLY_T1)).toBe('1/1 tensions resolved');
+    expect(summariseProvisionBalance(model, NONE)).toBe(
+      'No structural tensions from the recorded provision choices',
+    );
+  });
+
+  it('renders only the applicable cards, or the empty note when none apply', () => {
+    const { unmount } = render(
+      <ProvisionBalanceCapture
+        mode="tension"
+        value={{}}
+        onChange={vi.fn()}
+        siblingValues={ONLY_T1}
+      />,
+    );
+    expect(
+      screen.getByText('Energy monitoring vs. household privacy'),
+    ).toBeTruthy();
+    expect(
+      screen.queryByText('Communal harvest vs. individual plots in shortage'),
+    ).toBeNull();
+    unmount();
+
+    renderMode('tension', {}, { siblingValues: NONE });
+    expect(screen.getByTestId('tension-empty')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ratifySeedFrom + display-only seed
+// ---------------------------------------------------------------------------
+
+describe('ratifySeedFrom and the ratify seed', () => {
+  const steward: StewardModel = {
+    invites: [
+      { name: 'Aroha Ngai', email: 'a@x.nz', role: 'team_member' },
+      { name: 'Fence Co', email: 'f@x.nz', role: 'contractor' },
+      { name: '   ', email: 'blank@x.nz', role: 'team_member' },
+      { name: 'Marcus Delacroix', email: 'm@x.nz', role: 'landowner' },
+    ],
+  };
+
+  it('seeds pending rows from named non-contractor invites with stable ids', () => {
+    expect(ratifySeedFrom(steward)).toEqual([
+      { id: 'seed-0', name: 'Aroha Ngai', status: 'pending', note: '' },
+      { id: 'seed-3', name: 'Marcus Delacroix', status: 'pending', note: '' },
+    ]);
+    expect(ratifySeedFrom({ invites: [] })).toEqual([]);
+  });
+
+  it('shows the seed while unpersisted; first edit bakes every seed row', () => {
+    const seed = ratifySeedFrom(steward);
+    const { onChange } = renderMode('ratify', {}, { ratifySeed: seed });
+    expect(screen.getByText('Aroha Ngai')).toBeTruthy();
+    expect(screen.getByText('Marcus Delacroix')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('ratify-confirm-seed-0'));
+    const emitted = onChange.mock.calls.at(-1)![0] as FormValue;
+    const baked = (emitted.ratifyMembers as string[]).map((e) =>
+      JSON.parse(e) as RatifyMember,
+    );
+    expect(baked).toHaveLength(2);
+    expect(baked[0]).toMatchObject({ name: 'Aroha Ngai', status: 'confirmed' });
+    expect(baked[1]).toMatchObject({ name: 'Marcus Delacroix', status: 'pending' });
+  });
+
+  it('a persisted value always wins -- an emptied list never resurrects the seed', () => {
+    const seed = ratifySeedFrom(steward);
+    renderMode('ratify', { ratifyMembers: [] }, { ratifySeed: seed });
+    expect(screen.getByTestId('ratify-empty')).toBeTruthy();
+    expect(screen.queryByText('Aroha Ngai')).toBeNull();
+  });
+
+  it('persisted members render instead of the seed', () => {
+    const seed = ratifySeedFrom(steward);
+    renderMode(
+      'ratify',
+      {
+        ratifyMembers: [
+          JSON.stringify({ id: 'm-1', name: 'Elif Yildiz', status: 'confirmed', note: '' }),
+        ],
+      },
+      { ratifySeed: seed },
+    );
+    expect(screen.getByText('Elif Yildiz')).toBeTruthy();
+    expect(screen.queryByText('Aroha Ngai')).toBeNull();
   });
 });

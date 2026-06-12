@@ -106,6 +106,7 @@ import {
   decodeProvisionBalance,
   isProvisionBalanceValid,
   summariseProvisionBalance,
+  ratifySeedFrom,
   type ProvisionBalanceMode,
   type ProvisionBalanceModel,
 } from './ProvisionBalanceCapture.js';
@@ -578,6 +579,12 @@ export default function DecisionWorkingPanel({
   const provisionModel: ProvisionBalanceModel | null = provisionMode
     ? decodeProvisionBalance(provisionMode, draft)
     : null;
+  // Display-only founding-member seed from the sibling StewardCapture invites
+  // (mirrors the labour roster seed above); bakes only on the first edit.
+  const provisionRatifySeed =
+    provisionMode === 'ratify'
+      ? ratifySeedFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}))
+      : undefined;
 
   // Terrain is a 5-mode capture (mapSource/slope/elevation/landform/erosion)
   // routed by terrainModeFor(itemId). Decode once for validity, the gate note,
@@ -799,7 +806,7 @@ export default function DecisionWorkingPanel({
   } else if (decision.isAssumptions) {
     valid = isAssumptionsValid(assumptionsModel!);
   } else if (provisionMode) {
-    valid = isProvisionBalanceValid(provisionModel!);
+    valid = isProvisionBalanceValid(provisionModel!, siblingValues);
   } else if (terrainMode) {
     valid = isTerrainValid(terrainModel!);
   } else if (climateMode) {
@@ -953,7 +960,7 @@ export default function DecisionWorkingPanel({
           : provisionMode === 'entitlement'
             ? 'Enter a private floor area to record'
             : provisionMode === 'tension'
-              ? 'Resolve all 3 tensions to record'
+              ? 'Resolve each surfaced tension to record'
               : provisionMode === 'ratify'
                 ? 'Confirm all founding members to record'
                 : 'Select an option to record this decision';
@@ -1048,7 +1055,7 @@ export default function DecisionWorkingPanel({
     } else if (decision.isAssumptions) {
       summary = summariseAssumptions(assumptionsModel!);
     } else if (provisionMode) {
-      summary = summariseProvisionBalance(provisionModel!);
+      summary = summariseProvisionBalance(provisionModel!, siblingValues);
     } else if (terrainMode) {
       summary = summariseTerrain(terrainModel!);
     } else if (climateMode) {
@@ -1238,6 +1245,8 @@ export default function DecisionWorkingPanel({
             mode={provisionMode}
             value={draft}
             onChange={setDraft}
+            siblingValues={siblingValues}
+            ratifySeed={provisionRatifySeed}
           />
         ) : terrainMode === 'slope' ? (
           // s2-terrain-c2 slope distribution is drawn on the map (per-class

@@ -20,11 +20,23 @@
  * ids (ratify members) are minted by makeMemberId() in EVENT HANDLERS ONLY
  * (never in decode/render) and used as React keys (never array index).
  *
- * SIMPLIFICATIONS (intentional; per-item captures cannot read sibling items):
- *   - tension: the mockup auto-derives the 3 tensions from c1/c2/c3 selections;
- *     here they are a FIXED verbatim scaffold whose RESOLUTIONS persist.
- *   - ratify: the mockup shows seeded demo members; per "never fabricate seeds"
- *     this starts EMPTY with an "Add founding member" control.
+ * SIBLING-AWARE MODES (via the panel's siblingValues prop -- the same seam
+ * CarryingCapacityCapture and the labour roster seed use):
+ *   - tension: `deriveTensionCards(siblingValues)` decides WHICH of the 3
+ *     verbatim tension cards apply from the actual c1/c2/c3/c4 answers (t1
+ *     needs hybrid energy, t2 a hybrid food system, t3 a fixed-obligation
+ *     financial model; t2's garden area comes from the c4 entitlement). An
+ *     UNANSWERED sibling keeps its card (scaffold fallback -- the capture
+ *     stays usable in any visit order); an answered, non-triggering sibling
+ *     drops it. Resolutions persist losslessly either way; validity and the
+ *     summary count only the applicable cards.
+ *   - ratify: decode still NEVER fabricates members. The panel may pass a
+ *     `ratifySeed` built from the sibling StewardCapture invites
+ *     (`ratifySeedFrom`, mirroring the labour rosterSeedFrom precedent);
+ *     it is DISPLAY-ONLY until the first edit bakes it into persistence,
+ *     every seeded row starts 'pending' (the steward confirms each
+ *     explicitly -- seeding never weakens the no-pending validity gate),
+ *     and a persisted value (even an emptied one) always wins over the seed.
  *
  * ASCII-only: em-dash -> " -- ", superscript-2 -> "2"; all icons are lucide.
  */
@@ -32,6 +44,7 @@
 import * as React from 'react';
 import { ArrowRight, CircleCheck, Info, Plus, X } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
+import type { StewardModel } from './StewardCapture.js';
 import css from './ProvisionBalanceCapture.module.css';
 
 // ---------------------------------------------------------------------------
@@ -272,13 +285,15 @@ const PRIVACY_OPTIONS: ReadonlyArray<{ key: string; label: string }> = [
   },
 ];
 
-interface TensionCard {
+export interface TensionCard {
   id: string;
   title: string;
   sideA: string;
   sideB: string;
   desc: string;
 }
+// t2.sideB gains a "(N m2)" suffix in deriveTensionCards when the c4 garden
+// entitlement carries a real area (the mockup's "(25 m2)" was demo data).
 const TENSION_CARDS: readonly TensionCard[] = [
   {
     id: 't1',
@@ -291,7 +306,7 @@ const TENSION_CARDS: readonly TensionCard[] = [
     id: 't2',
     title: 'Communal harvest vs. individual plots in shortage',
     sideA: 'Hybrid food system',
-    sideB: 'Individual kitchen garden (25 m2)',
+    sideB: 'Individual kitchen garden',
     desc: 'When communal production falls short in a given season, can households expand into communal growing zones without a community decision? Or does individual plot produce stay entirely separate?',
   },
   {
@@ -303,6 +318,97 @@ const TENSION_CARDS: readonly TensionCard[] = [
   },
 ];
 const TENSION_IDS = TENSION_CARDS.map((t) => t.id);
+
+// Sibling item ids the tension derivation reads (fixed for this objective --
+// provisionBalanceModeFor already switches on these exact ids).
+const SIBLING_C1 = 'ev-s1-provision-balance-c1';
+const SIBLING_C2 = 'ev-s1-provision-balance-c2';
+const SIBLING_C3 = 'ev-s1-provision-balance-c3';
+const SIBLING_C4 = 'ev-s1-provision-balance-c4';
+
+/** Financial models with a fixed household obligation -- the ones t3 is about.
+ * 'income' pools everything (no per-household contribution to miss) and
+ * 'sliding' scales with income (structurally resolves the tension), so
+ * neither triggers the card. */
+const FIXED_OBLIGATION_MODELS = new Set(['contrib', 'clt', 'separate']);
+
+/**
+ * Derive WHICH tension cards apply from the sibling c1/c2/c3/c4 answers.
+ * Pure over the per-item FormValue map. Rules per card:
+ *   - t1 (energy monitoring vs privacy): c1 energy assigned 'H' (hybrid).
+ *   - t2 (communal harvest vs individual plots): c2 food system 'hybrid';
+ *     sideB carries the c4 garden entitlement area when one is recorded.
+ *   - t3 (fixed contributions vs circumstances): c3 model has a fixed
+ *     household obligation (contrib / clt / separate).
+ * An UNANSWERED sibling keeps its card (scaffold fallback, so the capture
+ * works in any visit order); an answered, non-triggering one drops it.
+ */
+export function deriveTensionCards(
+  siblingValues: Record<string, FormValue>,
+): TensionCard[] {
+  const matrix = decodeProvisionBalance(
+    'matrix',
+    siblingValues[SIBLING_C1] ?? {},
+  ) as MatrixModel;
+  const food = decodeProvisionBalance(
+    'food',
+    siblingValues[SIBLING_C2] ?? {},
+  ) as FoodModel;
+  const financial = decodeProvisionBalance(
+    'financial',
+    siblingValues[SIBLING_C3] ?? {},
+  ) as FinancialModel;
+  const entitlement = decodeProvisionBalance(
+    'entitlement',
+    siblingValues[SIBLING_C4] ?? {},
+  ) as EntitlementModel;
+
+  const cards: TensionCard[] = [];
+
+  const energy = matrix.assignments['energy'];
+  if (energy === undefined || energy === 'H') {
+    cards.push(TENSION_CARDS[0]!);
+  }
+
+  if (food.foodSystem === '' || food.foodSystem === 'hybrid') {
+    const base = TENSION_CARDS[1]!;
+    const garden = Number.parseFloat(entitlement.garden);
+    const sideB =
+      Number.isFinite(garden) && garden > 0
+        ? `${base.sideB} (${entitlement.garden} m2)`
+        : base.sideB;
+    cards.push({ ...base, sideB });
+  }
+
+  if (
+    financial.financialModel === '' ||
+    FIXED_OBLIGATION_MODELS.has(financial.financialModel)
+  ) {
+    cards.push(TENSION_CARDS[2]!);
+  }
+
+  return cards;
+}
+
+/**
+ * Build a DISPLAY-ONLY ratify seed from the sibling StewardCapture invites
+ * (mirrors LabourInventoryCapture's rosterSeedFrom). One pending member per
+ * named team_member/landowner invite -- contractors are not founding
+ * households. Ids are deterministic (`seed-<index>`) because this runs at
+ * render time; makeMemberId stays handler-only. Every row starts 'pending':
+ * the steward confirms each member explicitly, so seeding never weakens the
+ * no-pending validity gate.
+ */
+export function ratifySeedFrom(steward: StewardModel): RatifyMember[] {
+  const members: RatifyMember[] = [];
+  steward.invites.forEach((invite, index) => {
+    if (invite.role === 'contractor') return;
+    const name = invite.name.trim();
+    if (name === '') return;
+    members.push({ id: `seed-${index}`, name, status: 'pending', note: '' });
+  });
+  return members;
+}
 
 // ---------------------------------------------------------------------------
 // FormValue coercion helpers
@@ -459,6 +565,7 @@ export function encodeProvisionBalance(
 
 export function isProvisionBalanceValid(
   model: ProvisionBalanceModel,
+  siblingValues: Record<string, FormValue> = {},
 ): boolean {
   switch (model.kind) {
     case 'matrix':
@@ -472,8 +579,11 @@ export function isProvisionBalanceValid(
       return Number.isFinite(n) && n > 0;
     }
     case 'tension':
-      return TENSION_IDS.every(
-        (id) => (model.resolutions[id] ?? '').trim() !== '',
+      // Only the APPLICABLE tensions gate the record. With no siblings
+      // provided every card applies (the pre-derivation behaviour). Zero
+      // applicable cards => trivially valid (nothing to resolve).
+      return deriveTensionCards(siblingValues).every(
+        (t) => (model.resolutions[t.id] ?? '').trim() !== '',
       );
     case 'ratify':
       return (
@@ -489,6 +599,7 @@ export function isProvisionBalanceValid(
 
 export function summariseProvisionBalance(
   model: ProvisionBalanceModel,
+  siblingValues: Record<string, FormValue> = {},
 ): string {
   switch (model.kind) {
     case 'matrix': {
@@ -508,10 +619,14 @@ export function summariseProvisionBalance(
       return `${area} m2/adult floor area, ${n} privacy standard(s)`;
     }
     case 'tension': {
-      const resolved = TENSION_IDS.filter(
-        (id) => (model.resolutions[id] ?? '').trim() !== '',
+      const applicable = deriveTensionCards(siblingValues);
+      if (applicable.length === 0) {
+        return 'No structural tensions from the recorded provision choices';
+      }
+      const resolved = applicable.filter(
+        (t) => (model.resolutions[t.id] ?? '').trim() !== '',
       ).length;
-      return `${resolved}/3 tensions resolved`;
+      return `${resolved}/${applicable.length} tensions resolved`;
     }
     case 'ratify': {
       const total = model.members.length;
@@ -531,12 +646,27 @@ export interface ProvisionBalanceCaptureProps {
   mode: ProvisionBalanceMode;
   value: FormValue;
   onChange: (next: FormValue) => void;
+  /**
+   * OPTIONAL full per-item FormValue map (id -> value). Read ONLY by the
+   * tension mode (deriveTensionCards over the c1/c2/c3/c4 answers). Every
+   * other mode ignores it. Defaults to {} => all 3 cards apply.
+   */
+  siblingValues?: Record<string, FormValue>;
+  /**
+   * OPTIONAL display-only seed for the ratify mode (parent builds via
+   * `ratifySeedFrom(decodeSteward(...))`). Shown only while no ratifyMembers
+   * value is persisted; the first edit bakes it. A persisted value -- even an
+   * emptied one -- always wins, so removed seed rows never reappear.
+   */
+  ratifySeed?: RatifyMember[];
 }
 
 export function ProvisionBalanceCapture({
   mode,
   value,
   onChange,
+  siblingValues = {},
+  ratifySeed,
 }: ProvisionBalanceCaptureProps): React.JSX.Element {
   const model = decodeProvisionBalance(mode, value);
   const emit = (next: ProvisionBalanceModel): void =>
@@ -793,9 +923,20 @@ export function ProvisionBalanceCapture({
         kind: 'tension',
         resolutions: { ...model.resolutions, [id]: text },
       });
+    const cards = deriveTensionCards(siblingValues);
+    if (cards.length === 0) {
+      return (
+        <div className={css.root} data-pb-mode="tension">
+          <div className={css.ratifyEmpty} data-testid="tension-empty">
+            No structural tensions arise from the provision choices recorded
+            in decisions 1-4. Record this decision to confirm.
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={css.root} data-pb-mode="tension">
-        {TENSION_CARDS.map((t) => {
+        {cards.map((t) => {
           const resolution = model.resolutions[t.id] ?? '';
           const resolved = resolution.trim() !== '';
           return (
@@ -838,10 +979,18 @@ export function ProvisionBalanceCapture({
     );
   }
 
-  // ratify
+  // ratify -- the seed shows ONLY while the value is unpersisted (no
+  // ratifyMembers array yet). RatifyBody operates on the resolved display
+  // model, so the first edit emits (and thereby bakes) the seed rows too.
+  const ratifyModel = model as RatifyModel;
+  const persisted = Array.isArray(value.ratifyMembers);
+  const displayModel: RatifyModel =
+    !persisted && ratifySeed && ratifySeed.length > 0
+      ? { kind: 'ratify', members: ratifySeed }
+      : ratifyModel;
   return (
     <RatifyBody
-      model={model}
+      model={displayModel}
       onChange={(next) => emit(next)}
     />
   );
