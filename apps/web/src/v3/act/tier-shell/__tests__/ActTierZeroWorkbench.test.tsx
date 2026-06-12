@@ -901,6 +901,69 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
   });
 });
 
+describe('ActTierZeroWorkbench -- orchard (orch-) gap-closure objectives (2026-06-12)', () => {
+  // The orch- S4/S6/S7 gap-closure objectives are REAL catalogue objectives that
+  // route through the generic 2-pane workbench (textarea fallback + Record),
+  // exactly like the ev- gap-closure block above. Several are GROUPED
+  // (non-empty decisionGroups) but carry NO workbenchAffordances entry, so the
+  // generic divider-derivation path must surface decision-group dividers for
+  // them without any per-objective edit in the component.
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+  const ORCH_GAP_CLOSURE_IDS = [
+    'orch-s4-species-mix','orch-s4-succession-management','orch-sec-s4-species-pollination',
+    'orch-s6-adaptive-management','orch-sec-s6-perennial-care','orch-s7-financial-viability',
+    'orch-s7-planting-establishment','orch-s7-succession-plan',
+  ] as const;
+
+  it.each(ORCH_GAP_CLOSURE_IDS)('%s mounts the generic 2-pane workbench', (id) => {
+    const objective = byId.get(id);
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective!],
+      activeObjectiveId: id,
+    });
+    expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    expect(screen.getByText(/working on/i)).toBeTruthy();
+    // Default selection = first checklist item; its label heads the panel.
+    expect(
+      screen.getAllByText(objective!.checklist[0]!.label).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('recording via the generic fallback fires onRecord with the item id', () => {
+    const objective = byId.get('orch-s7-planting-establishment')!;
+    const { onRecord } = renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // The generic fallback textarea is labelled with the item's own label.
+    const ta = screen.getByLabelText(objective.checklist[0]!.label);
+    fireEvent.change(ta, {
+      target: { value: 'Bounded planting establishment plan approved for cycle 1.' },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    expect(onRecord.mock.calls[0]![0]).toBe(objective.checklist[0]!.id);
+  });
+
+  it('renders decision-group dividers generically for a grouped non-descriptor objective', () => {
+    const objective = byId.get('orch-s7-succession-plan')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // orch-s7-succession-plan has no workbenchAffordances entry, so showGroups is
+    // derived from group presence -- one divider per decision group.
+    expect(screen.getAllByTestId('decision-group').length).toBe(
+      objective.decisionGroups.length,
+    );
+  });
+});
+
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
     // Use an objective whose FIRST checklist item is the vision-classify

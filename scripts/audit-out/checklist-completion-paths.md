@@ -15,11 +15,11 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `auto-answer` | 4 | 0.2% | yes |
 | `auto-formula` | 13 | 0.6% | yes |
 | `form-capture` | 215 | 10.6% | yes |
-| `workbench-capture` | 198 | 9.8% | yes |
+| `workbench-capture` | 242 | 11.9% | yes |
 | `objective-map` | 1103 | 54.4% | no (objective-level instrument, manual tick) |
 | `objective-log` | 6 | 0.3% | no (objective-level instrument, manual tick) |
 | `objective-flow` | 6 | 0.3% | no (objective-level instrument, manual tick) |
-| `no-path` | 484 | 23.9% | **no — gap** |
+| `no-path` | 440 | 21.7% | **no — gap** |
 
 ## Summary by type prefix
 
@@ -27,8 +27,8 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 |---|--:|--:|--:|--:|--:|
 | `universal` | P1 | 105 | 0 | 41 | 64 |
 | `ev-` | P2 | 194 | 0 | 57 | 137 |
-| `orch-` | P3 | 137 | 34 | 87 | 16 |
-| `orch-sec-` | P3 | 25 | 10 | 15 | 0 |
+| `orch-` | P3 | 137 | 0 | 87 | 50 |
+| `orch-sec-` | P3 | 25 | 0 | 15 | 10 |
 | `silv-` | P4 | 144 | 21 | 101 | 22 |
 | `silv-sec-` | P4 | 43 | 0 | 21 | 22 |
 | `nur-sec-` | P5 | 43 | 5 | 28 | 10 |
@@ -52,10 +52,10 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | s1-project-foundation | 254 | 11 | 6 | 237 |
 | s2-land-reading | 264 | 5 | 218 | 41 |
 | s3-systems-reading | 240 | 6 | 212 | 22 |
-| s4-foundation-decisions | 414 | 171 | 191 | 52 |
+| s4-foundation-decisions | 414 | 154 | 191 | 69 |
 | s5-system-design | 359 | 5 | 349 | 5 |
-| s6-integration-design | 234 | 106 | 102 | 26 |
-| s7-phasing-resourcing | 264 | 180 | 37 | 47 |
+| s6-integration-design | 234 | 96 | 102 | 36 |
+| s7-phasing-resourcing | 264 | 163 | 37 | 64 |
 
 ## Unmatched form arms (formId matches no checklist item)
 
@@ -70,50 +70,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Objective | Ref | Stratum | Item | Label | Optional | Suggested capture |
 |---|---|---|---|---|---|---|
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c1` | Define canopy species and their proportion of total planting |  | decision form (form arm, formId = item id) |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c2` | Define understory species - productive and ecological function |  | log arm / review flow |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c3` | Define shrub layer species - berry, medicinal, nitrogen-fixing |  | decision form (form arm, formId = item id) |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c4` | Define groundcover and root layer species |  | decision form (form arm, formId = item id) |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c5` | Define pioneer species for bare or degraded zones |  | map arm (per-item bridge) |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c6` | Confirm species mix is consistent with species selection philosophy |  | decision form (form arm, formId = item id) |
-| `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c7` | Confirm all species are available from identified nursery sources |  | decision form (form arm, formId = item id) |
-| `orch-s4-succession-management` | ORCH-S4.7 | s4-foundation-decisions | `orch-s4-succession-management-c1` | Define succession stage targets at 5, 10, and 25 years |  | decision form (form arm, formId = item id) |
-| `orch-s4-succession-management` | ORCH-S4.7 | s4-foundation-decisions | `orch-s4-succession-management-c2` | Define management interventions at each stage - chop and drop, coppicing, thinning |  | decision form (form arm, formId = item id) |
-| `orch-s4-succession-management` | ORCH-S4.7 | s4-foundation-decisions | `orch-s4-succession-management-c3` | Define species removal or replacement triggers - when pioneer species are phased out |  | schedule/protocol capture |
-| `orch-s4-succession-management` | ORCH-S4.7 | s4-foundation-decisions | `orch-s4-succession-management-c4` | Define canopy management approach - light penetration targets for productive understory |  | decision form (form arm, formId = item id) |
-| `orch-s4-succession-management` | ORCH-S4.7 | s4-foundation-decisions | `orch-s4-succession-management-c5` | Define system maturity indicator - when management reduces to minimal intervention |  | decision form (form arm, formId = item id) |
-| `orch-sec-s4-species-pollination` | ORCH-S4.20 | s4-foundation-decisions | `orch-sec-s4-species-pollination-c1` | Select cultivars per species against the climate-matched shortlist and production intent |  | decision form (form arm, formId = item id) |
-| `orch-sec-s4-species-pollination` | ORCH-S4.20 | s4-foundation-decisions | `orch-sec-s4-species-pollination-c2` | Select rootstock per species by vigor - which drives final spacing and density |  | decision form (form arm, formId = item id) |
-| `orch-sec-s4-species-pollination` | ORCH-S4.20 | s4-foundation-decisions | `orch-sec-s4-species-pollination-c3` | Define pollination groups and bloom-overlap partners for cross-pollinated species |  | decision form (form arm, formId = item id) |
-| `orch-sec-s4-species-pollination` | ORCH-S4.20 | s4-foundation-decisions | `orch-sec-s4-species-pollination-c4` | Record which species are self-fertile and which require a compatible partner on site |  | map arm (per-item bridge) |
-| `orch-sec-s4-species-pollination` | ORCH-S4.20 | s4-foundation-decisions | `orch-sec-s4-species-pollination-c5` | Confirm true-to-type planting-stock sourcing and lead time for each cultivar and rootstock |  | decision form (form arm, formId = item id) |
-| `orch-s6-adaptive-management` | ORCH-S6.4 | s6-integration-design | `orch-s6-adaptive-management-c1` | Define annual review process - phenological data, yield data, pest pressure, soil health reviewed together |  | log arm / review flow |
-| `orch-s6-adaptive-management` | ORCH-S6.4 | s6-integration-design | `orch-s6-adaptive-management-c2` | Define variety replacement triggers - what performance retires a variety |  | map arm (per-item bridge) |
-| `orch-s6-adaptive-management` | ORCH-S6.4 | s6-integration-design | `orch-s6-adaptive-management-c3` | Define species addition triggers - what succession stage justifies adding new species |  | decision form (form arm, formId = item id) |
-| `orch-s6-adaptive-management` | ORCH-S6.4 | s6-integration-design | `orch-s6-adaptive-management-c4` | Define succession deviation response - what canopy or layer imbalance triggers intervention |  | decision form (form arm, formId = item id) |
-| `orch-s6-adaptive-management` | ORCH-S6.4 | s6-integration-design | `orch-s6-adaptive-management-c5` | Document all management changes with year, trigger, and outcome |  | decision form (form arm, formId = item id) |
-| `orch-sec-s6-perennial-care` | ORCH-S6.20 | s6-integration-design | `orch-sec-s6-perennial-care-c1` | Define the pruning and training system per species and its annual cycle |  | decision form (form arm, formId = item id) |
-| `orch-sec-s6-perennial-care` | ORCH-S6.20 | s6-integration-design | `orch-sec-s6-perennial-care-c2` | Define the integrated pest and disease management approach - monitoring, thresholds, and response |  | log arm / review flow |
-| `orch-sec-s6-perennial-care` | ORCH-S6.20 | s6-integration-design | `orch-sec-s6-perennial-care-c3` | Cost the seasonal-labor peaks - pruning, thinning, and harvest - against available capacity |  | financial worksheet (Amanah-clean) |
-| `orch-sec-s6-perennial-care` | ORCH-S6.20 | s6-integration-design | `orch-sec-s6-perennial-care-c4` | Address the skills and tools gap - training, contractors, or equipment required |  | decision form (form arm, formId = item id) |
-| `orch-sec-s6-perennial-care` | ORCH-S6.20 | s6-integration-design | `orch-sec-s6-perennial-care-c5` | Confirm the recurring regime is committed and resourced before any trees are planted |  | decision form (form arm, formId = item id) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c1` | Map production timeline per species - years to first harvest, full production |  | map arm (per-item bridge) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c2` | Estimate annual revenue at full production by species |  | decision form (form arm, formId = item id) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c3` | Estimate establishment costs by year - labour, tree stock, irrigation, guards |  | financial worksheet (Amanah-clean) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c4` | Calculate cash flow gap through non-productive years - bridge strategy required |  | financial worksheet (Amanah-clean) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c5` | Define minimum viable commercial scale |  | decision form (form arm, formId = item id) |
-| `orch-s7-financial-viability` | ORCH-S7.6 | s7-phasing-resourcing | `orch-s7-financial-viability-c6` | Define break-even year at projected yield and price |  | decision form (form arm, formId = item id) |
-| `orch-s7-planting-establishment` | ORCH-S7.4 | s7-phasing-resourcing | `orch-s7-planting-establishment-c1` | Confirm soil improvement complete in all planting zones before tree arrival |  | map arm (per-item bridge) |
-| `orch-s7-planting-establishment` | ORCH-S7.4 | s7-phasing-resourcing | `orch-s7-planting-establishment-c2` | Confirm irrigation infrastructure installed and tested before trees arrive |  | decision form (form arm, formId = item id) |
-| `orch-s7-planting-establishment` | ORCH-S7.4 | s7-phasing-resourcing | `orch-s7-planting-establishment-c3` | Confirm windbreak plantings in place or temporary wind protection installed before exposed plantings |  | map arm (per-item bridge) |
-| `orch-s7-planting-establishment` | ORCH-S7.4 | s7-phasing-resourcing | `orch-s7-planting-establishment-c4` | Confirm tree guards on-site before planting begins |  | map arm (per-item bridge) |
-| `orch-s7-planting-establishment` | ORCH-S7.4 | s7-phasing-resourcing | `orch-s7-planting-establishment-c5` | Define planting order by species - frost-hardy before frost-sensitive, canopy before understory |  | decision form (form arm, formId = item id) |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c1` | Define Year 5 canopy closure and layer development target |  | decision form (form arm, formId = item id) |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c2` | Define Year 10 species composition and productivity target |  | decision form (form arm, formId = item id) |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c3` | Define Year 25 ecological and production state - climax or maintained productive stage |  | log arm / review flow |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c4` | Define management interventions required at each stage |  | decision form (form arm, formId = item id) |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c5` | Define species exit and addition schedule across the succession timeline |  | schedule/protocol capture |
-| `orch-s7-succession-plan` | ORCH-S7.5 | s7-phasing-resourcing | `orch-s7-succession-plan-c6` | Confirm long-term plan is consistent with steward capacity across timeline |  | decision form (form arm, formId = item id) |
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c1` | Define routine health program per species - vaccination, drenching, parasite management |  | map arm (per-item bridge) |
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c2` | Define preventive care calendar - fertility, condition scoring, hoof care |  | schedule/protocol capture |
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c3` | Identify nearest veterinary service and emergency response time |  | decision form (form arm, formId = item id) |

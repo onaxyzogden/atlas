@@ -63,6 +63,15 @@ export const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'ev-s7-launch-sequence',
   'ev-s7-onboarding',
   'ev-s7-settlement-plan',
+  // Orchard workbench membership (2026-06-12)
+  'orch-s4-species-mix',
+  'orch-s4-succession-management',
+  'orch-sec-s4-species-pollination',
+  'orch-s6-adaptive-management',
+  'orch-sec-s6-perennial-care',
+  'orch-s7-financial-viability',
+  'orch-s7-planting-establishment',
+  'orch-s7-succession-plan',
 ]);
 
 /**

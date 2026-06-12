@@ -175,29 +175,6 @@
       "ofg-s4-water-system-redundancy-c5",
       "ofg-s4-water-system-redundancy-c6"
     ],
-    "orch-s4-species-mix": [
-      "orch-s4-species-mix-c1",
-      "orch-s4-species-mix-c2",
-      "orch-s4-species-mix-c3",
-      "orch-s4-species-mix-c4",
-      "orch-s4-species-mix-c5",
-      "orch-s4-species-mix-c6",
-      "orch-s4-species-mix-c7"
-    ],
-    "orch-s4-succession-management": [
-      "orch-s4-succession-management-c1",
-      "orch-s4-succession-management-c2",
-      "orch-s4-succession-management-c3",
-      "orch-s4-succession-management-c4",
-      "orch-s4-succession-management-c5"
-    ],
-    "orch-sec-s4-species-pollination": [
-      "orch-sec-s4-species-pollination-c1",
-      "orch-sec-s4-species-pollination-c2",
-      "orch-sec-s4-species-pollination-c3",
-      "orch-sec-s4-species-pollination-c4",
-      "orch-sec-s4-species-pollination-c5"
-    ],
     "silv-s4-animal-health": [
       "silv-s4-animal-health-c1",
       "silv-s4-animal-health-c2",
@@ -370,20 +347,6 @@
       "ofg-s6-systems-performance-monitoring-c3",
       "ofg-s6-systems-performance-monitoring-c4",
       "ofg-s6-systems-performance-monitoring-c5"
-    ],
-    "orch-s6-adaptive-management": [
-      "orch-s6-adaptive-management-c1",
-      "orch-s6-adaptive-management-c2",
-      "orch-s6-adaptive-management-c3",
-      "orch-s6-adaptive-management-c4",
-      "orch-s6-adaptive-management-c5"
-    ],
-    "orch-sec-s6-perennial-care": [
-      "orch-sec-s6-perennial-care-c1",
-      "orch-sec-s6-perennial-care-c2",
-      "orch-sec-s6-perennial-care-c3",
-      "orch-sec-s6-perennial-care-c4",
-      "orch-sec-s6-perennial-care-c5"
     ],
     "silv-s6-animal-health-monitoring": [
       "silv-s6-animal-health-monitoring-c1",
@@ -586,29 +549,6 @@
       "ofg-s7-systems-establishment-sequence-c4",
       "ofg-s7-systems-establishment-sequence-c5",
       "ofg-s7-systems-establishment-sequence-c6"
-    ],
-    "orch-s7-financial-viability": [
-      "orch-s7-financial-viability-c1",
-      "orch-s7-financial-viability-c2",
-      "orch-s7-financial-viability-c3",
-      "orch-s7-financial-viability-c4",
-      "orch-s7-financial-viability-c5",
-      "orch-s7-financial-viability-c6"
-    ],
-    "orch-s7-planting-establishment": [
-      "orch-s7-planting-establishment-c1",
-      "orch-s7-planting-establishment-c2",
-      "orch-s7-planting-establishment-c3",
-      "orch-s7-planting-establishment-c4",
-      "orch-s7-planting-establishment-c5"
-    ],
-    "orch-s7-succession-plan": [
-      "orch-s7-succession-plan-c1",
-      "orch-s7-succession-plan-c2",
-      "orch-s7-succession-plan-c3",
-      "orch-s7-succession-plan-c4",
-      "orch-s7-succession-plan-c5",
-      "orch-s7-succession-plan-c6"
     ],
     "rf-s7-cash-flow": [
       "rf-s7-cash-flow-c1",

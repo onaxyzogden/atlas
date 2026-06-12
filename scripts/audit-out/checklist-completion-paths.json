@@ -6,11 +6,11 @@
       "auto-answer": 4,
       "auto-formula": 13,
       "form-capture": 215,
-      "workbench-capture": 198,
+      "workbench-capture": 242,
       "objective-map": 1103,
       "objective-log": 6,
       "objective-flow": 6,
-      "no-path": 484
+      "no-path": 440
     }
   },
   "noPath": {
@@ -188,29 +188,6 @@
       "ofg-s4-water-system-redundancy-c5",
       "ofg-s4-water-system-redundancy-c6"
     ],
-    "orch-s4-species-mix": [
-      "orch-s4-species-mix-c1",
-      "orch-s4-species-mix-c2",
-      "orch-s4-species-mix-c3",
-      "orch-s4-species-mix-c4",
-      "orch-s4-species-mix-c5",
-      "orch-s4-species-mix-c6",
-      "orch-s4-species-mix-c7"
-    ],
-    "orch-s4-succession-management": [
-      "orch-s4-succession-management-c1",
-      "orch-s4-succession-management-c2",
-      "orch-s4-succession-management-c3",
-      "orch-s4-succession-management-c4",
-      "orch-s4-succession-management-c5"
-    ],
-    "orch-sec-s4-species-pollination": [
-      "orch-sec-s4-species-pollination-c1",
-      "orch-sec-s4-species-pollination-c2",
-      "orch-sec-s4-species-pollination-c3",
-      "orch-sec-s4-species-pollination-c4",
-      "orch-sec-s4-species-pollination-c5"
-    ],
     "silv-s4-animal-health": [
       "silv-s4-animal-health-c1",
       "silv-s4-animal-health-c2",
@@ -383,20 +360,6 @@
       "ofg-s6-systems-performance-monitoring-c3",
       "ofg-s6-systems-performance-monitoring-c4",
       "ofg-s6-systems-performance-monitoring-c5"
-    ],
-    "orch-s6-adaptive-management": [
-      "orch-s6-adaptive-management-c1",
-      "orch-s6-adaptive-management-c2",
-      "orch-s6-adaptive-management-c3",
-      "orch-s6-adaptive-management-c4",
-      "orch-s6-adaptive-management-c5"
-    ],
-    "orch-sec-s6-perennial-care": [
-      "orch-sec-s6-perennial-care-c1",
-      "orch-sec-s6-perennial-care-c2",
-      "orch-sec-s6-perennial-care-c3",
-      "orch-sec-s6-perennial-care-c4",
-      "orch-sec-s6-perennial-care-c5"
     ],
     "silv-s6-animal-health-monitoring": [
       "silv-s6-animal-health-monitoring-c1",
@@ -599,29 +562,6 @@
       "ofg-s7-systems-establishment-sequence-c4",
       "ofg-s7-systems-establishment-sequence-c5",
       "ofg-s7-systems-establishment-sequence-c6"
-    ],
-    "orch-s7-financial-viability": [
-      "orch-s7-financial-viability-c1",
-      "orch-s7-financial-viability-c2",
-      "orch-s7-financial-viability-c3",
-      "orch-s7-financial-viability-c4",
-      "orch-s7-financial-viability-c5",
-      "orch-s7-financial-viability-c6"
-    ],
-    "orch-s7-planting-establishment": [
-      "orch-s7-planting-establishment-c1",
-      "orch-s7-planting-establishment-c2",
-      "orch-s7-planting-establishment-c3",
-      "orch-s7-planting-establishment-c4",
-      "orch-s7-planting-establishment-c5"
-    ],
-    "orch-s7-succession-plan": [
-      "orch-s7-succession-plan-c1",
-      "orch-s7-succession-plan-c2",
-      "orch-s7-succession-plan-c3",
-      "orch-s7-succession-plan-c4",
-      "orch-s7-succession-plan-c5",
-      "orch-s7-succession-plan-c6"
     ],
     "rf-s7-cash-flow": [
       "rf-s7-cash-flow-c1",
@@ -12192,7 +12132,7 @@
       "itemId": "orch-s4-species-mix-c1",
       "itemLabel": "Define canopy species and their proportion of total planting",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12201,7 +12141,7 @@
       "itemId": "orch-s4-species-mix-c2",
       "itemLabel": "Define understory species - productive and ecological function",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12210,7 +12150,7 @@
       "itemId": "orch-s4-species-mix-c3",
       "itemLabel": "Define shrub layer species - berry, medicinal, nitrogen-fixing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12219,7 +12159,7 @@
       "itemId": "orch-s4-species-mix-c4",
       "itemLabel": "Define groundcover and root layer species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12228,7 +12168,7 @@
       "itemId": "orch-s4-species-mix-c5",
       "itemLabel": "Define pioneer species for bare or degraded zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12237,7 +12177,7 @@
       "itemId": "orch-s4-species-mix-c6",
       "itemLabel": "Confirm species mix is consistent with species selection philosophy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-species-mix",
@@ -12246,7 +12186,7 @@
       "itemId": "orch-s4-species-mix-c7",
       "itemLabel": "Confirm all species are available from identified nursery sources",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-succession-management",
@@ -12255,7 +12195,7 @@
       "itemId": "orch-s4-succession-management-c1",
       "itemLabel": "Define succession stage targets at 5, 10, and 25 years",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-succession-management",
@@ -12264,7 +12204,7 @@
       "itemId": "orch-s4-succession-management-c2",
       "itemLabel": "Define management interventions at each stage - chop and drop, coppicing, thinning",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-succession-management",
@@ -12273,7 +12213,7 @@
       "itemId": "orch-s4-succession-management-c3",
       "itemLabel": "Define species removal or replacement triggers - when pioneer species are phased out",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-succession-management",
@@ -12282,7 +12222,7 @@
       "itemId": "orch-s4-succession-management-c4",
       "itemLabel": "Define canopy management approach - light penetration targets for productive understory",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-succession-management",
@@ -12291,7 +12231,7 @@
       "itemId": "orch-s4-succession-management-c5",
       "itemLabel": "Define system maturity indicator - when management reduces to minimal intervention",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-water-strategy",
@@ -12350,7 +12290,7 @@
       "itemId": "orch-sec-s4-species-pollination-c1",
       "itemLabel": "Select cultivars per species against the climate-matched shortlist and production intent",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s4-species-pollination",
@@ -12359,7 +12299,7 @@
       "itemId": "orch-sec-s4-species-pollination-c2",
       "itemLabel": "Select rootstock per species by vigor - which drives final spacing and density",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s4-species-pollination",
@@ -12368,7 +12308,7 @@
       "itemId": "orch-sec-s4-species-pollination-c3",
       "itemLabel": "Define pollination groups and bloom-overlap partners for cross-pollinated species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s4-species-pollination",
@@ -12377,7 +12317,7 @@
       "itemId": "orch-sec-s4-species-pollination-c4",
       "itemLabel": "Record which species are self-fertile and which require a compatible partner on site",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s4-species-pollination",
@@ -12386,7 +12326,7 @@
       "itemId": "orch-sec-s4-species-pollination-c5",
       "itemLabel": "Confirm true-to-type planting-stock sourcing and lead time for each cultivar and rootstock",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s4-living-zone",
@@ -18602,7 +18542,7 @@
       "itemId": "orch-s6-adaptive-management-c1",
       "itemLabel": "Define annual review process - phenological data, yield data, pest pressure, soil health reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-adaptive-management",
@@ -18611,7 +18551,7 @@
       "itemId": "orch-s6-adaptive-management-c2",
       "itemLabel": "Define variety replacement triggers - what performance retires a variety",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-adaptive-management",
@@ -18620,7 +18560,7 @@
       "itemId": "orch-s6-adaptive-management-c3",
       "itemLabel": "Define species addition triggers - what succession stage justifies adding new species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-adaptive-management",
@@ -18629,7 +18569,7 @@
       "itemId": "orch-s6-adaptive-management-c4",
       "itemLabel": "Define succession deviation response - what canopy or layer imbalance triggers intervention",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-adaptive-management",
@@ -18638,7 +18578,7 @@
       "itemId": "orch-s6-adaptive-management-c5",
       "itemLabel": "Document all management changes with year, trigger, and outcome",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-pest-disease-monitoring",
@@ -18797,7 +18737,7 @@
       "itemId": "orch-sec-s6-perennial-care-c1",
       "itemLabel": "Define the pruning and training system per species and its annual cycle",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s6-perennial-care",
@@ -18806,7 +18746,7 @@
       "itemId": "orch-sec-s6-perennial-care-c2",
       "itemLabel": "Define the integrated pest and disease management approach - monitoring, thresholds, and response",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s6-perennial-care",
@@ -18815,7 +18755,7 @@
       "itemId": "orch-sec-s6-perennial-care-c3",
       "itemLabel": "Cost the seasonal-labor peaks - pruning, thinning, and harvest - against available capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s6-perennial-care",
@@ -18824,7 +18764,7 @@
       "itemId": "orch-sec-s6-perennial-care-c4",
       "itemLabel": "Address the skills and tools gap - training, contractors, or equipment required",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-sec-s6-perennial-care",
@@ -18833,7 +18773,7 @@
       "itemId": "orch-sec-s6-perennial-care-c5",
       "itemLabel": "Confirm the recurring regime is committed and resourced before any trees are planted",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s6-self-sufficiency",
@@ -20988,7 +20928,7 @@
       "itemId": "orch-s7-financial-viability-c1",
       "itemLabel": "Map production timeline per species - years to first harvest, full production",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -20997,7 +20937,7 @@
       "itemId": "orch-s7-financial-viability-c2",
       "itemLabel": "Estimate annual revenue at full production by species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -21006,7 +20946,7 @@
       "itemId": "orch-s7-financial-viability-c3",
       "itemLabel": "Estimate establishment costs by year - labour, tree stock, irrigation, guards",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -21015,7 +20955,7 @@
       "itemId": "orch-s7-financial-viability-c4",
       "itemLabel": "Calculate cash flow gap through non-productive years - bridge strategy required",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -21024,7 +20964,7 @@
       "itemId": "orch-s7-financial-viability-c5",
       "itemLabel": "Define minimum viable commercial scale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -21033,7 +20973,7 @@
       "itemId": "orch-s7-financial-viability-c6",
       "itemLabel": "Define break-even year at projected yield and price",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-planting-establishment",
@@ -21042,7 +20982,7 @@
       "itemId": "orch-s7-planting-establishment-c1",
       "itemLabel": "Confirm soil improvement complete in all planting zones before tree arrival",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-planting-establishment",
@@ -21051,7 +20991,7 @@
       "itemId": "orch-s7-planting-establishment-c2",
       "itemLabel": "Confirm irrigation infrastructure installed and tested before trees arrive",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-planting-establishment",
@@ -21060,7 +21000,7 @@
       "itemId": "orch-s7-planting-establishment-c3",
       "itemLabel": "Confirm windbreak plantings in place or temporary wind protection installed before exposed plantings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-planting-establishment",
@@ -21069,7 +21009,7 @@
       "itemId": "orch-s7-planting-establishment-c4",
       "itemLabel": "Confirm tree guards on-site before planting begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-planting-establishment",
@@ -21078,7 +21018,7 @@
       "itemId": "orch-s7-planting-establishment-c5",
       "itemLabel": "Define planting order by species - frost-hardy before frost-sensitive, canopy before understory",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21087,7 +21027,7 @@
       "itemId": "orch-s7-succession-plan-c1",
       "itemLabel": "Define Year 5 canopy closure and layer development target",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21096,7 +21036,7 @@
       "itemId": "orch-s7-succession-plan-c2",
       "itemLabel": "Define Year 10 species composition and productivity target",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21105,7 +21045,7 @@
       "itemId": "orch-s7-succession-plan-c3",
       "itemLabel": "Define Year 25 ecological and production state - climax or maintained productive stage",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21114,7 +21054,7 @@
       "itemId": "orch-s7-succession-plan-c4",
       "itemLabel": "Define management interventions required at each stage",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21123,7 +21063,7 @@
       "itemId": "orch-s7-succession-plan-c5",
       "itemLabel": "Define species exit and addition schedule across the succession timeline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-succession-plan",
@@ -21132,7 +21072,7 @@
       "itemId": "orch-s7-succession-plan-c6",
       "itemLabel": "Confirm long-term plan is consistent with steward capacity across timeline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s7-phasing",
