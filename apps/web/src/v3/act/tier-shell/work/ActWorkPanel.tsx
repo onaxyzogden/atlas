@@ -161,7 +161,7 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
         )}
 
         {tab === 'season' ? (
-          <WorkMonthGrid items={season} todayISO={todayISO} />
+          <WorkMonthGrid projectId={projectId} items={season} todayISO={todayISO} />
         ) : (
           <WorkAgendaList
             items={agenda}

@@ -11,6 +11,9 @@
  *     week horizon; the month label jumps back to today.
  *   - Pure read — the grid is prop-driven and rendering writes no store.
  *   - ActWorkPanel wiring: 'season' tab + `?workFilter=season` deep-link.
+ *   - Weather glyphs (useForecast mocked): forecast-window cells show the
+ *     weatherCodeMeta icon, the selected day's agenda header shows icon +
+ *     high/low; no data (no-parcel/fallback/loading) → no glyphs at all.
  */
 
 import React from 'react';
@@ -46,14 +49,50 @@ vi.mock('lucide-react', async (importOriginal) => {
   }
   return stubbed;
 });
+// Deterministic forecast: the grid reuses useForecast (network + turf) —
+// stubbed here so glyph behavior is pinned without a parcel or an API.
+const mockForecast = vi.hoisted(() => ({
+  current: {
+    data: null,
+    status: 'no-parcel',
+    coordinates: null,
+  } as { data: unknown; status: string; coordinates: unknown },
+}));
+vi.mock('../../../../../lib/forecast/useForecast.js', () => ({
+  useForecast: () => mockForecast.current,
+}));
 import { useWorkItemStore } from '../../../../../store/workItemStore.js';
 import { useProjectStore } from '../../../../../store/projectStore.js';
 import { useLivestockWorkPlanStore } from '../../../../../store/livestockWorkPlanStore.js';
+import type { ForecastDay } from '../../../../../lib/forecast/types.js';
 import WorkMonthGrid from '../WorkMonthGrid.js';
 import ActWorkPanel from '../ActWorkPanel.js';
 
 const P = 'p1';
 const TODAY = '2026-06-12';
+
+function fday(date: string, over: Partial<ForecastDay> = {}): ForecastDay {
+  return {
+    date,
+    tempMaxC: 22,
+    tempMinC: 11,
+    precipitationSumMm: 0,
+    precipitationProbMax: 10,
+    weatherCode: 61,
+    windSpeedMaxMs: 3,
+    sunrise: null,
+    sunset: null,
+    ...over,
+  };
+}
+
+function liveForecast(daily: ForecastDay[]): typeof mockForecast.current {
+  return {
+    data: { daily } as unknown,
+    status: 'live',
+    coordinates: { lat: 43.5, lng: -79.9 },
+  };
+}
 
 function row(over: Partial<WorkItem>): WorkItem {
   const stamp = '2026-06-01T00:00:00.000Z';
@@ -95,8 +134,12 @@ function dotTones(cell: HTMLElement): string[] {
 }
 
 describe('WorkMonthGrid', () => {
+  beforeEach(() => {
+    mockForecast.current = { data: null, status: 'no-parcel', coordinates: null };
+  });
+
   it('renders a fixed 7×6 Monday-start grid anchored on today', () => {
-    render(<WorkMonthGrid items={[]} todayISO={TODAY} />);
+    render(<WorkMonthGrid projectId={P} items={[]} todayISO={TODAY} />);
     const cells = screen.getAllByTestId('work-month-day');
     expect(cells).toHaveLength(42);
     // June 2026 starts on a Monday — the first cell IS June 1.
@@ -107,11 +150,14 @@ describe('WorkMonthGrid', () => {
     // Today is the initial selection; its (empty) agenda shows below.
     expect(today.getAttribute('data-selected')).toBe('true');
     expect(screen.getByText('Nothing scheduled on this day.')).toBeDefined();
+    // No forecast data (no-parcel) → no weather glyphs anywhere.
+    expect(screen.queryByTestId('work-month-weather')).toBeNull();
   });
 
   it('marks days with tone dots per display status, excluding cancelled', () => {
     render(
       <WorkMonthGrid
+        projectId={P}
         items={[
           row({ id: 'w-over', scheduledStart: '2026-06-10', scheduledEnd: '2026-06-10' }),
           row({ id: 'w-open' }),
@@ -139,6 +185,7 @@ describe('WorkMonthGrid', () => {
   it('tap a day shows that day’s agenda; month nav reaches future rows', () => {
     render(
       <WorkMonthGrid
+        projectId={P}
         items={[
           row({ id: 'w-jun', title: 'June welfare check' }),
           row({
@@ -168,10 +215,47 @@ describe('WorkMonthGrid', () => {
     expect(dayCell(TODAY).getAttribute('data-selected')).toBe('true');
   });
 
+  it('shows weatherCodeMeta glyphs only on forecast-window cells', () => {
+    mockForecast.current = liveForecast([
+      fday('2026-06-12', { weatherCode: 0 }), // clear → Sun
+      fday('2026-06-13'), // 61 drizzle → CloudRain
+      fday('2026-06-15', { weatherCode: null }), // no code → skipped
+    ]);
+    render(<WorkMonthGrid projectId={P} items={[]} todayISO={TODAY} />);
+
+    const glyph = (dateKey: string) =>
+      dayCell(dateKey)
+        .querySelector('[data-testid="work-month-weather"] [data-lucide-icon]')
+        ?.getAttribute('data-lucide-icon');
+    expect(glyph('2026-06-12')).toBe('Sun');
+    expect(glyph('2026-06-13')).toBe('CloudRain');
+    // Null weatherCode and out-of-window days carry no glyph at all.
+    expect(glyph('2026-06-15')).toBeUndefined();
+    expect(glyph('2026-06-25')).toBeUndefined();
+  });
+
+  it('decorates the selected day’s agenda header with icon + high/low', () => {
+    mockForecast.current = liveForecast([
+      fday(TODAY, { tempMaxC: 22, tempMinC: 11 }),
+    ]);
+    render(
+      <WorkMonthGrid
+        projectId={P}
+        items={[row({ scheduledStart: TODAY, scheduledEnd: TODAY })]}
+        todayISO={TODAY}
+      />,
+    );
+    const header = screen.getByTestId('work-day-weather');
+    expect(header.textContent).toContain('22° / 11°');
+    expect(
+      header.querySelector('[data-lucide-icon]')?.getAttribute('data-lucide-icon'),
+    ).toBe('CloudRain'); // fday default weatherCode 61
+  });
+
   it('is a pure read — rendering and navigation write no store', () => {
     useWorkItemStore.setState({ items: [row({})], migratedSources: [] });
     const snapshot = useWorkItemStore.getState().items;
-    render(<WorkMonthGrid items={snapshot} todayISO={TODAY} />);
+    render(<WorkMonthGrid projectId={P} items={snapshot} todayISO={TODAY} />);
     fireEvent.click(screen.getByLabelText('Previous month'));
     fireEvent.click(dayCell('2026-05-15'));
     expect(useWorkItemStore.getState().items).toBe(snapshot);

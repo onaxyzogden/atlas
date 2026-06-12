@@ -5,6 +5,12 @@
  * per-day tone dots (overdue / open / done — derived via workDisplayStatus,
  * cancelled excluded), and a tap-a-day agenda below reusing WorkAgendaList.
  *
+ * Weather glyphs (useForecast reuse): days inside the 7-day Open-Meteo
+ * window show the WeatherStrip iconography — a small weatherCodeMeta icon in
+ * the cell and icon + high/low on the selected day's agenda header. Outside
+ * the window (or no-parcel / fallback / loading) the glyphs are simply
+ * absent — weather is advisory garnish, never a gate on the work.
+ *
  * Pure read over the rows the panel hands it — rendering never writes any
  * store; the agenda rows it mounts own their actions (WorkItemRow).
  * Weeks start Monday (work-planning convention, matches the Mo–Su header).
@@ -14,6 +20,11 @@ import { useMemo, useState } from 'react';
 import { addDays, addMonths, format, startOfMonth, startOfWeek } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { WorkItem } from '@ogden/shared';
+import { useForecast } from '../../../../lib/forecast/useForecast.js';
+import {
+  weatherCodeMeta,
+  type ForecastDay,
+} from '../../../../lib/forecast/types.js';
 import {
   workDisplayStatus,
   workDueDate,
@@ -36,13 +47,25 @@ interface DayMarks {
 }
 
 interface Props {
+  projectId: string;
   /** Non-cancelled livestock work for the project — ALL of it; the grid
    *  windows by month itself (no horizon clamp, that's the point of Season). */
   items: readonly WorkItem[];
   todayISO: string;
 }
 
-export default function WorkMonthGrid({ items, todayISO }: Props) {
+export default function WorkMonthGrid({ projectId, items, todayISO }: Props) {
+  // 7-day forecast for the parcel centroid (1 h server cache). The grid only
+  // mounts on the Season tab, so this fires exactly when the glyphs can show.
+  const { data: forecast } = useForecast(projectId);
+  const forecastByDay = useMemo(() => {
+    const map = new Map<string, ForecastDay>();
+    for (const day of forecast?.daily ?? []) {
+      if (day.weatherCode != null) map.set(day.date.slice(0, 10), day);
+    }
+    return map;
+  }, [forecast]);
+
   const [monthAnchor, setMonthAnchor] = useState<Date>(() =>
     startOfMonth(parseDay(todayISO)),
   );
@@ -134,6 +157,8 @@ export default function WorkMonthGrid({ items, todayISO }: Props) {
       <div className={styles.monthGrid} role="grid" aria-label="Work by day">
         {cells.map((cell) => {
           const marks = marksByDay.get(cell.key);
+          const fc = forecastByDay.get(cell.key);
+          const FcIcon = fc ? weatherCodeMeta(fc.weatherCode).icon : null;
           return (
             <button
               type="button"
@@ -149,6 +174,15 @@ export default function WorkMonthGrid({ items, todayISO }: Props) {
             >
               <span className={styles.dayNum}>{cell.dayNum}</span>
               <span className={styles.dayDots}>
+                {fc && FcIcon && (
+                  <span
+                    className={styles.dayWeather}
+                    data-testid="work-month-weather"
+                    title={weatherCodeMeta(fc.weatherCode).label}
+                  >
+                    <FcIcon size={9} />
+                  </span>
+                )}
                 {marks && marks.overdue > 0 && (
                   <span className={styles.dayDot} data-tone="overdue" />
                 )}
@@ -168,6 +202,7 @@ export default function WorkMonthGrid({ items, todayISO }: Props) {
         items={dayItems}
         todayISO={todayISO}
         emptyLabel="Nothing scheduled on this day."
+        forecastByDay={forecastByDay}
       />
     </div>
   );

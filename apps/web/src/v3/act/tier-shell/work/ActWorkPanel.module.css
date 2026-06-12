@@ -98,10 +98,23 @@
 }
 
 .dayHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 700;
   color: var(--color-text, #f2ede3);
   margin-top: 2px;
+}
+
+/* Forecast-window decoration on a day header (glyph + high/low). */
+.dayHeaderWeather {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
 .empty {
@@ -398,8 +411,16 @@
 
 .dayDots {
   display: flex;
+  align-items: center;
   gap: 2px;
-  min-height: 4px;
+  min-height: 10px;
+}
+
+/* Tiny forecast glyph inside a grid day cell (7-day window only). */
+.dayWeather {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
 .dayDot {
