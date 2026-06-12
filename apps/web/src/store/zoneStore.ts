@@ -12,20 +12,13 @@ import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { zone } from '../lib/tokens';
 
-export type ZoneCategory =
-  | 'habitation'
-  | 'food_production'
-  | 'livestock'
-  | 'commons'
-  | 'spiritual'
-  | 'education'
-  | 'retreat'
-  | 'conservation'
-  | 'water_retention'
-  | 'infrastructure'
-  | 'access'
-  | 'buffer'
-  | 'future_expansion';
+// Canonical home moved to @ogden/shared (constants/zoneCategories.ts,
+// 2026-06-11) so the shared placement-rule catalog can reference zone
+// categories without app imports; re-exported here so the ~45 existing
+// web imports keep working unchanged.
+import type { ZoneCategory } from '@ogden/shared';
+
+export type { ZoneCategory };
 
 /**
  * Invasive-species pressure — qualitative observation per zone.

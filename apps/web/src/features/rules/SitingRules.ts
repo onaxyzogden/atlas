@@ -6,6 +6,8 @@
  * severity, explanation, suggested fix, and data-source traceability.
  */
 
+import { PLACEMENT_DISTANCES_M } from '@ogden/shared/placementRules';
+
 /* ------------------------------------------------------------------ */
 /*  Severity & Category types                                          */
 /* ------------------------------------------------------------------ */
@@ -68,14 +70,19 @@ export interface RuleViolation {
 /*  Constants — Setbacks (meters)                                      */
 /* ------------------------------------------------------------------ */
 
+// The riparian / wetland / well-septic / livestock-spiritual distances
+// derive from the shared placement-rule catalog (2026-06-11) so the
+// post-hoc RulesEngine and draw-time enforcement can never disagree on a
+// number. front/side/rear/guest_privacy remain post-hoc-only (no
+// draw-time rule references them yet).
 export const SETBACK_RULES = {
   front: 15,
   side: 6,
   rear: 10,
-  riparian: 30,
-  wetland: 120,
-  well_septic: 30,
-  livestock_spiritual: 50,
+  riparian: PLACEMENT_DISTANCES_M.riparianPlanting,
+  wetland: PLACEMENT_DISTANCES_M.wetlandDisturbance,
+  well_septic: PLACEMENT_DISTANCES_M.wellSeptic,
+  livestock_spiritual: PLACEMENT_DISTANCES_M.livestockSpiritual,
   guest_privacy: 25,
 };
 

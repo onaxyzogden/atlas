@@ -36,6 +36,10 @@
     "./fieldVerification": {
       "types": "./src/fieldVerification/index.ts",
       "default": "./src/fieldVerification/index.ts"
+    },
+    "./placementRules": {
+      "types": "./src/placementRules/index.ts",
+      "default": "./src/placementRules/index.ts"
     }
   },
   "scripts": {

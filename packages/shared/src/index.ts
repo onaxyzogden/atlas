@@ -135,6 +135,8 @@ export * from './constants/plan/fieldOptions.js';
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
 export * from './constants/plan/projectTypes.js';
 export * from './constants/plan/relationshipMatrix.js';
+// Zone-category taxonomy (canonical home; zoneStore.ts re-exports the type)
+export * from './constants/zoneCategories.js';
 export * from './constants/plan/catalogues/index.js';
 export {
   resolveProjectObjectives,
