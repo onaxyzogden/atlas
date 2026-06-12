@@ -130,6 +130,7 @@ import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import ActWorkPanel from './work/ActWorkPanel.js';
 import ActWorkHighlightLayer from './work/ActWorkHighlightLayer.js';
+import WorkCalendarTakeover from './work/WorkCalendarTakeover.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import {
   isTierZeroObjective,
@@ -194,6 +195,7 @@ export default function ActTierShell() {
     // derived so Plan-side "Review in Act" toasts can deep-link it.
     panel?: string;
     workFilter?: string;
+    workView?: string;
   };
 
   const projects = useProjectStore((s) => s.projects);
@@ -426,6 +428,10 @@ export default function ActTierShell() {
   // win in the rightBody chain below (no reconcile effect needed).
   const workOpen = search.panel === 'work';
   const workFilter = search.workFilter;
+  // Wide-calendar canvas takeover (?panel=work&workView=calendar): the canvas
+  // swaps the map for WorkCalendarTakeover while the work panel stays in the
+  // rail. URL-derived like the panel itself; closing the panel drops it too.
+  const workCalendarActive = workOpen && search.workView === 'calendar';
   // Protocols mode: the clicked protocol whose detail shows in the right rail
   // (mirrors objective selection). URL-derived (?protocol=<templateId>), so it
   // survives reload and is deep-linkable. A stale id (protocol hidden by the
@@ -635,6 +641,33 @@ export default function ActTierShell() {
         ...prev,
         panel: undefined,
         workFilter: undefined,
+        workView: undefined,
+      }),
+      replace: true,
+    } as never);
+  }, [navigate]);
+
+  // Wide-calendar takeover open/close — same param-rewrite pattern. Open keeps
+  // panel=work (the rail panel stays mounted next to the calendar); close
+  // drops only workView, returning the canvas to the map.
+  const openWorkCalendar = useCallback(() => {
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        panel: 'work',
+        workView: 'calendar',
+      }),
+      replace: true,
+    } as never);
+  }, [navigate]);
+
+  const closeWorkCalendar = useCallback(() => {
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        workView: undefined,
       }),
       replace: true,
     } as never);
@@ -998,7 +1031,14 @@ export default function ActTierShell() {
             )
           }
           canvas={
-            showTierZeroWorkbench && selectedObjective ? (
+            workCalendarActive ? (
+              // Wide-calendar takeover: the month schedule across the full
+              // canvas (?workView=calendar). Wins over the map AND the Tier-0
+              // workbench — the operator explicitly asked for the calendar;
+              // "Back to map" / closing the work panel restores the branch
+              // below.
+              <WorkCalendarTakeover projectId={id} onClose={closeWorkCalendar} />
+            ) : showTierZeroWorkbench && selectedObjective ? (
               // Execution-only: the interactive decision workbench moved to the
               // Plan tier shell. Act surfaces the recorded decision (read-only
               // recap) plus evidence capture via ActTierExecutionPanel, in place
@@ -1165,6 +1205,7 @@ export default function ActTierShell() {
                       projectId={id}
                       onBack={closeWorkPanel}
                       initialFilter={workFilter}
+                      onOpenCalendar={openWorkCalendar}
                     />
                   ) : (
                     <ActOpsDashboard
@@ -1287,6 +1328,7 @@ export default function ActTierShell() {
                           projectId={id}
                           onBack={closeWorkPanel}
                           initialFilter={workFilter}
+                          onOpenCalendar={openWorkCalendar}
                         />
                       ) : weatherOpen ? (
                         <ActTierWeatherPanel

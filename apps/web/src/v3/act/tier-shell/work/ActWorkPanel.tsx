@@ -21,7 +21,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Maximize2, RefreshCw } from 'lucide-react';
 import type { WorkItem } from '@ogden/shared';
 import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import { generateAndApplyLivestockWork } from '../../../../features/livestock/livestockWorkInputs.js';
@@ -46,9 +46,17 @@ interface Props {
   /** From `?workFilter=…` — 'week'/'season' select those tabs; anything else
    *  (incl. 'proposed', whose section is pinned regardless) starts on today. */
   initialFilter?: string | undefined;
+  /** Shell callback opening the wide-calendar canvas takeover
+   *  (?workView=calendar). Omitted where no canvas exists to take over. */
+  onOpenCalendar?: (() => void) | undefined;
 }
 
-export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props) {
+export default function ActWorkPanel({
+  projectId,
+  onBack,
+  initialFilter,
+  onOpenCalendar,
+}: Props) {
   const [tab, setTab] = useState<WorkTab>(
     initialFilter === 'week' || initialFilter === 'season'
       ? initialFilter
@@ -186,7 +194,21 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
         )}
 
         {tab === 'season' ? (
-          <WorkMonthGrid projectId={projectId} items={season} todayISO={todayISO} />
+          <>
+            {onOpenCalendar && (
+              <button
+                type="button"
+                className={styles.wideCalBtn}
+                onClick={onOpenCalendar}
+                data-testid="open-wide-calendar"
+                title="Open the month calendar across the full canvas"
+              >
+                <Maximize2 size={11} />
+                Wide calendar
+              </button>
+            )}
+            <WorkMonthGrid projectId={projectId} items={season} todayISO={todayISO} />
+          </>
         ) : (
           <WorkAgendaList
             items={agenda}

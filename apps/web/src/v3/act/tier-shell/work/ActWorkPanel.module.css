@@ -285,6 +285,15 @@
   color: var(--color-gold-brand, #c4a265);
 }
 
+/* Season-tab trigger for the wide-calendar canvas takeover. */
+.wideCalBtn {
+  composes: actionBtn;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+}
+
 /* ---- inline mark-done / reschedule / edit form --------------------------- */
 
 .inlineForm {
