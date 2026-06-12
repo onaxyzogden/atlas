@@ -656,12 +656,49 @@ const v3PlanStratumRoute = createRoute({
   path: 'plan/stratum/$stratumId',
   component: PlanLayout,
   validateSearch: validatePlanSearch,
+  // Guard: deep-linking to a locked Plan stratum redirects to the bare `plan`
+  // landing rather than rendering locked content. Mirrors the Act tier-shell
+  // stratum guard (the interactive rail-click path already enforces this); the
+  // Plan redirect target is `/plan` (Plan landing), not `/act/tier-shell`.
+  // `buildActLockContext` computes the shared Plan-prerequisite lock state
+  // (misnamed for historical reasons); the DEV unlock toggle bypasses it.
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    const stratumStates = computeAllStratumStates(
+      PLAN_STRATA.map((s) => s.id),
+      ctx.objectives,
+      ctx.statuses,
+    );
+    if ((stratumStates[params.stratumId] ?? 'locked') === 'locked') {
+      throw redirect({
+        to: '/v3/project/$projectId/plan',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
 });
 const v3PlanStratumObjectiveRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/stratum/$stratumId/objective/$objectiveId',
   component: PlanLayout,
   validateSearch: validatePlanSearch,
+  // Guard: deep-linking directly to a locked Plan objective (incl. Tier-0
+  // workbench objectives) redirects to the bare `plan` landing rather than
+  // mounting the workbench on a gated objective. Mirrors the Act objective
+  // guard; Plan redirect target is `/plan`, not `/act/tier-shell`.
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    // Unknown objective id — let the component handle gracefully (e.g. 404).
+    if (!ctx.objectives.some((o) => o.id === params.objectiveId)) return;
+    if ((ctx.statuses[params.objectiveId] ?? 'locked') === 'locked') {
+      throw redirect({
+        to: '/v3/project/$projectId/plan',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
 });
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
