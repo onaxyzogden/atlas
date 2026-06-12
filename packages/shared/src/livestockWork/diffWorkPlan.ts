@@ -28,7 +28,17 @@
  * Generation) owns all mutation; this module only classifies.
  */
 
-import type { LivestockWorkInstance } from '../schemas/livestockWork/livestockWork.schema.js';
+/**
+ * The minimal instance shape the diff reads: it only ever inspects `key`
+ * (to match prior entries) and `inputsHash` (to detect a meaningful change).
+ * Parameterising over this lets a domain-neutral work-plan store
+ * (`createWorkPlanStore`) drive the SAME diff with its own instance type,
+ * while the livestock path infers `T = LivestockWorkInstance` unchanged.
+ */
+export interface WorkPlanInstanceLike {
+  key: string;
+  inputsHash: string;
+}
 
 /** The minimal prior-state view the diff needs (one per known instance key). */
 export interface WorkPlanEntry {
@@ -38,18 +48,22 @@ export interface WorkPlanEntry {
   inputsHash: string;
 }
 
-export interface WorkPlanReviewItem {
+export interface WorkPlanReviewItem<
+  T extends WorkPlanInstanceLike = WorkPlanInstanceLike,
+> {
   key: string;
   reason: 'changed' | 'orphaned';
   /** The regenerated instance, when one exists (reason 'changed'). */
-  next?: LivestockWorkInstance;
+  next?: T;
 }
 
-export interface WorkPlanDiff {
+export interface WorkPlanDiff<
+  T extends WorkPlanInstanceLike = WorkPlanInstanceLike,
+> {
   /** Brand-new keys → create as proposed. */
-  insert: LivestockWorkInstance[];
+  insert: T[];
   /** Existing proposed keys → replace content with the regenerated instance. */
-  overwrite: LivestockWorkInstance[];
+  overwrite: T[];
   /** proposed/dismissed keys no longer generated → delete the entry. */
   remove: string[];
   /** dismissed keys still generated → keep the dismissal untouched. */
@@ -57,19 +71,19 @@ export interface WorkPlanDiff {
   /** confirmed keys regenerated with an identical hash → leave alone. */
   untouchedConfirmed: string[];
   /** confirmed keys that changed or vanished → operator review queue. */
-  needsReview: WorkPlanReviewItem[];
+  needsReview: WorkPlanReviewItem<T>[];
 }
 
-export function diffWorkPlan(
+export function diffWorkPlan<T extends WorkPlanInstanceLike>(
   prior: ReadonlyArray<WorkPlanEntry>,
-  next: ReadonlyArray<LivestockWorkInstance>,
-): WorkPlanDiff {
-  const nextByKey = new Map<string, LivestockWorkInstance>();
+  next: ReadonlyArray<T>,
+): WorkPlanDiff<T> {
+  const nextByKey = new Map<string, T>();
   for (const instance of next) nextByKey.set(instance.key, instance);
   const priorByKey = new Map<string, WorkPlanEntry>();
   for (const entry of prior) priorByKey.set(entry.key, entry);
 
-  const diff: WorkPlanDiff = {
+  const diff: WorkPlanDiff<T> = {
     insert: [],
     overwrite: [],
     remove: [],
