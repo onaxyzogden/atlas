@@ -84,6 +84,7 @@ import { usePortalStore } from '../store/portalStore.js';
 import { usePilotPlotStore } from '../store/pilotPlotStore.js';
 import { useScenarioStore } from '../store/scenarioStore.js';
 import { useScheduledLivestockMoveStore } from '../store/scheduledLivestockMoveStore.js';
+import { useLivestockWorkPlanStore } from '../store/livestockWorkPlanStore.js';
 import { useSetbackStore } from '../store/setbackStore.js';
 import { useSoilSampleStore } from '../store/soilSampleStore.js';
 import { useTopographyStore } from '../store/topographyStore.js';
@@ -809,6 +810,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-act-pilots', usePilotPlotStore, 'projectId-tagged', 1, tagged('pilots')),
   blob('ogden-scenarios', useScenarioStore, 'projectId-tagged', 1, tagged('scenarios')),
   blob('ogden-scheduled-livestock-moves', useScheduledLivestockMoveStore, 'projectId-tagged', 2, tagged('plans')),
+  blob('ogden-livestock-work-plan', useLivestockWorkPlanStore, 'projectId-tagged', 1, tagged('rules', 'proposals')),
   blob('ogden-setback-rings', useSetbackStore, 'projectId-tagged', 1, tagged('rings'), true),
   blob('ogden-soil-samples', useSoilSampleStore, 'projectId-tagged', 1, tagged('samples'), true),
   blob('ogden-topography', useTopographyStore, 'projectId-tagged', 2, tagged('transects', 'contours', 'highPoints', 'drainageLines'), true),

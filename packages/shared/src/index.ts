@@ -58,6 +58,7 @@ export * from './schemas/actTelemetry.schema.js';
 export * from './schemas/clientErrorTelemetry.schema.js';
 export * from './schemas/showcaseTelemetry.schema.js';
 export * from './schemas/workItem.schema.js';
+export * from './schemas/livestockWork/livestockWork.schema.js';
 export * from './schemas/crewMember.schema.js';
 export * from './schemas/costRange.schema.js';
 export * from './schemas/proofEvent.schema.js';
@@ -90,6 +91,9 @@ export * from './ecology/corridorLCP.js';
 export * from './ecology/pollinatorHabitatState.js';
 export * from './succession/index.js';
 export * from './fieldVerification/index.js';
+export * from './livestockWork/expandRecurrence.js';
+export * from './livestockWork/generateLivestockWorkPlan.js';
+export * from './livestockWork/diffWorkPlan.js';
 
 // Constants
 export * from './constants/dataSources.js';
@@ -203,6 +207,7 @@ export * from './constants/protocol/feedsToObjective.js';
 export * from './constants/protocol/coOccurrence.js';
 export * from './constants/protocol/chronicDetection.js';
 export * from './constants/protocol/observationLogRetention.js';
+export * from './constants/livestockWork/protocolCadences.js';
 
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';

@@ -42,6 +42,7 @@ export const WorkItemSource = z.enum([
   'habitat-feature',
   'tree-planting',
   'agroforestry',
+  'livestock-plan',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -187,6 +188,30 @@ export const WorkItemSchema = z
      * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
      */
     generatedFromAgroforestryElement: z.string().optional(),
+    /**
+     * LivestockWorkInstance key (`lvp__…__<dueDate>`) of the livestock
+     * work-plan proposal this row was confirmed from. Set ONLY by the
+     * operator's `confirmProposal` (livestockWorkPlanStore) — the
+     * generation layer is advisory and never writes the spine. Lets the
+     * diff layer recognise its confirmed rows across regenerations
+     * without ever mutating them. `.optional()` + the top-level
+     * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
+     */
+    generatedFromLivestockPlan: z.string().optional(),
+    /**
+     * Standing-protocol id (protocol catalogues) that authored the
+     * livestock work-plan rule behind this row — provenance for the
+     * Act work UI's "from protocol …" chip. `.optional()` +
+     * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
+     */
+    sourceProtocolId: z.string().optional(),
+    /**
+     * Plan objective id (e.g. 'silv-sec-s4-grazing-design') anchoring the
+     * decision this row was generated from — provenance for per-objective
+     * progress rollups. `.optional()` + `.passthrough()` ⇒ no DB
+     * migration (A-series additive covenant).
+     */
+    sourceObjectiveId: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),
