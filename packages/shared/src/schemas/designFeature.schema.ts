@@ -17,6 +17,12 @@ export const CreateDesignFeatureInput = z.object({
   phaseTag: z.string().max(20).optional(),
   style: z.record(z.unknown()).optional(),
   sortOrder: z.number().int().default(0),
+  /**
+   * Accept warn-severity placement-guard violations (server guard, Phase 4).
+   * Sent by syncService when the record carries client-side
+   * placementAcknowledgments. Not a column — consumed by the route only.
+   */
+  acknowledgeWarnings: z.boolean().optional(),
 });
 export type CreateDesignFeatureInput = z.infer<typeof CreateDesignFeatureInput>;
 
@@ -28,6 +34,8 @@ export const UpdateDesignFeatureInput = z.object({
   phaseTag: z.string().max(20).optional(),
   style: z.record(z.unknown()).optional(),
   sortOrder: z.number().int().optional(),
+  /** See CreateDesignFeatureInput.acknowledgeWarnings. */
+  acknowledgeWarnings: z.boolean().optional(),
 });
 export type UpdateDesignFeatureInput = z.infer<typeof UpdateDesignFeatureInput>;
 

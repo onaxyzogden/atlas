@@ -7,12 +7,30 @@
  */
 
 import type { CreateDesignFeatureInput, DesignFeatureSummary } from '@ogden/shared';
+import type { PlacementAcknowledgment } from '@ogden/shared/placementRules';
 import type { LandZone } from '../store/zoneStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { DesignPath } from '../store/pathStore.js';
 import type { Utility } from '../store/utilityStore.js';
 
+/**
+ * Placement-guard fields shared by every to-DesignFeature mapper: persist the
+ * client-side warn acknowledgments into properties jsonb and tell the server
+ * guard (PLACEMENT_GUARD_MODE=enforce) the warns were acknowledged.
+ */
+function placementSyncFields(acks: PlacementAcknowledgment[] | undefined): {
+  properties: Record<string, unknown>;
+  acknowledgeWarnings?: boolean;
+} {
+  if (!acks?.length) return { properties: {} };
+  return {
+    properties: { placementAcknowledgments: acks },
+    acknowledgeWarnings: true,
+  };
+}
+
 export function zoneToDesignFeature(zone: LandZone, _projectServerId: string): CreateDesignFeatureInput {
+  const placement = placementSyncFields(zone.placementAcknowledgments);
   return {
     featureType: 'zone',
     subtype: zone.category,
@@ -25,13 +43,16 @@ export function zoneToDesignFeature(zone: LandZone, _projectServerId: string): C
       areaM2: zone.areaM2,
       localId: zone.id,
       color: zone.color,
+      ...placement.properties,
     },
     style: { color: zone.color },
     sortOrder: 0,
+    ...(placement.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
   };
 }
 
 export function structureToDesignFeature(structure: Structure, _projectServerId: string): CreateDesignFeatureInput {
+  const placement = placementSyncFields(structure.placementAcknowledgments);
   return {
     featureType: 'structure',
     subtype: structure.type,
@@ -46,9 +67,11 @@ export function structureToDesignFeature(structure: Structure, _projectServerId:
       infrastructureReqs: structure.infrastructureReqs,
       notes: structure.notes,
       localId: structure.id,
+      ...placement.properties,
     },
     phaseTag: structure.phase || undefined,
     sortOrder: 0,
+    ...(placement.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
   };
 }
 
@@ -65,6 +88,7 @@ export function designFeatureToZone(df: DesignFeatureSummary, projectLocalId: st
     notes: (props.notes as string) ?? '',
     geometry: df.geometry as LandZone['geometry'],
     areaM2: (props.areaM2 as number) ?? 0,
+    placementAcknowledgments: props.placementAcknowledgments as PlacementAcknowledgment[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,
@@ -87,6 +111,7 @@ export function designFeatureToStructure(df: DesignFeatureSummary, projectLocalI
     costEstimate: (props.costEstimate as number | null) ?? null,
     infrastructureReqs: (props.infrastructureReqs as string[]) ?? [],
     notes: (props.notes as string) ?? '',
+    placementAcknowledgments: props.placementAcknowledgments as PlacementAcknowledgment[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,
@@ -94,6 +119,7 @@ export function designFeatureToStructure(df: DesignFeatureSummary, projectLocalI
 }
 
 export function pathToDesignFeature(p: DesignPath, _projectServerId: string): CreateDesignFeatureInput {
+  const placement = placementSyncFields(p.placementAcknowledgments);
   return {
     featureType: 'path',
     subtype: p.type,
@@ -110,10 +136,12 @@ export function pathToDesignFeature(p: DesignPath, _projectServerId: string): Cr
       enterprise: p.enterprise,
       restPointAnchors: p.restPointAnchors,
       notes: p.notes,
+      ...placement.properties,
     },
     phaseTag: p.phase || undefined,
     style: { color: p.color },
     sortOrder: 0,
+    ...(placement.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
   };
 }
 
@@ -135,6 +163,7 @@ export function designFeatureToPath(df: DesignFeatureSummary, projectLocalId: st
     enterprise: props.enterprise as string | undefined,
     accessible: props.accessible as boolean | undefined,
     restPointAnchors: props.restPointAnchors as [number, number][] | undefined,
+    placementAcknowledgments: props.placementAcknowledgments as PlacementAcknowledgment[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,
@@ -142,6 +171,7 @@ export function designFeatureToPath(df: DesignFeatureSummary, projectLocalId: st
 }
 
 export function utilityToDesignFeature(u: Utility, _projectServerId: string): CreateDesignFeatureInput {
+  const placement = placementSyncFields(u.placementAcknowledgments);
   return {
     featureType: 'point',
     subtype: u.type,
@@ -155,9 +185,11 @@ export function utilityToDesignFeature(u: Utility, _projectServerId: string): Cr
       isTemporary: u.isTemporary,
       seasonalMonths: u.seasonalMonths,
       notes: u.notes,
+      ...placement.properties,
     },
     phaseTag: u.phase || undefined,
     sortOrder: 0,
+    ...(placement.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
   };
 }
 
@@ -179,6 +211,7 @@ export function designFeatureToPoint(df: DesignFeatureSummary, projectLocalId: s
     capacityGal: props.capacityGal as number | undefined,
     isTemporary: props.isTemporary as boolean | undefined,
     seasonalMonths: props.seasonalMonths as number[] | undefined,
+    placementAcknowledgments: props.placementAcknowledgments as PlacementAcknowledgment[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,

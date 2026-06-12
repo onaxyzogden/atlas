@@ -1,8 +1,10 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { CreateDesignFeatureInput, UpdateDesignFeatureInput, DesignFeatureSummary, toCamelCase } from '@ogden/shared';
-import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import { AppError, NotFoundError, ForbiddenError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
+import { config } from '../../lib/config.js';
+import { checkPlacement, type CheckPlacementInput } from '../../lib/placementGuard.js';
 
 const ParamsProjectId = z.object({ projectId: z.string().uuid() });
 const ParamsId = z.object({ id: z.string().uuid() });
@@ -17,6 +19,47 @@ function parseRow(row: Record<string, unknown>) {
 
 export default async function designFeatureRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
+
+  /**
+   * guardPlacement — PLACEMENT_GUARD_MODE gate around checkPlacement.
+   *   off     → skip; log → evaluate + fastify.log.warn, never reject;
+   *   enforce → blocks always 409 PLACEMENT_VIOLATION; warns 409 unless
+   *             the body carried acknowledgeWarnings (client sends it when
+   *             the record holds placementAcknowledgments).
+   * `sql` is injectable so the bulk route can pass its transaction handle
+   * (earlier inserts in the same batch must be visible as siblings).
+   */
+  const guardPlacement = async (
+    input: CheckPlacementInput,
+    acknowledgeWarnings: boolean | undefined,
+    sql = db,
+  ) => {
+    if (config.PLACEMENT_GUARD_MODE === 'off') return;
+    const violations = await checkPlacement(sql, input);
+    if (violations.length === 0) return;
+    if (config.PLACEMENT_GUARD_MODE === 'log') {
+      fastify.log.warn(
+        {
+          projectId: input.projectId,
+          featureType: input.featureType,
+          subtype: input.subtype ?? null,
+          violations,
+        },
+        'placement guard violations (log mode)',
+      );
+      return;
+    }
+    const blocks = violations.filter((v) => v.severity === 'block');
+    const warns = violations.filter((v) => v.severity === 'warn');
+    if (blocks.length > 0 || (warns.length > 0 && !acknowledgeWarnings)) {
+      throw new AppError(
+        'PLACEMENT_VIOLATION',
+        (blocks[0] ?? warns[0])!.message,
+        409,
+        { violations },
+      );
+    }
+  };
 
   /**
    * resolveProjectRoleFromFeature — preHandler for routes where :id is a
@@ -85,6 +128,16 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
       const { projectId } = ParamsProjectId.parse(req.params);
       const body = CreateDesignFeatureInput.parse(req.body);
 
+      await guardPlacement(
+        {
+          projectId,
+          featureType: body.featureType,
+          subtype: body.subtype ?? null,
+          geometry: body.geometry,
+        },
+        body.acknowledgeWarnings,
+      );
+
       const geomStr = JSON.stringify(body.geometry);
 
       const [row] = await db`
@@ -143,8 +196,8 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
 
       // Read current values for merge
       const [existing] = await db`
-        SELECT df.id, df.subtype, df.label, df.properties, df.phase_tag,
-               df.style, df.sort_order,
+        SELECT df.id, df.project_id, df.feature_type, df.subtype, df.label,
+               df.properties, df.phase_tag, df.style, df.sort_order,
                ST_AsGeoJSON(df.geometry)::text AS geometry_json
         FROM design_features df
         WHERE df.id = ${id}
@@ -159,21 +212,35 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
       const newGeomStr = body.geometry != null
         ? JSON.stringify(body.geometry)
         : existing.geometry_json;
-      const newProperties = body.properties != null
-        ? JSON.stringify(body.properties)
-        : JSON.stringify(existing.properties);
-      const newStyle = body.style != null
-        ? JSON.stringify(body.style)
-        : (existing.style != null ? JSON.stringify(existing.style) : null);
+      // Pass jsonb values as objects via db.json() — a pre-stringified string
+      // param on a jsonb placeholder is double-encoded by postgres.js and
+      // lands as a jsonb string scalar, corrupting the column.
+      const newProperties = (body.properties ?? existing.properties) as Record<string, unknown>;
+      const newStyle = (body.style ?? existing.style) as Record<string, unknown> | null;
+
+      // Guard only geometry-changing updates; the moved feature itself is
+      // excluded from sibling distance / intersection queries.
+      if (body.geometry != null) {
+        await guardPlacement(
+          {
+            projectId: existing.project_id as string,
+            featureType: existing.feature_type as string,
+            subtype: (newSubtype ?? null) as string | null,
+            geometry: body.geometry,
+            excludeFeatureId: id,
+          },
+          body.acknowledgeWarnings,
+        );
+      }
 
       const [row] = await db`
         UPDATE design_features SET
           subtype    = ${newSubtype},
           geometry   = ST_GeomFromGeoJSON(${newGeomStr}),
           label      = ${newLabel},
-          properties = ${newProperties}::jsonb,
+          properties = ${db.json(newProperties as Record<string, string>)},
           phase_tag  = ${newPhaseTag},
-          style      = ${newStyle != null ? db`${newStyle}::jsonb` : db`NULL`},
+          style      = ${newStyle != null ? db.json(newStyle as Record<string, string>) : null},
           sort_order = ${newSortOrder},
           updated_at = now()
         WHERE id = ${id}
@@ -256,6 +323,19 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
         const rows: unknown[] = [];
 
         for (const feature of body.features) {
+          // Pass the transaction handle so earlier inserts in this batch are
+          // visible as siblings; a violation rolls the whole batch back.
+          await guardPlacement(
+            {
+              projectId,
+              featureType: feature.featureType,
+              subtype: feature.subtype ?? null,
+              geometry: feature.geometry,
+            },
+            feature.acknowledgeWarnings,
+            sql,
+          );
+
           const geomStr = JSON.stringify(feature.geometry);
 
           const [row] = await sql`

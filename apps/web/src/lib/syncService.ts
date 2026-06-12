@@ -648,6 +648,48 @@ async function syncProjectDelete(project: LocalProject) {
 
 // ─── Sync handlers (zone) ────────────────────────────────────────────────────
 
+/**
+ * PLACEMENT_VIOLATION 409s come from the server placement guard
+ * (apps/api/src/lib/placementGuard.ts, PLACEMENT_GUARD_MODE=enforce) and are
+ * deterministic: retrying the identical geometry can never succeed, so the op
+ * must NOT be re-queued (it would spin to MAX_RETRIES for nothing). Instead
+ * the record is kept locally and the rejection is surfaced through the same
+ * dropped-op Connectivity badge + toast the circuit-breaker uses, naming the
+ * violated rules. Returns true when the error was consumed — the handler
+ * returns without enqueueing or rethrowing, so a queued op is dequeued.
+ */
+function handlePlacementViolation(
+  err: unknown,
+  storeType: string,
+  action: string,
+  localId: string,
+): boolean {
+  if (typeof err !== 'object' || err === null) return false;
+  const e = err as { status?: unknown; code?: unknown; details?: unknown };
+  if (e.status !== 409 || e.code !== 'PLACEMENT_VIOLATION') return false;
+  const violations =
+    ((e.details ?? {}) as { violations?: { message?: string }[] }).violations ?? [];
+  const messages = violations
+    .map((v) => v.message)
+    .filter(Boolean)
+    .join('; ');
+  console.warn(
+    `[SYNC] ${storeType} ${action} rejected by the server placement guard (kept locally):`,
+    messages || err,
+  );
+  const conn = useConnectivityStore.getState();
+  const opKey = `${storeType}:${action}:${localId}`;
+  if (!conn.droppedStores.includes(opKey)) {
+    conn.addDroppedStore(opKey);
+    toast.error(
+      `The server placement guard rejected this ${storeType}` +
+        (messages ? ` — ${messages}.` : '.') +
+        ` It is kept on this device — see Connectivity.`,
+    );
+  }
+  return true;
+}
+
 async function syncZoneCreate(zone: LandZone, rethrow = false) {
   const projectServerId = getProjectServerId(zone.projectId);
   if (!projectServerId) return; // Project not yet synced
@@ -660,6 +702,7 @@ async function syncZoneCreate(zone: LandZone, rethrow = false) {
     useZoneStore.getState().updateZone(zone.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
+    if (handlePlacementViolation(err, 'zone', 'create', zone.id)) return;
     console.warn('[SYNC] Zone create failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({
@@ -684,8 +727,10 @@ async function syncZoneUpdate(zone: LandZone, rethrow = false) {
       label: input.label,
       properties: input.properties,
       style: input.style,
+      ...(input.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
     });
   } catch (err) {
+    if (handlePlacementViolation(err, 'zone', 'update', zone.id)) return;
     console.warn('[SYNC] Zone update failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({
@@ -731,6 +776,7 @@ async function syncStructureCreate(structure: Structure, rethrow = false) {
     updateStructure(structure.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
+    if (handlePlacementViolation(err, 'structure', 'create', structure.id)) return;
     console.warn('[SYNC] Structure create failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({
@@ -755,8 +801,10 @@ async function syncStructureUpdate(structure: Structure, rethrow = false) {
       label: input.label,
       properties: input.properties,
       phaseTag: input.phaseTag,
+      ...(input.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
     });
   } catch (err) {
+    if (handlePlacementViolation(err, 'structure', 'update', structure.id)) return;
     console.warn('[SYNC] Structure update failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({
@@ -802,6 +850,7 @@ async function syncPathCreate(p: DesignPath, rethrow = false) {
     usePathStore.getState().updatePath(p.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
+    if (handlePlacementViolation(err, 'path', 'create', p.id)) return;
     console.warn('[SYNC] Path create failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'path', action: 'create', localId: p.id, payload: p });
@@ -822,8 +871,10 @@ async function syncPathUpdate(p: DesignPath, rethrow = false) {
       properties: input.properties,
       phaseTag: input.phaseTag,
       style: input.style,
+      ...(input.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
     });
   } catch (err) {
+    if (handlePlacementViolation(err, 'path', 'update', p.id)) return;
     console.warn('[SYNC] Path update failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'path', action: 'update', localId: p.id, payload: p });
@@ -859,6 +910,7 @@ async function syncUtilityCreate(u: Utility, rethrow = false) {
     useUtilityStore.getState().updateUtility(u.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
+    if (handlePlacementViolation(err, 'point', 'create', u.id)) return;
     console.warn('[SYNC] Utility create failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'point', action: 'create', localId: u.id, payload: u });
@@ -879,8 +931,10 @@ async function syncUtilityUpdate(u: Utility, rethrow = false) {
       properties: input.properties,
       phaseTag: input.phaseTag,
       style: input.style,
+      ...(input.acknowledgeWarnings ? { acknowledgeWarnings: true } : {}),
     });
   } catch (err) {
+    if (handlePlacementViolation(err, 'point', 'update', u.id)) return;
     console.warn('[SYNC] Utility update failed, queuing:', err);
     if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'point', action: 'update', localId: u.id, payload: u });

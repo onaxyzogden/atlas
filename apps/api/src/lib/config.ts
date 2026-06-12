@@ -46,6 +46,12 @@ const EnvSchema = z.object({
   // SOILGRIDS_S3_PREFIX — optional HTTPS/S3 base URL; overrides local FS when set.
   SOILGRIDS_DATA_DIR: z.string().default('./data/soilgrids/cog'),
   SOILGRIDS_S3_PREFIX: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
+  // ── Placement guard (design-features PostGIS validation) ────────────────
+  // off     — skip entirely.
+  // log     — evaluate + log violations, never reject (default: legacy rows
+  //           synced before the rules existed must not brick sync).
+  // enforce — blocks always 409; warns 409 unless acknowledgeWarnings.
+  PLACEMENT_GUARD_MODE: z.enum(['off', 'log', 'enforce']).default('log'),
 });
 
 function loadConfig() {
