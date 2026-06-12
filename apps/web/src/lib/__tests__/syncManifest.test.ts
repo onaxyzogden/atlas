@@ -267,6 +267,97 @@ describe('syncManifest coverage guard', () => {
     }
   });
 
+  it('keeps the work spine on the typed-record path with its blob hydrate fallback (2026-06-12 promotion)', () => {
+    // ogden-work-items promoted versioned-blob → typed-record (ADR
+    // 2026-06-12-atlas-work-items-typed-record-transport): per-row LWW with
+    // steward-escalated conflicts instead of silent whole-blob loss. Drifting
+    // back to versioned-blob would reintroduce double-write + blob LWW.
+    const wi = SYNCED_STORES.find((d) => d.storeKey === 'ogden-work-items');
+    expect(wi, 'ogden-work-items must be in SYNCED_STORES').toBeDefined();
+    expect(wi?.classification).toBe<SyncClassification>('typed-record');
+    expect(wi?.scope).toBe('projectId-tagged');
+    expect(wi?.schemaVersion).toBe(4);
+    // The one-time hydrate fallback for pre-promotion server blobs is OPT-IN
+    // and only the promoted store carries it — the 7 born-typed stores keep
+    // the abandon-silently precedent (ogden-paths).
+    expect(typeof wi?.applyBlobFallbackForProject).toBe('function');
+    const withFallback = SYNCED_STORES.filter(
+      (d) =>
+        d.classification === 'typed-record' &&
+        typeof d.applyBlobFallbackForProject === 'function',
+    ).map((d) => d.storeKey);
+    expect(withFallback).toEqual(['ogden-work-items']);
+  });
+
+  it('work-items recordTaggedArray shape: per-project enumeration, WorkItem meta, single-row upsert', () => {
+    const wi = SYNCED_STORES.find((d) => d.storeKey === 'ogden-work-items')!;
+    const state: any = {
+      items: [
+        {
+          id: 'lvw__r1__2026-07-01',
+          projectId: 'A',
+          source: 'livestock-plan',
+          category: 'animal-care',
+          updatedAt: '2026-06-12T08:00:00.000Z',
+        },
+        { id: 'w2', projectId: 'A' },
+        { id: 'w3', projectId: 'B', source: 'manual' },
+        { projectId: 'A' }, // no id → no stable sync key, skipped
+      ],
+      migratedSources: ['legacy'],
+    };
+    const recs = wi.selectRecordsForProject!(state, 'A');
+    expect(recs.map((r) => r.recordId)).toEqual(['lvw__r1__2026-07-01', 'w2']);
+    // WorkItem meta: observed_at ← updatedAt (every mutation bumps it),
+    // source_type ← source, task_type ← category; absent fields send null.
+    expect(recs[0]!.meta).toEqual({
+      observedAt: '2026-06-12T08:00:00.000Z',
+      sourceType: 'livestock-plan',
+      cycleId: null,
+      taskType: 'animal-care',
+    });
+    expect(recs[1]!.meta).toEqual({
+      observedAt: null,
+      sourceType: null,
+      cycleId: null,
+      taskType: null,
+    });
+    // apply upserts ONE row by id; project B's row and the unrelated
+    // device-local field stay untouched.
+    let live = { ...state };
+    const handle = {
+      getState: () => live,
+      setState: (p: any) => {
+        live = { ...live, ...(typeof p === 'function' ? p(live) : p) };
+      },
+    };
+    wi.applyRecordForProject!(handle as never, 'A', 'w2', {
+      id: 'w2',
+      projectId: 'A',
+      source: 'manual',
+    });
+    expect(live.items.find((r: any) => r.id === 'w2')).toEqual({
+      id: 'w2',
+      projectId: 'A',
+      source: 'manual',
+    });
+    expect(live.items.filter((r: any) => r.projectId === 'B')).toEqual([
+      { id: 'w3', projectId: 'B', source: 'manual' },
+    ]);
+    expect(live.migratedSources).toEqual(['legacy']);
+    // unseen recordId → insert (server row this device has never held)
+    wi.applyRecordForProject!(handle as never, 'A', 'w9', { id: 'w9', projectId: 'A' });
+    expect(live.items.some((r: any) => r.id === 'w9')).toBe(true);
+    // blob fallback applier replaces ONLY this project's rows (tagged shape)
+    wi.applyBlobFallbackForProject!(handle as never, 'A', {
+      items: [{ id: 'blob1', projectId: 'A' }],
+    });
+    expect(live.items.filter((r: any) => r.projectId === 'A').map((r: any) => r.id)).toEqual([
+      'blob1',
+    ]);
+    expect(live.items.filter((r: any) => r.projectId === 'B')).toHaveLength(1);
+  });
+
   it('gives every typed-record store live transport metadata (ADR 7 P1)', () => {
     // Per-record analogue of the versioned-blob transport-metadata guard: the
     // typed-record subscribe/enqueue/hydrate loop needs a live store handle, a
@@ -274,8 +365,9 @@ describe('syncManifest coverage guard', () => {
     // version-skew guard. Missing any = that Act store silently never syncs.
     const records = SYNCED_STORES.filter((d) => d.classification === 'typed-record');
     // 4 Act stores (ADR 7 P1) + 3 olos record stores (Phase 3B): observations,
-    // proofs, verifications — all on the same per-record transport.
-    expect(records.length).toBe(7);
+    // proofs, verifications + the work spine (ogden-work-items, promoted from
+    // versioned-blob 2026-06-12) — all on the same per-record transport.
+    expect(records.length).toBe(8);
     const incomplete = records
       .filter(
         (d) =>

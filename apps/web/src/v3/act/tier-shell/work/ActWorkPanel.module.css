@@ -243,6 +243,20 @@
   border-color: var(--color-danger, #d27b6b);
 }
 
+/* Footer link from the conflict section to the full side-by-side diff page. */
+.conflictPageLink {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--color-text-secondary, #9a948a);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.conflictPageLink:hover {
+  color: var(--color-gold-brand, #c4a265);
+  text-decoration: underline;
+}
+
 .chip {
   font-size: 10px;
   padding: 1px 6px;

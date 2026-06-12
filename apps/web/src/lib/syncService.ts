@@ -1986,6 +1986,58 @@ export async function hydrateTypedTables(
  * dropped here. `descriptors` is injectable for tests; production passes
  * `SYNCED_STORES`.
  */
+/**
+ * One-time hydrate fallback for typed-record stores promoted from
+ * versioned-blob (ADR 2026-06-12-atlas-work-items-typed-record-transport,
+ * opt-in via `applyBlobFallbackForProject`): when the server holds ZERO
+ * `synced_records` rows for the store AND this device holds zero local rows
+ * for the project (fresh device), read the now-inert `project_state_blobs`
+ * row once and apply it, so the pre-promotion data is visible before the
+ * data-holding device's first per-record push. Read-only — never writes the
+ * blob, never seeds per-record base revs (the records are born on first
+ * push). The double zero-check means a device with local rows (synced or
+ * queued) is never touched, so the fallback cannot clobber un-pushed work.
+ */
+async function applyBlobHydrateFallback(
+  project: LocalProject,
+  d: SyncedStoreDescriptor,
+): Promise<void> {
+  if (!project.serverId || !d.store || !d.applyBlobFallbackForProject) return;
+  let rows: Array<{ storeKey: string; payload: unknown; schemaVersion: number }>;
+  try {
+    const res = await api.projectState.list(project.serverId);
+    rows = (res.data ?? []) as typeof rows;
+  } catch (err) {
+    console.warn(
+      `[SYNC] blob hydrate-fallback list failed for "${d.storeKey}" / "${project.name}":`,
+      err,
+    );
+    return;
+  }
+  const row = rows.find((r) => r.storeKey === d.storeKey);
+  if (!row) return;
+  const localVersion = d.schemaVersion ?? 1;
+  if (row.schemaVersion > localVersion) {
+    console.warn(
+      `[SYNC] blob hydrate-fallback "${d.storeKey}" schemaVersion ` +
+        `${row.schemaVersion} > local ${localVersion}; skipped (version-skew guard)`,
+    );
+    return;
+  }
+  try {
+    const handle = d.store as unknown as {
+      getState: () => unknown;
+      setState: (p: unknown) => void;
+    };
+    d.applyBlobFallbackForProject(handle, project.id, row.payload);
+  } catch (err) {
+    console.warn(
+      `[SYNC] blob hydrate-fallback "${d.storeKey}" apply failed:`,
+      err,
+    );
+  }
+}
+
 export async function hydrateTypedRecords(
   project: LocalProject,
   descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
@@ -2010,6 +2062,18 @@ export async function hydrateTypedRecords(
         `[SYNC] typed-record hydrate list failed for "${d.storeKey}" / "${project.name}":`,
         err,
       );
+      continue;
+    }
+    if (rows.length === 0 && d.applyBlobFallbackForProject) {
+      // Promoted store with zero server records: the only server-side data
+      // that can exist is the pre-promotion blob. Only a device that is
+      // itself empty for this project takes it — a device holding local rows
+      // (synced or queued for push) is authoritative over the stale blob.
+      const localRows =
+        d.selectRecordsForProject?.(d.store.getState(), project.id) ?? [];
+      if (localRows.length === 0) {
+        await applyBlobHydrateFallback(project, d);
+      }
       continue;
     }
     const handle = d.store as unknown as {

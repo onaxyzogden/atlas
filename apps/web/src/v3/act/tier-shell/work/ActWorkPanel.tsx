@@ -8,10 +8,13 @@
  * Sections, top to bottom:
  *   1. Carer strip — per-carer workload counts (WorkCarerSummary), doubling
  *      as a filter over the Overdue section and every tab below it.
- *   2. Proposed (pinned) — WorkReviewSection over livestockWorkPlanStore
+ *   2. Needs your decision (pinned) — WorkConflictSection over the
+ *      per-record sync conflicts for `ogden-work-items` (ADR 2026-06-12);
+ *      renders nothing when there are none.
+ *   3. Proposed (pinned) — WorkReviewSection over livestockWorkPlanStore
  *      (proposals aren't spine rows — the carer filter doesn't apply).
- *   3. Overdue (pinned, red) — live items past due.
- *   4. Today / This week agenda — day-grouped spine rows (incl. recently
+ *   4. Overdue (pinned, red) — live items past due.
+ *   5. Today / This week agenda — day-grouped spine rows (incl. recently
  *      done, so variance stays visible where the work was due) — or, on the
  *      Season tab, the WorkMonthGrid month calendar (no horizon clamp).
  *
@@ -34,6 +37,7 @@ import {
 } from '../../../../features/work/workSelectors.js';
 import WorkAgendaList from './WorkAgendaList.js';
 import WorkCarerSummary from './WorkCarerSummary.js';
+import WorkConflictSection from './WorkConflictSection.js';
 import WorkMonthGrid from './WorkMonthGrid.js';
 import WorkReviewSection from './WorkReviewSection.js';
 import styles from './ActWorkPanel.module.css';
@@ -178,6 +182,8 @@ export default function ActWorkPanel({
       />
 
       <div className={styles.body}>
+        <WorkConflictSection />
+
         <WorkReviewSection projectId={projectId} />
 
         {overdue.length > 0 && (

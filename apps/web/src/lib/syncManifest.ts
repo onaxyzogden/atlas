@@ -218,6 +218,21 @@ export interface SyncedStoreDescriptor {
     recordId: string,
     incoming: unknown,
   ) => void;
+  /**
+   * `typed-record` only, OPT-IN: one-time hydrate fallback for stores
+   * promoted from versioned-blob (e.g. `ogden-work-items`, 2026-06-12).
+   * When `hydrateTypedRecords` finds ZERO `synced_records` rows for this
+   * store, it reads the now-inert `project_state_blobs` row once and applies
+   * it through this applier, so a fresh device doesn't hydrate an empty
+   * store before the data-holding device's first per-record push. The blob
+   * is never written again; stores without this field keep the
+   * abandon-silently precedent (`ogden-paths`).
+   */
+  applyBlobFallbackForProject?: (
+    store: { getState: () => unknown; setState: (p: unknown) => void },
+    projectId: string,
+    incoming: unknown,
+  ) => void;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -659,6 +674,48 @@ function recordByInnerField(innerIdField: string): RecordShape {
 }
 
 /**
+ * typed-record shape for a `projectId-tagged` FLAT-ARRAY store
+ * (`state[field]: T[]`, each `T` carrying `projectId` + a stable `id`).
+ * The per-record analogue of `tagged(field)`: select enumerates only this
+ * project's rows (recordId = `String(record.id)`); apply upserts ONE row by
+ * id, leaving every other row — including other projects' — untouched.
+ *
+ * Meta is built inline rather than via `extractRecordMeta` because tagged
+ * spine rows (WorkItem) denormalise differently: `observed_at` ← `updatedAt`
+ * (bumped on every store mutation, so per-record LWW tracks true edit
+ * recency), `source_type` ← `source` (e.g. 'livestock-plan',
+ * 'rotation-sequence'), `task_type` ← top-level `category`. All best-effort
+ * — a row lacking a field sends null.
+ */
+function recordTaggedArray(field: string): RecordShape {
+  return {
+    selectRecords: (state, pid) => {
+      const arr = ((state as any)?.[field] as any[]) ?? [];
+      return (Array.isArray(arr) ? arr : [])
+        .filter((rec) => rec != null && rec.id != null && rec.projectId === pid)
+        .map((rec) => ({
+          recordId: String(rec.id),
+          record: rec,
+          meta: {
+            observedAt: typeof rec.updatedAt === 'string' ? rec.updatedAt : null,
+            sourceType: typeof rec.source === 'string' ? rec.source : null,
+            cycleId: null,
+            taskType: typeof rec.category === 'string' ? rec.category : null,
+          },
+        }));
+    },
+    applyRecord: (store, _pid, recordId, incoming) =>
+      store.setState((st: any) => {
+        const list = [...(((st?.[field] as any[]) ?? []) as any[])];
+        const idx = list.findIndex((r) => String(r?.id) === recordId);
+        if (idx >= 0) list[idx] = incoming;
+        else list.push(incoming);
+        return { [field]: list };
+      }),
+  };
+}
+
+/**
  * typed-record registration helper — the per-record analogue of `blob()`.
  * `schemaVersion` MUST match the store's persist `version` so the hydrate-side
  * version-skew guard stays correct (e.g. field-actions is persist v3 after the
@@ -671,6 +728,7 @@ function record(
   schemaVersion: number,
   shape: RecordShape,
   usesTemporal = false,
+  blobFallback?: BlobShape,
 ): SyncedStoreDescriptor {
   return {
     storeKey,
@@ -682,6 +740,12 @@ function record(
     selectRecordsForProject: shape.selectRecords,
     applyRecordForProject:
       shape.applyRecord as SyncedStoreDescriptor['applyRecordForProject'],
+    ...(blobFallback
+      ? {
+          applyBlobFallbackForProject:
+            blobFallback.apply as SyncedStoreDescriptor['applyBlobFallbackForProject'],
+        }
+      : {}),
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -776,7 +840,16 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-pastures', usePastureStore, 'projectId-tagged', 1, tagged('pastures'), true),
   blob('ogden-swot', useSwotStore, 'projectId-tagged', 1, tagged('swot'), true),
   blob('ogden-phases', usePhaseStore, 'projectId-tagged', 3, tagged('phases')),
-  blob('ogden-work-items', useWorkItemStore, 'projectId-tagged', 4, tagged('items')),
+  // ogden-work-items promoted versioned-blob → typed-record on 2026-06-12
+  // (ADR 2026-06-12-atlas-work-items-typed-record-transport): the work spine
+  // gets per-row LWW with steward-escalated conflicts (failed_records) instead
+  // of silent whole-blob loss, plus queryable observed_at/source_type/
+  // task_type columns. Transport-only — the client store stays source of
+  // truth; confirmProposal/fulfilWorkItem remain the only writers. The
+  // tagged('items') blob shape rides along as the one-time hydrate fallback
+  // for pre-promotion server blobs (migratedSources stays device-local, as it
+  // always was — the blob shape never synced it either).
+  record('ogden-work-items', useWorkItemStore, 'projectId-tagged', 4, recordTaggedArray('items'), false, tagged('items')),
   blob('ogden-crew-members', useCrewMemberStore, 'projectId-tagged', 1, tagged('members')),
   blob('ogden-work-item-actuals', useWorkItemBudgetStore, 'projectId-tagged', 1, tagged('actuals')),
   blob('ogden-work-item-proof', useProofEventStore, 'projectId-tagged', 1, tagged('events')),
