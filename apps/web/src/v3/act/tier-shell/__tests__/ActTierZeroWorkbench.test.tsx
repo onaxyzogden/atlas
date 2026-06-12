@@ -1028,6 +1028,111 @@ describe('ActTierZeroWorkbench -- silvopasture/nursery/homestead (silv-/nur-sec-
   });
 });
 
+describe('ActTierZeroWorkbench -- un-prioritized tail (ag-/ofg-/well-/edu-/con-/lvs-/mgd-/rf-/res-) gap-closure objectives (2026-06-12)', () => {
+  // The un-prioritized tail S1-S7 gap-closure objectives are REAL catalogue
+  // objectives that route through the generic 2-pane workbench (textarea fallback
+  // + Record), exactly like the silv-/nur-sec-/hms- gap-closure block above. Several
+  // are GROUPED (non-empty decisionGroups) but carry NO workbenchAffordances entry,
+  // so the generic divider-derivation path must surface decision-group dividers for
+  // them without any per-objective edit in the component.
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+  const TAIL_GAP_CLOSURE_IDS = [
+    'ag-s2-seasonal-patterns','ag-s4-food-strategy','ag-s4-revenue-model',
+    'ag-s4-service-model','ag-s6-compliance-monitoring','ag-s6-experience-feedback',
+    'ag-s6-load-monitoring','ag-s7-adaptive-management','ag-s7-booking-system',
+    'ag-s7-phased-launch','ag-s7-seasonal-resilience','ag-s7-staffing-training',
+    'ofg-s3-energy-demand-balance','ofg-s4-emergency-comms-response',
+    'ofg-s4-energy-system-redundancy','ofg-s4-food-security-storage',
+    'ofg-s4-shelter-thermal-performance','ofg-s4-water-system-redundancy',
+    'ofg-s6-adaptive-management','ofg-s6-emergency-preparedness-monitoring',
+    'ofg-s6-systems-performance-monitoring','ofg-s7-phased-habitation',
+    'ofg-s7-resourcing-supply-chain','ofg-s7-systems-establishment-sequence',
+    'well-s4-healing-garden-strategy','well-s4-safeguarding-protocol',
+    'well-s4-sensory-design-standards','well-s4-therapeutic-program',
+    'well-s6-external-relations','well-s6-outcome-monitoring','well-s6-sensory-monitoring',
+    'well-s7-adaptive-management','well-s7-practitioner-onboarding','well-s7-program-launch',
+    'well-sec-s4-safeguarding','well-sec-s4-sensory-standards','well-sec-s4-therapeutic-program',
+    'edu-s4-food-hospitality','edu-s4-program-delivery','edu-s6-adaptive-management',
+    'edu-s6-external-relations-compliance','edu-s6-program-evaluation','edu-s7-financial-viability',
+    'edu-s7-instructor-onboarding','edu-s7-program-launch','con-s4-native-species-provenance',
+    'con-s4-pest-invasive-strategy','con-s6-external-relations-compliance',
+    'con-s7-adaptive-management','con-s7-funding-resourcing','con-s7-longterm-timeline',
+    'con-s7-phase1-priorities','con-s7-volunteer-stewardship','lvs-s4-grazing-system',
+    'lvs-s4-species-breed','lvs-s4-stocking-rate','lvs-s5-feed-budget','lvs-s6-herd-health',
+    'lvs-s7-break-even','lvs-s7-herd-buildup','lvs-s7-marketing','lvs-sec-s4-species-stocking',
+    'mgd-s6-adaptive-management','mgd-s6-sales-revenue-tracking','mgd-s7-financial-viability',
+    'rf-s7-cash-flow','rf-s7-enterprise-sequencing','res-s1-household-needs',
+  ] as const;
+
+  it.each(TAIL_GAP_CLOSURE_IDS)('%s mounts the generic 2-pane workbench', (id) => {
+    const objective = byId.get(id);
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective!],
+      activeObjectiveId: id,
+    });
+    expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    expect(screen.getByText(/working on/i)).toBeTruthy();
+    // Default selection = first checklist item; its label heads the panel.
+    expect(
+      screen.getAllByText(objective!.checklist[0]!.label).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('recording via the generic fallback fires onRecord with the item id', () => {
+    const objective = byId.get('res-s1-household-needs')!;
+    const { onRecord } = renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // The generic fallback textarea is labelled with the item's own label.
+    const ta = screen.getByLabelText(objective.checklist[0]!.label);
+    fireEvent.change(ta, {
+      target: { value: 'Bounded household-needs plan approved for cycle 1.' },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    expect(onRecord.mock.calls[0]![0]).toBe(objective.checklist[0]!.id);
+  });
+
+  it('renders decision-group dividers generically for a grouped non-descriptor objective', () => {
+    const objective = byId.get('ag-s4-revenue-model')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // ag-s4-revenue-model has no workbenchAffordances entry, so showGroups is
+    // derived from group presence. Its groups are non-contiguous in checklist
+    // order, and DecisionList emits a divider at each group-label transition,
+    // so the expected count is transitions (6 here), not decisionGroups.length.
+    const groupLabelById = new Map<string, string>();
+    for (const g of objective.decisionGroups) {
+      for (const id of g.itemIds) groupLabelById.set(id, g.label);
+    }
+    let transitions = 0;
+    let lastGroup: string | null = null;
+    for (const item of objective.checklist) {
+      const label = groupLabelById.get(item.id) ?? null;
+      if (label !== null && label !== lastGroup) transitions += 1;
+      if (label !== null) lastGroup = label;
+    }
+    expect(transitions).toBeGreaterThanOrEqual(objective.decisionGroups.length);
+    expect(screen.getAllByTestId('decision-group').length).toBe(transitions);
+    // The fiqh guardrail item (Scholar Council-gated) must mount with its
+    // catalogue label text untouched. Look up the exact label at runtime rather
+    // than hardcoding the sentence, so the pin stays green through operator
+    // content revisions while still proving the c11 item renders verbatim.
+    const c11 = objective.checklist.find((i) => i.id === 'ag-s4-revenue-model-c11')!;
+    expect(c11).toBeDefined();
+    expect(c11.label).toMatch(/Scholar Council/);
+    expect(screen.getAllByText(c11.label).length).toBeGreaterThan(0);
+  });
+});
+
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
     // Use an objective whose FIRST checklist item is the vision-classify

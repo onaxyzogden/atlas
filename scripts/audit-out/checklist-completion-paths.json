@@ -6,533 +6,14 @@
       "auto-answer": 4,
       "auto-formula": 13,
       "form-capture": 215,
-      "workbench-capture": 300,
+      "workbench-capture": 682,
       "objective-map": 1103,
       "objective-log": 6,
       "objective-flow": 6,
-      "no-path": 382
+      "no-path": 0
     }
   },
-  "noPath": {
-    "res-s1-household-needs": [
-      "res-s1-household-needs-c1",
-      "res-s1-household-needs-c2",
-      "res-s1-household-needs-c3",
-      "res-s1-household-needs-c4",
-      "res-s1-household-needs-c5",
-      "res-s1-household-needs-c6"
-    ],
-    "ag-s2-seasonal-patterns": [
-      "ag-s2-seasonal-patterns-c1",
-      "ag-s2-seasonal-patterns-c2",
-      "ag-s2-seasonal-patterns-c3",
-      "ag-s2-seasonal-patterns-c4",
-      "ag-s2-seasonal-patterns-c5"
-    ],
-    "ofg-s3-energy-demand-balance": [
-      "ofg-s3-energy-demand-balance-c1",
-      "ofg-s3-energy-demand-balance-c2",
-      "ofg-s3-energy-demand-balance-c3",
-      "ofg-s3-energy-demand-balance-c4",
-      "ofg-s3-energy-demand-balance-c5",
-      "ofg-s3-energy-demand-balance-c6"
-    ],
-    "ag-s4-food-strategy": [
-      "ag-s4-food-strategy-c1",
-      "ag-s4-food-strategy-c2",
-      "ag-s4-food-strategy-c3",
-      "ag-s4-food-strategy-c4",
-      "ag-s4-food-strategy-c5",
-      "ag-s4-food-strategy-c6"
-    ],
-    "ag-s4-revenue-model": [
-      "ag-s4-revenue-model-c1",
-      "ag-s4-revenue-model-c2",
-      "ag-s4-revenue-model-c3",
-      "ag-s4-revenue-model-c4",
-      "ag-s4-revenue-model-c5",
-      "ag-s4-revenue-model-c6",
-      "ag-s4-revenue-model-c7",
-      "ag-s4-revenue-model-c8",
-      "ag-s4-revenue-model-c9",
-      "ag-s4-revenue-model-c10",
-      "ag-s4-revenue-model-c11",
-      "ag-s4-revenue-model-c12"
-    ],
-    "ag-s4-service-model": [
-      "ag-s4-service-model-c1",
-      "ag-s4-service-model-c2",
-      "ag-s4-service-model-c3",
-      "ag-s4-service-model-c4",
-      "ag-s4-service-model-c5",
-      "ag-s4-service-model-c6"
-    ],
-    "con-s4-native-species-provenance": [
-      "con-s4-native-species-provenance-c1",
-      "con-s4-native-species-provenance-c2",
-      "con-s4-native-species-provenance-c3",
-      "con-s4-native-species-provenance-c4",
-      "con-s4-native-species-provenance-c5",
-      "con-s4-native-species-provenance-c6"
-    ],
-    "con-s4-pest-invasive-strategy": [
-      "con-s4-pest-invasive-strategy-c1",
-      "con-s4-pest-invasive-strategy-c2",
-      "con-s4-pest-invasive-strategy-c3",
-      "con-s4-pest-invasive-strategy-c4",
-      "con-s4-pest-invasive-strategy-c5",
-      "con-s4-pest-invasive-strategy-c6"
-    ],
-    "edu-s4-food-hospitality": [
-      "edu-s4-food-hospitality-c1",
-      "edu-s4-food-hospitality-c2",
-      "edu-s4-food-hospitality-c3",
-      "edu-s4-food-hospitality-c4",
-      "edu-s4-food-hospitality-c5"
-    ],
-    "edu-s4-program-delivery": [
-      "edu-s4-program-delivery-c1",
-      "edu-s4-program-delivery-c2",
-      "edu-s4-program-delivery-c3",
-      "edu-s4-program-delivery-c4",
-      "edu-s4-program-delivery-c5",
-      "edu-s4-program-delivery-c6"
-    ],
-    "lvs-s4-grazing-system": [
-      "lvs-s4-grazing-system-c1",
-      "lvs-s4-grazing-system-c2",
-      "lvs-s4-grazing-system-c3",
-      "lvs-s4-grazing-system-c4",
-      "lvs-s4-grazing-system-c5"
-    ],
-    "lvs-s4-species-breed": [
-      "lvs-s4-species-breed-c1",
-      "lvs-s4-species-breed-c2",
-      "lvs-s4-species-breed-c3",
-      "lvs-s4-species-breed-c4",
-      "lvs-s4-species-breed-c5"
-    ],
-    "lvs-s4-stocking-rate": [
-      "lvs-s4-stocking-rate-c2",
-      "lvs-s4-stocking-rate-c3",
-      "lvs-s4-stocking-rate-c4",
-      "lvs-s4-stocking-rate-c5"
-    ],
-    "lvs-sec-s4-species-stocking": [
-      "lvs-sec-s4-species-stocking-c1",
-      "lvs-sec-s4-species-stocking-c2",
-      "lvs-sec-s4-species-stocking-c3",
-      "lvs-sec-s4-species-stocking-c4",
-      "lvs-sec-s4-species-stocking-c5",
-      "lvs-sec-s4-species-stocking-c6"
-    ],
-    "ofg-s4-emergency-comms-response": [
-      "ofg-s4-emergency-comms-response-c1",
-      "ofg-s4-emergency-comms-response-c2",
-      "ofg-s4-emergency-comms-response-c3",
-      "ofg-s4-emergency-comms-response-c4",
-      "ofg-s4-emergency-comms-response-c5",
-      "ofg-s4-emergency-comms-response-c6"
-    ],
-    "ofg-s4-energy-system-redundancy": [
-      "ofg-s4-energy-system-redundancy-c1",
-      "ofg-s4-energy-system-redundancy-c2",
-      "ofg-s4-energy-system-redundancy-c3",
-      "ofg-s4-energy-system-redundancy-c4",
-      "ofg-s4-energy-system-redundancy-c5",
-      "ofg-s4-energy-system-redundancy-c6"
-    ],
-    "ofg-s4-food-security-storage": [
-      "ofg-s4-food-security-storage-c1",
-      "ofg-s4-food-security-storage-c2",
-      "ofg-s4-food-security-storage-c3",
-      "ofg-s4-food-security-storage-c4",
-      "ofg-s4-food-security-storage-c5"
-    ],
-    "ofg-s4-shelter-thermal-performance": [
-      "ofg-s4-shelter-thermal-performance-c1",
-      "ofg-s4-shelter-thermal-performance-c2",
-      "ofg-s4-shelter-thermal-performance-c3",
-      "ofg-s4-shelter-thermal-performance-c4",
-      "ofg-s4-shelter-thermal-performance-c5",
-      "ofg-s4-shelter-thermal-performance-c6"
-    ],
-    "ofg-s4-water-system-redundancy": [
-      "ofg-s4-water-system-redundancy-c1",
-      "ofg-s4-water-system-redundancy-c2",
-      "ofg-s4-water-system-redundancy-c3",
-      "ofg-s4-water-system-redundancy-c4",
-      "ofg-s4-water-system-redundancy-c5",
-      "ofg-s4-water-system-redundancy-c6"
-    ],
-    "well-s4-healing-garden-strategy": [
-      "well-s4-healing-garden-strategy-c1",
-      "well-s4-healing-garden-strategy-c2",
-      "well-s4-healing-garden-strategy-c3",
-      "well-s4-healing-garden-strategy-c4",
-      "well-s4-healing-garden-strategy-c5"
-    ],
-    "well-s4-safeguarding-protocol": [
-      "well-s4-safeguarding-protocol-c1",
-      "well-s4-safeguarding-protocol-c2",
-      "well-s4-safeguarding-protocol-c3",
-      "well-s4-safeguarding-protocol-c4",
-      "well-s4-safeguarding-protocol-c5",
-      "well-s4-safeguarding-protocol-c6",
-      "well-s4-safeguarding-protocol-c7"
-    ],
-    "well-s4-sensory-design-standards": [
-      "well-s4-sensory-design-standards-c1",
-      "well-s4-sensory-design-standards-c2",
-      "well-s4-sensory-design-standards-c3",
-      "well-s4-sensory-design-standards-c4",
-      "well-s4-sensory-design-standards-c5",
-      "well-s4-sensory-design-standards-c6",
-      "well-s4-sensory-design-standards-c7"
-    ],
-    "well-s4-therapeutic-program": [
-      "well-s4-therapeutic-program-c1",
-      "well-s4-therapeutic-program-c2",
-      "well-s4-therapeutic-program-c3",
-      "well-s4-therapeutic-program-c4",
-      "well-s4-therapeutic-program-c5",
-      "well-s4-therapeutic-program-c6"
-    ],
-    "well-sec-s4-safeguarding": [
-      "well-sec-s4-safeguarding-c1",
-      "well-sec-s4-safeguarding-c2",
-      "well-sec-s4-safeguarding-c3",
-      "well-sec-s4-safeguarding-c4",
-      "well-sec-s4-safeguarding-c5"
-    ],
-    "well-sec-s4-sensory-standards": [
-      "well-sec-s4-sensory-standards-c1",
-      "well-sec-s4-sensory-standards-c2",
-      "well-sec-s4-sensory-standards-c3",
-      "well-sec-s4-sensory-standards-c4",
-      "well-sec-s4-sensory-standards-c5"
-    ],
-    "well-sec-s4-therapeutic-program": [
-      "well-sec-s4-therapeutic-program-c1",
-      "well-sec-s4-therapeutic-program-c2",
-      "well-sec-s4-therapeutic-program-c3",
-      "well-sec-s4-therapeutic-program-c4",
-      "well-sec-s4-therapeutic-program-c5"
-    ],
-    "lvs-s5-feed-budget": [
-      "lvs-s5-feed-budget-c1",
-      "lvs-s5-feed-budget-c2",
-      "lvs-s5-feed-budget-c3",
-      "lvs-s5-feed-budget-c4",
-      "lvs-s5-feed-budget-c5"
-    ],
-    "ag-s6-compliance-monitoring": [
-      "ag-s6-compliance-monitoring-c1",
-      "ag-s6-compliance-monitoring-c2",
-      "ag-s6-compliance-monitoring-c3",
-      "ag-s6-compliance-monitoring-c4",
-      "ag-s6-compliance-monitoring-c5",
-      "ag-s6-compliance-monitoring-c6"
-    ],
-    "ag-s6-experience-feedback": [
-      "ag-s6-experience-feedback-c1",
-      "ag-s6-experience-feedback-c2",
-      "ag-s6-experience-feedback-c3",
-      "ag-s6-experience-feedback-c4",
-      "ag-s6-experience-feedback-c5",
-      "ag-s6-experience-feedback-c6"
-    ],
-    "ag-s6-load-monitoring": [
-      "ag-s6-load-monitoring-c1",
-      "ag-s6-load-monitoring-c2",
-      "ag-s6-load-monitoring-c3",
-      "ag-s6-load-monitoring-c4",
-      "ag-s6-load-monitoring-c5"
-    ],
-    "con-s6-external-relations-compliance": [
-      "con-s6-external-relations-compliance-c1",
-      "con-s6-external-relations-compliance-c2",
-      "con-s6-external-relations-compliance-c3",
-      "con-s6-external-relations-compliance-c4",
-      "con-s6-external-relations-compliance-c5"
-    ],
-    "edu-s6-adaptive-management": [
-      "edu-s6-adaptive-management-c1",
-      "edu-s6-adaptive-management-c2",
-      "edu-s6-adaptive-management-c3",
-      "edu-s6-adaptive-management-c4",
-      "edu-s6-adaptive-management-c5",
-      "edu-s6-adaptive-management-c6"
-    ],
-    "edu-s6-external-relations-compliance": [
-      "edu-s6-external-relations-compliance-c1",
-      "edu-s6-external-relations-compliance-c2",
-      "edu-s6-external-relations-compliance-c3",
-      "edu-s6-external-relations-compliance-c4",
-      "edu-s6-external-relations-compliance-c5",
-      "edu-s6-external-relations-compliance-c6"
-    ],
-    "edu-s6-program-evaluation": [
-      "edu-s6-program-evaluation-c1",
-      "edu-s6-program-evaluation-c2",
-      "edu-s6-program-evaluation-c3",
-      "edu-s6-program-evaluation-c4",
-      "edu-s6-program-evaluation-c5",
-      "edu-s6-program-evaluation-c6"
-    ],
-    "lvs-s6-herd-health": [
-      "lvs-s6-herd-health-c1",
-      "lvs-s6-herd-health-c2",
-      "lvs-s6-herd-health-c3",
-      "lvs-s6-herd-health-c4",
-      "lvs-s6-herd-health-c5",
-      "lvs-s6-herd-health-c6"
-    ],
-    "mgd-s6-adaptive-management": [
-      "mgd-s6-adaptive-management-c1",
-      "mgd-s6-adaptive-management-c2",
-      "mgd-s6-adaptive-management-c3",
-      "mgd-s6-adaptive-management-c4",
-      "mgd-s6-adaptive-management-c5"
-    ],
-    "mgd-s6-sales-revenue-tracking": [
-      "mgd-s6-sales-revenue-tracking-c1",
-      "mgd-s6-sales-revenue-tracking-c2",
-      "mgd-s6-sales-revenue-tracking-c3",
-      "mgd-s6-sales-revenue-tracking-c4",
-      "mgd-s6-sales-revenue-tracking-c5"
-    ],
-    "ofg-s6-adaptive-management": [
-      "ofg-s6-adaptive-management-c1",
-      "ofg-s6-adaptive-management-c2",
-      "ofg-s6-adaptive-management-c3",
-      "ofg-s6-adaptive-management-c4",
-      "ofg-s6-adaptive-management-c5"
-    ],
-    "ofg-s6-emergency-preparedness-monitoring": [
-      "ofg-s6-emergency-preparedness-monitoring-c1",
-      "ofg-s6-emergency-preparedness-monitoring-c2",
-      "ofg-s6-emergency-preparedness-monitoring-c3",
-      "ofg-s6-emergency-preparedness-monitoring-c4",
-      "ofg-s6-emergency-preparedness-monitoring-c5"
-    ],
-    "ofg-s6-systems-performance-monitoring": [
-      "ofg-s6-systems-performance-monitoring-c1",
-      "ofg-s6-systems-performance-monitoring-c2",
-      "ofg-s6-systems-performance-monitoring-c3",
-      "ofg-s6-systems-performance-monitoring-c4",
-      "ofg-s6-systems-performance-monitoring-c5"
-    ],
-    "well-s6-external-relations": [
-      "well-s6-external-relations-c1",
-      "well-s6-external-relations-c2",
-      "well-s6-external-relations-c3",
-      "well-s6-external-relations-c4",
-      "well-s6-external-relations-c5"
-    ],
-    "well-s6-outcome-monitoring": [
-      "well-s6-outcome-monitoring-c1",
-      "well-s6-outcome-monitoring-c2",
-      "well-s6-outcome-monitoring-c3",
-      "well-s6-outcome-monitoring-c4",
-      "well-s6-outcome-monitoring-c5"
-    ],
-    "well-s6-sensory-monitoring": [
-      "well-s6-sensory-monitoring-c1",
-      "well-s6-sensory-monitoring-c2",
-      "well-s6-sensory-monitoring-c3",
-      "well-s6-sensory-monitoring-c4",
-      "well-s6-sensory-monitoring-c5"
-    ],
-    "ag-s7-adaptive-management": [
-      "ag-s7-adaptive-management-c1",
-      "ag-s7-adaptive-management-c2",
-      "ag-s7-adaptive-management-c3",
-      "ag-s7-adaptive-management-c4",
-      "ag-s7-adaptive-management-c5"
-    ],
-    "ag-s7-booking-system": [
-      "ag-s7-booking-system-c1",
-      "ag-s7-booking-system-c2",
-      "ag-s7-booking-system-c3",
-      "ag-s7-booking-system-c4",
-      "ag-s7-booking-system-c5",
-      "ag-s7-booking-system-c6"
-    ],
-    "ag-s7-phased-launch": [
-      "ag-s7-phased-launch-c1",
-      "ag-s7-phased-launch-c2",
-      "ag-s7-phased-launch-c3",
-      "ag-s7-phased-launch-c4",
-      "ag-s7-phased-launch-c5",
-      "ag-s7-phased-launch-c6",
-      "ag-s7-phased-launch-c7"
-    ],
-    "ag-s7-seasonal-resilience": [
-      "ag-s7-seasonal-resilience-c1",
-      "ag-s7-seasonal-resilience-c2",
-      "ag-s7-seasonal-resilience-c3",
-      "ag-s7-seasonal-resilience-c4",
-      "ag-s7-seasonal-resilience-c5",
-      "ag-s7-seasonal-resilience-c6"
-    ],
-    "ag-s7-staffing-training": [
-      "ag-s7-staffing-training-c1",
-      "ag-s7-staffing-training-c2",
-      "ag-s7-staffing-training-c3",
-      "ag-s7-staffing-training-c4",
-      "ag-s7-staffing-training-c5",
-      "ag-s7-staffing-training-c6"
-    ],
-    "con-s7-adaptive-management": [
-      "con-s7-adaptive-management-c1",
-      "con-s7-adaptive-management-c2",
-      "con-s7-adaptive-management-c3",
-      "con-s7-adaptive-management-c4",
-      "con-s7-adaptive-management-c5"
-    ],
-    "con-s7-funding-resourcing": [
-      "con-s7-funding-resourcing-c1",
-      "con-s7-funding-resourcing-c2",
-      "con-s7-funding-resourcing-c3",
-      "con-s7-funding-resourcing-c4",
-      "con-s7-funding-resourcing-c5",
-      "con-s7-funding-resourcing-c6"
-    ],
-    "con-s7-longterm-timeline": [
-      "con-s7-longterm-timeline-c1",
-      "con-s7-longterm-timeline-c2",
-      "con-s7-longterm-timeline-c3",
-      "con-s7-longterm-timeline-c4",
-      "con-s7-longterm-timeline-c5"
-    ],
-    "con-s7-phase1-priorities": [
-      "con-s7-phase1-priorities-c1",
-      "con-s7-phase1-priorities-c2",
-      "con-s7-phase1-priorities-c3",
-      "con-s7-phase1-priorities-c4",
-      "con-s7-phase1-priorities-c5"
-    ],
-    "con-s7-volunteer-stewardship": [
-      "con-s7-volunteer-stewardship-c1",
-      "con-s7-volunteer-stewardship-c2",
-      "con-s7-volunteer-stewardship-c3",
-      "con-s7-volunteer-stewardship-c4",
-      "con-s7-volunteer-stewardship-c5",
-      "con-s7-volunteer-stewardship-c6"
-    ],
-    "edu-s7-financial-viability": [
-      "edu-s7-financial-viability-c1",
-      "edu-s7-financial-viability-c2",
-      "edu-s7-financial-viability-c3",
-      "edu-s7-financial-viability-c4",
-      "edu-s7-financial-viability-c5",
-      "edu-s7-financial-viability-c6",
-      "edu-s7-financial-viability-c7"
-    ],
-    "edu-s7-instructor-onboarding": [
-      "edu-s7-instructor-onboarding-c1",
-      "edu-s7-instructor-onboarding-c2",
-      "edu-s7-instructor-onboarding-c3",
-      "edu-s7-instructor-onboarding-c4",
-      "edu-s7-instructor-onboarding-c5",
-      "edu-s7-instructor-onboarding-c6"
-    ],
-    "edu-s7-program-launch": [
-      "edu-s7-program-launch-c1",
-      "edu-s7-program-launch-c2",
-      "edu-s7-program-launch-c3",
-      "edu-s7-program-launch-c4",
-      "edu-s7-program-launch-c5",
-      "edu-s7-program-launch-c6"
-    ],
-    "lvs-s7-break-even": [
-      "lvs-s7-break-even-c1",
-      "lvs-s7-break-even-c2",
-      "lvs-s7-break-even-c4",
-      "lvs-s7-break-even-c5"
-    ],
-    "lvs-s7-herd-buildup": [
-      "lvs-s7-herd-buildup-c1",
-      "lvs-s7-herd-buildup-c2",
-      "lvs-s7-herd-buildup-c3",
-      "lvs-s7-herd-buildup-c4",
-      "lvs-s7-herd-buildup-c5"
-    ],
-    "lvs-s7-marketing": [
-      "lvs-s7-marketing-c1",
-      "lvs-s7-marketing-c2",
-      "lvs-s7-marketing-c3",
-      "lvs-s7-marketing-c4",
-      "lvs-s7-marketing-c5",
-      "lvs-s7-marketing-c6"
-    ],
-    "mgd-s7-financial-viability": [
-      "mgd-s7-financial-viability-c1",
-      "mgd-s7-financial-viability-c2",
-      "mgd-s7-financial-viability-c3",
-      "mgd-s7-financial-viability-c4",
-      "mgd-s7-financial-viability-c5",
-      "mgd-s7-financial-viability-c6"
-    ],
-    "ofg-s7-phased-habitation": [
-      "ofg-s7-phased-habitation-c1",
-      "ofg-s7-phased-habitation-c2",
-      "ofg-s7-phased-habitation-c3",
-      "ofg-s7-phased-habitation-c4",
-      "ofg-s7-phased-habitation-c5"
-    ],
-    "ofg-s7-resourcing-supply-chain": [
-      "ofg-s7-resourcing-supply-chain-c1",
-      "ofg-s7-resourcing-supply-chain-c2",
-      "ofg-s7-resourcing-supply-chain-c3",
-      "ofg-s7-resourcing-supply-chain-c4",
-      "ofg-s7-resourcing-supply-chain-c5"
-    ],
-    "ofg-s7-systems-establishment-sequence": [
-      "ofg-s7-systems-establishment-sequence-c1",
-      "ofg-s7-systems-establishment-sequence-c2",
-      "ofg-s7-systems-establishment-sequence-c3",
-      "ofg-s7-systems-establishment-sequence-c4",
-      "ofg-s7-systems-establishment-sequence-c5",
-      "ofg-s7-systems-establishment-sequence-c6"
-    ],
-    "rf-s7-cash-flow": [
-      "rf-s7-cash-flow-c1",
-      "rf-s7-cash-flow-c2",
-      "rf-s7-cash-flow-c3",
-      "rf-s7-cash-flow-c4",
-      "rf-s7-cash-flow-c5"
-    ],
-    "rf-s7-enterprise-sequencing": [
-      "rf-s7-enterprise-sequencing-c1",
-      "rf-s7-enterprise-sequencing-c2",
-      "rf-s7-enterprise-sequencing-c3",
-      "rf-s7-enterprise-sequencing-c4",
-      "rf-s7-enterprise-sequencing-c5"
-    ],
-    "well-s7-adaptive-management": [
-      "well-s7-adaptive-management-c1",
-      "well-s7-adaptive-management-c2",
-      "well-s7-adaptive-management-c3",
-      "well-s7-adaptive-management-c4",
-      "well-s7-adaptive-management-c5"
-    ],
-    "well-s7-practitioner-onboarding": [
-      "well-s7-practitioner-onboarding-c1",
-      "well-s7-practitioner-onboarding-c2",
-      "well-s7-practitioner-onboarding-c3",
-      "well-s7-practitioner-onboarding-c4",
-      "well-s7-practitioner-onboarding-c5"
-    ],
-    "well-s7-program-launch": [
-      "well-s7-program-launch-c1",
-      "well-s7-program-launch-c2",
-      "well-s7-program-launch-c3",
-      "well-s7-program-launch-c4",
-      "well-s7-program-launch-c5"
-    ]
-  },
+  "noPath": {},
   "objectiveSpatialOnly": {
     "ofg-s1-site-selection-access": [
       "ofg-s1-site-selection-access-c1",
@@ -3684,7 +3165,7 @@
       "itemId": "res-s1-household-needs-c1",
       "itemLabel": "Define who will be living on the land - household members, dependents, seasonal residents",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s1-household-needs",
@@ -3693,7 +3174,7 @@
       "itemId": "res-s1-household-needs-c2",
       "itemLabel": "List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s1-household-needs",
@@ -3702,7 +3183,7 @@
       "itemId": "res-s1-household-needs-c3",
       "itemLabel": "Define food provision intent - what proportion of household food will come from the land",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s1-household-needs",
@@ -3711,7 +3192,7 @@
       "itemId": "res-s1-household-needs-c4",
       "itemLabel": "Identify domestic infrastructure required before the land is habitable - dwelling condition, utilities",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s1-household-needs",
@@ -3720,7 +3201,7 @@
       "itemId": "res-s1-household-needs-c5",
       "itemLabel": "Define minimum habitability threshold - what must be in place before the household moves on-site",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "res-s1-household-needs",
@@ -3729,7 +3210,7 @@
       "itemId": "res-s1-household-needs-c6",
       "itemLabel": "Record domestic needs that will always be sourced externally",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s1-enterprise-mix",
@@ -4741,7 +4222,7 @@
       "itemId": "ag-s2-seasonal-patterns-c1",
       "itemLabel": "Define peak guest season by climate and farm calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s2-seasonal-patterns",
@@ -4750,7 +4231,7 @@
       "itemId": "ag-s2-seasonal-patterns-c2",
       "itemLabel": "Define off-peak periods and their limiting factors - weather, farm activity, access",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s2-seasonal-patterns",
@@ -4759,7 +4240,7 @@
       "itemId": "ag-s2-seasonal-patterns-c3",
       "itemLabel": "Identify farm activities that are incompatible with simultaneous guest presence",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s2-seasonal-patterns",
@@ -4768,7 +4249,7 @@
       "itemId": "ag-s2-seasonal-patterns-c4",
       "itemLabel": "Map farming calendar against potential guest programming calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s2-seasonal-patterns",
@@ -4777,7 +4258,7 @@
       "itemId": "ag-s2-seasonal-patterns-c5",
       "itemLabel": "Define minimum and maximum viable operating weeks per year",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s2-baseline-condition",
@@ -8560,7 +8041,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c1",
       "itemLabel": "Calculate critical system energy demand - water pump, refrigeration, lighting, communications, heating",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-energy-demand-balance",
@@ -8569,7 +8050,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c2",
       "itemLabel": "Calculate total household energy demand",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-energy-demand-balance",
@@ -8578,7 +8059,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c3",
       "itemLabel": "Map demand against generation potential month by month",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-energy-demand-balance",
@@ -8587,7 +8068,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c4",
       "itemLabel": "Identify worst-case month - lowest generation, highest demand",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-energy-demand-balance",
@@ -8596,7 +8077,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c5",
       "itemLabel": "Define storage requirement to bridge daily and seasonal gaps",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-energy-demand-balance",
@@ -8605,7 +8086,7 @@
       "itemId": "ofg-s3-energy-demand-balance-c6",
       "itemLabel": "Quantify the generation-demand gap that storage and backup must cover",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s3-food-production-storage-conditions",
@@ -9687,7 +9168,7 @@
       "itemId": "ag-s4-food-strategy-c1",
       "itemLabel": "Map current farm production against guest dining calendar - what is available when",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-food-strategy",
@@ -9696,7 +9177,7 @@
       "itemId": "ag-s4-food-strategy-c2",
       "itemLabel": "Define priority enterprises for guest food supply - vegetables, eggs, meat, dairy, fruit",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-food-strategy",
@@ -9705,7 +9186,7 @@
       "itemId": "ag-s4-food-strategy-c3",
       "itemLabel": "Define food production gaps and sourcing strategy for gaps - local farms, suppliers",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-food-strategy",
@@ -9714,7 +9195,7 @@
       "itemId": "ag-s4-food-strategy-c4",
       "itemLabel": "Define food preparation approach - farm kitchen standards, preservation, seasonal menus",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-food-strategy",
@@ -9723,7 +9204,7 @@
       "itemId": "ag-s4-food-strategy-c5",
       "itemLabel": "Confirm farm-to-guest supply chain is consistent with food safety requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-food-strategy",
@@ -9732,7 +9213,7 @@
       "itemId": "ag-s4-food-strategy-c6",
       "itemLabel": "Confirm priority enterprises against the Stratum 3 food production capacity and seasonal gap findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9741,7 +9222,7 @@
       "itemId": "ag-s4-revenue-model-c1",
       "itemLabel": "Define pricing for each experience offering",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9750,7 +9231,7 @@
       "itemId": "ag-s4-revenue-model-c2",
       "itemLabel": "Define booking terms - advance booking, deposits, cancellation policy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9759,7 +9240,7 @@
       "itemId": "ag-s4-revenue-model-c3",
       "itemLabel": "Define peak and off-peak pricing strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9768,7 +9249,7 @@
       "itemId": "ag-s4-revenue-model-c4",
       "itemLabel": "Calculate minimum viable occupancy rate for financial viability",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9777,7 +9258,7 @@
       "itemId": "ag-s4-revenue-model-c5",
       "itemLabel": "Define revenue targets for Phase 1 and break-even timeline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9786,7 +9267,7 @@
       "itemId": "ag-s4-revenue-model-c6",
       "itemLabel": "Confirm pricing is consistent with market comparables and service standard",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9795,7 +9276,7 @@
       "itemId": "ag-s4-revenue-model-c7",
       "itemLabel": "Decide whether a membership or season-pass tier is offered at all - default to none unless deliberately adopted; if none, c8-c11 are N/A",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9804,7 +9285,7 @@
       "itemId": "ag-s4-revenue-model-c8",
       "itemLabel": "If adopted, structure it as a membership benefit - entitlement to access, priority booking, member rates, and belonging-benefits - with each actual stay still transacted as a separate per-stay service reservation (deposit + balance on a booked, deliverable stay) and the membership cancellable with pro-rata refund of unused access; the membership fee buys belonging and access terms, NOT a bundle of specific undelivered nights (avoids bay` ma laysa `indak / gharar)",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9813,7 +9294,7 @@
       "itemId": "ag-s4-revenue-model-c9",
       "itemLabel": "Ensure member value is demonstrably non-stay-predominant - real belonging substance (community, seasonal / biodynamic events, bounded off-season access) beyond stay discounts - so the instrument is a membership in substance, not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6), not as an advance purchase",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9822,7 +9303,7 @@
       "itemId": "ag-s4-revenue-model-c10",
       "itemLabel": "Bound member access, especially off-season, within the AG-S3.7 ecological carrying-capacity ceiling and its seasonal sensitivity windows; coordinate with AG-S7.8 so member presence supports off-season resilience without exceeding load limits; if member access extends beyond any hardened visitor precinct, AG-S3.7 must be in scope - the membership can pull it into scope",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9831,7 +9312,7 @@
       "itemId": "ag-s4-revenue-model-c11",
       "itemLabel": "Route any membership / season-pass instrument to Scholar Council review before adoption; surface it explicitly, never as a default or recommended model; use no CSRA / salam advance-purchase framing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-revenue-model",
@@ -9840,7 +9321,7 @@
       "itemId": "ag-s4-revenue-model-c12",
       "itemLabel": "Confirm pricing and occupancy targets against the Stratum 1 commercial proposition and visitor capacity limits",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-safety-compliance",
@@ -9919,7 +9400,7 @@
       "itemId": "ag-s4-service-model-c1",
       "itemLabel": "Define accommodation types and standards - farm stay rooms, cabins, glamping",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-service-model",
@@ -9928,7 +9409,7 @@
       "itemId": "ag-s4-service-model-c2",
       "itemLabel": "Define dining model - farm breakfast, shared dinners, self-catering, or hybrid",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-service-model",
@@ -9937,7 +9418,7 @@
       "itemId": "ag-s4-service-model-c3",
       "itemLabel": "Define programming offer - farm tours, workshops, retreats, harvest experiences",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-service-model",
@@ -9946,7 +9427,7 @@
       "itemId": "ag-s4-service-model-c4",
       "itemLabel": "Define service standard for each offering - what is included, what is extra",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-service-model",
@@ -9955,7 +9436,7 @@
       "itemId": "ag-s4-service-model-c5",
       "itemLabel": "Confirm service model is achievable within steward capacity and licensing framework",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s4-service-model",
@@ -9964,7 +9445,7 @@
       "itemId": "ag-s4-service-model-c6",
       "itemLabel": "Confirm each offering serves the Stratum 1 guest experience vision and hospitality identity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-fire-management-strategy",
@@ -10033,7 +9514,7 @@
       "itemId": "con-s4-native-species-provenance-c1",
       "itemLabel": "Define planting palette by zone - pioneer, transitional, and climax species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-native-species-provenance",
@@ -10042,7 +9523,7 @@
       "itemId": "con-s4-native-species-provenance-c2",
       "itemLabel": "Specify local provenance requirements - seed collection zones, genetic diversity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-native-species-provenance",
@@ -10051,7 +9532,7 @@
       "itemId": "con-s4-native-species-provenance-c3",
       "itemLabel": "Identify local seed sources and nurseries with provenance stock",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-native-species-provenance",
@@ -10060,7 +9541,7 @@
       "itemId": "con-s4-native-species-provenance-c4",
       "itemLabel": "Define nurse crop and pioneer species strategy for bare or degraded zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-native-species-provenance",
@@ -10069,7 +9550,7 @@
       "itemId": "con-s4-native-species-provenance-c5",
       "itemLabel": "Sequence species introduction to match ecological succession trajectory",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-native-species-provenance",
@@ -10078,7 +9559,7 @@
       "itemId": "con-s4-native-species-provenance-c6",
       "itemLabel": "Confirm species selection is consistent with target habitat type and intervention philosophy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10087,7 +9568,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c1",
       "itemLabel": "Confirm acceptable control methods against intervention philosophy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10096,7 +9577,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c2",
       "itemLabel": "Prioritise pest and invasive species by threat level and control feasibility",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10105,7 +9586,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c3",
       "itemLabel": "Define control sequence - address highest-threat species and entry vectors first",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10114,7 +9595,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c4",
       "itemLabel": "Define monitoring triggers - what population threshold initiates control action",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10123,7 +9604,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c5",
       "itemLabel": "Specify seasonal control windows for highest-priority species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-pest-invasive-strategy",
@@ -10132,7 +9613,7 @@
       "itemId": "con-s4-pest-invasive-strategy-c6",
       "itemLabel": "Define reinvasion prevention strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s4-restoration-priority-zones",
@@ -10251,7 +9732,7 @@
       "itemId": "edu-s4-food-hospitality-c1",
       "itemLabel": "Define food provision scope - morning tea, lunch, food tasting, farm-to-table meal",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-food-hospitality",
@@ -10260,7 +9741,7 @@
       "itemId": "edu-s4-food-hospitality-c2",
       "itemLabel": "Define food sourcing - from site, local farms, or catered",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-food-hospitality",
@@ -10269,7 +9750,7 @@
       "itemId": "edu-s4-food-hospitality-c3",
       "itemLabel": "Define food preparation infrastructure required - kitchen, outdoor cooking, cold storage",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-food-hospitality",
@@ -10278,7 +9759,7 @@
       "itemId": "edu-s4-food-hospitality-c4",
       "itemLabel": "Define food safety compliance requirements for group service",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-food-hospitality",
@@ -10287,7 +9768,7 @@
       "itemId": "edu-s4-food-hospitality-c5",
       "itemLabel": "Confirm food provision is consistent with regulatory framework from Tier 0",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10296,7 +9777,7 @@
       "itemId": "edu-s4-program-delivery-c1",
       "itemLabel": "Define delivery format per program type - facilitated, self-guided, hybrid",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10305,7 +9786,7 @@
       "itemId": "edu-s4-program-delivery-c2",
       "itemLabel": "Define instructor requirements per program - qualifications, experience, group ratios",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10314,7 +9795,7 @@
       "itemId": "edu-s4-program-delivery-c3",
       "itemLabel": "Define program structure - arrival, orientation, activities, reflection, departure",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10323,7 +9804,7 @@
       "itemId": "edu-s4-program-delivery-c4",
       "itemLabel": "Define quality standards - what defines a successful program delivery",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10332,7 +9813,7 @@
       "itemId": "edu-s4-program-delivery-c5",
       "itemLabel": "Define program development and review cycle",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-program-delivery",
@@ -10341,7 +9822,7 @@
       "itemId": "edu-s4-program-delivery-c6",
       "itemLabel": "Confirm formats and ratios against the Tier 0 program types and maximum group sizes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s4-safety-risk-framework",
@@ -10933,7 +10414,7 @@
       "itemId": "lvs-s4-grazing-system-c1",
       "itemLabel": "Decide the core grazing method - continuous, rotational, adaptive multi-paddock, or mob",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-grazing-system",
@@ -10942,7 +10423,7 @@
       "itemId": "lvs-s4-grazing-system-c2",
       "itemLabel": "Decide the role and timing of any confinement / barn feeding",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-grazing-system",
@@ -10951,7 +10432,7 @@
       "itemId": "lvs-s4-grazing-system-c3",
       "itemLabel": "Decide rest-and-recovery rules - graze period, rest period, residual targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-grazing-system",
@@ -10960,7 +10441,7 @@
       "itemId": "lvs-s4-grazing-system-c4",
       "itemLabel": "Decide the supplementary-feeding trigger and policy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-grazing-system",
@@ -10969,7 +10450,7 @@
       "itemId": "lvs-s4-grazing-system-c5",
       "itemLabel": "Confirm the system fits the welfare ethic, labour, and land-improvement intent",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-species-breed",
@@ -10978,7 +10459,7 @@
       "itemId": "lvs-s4-species-breed-c1",
       "itemLabel": "Commit final species selection against feed base and steward capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-species-breed",
@@ -10987,7 +10468,7 @@
       "itemId": "lvs-s4-species-breed-c2",
       "itemLabel": "Commit breed(s) per species - hardiness, temperament, market fit, climate adaptation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-species-breed",
@@ -10996,7 +10477,7 @@
       "itemId": "lvs-s4-species-breed-c3",
       "itemLabel": "Decide breeding-stock sourcing strategy - buy in, raise replacements, or both",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-species-breed",
@@ -11005,7 +10486,7 @@
       "itemId": "lvs-s4-species-breed-c4",
       "itemLabel": "Decide genetic/health entry standards for incoming stock",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-species-breed",
@@ -11014,7 +10495,7 @@
       "itemId": "lvs-s4-species-breed-c5",
       "itemLabel": "Confirm the selection against the welfare ethic and carrying capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-stock-water-strategy",
@@ -11081,7 +10562,7 @@
       "itemId": "lvs-s4-stocking-rate-c2",
       "itemLabel": "Decide herd/flock structure - breeders, replacements, growers, finishers, sires",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-stocking-rate",
@@ -11090,7 +10571,7 @@
       "itemId": "lvs-s4-stocking-rate-c3",
       "itemLabel": "Decide the flex/destock policy for feed-deficit seasons and drought",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-stocking-rate",
@@ -11099,7 +10580,7 @@
       "itemId": "lvs-s4-stocking-rate-c4",
       "itemLabel": "Decide the replacement and culling rate to hold structure stable",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-stocking-rate",
@@ -11108,7 +10589,7 @@
       "itemId": "lvs-s4-stocking-rate-c5",
       "itemLabel": "Confirm the stocking decision leaves a feed-safety margin",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11117,7 +10598,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c1",
       "itemLabel": "Confirm species and breed selection against the host climate, forage, and enterprise intent",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11126,7 +10607,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c2",
       "itemLabel": "Set the stocking rate per area at the chosen rotation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11135,7 +10616,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c3",
       "itemLabel": "Define the grazing system - continuous, rotational, cell, or mob - and the rationale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11144,7 +10625,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c4",
       "itemLabel": "Define graze-period and rest-period targets per season, tied to recovery indicators",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11153,7 +10634,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c5",
       "itemLabel": "Define the winter / dry-season feed budget and its contingency - carried fodder, supplementary feed, planned destocking, or agistment triggers",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-species-stocking",
@@ -11162,7 +10643,7 @@
       "itemId": "lvs-sec-s4-species-stocking-c6",
       "itemLabel": "Confirm the stocking decision is consistent with the surveyed carrying capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-sec-s4-stock-infrastructure",
@@ -11671,7 +11152,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c1",
       "itemLabel": "Define primary emergency communication method - satellite phone, PLB, radio",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-emergency-comms-response",
@@ -11680,7 +11161,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c2",
       "itemLabel": "Define backup emergency communication if primary fails",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-emergency-comms-response",
@@ -11689,7 +11170,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c3",
       "itemLabel": "Define emergency contact list - nearest neighbours, emergency services, medical",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-emergency-comms-response",
@@ -11698,7 +11179,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c4",
       "itemLabel": "Define medical emergency protocol - first aid capacity, evacuation trigger, transport method",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-emergency-comms-response",
@@ -11707,7 +11188,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c5",
       "itemLabel": "Define fire emergency protocol - shelter-in-place criteria, evacuation triggers, assembly points",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-emergency-comms-response",
@@ -11716,7 +11197,7 @@
       "itemId": "ofg-s4-emergency-comms-response-c6",
       "itemLabel": "Confirm all residents are trained in emergency protocols before first habitation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11725,7 +11206,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c1",
       "itemLabel": "Define primary generation system - solar, wind, hydro, hybrid",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11734,7 +11215,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c2",
       "itemLabel": "Define battery storage capacity - days of critical load at worst-case generation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11743,7 +11224,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c3",
       "itemLabel": "Define backup generator - fuel type, capacity, fuel storage duration",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11752,7 +11233,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c4",
       "itemLabel": "Define load management protocol - critical loads protected, non-critical loads shed in shortage",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11761,7 +11242,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c5",
       "itemLabel": "Define manual alternatives for critical functions if all power fails",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-energy-system-redundancy",
@@ -11770,7 +11251,7 @@
       "itemId": "ofg-s4-energy-system-redundancy-c6",
       "itemLabel": "Confirm system meets worst-case month energy balance from Tier 2",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-food-security-storage",
@@ -11779,7 +11260,7 @@
       "itemId": "ofg-s4-food-security-storage-c1",
       "itemLabel": "Define minimum food reserve target - weeks of supply for all residents",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-food-security-storage",
@@ -11788,7 +11269,7 @@
       "itemId": "ofg-s4-food-security-storage-c2",
       "itemLabel": "Define food production targets by enterprise - annual garden, perennial, animals",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-food-security-storage",
@@ -11797,7 +11278,7 @@
       "itemId": "ofg-s4-food-security-storage-c3",
       "itemLabel": "Define food preservation and storage approach - cold storage, drying, fermentation, canning",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-food-security-storage",
@@ -11806,7 +11287,7 @@
       "itemId": "ofg-s4-food-security-storage-c4",
       "itemLabel": "Define emergency resupply protocol - when reserve falls below minimum threshold",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-food-security-storage",
@@ -11815,7 +11296,7 @@
       "itemId": "ofg-s4-food-security-storage-c5",
       "itemLabel": "Confirm production and storage strategy meets independence target from Tier 0",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11824,7 +11305,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c1",
       "itemLabel": "Define thermal performance standard - minimum indoor temperature during coldest period",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11833,7 +11314,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c2",
       "itemLabel": "Define primary heating system - fuel type, heat output, fuel storage capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11842,7 +11323,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c3",
       "itemLabel": "Define backup heating system - separate fuel type or passive fallback",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11851,7 +11332,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c4",
       "itemLabel": "Define insulation standard required to meet thermal performance with defined heating capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11860,7 +11341,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c5",
       "itemLabel": "Define fuel reserve requirement - weeks of supply at peak demand",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-shelter-thermal-performance",
@@ -11869,7 +11350,7 @@
       "itemId": "ofg-s4-shelter-thermal-performance-c6",
       "itemLabel": "Confirm shelter strategy meets life-safety threshold for coldest recorded conditions",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11878,7 +11359,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c1",
       "itemLabel": "Define primary water source - rainfall, spring, bore, stream",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11887,7 +11368,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c2",
       "itemLabel": "Define backup water source - separate source, not the same failure mode",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11896,7 +11377,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c3",
       "itemLabel": "Define minimum storage capacity - days of reserve per person",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11905,7 +11386,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c4",
       "itemLabel": "Define treatment system - type, maintenance requirements, failure response",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11914,7 +11395,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c5",
       "itemLabel": "Define manual backup water delivery if powered system fails",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s4-water-system-redundancy",
@@ -11923,7 +11404,7 @@
       "itemId": "ofg-s4-water-system-redundancy-c6",
       "itemLabel": "Confirm dual-source redundancy meets critical systems requirement from Tier 0",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s4-guild-planting",
@@ -13054,7 +12535,7 @@
       "itemId": "well-s4-healing-garden-strategy-c1",
       "itemLabel": "Define therapeutic planting palette - species selected for scent, texture, colour, and medicinal value",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-healing-garden-strategy",
@@ -13063,7 +12544,7 @@
       "itemId": "well-s4-healing-garden-strategy-c2",
       "itemLabel": "Define water feature strategy - existing features enhanced, new features designed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-healing-garden-strategy",
@@ -13072,7 +12553,7 @@
       "itemId": "well-s4-healing-garden-strategy-c3",
       "itemLabel": "Define sensory walk and contemplative path approach",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-healing-garden-strategy",
@@ -13081,7 +12562,7 @@
       "itemId": "well-s4-healing-garden-strategy-c4",
       "itemLabel": "Define seasonal therapeutic landscape calendar - what is available when",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-healing-garden-strategy",
@@ -13090,7 +12571,7 @@
       "itemId": "well-s4-healing-garden-strategy-c5",
       "itemLabel": "Confirm planting strategy is consistent with sensory design standards",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-privacy-zone-hierarchy",
@@ -13149,7 +12630,7 @@
       "itemId": "well-s4-safeguarding-protocol-c1",
       "itemLabel": "Define crisis response protocol - immediate steps when a guest presents in distress",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13158,7 +12639,7 @@
       "itemId": "well-s4-safeguarding-protocol-c2",
       "itemLabel": "Define trauma disclosure response - practitioner obligations and guest support pathway",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13167,7 +12648,7 @@
       "itemId": "well-s4-safeguarding-protocol-c3",
       "itemLabel": "Define clinical referral pathway - when and how guests are referred to clinical services",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13176,7 +12657,7 @@
       "itemId": "well-s4-safeguarding-protocol-c4",
       "itemLabel": "Define emergency services contact protocol",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13185,7 +12666,7 @@
       "itemId": "well-s4-safeguarding-protocol-c5",
       "itemLabel": "Define incident recording and review system",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13194,7 +12675,7 @@
       "itemId": "well-s4-safeguarding-protocol-c6",
       "itemLabel": "Confirm all practitioners are trained in safeguarding protocol before first guest arrival",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-safeguarding-protocol",
@@ -13203,7 +12684,7 @@
       "itemId": "well-s4-safeguarding-protocol-c7",
       "itemLabel": "Obtain legal advice on safeguarding obligations for this therapeutic context",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13212,7 +12693,7 @@
       "itemId": "well-s4-sensory-design-standards-c1",
       "itemLabel": "Define maximum noise threshold in treatment and meditation zones - in decibels",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13221,7 +12702,7 @@
       "itemId": "well-s4-sensory-design-standards-c2",
       "itemLabel": "Define maximum noise threshold in accommodation zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13230,7 +12711,7 @@
       "itemId": "well-s4-sensory-design-standards-c3",
       "itemLabel": "Define lighting standards - natural light priority, artificial light limits by zone and time",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13239,7 +12720,7 @@
       "itemId": "well-s4-sensory-design-standards-c4",
       "itemLabel": "Define acceptable scent environment - natural aromatics only, no synthetic fragrances",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13248,7 +12729,7 @@
       "itemId": "well-s4-sensory-design-standards-c5",
       "itemLabel": "Define visual complexity limits - no advertising, signage minimisation, material palette restraint",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13257,7 +12738,7 @@
       "itemId": "well-s4-sensory-design-standards-c6",
       "itemLabel": "Confirm standards are achievable against acoustic survey findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-sensory-design-standards",
@@ -13266,7 +12747,7 @@
       "itemId": "well-s4-sensory-design-standards-c7",
       "itemLabel": "Document standards as design gate - all Tier 4 decisions evaluated against them",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13275,7 +12756,7 @@
       "itemId": "well-s4-therapeutic-program-c1",
       "itemLabel": "Confirm modalities offered against regulatory framework confirmed in Tier 0",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13284,7 +12765,7 @@
       "itemId": "well-s4-therapeutic-program-c2",
       "itemLabel": "Define practitioner qualifications required per modality",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13293,7 +12774,7 @@
       "itemId": "well-s4-therapeutic-program-c3",
       "itemLabel": "Define practitioner-to-guest ratio for each modality",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13302,7 +12783,7 @@
       "itemId": "well-s4-therapeutic-program-c4",
       "itemLabel": "Define session structure, duration, and sequencing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13311,7 +12792,7 @@
       "itemId": "well-s4-therapeutic-program-c5",
       "itemLabel": "Define referral network for conditions outside scope",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s4-therapeutic-program",
@@ -13320,7 +12801,7 @@
       "itemId": "well-s4-therapeutic-program-c6",
       "itemLabel": "Confirm all practitioners hold required qualifications and insurance before programme launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-safeguarding",
@@ -13329,7 +12810,7 @@
       "itemId": "well-sec-s4-safeguarding-c1",
       "itemLabel": "Define crisis response steps when a guest presents in distress on the host site",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-safeguarding",
@@ -13338,7 +12819,7 @@
       "itemId": "well-sec-s4-safeguarding-c2",
       "itemLabel": "Define trauma disclosure response and guest support pathway",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-safeguarding",
@@ -13347,7 +12828,7 @@
       "itemId": "well-sec-s4-safeguarding-c3",
       "itemLabel": "Define the clinical referral and emergency services contact pathway",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-safeguarding",
@@ -13356,7 +12837,7 @@
       "itemId": "well-sec-s4-safeguarding-c4",
       "itemLabel": "Define incident recording and review, including any host-staff involvement",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-safeguarding",
@@ -13365,7 +12846,7 @@
       "itemId": "well-sec-s4-safeguarding-c5",
       "itemLabel": "Confirm all practitioners and relevant host staff are trained before the first guest",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-sensory-standards",
@@ -13374,7 +12855,7 @@
       "itemId": "well-sec-s4-sensory-standards-c1",
       "itemLabel": "Define maximum noise thresholds for treatment, meditation, and guest zones - in decibels",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-sensory-standards",
@@ -13383,7 +12864,7 @@
       "itemId": "well-sec-s4-sensory-standards-c2",
       "itemLabel": "Define lighting and scent standards for therapeutic spaces - natural priority, no synthetic fragrance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-sensory-standards",
@@ -13392,7 +12873,7 @@
       "itemId": "well-sec-s4-sensory-standards-c3",
       "itemLabel": "Map host primary operations that could breach sensory thresholds and define buffering",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-sensory-standards",
@@ -13401,7 +12882,7 @@
       "itemId": "well-sec-s4-sensory-standards-c4",
       "itemLabel": "Define visual-complexity and privacy standards separating therapeutic zones from the working land",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-sensory-standards",
@@ -13410,7 +12891,7 @@
       "itemId": "well-sec-s4-sensory-standards-c5",
       "itemLabel": "Confirm sensory standards are achievable alongside the primary land operations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-therapeutic-program",
@@ -13419,7 +12900,7 @@
       "itemId": "well-sec-s4-therapeutic-program-c1",
       "itemLabel": "Confirm modalities offered against the therapeutic regulatory standards",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-therapeutic-program",
@@ -13428,7 +12909,7 @@
       "itemId": "well-sec-s4-therapeutic-program-c2",
       "itemLabel": "Define practitioner qualifications and practitioner-to-guest ratios per modality",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-therapeutic-program",
@@ -13437,7 +12918,7 @@
       "itemId": "well-sec-s4-therapeutic-program-c3",
       "itemLabel": "Define session structure, duration, and scheduling around primary land operations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-therapeutic-program",
@@ -13446,7 +12927,7 @@
       "itemId": "well-sec-s4-therapeutic-program-c4",
       "itemLabel": "Define the referral network for conditions outside scope",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-sec-s4-therapeutic-program",
@@ -13455,7 +12936,7 @@
       "itemId": "well-sec-s4-therapeutic-program-c5",
       "itemLabel": "Confirm all practitioners hold required qualifications and insurance before launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s5-accommodation",
@@ -14954,7 +14435,7 @@
       "itemId": "lvs-s5-feed-budget-c1",
       "itemLabel": "Build a month-by-month feed budget - demand vs forage supply",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s5-feed-budget",
@@ -14963,7 +14444,7 @@
       "itemId": "lvs-s5-feed-budget-c2",
       "itemLabel": "Quantify the deficit-season gap to fill with conserved or bought-in feed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s5-feed-budget",
@@ -14972,7 +14453,7 @@
       "itemId": "lvs-s5-feed-budget-c3",
       "itemLabel": "Decide conserved-feed strategy - hay/silage made on-site vs purchased",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s5-feed-budget",
@@ -14981,7 +14462,7 @@
       "itemId": "lvs-s5-feed-budget-c4",
       "itemLabel": "Decide storage and the safe-reserve (drought buffer) volume",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s5-feed-budget",
@@ -14990,7 +14471,7 @@
       "itemId": "lvs-s5-feed-budget-c5",
       "itemLabel": "Confirm the plan holds welfare and body-condition targets year-round",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s5-fencing-water",
@@ -17044,7 +16525,7 @@
       "itemId": "ag-s6-compliance-monitoring-c1",
       "itemLabel": "Design compliance calendar - all permit renewal dates, audit schedules, reporting obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-compliance-monitoring",
@@ -17053,7 +16534,7 @@
       "itemId": "ag-s6-compliance-monitoring-c2",
       "itemLabel": "Define compliance monitoring responsibilities - who checks what, when",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-compliance-monitoring",
@@ -17062,7 +16543,7 @@
       "itemId": "ag-s6-compliance-monitoring-c3",
       "itemLabel": "Define neighbour communication rhythm and nominated farm contact",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-compliance-monitoring",
@@ -17071,7 +16552,7 @@
       "itemId": "ag-s6-compliance-monitoring-c4",
       "itemLabel": "Design complaint response process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-compliance-monitoring",
@@ -17080,7 +16561,7 @@
       "itemId": "ag-s6-compliance-monitoring-c5",
       "itemLabel": "Define annual external relations review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-compliance-monitoring",
@@ -17089,7 +16570,7 @@
       "itemId": "ag-s6-compliance-monitoring-c6",
       "itemLabel": "Build the compliance calendar from the Stratum 1 regulatory framework permits and renewal obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17098,7 +16579,7 @@
       "itemId": "ag-s6-experience-feedback-c1",
       "itemLabel": "Design guest feedback collection - post-visit survey, in-person, online reviews",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17107,7 +16588,7 @@
       "itemId": "ag-s6-experience-feedback-c2",
       "itemLabel": "Define guest satisfaction indicators - what metrics define a successful visit",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17116,7 +16597,7 @@
       "itemId": "ag-s6-experience-feedback-c3",
       "itemLabel": "Define repeat visit tracking system",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17125,7 +16606,7 @@
       "itemId": "ag-s6-experience-feedback-c4",
       "itemLabel": "Define review and response protocol for online feedback",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17134,7 +16615,7 @@
       "itemId": "ag-s6-experience-feedback-c5",
       "itemLabel": "Define quality improvement process - how feedback triggers operational changes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-experience-feedback",
@@ -17143,7 +16624,7 @@
       "itemId": "ag-s6-experience-feedback-c6",
       "itemLabel": "Derive satisfaction indicators from the Stratum 1 guest experience vision and hospitality identity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-food-integration",
@@ -17212,7 +16693,7 @@
       "itemId": "ag-s6-load-monitoring-c1",
       "itemLabel": "Define capacity tracking system - actual vs. intended guest numbers by period",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-load-monitoring",
@@ -17221,7 +16702,7 @@
       "itemId": "ag-s6-load-monitoring-c2",
       "itemLabel": "Define infrastructure load indicators - water use, sanitation load, parking utilisation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-load-monitoring",
@@ -17230,7 +16711,7 @@
       "itemId": "ag-s6-load-monitoring-c3",
       "itemLabel": "Define staff workload monitoring - hours, task completion, incident rate",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-load-monitoring",
@@ -17239,7 +16720,7 @@
       "itemId": "ag-s6-load-monitoring-c4",
       "itemLabel": "Define capacity threshold triggers - what load level initiates a booking pause or operational review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s6-load-monitoring",
@@ -17248,7 +16729,7 @@
       "itemId": "ag-s6-load-monitoring-c5",
       "itemLabel": "Define annual capacity review against Stratum 1 operational boundary",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-ecological-monitoring",
@@ -17317,7 +16798,7 @@
       "itemId": "con-s6-external-relations-compliance-c1",
       "itemLabel": "Define reporting schedule and format for each funding body and regulatory authority",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-external-relations-compliance",
@@ -17326,7 +16807,7 @@
       "itemId": "con-s6-external-relations-compliance-c2",
       "itemLabel": "Design compliance monitoring system - track all consent conditions and reporting obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-external-relations-compliance",
@@ -17335,7 +16816,7 @@
       "itemId": "con-s6-external-relations-compliance-c3",
       "itemLabel": "Define community and neighbour communication rhythm",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-external-relations-compliance",
@@ -17344,7 +16825,7 @@
       "itemId": "con-s6-external-relations-compliance-c4",
       "itemLabel": "Design complaint response process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-external-relations-compliance",
@@ -17353,7 +16834,7 @@
       "itemId": "con-s6-external-relations-compliance-c5",
       "itemLabel": "Define annual external relations review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s6-fire-monitoring",
@@ -17462,7 +16943,7 @@
       "itemId": "edu-s6-adaptive-management-c1",
       "itemLabel": "Define annual review process - participant feedback, revenue, site health reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-adaptive-management",
@@ -17471,7 +16952,7 @@
       "itemId": "edu-s6-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what performance drives curriculum or infrastructure change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-adaptive-management",
@@ -17480,7 +16961,7 @@
       "itemId": "edu-s6-adaptive-management-c3",
       "itemLabel": "Define program retirement protocol - when a program is discontinued",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-adaptive-management",
@@ -17489,7 +16970,7 @@
       "itemId": "edu-s6-adaptive-management-c4",
       "itemLabel": "Document all changes with reason and outcome",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-adaptive-management",
@@ -17498,7 +16979,7 @@
       "itemId": "edu-s6-adaptive-management-c5",
       "itemLabel": "Define 3-year comprehensive review against founding educational goals and capacity targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-adaptive-management",
@@ -17507,7 +16988,7 @@
       "itemId": "edu-s6-adaptive-management-c6",
       "itemLabel": "Baseline site health monitoring against the Tier 2 demonstration site baseline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17516,7 +16997,7 @@
       "itemId": "edu-s6-external-relations-compliance-c1",
       "itemLabel": "Design compliance calendar - all permit renewals, insurance, CPD obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17525,7 +17006,7 @@
       "itemId": "edu-s6-external-relations-compliance-c2",
       "itemLabel": "Define neighbour communication rhythm",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17534,7 +17015,7 @@
       "itemId": "edu-s6-external-relations-compliance-c3",
       "itemLabel": "Design complaint response process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17543,7 +17024,7 @@
       "itemId": "edu-s6-external-relations-compliance-c4",
       "itemLabel": "Define annual external relations review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17552,7 +17033,7 @@
       "itemId": "edu-s6-external-relations-compliance-c5",
       "itemLabel": "Define accreditation maintenance requirements if applicable",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-external-relations-compliance",
@@ -17561,7 +17042,7 @@
       "itemId": "edu-s6-external-relations-compliance-c6",
       "itemLabel": "Build the compliance calendar from the Tier 0 regulatory framework obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17570,7 +17051,7 @@
       "itemId": "edu-s6-program-evaluation-c1",
       "itemLabel": "Design participant feedback collection - post-program survey, facilitator debrief",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17579,7 +17060,7 @@
       "itemId": "edu-s6-program-evaluation-c2",
       "itemLabel": "Define learning outcome indicators per program type",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17588,7 +17069,7 @@
       "itemId": "edu-s6-program-evaluation-c3",
       "itemLabel": "Define facilitator performance review process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17597,7 +17078,7 @@
       "itemId": "edu-s6-program-evaluation-c4",
       "itemLabel": "Define curriculum improvement protocol - how feedback triggers program changes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17606,7 +17087,7 @@
       "itemId": "edu-s6-program-evaluation-c5",
       "itemLabel": "Define annual program quality review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s6-program-evaluation",
@@ -17615,7 +17096,7 @@
       "itemId": "edu-s6-program-evaluation-c6",
       "itemLabel": "Derive evaluation indicators from the Tier 0 mission and learning outcomes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17953,7 +17434,7 @@
       "itemId": "lvs-s6-herd-health-c1",
       "itemLabel": "Define the animal-health calendar - vaccination, parasite, mineral, hoof/teeth, body-condition checks",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-herd-health",
@@ -17962,7 +17443,7 @@
       "itemId": "lvs-s6-herd-health-c2",
       "itemLabel": "Define the breeding plan - mating/joining windows, gestation, calving/lambing/farrowing management",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-herd-health",
@@ -17971,7 +17452,7 @@
       "itemId": "lvs-s6-herd-health-c3",
       "itemLabel": "Define replacement, weaning, and culling decisions and timing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-herd-health",
@@ -17980,7 +17461,7 @@
       "itemId": "lvs-s6-herd-health-c4",
       "itemLabel": "Define identification, record-keeping, and traceability practice",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-herd-health",
@@ -17989,7 +17470,7 @@
       "itemId": "lvs-s6-herd-health-c5",
       "itemLabel": "Define the veterinary relationship and intervention thresholds",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-herd-health",
@@ -17998,7 +17479,7 @@
       "itemId": "lvs-s6-herd-health-c6",
       "itemLabel": "Define the response protocol for sick, injured, or down animals",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-nutrient-cycling",
@@ -18187,7 +17668,7 @@
       "itemId": "mgd-s6-adaptive-management-c1",
       "itemLabel": "Define annual season review process - yield data, revenue data, soil health reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-adaptive-management",
@@ -18196,7 +17677,7 @@
       "itemId": "mgd-s6-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what performance outcome requires a plan change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-adaptive-management",
@@ -18205,7 +17686,7 @@
       "itemId": "mgd-s6-adaptive-management-c3",
       "itemLabel": "Define variety replacement protocol - what yield or quality threshold retires a variety",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-adaptive-management",
@@ -18214,7 +17695,7 @@
       "itemId": "mgd-s6-adaptive-management-c4",
       "itemLabel": "Define rotation adjustment process - what disease or weed pressure triggers a rotation change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-adaptive-management",
@@ -18223,7 +17704,7 @@
       "itemId": "mgd-s6-adaptive-management-c5",
       "itemLabel": "Document all changes with season, trigger, and outcome",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-crop-yield-monitoring",
@@ -18282,7 +17763,7 @@
       "itemId": "mgd-s6-sales-revenue-tracking-c1",
       "itemLabel": "Design revenue tracking per crop and per channel",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-sales-revenue-tracking",
@@ -18291,7 +17772,7 @@
       "itemId": "mgd-s6-sales-revenue-tracking-c2",
       "itemLabel": "Design cost-of-production tracking per bed or per crop",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-sales-revenue-tracking",
@@ -18300,7 +17781,7 @@
       "itemId": "mgd-s6-sales-revenue-tracking-c3",
       "itemLabel": "Define gross margin calculation per crop category",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-sales-revenue-tracking",
@@ -18309,7 +17790,7 @@
       "itemId": "mgd-s6-sales-revenue-tracking-c4",
       "itemLabel": "Define channel profitability comparison",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s6-sales-revenue-tracking",
@@ -18318,7 +17799,7 @@
       "itemId": "mgd-s6-sales-revenue-tracking-c5",
       "itemLabel": "Define financial review frequency - monthly minimum during season",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-adaptive-management",
@@ -18327,7 +17808,7 @@
       "itemId": "ofg-s6-adaptive-management-c1",
       "itemLabel": "Define seasonal review process - after each worst-case season, review all system performance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-adaptive-management",
@@ -18336,7 +17817,7 @@
       "itemId": "ofg-s6-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what system performance outcome requires a design or capacity change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-adaptive-management",
@@ -18345,7 +17826,7 @@
       "itemId": "ofg-s6-adaptive-management-c3",
       "itemLabel": "Define failure response protocol - what immediate actions follow a system failure",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-adaptive-management",
@@ -18354,7 +17835,7 @@
       "itemId": "ofg-s6-adaptive-management-c4",
       "itemLabel": "Document all system changes with date, cause, and outcome",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-adaptive-management",
@@ -18363,7 +17844,7 @@
       "itemId": "ofg-s6-adaptive-management-c5",
       "itemLabel": "Define 3-year comprehensive review against Tier 0 independence targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-emergency-preparedness-monitoring",
@@ -18372,7 +17853,7 @@
       "itemId": "ofg-s6-emergency-preparedness-monitoring-c1",
       "itemLabel": "Define seasonal access road assessment schedule - before wet season, before fire season",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-emergency-preparedness-monitoring",
@@ -18381,7 +17862,7 @@
       "itemId": "ofg-s6-emergency-preparedness-monitoring-c2",
       "itemLabel": "Define communications system test schedule - monthly at minimum",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-emergency-preparedness-monitoring",
@@ -18390,7 +17871,7 @@
       "itemId": "ofg-s6-emergency-preparedness-monitoring-c3",
       "itemLabel": "Define emergency contact list review schedule - annually",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-emergency-preparedness-monitoring",
@@ -18399,7 +17880,7 @@
       "itemId": "ofg-s6-emergency-preparedness-monitoring-c4",
       "itemLabel": "Define fire risk assessment schedule - seasonal fuel load check",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-emergency-preparedness-monitoring",
@@ -18408,7 +17889,7 @@
       "itemId": "ofg-s6-emergency-preparedness-monitoring-c5",
       "itemLabel": "Design emergency preparedness drill schedule - residents practise protocols annually",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-systems-performance-monitoring",
@@ -18417,7 +17898,7 @@
       "itemId": "ofg-s6-systems-performance-monitoring-c1",
       "itemLabel": "Define critical system indicators - tank levels, battery state of charge, fuel stores, food reserve weeks",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-systems-performance-monitoring",
@@ -18426,7 +17907,7 @@
       "itemId": "ofg-s6-systems-performance-monitoring-c2",
       "itemLabel": "Design monitoring method for each indicator - gauge, meter, manual check",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-systems-performance-monitoring",
@@ -18435,7 +17916,7 @@
       "itemId": "ofg-s6-systems-performance-monitoring-c3",
       "itemLabel": "Define minimum threshold alerts - what level triggers a response before life-safety is compromised",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-systems-performance-monitoring",
@@ -18444,7 +17925,7 @@
       "itemId": "ofg-s6-systems-performance-monitoring-c4",
       "itemLabel": "Define monitoring frequency - daily for life-safety systems",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s6-systems-performance-monitoring",
@@ -18453,7 +17934,7 @@
       "itemId": "ofg-s6-systems-performance-monitoring-c5",
       "itemLabel": "Design log system - simple, auditable, maintainable at remote location",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s6-adaptive-management",
@@ -19117,7 +18598,7 @@
       "itemId": "well-s6-external-relations-c1",
       "itemLabel": "Design compliance calendar - practitioner registration renewals, insurance renewals, CPD obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-external-relations",
@@ -19126,7 +18607,7 @@
       "itemId": "well-s6-external-relations-c2",
       "itemLabel": "Define safeguarding audit schedule and reviewer",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-external-relations",
@@ -19135,7 +18616,7 @@
       "itemId": "well-s6-external-relations-c3",
       "itemLabel": "Define neighbour communication rhythm",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-external-relations",
@@ -19144,7 +18625,7 @@
       "itemId": "well-s6-external-relations-c4",
       "itemLabel": "Design complaint response process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-external-relations",
@@ -19153,7 +18634,7 @@
       "itemId": "well-s6-external-relations-c5",
       "itemLabel": "Define annual external relations review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-outcome-monitoring",
@@ -19162,7 +18643,7 @@
       "itemId": "well-s6-outcome-monitoring-c1",
       "itemLabel": "Define therapeutic outcome indicators - what change in guests defines success",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-outcome-monitoring",
@@ -19171,7 +18652,7 @@
       "itemId": "well-s6-outcome-monitoring-c2",
       "itemLabel": "Design guest experience feedback collection - post-stay, in-programme, anonymous option",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-outcome-monitoring",
@@ -19180,7 +18661,7 @@
       "itemId": "well-s6-outcome-monitoring-c3",
       "itemLabel": "Define practitioner feedback and peer review process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-outcome-monitoring",
@@ -19189,7 +18670,7 @@
       "itemId": "well-s6-outcome-monitoring-c4",
       "itemLabel": "Define outcome review frequency and programme adjustment protocol",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-outcome-monitoring",
@@ -19198,7 +18679,7 @@
       "itemId": "well-s6-outcome-monitoring-c5",
       "itemLabel": "Confirm all monitoring is consistent with privacy and confidentiality policy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-sensory-monitoring",
@@ -19207,7 +18688,7 @@
       "itemId": "well-s6-sensory-monitoring-c1",
       "itemLabel": "Design acoustic monitoring protocol - periodic noise measurement in treatment and accommodation zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-sensory-monitoring",
@@ -19216,7 +18697,7 @@
       "itemId": "well-s6-sensory-monitoring-c2",
       "itemLabel": "Design light quality monitoring - seasonal assessment of natural light in key spaces",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-sensory-monitoring",
@@ -19225,7 +18706,7 @@
       "itemId": "well-s6-sensory-monitoring-c3",
       "itemLabel": "Define olfactory monitoring - periodic assessment of scent environment in guest zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-sensory-monitoring",
@@ -19234,7 +18715,7 @@
       "itemId": "well-s6-sensory-monitoring-c4",
       "itemLabel": "Define sensory standard breach protocol - what triggers a response and what the response is",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s6-sensory-monitoring",
@@ -19243,7 +18724,7 @@
       "itemId": "well-s6-sensory-monitoring-c5",
       "itemLabel": "Specify monitoring frequency and documentation requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-adaptive-management",
@@ -19252,7 +18733,7 @@
       "itemId": "ag-s7-adaptive-management-c1",
       "itemLabel": "Define annual review process - guest experience data, financial data, land health data reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-adaptive-management",
@@ -19261,7 +18742,7 @@
       "itemId": "ag-s7-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what outcomes require a plan or model change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-adaptive-management",
@@ -19270,7 +18751,7 @@
       "itemId": "ag-s7-adaptive-management-c3",
       "itemLabel": "Define escalation process for unexpected events - safety incident, compliance breach, significant guest complaint",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-adaptive-management",
@@ -19279,7 +18760,7 @@
       "itemId": "ag-s7-adaptive-management-c4",
       "itemLabel": "Specify documentation requirements for all management changes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-adaptive-management",
@@ -19288,7 +18769,7 @@
       "itemId": "ag-s7-adaptive-management-c5",
       "itemLabel": "Define 3-year comprehensive review against Stratum 1 vision and commercial model",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19297,7 +18778,7 @@
       "itemId": "ag-s7-booking-system-c1",
       "itemLabel": "Select booking platform - purpose-built, general platform, or direct booking",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19306,7 +18787,7 @@
       "itemId": "ag-s7-booking-system-c2",
       "itemLabel": "Define payment processing and deposit collection system",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19315,7 +18796,7 @@
       "itemId": "ag-s7-booking-system-c3",
       "itemLabel": "Design booking confirmation and pre-arrival communication",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19324,7 +18805,7 @@
       "itemId": "ag-s7-booking-system-c4",
       "itemLabel": "Define reservation management process - availability, modifications, cancellations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19333,7 +18814,7 @@
       "itemId": "ag-s7-booking-system-c5",
       "itemLabel": "Confirm booking system is operational before any marketing begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-booking-system",
@@ -19342,7 +18823,7 @@
       "itemId": "ag-s7-booking-system-c6",
       "itemLabel": "Confirm availability settings enforce the Stratum 1 visitor capacity and visit type limits",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19351,7 +18832,7 @@
       "itemId": "ag-s7-phased-launch-c1",
       "itemLabel": "Define soft launch scope - limited capacity, limited programming, invited guests or low-profile bookings - HARD GATE: no public bookings until soft launch criteria are met and reviewed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19360,7 +18841,7 @@
       "itemId": "ag-s7-phased-launch-c2",
       "itemLabel": "Define soft launch review criteria - explicit pass/fail checklist that must be signed off before full public launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19369,7 +18850,7 @@
       "itemId": "ag-s7-phased-launch-c3",
       "itemLabel": "Define full launch capacity and programming",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19378,7 +18859,7 @@
       "itemId": "ag-s7-phased-launch-c4",
       "itemLabel": "Map revenue ramp-up against break-even timeline from Stratum 4 revenue model",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19387,7 +18868,7 @@
       "itemId": "ag-s7-phased-launch-c5",
       "itemLabel": "Define financial viability review trigger - occupancy rate or revenue threshold that initiates a model review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19396,7 +18877,7 @@
       "itemId": "ag-s7-phased-launch-c6",
       "itemLabel": "Define go/no-go criteria for scaling beyond Phase 1",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-phased-launch",
@@ -19405,7 +18886,7 @@
       "itemId": "ag-s7-phased-launch-c7",
       "itemLabel": "Confirm full launch capacity stays within the Stratum 1 visitor capacity and seasonal limits",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19414,7 +18895,7 @@
       "itemId": "ag-s7-seasonal-resilience-c1",
       "itemLabel": "Plan off-season maintenance and land-recovery windows when guest pressure lifts",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19423,7 +18904,7 @@
       "itemId": "ag-s7-seasonal-resilience-c2",
       "itemLabel": "Design the seasonal staffing cycle - retention, scaling down, and re-hire ahead of peak",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19432,7 +18913,7 @@
       "itemId": "ag-s7-seasonal-resilience-c3",
       "itemLabel": "Buffer cash flow across the peak-to-trough swing so fixed costs are met off-season",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19441,7 +18922,7 @@
       "itemId": "ag-s7-seasonal-resilience-c4",
       "itemLabel": "Define mothballing / partial-closure protocols for units taken offline in the low season",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19450,7 +18931,7 @@
       "itemId": "ag-s7-seasonal-resilience-c5",
       "itemLabel": "Identify complementary off-season uses (events, education, maintenance retreats) that fit capacity limits",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-seasonal-resilience",
@@ -19459,7 +18940,7 @@
       "itemId": "ag-s7-seasonal-resilience-c6",
       "itemLabel": "Confirm the plan is consistent with the AG-S2.8 seasonal-pattern read and AG-S7.6 viability model",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19468,7 +18949,7 @@
       "itemId": "ag-s7-staffing-training-c1",
       "itemLabel": "Define staffing requirements for each guest service area",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19477,7 +18958,7 @@
       "itemId": "ag-s7-staffing-training-c2",
       "itemLabel": "Identify training requirements - food safety certification, first aid, hospitality service",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19486,7 +18967,7 @@
       "itemId": "ag-s7-staffing-training-c3",
       "itemLabel": "Define recruitment timeline relative to guest program launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19495,7 +18976,7 @@
       "itemId": "ag-s7-staffing-training-c4",
       "itemLabel": "Define staff orientation and guest service standards training",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19504,7 +18985,7 @@
       "itemId": "ag-s7-staffing-training-c5",
       "itemLabel": "Confirm all required certifications are obtained before first guest arrival",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ag-s7-staffing-training",
@@ -19513,7 +18994,7 @@
       "itemId": "ag-s7-staffing-training-c6",
       "itemLabel": "Align recruitment timing with the Stratum 2 peak season and operating weeks findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-adaptive-management",
@@ -19522,7 +19003,7 @@
       "itemId": "con-s7-adaptive-management-c1",
       "itemLabel": "Define annual management review process - who participates, what data is reviewed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-adaptive-management",
@@ -19531,7 +19012,7 @@
       "itemId": "con-s7-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what monitoring outcomes require a management plan change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-adaptive-management",
@@ -19540,7 +19021,7 @@
       "itemId": "con-s7-adaptive-management-c3",
       "itemLabel": "Define escalation process for unexpected ecological events",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-adaptive-management",
@@ -19549,7 +19030,7 @@
       "itemId": "con-s7-adaptive-management-c4",
       "itemLabel": "Specify documentation requirements for all management changes and their rationale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-adaptive-management",
@@ -19558,7 +19039,7 @@
       "itemId": "con-s7-adaptive-management-c5",
       "itemLabel": "Define 5-year comprehensive plan review against long-term milestones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19567,7 +19048,7 @@
       "itemId": "con-s7-funding-resourcing-c1",
       "itemLabel": "Identify applicable funding sources - conservation grants, biodiversity credits, carbon, trusts",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19576,7 +19057,7 @@
       "itemId": "con-s7-funding-resourcing-c2",
       "itemLabel": "Define grant application schedule and reporting obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19585,7 +19066,7 @@
       "itemId": "con-s7-funding-resourcing-c3",
       "itemLabel": "Assess carbon credit or biodiversity credit potential and registration requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19594,7 +19075,7 @@
       "itemId": "con-s7-funding-resourcing-c4",
       "itemLabel": "Define volunteer programme structure and recruitment strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19603,7 +19084,7 @@
       "itemId": "con-s7-funding-resourcing-c5",
       "itemLabel": "Define minimum annual resourcing requirement for ongoing management",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-funding-resourcing",
@@ -19612,7 +19093,7 @@
       "itemId": "con-s7-funding-resourcing-c6",
       "itemLabel": "Identify resourcing gap and bridging strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-longterm-timeline",
@@ -19621,7 +19102,7 @@
       "itemId": "con-s7-longterm-timeline-c1",
       "itemLabel": "Define 5-year ecological milestone targets per zone",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-longterm-timeline",
@@ -19630,7 +19111,7 @@
       "itemId": "con-s7-longterm-timeline-c2",
       "itemLabel": "Define 10-year ecological milestone targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-longterm-timeline",
@@ -19639,7 +19120,7 @@
       "itemId": "con-s7-longterm-timeline-c3",
       "itemLabel": "Define 25-year target ecological state",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-longterm-timeline",
@@ -19648,7 +19129,7 @@
       "itemId": "con-s7-longterm-timeline-c4",
       "itemLabel": "Specify assessment methodology for each milestone",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-longterm-timeline",
@@ -19657,7 +19138,7 @@
       "itemId": "con-s7-longterm-timeline-c5",
       "itemLabel": "Define review and adaptation protocol if milestones are not met",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-phase1-priorities",
@@ -19666,7 +19147,7 @@
       "itemId": "con-s7-phase1-priorities-c1",
       "itemLabel": "Rank Phase 1 interventions by ecological leverage and cost-effectiveness",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-phase1-priorities",
@@ -19675,7 +19156,7 @@
       "itemId": "con-s7-phase1-priorities-c2",
       "itemLabel": "Confirm fencing and stock exclusion precedes all revegetation work",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-phase1-priorities",
@@ -19684,7 +19165,7 @@
       "itemId": "con-s7-phase1-priorities-c3",
       "itemLabel": "Confirm water regime restoration precedes planting in water-dependent zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-phase1-priorities",
@@ -19693,7 +19174,7 @@
       "itemId": "con-s7-phase1-priorities-c4",
       "itemLabel": "Confirm weed control is sequenced before planting in high-pressure zones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-phase1-priorities",
@@ -19702,7 +19183,7 @@
       "itemId": "con-s7-phase1-priorities-c5",
       "itemLabel": "Define go/no-go criteria for each Phase 1 intervention",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19711,7 +19192,7 @@
       "itemId": "con-s7-volunteer-stewardship-c1",
       "itemLabel": "Define volunteer programme structure - roles, training, supervision requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19720,7 +19201,7 @@
       "itemId": "con-s7-volunteer-stewardship-c2",
       "itemLabel": "Identify community groups and schools for partnership",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19729,7 +19210,7 @@
       "itemId": "con-s7-volunteer-stewardship-c3",
       "itemLabel": "Design citizen science data collection programme - species recording, photo monitoring",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19738,7 +19219,7 @@
       "itemId": "con-s7-volunteer-stewardship-c4",
       "itemLabel": "Define volunteer health and safety protocol",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19747,7 +19228,7 @@
       "itemId": "con-s7-volunteer-stewardship-c5",
       "itemLabel": "Design volunteer recognition and retention programme",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "con-s7-volunteer-stewardship",
@@ -19756,7 +19237,7 @@
       "itemId": "con-s7-volunteer-stewardship-c6",
       "itemLabel": "Specify insurance and liability requirements for volunteer activities",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19765,7 +19246,7 @@
       "itemId": "edu-s7-financial-viability-c1",
       "itemLabel": "Define pricing per program type and group size",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19774,7 +19255,7 @@
       "itemId": "edu-s7-financial-viability-c2",
       "itemLabel": "Calculate break-even participant numbers per program",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19783,7 +19264,7 @@
       "itemId": "edu-s7-financial-viability-c3",
       "itemLabel": "Define annual revenue target at defined program frequency",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19792,7 +19273,7 @@
       "itemId": "edu-s7-financial-viability-c4",
       "itemLabel": "Estimate operating costs - instructor, materials, administration, maintenance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19801,7 +19282,7 @@
       "itemId": "edu-s7-financial-viability-c5",
       "itemLabel": "Define minimum viable program scale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19810,7 +19291,7 @@
       "itemId": "edu-s7-financial-viability-c6",
       "itemLabel": "Define financial review trigger",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-financial-viability",
@@ -19819,7 +19300,7 @@
       "itemId": "edu-s7-financial-viability-c7",
       "itemLabel": "Confirm break-even assumptions respect the Tier 0 maximum group sizes and program calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19828,7 +19309,7 @@
       "itemId": "edu-s7-instructor-onboarding-c1",
       "itemLabel": "Define instructor qualifications per program type",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19837,7 +19318,7 @@
       "itemId": "edu-s7-instructor-onboarding-c2",
       "itemLabel": "Define instructor orientation - site knowledge, curriculum, safety protocols, group management",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19846,7 +19327,7 @@
       "itemId": "edu-s7-instructor-onboarding-c3",
       "itemLabel": "Define working with children check requirements if applicable",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19855,7 +19336,7 @@
       "itemId": "edu-s7-instructor-onboarding-c4",
       "itemLabel": "Define delivery quality standard - what a successful session looks and feels like",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19864,7 +19345,7 @@
       "itemId": "edu-s7-instructor-onboarding-c5",
       "itemLabel": "Confirm all instructors are inducted before first public group",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-instructor-onboarding",
@@ -19873,7 +19354,7 @@
       "itemId": "edu-s7-instructor-onboarding-c6",
       "itemLabel": "Confirm children check requirements satisfy the Tier 0 regulatory framework",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19882,7 +19363,7 @@
       "itemId": "edu-s7-program-launch-c1",
       "itemLabel": "Define soft launch scope - one or two program types at reduced capacity - HARD GATE before full public launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19891,7 +19372,7 @@
       "itemId": "edu-s7-program-launch-c2",
       "itemLabel": "Define soft launch review criteria - explicit pass/fail checklist",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19900,7 +19381,7 @@
       "itemId": "edu-s7-program-launch-c3",
       "itemLabel": "Define full program launch criteria",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19909,7 +19390,7 @@
       "itemId": "edu-s7-program-launch-c4",
       "itemLabel": "Define program addition sequence - add complexity after simpler programs are tested",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19918,7 +19399,7 @@
       "itemId": "edu-s7-program-launch-c5",
       "itemLabel": "Define pause and remediation protocol if soft launch review criteria are not met - what halts progression to full launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "edu-s7-program-launch",
@@ -19927,7 +19408,7 @@
       "itemId": "edu-s7-program-launch-c6",
       "itemLabel": "Confirm the launch sequence covers the Tier 0 program types and annual calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-adaptive-management",
@@ -20386,7 +19867,7 @@
       "itemId": "lvs-s7-break-even-c1",
       "itemLabel": "Build the establishment capital budget - infrastructure, breeding stock, equipment",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-break-even",
@@ -20395,7 +19876,7 @@
       "itemId": "lvs-s7-break-even-c2",
       "itemLabel": "Build the annual operating budget - feed, animal health, labour, processing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-break-even",
@@ -20413,7 +19894,7 @@
       "itemId": "lvs-s7-break-even-c4",
       "itemLabel": "Define the cash-flow buffer covering the pre-break-even build-up years",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-break-even",
@@ -20422,7 +19903,7 @@
       "itemId": "lvs-s7-break-even-c5",
       "itemLabel": "Confirm viability against the production goals and scale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-herd-buildup",
@@ -20431,7 +19912,7 @@
       "itemId": "lvs-s7-herd-buildup-c1",
       "itemLabel": "Sequence infrastructure builds - fencing, water, handling, shelter - before stock",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-herd-buildup",
@@ -20440,7 +19921,7 @@
       "itemId": "lvs-s7-herd-buildup-c2",
       "itemLabel": "Define the herd build-up phases - initial cohort, breeding-up, full establishment",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-herd-buildup",
@@ -20449,7 +19930,7 @@
       "itemId": "lvs-s7-herd-buildup-c3",
       "itemLabel": "Define go/no-go readiness tests for fencing, water, and handling ahead of each intake",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-herd-buildup",
@@ -20458,7 +19939,7 @@
       "itemId": "lvs-s7-herd-buildup-c4",
       "itemLabel": "Define the introduction/acclimation protocol for new stock",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-herd-buildup",
@@ -20467,7 +19948,7 @@
       "itemId": "lvs-s7-herd-buildup-c5",
       "itemLabel": "Confirm each phase stays within carrying capacity and feed budget",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20476,7 +19957,7 @@
       "itemId": "lvs-s7-marketing-c1",
       "itemLabel": "Define the products and the form they are sold in - live animals, carcass, cuts, milk, eggs, fibre",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20485,7 +19966,7 @@
       "itemId": "lvs-s7-marketing-c2",
       "itemLabel": "Define the processing pathway - on-farm, mobile, licensed abattoir/processor - and its scheduling/booking lead time",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20494,7 +19975,7 @@
       "itemId": "lvs-s7-marketing-c3",
       "itemLabel": "Define the sales channels - farmgate/spot sale, wholesale, processor contract, livestock auction, buyers clubs or meat-share / herd-share subscriptions",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20503,7 +19984,7 @@
       "itemId": "lvs-s7-marketing-c4",
       "itemLabel": "Define pricing, traceability, and any certification/labelling claims",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20512,7 +19993,7 @@
       "itemId": "lvs-s7-marketing-c5",
       "itemLabel": "Define delivery, cold-chain, and customer-relationship logistics",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-marketing",
@@ -20521,7 +20002,7 @@
       "itemId": "lvs-s7-marketing-c6",
       "itemLabel": "Confirm channels comply with food-safety and animal-product regulation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-crop-calendar",
@@ -20590,7 +20071,7 @@
       "itemId": "mgd-s7-financial-viability-c1",
       "itemLabel": "Calculate gross revenue target at defined production volume and price",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-financial-viability",
@@ -20599,7 +20080,7 @@
       "itemId": "mgd-s7-financial-viability-c2",
       "itemLabel": "Estimate variable costs - seeds, inputs, packaging, market fees",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-financial-viability",
@@ -20608,7 +20089,7 @@
       "itemId": "mgd-s7-financial-viability-c3",
       "itemLabel": "Estimate fixed costs - infrastructure, equipment, depreciation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-financial-viability",
@@ -20617,7 +20098,7 @@
       "itemId": "mgd-s7-financial-viability-c4",
       "itemLabel": "Calculate break-even production volume per channel",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-financial-viability",
@@ -20626,7 +20107,7 @@
       "itemId": "mgd-s7-financial-viability-c5",
       "itemLabel": "Define minimum viable revenue threshold",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-financial-viability",
@@ -20635,7 +20116,7 @@
       "itemId": "mgd-s7-financial-viability-c6",
       "itemLabel": "Define financial review trigger - revenue shortfall that requires model review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "mgd-s7-season-startup-readiness",
@@ -20704,7 +20185,7 @@
       "itemId": "ofg-s7-phased-habitation-c1",
       "itemLabel": "Define habitability threshold per system - potable water confirmed, energy critical loads operational, thermal performance verified, emergency communications tested",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-phased-habitation",
@@ -20713,7 +20194,7 @@
       "itemId": "ofg-s7-phased-habitation-c2",
       "itemLabel": "Define habitability confirmation process - independent verification, not self-certification",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-phased-habitation",
@@ -20722,7 +20203,7 @@
       "itemId": "ofg-s7-phased-habitation-c3",
       "itemLabel": "Define temporary living arrangement during establishment phase",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-phased-habitation",
@@ -20731,7 +20212,7 @@
       "itemId": "ofg-s7-phased-habitation-c4",
       "itemLabel": "Define go/no-go for each cohort or seasonal occupation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-phased-habitation",
@@ -20740,7 +20221,7 @@
       "itemId": "ofg-s7-phased-habitation-c5",
       "itemLabel": "Confirm all residents understand and accept life-safety protocols before first occupation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-resourcing-supply-chain",
@@ -20749,7 +20230,7 @@
       "itemId": "ofg-s7-resourcing-supply-chain-c1",
       "itemLabel": "Map all materials required for Phase 1 against access window calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-resourcing-supply-chain",
@@ -20758,7 +20239,7 @@
       "itemId": "ofg-s7-resourcing-supply-chain-c2",
       "itemLabel": "Identify long lead-time items and order well ahead of access window",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-resourcing-supply-chain",
@@ -20767,7 +20248,7 @@
       "itemId": "ofg-s7-resourcing-supply-chain-c3",
       "itemLabel": "Define ongoing resupply schedule - frequency, volume, transport method",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-resourcing-supply-chain",
@@ -20776,7 +20257,7 @@
       "itemId": "ofg-s7-resourcing-supply-chain-c4",
       "itemLabel": "Define emergency resupply protocol - what triggers an unscheduled supply run",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-resourcing-supply-chain",
@@ -20785,7 +20266,7 @@
       "itemId": "ofg-s7-resourcing-supply-chain-c5",
       "itemLabel": "Define minimum on-site inventory for all critical consumables - fuel, water treatment, food, medical",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20794,7 +20275,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c1",
       "itemLabel": "Confirm energy system installed and tested before water system commissioning",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20803,7 +20284,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c2",
       "itemLabel": "Confirm water system installed, tested, and potable before habitation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20812,7 +20293,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c3",
       "itemLabel": "Confirm communications and emergency systems installed and tested before habitation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20821,7 +20302,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c4",
       "itemLabel": "Confirm shelter thermal performance verified before first winter occupancy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20830,7 +20311,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c5",
       "itemLabel": "Confirm food production infrastructure in place before reliance on reserves begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s7-systems-establishment-sequence",
@@ -20839,7 +20320,7 @@
       "itemId": "ofg-s7-systems-establishment-sequence-c6",
       "itemLabel": "Define go/no-go test for each system - pass/fail confirmation before next system commences",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "orch-s7-financial-viability",
@@ -21051,7 +20532,7 @@
       "itemId": "rf-s7-cash-flow-c1",
       "itemLabel": "Map revenue timeline for each enterprise - first production, first sales, scaling milestones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-cash-flow",
@@ -21060,7 +20541,7 @@
       "itemId": "rf-s7-cash-flow-c2",
       "itemLabel": "Estimate establishment costs by enterprise and phase",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-cash-flow",
@@ -21069,7 +20550,7 @@
       "itemId": "rf-s7-cash-flow-c3",
       "itemLabel": "Identify cash flow gap periods and bridge strategies",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-cash-flow",
@@ -21078,7 +20559,7 @@
       "itemId": "rf-s7-cash-flow-c4",
       "itemLabel": "Define minimum viable revenue threshold for each phase",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-cash-flow",
@@ -21087,7 +20568,7 @@
       "itemId": "rf-s7-cash-flow-c5",
       "itemLabel": "Confirm scope stays within operational planning - no capital formation or investor structure content",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-enterprise-sequencing",
@@ -21096,7 +20577,7 @@
       "itemId": "rf-s7-enterprise-sequencing-c1",
       "itemLabel": "Confirm enterprise priority tiers from Stratum 1 enterprise mix",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-enterprise-sequencing",
@@ -21105,7 +20586,7 @@
       "itemId": "rf-s7-enterprise-sequencing-c2",
       "itemLabel": "Map enabling dependencies - which enterprises must be established before others launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-enterprise-sequencing",
@@ -21114,7 +20595,7 @@
       "itemId": "rf-s7-enterprise-sequencing-c3",
       "itemLabel": "Define revenue bridge strategy - which early enterprises fund later capital requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-enterprise-sequencing",
@@ -21123,7 +20604,7 @@
       "itemId": "rf-s7-enterprise-sequencing-c4",
       "itemLabel": "Sequence enterprise launches across planning cycles",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "rf-s7-enterprise-sequencing",
@@ -21132,7 +20613,7 @@
       "itemId": "rf-s7-enterprise-sequencing-c5",
       "itemLabel": "Define go/no-go criteria for each enterprise launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-phase1",
@@ -21530,7 +21011,7 @@
       "itemId": "well-s7-adaptive-management-c1",
       "itemLabel": "Define annual review process - therapeutic outcomes, sensory standards, financial, and practitioner wellbeing data reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-adaptive-management",
@@ -21539,7 +21020,7 @@
       "itemId": "well-s7-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what outcomes require a programme or management change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-adaptive-management",
@@ -21548,7 +21029,7 @@
       "itemId": "well-s7-adaptive-management-c3",
       "itemLabel": "Define escalation process for safeguarding incidents, compliance breaches, or sensory standard failures",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-adaptive-management",
@@ -21557,7 +21038,7 @@
       "itemId": "well-s7-adaptive-management-c4",
       "itemLabel": "Specify documentation requirements for all changes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-adaptive-management",
@@ -21566,7 +21047,7 @@
       "itemId": "well-s7-adaptive-management-c5",
       "itemLabel": "Define 3-year comprehensive review against Tier 0 healing philosophy and vision",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-practitioner-onboarding",
@@ -21575,7 +21056,7 @@
       "itemId": "well-s7-practitioner-onboarding-c1",
       "itemLabel": "Define practitioner orientation programme - philosophy, standards, protocols, spaces",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-practitioner-onboarding",
@@ -21584,7 +21065,7 @@
       "itemId": "well-s7-practitioner-onboarding-c2",
       "itemLabel": "Define supervision structure - individual, peer, and external supervision schedule",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-practitioner-onboarding",
@@ -21593,7 +21074,7 @@
       "itemId": "well-s7-practitioner-onboarding-c3",
       "itemLabel": "Define practitioner performance review process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-practitioner-onboarding",
@@ -21602,7 +21083,7 @@
       "itemId": "well-s7-practitioner-onboarding-c4",
       "itemLabel": "Define practitioner wellbeing support - this is a demanding practice environment",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-practitioner-onboarding",
@@ -21611,7 +21092,7 @@
       "itemId": "well-s7-practitioner-onboarding-c5",
       "itemLabel": "Confirm all practitioners have completed onboarding before first guest arrival",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-program-launch",
@@ -21620,7 +21101,7 @@
       "itemId": "well-s7-program-launch-c1",
       "itemLabel": "Define soft launch programme - limited modalities, limited guests, invitation-based - HARD GATE: no public bookings until soft launch is reviewed and passed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-program-launch",
@@ -21629,7 +21110,7 @@
       "itemId": "well-s7-program-launch-c2",
       "itemLabel": "Define soft launch review criteria - explicit pass/fail checklist covering sensory standards, safeguarding, guest experience, and practitioner performance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-program-launch",
@@ -21638,7 +21119,7 @@
       "itemId": "well-s7-program-launch-c3",
       "itemLabel": "Define full programme launch criteria - what must be confirmed before all modalities open",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-program-launch",
@@ -21647,7 +21128,7 @@
       "itemId": "well-s7-program-launch-c4",
       "itemLabel": "Define phased modality introduction - sequence of adding modalities based on practitioner readiness and space confirmation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s7-program-launch",
@@ -21656,7 +21137,7 @@
       "itemId": "well-s7-program-launch-c5",
       "itemLabel": "Assign ownership and review cadence for the launch sequence - who signs off the soft-launch and full-launch gates, and when the soft-launch review is re-run as each new modality is phased in before public bookings expand",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     }
   ]
 }

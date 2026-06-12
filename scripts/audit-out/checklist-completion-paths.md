@@ -15,11 +15,11 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `auto-answer` | 4 | 0.2% | yes |
 | `auto-formula` | 13 | 0.6% | yes |
 | `form-capture` | 215 | 10.6% | yes |
-| `workbench-capture` | 300 | 14.8% | yes |
+| `workbench-capture` | 682 | 33.6% | yes |
 | `objective-map` | 1103 | 54.4% | no (objective-level instrument, manual tick) |
 | `objective-log` | 6 | 0.3% | no (objective-level instrument, manual tick) |
 | `objective-flow` | 6 | 0.3% | no (objective-level instrument, manual tick) |
-| `no-path` | 382 | 18.8% | **no — gap** |
+| `no-path` | 0 | 0.0% | **no — gap** |
 
 ## Summary by type prefix
 
@@ -33,29 +33,29 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `silv-sec-` | P4 | 43 | 0 | 21 | 22 |
 | `nur-sec-` | P5 | 43 | 0 | 28 | 15 |
 | `hms-` | P6 | 87 | 0 | 48 | 39 |
-| `ag-` | — | 210 | 76 | 116 | 18 |
-| `con-` | — | 167 | 44 | 106 | 17 |
-| `edu-` | — | 129 | 48 | 64 | 17 |
-| `lvs-` | — | 121 | 40 | 58 | 23 |
-| `lvs-sec-` | — | 39 | 6 | 26 | 7 |
-| `mgd-` | — | 136 | 16 | 103 | 17 |
-| `ofg-` | — | 153 | 66 | 77 | 10 |
-| `res-` | — | 37 | 6 | 31 | 0 |
-| `rf-` | — | 84 | 10 | 66 | 8 |
-| `well-` | — | 150 | 55 | 70 | 25 |
-| `well-sec-` | — | 25 | 15 | 0 | 10 |
+| `ag-` | — | 210 | 0 | 116 | 94 |
+| `con-` | — | 167 | 0 | 106 | 61 |
+| `edu-` | — | 129 | 0 | 64 | 65 |
+| `lvs-` | — | 121 | 0 | 58 | 63 |
+| `lvs-sec-` | — | 39 | 0 | 26 | 13 |
+| `mgd-` | — | 136 | 0 | 103 | 33 |
+| `ofg-` | — | 153 | 0 | 77 | 76 |
+| `res-` | — | 37 | 0 | 31 | 6 |
+| `rf-` | — | 84 | 0 | 66 | 18 |
+| `well-` | — | 150 | 0 | 70 | 80 |
+| `well-sec-` | — | 25 | 0 | 0 | 25 |
 
 ## Summary by stratum
 
 | Stratum | Items | no-path | objective-level | evidence-backed |
 |---|--:|--:|--:|--:|
-| s1-project-foundation | 254 | 6 | 6 | 242 |
-| s2-land-reading | 264 | 5 | 218 | 41 |
-| s3-systems-reading | 240 | 6 | 212 | 22 |
-| s4-foundation-decisions | 414 | 136 | 191 | 87 |
-| s5-system-design | 359 | 5 | 349 | 5 |
-| s6-integration-design | 234 | 86 | 102 | 46 |
-| s7-phasing-resourcing | 264 | 138 | 37 | 89 |
+| s1-project-foundation | 254 | 0 | 6 | 248 |
+| s2-land-reading | 264 | 0 | 218 | 46 |
+| s3-systems-reading | 240 | 0 | 212 | 28 |
+| s4-foundation-decisions | 414 | 0 | 191 | 223 |
+| s5-system-design | 359 | 0 | 349 | 10 |
+| s6-integration-design | 234 | 0 | 102 | 132 |
+| s7-phasing-resourcing | 264 | 0 | 37 | 227 |
 
 ## Unmatched form arms (formId matches no checklist item)
 
@@ -70,388 +70,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Objective | Ref | Stratum | Item | Label | Optional | Suggested capture |
 |---|---|---|---|---|---|---|
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c1` | Define who will be living on the land - household members, dependents, seasonal residents |  | decision form (form arm, formId = item id) |
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c2` | List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications |  | decision form (form arm, formId = item id) |
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c3` | Define food provision intent - what proportion of household food will come from the land |  | decision form (form arm, formId = item id) |
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c4` | Identify domestic infrastructure required before the land is habitable - dwelling condition, utilities |  | decision form (form arm, formId = item id) |
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c5` | Define minimum habitability threshold - what must be in place before the household moves on-site |  | map arm (per-item bridge) |
-| `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c6` | Record domestic needs that will always be sourced externally |  | log arm / review flow |
-| `ag-s2-seasonal-patterns` | AG-S2.8 | s2-land-reading | `ag-s2-seasonal-patterns-c1` | Define peak guest season by climate and farm calendar |  | schedule/protocol capture |
-| `ag-s2-seasonal-patterns` | AG-S2.8 | s2-land-reading | `ag-s2-seasonal-patterns-c2` | Define off-peak periods and their limiting factors - weather, farm activity, access |  | decision form (form arm, formId = item id) |
-| `ag-s2-seasonal-patterns` | AG-S2.8 | s2-land-reading | `ag-s2-seasonal-patterns-c3` | Identify farm activities that are incompatible with simultaneous guest presence |  | decision form (form arm, formId = item id) |
-| `ag-s2-seasonal-patterns` | AG-S2.8 | s2-land-reading | `ag-s2-seasonal-patterns-c4` | Map farming calendar against potential guest programming calendar |  | schedule/protocol capture |
-| `ag-s2-seasonal-patterns` | AG-S2.8 | s2-land-reading | `ag-s2-seasonal-patterns-c5` | Define minimum and maximum viable operating weeks per year |  | decision form (form arm, formId = item id) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c1` | Calculate critical system energy demand - water pump, refrigeration, lighting, communications, heating |  | decision form (form arm, formId = item id) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c2` | Calculate total household energy demand |  | decision form (form arm, formId = item id) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c3` | Map demand against generation potential month by month |  | map arm (per-item bridge) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c4` | Identify worst-case month - lowest generation, highest demand |  | decision form (form arm, formId = item id) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c5` | Define storage requirement to bridge daily and seasonal gaps |  | decision form (form arm, formId = item id) |
-| `ofg-s3-energy-demand-balance` | OFG-S3.4 | s3-systems-reading | `ofg-s3-energy-demand-balance-c6` | Quantify the generation-demand gap that storage and backup must cover |  | decision form (form arm, formId = item id) |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c1` | Map current farm production against guest dining calendar - what is available when |  | schedule/protocol capture |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c2` | Define priority enterprises for guest food supply - vegetables, eggs, meat, dairy, fruit |  | decision form (form arm, formId = item id) |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c3` | Define food production gaps and sourcing strategy for gaps - local farms, suppliers |  | decision form (form arm, formId = item id) |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c4` | Define food preparation approach - farm kitchen standards, preservation, seasonal menus |  | decision form (form arm, formId = item id) |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c5` | Confirm farm-to-guest supply chain is consistent with food safety requirements |  | decision form (form arm, formId = item id) |
-| `ag-s4-food-strategy` | AG-S4.6 | s4-foundation-decisions | `ag-s4-food-strategy-c6` | Confirm priority enterprises against the Stratum 3 food production capacity and seasonal gap findings |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c1` | Define pricing for each experience offering |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c2` | Define booking terms - advance booking, deposits, cancellation policy |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c3` | Define peak and off-peak pricing strategy |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c4` | Calculate minimum viable occupancy rate for financial viability |  | financial worksheet (Amanah-clean) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c5` | Define revenue targets for Phase 1 and break-even timeline |  | schedule/protocol capture |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c6` | Confirm pricing is consistent with market comparables and service standard |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c7` | Decide whether a membership or season-pass tier is offered at all - default to none unless deliberately adopted; if none, c8-c11 are N/A |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c8` | If adopted, structure it as a membership benefit - entitlement to access, priority booking, member rates, and belonging-benefits - with each actual stay still transacted as a separate per-stay service reservation (deposit + balance on a booked, deliverable stay) and the membership cancellable with pro-rata refund of unused access; the membership fee buys belonging and access terms, NOT a bundle of specific undelivered nights (avoids bay` ma laysa `indak / gharar) |  | financial worksheet (Amanah-clean) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c9` | Ensure member value is demonstrably non-stay-predominant - real belonging substance (community, seasonal / biodynamic events, bounded off-season access) beyond stay discounts - so the instrument is a membership in substance, not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6), not as an advance purchase |  | decision form (form arm, formId = item id) |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c10` | Bound member access, especially off-season, within the AG-S3.7 ecological carrying-capacity ceiling and its seasonal sensitivity windows; coordinate with AG-S7.8 so member presence supports off-season resilience without exceeding load limits; if member access extends beyond any hardened visitor precinct, AG-S3.7 must be in scope - the membership can pull it into scope |  | log arm / review flow |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c11` | Route any membership / season-pass instrument to Scholar Council review before adoption; surface it explicitly, never as a default or recommended model; use no CSRA / salam advance-purchase framing |  | log arm / review flow |
-| `ag-s4-revenue-model` | AG-S4.8 | s4-foundation-decisions | `ag-s4-revenue-model-c12` | Confirm pricing and occupancy targets against the Stratum 1 commercial proposition and visitor capacity limits |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c1` | Define accommodation types and standards - farm stay rooms, cabins, glamping |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c2` | Define dining model - farm breakfast, shared dinners, self-catering, or hybrid |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c3` | Define programming offer - farm tours, workshops, retreats, harvest experiences |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c4` | Define service standard for each offering - what is included, what is extra |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c5` | Confirm service model is achievable within steward capacity and licensing framework |  | decision form (form arm, formId = item id) |
-| `ag-s4-service-model` | AG-S4.5 | s4-foundation-decisions | `ag-s4-service-model-c6` | Confirm each offering serves the Stratum 1 guest experience vision and hospitality identity |  | decision form (form arm, formId = item id) |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c1` | Define planting palette by zone - pioneer, transitional, and climax species |  | map arm (per-item bridge) |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c2` | Specify local provenance requirements - seed collection zones, genetic diversity |  | map arm (per-item bridge) |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c3` | Identify local seed sources and nurseries with provenance stock |  | decision form (form arm, formId = item id) |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c4` | Define nurse crop and pioneer species strategy for bare or degraded zones |  | map arm (per-item bridge) |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c5` | Sequence species introduction to match ecological succession trajectory |  | schedule/protocol capture |
-| `con-s4-native-species-provenance` | CON-S4.5 | s4-foundation-decisions | `con-s4-native-species-provenance-c6` | Confirm species selection is consistent with target habitat type and intervention philosophy |  | decision form (form arm, formId = item id) |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c1` | Confirm acceptable control methods against intervention philosophy |  | decision form (form arm, formId = item id) |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c2` | Prioritise pest and invasive species by threat level and control feasibility |  | decision form (form arm, formId = item id) |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c3` | Define control sequence - address highest-threat species and entry vectors first |  | schedule/protocol capture |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c4` | Define monitoring triggers - what population threshold initiates control action |  | log arm / review flow |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c5` | Specify seasonal control windows for highest-priority species |  | decision form (form arm, formId = item id) |
-| `con-s4-pest-invasive-strategy` | CON-S4.6 | s4-foundation-decisions | `con-s4-pest-invasive-strategy-c6` | Define reinvasion prevention strategy |  | decision form (form arm, formId = item id) |
-| `edu-s4-food-hospitality` | EDU-S4.7 | s4-foundation-decisions | `edu-s4-food-hospitality-c1` | Define food provision scope - morning tea, lunch, food tasting, farm-to-table meal |  | decision form (form arm, formId = item id) |
-| `edu-s4-food-hospitality` | EDU-S4.7 | s4-foundation-decisions | `edu-s4-food-hospitality-c2` | Define food sourcing - from site, local farms, or catered |  | map arm (per-item bridge) |
-| `edu-s4-food-hospitality` | EDU-S4.7 | s4-foundation-decisions | `edu-s4-food-hospitality-c3` | Define food preparation infrastructure required - kitchen, outdoor cooking, cold storage |  | decision form (form arm, formId = item id) |
-| `edu-s4-food-hospitality` | EDU-S4.7 | s4-foundation-decisions | `edu-s4-food-hospitality-c4` | Define food safety compliance requirements for group service |  | decision form (form arm, formId = item id) |
-| `edu-s4-food-hospitality` | EDU-S4.7 | s4-foundation-decisions | `edu-s4-food-hospitality-c5` | Confirm food provision is consistent with regulatory framework from Tier 0 |  | decision form (form arm, formId = item id) |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c1` | Define delivery format per program type - facilitated, self-guided, hybrid |  | decision form (form arm, formId = item id) |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c2` | Define instructor requirements per program - qualifications, experience, group ratios |  | decision form (form arm, formId = item id) |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c3` | Define program structure - arrival, orientation, activities, reflection, departure |  | decision form (form arm, formId = item id) |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c4` | Define quality standards - what defines a successful program delivery |  | decision form (form arm, formId = item id) |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c5` | Define program development and review cycle |  | log arm / review flow |
-| `edu-s4-program-delivery` | EDU-S4.6 | s4-foundation-decisions | `edu-s4-program-delivery-c6` | Confirm formats and ratios against the Tier 0 program types and maximum group sizes |  | decision form (form arm, formId = item id) |
-| `lvs-s4-grazing-system` | LVS-S4.7 | s4-foundation-decisions | `lvs-s4-grazing-system-c1` | Decide the core grazing method - continuous, rotational, adaptive multi-paddock, or mob |  | schedule/protocol capture |
-| `lvs-s4-grazing-system` | LVS-S4.7 | s4-foundation-decisions | `lvs-s4-grazing-system-c2` | Decide the role and timing of any confinement / barn feeding |  | schedule/protocol capture |
-| `lvs-s4-grazing-system` | LVS-S4.7 | s4-foundation-decisions | `lvs-s4-grazing-system-c3` | Decide rest-and-recovery rules - graze period, rest period, residual targets |  | decision form (form arm, formId = item id) |
-| `lvs-s4-grazing-system` | LVS-S4.7 | s4-foundation-decisions | `lvs-s4-grazing-system-c4` | Decide the supplementary-feeding trigger and policy |  | decision form (form arm, formId = item id) |
-| `lvs-s4-grazing-system` | LVS-S4.7 | s4-foundation-decisions | `lvs-s4-grazing-system-c5` | Confirm the system fits the welfare ethic, labour, and land-improvement intent |  | decision form (form arm, formId = item id) |
-| `lvs-s4-species-breed` | LVS-S4.5 | s4-foundation-decisions | `lvs-s4-species-breed-c1` | Commit final species selection against feed base and steward capacity |  | decision form (form arm, formId = item id) |
-| `lvs-s4-species-breed` | LVS-S4.5 | s4-foundation-decisions | `lvs-s4-species-breed-c2` | Commit breed(s) per species - hardiness, temperament, market fit, climate adaptation |  | decision form (form arm, formId = item id) |
-| `lvs-s4-species-breed` | LVS-S4.5 | s4-foundation-decisions | `lvs-s4-species-breed-c3` | Decide breeding-stock sourcing strategy - buy in, raise replacements, or both |  | map arm (per-item bridge) |
-| `lvs-s4-species-breed` | LVS-S4.5 | s4-foundation-decisions | `lvs-s4-species-breed-c4` | Decide genetic/health entry standards for incoming stock |  | decision form (form arm, formId = item id) |
-| `lvs-s4-species-breed` | LVS-S4.5 | s4-foundation-decisions | `lvs-s4-species-breed-c5` | Confirm the selection against the welfare ethic and carrying capacity |  | decision form (form arm, formId = item id) |
-| `lvs-s4-stocking-rate` | LVS-S4.6 | s4-foundation-decisions | `lvs-s4-stocking-rate-c2` | Decide herd/flock structure - breeders, replacements, growers, finishers, sires |  | map arm (per-item bridge) |
-| `lvs-s4-stocking-rate` | LVS-S4.6 | s4-foundation-decisions | `lvs-s4-stocking-rate-c3` | Decide the flex/destock policy for feed-deficit seasons and drought |  | decision form (form arm, formId = item id) |
-| `lvs-s4-stocking-rate` | LVS-S4.6 | s4-foundation-decisions | `lvs-s4-stocking-rate-c4` | Decide the replacement and culling rate to hold structure stable |  | map arm (per-item bridge) |
-| `lvs-s4-stocking-rate` | LVS-S4.6 | s4-foundation-decisions | `lvs-s4-stocking-rate-c5` | Confirm the stocking decision leaves a feed-safety margin |  | decision form (form arm, formId = item id) |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c1` | Confirm species and breed selection against the host climate, forage, and enterprise intent |  | decision form (form arm, formId = item id) |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c2` | Set the stocking rate per area at the chosen rotation |  | schedule/protocol capture |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c3` | Define the grazing system - continuous, rotational, cell, or mob - and the rationale |  | schedule/protocol capture |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c4` | Define graze-period and rest-period targets per season, tied to recovery indicators |  | decision form (form arm, formId = item id) |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c5` | Define the winter / dry-season feed budget and its contingency - carried fodder, supplementary feed, planned destocking, or agistment triggers |  | financial worksheet (Amanah-clean) |
-| `lvs-sec-s4-species-stocking` | LVS-S4.20 | s4-foundation-decisions | `lvs-sec-s4-species-stocking-c6` | Confirm the stocking decision is consistent with the surveyed carrying capacity |  | decision form (form arm, formId = item id) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c1` | Define primary emergency communication method - satellite phone, PLB, radio |  | decision form (form arm, formId = item id) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c2` | Define backup emergency communication if primary fails |  | decision form (form arm, formId = item id) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c3` | Define emergency contact list - nearest neighbours, emergency services, medical |  | decision form (form arm, formId = item id) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c4` | Define medical emergency protocol - first aid capacity, evacuation trigger, transport method |  | decision form (form arm, formId = item id) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c5` | Define fire emergency protocol - shelter-in-place criteria, evacuation triggers, assembly points |  | map arm (per-item bridge) |
-| `ofg-s4-emergency-comms-response` | OFG-S4.7 | s4-foundation-decisions | `ofg-s4-emergency-comms-response-c6` | Confirm all residents are trained in emergency protocols before first habitation |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c1` | Define primary generation system - solar, wind, hydro, hybrid |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c2` | Define battery storage capacity - days of critical load at worst-case generation |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c3` | Define backup generator - fuel type, capacity, fuel storage duration |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c4` | Define load management protocol - critical loads protected, non-critical loads shed in shortage |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c5` | Define manual alternatives for critical functions if all power fails |  | decision form (form arm, formId = item id) |
-| `ofg-s4-energy-system-redundancy` | OFG-S4.5 | s4-foundation-decisions | `ofg-s4-energy-system-redundancy-c6` | Confirm system meets worst-case month energy balance from Tier 2 |  | decision form (form arm, formId = item id) |
-| `ofg-s4-food-security-storage` | OFG-S4.6 | s4-foundation-decisions | `ofg-s4-food-security-storage-c1` | Define minimum food reserve target - weeks of supply for all residents |  | decision form (form arm, formId = item id) |
-| `ofg-s4-food-security-storage` | OFG-S4.6 | s4-foundation-decisions | `ofg-s4-food-security-storage-c2` | Define food production targets by enterprise - annual garden, perennial, animals |  | decision form (form arm, formId = item id) |
-| `ofg-s4-food-security-storage` | OFG-S4.6 | s4-foundation-decisions | `ofg-s4-food-security-storage-c3` | Define food preservation and storage approach - cold storage, drying, fermentation, canning |  | decision form (form arm, formId = item id) |
-| `ofg-s4-food-security-storage` | OFG-S4.6 | s4-foundation-decisions | `ofg-s4-food-security-storage-c4` | Define emergency resupply protocol - when reserve falls below minimum threshold |  | decision form (form arm, formId = item id) |
-| `ofg-s4-food-security-storage` | OFG-S4.6 | s4-foundation-decisions | `ofg-s4-food-security-storage-c5` | Confirm production and storage strategy meets independence target from Tier 0 |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c1` | Define thermal performance standard - minimum indoor temperature during coldest period |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c2` | Define primary heating system - fuel type, heat output, fuel storage capacity |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c3` | Define backup heating system - separate fuel type or passive fallback |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c4` | Define insulation standard required to meet thermal performance with defined heating capacity |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c5` | Define fuel reserve requirement - weeks of supply at peak demand |  | decision form (form arm, formId = item id) |
-| `ofg-s4-shelter-thermal-performance` | OFG-S4.8 | s4-foundation-decisions | `ofg-s4-shelter-thermal-performance-c6` | Confirm shelter strategy meets life-safety threshold for coldest recorded conditions |  | log arm / review flow |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c1` | Define primary water source - rainfall, spring, bore, stream |  | decision form (form arm, formId = item id) |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c2` | Define backup water source - separate source, not the same failure mode |  | decision form (form arm, formId = item id) |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c3` | Define minimum storage capacity - days of reserve per person |  | decision form (form arm, formId = item id) |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c4` | Define treatment system - type, maintenance requirements, failure response |  | decision form (form arm, formId = item id) |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c5` | Define manual backup water delivery if powered system fails |  | decision form (form arm, formId = item id) |
-| `ofg-s4-water-system-redundancy` | OFG-S4.4 | s4-foundation-decisions | `ofg-s4-water-system-redundancy-c6` | Confirm dual-source redundancy meets critical systems requirement from Tier 0 |  | decision form (form arm, formId = item id) |
-| `well-s4-healing-garden-strategy` | WELL-S4.7 | s4-foundation-decisions | `well-s4-healing-garden-strategy-c1` | Define therapeutic planting palette - species selected for scent, texture, colour, and medicinal value |  | decision form (form arm, formId = item id) |
-| `well-s4-healing-garden-strategy` | WELL-S4.7 | s4-foundation-decisions | `well-s4-healing-garden-strategy-c2` | Define water feature strategy - existing features enhanced, new features designed |  | decision form (form arm, formId = item id) |
-| `well-s4-healing-garden-strategy` | WELL-S4.7 | s4-foundation-decisions | `well-s4-healing-garden-strategy-c3` | Define sensory walk and contemplative path approach |  | decision form (form arm, formId = item id) |
-| `well-s4-healing-garden-strategy` | WELL-S4.7 | s4-foundation-decisions | `well-s4-healing-garden-strategy-c4` | Define seasonal therapeutic landscape calendar - what is available when |  | schedule/protocol capture |
-| `well-s4-healing-garden-strategy` | WELL-S4.7 | s4-foundation-decisions | `well-s4-healing-garden-strategy-c5` | Confirm planting strategy is consistent with sensory design standards |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c1` | Define crisis response protocol - immediate steps when a guest presents in distress |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c2` | Define trauma disclosure response - practitioner obligations and guest support pathway |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c3` | Define clinical referral pathway - when and how guests are referred to clinical services |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c4` | Define emergency services contact protocol |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c5` | Define incident recording and review system |  | log arm / review flow |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c6` | Confirm all practitioners are trained in safeguarding protocol before first guest arrival |  | decision form (form arm, formId = item id) |
-| `well-s4-safeguarding-protocol` | WELL-S4.8 | s4-foundation-decisions | `well-s4-safeguarding-protocol-c7` | Obtain legal advice on safeguarding obligations for this therapeutic context |  | decision form (form arm, formId = item id) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c1` | Define maximum noise threshold in treatment and meditation zones - in decibels |  | map arm (per-item bridge) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c2` | Define maximum noise threshold in accommodation zones |  | map arm (per-item bridge) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c3` | Define lighting standards - natural light priority, artificial light limits by zone and time |  | map arm (per-item bridge) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c4` | Define acceptable scent environment - natural aromatics only, no synthetic fragrances |  | decision form (form arm, formId = item id) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c5` | Define visual complexity limits - no advertising, signage minimisation, material palette restraint |  | decision form (form arm, formId = item id) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c6` | Confirm standards are achievable against acoustic survey findings |  | decision form (form arm, formId = item id) |
-| `well-s4-sensory-design-standards` | WELL-S4.4 | s4-foundation-decisions | `well-s4-sensory-design-standards-c7` | Document standards as design gate - all Tier 4 decisions evaluated against them |  | log arm / review flow |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c1` | Confirm modalities offered against regulatory framework confirmed in Tier 0 |  | decision form (form arm, formId = item id) |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c2` | Define practitioner qualifications required per modality |  | decision form (form arm, formId = item id) |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c3` | Define practitioner-to-guest ratio for each modality |  | decision form (form arm, formId = item id) |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c4` | Define session structure, duration, and sequencing |  | decision form (form arm, formId = item id) |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c5` | Define referral network for conditions outside scope |  | decision form (form arm, formId = item id) |
-| `well-s4-therapeutic-program` | WELL-S4.5 | s4-foundation-decisions | `well-s4-therapeutic-program-c6` | Confirm all practitioners hold required qualifications and insurance before programme launch |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-safeguarding` | WELL-S4.11 | s4-foundation-decisions | `well-sec-s4-safeguarding-c1` | Define crisis response steps when a guest presents in distress on the host site |  | map arm (per-item bridge) |
-| `well-sec-s4-safeguarding` | WELL-S4.11 | s4-foundation-decisions | `well-sec-s4-safeguarding-c2` | Define trauma disclosure response and guest support pathway |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-safeguarding` | WELL-S4.11 | s4-foundation-decisions | `well-sec-s4-safeguarding-c3` | Define the clinical referral and emergency services contact pathway |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-safeguarding` | WELL-S4.11 | s4-foundation-decisions | `well-sec-s4-safeguarding-c4` | Define incident recording and review, including any host-staff involvement |  | log arm / review flow |
-| `well-sec-s4-safeguarding` | WELL-S4.11 | s4-foundation-decisions | `well-sec-s4-safeguarding-c5` | Confirm all practitioners and relevant host staff are trained before the first guest |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-sensory-standards` | WELL-S4.9 | s4-foundation-decisions | `well-sec-s4-sensory-standards-c1` | Define maximum noise thresholds for treatment, meditation, and guest zones - in decibels |  | map arm (per-item bridge) |
-| `well-sec-s4-sensory-standards` | WELL-S4.9 | s4-foundation-decisions | `well-sec-s4-sensory-standards-c2` | Define lighting and scent standards for therapeutic spaces - natural priority, no synthetic fragrance |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-sensory-standards` | WELL-S4.9 | s4-foundation-decisions | `well-sec-s4-sensory-standards-c3` | Map host primary operations that could breach sensory thresholds and define buffering |  | map arm (per-item bridge) |
-| `well-sec-s4-sensory-standards` | WELL-S4.9 | s4-foundation-decisions | `well-sec-s4-sensory-standards-c4` | Define visual-complexity and privacy standards separating therapeutic zones from the working land |  | map arm (per-item bridge) |
-| `well-sec-s4-sensory-standards` | WELL-S4.9 | s4-foundation-decisions | `well-sec-s4-sensory-standards-c5` | Confirm sensory standards are achievable alongside the primary land operations |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-therapeutic-program` | WELL-S4.10 | s4-foundation-decisions | `well-sec-s4-therapeutic-program-c1` | Confirm modalities offered against the therapeutic regulatory standards |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-therapeutic-program` | WELL-S4.10 | s4-foundation-decisions | `well-sec-s4-therapeutic-program-c2` | Define practitioner qualifications and practitioner-to-guest ratios per modality |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-therapeutic-program` | WELL-S4.10 | s4-foundation-decisions | `well-sec-s4-therapeutic-program-c3` | Define session structure, duration, and scheduling around primary land operations |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-therapeutic-program` | WELL-S4.10 | s4-foundation-decisions | `well-sec-s4-therapeutic-program-c4` | Define the referral network for conditions outside scope |  | decision form (form arm, formId = item id) |
-| `well-sec-s4-therapeutic-program` | WELL-S4.10 | s4-foundation-decisions | `well-sec-s4-therapeutic-program-c5` | Confirm all practitioners hold required qualifications and insurance before launch |  | decision form (form arm, formId = item id) |
-| `lvs-s5-feed-budget` | LVS-S5.8 | s5-system-design | `lvs-s5-feed-budget-c1` | Build a month-by-month feed budget - demand vs forage supply |  | financial worksheet (Amanah-clean) |
-| `lvs-s5-feed-budget` | LVS-S5.8 | s5-system-design | `lvs-s5-feed-budget-c2` | Quantify the deficit-season gap to fill with conserved or bought-in feed |  | decision form (form arm, formId = item id) |
-| `lvs-s5-feed-budget` | LVS-S5.8 | s5-system-design | `lvs-s5-feed-budget-c3` | Decide conserved-feed strategy - hay/silage made on-site vs purchased |  | map arm (per-item bridge) |
-| `lvs-s5-feed-budget` | LVS-S5.8 | s5-system-design | `lvs-s5-feed-budget-c4` | Decide storage and the safe-reserve (drought buffer) volume |  | decision form (form arm, formId = item id) |
-| `lvs-s5-feed-budget` | LVS-S5.8 | s5-system-design | `lvs-s5-feed-budget-c5` | Confirm the plan holds welfare and body-condition targets year-round |  | decision form (form arm, formId = item id) |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c1` | Design compliance calendar - all permit renewal dates, audit schedules, reporting obligations |  | schedule/protocol capture |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c2` | Define compliance monitoring responsibilities - who checks what, when |  | log arm / review flow |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c3` | Define neighbour communication rhythm and nominated farm contact |  | decision form (form arm, formId = item id) |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c4` | Design complaint response process |  | decision form (form arm, formId = item id) |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c5` | Define annual external relations review |  | log arm / review flow |
-| `ag-s6-compliance-monitoring` | AG-S6.3 | s6-integration-design | `ag-s6-compliance-monitoring-c6` | Build the compliance calendar from the Stratum 1 regulatory framework permits and renewal obligations |  | schedule/protocol capture |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c1` | Design guest feedback collection - post-visit survey, in-person, online reviews |  | log arm / review flow |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c2` | Define guest satisfaction indicators - what metrics define a successful visit |  | decision form (form arm, formId = item id) |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c3` | Define repeat visit tracking system |  | decision form (form arm, formId = item id) |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c4` | Define review and response protocol for online feedback |  | log arm / review flow |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c5` | Define quality improvement process - how feedback triggers operational changes |  | decision form (form arm, formId = item id) |
-| `ag-s6-experience-feedback` | AG-S6.2 | s6-integration-design | `ag-s6-experience-feedback-c6` | Derive satisfaction indicators from the Stratum 1 guest experience vision and hospitality identity |  | decision form (form arm, formId = item id) |
-| `ag-s6-load-monitoring` | AG-S6.5 | s6-integration-design | `ag-s6-load-monitoring-c1` | Define capacity tracking system - actual vs. intended guest numbers by period |  | decision form (form arm, formId = item id) |
-| `ag-s6-load-monitoring` | AG-S6.5 | s6-integration-design | `ag-s6-load-monitoring-c2` | Define infrastructure load indicators - water use, sanitation load, parking utilisation |  | decision form (form arm, formId = item id) |
-| `ag-s6-load-monitoring` | AG-S6.5 | s6-integration-design | `ag-s6-load-monitoring-c3` | Define staff workload monitoring - hours, task completion, incident rate |  | log arm / review flow |
-| `ag-s6-load-monitoring` | AG-S6.5 | s6-integration-design | `ag-s6-load-monitoring-c4` | Define capacity threshold triggers - what load level initiates a booking pause or operational review |  | log arm / review flow |
-| `ag-s6-load-monitoring` | AG-S6.5 | s6-integration-design | `ag-s6-load-monitoring-c5` | Define annual capacity review against Stratum 1 operational boundary |  | map arm (per-item bridge) |
-| `con-s6-external-relations-compliance` | CON-S6.5 | s6-integration-design | `con-s6-external-relations-compliance-c1` | Define reporting schedule and format for each funding body and regulatory authority |  | financial worksheet (Amanah-clean) |
-| `con-s6-external-relations-compliance` | CON-S6.5 | s6-integration-design | `con-s6-external-relations-compliance-c2` | Design compliance monitoring system - track all consent conditions and reporting obligations |  | log arm / review flow |
-| `con-s6-external-relations-compliance` | CON-S6.5 | s6-integration-design | `con-s6-external-relations-compliance-c3` | Define community and neighbour communication rhythm |  | decision form (form arm, formId = item id) |
-| `con-s6-external-relations-compliance` | CON-S6.5 | s6-integration-design | `con-s6-external-relations-compliance-c4` | Design complaint response process |  | decision form (form arm, formId = item id) |
-| `con-s6-external-relations-compliance` | CON-S6.5 | s6-integration-design | `con-s6-external-relations-compliance-c5` | Define annual external relations review |  | log arm / review flow |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c1` | Define annual review process - participant feedback, revenue, site health reviewed together |  | map arm (per-item bridge) |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c2` | Define decision triggers - what performance drives curriculum or infrastructure change |  | decision form (form arm, formId = item id) |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c3` | Define program retirement protocol - when a program is discontinued |  | decision form (form arm, formId = item id) |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c4` | Document all changes with reason and outcome |  | decision form (form arm, formId = item id) |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c5` | Define 3-year comprehensive review against founding educational goals and capacity targets |  | log arm / review flow |
-| `edu-s6-adaptive-management` | EDU-S6.4 | s6-integration-design | `edu-s6-adaptive-management-c6` | Baseline site health monitoring against the Tier 2 demonstration site baseline |  | map arm (per-item bridge) |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c1` | Design compliance calendar - all permit renewals, insurance, CPD obligations |  | schedule/protocol capture |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c2` | Define neighbour communication rhythm |  | decision form (form arm, formId = item id) |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c3` | Design complaint response process |  | decision form (form arm, formId = item id) |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c4` | Define annual external relations review |  | log arm / review flow |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c5` | Define accreditation maintenance requirements if applicable |  | decision form (form arm, formId = item id) |
-| `edu-s6-external-relations-compliance` | EDU-S6.3 | s6-integration-design | `edu-s6-external-relations-compliance-c6` | Build the compliance calendar from the Tier 0 regulatory framework obligations |  | schedule/protocol capture |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c1` | Design participant feedback collection - post-program survey, facilitator debrief |  | decision form (form arm, formId = item id) |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c2` | Define learning outcome indicators per program type |  | decision form (form arm, formId = item id) |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c3` | Define facilitator performance review process |  | log arm / review flow |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c4` | Define curriculum improvement protocol - how feedback triggers program changes |  | decision form (form arm, formId = item id) |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c5` | Define annual program quality review |  | log arm / review flow |
-| `edu-s6-program-evaluation` | EDU-S6.2 | s6-integration-design | `edu-s6-program-evaluation-c6` | Derive evaluation indicators from the Tier 0 mission and learning outcomes |  | decision form (form arm, formId = item id) |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c1` | Define the animal-health calendar - vaccination, parasite, mineral, hoof/teeth, body-condition checks |  | schedule/protocol capture |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c2` | Define the breeding plan - mating/joining windows, gestation, calving/lambing/farrowing management |  | decision form (form arm, formId = item id) |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c3` | Define replacement, weaning, and culling decisions and timing |  | schedule/protocol capture |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c4` | Define identification, record-keeping, and traceability practice |  | log arm / review flow |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c5` | Define the veterinary relationship and intervention thresholds |  | decision form (form arm, formId = item id) |
-| `lvs-s6-herd-health` | LVS-S6.5 | s6-integration-design | `lvs-s6-herd-health-c6` | Define the response protocol for sick, injured, or down animals |  | decision form (form arm, formId = item id) |
-| `mgd-s6-adaptive-management` | MGD-S6.4 | s6-integration-design | `mgd-s6-adaptive-management-c1` | Define annual season review process - yield data, revenue data, soil health reviewed together |  | log arm / review flow |
-| `mgd-s6-adaptive-management` | MGD-S6.4 | s6-integration-design | `mgd-s6-adaptive-management-c2` | Define decision triggers - what performance outcome requires a plan change |  | decision form (form arm, formId = item id) |
-| `mgd-s6-adaptive-management` | MGD-S6.4 | s6-integration-design | `mgd-s6-adaptive-management-c3` | Define variety replacement protocol - what yield or quality threshold retires a variety |  | map arm (per-item bridge) |
-| `mgd-s6-adaptive-management` | MGD-S6.4 | s6-integration-design | `mgd-s6-adaptive-management-c4` | Define rotation adjustment process - what disease or weed pressure triggers a rotation change |  | schedule/protocol capture |
-| `mgd-s6-adaptive-management` | MGD-S6.4 | s6-integration-design | `mgd-s6-adaptive-management-c5` | Document all changes with season, trigger, and outcome |  | decision form (form arm, formId = item id) |
-| `mgd-s6-sales-revenue-tracking` | MGD-S6.3 | s6-integration-design | `mgd-s6-sales-revenue-tracking-c1` | Design revenue tracking per crop and per channel |  | decision form (form arm, formId = item id) |
-| `mgd-s6-sales-revenue-tracking` | MGD-S6.3 | s6-integration-design | `mgd-s6-sales-revenue-tracking-c2` | Design cost-of-production tracking per bed or per crop |  | financial worksheet (Amanah-clean) |
-| `mgd-s6-sales-revenue-tracking` | MGD-S6.3 | s6-integration-design | `mgd-s6-sales-revenue-tracking-c3` | Define gross margin calculation per crop category |  | decision form (form arm, formId = item id) |
-| `mgd-s6-sales-revenue-tracking` | MGD-S6.3 | s6-integration-design | `mgd-s6-sales-revenue-tracking-c4` | Define channel profitability comparison |  | decision form (form arm, formId = item id) |
-| `mgd-s6-sales-revenue-tracking` | MGD-S6.3 | s6-integration-design | `mgd-s6-sales-revenue-tracking-c5` | Define financial review frequency - monthly minimum during season |  | financial worksheet (Amanah-clean) |
-| `ofg-s6-adaptive-management` | OFG-S6.4 | s6-integration-design | `ofg-s6-adaptive-management-c1` | Define seasonal review process - after each worst-case season, review all system performance |  | log arm / review flow |
-| `ofg-s6-adaptive-management` | OFG-S6.4 | s6-integration-design | `ofg-s6-adaptive-management-c2` | Define decision triggers - what system performance outcome requires a design or capacity change |  | decision form (form arm, formId = item id) |
-| `ofg-s6-adaptive-management` | OFG-S6.4 | s6-integration-design | `ofg-s6-adaptive-management-c3` | Define failure response protocol - what immediate actions follow a system failure |  | decision form (form arm, formId = item id) |
-| `ofg-s6-adaptive-management` | OFG-S6.4 | s6-integration-design | `ofg-s6-adaptive-management-c4` | Document all system changes with date, cause, and outcome |  | decision form (form arm, formId = item id) |
-| `ofg-s6-adaptive-management` | OFG-S6.4 | s6-integration-design | `ofg-s6-adaptive-management-c5` | Define 3-year comprehensive review against Tier 0 independence targets |  | log arm / review flow |
-| `ofg-s6-emergency-preparedness-monitoring` | OFG-S6.3 | s6-integration-design | `ofg-s6-emergency-preparedness-monitoring-c1` | Define seasonal access road assessment schedule - before wet season, before fire season |  | schedule/protocol capture |
-| `ofg-s6-emergency-preparedness-monitoring` | OFG-S6.3 | s6-integration-design | `ofg-s6-emergency-preparedness-monitoring-c2` | Define communications system test schedule - monthly at minimum |  | schedule/protocol capture |
-| `ofg-s6-emergency-preparedness-monitoring` | OFG-S6.3 | s6-integration-design | `ofg-s6-emergency-preparedness-monitoring-c3` | Define emergency contact list review schedule - annually |  | schedule/protocol capture |
-| `ofg-s6-emergency-preparedness-monitoring` | OFG-S6.3 | s6-integration-design | `ofg-s6-emergency-preparedness-monitoring-c4` | Define fire risk assessment schedule - seasonal fuel load check |  | schedule/protocol capture |
-| `ofg-s6-emergency-preparedness-monitoring` | OFG-S6.3 | s6-integration-design | `ofg-s6-emergency-preparedness-monitoring-c5` | Design emergency preparedness drill schedule - residents practise protocols annually |  | schedule/protocol capture |
-| `ofg-s6-systems-performance-monitoring` | OFG-S6.2 | s6-integration-design | `ofg-s6-systems-performance-monitoring-c1` | Define critical system indicators - tank levels, battery state of charge, fuel stores, food reserve weeks |  | decision form (form arm, formId = item id) |
-| `ofg-s6-systems-performance-monitoring` | OFG-S6.2 | s6-integration-design | `ofg-s6-systems-performance-monitoring-c2` | Design monitoring method for each indicator - gauge, meter, manual check |  | log arm / review flow |
-| `ofg-s6-systems-performance-monitoring` | OFG-S6.2 | s6-integration-design | `ofg-s6-systems-performance-monitoring-c3` | Define minimum threshold alerts - what level triggers a response before life-safety is compromised |  | decision form (form arm, formId = item id) |
-| `ofg-s6-systems-performance-monitoring` | OFG-S6.2 | s6-integration-design | `ofg-s6-systems-performance-monitoring-c4` | Define monitoring frequency - daily for life-safety systems |  | log arm / review flow |
-| `ofg-s6-systems-performance-monitoring` | OFG-S6.2 | s6-integration-design | `ofg-s6-systems-performance-monitoring-c5` | Design log system - simple, auditable, maintainable at remote location |  | map arm (per-item bridge) |
-| `well-s6-external-relations` | WELL-S6.4 | s6-integration-design | `well-s6-external-relations-c1` | Design compliance calendar - practitioner registration renewals, insurance renewals, CPD obligations |  | schedule/protocol capture |
-| `well-s6-external-relations` | WELL-S6.4 | s6-integration-design | `well-s6-external-relations-c2` | Define safeguarding audit schedule and reviewer |  | schedule/protocol capture |
-| `well-s6-external-relations` | WELL-S6.4 | s6-integration-design | `well-s6-external-relations-c3` | Define neighbour communication rhythm |  | decision form (form arm, formId = item id) |
-| `well-s6-external-relations` | WELL-S6.4 | s6-integration-design | `well-s6-external-relations-c4` | Design complaint response process |  | decision form (form arm, formId = item id) |
-| `well-s6-external-relations` | WELL-S6.4 | s6-integration-design | `well-s6-external-relations-c5` | Define annual external relations review |  | log arm / review flow |
-| `well-s6-outcome-monitoring` | WELL-S6.2 | s6-integration-design | `well-s6-outcome-monitoring-c1` | Define therapeutic outcome indicators - what change in guests defines success |  | decision form (form arm, formId = item id) |
-| `well-s6-outcome-monitoring` | WELL-S6.2 | s6-integration-design | `well-s6-outcome-monitoring-c2` | Design guest experience feedback collection - post-stay, in-programme, anonymous option |  | decision form (form arm, formId = item id) |
-| `well-s6-outcome-monitoring` | WELL-S6.2 | s6-integration-design | `well-s6-outcome-monitoring-c3` | Define practitioner feedback and peer review process |  | log arm / review flow |
-| `well-s6-outcome-monitoring` | WELL-S6.2 | s6-integration-design | `well-s6-outcome-monitoring-c4` | Define outcome review frequency and programme adjustment protocol |  | log arm / review flow |
-| `well-s6-outcome-monitoring` | WELL-S6.2 | s6-integration-design | `well-s6-outcome-monitoring-c5` | Confirm all monitoring is consistent with privacy and confidentiality policy |  | log arm / review flow |
-| `well-s6-sensory-monitoring` | WELL-S6.3 | s6-integration-design | `well-s6-sensory-monitoring-c1` | Design acoustic monitoring protocol - periodic noise measurement in treatment and accommodation zones |  | map arm (per-item bridge) |
-| `well-s6-sensory-monitoring` | WELL-S6.3 | s6-integration-design | `well-s6-sensory-monitoring-c2` | Design light quality monitoring - seasonal assessment of natural light in key spaces |  | log arm / review flow |
-| `well-s6-sensory-monitoring` | WELL-S6.3 | s6-integration-design | `well-s6-sensory-monitoring-c3` | Define olfactory monitoring - periodic assessment of scent environment in guest zones |  | map arm (per-item bridge) |
-| `well-s6-sensory-monitoring` | WELL-S6.3 | s6-integration-design | `well-s6-sensory-monitoring-c4` | Define sensory standard breach protocol - what triggers a response and what the response is |  | decision form (form arm, formId = item id) |
-| `well-s6-sensory-monitoring` | WELL-S6.3 | s6-integration-design | `well-s6-sensory-monitoring-c5` | Specify monitoring frequency and documentation requirements |  | log arm / review flow |
-| `ag-s7-adaptive-management` | AG-S7.7 | s7-phasing-resourcing | `ag-s7-adaptive-management-c1` | Define annual review process - guest experience data, financial data, land health data reviewed together |  | financial worksheet (Amanah-clean) |
-| `ag-s7-adaptive-management` | AG-S7.7 | s7-phasing-resourcing | `ag-s7-adaptive-management-c2` | Define decision triggers - what outcomes require a plan or model change |  | decision form (form arm, formId = item id) |
-| `ag-s7-adaptive-management` | AG-S7.7 | s7-phasing-resourcing | `ag-s7-adaptive-management-c3` | Define escalation process for unexpected events - safety incident, compliance breach, significant guest complaint |  | decision form (form arm, formId = item id) |
-| `ag-s7-adaptive-management` | AG-S7.7 | s7-phasing-resourcing | `ag-s7-adaptive-management-c4` | Specify documentation requirements for all management changes |  | decision form (form arm, formId = item id) |
-| `ag-s7-adaptive-management` | AG-S7.7 | s7-phasing-resourcing | `ag-s7-adaptive-management-c5` | Define 3-year comprehensive review against Stratum 1 vision and commercial model |  | log arm / review flow |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c1` | Select booking platform - purpose-built, general platform, or direct booking |  | decision form (form arm, formId = item id) |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c2` | Define payment processing and deposit collection system |  | decision form (form arm, formId = item id) |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c3` | Design booking confirmation and pre-arrival communication |  | decision form (form arm, formId = item id) |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c4` | Define reservation management process - availability, modifications, cancellations |  | decision form (form arm, formId = item id) |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c5` | Confirm booking system is operational before any marketing begins |  | decision form (form arm, formId = item id) |
-| `ag-s7-booking-system` | AG-S7.5 | s7-phasing-resourcing | `ag-s7-booking-system-c6` | Confirm availability settings enforce the Stratum 1 visitor capacity and visit type limits |  | decision form (form arm, formId = item id) |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c1` | Define soft launch scope - limited capacity, limited programming, invited guests or low-profile bookings - HARD GATE: no public bookings until soft launch criteria are met and reviewed |  | log arm / review flow |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c2` | Define soft launch review criteria - explicit pass/fail checklist that must be signed off before full public launch |  | log arm / review flow |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c3` | Define full launch capacity and programming |  | decision form (form arm, formId = item id) |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c4` | Map revenue ramp-up against break-even timeline from Stratum 4 revenue model |  | map arm (per-item bridge) |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c5` | Define financial viability review trigger - occupancy rate or revenue threshold that initiates a model review |  | financial worksheet (Amanah-clean) |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c6` | Define go/no-go criteria for scaling beyond Phase 1 |  | schedule/protocol capture |
-| `ag-s7-phased-launch` | AG-S7.6 | s7-phasing-resourcing | `ag-s7-phased-launch-c7` | Confirm full launch capacity stays within the Stratum 1 visitor capacity and seasonal limits |  | decision form (form arm, formId = item id) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c1` | Plan off-season maintenance and land-recovery windows when guest pressure lifts |  | decision form (form arm, formId = item id) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c2` | Design the seasonal staffing cycle - retention, scaling down, and re-hire ahead of peak |  | decision form (form arm, formId = item id) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c3` | Buffer cash flow across the peak-to-trough swing so fixed costs are met off-season |  | financial worksheet (Amanah-clean) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c4` | Define mothballing / partial-closure protocols for units taken offline in the low season |  | decision form (form arm, formId = item id) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c5` | Identify complementary off-season uses (events, education, maintenance retreats) that fit capacity limits |  | decision form (form arm, formId = item id) |
-| `ag-s7-seasonal-resilience` | AG-S7.8 | s7-phasing-resourcing | `ag-s7-seasonal-resilience-c6` | Confirm the plan is consistent with the AG-S2.8 seasonal-pattern read and AG-S7.6 viability model |  | decision form (form arm, formId = item id) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c1` | Define staffing requirements for each guest service area |  | map arm (per-item bridge) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c2` | Identify training requirements - food safety certification, first aid, hospitality service |  | decision form (form arm, formId = item id) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c3` | Define recruitment timeline relative to guest program launch |  | decision form (form arm, formId = item id) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c4` | Define staff orientation and guest service standards training |  | decision form (form arm, formId = item id) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c5` | Confirm all required certifications are obtained before first guest arrival |  | decision form (form arm, formId = item id) |
-| `ag-s7-staffing-training` | AG-S7.4 | s7-phasing-resourcing | `ag-s7-staffing-training-c6` | Align recruitment timing with the Stratum 2 peak season and operating weeks findings |  | schedule/protocol capture |
-| `con-s7-adaptive-management` | CON-S7.7 | s7-phasing-resourcing | `con-s7-adaptive-management-c1` | Define annual management review process - who participates, what data is reviewed |  | log arm / review flow |
-| `con-s7-adaptive-management` | CON-S7.7 | s7-phasing-resourcing | `con-s7-adaptive-management-c2` | Define decision triggers - what monitoring outcomes require a management plan change |  | log arm / review flow |
-| `con-s7-adaptive-management` | CON-S7.7 | s7-phasing-resourcing | `con-s7-adaptive-management-c3` | Define escalation process for unexpected ecological events |  | log arm / review flow |
-| `con-s7-adaptive-management` | CON-S7.7 | s7-phasing-resourcing | `con-s7-adaptive-management-c4` | Specify documentation requirements for all management changes and their rationale |  | decision form (form arm, formId = item id) |
-| `con-s7-adaptive-management` | CON-S7.7 | s7-phasing-resourcing | `con-s7-adaptive-management-c5` | Define 5-year comprehensive plan review against long-term milestones |  | log arm / review flow |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c1` | Identify applicable funding sources - conservation grants, biodiversity credits, carbon, trusts |  | financial worksheet (Amanah-clean) |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c2` | Define grant application schedule and reporting obligations |  | schedule/protocol capture |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c3` | Assess carbon credit or biodiversity credit potential and registration requirements |  | log arm / review flow |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c4` | Define volunteer programme structure and recruitment strategy |  | decision form (form arm, formId = item id) |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c5` | Define minimum annual resourcing requirement for ongoing management |  | decision form (form arm, formId = item id) |
-| `con-s7-funding-resourcing` | CON-S7.6 | s7-phasing-resourcing | `con-s7-funding-resourcing-c6` | Identify resourcing gap and bridging strategy |  | decision form (form arm, formId = item id) |
-| `con-s7-longterm-timeline` | CON-S7.5 | s7-phasing-resourcing | `con-s7-longterm-timeline-c1` | Define 5-year ecological milestone targets per zone |  | map arm (per-item bridge) |
-| `con-s7-longterm-timeline` | CON-S7.5 | s7-phasing-resourcing | `con-s7-longterm-timeline-c2` | Define 10-year ecological milestone targets |  | log arm / review flow |
-| `con-s7-longterm-timeline` | CON-S7.5 | s7-phasing-resourcing | `con-s7-longterm-timeline-c3` | Define 25-year target ecological state |  | log arm / review flow |
-| `con-s7-longterm-timeline` | CON-S7.5 | s7-phasing-resourcing | `con-s7-longterm-timeline-c4` | Specify assessment methodology for each milestone |  | log arm / review flow |
-| `con-s7-longterm-timeline` | CON-S7.5 | s7-phasing-resourcing | `con-s7-longterm-timeline-c5` | Define review and adaptation protocol if milestones are not met |  | log arm / review flow |
-| `con-s7-phase1-priorities` | CON-S7.4 | s7-phasing-resourcing | `con-s7-phase1-priorities-c1` | Rank Phase 1 interventions by ecological leverage and cost-effectiveness |  | financial worksheet (Amanah-clean) |
-| `con-s7-phase1-priorities` | CON-S7.4 | s7-phasing-resourcing | `con-s7-phase1-priorities-c2` | Confirm fencing and stock exclusion precedes all revegetation work |  | decision form (form arm, formId = item id) |
-| `con-s7-phase1-priorities` | CON-S7.4 | s7-phasing-resourcing | `con-s7-phase1-priorities-c3` | Confirm water regime restoration precedes planting in water-dependent zones |  | map arm (per-item bridge) |
-| `con-s7-phase1-priorities` | CON-S7.4 | s7-phasing-resourcing | `con-s7-phase1-priorities-c4` | Confirm weed control is sequenced before planting in high-pressure zones |  | schedule/protocol capture |
-| `con-s7-phase1-priorities` | CON-S7.4 | s7-phasing-resourcing | `con-s7-phase1-priorities-c5` | Define go/no-go criteria for each Phase 1 intervention |  | schedule/protocol capture |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c1` | Define volunteer programme structure - roles, training, supervision requirements |  | decision form (form arm, formId = item id) |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c2` | Identify community groups and schools for partnership |  | decision form (form arm, formId = item id) |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c3` | Design citizen science data collection programme - species recording, photo monitoring |  | log arm / review flow |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c4` | Define volunteer health and safety protocol |  | decision form (form arm, formId = item id) |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c5` | Design volunteer recognition and retention programme |  | decision form (form arm, formId = item id) |
-| `con-s7-volunteer-stewardship` | CON-S7.8 | s7-phasing-resourcing | `con-s7-volunteer-stewardship-c6` | Specify insurance and liability requirements for volunteer activities |  | decision form (form arm, formId = item id) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c1` | Define pricing per program type and group size |  | decision form (form arm, formId = item id) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c2` | Calculate break-even participant numbers per program |  | decision form (form arm, formId = item id) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c3` | Define annual revenue target at defined program frequency |  | decision form (form arm, formId = item id) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c4` | Estimate operating costs - instructor, materials, administration, maintenance |  | financial worksheet (Amanah-clean) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c5` | Define minimum viable program scale |  | decision form (form arm, formId = item id) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c6` | Define financial review trigger |  | financial worksheet (Amanah-clean) |
-| `edu-s7-financial-viability` | EDU-S7.6 | s7-phasing-resourcing | `edu-s7-financial-viability-c7` | Confirm break-even assumptions respect the Tier 0 maximum group sizes and program calendar |  | schedule/protocol capture |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c1` | Define instructor qualifications per program type |  | decision form (form arm, formId = item id) |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c2` | Define instructor orientation - site knowledge, curriculum, safety protocols, group management |  | map arm (per-item bridge) |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c3` | Define working with children check requirements if applicable |  | decision form (form arm, formId = item id) |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c4` | Define delivery quality standard - what a successful session looks and feels like |  | decision form (form arm, formId = item id) |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c5` | Confirm all instructors are inducted before first public group |  | decision form (form arm, formId = item id) |
-| `edu-s7-instructor-onboarding` | EDU-S7.5 | s7-phasing-resourcing | `edu-s7-instructor-onboarding-c6` | Confirm children check requirements satisfy the Tier 0 regulatory framework |  | decision form (form arm, formId = item id) |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c1` | Define soft launch scope - one or two program types at reduced capacity - HARD GATE before full public launch |  | decision form (form arm, formId = item id) |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c2` | Define soft launch review criteria - explicit pass/fail checklist |  | log arm / review flow |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c3` | Define full program launch criteria |  | decision form (form arm, formId = item id) |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c4` | Define program addition sequence - add complexity after simpler programs are tested |  | schedule/protocol capture |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c5` | Define pause and remediation protocol if soft launch review criteria are not met - what halts progression to full launch |  | log arm / review flow |
-| `edu-s7-program-launch` | EDU-S7.4 | s7-phasing-resourcing | `edu-s7-program-launch-c6` | Confirm the launch sequence covers the Tier 0 program types and annual calendar |  | schedule/protocol capture |
-| `lvs-s7-break-even` | LVS-S7.6 | s7-phasing-resourcing | `lvs-s7-break-even-c1` | Build the establishment capital budget - infrastructure, breeding stock, equipment |  | financial worksheet (Amanah-clean) |
-| `lvs-s7-break-even` | LVS-S7.6 | s7-phasing-resourcing | `lvs-s7-break-even-c2` | Build the annual operating budget - feed, animal health, labour, processing |  | financial worksheet (Amanah-clean) |
-| `lvs-s7-break-even` | LVS-S7.6 | s7-phasing-resourcing | `lvs-s7-break-even-c4` | Define the cash-flow buffer covering the pre-break-even build-up years |  | financial worksheet (Amanah-clean) |
-| `lvs-s7-break-even` | LVS-S7.6 | s7-phasing-resourcing | `lvs-s7-break-even-c5` | Confirm viability against the production goals and scale |  | decision form (form arm, formId = item id) |
-| `lvs-s7-herd-buildup` | LVS-S7.5 | s7-phasing-resourcing | `lvs-s7-herd-buildup-c1` | Sequence infrastructure builds - fencing, water, handling, shelter - before stock |  | schedule/protocol capture |
-| `lvs-s7-herd-buildup` | LVS-S7.5 | s7-phasing-resourcing | `lvs-s7-herd-buildup-c2` | Define the herd build-up phases - initial cohort, breeding-up, full establishment |  | schedule/protocol capture |
-| `lvs-s7-herd-buildup` | LVS-S7.5 | s7-phasing-resourcing | `lvs-s7-herd-buildup-c3` | Define go/no-go readiness tests for fencing, water, and handling ahead of each intake |  | decision form (form arm, formId = item id) |
-| `lvs-s7-herd-buildup` | LVS-S7.5 | s7-phasing-resourcing | `lvs-s7-herd-buildup-c4` | Define the introduction/acclimation protocol for new stock |  | decision form (form arm, formId = item id) |
-| `lvs-s7-herd-buildup` | LVS-S7.5 | s7-phasing-resourcing | `lvs-s7-herd-buildup-c5` | Confirm each phase stays within carrying capacity and feed budget |  | financial worksheet (Amanah-clean) |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c1` | Define the products and the form they are sold in - live animals, carcass, cuts, milk, eggs, fibre |  | decision form (form arm, formId = item id) |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c2` | Define the processing pathway - on-farm, mobile, licensed abattoir/processor - and its scheduling/booking lead time |  | decision form (form arm, formId = item id) |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c3` | Define the sales channels - farmgate/spot sale, wholesale, processor contract, livestock auction, buyers clubs or meat-share / herd-share subscriptions |  | decision form (form arm, formId = item id) |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c4` | Define pricing, traceability, and any certification/labelling claims |  | decision form (form arm, formId = item id) |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c5` | Define delivery, cold-chain, and customer-relationship logistics |  | log arm / review flow |
-| `lvs-s7-marketing` | LVS-S7.7 | s7-phasing-resourcing | `lvs-s7-marketing-c6` | Confirm channels comply with food-safety and animal-product regulation |  | decision form (form arm, formId = item id) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c1` | Calculate gross revenue target at defined production volume and price |  | decision form (form arm, formId = item id) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c2` | Estimate variable costs - seeds, inputs, packaging, market fees |  | financial worksheet (Amanah-clean) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c3` | Estimate fixed costs - infrastructure, equipment, depreciation |  | financial worksheet (Amanah-clean) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c4` | Calculate break-even production volume per channel |  | decision form (form arm, formId = item id) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c5` | Define minimum viable revenue threshold |  | decision form (form arm, formId = item id) |
-| `mgd-s7-financial-viability` | MGD-S7.5 | s7-phasing-resourcing | `mgd-s7-financial-viability-c6` | Define financial review trigger - revenue shortfall that requires model review |  | financial worksheet (Amanah-clean) |
-| `ofg-s7-phased-habitation` | OFG-S7.6 | s7-phasing-resourcing | `ofg-s7-phased-habitation-c1` | Define habitability threshold per system - potable water confirmed, energy critical loads operational, thermal performance verified, emergency communications tested |  | decision form (form arm, formId = item id) |
-| `ofg-s7-phased-habitation` | OFG-S7.6 | s7-phasing-resourcing | `ofg-s7-phased-habitation-c2` | Define habitability confirmation process - independent verification, not self-certification |  | decision form (form arm, formId = item id) |
-| `ofg-s7-phased-habitation` | OFG-S7.6 | s7-phasing-resourcing | `ofg-s7-phased-habitation-c3` | Define temporary living arrangement during establishment phase |  | schedule/protocol capture |
-| `ofg-s7-phased-habitation` | OFG-S7.6 | s7-phasing-resourcing | `ofg-s7-phased-habitation-c4` | Define go/no-go for each cohort or seasonal occupation |  | decision form (form arm, formId = item id) |
-| `ofg-s7-phased-habitation` | OFG-S7.6 | s7-phasing-resourcing | `ofg-s7-phased-habitation-c5` | Confirm all residents understand and accept life-safety protocols before first occupation |  | decision form (form arm, formId = item id) |
-| `ofg-s7-resourcing-supply-chain` | OFG-S7.5 | s7-phasing-resourcing | `ofg-s7-resourcing-supply-chain-c1` | Map all materials required for Phase 1 against access window calendar |  | schedule/protocol capture |
-| `ofg-s7-resourcing-supply-chain` | OFG-S7.5 | s7-phasing-resourcing | `ofg-s7-resourcing-supply-chain-c2` | Identify long lead-time items and order well ahead of access window |  | decision form (form arm, formId = item id) |
-| `ofg-s7-resourcing-supply-chain` | OFG-S7.5 | s7-phasing-resourcing | `ofg-s7-resourcing-supply-chain-c3` | Define ongoing resupply schedule - frequency, volume, transport method |  | schedule/protocol capture |
-| `ofg-s7-resourcing-supply-chain` | OFG-S7.5 | s7-phasing-resourcing | `ofg-s7-resourcing-supply-chain-c4` | Define emergency resupply protocol - what triggers an unscheduled supply run |  | schedule/protocol capture |
-| `ofg-s7-resourcing-supply-chain` | OFG-S7.5 | s7-phasing-resourcing | `ofg-s7-resourcing-supply-chain-c5` | Define minimum on-site inventory for all critical consumables - fuel, water treatment, food, medical |  | map arm (per-item bridge) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c1` | Confirm energy system installed and tested before water system commissioning |  | decision form (form arm, formId = item id) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c2` | Confirm water system installed, tested, and potable before habitation |  | decision form (form arm, formId = item id) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c3` | Confirm communications and emergency systems installed and tested before habitation |  | decision form (form arm, formId = item id) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c4` | Confirm shelter thermal performance verified before first winter occupancy |  | decision form (form arm, formId = item id) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c5` | Confirm food production infrastructure in place before reliance on reserves begins |  | map arm (per-item bridge) |
-| `ofg-s7-systems-establishment-sequence` | OFG-S7.4 | s7-phasing-resourcing | `ofg-s7-systems-establishment-sequence-c6` | Define go/no-go test for each system - pass/fail confirmation before next system commences |  | decision form (form arm, formId = item id) |
-| `rf-s7-cash-flow` | RF-S7.5 | s7-phasing-resourcing | `rf-s7-cash-flow-c1` | Map revenue timeline for each enterprise - first production, first sales, scaling milestones |  | map arm (per-item bridge) |
-| `rf-s7-cash-flow` | RF-S7.5 | s7-phasing-resourcing | `rf-s7-cash-flow-c2` | Estimate establishment costs by enterprise and phase |  | financial worksheet (Amanah-clean) |
-| `rf-s7-cash-flow` | RF-S7.5 | s7-phasing-resourcing | `rf-s7-cash-flow-c3` | Identify cash flow gap periods and bridge strategies |  | financial worksheet (Amanah-clean) |
-| `rf-s7-cash-flow` | RF-S7.5 | s7-phasing-resourcing | `rf-s7-cash-flow-c4` | Define minimum viable revenue threshold for each phase |  | schedule/protocol capture |
-| `rf-s7-cash-flow` | RF-S7.5 | s7-phasing-resourcing | `rf-s7-cash-flow-c5` | Confirm scope stays within operational planning - no capital formation or investor structure content |  | financial worksheet (Amanah-clean) |
-| `rf-s7-enterprise-sequencing` | RF-S7.4 | s7-phasing-resourcing | `rf-s7-enterprise-sequencing-c1` | Confirm enterprise priority tiers from Stratum 1 enterprise mix |  | decision form (form arm, formId = item id) |
-| `rf-s7-enterprise-sequencing` | RF-S7.4 | s7-phasing-resourcing | `rf-s7-enterprise-sequencing-c2` | Map enabling dependencies - which enterprises must be established before others launch |  | map arm (per-item bridge) |
-| `rf-s7-enterprise-sequencing` | RF-S7.4 | s7-phasing-resourcing | `rf-s7-enterprise-sequencing-c3` | Define revenue bridge strategy - which early enterprises fund later capital requirements |  | financial worksheet (Amanah-clean) |
-| `rf-s7-enterprise-sequencing` | RF-S7.4 | s7-phasing-resourcing | `rf-s7-enterprise-sequencing-c4` | Sequence enterprise launches across planning cycles |  | schedule/protocol capture |
-| `rf-s7-enterprise-sequencing` | RF-S7.4 | s7-phasing-resourcing | `rf-s7-enterprise-sequencing-c5` | Define go/no-go criteria for each enterprise launch |  | decision form (form arm, formId = item id) |
-| `well-s7-adaptive-management` | WELL-S7.6 | s7-phasing-resourcing | `well-s7-adaptive-management-c1` | Define annual review process - therapeutic outcomes, sensory standards, financial, and practitioner wellbeing data reviewed together |  | financial worksheet (Amanah-clean) |
-| `well-s7-adaptive-management` | WELL-S7.6 | s7-phasing-resourcing | `well-s7-adaptive-management-c2` | Define decision triggers - what outcomes require a programme or management change |  | decision form (form arm, formId = item id) |
-| `well-s7-adaptive-management` | WELL-S7.6 | s7-phasing-resourcing | `well-s7-adaptive-management-c3` | Define escalation process for safeguarding incidents, compliance breaches, or sensory standard failures |  | decision form (form arm, formId = item id) |
-| `well-s7-adaptive-management` | WELL-S7.6 | s7-phasing-resourcing | `well-s7-adaptive-management-c4` | Specify documentation requirements for all changes |  | decision form (form arm, formId = item id) |
-| `well-s7-adaptive-management` | WELL-S7.6 | s7-phasing-resourcing | `well-s7-adaptive-management-c5` | Define 3-year comprehensive review against Tier 0 healing philosophy and vision |  | log arm / review flow |
-| `well-s7-practitioner-onboarding` | WELL-S7.5 | s7-phasing-resourcing | `well-s7-practitioner-onboarding-c1` | Define practitioner orientation programme - philosophy, standards, protocols, spaces |  | decision form (form arm, formId = item id) |
-| `well-s7-practitioner-onboarding` | WELL-S7.5 | s7-phasing-resourcing | `well-s7-practitioner-onboarding-c2` | Define supervision structure - individual, peer, and external supervision schedule |  | schedule/protocol capture |
-| `well-s7-practitioner-onboarding` | WELL-S7.5 | s7-phasing-resourcing | `well-s7-practitioner-onboarding-c3` | Define practitioner performance review process |  | log arm / review flow |
-| `well-s7-practitioner-onboarding` | WELL-S7.5 | s7-phasing-resourcing | `well-s7-practitioner-onboarding-c4` | Define practitioner wellbeing support - this is a demanding practice environment |  | decision form (form arm, formId = item id) |
-| `well-s7-practitioner-onboarding` | WELL-S7.5 | s7-phasing-resourcing | `well-s7-practitioner-onboarding-c5` | Confirm all practitioners have completed onboarding before first guest arrival |  | decision form (form arm, formId = item id) |
-| `well-s7-program-launch` | WELL-S7.4 | s7-phasing-resourcing | `well-s7-program-launch-c1` | Define soft launch programme - limited modalities, limited guests, invitation-based - HARD GATE: no public bookings until soft launch is reviewed and passed |  | log arm / review flow |
-| `well-s7-program-launch` | WELL-S7.4 | s7-phasing-resourcing | `well-s7-program-launch-c2` | Define soft launch review criteria - explicit pass/fail checklist covering sensory standards, safeguarding, guest experience, and practitioner performance |  | log arm / review flow |
-| `well-s7-program-launch` | WELL-S7.4 | s7-phasing-resourcing | `well-s7-program-launch-c3` | Define full programme launch criteria - what must be confirmed before all modalities open |  | decision form (form arm, formId = item id) |
-| `well-s7-program-launch` | WELL-S7.4 | s7-phasing-resourcing | `well-s7-program-launch-c4` | Define phased modality introduction - sequence of adding modalities based on practitioner readiness and space confirmation |  | schedule/protocol capture |
-| `well-s7-program-launch` | WELL-S7.4 | s7-phasing-resourcing | `well-s7-program-launch-c5` | Assign ownership and review cadence for the launch sequence - who signs off the soft-launch and full-launch gates, and when the soft-launch review is re-run as each new modality is phased in before public bookings expand |  | schedule/protocol capture |
 
 ## Objective-level-only items (second-tier gap set)
 
