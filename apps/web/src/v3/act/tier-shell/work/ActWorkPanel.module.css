@@ -66,6 +66,50 @@
   border-color: var(--color-gold-brand, #c4a265);
 }
 
+/* ---- carer workload strip (WorkCarerSummary) ------------------------------ */
+
+.carerStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.carerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: 999px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.carerChip:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 10%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.carerChip[data-active='true'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.carerCount {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.carerCount[data-tone='overdue'] {
+  color: var(--color-danger, #d27b6b);
+}
+
 .body {
   flex: 1 1 auto;
   min-height: 0;

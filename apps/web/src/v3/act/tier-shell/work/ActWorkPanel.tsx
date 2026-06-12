@@ -6,9 +6,12 @@
  * owns the URL — this panel only receives `initialFilter` + `onBack`.
  *
  * Sections, top to bottom:
- *   1. Proposed (pinned) — WorkReviewSection over livestockWorkPlanStore.
- *   2. Overdue (pinned, red) — live items past due.
- *   3. Today / This week agenda — day-grouped spine rows (incl. recently
+ *   1. Carer strip — per-carer workload counts (WorkCarerSummary), doubling
+ *      as a filter over the Overdue section and every tab below it.
+ *   2. Proposed (pinned) — WorkReviewSection over livestockWorkPlanStore
+ *      (proposals aren't spine rows — the carer filter doesn't apply).
+ *   3. Overdue (pinned, red) — live items past due.
+ *   4. Today / This week agenda — day-grouped spine rows (incl. recently
  *      done, so variance stays visible where the work was due) — or, on the
  *      Season tab, the WorkMonthGrid month calendar (no horizon clamp).
  *
@@ -30,6 +33,7 @@ import {
   workDueDate,
 } from '../../../../features/work/workSelectors.js';
 import WorkAgendaList from './WorkAgendaList.js';
+import WorkCarerSummary from './WorkCarerSummary.js';
 import WorkMonthGrid from './WorkMonthGrid.js';
 import WorkReviewSection from './WorkReviewSection.js';
 import styles from './ActWorkPanel.module.css';
@@ -51,6 +55,8 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
       : 'today',
   );
   const items = useWorkItemStore((s) => s.items);
+  // Carer filter from the workload strip ('' = unassigned, null = everyone).
+  const [carerFilter, setCarerFilter] = useState<string | null>(null);
 
   // Rolling-horizon regeneration on open; explicit button re-runs it.
   useEffect(() => {
@@ -63,17 +69,24 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
 
   const todayISO = new Date().toISOString().slice(0, 10);
 
-  const { overdue, agenda, season } = useMemo(() => {
+  const { overdue, agenda, season, all } = useMemo(() => {
     const weekEnd = addDaysISO(todayISO, 6);
     const overdueRows: WorkItem[] = [];
     const agendaRows: WorkItem[] = [];
     // Season feed: every non-cancelled dated row (incl. overdue + done) so
     // the month grid can place the full horizon — it windows by month itself.
     const seasonRows: WorkItem[] = [];
+    // Unfiltered feed for the carer strip — every carer's counts stay
+    // visible while one is selected.
+    const allRows: WorkItem[] = [];
     for (const item of items) {
       if (item.projectId !== projectId || !isLivestockWork(item)) continue;
       const status = workDisplayStatus(item, todayISO);
       if (status === 'cancelled') continue;
+      allRows.push(item);
+      if (carerFilter != null && (item.who ?? '').trim() !== carerFilter) {
+        continue;
+      }
       seasonRows.push(item);
       if (status === 'overdue') {
         overdueRows.push(item);
@@ -90,8 +103,13 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
     overdueRows.sort((a, b) =>
       (workDueDate(a) ?? '') < (workDueDate(b) ?? '') ? -1 : 1,
     );
-    return { overdue: overdueRows, agenda: agendaRows, season: seasonRows };
-  }, [items, projectId, tab, todayISO]);
+    return {
+      overdue: overdueRows,
+      agenda: agendaRows,
+      season: seasonRows,
+      all: allRows,
+    };
+  }, [items, projectId, tab, todayISO, carerFilter]);
 
   return (
     <div className={styles.panel} data-testid="act-work-panel">
@@ -143,6 +161,13 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
           Season
         </button>
       </div>
+
+      <WorkCarerSummary
+        items={all}
+        todayISO={todayISO}
+        selected={carerFilter}
+        onSelect={setCarerFilter}
+      />
 
       <div className={styles.body}>
         <WorkReviewSection projectId={projectId} />
