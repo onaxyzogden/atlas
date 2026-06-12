@@ -37,6 +37,7 @@ import {
   type ItemCompletionPath,
 } from '../packages/shared/src/index.js';
 import { ACT_TOOL_CATALOG } from '../apps/web/src/v3/act/tier-shell/actToolCatalog.js';
+import { TIER_ZERO_OBJECTIVE_IDS } from '../apps/web/src/v3/act/tier-shell/tierZeroObjectives.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT_MD = resolve(HERE, 'audit-out/checklist-completion-paths.md');
@@ -61,7 +62,12 @@ const armIndex: ActToolArmIndex = Object.fromEntries(
   ]),
 );
 
-const audit = auditAllCompletionPaths(armIndex);
+// Workbench routing injected from the live Tier-0 membership set (same
+// injection the ratchet test uses): every item of a workbench objective
+// records via DecisionWorkingPanel -> saveVisionFormData + setItemComplete.
+const audit = auditAllCompletionPaths(armIndex, {
+  workbenchObjectiveIds: TIER_ZERO_OBJECTIVE_IDS,
+});
 
 // ---------------------------------------------------------------------------
 // Summaries: by classification, by stratum, by type prefix.
@@ -71,6 +77,7 @@ const CLASS_ORDER: ItemCompletionClass[] = [
   'auto-answer',
   'auto-formula',
   'form-capture',
+  'workbench-capture',
   'objective-map',
   'objective-log',
   'objective-flow',
@@ -177,7 +184,10 @@ lines.push('|---|--:|--:|---|');
 for (const c of CLASS_ORDER) {
   const n = byClass.get(c) ?? 0;
   const evid =
-    c === 'auto-answer' || c === 'auto-formula' || c === 'form-capture'
+    c === 'auto-answer' ||
+    c === 'auto-formula' ||
+    c === 'form-capture' ||
+    c === 'workbench-capture'
       ? 'yes'
       : c === 'no-path'
         ? '**no — gap**'

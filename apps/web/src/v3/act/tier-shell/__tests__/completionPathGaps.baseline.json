@@ -1,13 +1,6 @@
 {
   "//": "Ratchet baseline for completionPathAudit.ratchet.test.ts. Regenerate ONLY via: npx tsx scripts/audit-checklist-completion-paths.ts --write-baseline",
   "noPath": {
-    "nur-sec-s1-propagation-infra-survey": [
-      "nur-sec-s1-propagation-infra-survey-c1",
-      "nur-sec-s1-propagation-infra-survey-c2",
-      "nur-sec-s1-propagation-infra-survey-c3",
-      "nur-sec-s1-propagation-infra-survey-c4",
-      "nur-sec-s1-propagation-infra-survey-c5"
-    ],
     "nur-sec-s1-water-survey": [
       "nur-sec-s1-water-survey-c1",
       "nur-sec-s1-water-survey-c2",
@@ -23,29 +16,12 @@
       "res-s1-household-needs-c5",
       "res-s1-household-needs-c6"
     ],
-    "s1-boundaries": [
-      "s1-boundaries-c2",
-      "s1-boundaries-c1",
-      "s1-boundaries-c3",
-      "s1-boundaries-c4",
-      "s1-boundaries-c5",
-      "s1-boundaries-c6",
-      "s1-boundaries-c7"
-    ],
     "ag-s2-seasonal-patterns": [
       "ag-s2-seasonal-patterns-c1",
       "ag-s2-seasonal-patterns-c2",
       "ag-s2-seasonal-patterns-c3",
       "ag-s2-seasonal-patterns-c4",
       "ag-s2-seasonal-patterns-c5"
-    ],
-    "ev-s2-social-fabric": [
-      "ev-s2-social-fabric-c1",
-      "ev-s2-social-fabric-c2",
-      "ev-s2-social-fabric-c3",
-      "ev-s2-social-fabric-c4",
-      "ev-s2-social-fabric-c5",
-      "ev-s2-social-fabric-c6"
     ],
     "ofg-s3-energy-demand-balance": [
       "ofg-s3-energy-demand-balance-c1",
@@ -116,15 +92,6 @@
       "edu-s4-program-delivery-c5",
       "edu-s4-program-delivery-c6"
     ],
-    "ev-s4-financial-model": [
-      "ev-s4-financial-model-c1",
-      "ev-s4-financial-model-c2",
-      "ev-s4-financial-model-c3",
-      "ev-s4-financial-model-c4",
-      "ev-s4-financial-model-c5",
-      "ev-s4-financial-model-c6",
-      "ev-s4-financial-model-c7"
-    ],
     "ev-s4-food-system": [
       "ev-s4-food-system-c1",
       "ev-s4-food-system-c2",
@@ -140,14 +107,6 @@
       "ev-s4-infra-strategy-c4",
       "ev-s4-infra-strategy-c5",
       "ev-s4-infra-strategy-c6"
-    ],
-    "ev-s4-settlement-strategy": [
-      "ev-s4-settlement-strategy-c1",
-      "ev-s4-settlement-strategy-c2",
-      "ev-s4-settlement-strategy-c3",
-      "ev-s4-settlement-strategy-c4",
-      "ev-s4-settlement-strategy-c5",
-      "ev-s4-settlement-strategy-c6"
     ],
     "hms-s4-energy-shelter-resilience": [
       "hms-s4-energy-shelter-resilience-c1",
@@ -255,14 +214,6 @@
       "orch-sec-s4-species-pollination-c4",
       "orch-sec-s4-species-pollination-c5"
     ],
-    "s4-direction": [
-      "s4-direction-c1",
-      "s4-direction-c2",
-      "s4-direction-c3",
-      "s4-direction-c4",
-      "s4-direction-c5",
-      "s4-direction-c6"
-    ],
     "silv-s4-animal-health": [
       "silv-s4-animal-health-c1",
       "silv-s4-animal-health-c2",
@@ -270,14 +221,6 @@
       "silv-s4-animal-health-c4",
       "silv-s4-animal-health-c5",
       "silv-s4-animal-health-c6"
-    ],
-    "silv-sec-s4-husbandry-framework": [
-      "silv-sec-s4-husbandry-framework-c1",
-      "silv-sec-s4-husbandry-framework-c2",
-      "silv-sec-s4-husbandry-framework-c3",
-      "silv-sec-s4-husbandry-framework-c4",
-      "silv-sec-s4-husbandry-framework-c5",
-      "silv-sec-s4-husbandry-framework-c6"
     ],
     "well-s4-healing-garden-strategy": [
       "well-s4-healing-garden-strategy-c1",
@@ -622,21 +565,6 @@
       "edu-s7-program-launch-c5",
       "edu-s7-program-launch-c6"
     ],
-    "ev-s7-adaptive-management": [
-      "ev-s7-adaptive-management-c1",
-      "ev-s7-adaptive-management-c2",
-      "ev-s7-adaptive-management-c3",
-      "ev-s7-adaptive-management-c4",
-      "ev-s7-adaptive-management-c5"
-    ],
-    "ev-s7-exit-succession": [
-      "ev-s7-exit-succession-c1",
-      "ev-s7-exit-succession-c2",
-      "ev-s7-exit-succession-c3",
-      "ev-s7-exit-succession-c4",
-      "ev-s7-exit-succession-c6",
-      "ev-s7-exit-succession-c5"
-    ],
     "ev-s7-financial-plan": [
       "ev-s7-financial-plan-c1",
       "ev-s7-financial-plan-c2",
@@ -778,20 +706,6 @@
       "rf-s7-enterprise-sequencing-c4",
       "rf-s7-enterprise-sequencing-c5"
     ],
-    "s7-phase1": [
-      "s7-phase1-c1",
-      "s7-phase1-c2",
-      "s7-phase1-c3",
-      "s7-phase1-c4",
-      "s7-phase1-c5"
-    ],
-    "s7-resource-plan": [
-      "s7-resource-plan-c1",
-      "s7-resource-plan-c2",
-      "s7-resource-plan-c3",
-      "s7-resource-plan-c4",
-      "s7-resource-plan-c5"
-    ],
     "silv-s7-financial-viability": [
       "silv-s7-financial-viability-c1",
       "silv-s7-financial-viability-c2",
@@ -836,14 +750,6 @@
       "ofg-s1-site-selection-access-c4",
       "ofg-s1-site-selection-access-c5",
       "ofg-s1-site-selection-access-c6"
-    ],
-    "s1-stakeholders": [
-      "s1-stakeholders-c1",
-      "s1-stakeholders-c2",
-      "s1-stakeholders-c3",
-      "s1-stakeholders-c4",
-      "s1-stakeholders-c5",
-      "s1-stakeholders-c6"
     ],
     "ag-s2-arrival-experience": [
       "ag-s2-arrival-experience-c1",
@@ -918,23 +824,6 @@
       "edu-s2-teaching-infrastructure-c3",
       "edu-s2-teaching-infrastructure-c4",
       "edu-s2-teaching-infrastructure-c5"
-    ],
-    "ev-s2-carrying-capacity": [
-      "ev-s2-carrying-capacity-c1",
-      "ev-s2-carrying-capacity-c2",
-      "ev-s2-carrying-capacity-c3",
-      "ev-s2-carrying-capacity-c4",
-      "ev-s2-carrying-capacity-c5",
-      "ev-s2-carrying-capacity-c6",
-      "ev-s2-carrying-capacity-c7"
-    ],
-    "ev-s2-landscape-vectors": [
-      "ev-s2-landscape-vectors-c1",
-      "ev-s2-landscape-vectors-c2",
-      "ev-s2-landscape-vectors-c3",
-      "ev-s2-landscape-vectors-c4",
-      "ev-s2-landscape-vectors-c5",
-      "ev-s2-landscape-vectors-c6"
     ],
     "ev-s2-tenure-boundary": [
       "ev-s2-tenure-boundary-c1",
@@ -1011,13 +900,6 @@
       "mgd-s2-water-access-irrigation-c3",
       "mgd-s2-water-access-irrigation-c4",
       "mgd-s2-water-access-irrigation-c5"
-    ],
-    "nur-sec-s2-biosecurity-survey": [
-      "nur-sec-s2-biosecurity-survey-c1",
-      "nur-sec-s2-biosecurity-survey-c2",
-      "nur-sec-s2-biosecurity-survey-c3",
-      "nur-sec-s2-biosecurity-survey-c4",
-      "nur-sec-s2-biosecurity-survey-c5"
     ],
     "ofg-s2-access-road-emergency-route": [
       "ofg-s2-access-road-emergency-route-c1",
@@ -1100,34 +982,12 @@
       "rf-s2-landscape-context-c5",
       "rf-s2-landscape-context-c6"
     ],
-    "s2-climate": [
-      "s2-climate-c1",
-      "s2-climate-c2",
-      "s2-climate-c3",
-      "s2-climate-c4",
-      "s2-climate-c5",
-      "s2-climate-c6"
-    ],
-    "s2-ecology": [
-      "s2-ecology-c1",
-      "s2-ecology-c2",
-      "s2-ecology-c3",
-      "s2-ecology-c4",
-      "s2-ecology-c5"
-    ],
     "s2-infrastructure": [
       "s2-infrastructure-c1",
       "s2-infrastructure-c2",
       "s2-infrastructure-c3",
       "s2-infrastructure-c4",
       "s2-infrastructure-c5"
-    ],
-    "s2-terrain": [
-      "s2-terrain-c1",
-      "s2-terrain-c2",
-      "s2-terrain-c3",
-      "s2-terrain-c4",
-      "s2-terrain-c5"
     ],
     "silv-s2-grazing-history": [
       "silv-s2-grazing-history-c1",
@@ -1270,21 +1130,6 @@
       "edu-s3-learner-access-safety-c4",
       "edu-s3-learner-access-safety-c5",
       "edu-s3-learner-access-safety-c6"
-    ],
-    "ev-s3-energy-potential": [
-      "ev-s3-energy-potential-c1",
-      "ev-s3-energy-potential-c2",
-      "ev-s3-energy-potential-c3",
-      "ev-s3-energy-potential-c4",
-      "ev-s3-energy-potential-c5",
-      "ev-s3-energy-potential-c6"
-    ],
-    "ev-s3-infra-condition": [
-      "ev-s3-infra-condition-c1",
-      "ev-s3-infra-condition-c2",
-      "ev-s3-infra-condition-c3",
-      "ev-s3-infra-condition-c4",
-      "ev-s3-infra-condition-c5"
     ],
     "ev-s3-waste-cycling": [
       "ev-s3-waste-cycling-c1",
@@ -1470,12 +1315,6 @@
       "silv-s3-stock-water-availability-c4",
       "silv-s3-stock-water-availability-c5",
       "silv-s3-stock-water-availability-c6"
-    ],
-    "silv-sec-s3-forage-survey": [
-      "silv-sec-s3-forage-survey-c1",
-      "silv-sec-s3-forage-survey-c2",
-      "silv-sec-s3-forage-survey-c4",
-      "silv-sec-s3-forage-survey-c5"
     ],
     "well-s3-acoustic-conditions": [
       "well-s3-acoustic-conditions-c1",
@@ -1702,14 +1541,6 @@
       "rf-s4-fertility-strategy-c5",
       "rf-s4-fertility-strategy-c6"
     ],
-    "s4-water-strategy": [
-      "s4-water-strategy-c1",
-      "s4-water-strategy-c2",
-      "s4-water-strategy-c3",
-      "s4-water-strategy-c4",
-      "s4-water-strategy-c5",
-      "s4-water-strategy-c6"
-    ],
     "s4-zones": [
       "s4-zones-c1",
       "s4-zones-c2",
@@ -1748,14 +1579,6 @@
       "silv-s4-tree-integration-c4",
       "silv-s4-tree-integration-c5",
       "silv-s4-tree-integration-c6"
-    ],
-    "silv-sec-s4-grazing-design": [
-      "silv-sec-s4-grazing-design-c1",
-      "silv-sec-s4-grazing-design-c2",
-      "silv-sec-s4-grazing-design-c3",
-      "silv-sec-s4-grazing-design-c4",
-      "silv-sec-s4-grazing-design-c5",
-      "silv-sec-s4-grazing-design-c6"
     ],
     "silv-sec-s4-stock-infrastructure": [
       "silv-sec-s4-stock-infrastructure-c1",
@@ -2152,13 +1975,6 @@
       "s5-access-c3",
       "s5-access-c4",
       "s5-access-c5"
-    ],
-    "s5-soil-improvement": [
-      "s5-soil-improvement-c1",
-      "s5-soil-improvement-c2",
-      "s5-soil-improvement-c3",
-      "s5-soil-improvement-c4",
-      "s5-soil-improvement-c5"
     ],
     "s5-water-infrastructure": [
       "s5-water-infrastructure-c1",

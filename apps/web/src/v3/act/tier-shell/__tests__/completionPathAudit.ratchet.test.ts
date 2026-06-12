@@ -32,6 +32,7 @@ import {
   type ActToolArmIndex,
 } from '@ogden/shared';
 import { ACT_TOOL_CATALOG } from '../actToolCatalog.js';
+import { TIER_ZERO_OBJECTIVE_IDS } from '../tierZeroObjectives.js';
 
 interface GapBaseline {
   noPath: Record<string, string[]>;
@@ -64,7 +65,12 @@ const armIndex: ActToolArmIndex = Object.fromEntries(
   ]),
 );
 
-const audit = auditAllCompletionPaths(armIndex);
+// Workbench routing injected from the live Tier-0 membership set: every item
+// of a workbench objective records via DecisionWorkingPanel (saveVisionFormData
+// + setItemComplete), so those items classify `workbench-capture`, not no-path.
+const audit = auditAllCompletionPaths(armIndex, {
+  workbenchObjectiveIds: TIER_ZERO_OBJECTIVE_IDS,
+});
 
 /** Flatten an objectiveId -> itemIds map into "objectiveId :: itemId" keys. */
 function flatten(map: Record<string, string[]>): Set<string> {

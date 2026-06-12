@@ -40,6 +40,15 @@ export const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   'ev-s7-exit-succession',
   'ev-s2-social-fabric',
   'ev-s3-infra-condition',
+  // Universal gap-closure (2026-06-12): the three remaining universal
+  // objectives with no in-app completion path. All are non-spatial decision
+  // objectives; the workbench's generic per-item capture (textarea + Record ->
+  // saveVisionFormData + setItemComplete) is the v1 path. Bespoke captures
+  // (direction classifier, phasing worksheet, Amanah-clean capital worksheet)
+  // are deferred pending operator mockups.
+  's4-direction',
+  's7-phase1',
+  's7-resource-plan',
 ]);
 
 /**

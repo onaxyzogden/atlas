@@ -15,22 +15,23 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `auto-answer` | 4 | 0.2% | yes |
 | `auto-formula` | 13 | 0.6% | yes |
 | `form-capture` | 215 | 10.6% | yes |
-| `objective-map` | 1175 | 57.9% | no (objective-level instrument, manual tick) |
+| `workbench-capture` | 136 | 6.7% | yes |
+| `objective-map` | 1103 | 54.4% | no (objective-level instrument, manual tick) |
 | `objective-log` | 6 | 0.3% | no (objective-level instrument, manual tick) |
 | `objective-flow` | 6 | 0.3% | no (objective-level instrument, manual tick) |
-| `no-path` | 610 | 30.1% | **no — gap** |
+| `no-path` | 546 | 26.9% | **no — gap** |
 
 ## Summary by type prefix
 
 | Prefix | Priority | Items | no-path | objective-level | evidence-backed |
 |---|--:|--:|--:|--:|--:|
-| `universal` | P1 | 105 | 23 | 74 | 8 |
-| `ev-` | P2 | 194 | 92 | 81 | 21 |
+| `universal` | P1 | 105 | 0 | 41 | 64 |
+| `ev-` | P2 | 194 | 62 | 57 | 75 |
 | `orch-` | P3 | 137 | 34 | 87 | 16 |
 | `orch-sec-` | P3 | 25 | 10 | 15 | 0 |
 | `silv-` | P4 | 144 | 21 | 101 | 22 |
-| `silv-sec-` | P4 | 43 | 6 | 31 | 6 |
-| `nur-sec-` | P5 | 43 | 10 | 33 | 0 |
+| `silv-sec-` | P4 | 43 | 0 | 21 | 22 |
+| `nur-sec-` | P5 | 43 | 5 | 28 | 10 |
 | `hms-` | P6 | 87 | 32 | 48 | 7 |
 | `ag-` | — | 210 | 76 | 116 | 18 |
 | `con-` | — | 167 | 44 | 106 | 17 |
@@ -48,13 +49,13 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Stratum | Items | no-path | objective-level | evidence-backed |
 |---|--:|--:|--:|--:|
-| s1-project-foundation | 254 | 23 | 12 | 219 |
-| s2-land-reading | 264 | 11 | 252 | 1 |
-| s3-systems-reading | 240 | 6 | 227 | 7 |
-| s4-foundation-decisions | 414 | 208 | 203 | 3 |
-| s5-system-design | 359 | 5 | 354 | 0 |
+| s1-project-foundation | 254 | 11 | 6 | 237 |
+| s2-land-reading | 264 | 5 | 218 | 41 |
+| s3-systems-reading | 240 | 6 | 212 | 22 |
+| s4-foundation-decisions | 414 | 183 | 191 | 40 |
+| s5-system-design | 359 | 5 | 349 | 5 |
 | s6-integration-design | 234 | 132 | 102 | 0 |
-| s7-phasing-resourcing | 264 | 225 | 37 | 2 |
+| s7-phasing-resourcing | 264 | 204 | 37 | 23 |
 
 ## Unmatched form arms (formId matches no checklist item)
 
@@ -69,42 +70,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Objective | Ref | Stratum | Item | Label | Optional | Suggested capture |
 |---|---|---|---|---|---|---|
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c2` | Map property boundaries on base layer |  | map arm (per-item bridge) |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c1` | Obtain and verify current title and deed documents |  | decision form (form arm, formId = item id) |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c3` | Identify all easements, rights of way, and encumbrances |  | decision form (form arm, formId = item id) |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c4` | Check zoning and permitted land uses |  | decision form (form arm, formId = item id) |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c5` | Identify water rights and entitlements |  | decision form (form arm, formId = item id) |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c6` | Record covenant, heritage, or conservation obligations |  | log arm / review flow |
-| `s1-boundaries` | U-S1.2 | s1-project-foundation | `s1-boundaries-c7` | Note required permits for planned activities - building, earthworks, water harvesting |  | decision form (form arm, formId = item id) |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c1` | Review Stratum 1 vision and enterprise mix against all survey findings |  | log arm / review flow |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c2` | Classify each vision element as feasible, conditional, deferred, or rejected |  | decision form (form arm, formId = item id) |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c3` | Identify minimum viable project scope for first planning cycle |  | decision form (form arm, formId = item id) |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c4` | Define first-cycle success criteria |  | decision form (form arm, formId = item id) |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c5` | Record assumptions and unresolved questions |  | log arm / review flow |
-| `s4-direction` | U-S4.1 | s4-foundation-decisions | `s4-direction-c6` | Approve bounded planning direction |  | decision form (form arm, formId = item id) |
-| `s7-phase1` | U-S7.1 | s7-phasing-resourcing | `s7-phase1-c1` | Define Phase 1 scope - which enterprises and infrastructure are included |  | schedule/protocol capture |
-| `s7-phase1` | U-S7.1 | s7-phasing-resourcing | `s7-phase1-c2` | Sequence Phase 1 tasks in logical implementation order |  | schedule/protocol capture |
-| `s7-phase1` | U-S7.1 | s7-phasing-resourcing | `s7-phase1-c3` | Assign responsibilities for each Phase 1 task |  | schedule/protocol capture |
-| `s7-phase1` | U-S7.1 | s7-phasing-resourcing | `s7-phase1-c4` | Define Phase 1 completion milestones |  | schedule/protocol capture |
-| `s7-phase1` | U-S7.1 | s7-phasing-resourcing | `s7-phase1-c5` | Confirm Phase 1 scope against capacity and resource plan |  | schedule/protocol capture |
-| `s7-resource-plan` | U-S7.2 | s7-phasing-resourcing | `s7-resource-plan-c1` | Estimate labour requirements by task and season for Phase 1 |  | schedule/protocol capture |
-| `s7-resource-plan` | U-S7.2 | s7-phasing-resourcing | `s7-resource-plan-c2` | Identify skill gaps and training or contractor requirements |  | decision form (form arm, formId = item id) |
-| `s7-resource-plan` | U-S7.2 | s7-phasing-resourcing | `s7-resource-plan-c3` | Define equipment requirements and sourcing strategy |  | decision form (form arm, formId = item id) |
-| `s7-resource-plan` | U-S7.2 | s7-phasing-resourcing | `s7-resource-plan-c4` | Estimate Phase 1 capital requirements by category |  | financial worksheet (Amanah-clean) |
-| `s7-resource-plan` | U-S7.2 | s7-phasing-resourcing | `s7-resource-plan-c5` | Define procurement priorities and sourcing plan |  | decision form (form arm, formId = item id) |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c1` | Map existing relationships between founding members - duration, depth, shared history |  | map arm (per-item bridge) |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c2` | Identify prior community or cooperative living experience in the founding group |  | decision form (form arm, formId = item id) |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c3` | Record any prior attempts at intentional community on this land or by this group |  | log arm / review flow |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c4` | Assess founding group cohesion - areas of strong alignment and known tension |  | map arm (per-item bridge) |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c5` | Identify skills gaps in the founding group - facilitation, building, farming, legal, financial |  | financial worksheet (Amanah-clean) |
-| `ev-s2-social-fabric` | EV-S2.8 | s2-land-reading | `ev-s2-social-fabric-c6` | Record external community relationships that could support establishment - networks, mentors, advisors |  | log arm / review flow |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c1` | Define member buy-in contribution - amount, payment schedule, what it covers |  | schedule/protocol capture |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c2` | Define ongoing communal cost contributions - monthly or annual levy structure |  | financial worksheet (Amanah-clean) |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c3` | Define communal fund governance - how funds are held, authorised, and audited |  | financial worksheet (Amanah-clean) |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c4` | Define financial hardship protocol - how the community supports members in difficulty |  | financial worksheet (Amanah-clean) |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c5` | Define capital reserve strategy - how the community saves for major infrastructure renewal |  | financial worksheet (Amanah-clean) |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c6` | Confirm financial model is agreed by all founding members before any construction begins |  | financial worksheet (Amanah-clean) |
-| `ev-s4-financial-model` | EV-S4.8 | s4-foundation-decisions | `ev-s4-financial-model-c7` | Confirm communal fund governance follows the Stratum 1 financial governance rules - holding, authorisation, and reporting |  | financial worksheet (Amanah-clean) |
 | `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c1` | Confirm food system approach from Stratum 1 provision balance - communal, individual, or hybrid |  | decision form (form arm, formId = item id) |
 | `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c2` | Define communal food production commitments - crops, volume, labour contribution model |  | decision form (form arm, formId = item id) |
 | `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c3` | Define individual plot allocation - size, location, tenure, maintenance obligations |  | map arm (per-item bridge) |
@@ -117,12 +82,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c4` | Define cost-sharing model for communal infrastructure construction and maintenance |  | financial worksheet (Amanah-clean) |
 | `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c5` | Resolve conflicts between communal infrastructure investment and individual dwelling needs |  | decision form (form arm, formId = item id) |
 | `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c6` | Confirm the infrastructure list against Stratum 3 reuse, renovation, and demolition decisions for existing structures |  | decision form (form arm, formId = item id) |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c1` | Define founding cohort - who moves in during Phase 1 and under what criteria |  | schedule/protocol capture |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c2` | Define infrastructure habitability threshold per cohort - what must be complete before each group arrives |  | decision form (form arm, formId = item id) |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c3` | Sequence subsequent cohort arrivals against infrastructure completion milestones |  | schedule/protocol capture |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c4` | Define trial residency period before full membership for each new household |  | decision form (form arm, formId = item id) |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c5` | Establish maximum population per phase aligned with carrying capacity |  | schedule/protocol capture |
-| `ev-s4-settlement-strategy` | EV-S4.4 | s4-foundation-decisions | `ev-s4-settlement-strategy-c6` | Define go/no-go criteria for each settlement phase - hard gates, not aspirational targets |  | schedule/protocol capture |
 | `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c1` | Define energy surplus and shortage protocols - how communal energy status triggers household behaviour changes |  | decision form (form arm, formId = item id) |
 | `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c2` | Define water restriction cascade - how water levels trigger staged household use reductions |  | decision form (form arm, formId = item id) |
 | `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c3` | Define food harvest sharing protocols - how communal harvests are distributed to households |  | decision form (form arm, formId = item id) |
@@ -149,17 +108,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c4` | Design anonymous feedback mechanism for sensitive issues |  | decision form (form arm, formId = item id) |
 | `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c5` | Define escalation pathway when social health indicators deteriorate |  | decision form (form arm, formId = item id) |
 | `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c6` | Specify record-keeping system for community health data |  | log arm / review flow |
-| `ev-s7-adaptive-management` | EV-S7.9 | s7-phasing-resourcing | `ev-s7-adaptive-management-c1` | Define annual management review process - land data and social health data reviewed together |  | log arm / review flow |
-| `ev-s7-adaptive-management` | EV-S7.9 | s7-phasing-resourcing | `ev-s7-adaptive-management-c2` | Define decision triggers - what monitoring outcomes require a plan change |  | log arm / review flow |
-| `ev-s7-adaptive-management` | EV-S7.9 | s7-phasing-resourcing | `ev-s7-adaptive-management-c3` | Define escalation process for unexpected ecological or community events |  | log arm / review flow |
-| `ev-s7-adaptive-management` | EV-S7.9 | s7-phasing-resourcing | `ev-s7-adaptive-management-c4` | Specify documentation requirements for all plan changes and their rationale |  | decision form (form arm, formId = item id) |
-| `ev-s7-adaptive-management` | EV-S7.9 | s7-phasing-resourcing | `ev-s7-adaptive-management-c5` | Define 5-year comprehensive review against Stratum 1 vision and ecological outcome targets |  | log arm / review flow |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c1` | Define exit process - notice period, financial settlement calculation, timeline |  | financial worksheet (Amanah-clean) |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c2` | Define dwelling transfer process - who buys, at what price, by what method |  | decision form (form arm, formId = item id) |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c3` | Define land share reversion to communal ownership on exit |  | decision form (form arm, formId = item id) |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c4` | Define community dissolution protocol - how assets and liabilities are distributed |  | decision form (form arm, formId = item id) |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c6` | Confirm land reversion and dissolution terms against the Stratum 1 legal entity and tenure model |  | decision form (form arm, formId = item id) |
-| `ev-s7-exit-succession` | EV-S7.8 | s7-phasing-resourcing | `ev-s7-exit-succession-c5` | Obtain legal review of exit and succession protocol before any member moves on-site |  | map arm (per-item bridge) |
 | `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c1` | Define total Phase 1 capital requirement |  | financial worksheet (Amanah-clean) |
 | `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c2` | Define member contribution schedule - amounts, payment dates, default consequences |  | schedule/protocol capture |
 | `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c3` | Define communal fund holding structure - bank account, trust, escrow |  | financial worksheet (Amanah-clean) |
@@ -234,12 +182,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c4` | Define isolation facility requirements for sick or injured animals |  | decision form (form arm, formId = item id) |
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c5` | Define mortality management protocol |  | decision form (form arm, formId = item id) |
 | `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c6` | Confirm all handling facilities support low-stress routine health procedures |  | decision form (form arm, formId = item id) |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c1` | Define animal health program - vaccination, parasite management, and veterinary relationship |  | map arm (per-item bridge) |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c2` | Define breeding or replacement strategy and seasonal husbandry calendar |  | schedule/protocol capture |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c3` | Define daily welfare standard - feed, water, shade, and handling stress minimisation |  | decision form (form arm, formId = item id) |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c4` | Define humane and halal handling and slaughter-pathway intent where stock is raised for meat |  | decision form (form arm, formId = item id) |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c5` | Define record-keeping for stock numbers, health events, and movements |  | log arm / review flow |
-| `silv-sec-s4-husbandry-framework` | SILV-S4.22 | s4-foundation-decisions | `silv-sec-s4-husbandry-framework-c6` | Confirm the husbandry framework is consistent with available labour and the welfare standard |  | decision form (form arm, formId = item id) |
 | `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c1` | Define health indicators per species - body condition score, coat condition, mobility, behaviour |  | decision form (form arm, formId = item id) |
 | `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c2` | Define monitoring frequency - weekly minimum, daily for high-risk periods |  | log arm / review flow |
 | `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c3` | Define veterinary trigger thresholds - what condition score or symptom requires vet contact |  | decision form (form arm, formId = item id) |
@@ -255,11 +197,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c3` | Confirm yards and handling facilities operational before livestock arrive |  | decision form (form arm, formId = item id) |
 | `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c4` | Define go/no-go test for each infrastructure category |  | decision form (form arm, formId = item id) |
 | `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c5` | Define livestock sourcing timeline - breed, vendor, transport, quarantine |  | decision form (form arm, formId = item id) |
-| `nur-sec-s1-propagation-infra-survey` | NRS-S1.1 | s1-project-foundation | `nur-sec-s1-propagation-infra-survey-c1` | Inventory existing propagation infrastructure - glasshouses, shade houses, benches, misting systems |  | decision form (form arm, formId = item id) |
-| `nur-sec-s1-propagation-infra-survey` | NRS-S1.1 | s1-project-foundation | `nur-sec-s1-propagation-infra-survey-c2` | Assess condition and capacity of each existing structure |  | log arm / review flow |
-| `nur-sec-s1-propagation-infra-survey` | NRS-S1.1 | s1-project-foundation | `nur-sec-s1-propagation-infra-survey-c3` | Identify on-site growing media inputs - compost, woodchip, soil, leaf mould |  | map arm (per-item bridge) |
-| `nur-sec-s1-propagation-infra-survey` | NRS-S1.1 | s1-project-foundation | `nur-sec-s1-propagation-infra-survey-c4` | Assess compost production capacity - turning space, feedstock, maturation time |  | log arm / review flow |
-| `nur-sec-s1-propagation-infra-survey` | NRS-S1.1 | s1-project-foundation | `nur-sec-s1-propagation-infra-survey-c5` | Identify local growing media components available - perlite, coir, sand, biochar sources |  | decision form (form arm, formId = item id) |
 | `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c1` | Test water quality for propagation suitability - pH, EC, biological contamination |  | log arm / review flow |
 | `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c2` | Test for chemical contamination relevant to sensitive propagation species |  | decision form (form arm, formId = item id) |
 | `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c3` | Measure static and dynamic pressure at proposed propagation points |  | decision form (form arm, formId = item id) |
@@ -686,25 +623,15 @@ _The objective has an in-app instrument (map / log / flow), but these items are 
 
 | Objective | Stratum | Items (manual ticks) | Via |
 |---|---|--:|---|
-| `s1-stakeholders` | s1-project-foundation | 6 | objective-map |
-| `s2-climate` | s2-land-reading | 6 | objective-map |
-| `s2-ecology` | s2-land-reading | 5 | objective-map |
 | `s2-infrastructure` | s2-land-reading | 5 | objective-map |
-| `s2-terrain` | s2-land-reading | 5 | objective-map |
 | `s3-hydrology` | s3-systems-reading | 5 | objective-map |
 | `s3-soil` | s3-systems-reading | 5 | objective-map |
-| `s4-water-strategy` | s4-foundation-decisions | 6 | objective-map |
 | `s4-zones` | s4-foundation-decisions | 6 | objective-map |
 | `s5-access` | s5-system-design | 5 | objective-map |
-| `s5-soil-improvement` | s5-system-design | 5 | objective-map |
 | `s5-water-infrastructure` | s5-system-design | 5 | objective-map |
 | `s6-monitoring` | s6-integration-design | 5 | objective-map |
 | `s7-risk-register` | s7-phasing-resourcing | 5 | objective-map |
-| `ev-s2-carrying-capacity` | s2-land-reading | 7 | objective-map |
-| `ev-s2-landscape-vectors` | s2-land-reading | 6 | objective-map |
 | `ev-s2-tenure-boundary` | s2-land-reading | 5 | objective-map |
-| `ev-s3-energy-potential` | s3-systems-reading | 6 | objective-map |
-| `ev-s3-infra-condition` | s3-systems-reading | 5 | objective-map |
 | `ev-s3-waste-cycling` | s3-systems-reading | 6 | objective-map |
 | `ev-s3-water-yield` | s3-systems-reading | 6 | objective-map |
 | `ev-s4-housing-cluster` | s4-foundation-decisions | 5 | objective-map |
@@ -751,13 +678,10 @@ _The objective has an in-app instrument (map / log / flow), but these items are 
 | `silv-s6-pasture-monitoring` | s6-integration-design | 5 | objective-map |
 | `silv-s7-pasture-spelling` | s7-phasing-resourcing | 5 | objective-map |
 | `silv-s7-stocking-buildup` | s7-phasing-resourcing | 5 | objective-map |
-| `silv-sec-s3-forage-survey` | s3-systems-reading | 4 | objective-map |
-| `silv-sec-s4-grazing-design` | s4-foundation-decisions | 6 | objective-map |
 | `silv-sec-s4-stock-infrastructure` | s4-foundation-decisions | 5 | objective-map |
 | `silv-sec-s5-tree-establishment` | s5-system-design | 6 | objective-map |
 | `silv-sec-s6-pasture-tree-monitoring` | s6-integration-design | 5 | objective-map |
 | `silv-sec-s7-stocking-phasing` | s7-phasing-resourcing | 5 | objective-map |
-| `nur-sec-s2-biosecurity-survey` | s2-land-reading | 5 | objective-map |
 | `nur-sec-s3-growing-media` | s3-systems-reading | 6 | objective-map |
 | `nur-sec-s3-propagation-strategy` | s3-systems-reading | 6 | objective-map |
 | `nur-sec-s4-irrigation-design` | s4-foundation-decisions | 5 | objective-map |

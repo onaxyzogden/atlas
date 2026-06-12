@@ -16,6 +16,16 @@
 //                   equals this item's id; saving the form ticks the box
 //                   (ActTierShell handleFormSave -> setItemComplete). Per-item,
 //                   evidence-backed.
+//   workbench-capture
+//                   the objective is routed through the Tier-0 decision
+//                   workbench (an injected membership set — the app-layer
+//                   TIER_ZERO_OBJECTIVE_IDS). Every checklist item of a
+//                   workbench objective renders in DecisionWorkingPanel with
+//                   at minimum a textarea + Record; recording saves
+//                   visionFormData[itemId] AND setItemComplete (PlanTierShell
+//                   handleFormDataSave). Per-item, evidence-backed. Ranked
+//                   below form-capture: a matching form arm is the sharper
+//                   signal when both apply.
 //   objective-map   the objective's rail resolves at least one map arm (incl.
 //   objective-log   zone-action, which operates on the map) / log arm / flow
 //   objective-flow  arm, but NOTHING ties to this specific item — the
@@ -68,6 +78,7 @@ export type ItemCompletionClass =
   | 'auto-answer'
   | 'auto-formula'
   | 'form-capture'
+  | 'workbench-capture'
   | 'objective-map'
   | 'objective-log'
   | 'objective-flow'
@@ -78,6 +89,7 @@ export const EVIDENCE_BACKED_CLASSES: readonly ItemCompletionClass[] = [
   'auto-answer',
   'auto-formula',
   'form-capture',
+  'workbench-capture',
 ];
 
 /** The objective-level-instrument classes (in-app work, manual per-item tick). */
@@ -121,6 +133,15 @@ export interface ClassifyOptions {
    * default -> []). Test seam for hermetic synthetic fixtures.
    */
   resolveTools?: (objective: PlanStratumObjective) => readonly string[];
+  /**
+   * Objective ids routed through the Tier-0 decision workbench. The membership
+   * set lives in the app layer (tierZeroObjectives.ts TIER_ZERO_OBJECTIVE_IDS —
+   * same layering reason as the arm index), so callers inject it. Every item
+   * of a member objective classifies `workbench-capture` unless an auto-* or
+   * matching form arm beats it. Omitted => no workbench routing (Phase 1
+   * behaviour preserved for hermetic fixtures).
+   */
+  workbenchObjectiveIds?: ReadonlySet<string>;
 }
 
 const defaultResolveTools = (
@@ -130,6 +151,7 @@ const defaultResolveTools = (
 function classifyAgainstArms(
   item: PlanDecisionChecklistItem,
   resolvedArms: readonly { toolId: string; arm: ActToolArmDescriptor }[],
+  isWorkbenchObjective: boolean,
 ): ItemClassification {
   if (item.answerSpec) return { classification: 'auto-answer' };
   if (item.formulaBinding?.satisfiesWhenComputed) {
@@ -140,6 +162,9 @@ function classifyAgainstArms(
   );
   if (formArm) {
     return { classification: 'form-capture', viaToolId: formArm.toolId };
+  }
+  if (isWorkbenchObjective) {
+    return { classification: 'workbench-capture' };
   }
   // Objective-level instruments, best-first: map (incl. zone-action) > log > flow.
   const mapArm = resolvedArms.find(
@@ -175,7 +200,11 @@ export function classifyChecklistItem(
   armIndex: ActToolArmIndex,
   options?: ClassifyOptions,
 ): ItemClassification {
-  return classifyAgainstArms(item, resolveArms(objective, armIndex, options));
+  return classifyAgainstArms(
+    item,
+    resolveArms(objective, armIndex, options),
+    options?.workbenchObjectiveIds?.has(objective.id) ?? false,
+  );
 }
 
 export interface ObjectiveCompletionAudit {
@@ -193,6 +222,8 @@ export function auditObjectiveCompletionPaths(
   options?: ClassifyOptions,
 ): ObjectiveCompletionAudit {
   const resolvedArms = resolveArms(objective, armIndex, options);
+  const isWorkbenchObjective =
+    options?.workbenchObjectiveIds?.has(objective.id) ?? false;
   const itemIds = new Set(objective.checklist.map((i) => i.id));
   const items: ItemCompletionPath[] = objective.checklist.map((item) => ({
     objectiveId: objective.id,
@@ -201,7 +232,7 @@ export function auditObjectiveCompletionPaths(
     itemId: item.id,
     itemLabel: item.label,
     optional: item.optional,
-    ...classifyAgainstArms(item, resolvedArms),
+    ...classifyAgainstArms(item, resolvedArms, isWorkbenchObjective),
   }));
   const unmatchedFormArms: UnmatchedFormArm[] = resolvedArms
     .filter((r) => r.arm.kind === 'form' && !itemIds.has(r.arm.formId ?? ''))
@@ -262,6 +293,7 @@ export function auditAllCompletionPaths(
     'auto-answer': 0,
     'auto-formula': 0,
     'form-capture': 0,
+    'workbench-capture': 0,
     'objective-map': 0,
     'objective-log': 0,
     'objective-flow': 0,

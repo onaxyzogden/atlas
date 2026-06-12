@@ -27,7 +27,11 @@ import type {
   PlanStratumObjective,
   PlanDecisionChecklistItem,
 } from '@ogden/shared';
-import { resolveLabourSkills, resolveVisionClassifyOptions } from '@ogden/shared';
+import {
+  allCatalogueObjectives,
+  resolveLabourSkills,
+  resolveVisionClassifyOptions,
+} from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -773,6 +777,53 @@ describe('ActTierZeroWorkbench -- arbitrary future objective (no descriptor entr
     expect(screen.queryByTestId('stakeholder-reg-strip')).toBeNull();
     // No mode badges (modeFor is undefined for an unknown objective).
     expect(screen.queryByTestId(/^mode-badge-/)).toBeNull();
+  });
+});
+
+describe('ActTierZeroWorkbench -- universal gap-closure objectives (2026-06-12)', () => {
+  // s4-direction / s7-phase1 / s7-resource-plan joined TIER_ZERO_OBJECTIVE_IDS
+  // as the v1 closure of the last universal no-path items. Each is a REAL
+  // catalogue objective with no workbenchAffordances entry and no bespoke
+  // capture, so the generic 2-pane workbench (textarea fallback + Record) must
+  // mount for every one of them, and recording must fire onRecord with the
+  // selected item id — that is the per-item evidence path the classifier now
+  // counts as `workbench-capture`.
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+  const GAP_CLOSURE_IDS = ['s4-direction', 's7-phase1', 's7-resource-plan'] as const;
+
+  it.each(GAP_CLOSURE_IDS)('%s mounts the generic 2-pane workbench', (id) => {
+    const objective = byId.get(id);
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective!],
+      activeObjectiveId: id,
+    });
+    expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    expect(screen.getByText(/working on/i)).toBeTruthy();
+    // Default selection = first checklist item; its label heads the panel.
+    expect(
+      screen.getAllByText(objective!.checklist[0]!.label).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('recording via the generic fallback fires onRecord with the item id', () => {
+    const objective = byId.get('s4-direction')!;
+    const { onRecord } = renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // The generic fallback textarea is labelled with the item's own label.
+    const ta = screen.getByLabelText(objective.checklist[0]!.label);
+    fireEvent.change(ta, {
+      target: { value: 'Bounded planning direction approved for cycle 1.' },
+    });
+    const btn = screen.getByRole('button', {
+      name: /record this decision/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    expect(onRecord.mock.calls[0]![0]).toBe(objective.checklist[0]!.id);
   });
 });
 

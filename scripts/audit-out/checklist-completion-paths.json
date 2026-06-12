@@ -6,20 +6,14 @@
       "auto-answer": 4,
       "auto-formula": 13,
       "form-capture": 215,
-      "objective-map": 1175,
+      "workbench-capture": 136,
+      "objective-map": 1103,
       "objective-log": 6,
       "objective-flow": 6,
-      "no-path": 610
+      "no-path": 546
     }
   },
   "noPath": {
-    "nur-sec-s1-propagation-infra-survey": [
-      "nur-sec-s1-propagation-infra-survey-c1",
-      "nur-sec-s1-propagation-infra-survey-c2",
-      "nur-sec-s1-propagation-infra-survey-c3",
-      "nur-sec-s1-propagation-infra-survey-c4",
-      "nur-sec-s1-propagation-infra-survey-c5"
-    ],
     "nur-sec-s1-water-survey": [
       "nur-sec-s1-water-survey-c1",
       "nur-sec-s1-water-survey-c2",
@@ -35,29 +29,12 @@
       "res-s1-household-needs-c5",
       "res-s1-household-needs-c6"
     ],
-    "s1-boundaries": [
-      "s1-boundaries-c2",
-      "s1-boundaries-c1",
-      "s1-boundaries-c3",
-      "s1-boundaries-c4",
-      "s1-boundaries-c5",
-      "s1-boundaries-c6",
-      "s1-boundaries-c7"
-    ],
     "ag-s2-seasonal-patterns": [
       "ag-s2-seasonal-patterns-c1",
       "ag-s2-seasonal-patterns-c2",
       "ag-s2-seasonal-patterns-c3",
       "ag-s2-seasonal-patterns-c4",
       "ag-s2-seasonal-patterns-c5"
-    ],
-    "ev-s2-social-fabric": [
-      "ev-s2-social-fabric-c1",
-      "ev-s2-social-fabric-c2",
-      "ev-s2-social-fabric-c3",
-      "ev-s2-social-fabric-c4",
-      "ev-s2-social-fabric-c5",
-      "ev-s2-social-fabric-c6"
     ],
     "ofg-s3-energy-demand-balance": [
       "ofg-s3-energy-demand-balance-c1",
@@ -128,15 +105,6 @@
       "edu-s4-program-delivery-c5",
       "edu-s4-program-delivery-c6"
     ],
-    "ev-s4-financial-model": [
-      "ev-s4-financial-model-c1",
-      "ev-s4-financial-model-c2",
-      "ev-s4-financial-model-c3",
-      "ev-s4-financial-model-c4",
-      "ev-s4-financial-model-c5",
-      "ev-s4-financial-model-c6",
-      "ev-s4-financial-model-c7"
-    ],
     "ev-s4-food-system": [
       "ev-s4-food-system-c1",
       "ev-s4-food-system-c2",
@@ -152,14 +120,6 @@
       "ev-s4-infra-strategy-c4",
       "ev-s4-infra-strategy-c5",
       "ev-s4-infra-strategy-c6"
-    ],
-    "ev-s4-settlement-strategy": [
-      "ev-s4-settlement-strategy-c1",
-      "ev-s4-settlement-strategy-c2",
-      "ev-s4-settlement-strategy-c3",
-      "ev-s4-settlement-strategy-c4",
-      "ev-s4-settlement-strategy-c5",
-      "ev-s4-settlement-strategy-c6"
     ],
     "hms-s4-energy-shelter-resilience": [
       "hms-s4-energy-shelter-resilience-c1",
@@ -267,14 +227,6 @@
       "orch-sec-s4-species-pollination-c4",
       "orch-sec-s4-species-pollination-c5"
     ],
-    "s4-direction": [
-      "s4-direction-c1",
-      "s4-direction-c2",
-      "s4-direction-c3",
-      "s4-direction-c4",
-      "s4-direction-c5",
-      "s4-direction-c6"
-    ],
     "silv-s4-animal-health": [
       "silv-s4-animal-health-c1",
       "silv-s4-animal-health-c2",
@@ -282,14 +234,6 @@
       "silv-s4-animal-health-c4",
       "silv-s4-animal-health-c5",
       "silv-s4-animal-health-c6"
-    ],
-    "silv-sec-s4-husbandry-framework": [
-      "silv-sec-s4-husbandry-framework-c1",
-      "silv-sec-s4-husbandry-framework-c2",
-      "silv-sec-s4-husbandry-framework-c3",
-      "silv-sec-s4-husbandry-framework-c4",
-      "silv-sec-s4-husbandry-framework-c5",
-      "silv-sec-s4-husbandry-framework-c6"
     ],
     "well-s4-healing-garden-strategy": [
       "well-s4-healing-garden-strategy-c1",
@@ -634,21 +578,6 @@
       "edu-s7-program-launch-c5",
       "edu-s7-program-launch-c6"
     ],
-    "ev-s7-adaptive-management": [
-      "ev-s7-adaptive-management-c1",
-      "ev-s7-adaptive-management-c2",
-      "ev-s7-adaptive-management-c3",
-      "ev-s7-adaptive-management-c4",
-      "ev-s7-adaptive-management-c5"
-    ],
-    "ev-s7-exit-succession": [
-      "ev-s7-exit-succession-c1",
-      "ev-s7-exit-succession-c2",
-      "ev-s7-exit-succession-c3",
-      "ev-s7-exit-succession-c4",
-      "ev-s7-exit-succession-c6",
-      "ev-s7-exit-succession-c5"
-    ],
     "ev-s7-financial-plan": [
       "ev-s7-financial-plan-c1",
       "ev-s7-financial-plan-c2",
@@ -790,20 +719,6 @@
       "rf-s7-enterprise-sequencing-c4",
       "rf-s7-enterprise-sequencing-c5"
     ],
-    "s7-phase1": [
-      "s7-phase1-c1",
-      "s7-phase1-c2",
-      "s7-phase1-c3",
-      "s7-phase1-c4",
-      "s7-phase1-c5"
-    ],
-    "s7-resource-plan": [
-      "s7-resource-plan-c1",
-      "s7-resource-plan-c2",
-      "s7-resource-plan-c3",
-      "s7-resource-plan-c4",
-      "s7-resource-plan-c5"
-    ],
     "silv-s7-financial-viability": [
       "silv-s7-financial-viability-c1",
       "silv-s7-financial-viability-c2",
@@ -848,14 +763,6 @@
       "ofg-s1-site-selection-access-c4",
       "ofg-s1-site-selection-access-c5",
       "ofg-s1-site-selection-access-c6"
-    ],
-    "s1-stakeholders": [
-      "s1-stakeholders-c1",
-      "s1-stakeholders-c2",
-      "s1-stakeholders-c3",
-      "s1-stakeholders-c4",
-      "s1-stakeholders-c5",
-      "s1-stakeholders-c6"
     ],
     "ag-s2-arrival-experience": [
       "ag-s2-arrival-experience-c1",
@@ -930,23 +837,6 @@
       "edu-s2-teaching-infrastructure-c3",
       "edu-s2-teaching-infrastructure-c4",
       "edu-s2-teaching-infrastructure-c5"
-    ],
-    "ev-s2-carrying-capacity": [
-      "ev-s2-carrying-capacity-c1",
-      "ev-s2-carrying-capacity-c2",
-      "ev-s2-carrying-capacity-c3",
-      "ev-s2-carrying-capacity-c4",
-      "ev-s2-carrying-capacity-c5",
-      "ev-s2-carrying-capacity-c6",
-      "ev-s2-carrying-capacity-c7"
-    ],
-    "ev-s2-landscape-vectors": [
-      "ev-s2-landscape-vectors-c1",
-      "ev-s2-landscape-vectors-c2",
-      "ev-s2-landscape-vectors-c3",
-      "ev-s2-landscape-vectors-c4",
-      "ev-s2-landscape-vectors-c5",
-      "ev-s2-landscape-vectors-c6"
     ],
     "ev-s2-tenure-boundary": [
       "ev-s2-tenure-boundary-c1",
@@ -1023,13 +913,6 @@
       "mgd-s2-water-access-irrigation-c3",
       "mgd-s2-water-access-irrigation-c4",
       "mgd-s2-water-access-irrigation-c5"
-    ],
-    "nur-sec-s2-biosecurity-survey": [
-      "nur-sec-s2-biosecurity-survey-c1",
-      "nur-sec-s2-biosecurity-survey-c2",
-      "nur-sec-s2-biosecurity-survey-c3",
-      "nur-sec-s2-biosecurity-survey-c4",
-      "nur-sec-s2-biosecurity-survey-c5"
     ],
     "ofg-s2-access-road-emergency-route": [
       "ofg-s2-access-road-emergency-route-c1",
@@ -1112,34 +995,12 @@
       "rf-s2-landscape-context-c5",
       "rf-s2-landscape-context-c6"
     ],
-    "s2-climate": [
-      "s2-climate-c1",
-      "s2-climate-c2",
-      "s2-climate-c3",
-      "s2-climate-c4",
-      "s2-climate-c5",
-      "s2-climate-c6"
-    ],
-    "s2-ecology": [
-      "s2-ecology-c1",
-      "s2-ecology-c2",
-      "s2-ecology-c3",
-      "s2-ecology-c4",
-      "s2-ecology-c5"
-    ],
     "s2-infrastructure": [
       "s2-infrastructure-c1",
       "s2-infrastructure-c2",
       "s2-infrastructure-c3",
       "s2-infrastructure-c4",
       "s2-infrastructure-c5"
-    ],
-    "s2-terrain": [
-      "s2-terrain-c1",
-      "s2-terrain-c2",
-      "s2-terrain-c3",
-      "s2-terrain-c4",
-      "s2-terrain-c5"
     ],
     "silv-s2-grazing-history": [
       "silv-s2-grazing-history-c1",
@@ -1282,21 +1143,6 @@
       "edu-s3-learner-access-safety-c4",
       "edu-s3-learner-access-safety-c5",
       "edu-s3-learner-access-safety-c6"
-    ],
-    "ev-s3-energy-potential": [
-      "ev-s3-energy-potential-c1",
-      "ev-s3-energy-potential-c2",
-      "ev-s3-energy-potential-c3",
-      "ev-s3-energy-potential-c4",
-      "ev-s3-energy-potential-c5",
-      "ev-s3-energy-potential-c6"
-    ],
-    "ev-s3-infra-condition": [
-      "ev-s3-infra-condition-c1",
-      "ev-s3-infra-condition-c2",
-      "ev-s3-infra-condition-c3",
-      "ev-s3-infra-condition-c4",
-      "ev-s3-infra-condition-c5"
     ],
     "ev-s3-waste-cycling": [
       "ev-s3-waste-cycling-c1",
@@ -1482,12 +1328,6 @@
       "silv-s3-stock-water-availability-c4",
       "silv-s3-stock-water-availability-c5",
       "silv-s3-stock-water-availability-c6"
-    ],
-    "silv-sec-s3-forage-survey": [
-      "silv-sec-s3-forage-survey-c1",
-      "silv-sec-s3-forage-survey-c2",
-      "silv-sec-s3-forage-survey-c4",
-      "silv-sec-s3-forage-survey-c5"
     ],
     "well-s3-acoustic-conditions": [
       "well-s3-acoustic-conditions-c1",
@@ -1714,14 +1554,6 @@
       "rf-s4-fertility-strategy-c5",
       "rf-s4-fertility-strategy-c6"
     ],
-    "s4-water-strategy": [
-      "s4-water-strategy-c1",
-      "s4-water-strategy-c2",
-      "s4-water-strategy-c3",
-      "s4-water-strategy-c4",
-      "s4-water-strategy-c5",
-      "s4-water-strategy-c6"
-    ],
     "s4-zones": [
       "s4-zones-c1",
       "s4-zones-c2",
@@ -1760,14 +1592,6 @@
       "silv-s4-tree-integration-c4",
       "silv-s4-tree-integration-c5",
       "silv-s4-tree-integration-c6"
-    ],
-    "silv-sec-s4-grazing-design": [
-      "silv-sec-s4-grazing-design-c1",
-      "silv-sec-s4-grazing-design-c2",
-      "silv-sec-s4-grazing-design-c3",
-      "silv-sec-s4-grazing-design-c4",
-      "silv-sec-s4-grazing-design-c5",
-      "silv-sec-s4-grazing-design-c6"
     ],
     "silv-sec-s4-stock-infrastructure": [
       "silv-sec-s4-stock-infrastructure-c1",
@@ -2164,13 +1988,6 @@
       "s5-access-c3",
       "s5-access-c4",
       "s5-access-c5"
-    ],
-    "s5-soil-improvement": [
-      "s5-soil-improvement-c1",
-      "s5-soil-improvement-c2",
-      "s5-soil-improvement-c3",
-      "s5-soil-improvement-c4",
-      "s5-soil-improvement-c5"
     ],
     "s5-water-infrastructure": [
       "s5-water-infrastructure-c1",
@@ -3679,7 +3496,7 @@
       "itemId": "nur-sec-s1-propagation-infra-survey-c1",
       "itemLabel": "Inventory existing propagation infrastructure - glasshouses, shade houses, benches, misting systems",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-propagation-infra-survey",
@@ -3688,7 +3505,7 @@
       "itemId": "nur-sec-s1-propagation-infra-survey-c2",
       "itemLabel": "Assess condition and capacity of each existing structure",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-propagation-infra-survey",
@@ -3697,7 +3514,7 @@
       "itemId": "nur-sec-s1-propagation-infra-survey-c3",
       "itemLabel": "Identify on-site growing media inputs - compost, woodchip, soil, leaf mould",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-propagation-infra-survey",
@@ -3706,7 +3523,7 @@
       "itemId": "nur-sec-s1-propagation-infra-survey-c4",
       "itemLabel": "Assess compost production capacity - turning space, feedstock, maturation time",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-propagation-infra-survey",
@@ -3715,7 +3532,7 @@
       "itemId": "nur-sec-s1-propagation-infra-survey-c5",
       "itemLabel": "Identify local growing media components available - perlite, coir, sand, biochar sources",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-water-survey",
@@ -4223,7 +4040,7 @@
       "itemId": "s1-boundaries-c2",
       "itemLabel": "Map property boundaries on base layer",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4232,7 +4049,7 @@
       "itemId": "s1-boundaries-c1",
       "itemLabel": "Obtain and verify current title and deed documents",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4241,7 +4058,7 @@
       "itemId": "s1-boundaries-c3",
       "itemLabel": "Identify all easements, rights of way, and encumbrances",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4250,7 +4067,7 @@
       "itemId": "s1-boundaries-c4",
       "itemLabel": "Check zoning and permitted land uses",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4259,7 +4076,7 @@
       "itemId": "s1-boundaries-c5",
       "itemLabel": "Identify water rights and entitlements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4268,7 +4085,7 @@
       "itemId": "s1-boundaries-c6",
       "itemLabel": "Record covenant, heritage, or conservation obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-boundaries",
@@ -4277,7 +4094,7 @@
       "itemId": "s1-boundaries-c7",
       "itemLabel": "Note required permits for planned activities - building, earthworks, water harvesting",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4286,8 +4103,7 @@
       "itemId": "s1-stakeholders-c1",
       "itemLabel": "Map immediate neighbours and shared boundary relationships",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4296,8 +4112,7 @@
       "itemId": "s1-stakeholders-c2",
       "itemLabel": "Identify local authority contacts and relevant officers",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4306,8 +4121,7 @@
       "itemId": "s1-stakeholders-c3",
       "itemLabel": "Record any Indigenous land relationships or cultural obligations",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4316,8 +4130,7 @@
       "itemId": "s1-stakeholders-c4",
       "itemLabel": "Identify community members affected by or interested in the project",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4326,8 +4139,7 @@
       "itemId": "s1-stakeholders-c5",
       "itemLabel": "Note existing conflict, goodwill, or partnership relationships",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-stakeholders",
@@ -4336,8 +4148,7 @@
       "itemId": "s1-stakeholders-c6",
       "itemLabel": "Record preferred communication channels for each stakeholder group",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s1-vision",
@@ -5577,8 +5388,7 @@
       "itemId": "ev-s2-carrying-capacity-c1",
       "itemLabel": "Estimate total water demand for intended population - domestic, food production, animals",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5587,8 +5397,7 @@
       "itemId": "ev-s2-carrying-capacity-c2",
       "itemLabel": "Estimate food production potential relative to intended population - calories, nutrition diversity",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5597,8 +5406,7 @@
       "itemId": "ev-s2-carrying-capacity-c3",
       "itemLabel": "Estimate waste and nutrient cycling capacity at intended population density",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5607,8 +5415,7 @@
       "itemId": "ev-s2-carrying-capacity-c4",
       "itemLabel": "Estimate energy demand and generation potential for intended population",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5617,8 +5424,7 @@
       "itemId": "ev-s2-carrying-capacity-c5",
       "itemLabel": "Assess available space for housing clusters, communal buildings, food production, and wild zones",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5627,8 +5433,7 @@
       "itemId": "ev-s2-carrying-capacity-c6",
       "itemLabel": "Define maximum sustainable population for this site based on findings",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-carrying-capacity",
@@ -5637,8 +5442,7 @@
       "itemId": "ev-s2-carrying-capacity-c7",
       "itemLabel": "Confirm intended population is within carrying capacity - defer or reduce if not",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "zone"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5647,8 +5451,7 @@
       "itemId": "ev-s2-landscape-vectors-c1",
       "itemLabel": "Map surrounding land uses within 2km radius",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5657,8 +5460,7 @@
       "itemId": "ev-s2-landscape-vectors-c2",
       "itemLabel": "Identify neighbouring land-use practices and their spray, runoff, and contamination risk",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5667,8 +5469,7 @@
       "itemId": "ev-s2-landscape-vectors-c3",
       "itemLabel": "Assess local authority and planning environment - is multi-dwelling community development supported?",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5677,8 +5478,7 @@
       "itemId": "ev-s2-landscape-vectors-c4",
       "itemLabel": "Identify community groups, networks, or advocacy organisations in the region",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5687,8 +5487,7 @@
       "itemId": "ev-s2-landscape-vectors-c5",
       "itemLabel": "Record any prior planning disputes or community opposition in the area",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-landscape-vectors",
@@ -5697,8 +5496,7 @@
       "itemId": "ev-s2-landscape-vectors-c6",
       "itemLabel": "Assess drinking water catchment contamination risk from surrounding landscape vectors",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "neighbour-pin"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5707,7 +5505,7 @@
       "itemId": "ev-s2-social-fabric-c1",
       "itemLabel": "Map existing relationships between founding members - duration, depth, shared history",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5716,7 +5514,7 @@
       "itemId": "ev-s2-social-fabric-c2",
       "itemLabel": "Identify prior community or cooperative living experience in the founding group",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5725,7 +5523,7 @@
       "itemId": "ev-s2-social-fabric-c3",
       "itemLabel": "Record any prior attempts at intentional community on this land or by this group",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5734,7 +5532,7 @@
       "itemId": "ev-s2-social-fabric-c4",
       "itemLabel": "Assess founding group cohesion - areas of strong alignment and known tension",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5743,7 +5541,7 @@
       "itemId": "ev-s2-social-fabric-c5",
       "itemLabel": "Identify skills gaps in the founding group - facilitation, building, farming, legal, financial",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-social-fabric",
@@ -5752,7 +5550,7 @@
       "itemId": "ev-s2-social-fabric-c6",
       "itemLabel": "Record external community relationships that could support establishment - networks, mentors, advisors",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s2-tenure-boundary",
@@ -6321,8 +6119,7 @@
       "itemId": "nur-sec-s2-biosecurity-survey-c1",
       "itemLabel": "Identify soil-borne diseases in proposed propagation areas - Phytophthora, damping off risk",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s2-biosecurity-survey",
@@ -6331,8 +6128,7 @@
       "itemId": "nur-sec-s2-biosecurity-survey-c2",
       "itemLabel": "Identify key insect pests relevant to propagation - fungus gnats, aphids, scale",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s2-biosecurity-survey",
@@ -6341,8 +6137,7 @@
       "itemId": "nur-sec-s2-biosecurity-survey-c3",
       "itemLabel": "Assess weed contamination risk in potting mix sources",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s2-biosecurity-survey",
@@ -6351,8 +6146,7 @@
       "itemId": "nur-sec-s2-biosecurity-survey-c4",
       "itemLabel": "Assess biosecurity risk from existing plant material on site",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s2-biosecurity-survey",
@@ -6361,8 +6155,7 @@
       "itemId": "nur-sec-s2-biosecurity-survey-c5",
       "itemLabel": "Define sanitation and hygiene baseline for proposed propagation areas",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s2-access-road-emergency-route",
@@ -6981,8 +6774,7 @@
       "itemId": "s2-climate-c1",
       "itemLabel": "Record annual and seasonal rainfall averages and variability",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-climate",
@@ -6991,8 +6783,7 @@
       "itemId": "s2-climate-c2",
       "itemLabel": "Map prevailing wind directions by season",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-climate",
@@ -7001,8 +6792,7 @@
       "itemId": "s2-climate-c3",
       "itemLabel": "Record temperature range, frost dates, and heat event frequency",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-climate",
@@ -7011,8 +6801,7 @@
       "itemId": "s2-climate-c4",
       "itemLabel": "Map sun angles and shade zones by season",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-climate",
@@ -7021,8 +6810,7 @@
       "itemId": "s2-climate-c5",
       "itemLabel": "Identify fire risk sectors and direction",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-climate",
@@ -7031,8 +6819,7 @@
       "itemId": "s2-climate-c6",
       "itemLabel": "Note microclimate variations across the site",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-ecology",
@@ -7041,8 +6828,7 @@
       "itemId": "s2-ecology-c1",
       "itemLabel": "Record existing vegetation communities by zone",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "vegetation-survey"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-ecology",
@@ -7051,8 +6837,7 @@
       "itemId": "s2-ecology-c2",
       "itemLabel": "Identify native and invasive species present",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "vegetation-survey"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-ecology",
@@ -7061,8 +6846,7 @@
       "itemId": "s2-ecology-c3",
       "itemLabel": "Note wildlife corridors, nesting sites, and movement patterns",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "vegetation-survey"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-ecology",
@@ -7071,8 +6855,7 @@
       "itemId": "s2-ecology-c4",
       "itemLabel": "Assess habitat connectivity to surrounding landscape",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "vegetation-survey"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-ecology",
@@ -7081,8 +6864,7 @@
       "itemId": "s2-ecology-c5",
       "itemLabel": "Record water-dependent habitat areas",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "vegetation-survey"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-infrastructure",
@@ -7141,8 +6923,7 @@
       "itemId": "s2-terrain-c1",
       "itemLabel": "Produce or obtain topographic map with contour intervals appropriate to scale",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-terrain",
@@ -7151,8 +6932,7 @@
       "itemId": "s2-terrain-c2",
       "itemLabel": "Identify slope gradients and aspects across the site",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-terrain",
@@ -7161,8 +6941,7 @@
       "itemId": "s2-terrain-c3",
       "itemLabel": "Map elevation range and drainage divides",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-terrain",
@@ -7171,8 +6950,7 @@
       "itemId": "s2-terrain-c4",
       "itemLabel": "Identify flat areas, ridgelines, saddles, and hollows",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s2-terrain",
@@ -7181,8 +6959,7 @@
       "itemId": "s2-terrain-c5",
       "itemLabel": "Note areas of instability, erosion, or landslip risk",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "contour"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s2-grazing-history",
@@ -8240,8 +8017,7 @@
       "itemId": "ev-s3-energy-potential-c1",
       "itemLabel": "Assess solar generation potential - roof area, ground-mount zones, shading analysis",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-energy-potential",
@@ -8250,8 +8026,7 @@
       "itemId": "ev-s3-energy-potential-c2",
       "itemLabel": "Assess wind generation potential - speed, consistency, regulatory constraints",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-energy-potential",
@@ -8260,8 +8035,7 @@
       "itemId": "ev-s3-energy-potential-c3",
       "itemLabel": "Assess micro-hydro potential if running water present",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-energy-potential",
@@ -8270,8 +8044,7 @@
       "itemId": "ev-s3-energy-potential-c4",
       "itemLabel": "Assess biomass and wood fuel production capacity",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-energy-potential",
@@ -8280,8 +8053,7 @@
       "itemId": "ev-s3-energy-potential-c5",
       "itemLabel": "Estimate total community energy demand for intended population",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-energy-potential",
@@ -8290,8 +8062,7 @@
       "itemId": "ev-s3-energy-potential-c6",
       "itemLabel": "Map distribution infrastructure requirements - grid connection, battery storage, micro-grid",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "sun-sector"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-infra-condition",
@@ -8300,8 +8071,7 @@
       "itemId": "ev-s3-infra-condition-c1",
       "itemLabel": "Inventory all existing communal or shared buildings with condition assessment",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "adopt-building"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-infra-condition",
@@ -8310,8 +8080,7 @@
       "itemId": "ev-s3-infra-condition-c2",
       "itemLabel": "Assess structural integrity and code compliance of existing buildings",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "adopt-building"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-infra-condition",
@@ -8320,8 +8089,7 @@
       "itemId": "ev-s3-infra-condition-c3",
       "itemLabel": "Record existing utility infrastructure - water, power, drainage, communications",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "adopt-building"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-infra-condition",
@@ -8330,8 +8098,7 @@
       "itemId": "ev-s3-infra-condition-c4",
       "itemLabel": "Assess road and track condition for communal vehicle and pedestrian use",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "adopt-building"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-infra-condition",
@@ -8340,8 +8107,7 @@
       "itemId": "ev-s3-infra-condition-c5",
       "itemLabel": "Identify reuse, renovation, or demolition requirements for each existing element",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "adopt-building"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s3-waste-cycling",
@@ -9808,8 +9574,7 @@
       "itemId": "silv-sec-s3-forage-survey-c1",
       "itemLabel": "Map existing pasture and understorey forage by zone - species composition and condition",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "pasture"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s3-forage-survey",
@@ -9818,8 +9583,7 @@
       "itemId": "silv-sec-s3-forage-survey-c2",
       "itemLabel": "Assess seasonal forage availability and identify feed gaps across the year",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "pasture"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s3-forage-survey",
@@ -9837,8 +9601,7 @@
       "itemId": "silv-sec-s3-forage-survey-c4",
       "itemLabel": "Identify shade, shelter, and tree-protection constraints that affect grazeable area",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "pasture"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s3-forage-survey",
@@ -9847,8 +9610,7 @@
       "itemId": "silv-sec-s3-forage-survey-c5",
       "itemLabel": "Assess weed and toxic-plant presence relevant to the candidate stock species",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "pasture"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "well-s3-acoustic-conditions",
@@ -10950,7 +10712,7 @@
       "itemId": "ev-s4-financial-model-c1",
       "itemLabel": "Define member buy-in contribution - amount, payment schedule, what it covers",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -10959,7 +10721,7 @@
       "itemId": "ev-s4-financial-model-c2",
       "itemLabel": "Define ongoing communal cost contributions - monthly or annual levy structure",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -10968,7 +10730,7 @@
       "itemId": "ev-s4-financial-model-c3",
       "itemLabel": "Define communal fund governance - how funds are held, authorised, and audited",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -10977,7 +10739,7 @@
       "itemId": "ev-s4-financial-model-c4",
       "itemLabel": "Define financial hardship protocol - how the community supports members in difficulty",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -10986,7 +10748,7 @@
       "itemId": "ev-s4-financial-model-c5",
       "itemLabel": "Define capital reserve strategy - how the community saves for major infrastructure renewal",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -10995,7 +10757,7 @@
       "itemId": "ev-s4-financial-model-c6",
       "itemLabel": "Confirm financial model is agreed by all founding members before any construction begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-financial-model",
@@ -11004,7 +10766,7 @@
       "itemId": "ev-s4-financial-model-c7",
       "itemLabel": "Confirm communal fund governance follows the Stratum 1 financial governance rules - holding, authorisation, and reporting",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -11171,7 +10933,7 @@
       "itemId": "ev-s4-settlement-strategy-c1",
       "itemLabel": "Define founding cohort - who moves in during Phase 1 and under what criteria",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -11180,7 +10942,7 @@
       "itemId": "ev-s4-settlement-strategy-c2",
       "itemLabel": "Define infrastructure habitability threshold per cohort - what must be complete before each group arrives",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -11189,7 +10951,7 @@
       "itemId": "ev-s4-settlement-strategy-c3",
       "itemLabel": "Sequence subsequent cohort arrivals against infrastructure completion milestones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -11198,7 +10960,7 @@
       "itemId": "ev-s4-settlement-strategy-c4",
       "itemLabel": "Define trial residency period before full membership for each new household",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -11207,7 +10969,7 @@
       "itemId": "ev-s4-settlement-strategy-c5",
       "itemLabel": "Establish maximum population per phase aligned with carrying capacity",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -11216,7 +10978,7 @@
       "itemId": "ev-s4-settlement-strategy-c6",
       "itemLabel": "Define go/no-go criteria for each settlement phase - hard gates, not aspirational targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -12895,7 +12657,7 @@
       "itemId": "s4-direction-c1",
       "itemLabel": "Review Stratum 1 vision and enterprise mix against all survey findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-direction",
@@ -12904,7 +12666,7 @@
       "itemId": "s4-direction-c2",
       "itemLabel": "Classify each vision element as feasible, conditional, deferred, or rejected",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-direction",
@@ -12913,7 +12675,7 @@
       "itemId": "s4-direction-c3",
       "itemLabel": "Identify minimum viable project scope for first planning cycle",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-direction",
@@ -12922,7 +12684,7 @@
       "itemId": "s4-direction-c4",
       "itemLabel": "Define first-cycle success criteria",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-direction",
@@ -12931,7 +12693,7 @@
       "itemId": "s4-direction-c5",
       "itemLabel": "Record assumptions and unresolved questions",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-direction",
@@ -12940,7 +12702,7 @@
       "itemId": "s4-direction-c6",
       "itemLabel": "Approve bounded planning direction",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12949,8 +12711,7 @@
       "itemId": "s4-water-strategy-c1",
       "itemLabel": "Assess total water demand across all enterprises and domestic use",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12959,8 +12720,7 @@
       "itemId": "s4-water-strategy-c2",
       "itemLabel": "Evaluate water source options - rainfall, groundwater, surface water, municipal",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12969,8 +12729,7 @@
       "itemId": "s4-water-strategy-c3",
       "itemLabel": "Select primary and backup water supply strategy",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12979,8 +12738,7 @@
       "itemId": "s4-water-strategy-c4",
       "itemLabel": "Define storage capacity requirements",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12989,8 +12747,7 @@
       "itemId": "s4-water-strategy-c5",
       "itemLabel": "Select water harvesting approach appropriate to site",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-water-strategy",
@@ -12999,8 +12756,7 @@
       "itemId": "s4-water-strategy-c6",
       "itemLabel": "Define water conservation priorities and drought response protocol",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "catchment"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s4-zones",
@@ -13362,8 +13118,7 @@
       "itemId": "silv-sec-s4-grazing-design-c1",
       "itemLabel": "Define the grazing method - rotational, cell, or set-stocking - and the rationale",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-grazing-design",
@@ -13372,8 +13127,7 @@
       "itemId": "silv-sec-s4-grazing-design-c2",
       "itemLabel": "Define paddock or cell layout and target mob size per move",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-grazing-design",
@@ -13382,8 +13136,7 @@
       "itemId": "silv-sec-s4-grazing-design-c3",
       "itemLabel": "Define graze-period and rest-period targets per season tied to recovery indicators",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-grazing-design",
@@ -13392,8 +13145,7 @@
       "itemId": "silv-sec-s4-grazing-design-c4",
       "itemLabel": "Define tree-protection rules - exclusion windows for young plantings, browse limits",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-grazing-design",
@@ -13402,8 +13154,7 @@
       "itemId": "silv-sec-s4-grazing-design-c5",
       "itemLabel": "Define the feed-gap contingency - supplementary feed, destocking, or agistment triggers",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-grazing-design",
@@ -13412,8 +13163,7 @@
       "itemId": "silv-sec-s4-grazing-design-c6",
       "itemLabel": "Run the paddock stocking density check to confirm the grazing design is within surveyed carrying capacity",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "paddocks"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13422,7 +13172,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c1",
       "itemLabel": "Define animal health program - vaccination, parasite management, and veterinary relationship",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13431,7 +13181,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c2",
       "itemLabel": "Define breeding or replacement strategy and seasonal husbandry calendar",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13440,7 +13190,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c3",
       "itemLabel": "Define daily welfare standard - feed, water, shade, and handling stress minimisation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13449,7 +13199,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c4",
       "itemLabel": "Define humane and halal handling and slaughter-pathway intent where stock is raised for meat",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13458,7 +13208,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c5",
       "itemLabel": "Define record-keeping for stock numbers, health events, and movements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-husbandry-framework",
@@ -13467,7 +13217,7 @@
       "itemId": "silv-sec-s4-husbandry-framework-c6",
       "itemLabel": "Confirm the husbandry framework is consistent with available labour and the welfare standard",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-sec-s4-stock-infrastructure",
@@ -16841,8 +16591,7 @@
       "itemId": "s5-soil-improvement-c1",
       "itemLabel": "Design soil improvement program by zone - composting, mulching, cover cropping",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "compost"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s5-soil-improvement",
@@ -16851,8 +16600,7 @@
       "itemId": "s5-soil-improvement-c2",
       "itemLabel": "Specify application rates and timing for each zone",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "compost"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s5-soil-improvement",
@@ -16861,8 +16609,7 @@
       "itemId": "s5-soil-improvement-c3",
       "itemLabel": "Define machinery and equipment requirements",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "compost"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s5-soil-improvement",
@@ -16871,8 +16618,7 @@
       "itemId": "s5-soil-improvement-c4",
       "itemLabel": "Define priority zones for first-cycle improvement",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "compost"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s5-soil-improvement",
@@ -16881,8 +16627,7 @@
       "itemId": "s5-soil-improvement-c5",
       "itemLabel": "Establish soil health monitoring baseline for improvement tracking",
       "optional": false,
-      "classification": "objective-map",
-      "viaToolId": "compost"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s5-water-infrastructure",
@@ -20413,7 +20158,7 @@
       "itemId": "ev-s7-adaptive-management-c1",
       "itemLabel": "Define annual management review process - land data and social health data reviewed together",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-adaptive-management",
@@ -20422,7 +20167,7 @@
       "itemId": "ev-s7-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what monitoring outcomes require a plan change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-adaptive-management",
@@ -20431,7 +20176,7 @@
       "itemId": "ev-s7-adaptive-management-c3",
       "itemLabel": "Define escalation process for unexpected ecological or community events",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-adaptive-management",
@@ -20440,7 +20185,7 @@
       "itemId": "ev-s7-adaptive-management-c4",
       "itemLabel": "Specify documentation requirements for all plan changes and their rationale",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-adaptive-management",
@@ -20449,7 +20194,7 @@
       "itemId": "ev-s7-adaptive-management-c5",
       "itemLabel": "Define 5-year comprehensive review against Stratum 1 vision and ecological outcome targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20458,7 +20203,7 @@
       "itemId": "ev-s7-exit-succession-c1",
       "itemLabel": "Define exit process - notice period, financial settlement calculation, timeline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20467,7 +20212,7 @@
       "itemId": "ev-s7-exit-succession-c2",
       "itemLabel": "Define dwelling transfer process - who buys, at what price, by what method",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20476,7 +20221,7 @@
       "itemId": "ev-s7-exit-succession-c3",
       "itemLabel": "Define land share reversion to communal ownership on exit",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20485,7 +20230,7 @@
       "itemId": "ev-s7-exit-succession-c4",
       "itemLabel": "Define community dissolution protocol - how assets and liabilities are distributed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20494,7 +20239,7 @@
       "itemId": "ev-s7-exit-succession-c6",
       "itemLabel": "Confirm land reversion and dissolution terms against the Stratum 1 legal entity and tenure model",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-exit-succession",
@@ -20503,7 +20248,7 @@
       "itemId": "ev-s7-exit-succession-c5",
       "itemLabel": "Obtain legal review of exit and succession protocol before any member moves on-site",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -21618,7 +21363,7 @@
       "itemId": "s7-phase1-c1",
       "itemLabel": "Define Phase 1 scope - which enterprises and infrastructure are included",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-phase1",
@@ -21627,7 +21372,7 @@
       "itemId": "s7-phase1-c2",
       "itemLabel": "Sequence Phase 1 tasks in logical implementation order",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-phase1",
@@ -21636,7 +21381,7 @@
       "itemId": "s7-phase1-c3",
       "itemLabel": "Assign responsibilities for each Phase 1 task",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-phase1",
@@ -21645,7 +21390,7 @@
       "itemId": "s7-phase1-c4",
       "itemLabel": "Define Phase 1 completion milestones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-phase1",
@@ -21654,7 +21399,7 @@
       "itemId": "s7-phase1-c5",
       "itemLabel": "Confirm Phase 1 scope against capacity and resource plan",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-resource-plan",
@@ -21663,7 +21408,7 @@
       "itemId": "s7-resource-plan-c1",
       "itemLabel": "Estimate labour requirements by task and season for Phase 1",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-resource-plan",
@@ -21672,7 +21417,7 @@
       "itemId": "s7-resource-plan-c2",
       "itemLabel": "Identify skill gaps and training or contractor requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-resource-plan",
@@ -21681,7 +21426,7 @@
       "itemId": "s7-resource-plan-c3",
       "itemLabel": "Define equipment requirements and sourcing strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-resource-plan",
@@ -21690,7 +21435,7 @@
       "itemId": "s7-resource-plan-c4",
       "itemLabel": "Estimate Phase 1 capital requirements by category",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-resource-plan",
@@ -21699,7 +21444,7 @@
       "itemId": "s7-resource-plan-c5",
       "itemLabel": "Define procurement priorities and sourcing plan",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "s7-risk-register",

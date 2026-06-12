@@ -5,7 +5,7 @@
  *
  * This set is load-bearing for TWO shells: if it ever drifts, one shell would
  * mount the workbench while the other mounts the map for the same objective.
- * These pins keep the 25-id roster and both predicates honest.
+ * These pins keep the id roster and both predicates honest.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -43,10 +43,15 @@ const EXPECTED_IDS = [
   'ev-s7-exit-succession',
   'ev-s2-social-fabric',
   'ev-s3-infra-condition',
+  // Universal gap-closure (2026-06-12): non-spatial decision objectives routed
+  // through the workbench so every checklist item has a per-item capture path.
+  's4-direction',
+  's7-phase1',
+  's7-resource-plan',
 ] as const;
 
 describe('tierZeroObjectives -- membership set', () => {
-  it('contains exactly the 25 Tier-0 ids, no drift', () => {
+  it('contains exactly the expected Tier-0 ids, no drift', () => {
     expect(TIER_ZERO_OBJECTIVE_IDS.size).toBe(EXPECTED_IDS.length);
     for (const id of EXPECTED_IDS) {
       expect(TIER_ZERO_OBJECTIVE_IDS.has(id)).toBe(true);

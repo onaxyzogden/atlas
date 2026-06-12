@@ -146,6 +146,43 @@ describe('classifyChecklistItem', () => {
     ).toEqual({ classification: 'objective-flow', viaToolId: 'tool.flow.review' });
   });
 
+  it('workbench membership makes every bare item workbench-capture', () => {
+    const workbench: ClassifyOptions = {
+      resolveTools: () => [],
+      workbenchObjectiveIds: new Set(['syn-obj']),
+    };
+    expect(classifyChecklistItem(obj, item('item-b'), ARM_INDEX, workbench)).toEqual(
+      { classification: 'workbench-capture' },
+    );
+    // Non-member objectives are untouched (Phase 1 behaviour).
+    const other = objective('syn-other', [item('item-b')]);
+    expect(
+      classifyChecklistItem(other, item('item-b'), ARM_INDEX, workbench),
+    ).toEqual({ classification: 'no-path' });
+  });
+
+  it('a matching form arm outranks workbench membership; objective-level arms do not', () => {
+    const workbench: ClassifyOptions = {
+      resolveTools: () => ['tool.form.item-a', 'tool.map.paddock'],
+      workbenchObjectiveIds: new Set(['syn-obj']),
+    };
+    // form arm is the sharper per-item signal.
+    expect(classifyChecklistItem(obj, item('item-a'), ARM_INDEX, workbench)).toEqual(
+      { classification: 'form-capture', viaToolId: 'tool.form.item-a' },
+    );
+    // map arm would only be objective-level: workbench wins for other items.
+    expect(classifyChecklistItem(obj, item('item-b'), ARM_INDEX, workbench)).toEqual(
+      { classification: 'workbench-capture' },
+    );
+    // auto-* still wins over workbench.
+    const auto = item('item-b', {
+      formulaBinding: { formulaId: 'stock-water-demand', satisfiesWhenComputed: true },
+    });
+    expect(classifyChecklistItem(obj, auto, ARM_INDEX, workbench)).toEqual({
+      classification: 'auto-formula',
+    });
+  });
+
   it('empty rail and unknown tool ids classify as no-path', () => {
     expect(
       classifyChecklistItem(obj, item('item-b'), ARM_INDEX, withTools([])),
