@@ -1066,3 +1066,46 @@ Templated the §21 cockpit recipe onto the second-most-cluttered Dashboard page:
 **Single-file refactor.** Helpers, types, and CSS classes live alongside the existing `buildOrchardSafety` / `buildProximityChecks` / `buildAccessChecks` / `buildWaterDemandRollup` functions. `.module.css` gained ~270 lines for cockpit shell (`.cockpit*`, `.verdictHero*`, `.blockersStrip*`, `.rail*`, `.methodology*`); outer grid `minmax(0, 1fr) 280px` collapses at 1100px, inner body grid collapses at 960px.
 
 Verification: typecheck clean for new code (only pre-existing v3 errors remain); lint clean. Browser preview deferred to next session.
+
+## Draw-time placement validation (2026-06-11/12)
+
+`src/v3/plan/validation/` — the client half of the shared placement-rule
+catalog (`@ogden/shared/placementRules`, see `entities/shared-package.md`).
+ADR `decisions/2026-06-11-atlas-placement-rules-architecture.md`.
+
+- **`placementContext.ts`** — `buildPlacementContext(projectId)`: one-shot
+  `getState()` snapshot (zones, setback rings, built environment, design
+  elements, water/wetland site layers) that **pre-buffers distance-rule
+  targets once at tool-arm time** — never on mousemove.
+- **`evaluatePlacement.ts`** — pure `evaluatePlacement(geom, subject, ctx) →
+  {blocks, warns}`; one function per constraint type; iterates ALL
+  MultiPolygon parts (avoids the `geo.ts` largest-ring trap); zone rules
+  no-op (not warn) when no zones are drawn yet.
+- **Gate + dialog** — `gatePlacement`: blocks → reject with toast (no
+  skeleton record, preserves persist-first + ESC rollback); warns →
+  `PlacementConflictDialog` (`placementConflictStore`, ≥3-char
+  acknowledgment, copied from the utility-veto UX); acks persisted as
+  `placementAcknowledgments` on the record (zustand+IDB, no migration).
+- **Wiring** — all 14 dedicated draw tools in `v3/plan/draw/tools/` +
+  `useDesignElementDrawTool.handleComplete` (covers 70+ design-element
+  kinds; point tools get live red/green cursor feedback via the existing
+  spacing ring) + drag-move re-validation on mouseup in
+  `PlanDataLayers.tsx` / `DesignElementLayers.tsx` (block → original
+  geometry restored + toast). Annotations exempt.
+- **RulesPanel** (`features/rules/`) — `SitingRules.ts` appends the shared
+  rules to `RULE_CATALOG` via `placementRuleToCatalogEntry` (block→error,
+  warn→warning, description = whyItMatters; legacy-id dedup with `drawTime`
+  tags on the static well-septic / livestock-spiritual entries);
+  `SitingPanel` CatalogTab renders `amanahNote` lines + `draw-time` badges.
+  `SETBACK_RULES` re-bases its riparian/wetland/well-septic/livestock
+  distances onto `PLACEMENT_DISTANCES_M` — one number source.
+- **Sync** — `lib/syncService.ts` sends `acknowledgeWarnings` when a record
+  carries acks; a server 409 `PLACEMENT_VIOLATION` marks the record
+  sync-failed with the violation messages (no retry loop). Server guard:
+  `entities/api.md`.
+
+Also from this plan: the **completion-path ratchet**
+(`v3/act/tier-shell/__tests__/completionPathAudit.ratchet.test.ts` +
+`completionPathGaps.baseline.json`) pins the item-level in-app
+completability gap set — see
+`decisions/2026-06-11-atlas-completion-path-audit-ratchet.md`.

@@ -171,6 +171,35 @@ degrades to a raw-id label, never a gate. Backlog #4 (reverse "Informed by" chip
 [[log/2026-06-11-atlas-education-cites-feedsinto-wiring]],
 [[log/2026-06-11-atlas-spine-traceability-conformance-test]].
 
+## Placement rules subpath (`@ogden/shared/placementRules`)
+**Added 2026-06-11.** Separate entry point. Draw-time placement-rule
+*definitions* as pure data — zod-only package, **no turf**; geometry
+evaluation lives with the consumers (client `apps/web/src/v3/plan/validation/`
+via turf; server `apps/api/src/lib/placementGuard.ts` via PostGIS; RulesPanel
+via `placementRuleToCatalogEntry` in `SitingRules.ts`). Decision:
+[decisions/2026-06-11-atlas-placement-rules-architecture.md](../decisions/2026-06-11-atlas-placement-rules-architecture.md).
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | `PlacementRule` (`id`, `severity: 'block'\|'warn'`, `subject {kinds?, categories?, exceptKinds?}`, `constraint`, `message`, `whyItMatters?`, `amanahNote?`, `serverEnforceable`, `legacyRuleId?`); 7-type constraint union (`within-boundary \| zone-containment \| zone-exclusion \| min-distance-from \| max-distance-from \| no-overlap-same-kind \| permaculture-ring-range`); `PlacementAcknowledgment` zod schema. |
+| `catalog.ts` | `PLACEMENT_RULES` — 14 entries / 13 named rules (well-septic separation encoded as two directional entries): 6 block (all `serverEnforceable`), 8 warn. `PLACEMENT_DISTANCES_M` is the **single distance source** (`SETBACK_RULES` in web `SitingRules.ts` re-bases onto it). 4 rules carry `amanahNote` (huquq al-jar, tahara, water-source protection, khushuʿ). Annotations never gated; overlay kinds (`zone`, `catchment`) gated only by boundary containment. `findPlacementRule(id)`. |
+| `selectors.ts` | `rulesForCandidate`, `serverEnforceableRules`, `subjectMatches`. |
+
+`ZoneCategory` moved to `constants/zoneCategories.ts` (web `zoneStore.ts`
+re-exports the alias); re-exported from this subpath.
+
+## Completion-path classifier (`relationships/objectiveCompletionPaths.ts`)
+**Added 2026-06-11** to the `@ogden/shared/relationships` subpath. Per-item
+classification of how a checklist item can be completed in-app:
+`auto-answer | auto-formula | form-capture | objective-map | objective-log |
+objective-flow | no-path` (only the first three are per-item
+evidence-backed). Takes an injected `ActToolArmIndex` (shared can't import
+the app-layer tool catalog). Consumed by the web ratchet test
+(`completionPathAudit.ratchet.test.ts` + pinned `completionPathGaps.baseline.json`)
+and `scripts/audit-checklist-completion-paths.ts` (`--write-baseline`).
+Pinned 2026-06-11: 2029 items / 355 objectives, 610 `no-path`. Decision:
+[decisions/2026-06-11-atlas-completion-path-audit-ratchet.md](../decisions/2026-06-11-atlas-completion-path-audit-ratchet.md).
+
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration
 024 + the `apps/api` telemetry route + `apps/web/src/lib/actInteractionLog.ts`).
