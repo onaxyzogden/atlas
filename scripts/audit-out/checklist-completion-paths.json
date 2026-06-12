@@ -6,11 +6,11 @@
       "auto-answer": 4,
       "auto-formula": 13,
       "form-capture": 215,
-      "workbench-capture": 136,
+      "workbench-capture": 198,
       "objective-map": 1103,
       "objective-log": 6,
       "objective-flow": 6,
-      "no-path": 546
+      "no-path": 484
     }
   },
   "noPath": {
@@ -104,22 +104,6 @@
       "edu-s4-program-delivery-c4",
       "edu-s4-program-delivery-c5",
       "edu-s4-program-delivery-c6"
-    ],
-    "ev-s4-food-system": [
-      "ev-s4-food-system-c1",
-      "ev-s4-food-system-c2",
-      "ev-s4-food-system-c3",
-      "ev-s4-food-system-c4",
-      "ev-s4-food-system-c5",
-      "ev-s4-food-system-c6"
-    ],
-    "ev-s4-infra-strategy": [
-      "ev-s4-infra-strategy-c1",
-      "ev-s4-infra-strategy-c2",
-      "ev-s4-infra-strategy-c3",
-      "ev-s4-infra-strategy-c4",
-      "ev-s4-infra-strategy-c5",
-      "ev-s4-infra-strategy-c6"
     ],
     "hms-s4-energy-shelter-resilience": [
       "hms-s4-energy-shelter-resilience-c1",
@@ -350,40 +334,6 @@
       "edu-s6-program-evaluation-c5",
       "edu-s6-program-evaluation-c6"
     ],
-    "ev-s6-coordination-feedback": [
-      "ev-s6-coordination-feedback-c1",
-      "ev-s6-coordination-feedback-c2",
-      "ev-s6-coordination-feedback-c3",
-      "ev-s6-coordination-feedback-c4",
-      "ev-s6-coordination-feedback-c5",
-      "ev-s6-coordination-feedback-c6"
-    ],
-    "ev-s6-external-relations": [
-      "ev-s6-external-relations-c1",
-      "ev-s6-external-relations-c2",
-      "ev-s6-external-relations-c7",
-      "ev-s6-external-relations-c3",
-      "ev-s6-external-relations-c4",
-      "ev-s6-external-relations-c5",
-      "ev-s6-external-relations-c6"
-    ],
-    "ev-s6-maintenance-protocol": [
-      "ev-s6-maintenance-protocol-c1",
-      "ev-s6-maintenance-protocol-c2",
-      "ev-s6-maintenance-protocol-c3",
-      "ev-s6-maintenance-protocol-c4",
-      "ev-s6-maintenance-protocol-c6",
-      "ev-s6-maintenance-protocol-c5"
-    ],
-    "ev-s6-social-monitoring": [
-      "ev-s6-social-monitoring-c1",
-      "ev-s6-social-monitoring-c2",
-      "ev-s6-social-monitoring-c7",
-      "ev-s6-social-monitoring-c3",
-      "ev-s6-social-monitoring-c4",
-      "ev-s6-social-monitoring-c5",
-      "ev-s6-social-monitoring-c6"
-    ],
     "hms-s6-self-sufficiency-feedback": [
       "hms-s6-self-sufficiency-feedback-c1",
       "hms-s6-self-sufficiency-feedback-c2",
@@ -577,38 +527,6 @@
       "edu-s7-program-launch-c4",
       "edu-s7-program-launch-c5",
       "edu-s7-program-launch-c6"
-    ],
-    "ev-s7-financial-plan": [
-      "ev-s7-financial-plan-c1",
-      "ev-s7-financial-plan-c2",
-      "ev-s7-financial-plan-c3",
-      "ev-s7-financial-plan-c4",
-      "ev-s7-financial-plan-c6",
-      "ev-s7-financial-plan-c5"
-    ],
-    "ev-s7-launch-sequence": [
-      "ev-s7-launch-sequence-c1",
-      "ev-s7-launch-sequence-c2",
-      "ev-s7-launch-sequence-c3",
-      "ev-s7-launch-sequence-c4",
-      "ev-s7-launch-sequence-c5",
-      "ev-s7-launch-sequence-c6"
-    ],
-    "ev-s7-onboarding": [
-      "ev-s7-onboarding-c1",
-      "ev-s7-onboarding-c2",
-      "ev-s7-onboarding-c3",
-      "ev-s7-onboarding-c4",
-      "ev-s7-onboarding-c6",
-      "ev-s7-onboarding-c5"
-    ],
-    "ev-s7-settlement-plan": [
-      "ev-s7-settlement-plan-c1",
-      "ev-s7-settlement-plan-c2",
-      "ev-s7-settlement-plan-c3",
-      "ev-s7-settlement-plan-c4",
-      "ev-s7-settlement-plan-c6",
-      "ev-s7-settlement-plan-c5"
     ],
     "hms-s7-adaptive-management": [
       "hms-s7-adaptive-management-c1",
@@ -10775,7 +10693,7 @@
       "itemId": "ev-s4-food-system-c1",
       "itemLabel": "Confirm food system approach from Stratum 1 provision balance - communal, individual, or hybrid",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -10784,7 +10702,7 @@
       "itemId": "ev-s4-food-system-c2",
       "itemLabel": "Define communal food production commitments - crops, volume, labour contribution model",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -10793,7 +10711,7 @@
       "itemId": "ev-s4-food-system-c3",
       "itemLabel": "Define individual plot allocation - size, location, tenure, maintenance obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -10802,7 +10720,7 @@
       "itemId": "ev-s4-food-system-c4",
       "itemLabel": "Define food sharing and distribution protocol for communal harvests",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -10811,7 +10729,7 @@
       "itemId": "ev-s4-food-system-c5",
       "itemLabel": "Define seed saving, variety selection, and food sovereignty strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-food-system",
@@ -10820,7 +10738,7 @@
       "itemId": "ev-s4-food-system-c6",
       "itemLabel": "Establish food system governance - decisions, labour, disputes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-housing-cluster",
@@ -10879,7 +10797,7 @@
       "itemId": "ev-s4-infra-strategy-c1",
       "itemLabel": "Define communal infrastructure list - kitchen, meeting hall, workshop, water system, energy grid, sanitation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-infra-strategy",
@@ -10888,7 +10806,7 @@
       "itemId": "ev-s4-infra-strategy-c2",
       "itemLabel": "Prioritise communal infrastructure by Phase 1 habitability requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-infra-strategy",
@@ -10897,7 +10815,7 @@
       "itemId": "ev-s4-infra-strategy-c3",
       "itemLabel": "Define ownership and maintenance governance for each communal asset",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-infra-strategy",
@@ -10906,7 +10824,7 @@
       "itemId": "ev-s4-infra-strategy-c4",
       "itemLabel": "Define cost-sharing model for communal infrastructure construction and maintenance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-infra-strategy",
@@ -10915,7 +10833,7 @@
       "itemId": "ev-s4-infra-strategy-c5",
       "itemLabel": "Resolve conflicts between communal infrastructure investment and individual dwelling needs",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-infra-strategy",
@@ -10924,7 +10842,7 @@
       "itemId": "ev-s4-infra-strategy-c6",
       "itemLabel": "Confirm the infrastructure list against Stratum 3 reuse, renovation, and demolition decisions for existing structures",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s4-settlement-strategy",
@@ -17846,7 +17764,7 @@
       "itemId": "ev-s6-coordination-feedback-c1",
       "itemLabel": "Define energy surplus and shortage protocols - how communal energy status triggers household behaviour changes",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17855,7 +17773,7 @@
       "itemId": "ev-s6-coordination-feedback-c2",
       "itemLabel": "Define water restriction cascade - how water levels trigger staged household use reductions",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17864,7 +17782,7 @@
       "itemId": "ev-s6-coordination-feedback-c3",
       "itemLabel": "Define food harvest sharing protocols - how communal harvests are distributed to households",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17873,7 +17791,7 @@
       "itemId": "ev-s6-coordination-feedback-c4",
       "itemLabel": "Design community-wide communication system for real-time system status updates",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17882,7 +17800,7 @@
       "itemId": "ev-s6-coordination-feedback-c5",
       "itemLabel": "Define decision triggers - when individual household behaviour requires community response",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-coordination-feedback",
@@ -17891,7 +17809,7 @@
       "itemId": "ev-s6-coordination-feedback-c6",
       "itemLabel": "Confirm decision triggers operate through the Stratum 1 decision-making process and community agreements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17900,7 +17818,7 @@
       "itemId": "ev-s6-external-relations-c1",
       "itemLabel": "Define regular neighbour communication rhythm - frequency, format, nominated community contact",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17909,7 +17827,7 @@
       "itemId": "ev-s6-external-relations-c2",
       "itemLabel": "Design planning compliance monitoring system - track all conditions, review dates, and obligations",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17918,7 +17836,7 @@
       "itemId": "ev-s6-external-relations-c7",
       "itemLabel": "Ground engagement priorities in the Stratum 2 planning environment and prior community context findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17927,7 +17845,7 @@
       "itemId": "ev-s6-external-relations-c3",
       "itemLabel": "Define community spokesperson and external relations protocol",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17936,7 +17854,7 @@
       "itemId": "ev-s6-external-relations-c4",
       "itemLabel": "Design complaint response process - how neighbour or authority concerns are received and addressed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17945,7 +17863,7 @@
       "itemId": "ev-s6-external-relations-c5",
       "itemLabel": "Establish relationship with local authority planning officer before construction begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-external-relations",
@@ -17954,7 +17872,7 @@
       "itemId": "ev-s6-external-relations-c6",
       "itemLabel": "Define annual community external relations review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -17963,7 +17881,7 @@
       "itemId": "ev-s6-maintenance-protocol-c1",
       "itemLabel": "Define maintenance schedule for each communal infrastructure system",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -17972,7 +17890,7 @@
       "itemId": "ev-s6-maintenance-protocol-c2",
       "itemLabel": "Assign maintenance responsibility - rotating roster, dedicated roles, contracted services",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -17981,7 +17899,7 @@
       "itemId": "ev-s6-maintenance-protocol-c3",
       "itemLabel": "Define maintenance fund contribution and reserve requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -17990,7 +17908,7 @@
       "itemId": "ev-s6-maintenance-protocol-c4",
       "itemLabel": "Design inspection and condition reporting system",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -17999,7 +17917,7 @@
       "itemId": "ev-s6-maintenance-protocol-c6",
       "itemLabel": "Set inspection baselines from the Stratum 3 communal infrastructure condition survey",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-maintenance-protocol",
@@ -18008,7 +17926,7 @@
       "itemId": "ev-s6-maintenance-protocol-c5",
       "itemLabel": "Define escalation process for urgent or major maintenance needs",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18017,7 +17935,7 @@
       "itemId": "ev-s6-social-monitoring-c1",
       "itemLabel": "Define social health indicators - meeting attendance, decision-making quality, conflict frequency, member satisfaction",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18026,7 +17944,7 @@
       "itemId": "ev-s6-social-monitoring-c2",
       "itemLabel": "Define financial health indicators - communal fund levels, arrears, capital reserve status",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18035,7 +17953,7 @@
       "itemId": "ev-s6-social-monitoring-c7",
       "itemLabel": "Baseline social health indicators against the Stratum 2 founding group cohesion and relationship findings",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18044,7 +17962,7 @@
       "itemId": "ev-s6-social-monitoring-c3",
       "itemLabel": "Design regular community check-in process - format, frequency, facilitation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18053,7 +17971,7 @@
       "itemId": "ev-s6-social-monitoring-c4",
       "itemLabel": "Design anonymous feedback mechanism for sensitive issues",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18062,7 +17980,7 @@
       "itemId": "ev-s6-social-monitoring-c5",
       "itemLabel": "Define escalation pathway when social health indicators deteriorate",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s6-social-monitoring",
@@ -18071,7 +17989,7 @@
       "itemId": "ev-s6-social-monitoring-c6",
       "itemLabel": "Specify record-keeping system for community health data",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s6-self-sufficiency-feedback",
@@ -20257,7 +20175,7 @@
       "itemId": "ev-s7-financial-plan-c1",
       "itemLabel": "Define total Phase 1 capital requirement",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -20266,7 +20184,7 @@
       "itemId": "ev-s7-financial-plan-c2",
       "itemLabel": "Define member contribution schedule - amounts, payment dates, default consequences",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -20275,7 +20193,7 @@
       "itemId": "ev-s7-financial-plan-c3",
       "itemLabel": "Define communal fund holding structure - bank account, trust, escrow",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -20284,7 +20202,7 @@
       "itemId": "ev-s7-financial-plan-c4",
       "itemLabel": "Define financial reporting schedule to all members",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -20293,7 +20211,7 @@
       "itemId": "ev-s7-financial-plan-c6",
       "itemLabel": "Confirm fund holding and reporting follow the Stratum 1 financial governance rules",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-financial-plan",
@@ -20302,7 +20220,7 @@
       "itemId": "ev-s7-financial-plan-c5",
       "itemLabel": "Confirm all founding member contributions are committed before construction begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20311,7 +20229,7 @@
       "itemId": "ev-s7-launch-sequence-c1",
       "itemLabel": "Sequence communal water system completion before any household arrival",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20320,7 +20238,7 @@
       "itemId": "ev-s7-launch-sequence-c2",
       "itemLabel": "Sequence sanitation system completion before food production launch",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20329,7 +20247,7 @@
       "itemId": "ev-s7-launch-sequence-c3",
       "itemLabel": "Sequence energy system completion before first winter occupancy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20338,7 +20256,7 @@
       "itemId": "ev-s7-launch-sequence-c4",
       "itemLabel": "Define go/no-go criteria for each system launch - tested and confirmed, not planned",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20347,7 +20265,7 @@
       "itemId": "ev-s7-launch-sequence-c5",
       "itemLabel": "Confirm sequencing against Phase 1 implementation plan",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-launch-sequence",
@@ -20356,7 +20274,7 @@
       "itemId": "ev-s7-launch-sequence-c6",
       "itemLabel": "Confirm the launch order covers every communal infrastructure commitment from the Stratum 1 provision balance",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20365,7 +20283,7 @@
       "itemId": "ev-s7-onboarding-c1",
       "itemLabel": "Define application and selection process for new members",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20374,7 +20292,7 @@
       "itemId": "ev-s7-onboarding-c2",
       "itemLabel": "Define trial residency period - duration, expectations, review criteria",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20383,7 +20301,7 @@
       "itemId": "ev-s7-onboarding-c3",
       "itemLabel": "Define full membership criteria and confirmation process",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20392,7 +20310,7 @@
       "itemId": "ev-s7-onboarding-c4",
       "itemLabel": "Design orientation program for new members - governance, systems, agreements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20401,7 +20319,7 @@
       "itemId": "ev-s7-onboarding-c6",
       "itemLabel": "Include the Stratum 1 community agreements and dispute resolution pathway in new member orientation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-onboarding",
@@ -20410,7 +20328,7 @@
       "itemId": "ev-s7-onboarding-c5",
       "itemLabel": "Define mentorship or buddy system for new household integration",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20419,7 +20337,7 @@
       "itemId": "ev-s7-settlement-plan-c1",
       "itemLabel": "Define founding cohort composition and arrival date",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20428,7 +20346,7 @@
       "itemId": "ev-s7-settlement-plan-c2",
       "itemLabel": "List exact habitability threshold items for founding cohort - potable water, shelter, sanitation, emergency communications",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20437,7 +20355,7 @@
       "itemId": "ev-s7-settlement-plan-c3",
       "itemLabel": "Define arrival criteria checklist - confirmed complete, tested, and signed off before any household moves in",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20446,7 +20364,7 @@
       "itemId": "ev-s7-settlement-plan-c4",
       "itemLabel": "Schedule subsequent cohort arrivals against infrastructure completion milestones",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20455,7 +20373,7 @@
       "itemId": "ev-s7-settlement-plan-c6",
       "itemLabel": "Confirm scheduled cohort sizes keep total population within the Stratum 2 maximum sustainable population",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ev-s7-settlement-plan",
@@ -20464,7 +20382,7 @@
       "itemId": "ev-s7-settlement-plan-c5",
       "itemLabel": "Define who enforces habitability thresholds - not self-reported by arriving households",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-adaptive-management",

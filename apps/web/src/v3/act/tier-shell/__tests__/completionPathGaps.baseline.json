@@ -92,22 +92,6 @@
       "edu-s4-program-delivery-c5",
       "edu-s4-program-delivery-c6"
     ],
-    "ev-s4-food-system": [
-      "ev-s4-food-system-c1",
-      "ev-s4-food-system-c2",
-      "ev-s4-food-system-c3",
-      "ev-s4-food-system-c4",
-      "ev-s4-food-system-c5",
-      "ev-s4-food-system-c6"
-    ],
-    "ev-s4-infra-strategy": [
-      "ev-s4-infra-strategy-c1",
-      "ev-s4-infra-strategy-c2",
-      "ev-s4-infra-strategy-c3",
-      "ev-s4-infra-strategy-c4",
-      "ev-s4-infra-strategy-c5",
-      "ev-s4-infra-strategy-c6"
-    ],
     "hms-s4-energy-shelter-resilience": [
       "hms-s4-energy-shelter-resilience-c1",
       "hms-s4-energy-shelter-resilience-c2",
@@ -337,40 +321,6 @@
       "edu-s6-program-evaluation-c5",
       "edu-s6-program-evaluation-c6"
     ],
-    "ev-s6-coordination-feedback": [
-      "ev-s6-coordination-feedback-c1",
-      "ev-s6-coordination-feedback-c2",
-      "ev-s6-coordination-feedback-c3",
-      "ev-s6-coordination-feedback-c4",
-      "ev-s6-coordination-feedback-c5",
-      "ev-s6-coordination-feedback-c6"
-    ],
-    "ev-s6-external-relations": [
-      "ev-s6-external-relations-c1",
-      "ev-s6-external-relations-c2",
-      "ev-s6-external-relations-c7",
-      "ev-s6-external-relations-c3",
-      "ev-s6-external-relations-c4",
-      "ev-s6-external-relations-c5",
-      "ev-s6-external-relations-c6"
-    ],
-    "ev-s6-maintenance-protocol": [
-      "ev-s6-maintenance-protocol-c1",
-      "ev-s6-maintenance-protocol-c2",
-      "ev-s6-maintenance-protocol-c3",
-      "ev-s6-maintenance-protocol-c4",
-      "ev-s6-maintenance-protocol-c6",
-      "ev-s6-maintenance-protocol-c5"
-    ],
-    "ev-s6-social-monitoring": [
-      "ev-s6-social-monitoring-c1",
-      "ev-s6-social-monitoring-c2",
-      "ev-s6-social-monitoring-c7",
-      "ev-s6-social-monitoring-c3",
-      "ev-s6-social-monitoring-c4",
-      "ev-s6-social-monitoring-c5",
-      "ev-s6-social-monitoring-c6"
-    ],
     "hms-s6-self-sufficiency-feedback": [
       "hms-s6-self-sufficiency-feedback-c1",
       "hms-s6-self-sufficiency-feedback-c2",
@@ -564,38 +514,6 @@
       "edu-s7-program-launch-c4",
       "edu-s7-program-launch-c5",
       "edu-s7-program-launch-c6"
-    ],
-    "ev-s7-financial-plan": [
-      "ev-s7-financial-plan-c1",
-      "ev-s7-financial-plan-c2",
-      "ev-s7-financial-plan-c3",
-      "ev-s7-financial-plan-c4",
-      "ev-s7-financial-plan-c6",
-      "ev-s7-financial-plan-c5"
-    ],
-    "ev-s7-launch-sequence": [
-      "ev-s7-launch-sequence-c1",
-      "ev-s7-launch-sequence-c2",
-      "ev-s7-launch-sequence-c3",
-      "ev-s7-launch-sequence-c4",
-      "ev-s7-launch-sequence-c5",
-      "ev-s7-launch-sequence-c6"
-    ],
-    "ev-s7-onboarding": [
-      "ev-s7-onboarding-c1",
-      "ev-s7-onboarding-c2",
-      "ev-s7-onboarding-c3",
-      "ev-s7-onboarding-c4",
-      "ev-s7-onboarding-c6",
-      "ev-s7-onboarding-c5"
-    ],
-    "ev-s7-settlement-plan": [
-      "ev-s7-settlement-plan-c1",
-      "ev-s7-settlement-plan-c2",
-      "ev-s7-settlement-plan-c3",
-      "ev-s7-settlement-plan-c4",
-      "ev-s7-settlement-plan-c6",
-      "ev-s7-settlement-plan-c5"
     ],
     "hms-s7-adaptive-management": [
       "hms-s7-adaptive-management-c1",

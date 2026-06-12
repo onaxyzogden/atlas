@@ -49,6 +49,20 @@ export const TIER_ZERO_OBJECTIVE_IDS = new Set<string>([
   's4-direction',
   's7-phase1',
   's7-resource-plan',
+  // Ecovillage workbench membership (2026-06-12): ten ev- objectives across
+  // s4, s6, and s7 strata added to the Tier-0 set so the workbench execution
+  // surface covers them without a map mount. Bespoke captures deferred; the
+  // generic workbench per-item path (textarea + Record) is the v1 route.
+  'ev-s4-food-system',
+  'ev-s4-infra-strategy',
+  'ev-s6-coordination-feedback',
+  'ev-s6-external-relations',
+  'ev-s6-maintenance-protocol',
+  'ev-s6-social-monitoring',
+  'ev-s7-financial-plan',
+  'ev-s7-launch-sequence',
+  'ev-s7-onboarding',
+  'ev-s7-settlement-plan',
 ]);
 
 /**

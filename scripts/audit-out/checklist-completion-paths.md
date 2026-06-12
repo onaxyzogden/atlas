@@ -15,18 +15,18 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `auto-answer` | 4 | 0.2% | yes |
 | `auto-formula` | 13 | 0.6% | yes |
 | `form-capture` | 215 | 10.6% | yes |
-| `workbench-capture` | 136 | 6.7% | yes |
+| `workbench-capture` | 198 | 9.8% | yes |
 | `objective-map` | 1103 | 54.4% | no (objective-level instrument, manual tick) |
 | `objective-log` | 6 | 0.3% | no (objective-level instrument, manual tick) |
 | `objective-flow` | 6 | 0.3% | no (objective-level instrument, manual tick) |
-| `no-path` | 546 | 26.9% | **no — gap** |
+| `no-path` | 484 | 23.9% | **no — gap** |
 
 ## Summary by type prefix
 
 | Prefix | Priority | Items | no-path | objective-level | evidence-backed |
 |---|--:|--:|--:|--:|--:|
 | `universal` | P1 | 105 | 0 | 41 | 64 |
-| `ev-` | P2 | 194 | 62 | 57 | 75 |
+| `ev-` | P2 | 194 | 0 | 57 | 137 |
 | `orch-` | P3 | 137 | 34 | 87 | 16 |
 | `orch-sec-` | P3 | 25 | 10 | 15 | 0 |
 | `silv-` | P4 | 144 | 21 | 101 | 22 |
@@ -52,10 +52,10 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | s1-project-foundation | 254 | 11 | 6 | 237 |
 | s2-land-reading | 264 | 5 | 218 | 41 |
 | s3-systems-reading | 240 | 6 | 212 | 22 |
-| s4-foundation-decisions | 414 | 183 | 191 | 40 |
+| s4-foundation-decisions | 414 | 171 | 191 | 52 |
 | s5-system-design | 359 | 5 | 349 | 5 |
-| s6-integration-design | 234 | 132 | 102 | 0 |
-| s7-phasing-resourcing | 264 | 204 | 37 | 23 |
+| s6-integration-design | 234 | 106 | 102 | 26 |
+| s7-phasing-resourcing | 264 | 180 | 37 | 47 |
 
 ## Unmatched form arms (formId matches no checklist item)
 
@@ -70,68 +70,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Objective | Ref | Stratum | Item | Label | Optional | Suggested capture |
 |---|---|---|---|---|---|---|
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c1` | Confirm food system approach from Stratum 1 provision balance - communal, individual, or hybrid |  | decision form (form arm, formId = item id) |
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c2` | Define communal food production commitments - crops, volume, labour contribution model |  | decision form (form arm, formId = item id) |
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c3` | Define individual plot allocation - size, location, tenure, maintenance obligations |  | map arm (per-item bridge) |
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c4` | Define food sharing and distribution protocol for communal harvests |  | decision form (form arm, formId = item id) |
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c5` | Define seed saving, variety selection, and food sovereignty strategy |  | decision form (form arm, formId = item id) |
-| `ev-s4-food-system` | EV-S4.7 | s4-foundation-decisions | `ev-s4-food-system-c6` | Establish food system governance - decisions, labour, disputes |  | decision form (form arm, formId = item id) |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c1` | Define communal infrastructure list - kitchen, meeting hall, workshop, water system, energy grid, sanitation |  | decision form (form arm, formId = item id) |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c2` | Prioritise communal infrastructure by Phase 1 habitability requirements |  | schedule/protocol capture |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c3` | Define ownership and maintenance governance for each communal asset |  | decision form (form arm, formId = item id) |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c4` | Define cost-sharing model for communal infrastructure construction and maintenance |  | financial worksheet (Amanah-clean) |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c5` | Resolve conflicts between communal infrastructure investment and individual dwelling needs |  | decision form (form arm, formId = item id) |
-| `ev-s4-infra-strategy` | EV-S4.5 | s4-foundation-decisions | `ev-s4-infra-strategy-c6` | Confirm the infrastructure list against Stratum 3 reuse, renovation, and demolition decisions for existing structures |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c1` | Define energy surplus and shortage protocols - how communal energy status triggers household behaviour changes |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c2` | Define water restriction cascade - how water levels trigger staged household use reductions |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c3` | Define food harvest sharing protocols - how communal harvests are distributed to households |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c4` | Design community-wide communication system for real-time system status updates |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c5` | Define decision triggers - when individual household behaviour requires community response |  | decision form (form arm, formId = item id) |
-| `ev-s6-coordination-feedback` | EV-S6.4 | s6-integration-design | `ev-s6-coordination-feedback-c6` | Confirm decision triggers operate through the Stratum 1 decision-making process and community agreements |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c1` | Define regular neighbour communication rhythm - frequency, format, nominated community contact |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c2` | Design planning compliance monitoring system - track all conditions, review dates, and obligations |  | log arm / review flow |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c7` | Ground engagement priorities in the Stratum 2 planning environment and prior community context findings |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c3` | Define community spokesperson and external relations protocol |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c4` | Design complaint response process - how neighbour or authority concerns are received and addressed |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c5` | Establish relationship with local authority planning officer before construction begins |  | decision form (form arm, formId = item id) |
-| `ev-s6-external-relations` | EV-S6.5 | s6-integration-design | `ev-s6-external-relations-c6` | Define annual community external relations review |  | log arm / review flow |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c1` | Define maintenance schedule for each communal infrastructure system |  | schedule/protocol capture |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c2` | Assign maintenance responsibility - rotating roster, dedicated roles, contracted services |  | decision form (form arm, formId = item id) |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c3` | Define maintenance fund contribution and reserve requirements |  | financial worksheet (Amanah-clean) |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c4` | Design inspection and condition reporting system |  | decision form (form arm, formId = item id) |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c6` | Set inspection baselines from the Stratum 3 communal infrastructure condition survey |  | decision form (form arm, formId = item id) |
-| `ev-s6-maintenance-protocol` | EV-S6.3 | s6-integration-design | `ev-s6-maintenance-protocol-c5` | Define escalation process for urgent or major maintenance needs |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c1` | Define social health indicators - meeting attendance, decision-making quality, conflict frequency, member satisfaction |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c2` | Define financial health indicators - communal fund levels, arrears, capital reserve status |  | financial worksheet (Amanah-clean) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c7` | Baseline social health indicators against the Stratum 2 founding group cohesion and relationship findings |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c3` | Design regular community check-in process - format, frequency, facilitation |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c4` | Design anonymous feedback mechanism for sensitive issues |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c5` | Define escalation pathway when social health indicators deteriorate |  | decision form (form arm, formId = item id) |
-| `ev-s6-social-monitoring` | EV-S6.2 | s6-integration-design | `ev-s6-social-monitoring-c6` | Specify record-keeping system for community health data |  | log arm / review flow |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c1` | Define total Phase 1 capital requirement |  | financial worksheet (Amanah-clean) |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c2` | Define member contribution schedule - amounts, payment dates, default consequences |  | schedule/protocol capture |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c3` | Define communal fund holding structure - bank account, trust, escrow |  | financial worksheet (Amanah-clean) |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c4` | Define financial reporting schedule to all members |  | financial worksheet (Amanah-clean) |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c6` | Confirm fund holding and reporting follow the Stratum 1 financial governance rules |  | financial worksheet (Amanah-clean) |
-| `ev-s7-financial-plan` | EV-S7.5 | s7-phasing-resourcing | `ev-s7-financial-plan-c5` | Confirm all founding member contributions are committed before construction begins |  | decision form (form arm, formId = item id) |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c1` | Sequence communal water system completion before any household arrival |  | schedule/protocol capture |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c2` | Sequence sanitation system completion before food production launch |  | schedule/protocol capture |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c3` | Sequence energy system completion before first winter occupancy |  | schedule/protocol capture |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c4` | Define go/no-go criteria for each system launch - tested and confirmed, not planned |  | decision form (form arm, formId = item id) |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c5` | Confirm sequencing against Phase 1 implementation plan |  | schedule/protocol capture |
-| `ev-s7-launch-sequence` | EV-S7.6 | s7-phasing-resourcing | `ev-s7-launch-sequence-c6` | Confirm the launch order covers every communal infrastructure commitment from the Stratum 1 provision balance |  | decision form (form arm, formId = item id) |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c1` | Define application and selection process for new members |  | decision form (form arm, formId = item id) |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c2` | Define trial residency period - duration, expectations, review criteria |  | log arm / review flow |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c3` | Define full membership criteria and confirmation process |  | decision form (form arm, formId = item id) |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c4` | Design orientation program for new members - governance, systems, agreements |  | decision form (form arm, formId = item id) |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c6` | Include the Stratum 1 community agreements and dispute resolution pathway in new member orientation |  | decision form (form arm, formId = item id) |
-| `ev-s7-onboarding` | EV-S7.7 | s7-phasing-resourcing | `ev-s7-onboarding-c5` | Define mentorship or buddy system for new household integration |  | decision form (form arm, formId = item id) |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c1` | Define founding cohort composition and arrival date |  | decision form (form arm, formId = item id) |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c2` | List exact habitability threshold items for founding cohort - potable water, shelter, sanitation, emergency communications |  | decision form (form arm, formId = item id) |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c3` | Define arrival criteria checklist - confirmed complete, tested, and signed off before any household moves in |  | decision form (form arm, formId = item id) |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c4` | Schedule subsequent cohort arrivals against infrastructure completion milestones |  | schedule/protocol capture |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c6` | Confirm scheduled cohort sizes keep total population within the Stratum 2 maximum sustainable population |  | schedule/protocol capture |
-| `ev-s7-settlement-plan` | EV-S7.4 | s7-phasing-resourcing | `ev-s7-settlement-plan-c5` | Define who enforces habitability thresholds - not self-reported by arriving households |  | decision form (form arm, formId = item id) |
 | `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c1` | Define canopy species and their proportion of total planting |  | decision form (form arm, formId = item id) |
 | `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c2` | Define understory species - productive and ecological function |  | log arm / review flow |
 | `orch-s4-species-mix` | ORCH-S4.4 | s4-foundation-decisions | `orch-s4-species-mix-c3` | Define shrub layer species - berry, medicinal, nitrogen-fixing |  | decision form (form arm, formId = item id) |

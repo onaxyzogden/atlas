@@ -479,3 +479,15 @@ export function workbenchAffordancesFor(
 ): WorkbenchObjectiveAffordances {
   return MAP[objectiveId] ?? EMPTY_AFFORDANCES;
 }
+
+/**
+ * True iff the objective has an explicit affordance descriptor entry (a
+ * "descriptor objective"). Callers use this to distinguish descriptor
+ * objectives -- whose affordances (including showGroups) are authored verbatim
+ * in MAP and must be respected as-is, e.g. s1-stakeholders is deliberately
+ * showGroups:false despite having decisionGroups -- from generic objectives,
+ * which can safely derive divider behaviour from group presence.
+ */
+export function hasWorkbenchAffordanceEntry(objectiveId: string): boolean {
+  return objectiveId in MAP;
+}

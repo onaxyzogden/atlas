@@ -36,7 +36,10 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
-import { workbenchAffordancesFor } from './workbenchAffordances.js';
+import {
+  workbenchAffordancesFor,
+  hasWorkbenchAffordanceEntry,
+} from './workbenchAffordances.js';
 import { feedsFallback } from '../../copy/index.js';
 import {
   useStakeholderRegisterStore,
@@ -463,6 +466,16 @@ export default function ActTierZeroWorkbench({
   // generic 2-pane workbench with no special-casing here.
   const affordances = workbenchAffordancesFor(activeObjective.id);
 
+  // Decision-group dividers: a descriptor objective keeps its authored
+  // showGroups boolean verbatim (e.g. s1-stakeholders has decisionGroups but is
+  // deliberately showGroups:false -- it uses a register-strip narrative, not
+  // dividers). A generic objective (no descriptor entry) derives divider
+  // behaviour from group presence, so any grouped non-descriptor objective gets
+  // dividers without an edit here. decisionGroups is always an array.
+  const showGroups = hasWorkbenchAffordanceEntry(activeObjective.id)
+    ? affordances.showGroups
+    : activeObjective.decisionGroups.length > 0;
+
   // The live count for a register strip; only the 'stakeholder' kind sources the
   // shared stakeholder register count (0 otherwise).
   const registerCount =
@@ -513,7 +526,7 @@ export default function ActTierZeroWorkbench({
           completedItemIds={completedForActive}
           selectedItemId={selectedItemId}
           onSelectItem={setSelectedItemId}
-          showGroups={affordances.showGroups}
+          showGroups={showGroups}
           modeFor={affordances.modeFor ?? undefined}
         />
       </section>
