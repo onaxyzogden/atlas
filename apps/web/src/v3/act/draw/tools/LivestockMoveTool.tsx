@@ -8,9 +8,17 @@
  * Persist-first pattern (mirrors MaintenanceLogTool): create a skeleton
  * LivestockMoveEvent on click; popover patches fields; ESC/Cancel removes
  * the event for true rollback.
+ *
+ * Work-fulfilment hand-off: when `workExecutionStore.pending` is set (a
+ * WorkItemRow's "Log this move" armed this tool), the form prefills from the
+ * planned work, the popover shows a "Fulfilling: <title>" hint, a click in a
+ * different paddock raises a non-blocking mismatch warning (the operator may
+ * proceed — the field is the truth), and on save the logged event is linked
+ * back via `confirmTypedProofMatch` (entry leg for rotate_through). Pending
+ * clears on save and on tool disarm.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import {
@@ -26,6 +34,8 @@ import {
   type LivestockSpecies,
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
+import { useWorkExecutionStore } from '../../../../store/workExecutionStore.js';
+import { confirmTypedProofMatch } from '../../../../features/act/fieldProofActions.js';
 import { useInlineFormStore } from '../../../plan/draw/inlineFormStore.js';
 import { originDisclosureField, parseOriginValue } from '../../originPicker.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -56,6 +66,18 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
   const updateEvent = useLivestockMoveLogStore((s) => s.updateEvent);
   const removeEvent = useLivestockMoveLogStore((s) => s.removeEvent);
   const openForm = useInlineFormStore((s) => s.open);
+  // Reactive read for the popover hint only — the click handler reads
+  // getState() so the map listener never re-binds on pending changes.
+  const pendingWork = useWorkExecutionStore((s) => s.pending);
+  const [mismatchWarning, setMismatchWarning] = useState<string | null>(null);
+
+  // Disarming the tool abandons any in-flight fulfilment hand-off.
+  useEffect(
+    () => () => {
+      useWorkExecutionStore.getState().clearPending();
+    },
+    [],
+  );
 
   useEffect(() => {
     const prevCursor = map.getCanvas().style.cursor;
@@ -106,14 +128,33 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
         if (lastInto) defaultSpecies = lastInto.species;
       }
 
+      // Fulfilment hand-off prefill: planned work overrides the paddock's
+      // species default; date/who come from the plan when present.
+      const pending = useWorkExecutionStore.getState().pending;
+      if (pending?.paddockId && pending.paddockId !== hitId) {
+        const planned = paddocks.find((p) => p.id === pending.paddockId);
+        setMismatchWarning(
+          `Planned for ${planned?.name ?? 'another paddock'} — you clicked ${
+            hitName
+          }. Saving here is allowed (the field is the truth).`,
+        );
+      } else {
+        setMismatchWarning(null);
+      }
+      const prefillSpecies =
+        pending?.species && isSpecies(pending.species)
+          ? pending.species
+          : defaultSpecies;
+      const prefillDate = pending?.date ?? todayIso();
+
       const id = newAnnotationId('lvm');
       addEvent({
         id,
         projectId,
         toPaddockId: hitId,
-        date: todayIso(),
+        date: prefillDate,
         direction: 'move_in',
-        species: defaultSpecies,
+        species: prefillSpecies,
         headCount: null,
       });
 
@@ -145,11 +186,11 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
           },
         ],
         initial: {
-          date: todayIso(),
+          date: prefillDate,
           direction: 'move_in',
-          species: defaultSpecies,
+          species: prefillSpecies,
           headCount: '',
-          who: '',
+          who: pending?.who ?? '',
           notes: '',
           origin: '',
           exitDate: '',
@@ -187,6 +228,15 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             });
             addEvent(exitLeg);
             addEvent(entryLeg);
+            if (pending) {
+              // Entry leg is the planned arrival — that's the proof event.
+              confirmTypedProofMatch(pending.workItemId, {
+                store: 'livestock-move',
+                eventId: entryLeg.id,
+              });
+              useWorkExecutionStore.getState().clearPending();
+              setMismatchWarning(null);
+            }
             return;
           }
 
@@ -200,6 +250,14 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
             fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
           });
+          if (pending) {
+            confirmTypedProofMatch(pending.workItemId, {
+              store: 'livestock-move',
+              eventId: id,
+            });
+            useWorkExecutionStore.getState().clearPending();
+            setMismatchWarning(null);
+          }
         },
         onCancel: () => removeEvent(id),
       });
@@ -215,6 +273,20 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
   return (
     <div className={css.popover} role="dialog" aria-label="Livestock move tool">
       <span className={css.title}>Log livestock move</span>
+      {pendingWork && (
+        <span className={css.hint} style={{ color: '#c4a265' }}>
+          Fulfilling: {pendingWork.title}
+        </span>
+      )}
+      {mismatchWarning && (
+        <span
+          className={css.hint}
+          role="alert"
+          style={{ color: 'var(--color-danger, #d06a5f)' }}
+        >
+          {mismatchWarning}
+        </span>
+      )}
       <span className={css.hint}>
         Click inside a paddock to record a move-in / move-out / rotate-through.
         Capture date, species, head count, and (optionally) who and notes.

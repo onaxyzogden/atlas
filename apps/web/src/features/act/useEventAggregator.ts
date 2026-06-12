@@ -208,6 +208,24 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       });
     }
 
+    for (const w of projectWorkItems) {
+      if (w.source !== 'livestock-plan') continue;
+      // Done/cancelled rows leave the calendar — the Act work panel keeps
+      // the variance record; this surface only shows what is still due.
+      if (w.status === 'done' || w.status === 'cancelled') continue;
+      const due = w.scheduledEnd ?? w.scheduledStart ?? null;
+      const key = toDateKey(due);
+      if (!key || !due) continue;
+      all.push({
+        id: `livestock-plan:${w.id}`,
+        source: 'livestock',
+        dateKey: key,
+        iso: due,
+        title: w.title,
+        meta: w.species ? `plan work · ${w.species}` : 'plan work',
+      });
+    }
+
     for (const h of harvests) {
       if (h.projectId !== projectId) continue;
       const key = toDateKey(h.date);

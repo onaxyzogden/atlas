@@ -128,6 +128,8 @@ import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
+import ActWorkPanel from './work/ActWorkPanel.js';
+import ActWorkHighlightLayer from './work/ActWorkHighlightLayer.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import {
   isTierZeroObjective,
@@ -188,6 +190,10 @@ export default function ActTierShell() {
   const search = useSearch({ strict: false }) as {
     mode?: 'objectives' | 'protocols';
     protocol?: string;
+    // Livestock work-schedule drill-down (?panel=work&workFilter=…) — URL-
+    // derived so Plan-side "Review in Act" toasts can deep-link it.
+    panel?: string;
+    workFilter?: string;
   };
 
   const projects = useProjectStore((s) => s.projects);
@@ -414,6 +420,12 @@ export default function ActTierShell() {
   // control, the Dashboard tab, or whenever the rail enters objective/protocol
   // detail (see the reconcile effect below).
   const [weatherOpen, setWeatherOpen] = useState(false);
+  // Livestock work-schedule drill-down: like the weather panel it lives under
+  // Dashboard mode, but it is URL-derived (?panel=work) so Plan can deep-link
+  // it. Opened by ActWorkSummaryCard; closed by its back control. Detail views
+  // win in the rightBody chain below (no reconcile effect needed).
+  const workOpen = search.panel === 'work';
+  const workFilter = search.workFilter;
   // Protocols mode: the clicked protocol whose detail shows in the right rail
   // (mirrors objective selection). URL-derived (?protocol=<templateId>), so it
   // survives reload and is deep-linkable. A stale id (protocol hidden by the
@@ -600,6 +612,33 @@ export default function ActTierShell() {
     },
     [navigate, params.projectId, selectedStratumId],
   );
+
+  // Work-panel open/close — rewrite only the panel/workFilter search params on
+  // the CURRENT path (`to: '.'`, the PlanStratumShell planMode pattern), so the
+  // drill-down works from the bare, stratum, and objective routes alike.
+  // `replace` keeps the open/close churn out of history.
+  const openWorkPanel = useCallback(() => {
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        panel: 'work',
+      }),
+      replace: true,
+    } as never);
+  }, [navigate]);
+
+  const closeWorkPanel = useCallback(() => {
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        panel: undefined,
+        workFilter: undefined,
+      }),
+      replace: true,
+    } as never);
+  }, [navigate]);
 
   // Left-rail Objectives/Protocols toggle → write ?mode. Entering Protocols
   // preserves any held ?protocol; leaving drops it (objectives-mode has no
@@ -1007,6 +1046,7 @@ export default function ActTierShell() {
                         projectId={id}
                         view="current"
                         activeModule={null}
+                        keepAbovePrefix="plan-data-"
                       />
                       <ActStructureClickHandler map={map} projectId={id} />
                       <ActFeatureClickHandler map={map} projectId={id} />
@@ -1072,6 +1112,12 @@ export default function ActTierShell() {
                         sourceObjectiveId={objectiveId}
                       />
                       {/*
+                        Livestock work locate: a WorkItemRow's Locate button
+                        sets workExecutionStore.highlightPaddockId; this layer
+                        outlines that paddock + fitBounds, then auto-clears.
+                      */}
+                      <ActWorkHighlightLayer map={map} projectId={id} />
+                      {/*
                         ADR-7 tension: the Act canvas adds execution placements
                         via Observe/Plan draw tools (one armed at a time). These
                         hosts hard-guard on their own id prefix and return null
@@ -1114,10 +1160,19 @@ export default function ActTierShell() {
             showTierZeroWorkbench ? (
               <div className={styles.rightRail}>
                 <div className={styles.rightBody}>
-                  <ActOpsDashboard
-                    projectId={id}
-                    onOpenWeather={() => setWeatherOpen(true)}
-                  />
+                  {workOpen ? (
+                    <ActWorkPanel
+                      projectId={id}
+                      onBack={closeWorkPanel}
+                      initialFilter={workFilter}
+                    />
+                  ) : (
+                    <ActOpsDashboard
+                      projectId={id}
+                      onOpenWeather={() => setWeatherOpen(true)}
+                      onOpenWork={openWorkPanel}
+                    />
+                  )}
                 </div>
               </div>
             ) : (
@@ -1227,6 +1282,12 @@ export default function ActTierShell() {
                           currentUserId={currentUserId}
                           myRole={myRole}
                         />
+                      ) : workOpen ? (
+                        <ActWorkPanel
+                          projectId={id}
+                          onBack={closeWorkPanel}
+                          initialFilter={workFilter}
+                        />
                       ) : weatherOpen ? (
                         <ActTierWeatherPanel
                           project={project}
@@ -1236,6 +1297,7 @@ export default function ActTierShell() {
                         <ActOpsDashboard
                           projectId={id}
                           onOpenWeather={() => setWeatherOpen(true)}
+                          onOpenWork={openWorkPanel}
                         />
                       )}
                     </div>

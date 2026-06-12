@@ -1,0 +1,361 @@
+/* ActWorkPanel — right-rail work drill-down (back header + agenda), plus the
+   summary card, agenda rows, and proposal review section. Mirrors the
+   ActTierWeatherPanel conventions (same rail, same vars). */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.backBtn:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.refreshBtn {
+  composes: backBtn;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tabBtn {
+  flex: 1 1 0;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tabBtn[data-active='true'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.sectionTitle[data-tone='danger'] {
+  color: var(--color-danger, #d27b6b);
+}
+
+.sectionTitle[data-tone='gold'] {
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.dayHeader {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text, #f2ede3);
+  margin-top: 2px;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  padding: 8px 2px;
+}
+
+/* ---- agenda row ---------------------------------------------------------- */
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.row[data-status='overdue'] {
+  border-left: 3px solid var(--color-danger, #d27b6b);
+}
+
+.row[data-status='due-today'] {
+  border-left: 3px solid var(--color-gold-brand, #c4a265);
+}
+
+.rowMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  min-width: 0;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.pill {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.pill[data-status='overdue'] {
+  color: var(--color-danger, #d27b6b);
+  border-color: var(--color-danger, #d27b6b);
+}
+
+.pill[data-status='due-today'] {
+  color: var(--color-gold-brand, #c4a265);
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.pill[data-status='done'] {
+  color: var(--color-success, #8fae6f);
+  border-color: var(--color-success, #8fae6f);
+}
+
+.chip {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 10%, transparent);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.variance {
+  font-size: 11px;
+  color: var(--color-success, #8fae6f);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.actionBtn {
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.actionBtn:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.actionBtn[data-variant='primary'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  color: var(--color-gold-brand, #c4a265);
+}
+
+/* ---- inline mark-done / reschedule / edit form --------------------------- */
+
+.inlineForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
+.inlineField {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.inlineField > label {
+  flex: 0 0 44px;
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* ---- proposal review rows ------------------------------------------------ */
+
+.reviewRow {
+  composes: row;
+}
+
+.scopeNotes {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 40%, transparent);
+  border-left: 3px solid var(--color-gold-brand, #c4a265);
+  border-radius: var(--radius-md, 8px);
+  padding: 6px 8px;
+  white-space: pre-wrap;
+}
+
+.dismissedToggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- ops-dashboard summary card ------------------------------------------ */
+
+.summaryCard {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease;
+  font-family: inherit;
+}
+
+.summaryCard:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.summaryCard:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.summaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent, #c4a265) 14%, var(--color-bg));
+  color: var(--color-accent, #c4a265);
+}
+
+.summaryBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.summaryLine {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.summaryLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summaryBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--color-gold-brand, #c4a265);
+  border: 1px solid var(--color-gold-brand, #c4a265);
+}
+
+.summaryBadge[data-tone='danger'] {
+  color: var(--color-danger, #d27b6b);
+  border-color: var(--color-danger, #d27b6b);
+}
