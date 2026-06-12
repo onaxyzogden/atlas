@@ -222,3 +222,39 @@ export function expandRecurrence(
   }
   return out;
 }
+
+/**
+ * Enumerate the calendar-anchor dates of a standard recurrence inside
+ * [fromISO, toISO] (inclusive, YYYY-MM-DD), capped at MAX_INSTANCES_PER_RULE.
+ *
+ * This is the COMMUNITY WORK LAYER's date-enumeration primitive — it reuses
+ * the private `isAnchorDay` / `parseISODate` / `toISODate` helpers above so
+ * the anchor logic stays in one place. The community generator calls this for
+ * the standard `WorkItemRecurrence` values; the community-only extras
+ * ('once', 'fortnightly', 'biannual', 'every-5-years') are handled by the
+ * generator itself and do NOT go through this function.
+ *
+ * Accepts the standard `WorkItemRecurrence` values ONLY — passing a
+ * community-layer extension recurrence will throw (exhaustiveness guard in
+ * `isAnchorDay`).
+ *
+ * Returns [] on an invalid or empty range.
+ */
+export function anchorDatesInRange(
+  recurrence: WorkItemRecurrence,
+  fromISO: string,
+  toISO: string,
+): string[] {
+  const fromMs = parseISODate(fromISO);
+  const toMs = parseISODate(toISO);
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs) {
+    return [];
+  }
+  const out: string[] = [];
+  for (let ms = fromMs; ms <= toMs; ms += DAY_MS) {
+    if (!isAnchorDay(ms, recurrence)) continue;
+    out.push(toISODate(ms));
+    if (out.length >= MAX_INSTANCES_PER_RULE) break;
+  }
+  return out;
+}

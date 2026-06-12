@@ -3,6 +3,7 @@ import type { LivestockWorkRule } from '../../schemas/livestockWork/livestockWor
 import {
   MAX_INSTANCES_PER_RULE,
   addDaysISO,
+  anchorDatesInRange,
   expandRecurrence,
   seasonWindowMonths,
 } from '../expandRecurrence.js';
@@ -222,5 +223,78 @@ describe('expandRecurrence — seasonal windows + hemisphere', () => {
     );
     expect(out.map((i) => i.dueDate)).toEqual(['2027-01-01']);
     expect(out[0]!.windowEnd).toBe('2027-03-31');
+  });
+});
+
+describe('anchorDatesInRange', () => {
+  it('weekly: enumerates Mondays inclusive of both ends', () => {
+    // 2026-06-11 is a Thursday; first Monday is 06-15, last in range is 06-22.
+    const dates = anchorDatesInRange('weekly', '2026-06-11', '2026-06-25');
+    expect(dates).toEqual(['2026-06-15', '2026-06-22']);
+  });
+
+  it('weekly: end date on a Monday is included (inclusive right boundary)', () => {
+    const dates = anchorDatesInRange('weekly', '2026-06-15', '2026-06-29');
+    expect(dates).toEqual(['2026-06-15', '2026-06-22', '2026-06-29']);
+  });
+
+  it('monthly: anchors to the 1st of each month', () => {
+    const dates = anchorDatesInRange('monthly', '2026-06-11', '2026-09-09');
+    expect(dates).toEqual(['2026-07-01', '2026-08-01', '2026-09-01']);
+  });
+
+  it('monthly: includes the 1st when fromISO is the 1st (inclusive left boundary)', () => {
+    const dates = anchorDatesInRange('monthly', '2026-07-01', '2026-09-01');
+    expect(dates).toEqual(['2026-07-01', '2026-08-01', '2026-09-01']);
+  });
+
+  it('quarterly: anchors to Jan/Apr/Jul/Oct 1st', () => {
+    const dates = anchorDatesInRange('quarterly', '2026-06-11', '2026-12-31');
+    expect(dates).toEqual(['2026-07-01', '2026-10-01']);
+  });
+
+  it('quarterly: includes Oct 1 when that is the end of the range', () => {
+    const dates = anchorDatesInRange('quarterly', '2026-07-01', '2026-10-01');
+    expect(dates).toEqual(['2026-07-01', '2026-10-01']);
+  });
+
+  it('annual: anchors to Jan 1st', () => {
+    const dates = anchorDatesInRange('annual', '2026-06-11', '2027-02-01');
+    expect(dates).toEqual(['2027-01-01']);
+  });
+
+  it('empty range (from > to) returns []', () => {
+    expect(anchorDatesInRange('weekly', '2026-06-25', '2026-06-11')).toEqual([]);
+  });
+
+  it('empty range (equal dates, not an anchor day) returns []', () => {
+    // 2026-06-11 is a Thursday, not a Monday
+    expect(anchorDatesInRange('weekly', '2026-06-11', '2026-06-11')).toEqual([]);
+  });
+
+  it('empty range (equal dates, is an anchor day) returns the single date', () => {
+    // 2026-06-15 is a Monday
+    expect(anchorDatesInRange('weekly', '2026-06-15', '2026-06-15')).toEqual([
+      '2026-06-15',
+    ]);
+  });
+
+  it('invalid fromISO returns []', () => {
+    expect(anchorDatesInRange('weekly', 'garbage', '2026-06-25')).toEqual([]);
+  });
+
+  it('invalid toISO returns []', () => {
+    expect(anchorDatesInRange('weekly', '2026-06-11', 'not-a-date')).toEqual([]);
+  });
+
+  it('caps a runaway daily range at MAX_INSTANCES_PER_RULE', () => {
+    const dates = anchorDatesInRange('daily', '2020-01-01', '2030-01-01');
+    expect(dates).toHaveLength(MAX_INSTANCES_PER_RULE);
+  });
+
+  it('returns plain strings (not instance objects) — community generator receives dates directly', () => {
+    const dates = anchorDatesInRange('monthly', '2026-07-01', '2026-08-01');
+    expect(typeof dates[0]).toBe('string');
+    expect(dates[0]).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

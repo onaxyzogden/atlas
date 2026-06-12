@@ -59,6 +59,7 @@ export * from './schemas/clientErrorTelemetry.schema.js';
 export * from './schemas/showcaseTelemetry.schema.js';
 export * from './schemas/workItem.schema.js';
 export * from './schemas/livestockWork/livestockWork.schema.js';
+export * from './schemas/communityWork/communityWork.schema.js';
 export * from './schemas/crewMember.schema.js';
 export * from './schemas/costRange.schema.js';
 export * from './schemas/proofEvent.schema.js';
@@ -209,6 +210,7 @@ export * from './constants/protocol/coOccurrence.js';
 export * from './constants/protocol/chronicDetection.js';
 export * from './constants/protocol/observationLogRetention.js';
 export * from './constants/livestockWork/protocolCadences.js';
+export * from './constants/communityWork/protocolCadences.js';
 
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';
