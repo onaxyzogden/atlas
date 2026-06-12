@@ -292,6 +292,134 @@
   text-decoration: underline;
 }
 
+/* ---- season month grid (WorkMonthGrid) ----------------------------------- */
+
+.monthGridWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.monthNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.monthNavBtn:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.monthTodayBtn {
+  flex: 1 1 auto;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 0 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.dayCell:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 10%, transparent);
+}
+
+.dayCell[data-outside='true'] {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.35));
+}
+
+.dayCell[data-today='true'] {
+  border-color: var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
+.dayCell[data-selected='true'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.dayNum {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.dayDots {
+  display: flex;
+  gap: 2px;
+  min-height: 4px;
+}
+
+.dayDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.dayDot[data-tone='overdue'] {
+  background: var(--color-danger, #d27b6b);
+}
+
+.dayDot[data-tone='open'] {
+  background: var(--color-gold-brand, #c4a265);
+}
+
+.dayDot[data-tone='done'] {
+  background: var(--color-success, #8fae6f);
+}
+
 /* ---- ops-dashboard summary card ------------------------------------------ */
 
 .summaryCard {

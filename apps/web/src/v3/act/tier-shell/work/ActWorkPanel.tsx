@@ -9,7 +9,8 @@
  *   1. Proposed (pinned) — WorkReviewSection over livestockWorkPlanStore.
  *   2. Overdue (pinned, red) — live items past due.
  *   3. Today / This week agenda — day-grouped spine rows (incl. recently
- *      done, so variance stays visible where the work was due).
+ *      done, so variance stays visible where the work was due) — or, on the
+ *      Season tab, the WorkMonthGrid month calendar (no horizon clamp).
  *
  * Generation runs on open + on explicit "Refresh" — rolling 90d horizon,
  * no background scheduler (sovereign steward: proposals only, the operator
@@ -29,22 +30,25 @@ import {
   workDueDate,
 } from '../../../../features/work/workSelectors.js';
 import WorkAgendaList from './WorkAgendaList.js';
+import WorkMonthGrid from './WorkMonthGrid.js';
 import WorkReviewSection from './WorkReviewSection.js';
 import styles from './ActWorkPanel.module.css';
 
-type WorkTab = 'today' | 'week';
+type WorkTab = 'today' | 'week' | 'season';
 
 interface Props {
   projectId: string;
   onBack: () => void;
-  /** From `?workFilter=…` — 'week' selects the week tab; anything else
+  /** From `?workFilter=…` — 'week'/'season' select those tabs; anything else
    *  (incl. 'proposed', whose section is pinned regardless) starts on today. */
   initialFilter?: string | undefined;
 }
 
 export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props) {
   const [tab, setTab] = useState<WorkTab>(
-    initialFilter === 'week' ? 'week' : 'today',
+    initialFilter === 'week' || initialFilter === 'season'
+      ? initialFilter
+      : 'today',
   );
   const items = useWorkItemStore((s) => s.items);
 
@@ -59,14 +63,18 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
 
   const todayISO = new Date().toISOString().slice(0, 10);
 
-  const { overdue, agenda } = useMemo(() => {
+  const { overdue, agenda, season } = useMemo(() => {
     const weekEnd = addDaysISO(todayISO, 6);
     const overdueRows: WorkItem[] = [];
     const agendaRows: WorkItem[] = [];
+    // Season feed: every non-cancelled dated row (incl. overdue + done) so
+    // the month grid can place the full horizon — it windows by month itself.
+    const seasonRows: WorkItem[] = [];
     for (const item of items) {
       if (item.projectId !== projectId || !isLivestockWork(item)) continue;
       const status = workDisplayStatus(item, todayISO);
       if (status === 'cancelled') continue;
+      seasonRows.push(item);
       if (status === 'overdue') {
         overdueRows.push(item);
         continue;
@@ -82,7 +90,7 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
     overdueRows.sort((a, b) =>
       (workDueDate(a) ?? '') < (workDueDate(b) ?? '') ? -1 : 1,
     );
-    return { overdue: overdueRows, agenda: agendaRows };
+    return { overdue: overdueRows, agenda: agendaRows, season: seasonRows };
   }, [items, projectId, tab, todayISO]);
 
   return (
@@ -124,6 +132,16 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
         >
           This week
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'season'}
+          className={styles.tabBtn}
+          data-active={tab === 'season' || undefined}
+          onClick={() => setTab('season')}
+        >
+          Season
+        </button>
       </div>
 
       <div className={styles.body}>
@@ -142,15 +160,19 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
           </div>
         )}
 
-        <WorkAgendaList
-          items={agenda}
-          todayISO={todayISO}
-          emptyLabel={
-            tab === 'today'
-              ? 'Nothing due today.'
-              : 'Nothing due this week.'
-          }
-        />
+        {tab === 'season' ? (
+          <WorkMonthGrid items={season} todayISO={todayISO} />
+        ) : (
+          <WorkAgendaList
+            items={agenda}
+            todayISO={todayISO}
+            emptyLabel={
+              tab === 'today'
+                ? 'Nothing due today.'
+                : 'Nothing due this week.'
+            }
+          />
+        )}
       </div>
     </div>
   );
