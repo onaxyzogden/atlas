@@ -6,7 +6,12 @@
  * severity, explanation, suggested fix, and data-source traceability.
  */
 
-import { PLACEMENT_DISTANCES_M } from '@ogden/shared/placementRules';
+import {
+  PLACEMENT_DISTANCES_M,
+  PLACEMENT_RULES,
+  findPlacementRule,
+  type PlacementRule,
+} from '@ogden/shared/placementRules';
 
 /* ------------------------------------------------------------------ */
 /*  Severity & Category types                                          */
@@ -203,15 +208,22 @@ export interface RuleCatalogEntry {
   weightCategory: RuleWeightCategory;
   dataSource: string;
   category: RuleCategory;
+  /** Amanah grounding for the rule, where the shared catalog carries one. */
+  amanahNote?: string;
+  /** True when the rule also gates manual draws at draw time (shared
+   *  placement catalog), not just the post-hoc evaluation pass. */
+  drawTime?: boolean;
 }
 
-export const RULE_CATALOG: RuleCatalogEntry[] = [
+const STATIC_RULE_CATALOG: RuleCatalogEntry[] = [
   // Structural
   { ruleId: 'slope-structure', title: 'Structure slope limit', description: 'Structures on slopes above 15\u00b0 face foundation challenges; above 25\u00b0 is prohibitive.', defaultSeverity: 'warning', weightCategory: 'structural', dataSource: 'Elevation Layer', category: 'slope' },
   { ruleId: 'slope-road', title: 'Road slope limit', description: 'Roads on slopes above 10\u00b0 are difficult; above 15\u00b0 requires engineering.', defaultSeverity: 'warning', weightCategory: 'structural', dataSource: 'Elevation Layer', category: 'slope' },
   { ruleId: 'solar-orientation', title: 'Solar orientation', description: 'Dwellings on south/SE-facing aspects capture more passive solar gain.', defaultSeverity: 'info', weightCategory: 'structural', dataSource: 'Elevation Layer', category: 'solar' },
   { ruleId: 'wind-shelter', title: 'Wind exposure', description: 'Dwellings in exposed areas face higher heating costs and structural wind load.', defaultSeverity: 'warning', weightCategory: 'structural', dataSource: 'Microclimate (Tier 3)', category: 'wind' },
-  { ruleId: 'well-septic-distance', title: 'Well-septic separation', description: 'Wells and septic systems must maintain 30m minimum separation.', defaultSeverity: 'error', weightCategory: 'structural', dataSource: 'Feature Geometry', category: 'setback' },
+  // drawTime: covered at draw time by the shared well-septic-separation /
+  // septic-well-separation pair (legacyRuleId points here).
+  { ruleId: 'well-septic-distance', title: 'Well-septic separation', description: 'Wells and septic systems must maintain 30m minimum separation.', defaultSeverity: 'error', weightCategory: 'structural', dataSource: 'Feature Geometry', category: 'setback', drawTime: true },
   { ruleId: 'access-to-dwelling', title: 'Dwelling access road', description: 'Dwellings require vehicle access via main or secondary road.', defaultSeverity: 'warning', weightCategory: 'structural', dataSource: 'Feature Geometry', category: 'access' },
   { ruleId: 'no-access-paths', title: 'No access paths', description: 'Placed structures need at least one road or path for access.', defaultSeverity: 'warning', weightCategory: 'structural', dataSource: 'Feature Geometry', category: 'access' },
   { ruleId: 'no-emergency-access', title: 'Emergency access', description: 'Multiple structures need a designated emergency access route.', defaultSeverity: 'info', weightCategory: 'structural', dataSource: 'Feature Geometry', category: 'access' },
@@ -240,8 +252,75 @@ export const RULE_CATALOG: RuleCatalogEntry[] = [
   { ruleId: 'sacred-noise-livestock', title: 'Sacred zone livestock buffer', description: 'Spiritual zones need separation from livestock for noise and odor.', defaultSeverity: 'warning', weightCategory: 'spiritual', dataSource: 'Feature Geometry', category: 'spiritual' },
   { ruleId: 'sacred-noise-infrastructure', title: 'Sacred zone infrastructure buffer', description: 'Spiritual zones need separation from infrastructure noise sources.', defaultSeverity: 'info', weightCategory: 'spiritual', dataSource: 'Feature Geometry', category: 'spiritual' },
   { ruleId: 'prayer-qibla-alignment', title: 'Qibla alignment', description: 'Prayer spaces should be oriented toward the Qibla direction.', defaultSeverity: 'info', weightCategory: 'spiritual', dataSource: 'Qibla Library', category: 'spiritual' },
-  { ruleId: 'livestock-spiritual-buffer', title: 'Livestock-spiritual buffer', description: 'Livestock paddocks and spiritual zones need 50m minimum buffer.', defaultSeverity: 'info', weightCategory: 'spiritual', dataSource: 'Feature Geometry', category: 'buffer' },
+  // drawTime: the shared warn rule of the same id gates paddock draws too;
+  // its amanahNote is sourced from the shared catalog (single source).
+  { ruleId: 'livestock-spiritual-buffer', title: 'Livestock-spiritual buffer', description: 'Livestock paddocks and spiritual zones need 50m minimum buffer.', defaultSeverity: 'info', weightCategory: 'spiritual', dataSource: 'Feature Geometry', category: 'buffer', drawTime: true, amanahNote: findPlacementRule('livestock-spiritual-buffer')?.amanahNote },
 
-  // Ecological
-  // (reserved for future rules — wetland encroachment, habitat corridor breaks, etc.)
+  // Ecological entries arrive via the draw-time placement rules appended
+  // below (wetland-disturbance-buffer, orchard-guild-zone-affinity).
+];
+
+/* ------------------------------------------------------------------ */
+/*  Draw-time placement rules → catalog entries                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Panel presentation for each shared draw-time placement rule: display
+ * title, granular category (weight category derives via
+ * RULE_CATEGORY_TO_WEIGHT), and the data layer the rule reads. Rules
+ * absent here fall back to setback / Feature Geometry.
+ */
+const PLACEMENT_RULE_PRESENTATION: Record<
+  string,
+  { title: string; category: RuleCategory; dataSource: string }
+> = {
+  'boundary-containment': { title: 'Parcel boundary containment', category: 'setback', dataSource: 'Parcel Boundary' },
+  'well-septic-separation': { title: 'Well-septic separation', category: 'setback', dataSource: 'Feature Geometry' },
+  'septic-well-separation': { title: 'Septic-well separation', category: 'setback', dataSource: 'Feature Geometry' },
+  'paddock-prohibited-zones': { title: 'Paddock prohibited zones', category: 'grazing', dataSource: 'Zone Layer' },
+  'buffer-zone-exclusion': { title: 'Buffer zone exclusion', category: 'buffer', dataSource: 'Zone Layer' },
+  'livestock-water-protection': { title: 'Livestock water protection', category: 'water', dataSource: 'Feature Geometry' },
+  'livestock-spiritual-buffer': { title: 'Livestock-spiritual buffer', category: 'buffer', dataSource: 'Feature Geometry' },
+  'orchard-guild-zone-affinity': { title: 'Orchard / guild zone affinity', category: 'ecological', dataSource: 'Zone Layer' },
+  'guild-permaculture-ring': { title: 'Guild permaculture ring (Z1–Z3)', category: 'access', dataSource: 'Permaculture Rings' },
+  'wetland-disturbance-buffer': { title: 'Wetland disturbance buffer', category: 'ecological', dataSource: 'Wetlands & Flood Layer' },
+  'riparian-planting-buffer': { title: 'Riparian planting buffer', category: 'water', dataSource: 'Hydrology Layer' },
+  'nursery-water-proximity': { title: 'Nursery water proximity', category: 'water', dataSource: 'Feature Geometry' },
+  'paddock-no-self-overlap': { title: 'Paddock self-overlap', category: 'grazing', dataSource: 'Feature Geometry' },
+  'steward-setback-respect': { title: 'Setback ring respect', category: 'setback', dataSource: 'Setback Rings' },
+};
+
+/**
+ * Map a shared draw-time placement rule into the panel catalog shape.
+ * block → error, warn → warning; the description carries the rule's
+ * whyItMatters prose so the panel explains rather than restates.
+ */
+export function placementRuleToCatalogEntry(rule: PlacementRule): RuleCatalogEntry {
+  const ui = PLACEMENT_RULE_PRESENTATION[rule.id];
+  const category: RuleCategory = ui?.category ?? 'setback';
+  return {
+    ruleId: rule.id,
+    title: ui?.title ?? rule.id,
+    description: rule.whyItMatters ?? rule.message,
+    defaultSeverity: rule.severity === 'block' ? 'error' : 'warning',
+    weightCategory: RULE_CATEGORY_TO_WEIGHT[category],
+    dataSource: ui?.dataSource ?? 'Feature Geometry',
+    category,
+    amanahNote: rule.amanahNote,
+    drawTime: true,
+  };
+}
+
+/**
+ * Draw-time rules whose legacyRuleId names a static entry above are not
+ * duplicated — the static entry stays (its ruleId is what the post-hoc
+ * RulesEngine emits) and is tagged drawTime instead.
+ */
+const STATIC_RULE_IDS = new Set(STATIC_RULE_CATALOG.map((e) => e.ruleId));
+
+export const RULE_CATALOG: RuleCatalogEntry[] = [
+  ...STATIC_RULE_CATALOG,
+  ...PLACEMENT_RULES.filter(
+    (rule) => !(rule.legacyRuleId && STATIC_RULE_IDS.has(rule.legacyRuleId)),
+  ).map(placementRuleToCatalogEntry),
 ];

@@ -271,10 +271,20 @@ function CatalogTab() {
               <div key={entry.ruleId} className={s.catalogEntry}>
                 <div className={s.catalogTitle}>{entry.title}</div>
                 <div className={s.catalogDesc}>{entry.description}</div>
+                {entry.amanahNote && (
+                  <div className={s.catalogDesc} style={{ fontStyle: 'italic', opacity: 0.85 }}>
+                    {entry.amanahNote}
+                  </div>
+                )}
                 <div className={s.catalogMeta}>
                   <span className={`${s.catalogBadge} ${SEVERITY_BADGE[entry.defaultSeverity] ?? ''}`}>
                     {entry.defaultSeverity}
                   </span>
+                  {entry.drawTime && (
+                    <span className={s.catalogBadge} title="Also enforced while drawing, not just in the post-hoc evaluation">
+                      draw-time
+                    </span>
+                  )}
                   <span className={s.dataSourceTag}>{entry.dataSource}</span>
                 </div>
               </div>
