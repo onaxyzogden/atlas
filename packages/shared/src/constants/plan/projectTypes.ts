@@ -75,7 +75,9 @@ export const PROJECT_TYPES: readonly ProjectTypeDef[] = [
   },
   {
     id: 'ecovillage',
-    label: 'Ecovillage',
+    // "Intentional Community" is the operator's synonym for this type
+    // (2026-06-11); display relabel only — the id stays `ecovillage`.
+    label: 'Ecovillage (Intentional Community)',
     ordinal: 5,
     canBePrimary: true,
     canBeSecondary: false,

@@ -75,6 +75,16 @@ const COMBOS: ReadonlyArray<{ label: string; input: ResolveProjectObjectivesInpu
     label: 'nursery (universal-only baseline)',
     input: { primaryTypeId: 'nursery' },
   },
+  {
+    // The operator's own composition (2026-06-11): an ecovillage (intentional
+    // community) with orchards/food-forest guilds, silvopasture, and a nursery.
+    // All three secondaries sit on 'A' cells of the ecovillage matrix column.
+    label: 'ecovillage + [orchard_food_forest, silvopasture, nursery] (operator composition)',
+    input: {
+      primaryTypeId: 'ecovillage',
+      secondaryTypeIds: ['orchard_food_forest', 'silvopasture', 'nursery'],
+    },
+  },
 ];
 
 /** Build a progress map that checks every REQUIRED item of every objective whose
