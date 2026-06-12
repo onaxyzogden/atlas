@@ -15,11 +15,11 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `auto-answer` | 4 | 0.2% | yes |
 | `auto-formula` | 13 | 0.6% | yes |
 | `form-capture` | 215 | 10.6% | yes |
-| `workbench-capture` | 242 | 11.9% | yes |
+| `workbench-capture` | 300 | 14.8% | yes |
 | `objective-map` | 1103 | 54.4% | no (objective-level instrument, manual tick) |
 | `objective-log` | 6 | 0.3% | no (objective-level instrument, manual tick) |
 | `objective-flow` | 6 | 0.3% | no (objective-level instrument, manual tick) |
-| `no-path` | 440 | 21.7% | **no — gap** |
+| `no-path` | 382 | 18.8% | **no — gap** |
 
 ## Summary by type prefix
 
@@ -29,10 +29,10 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 | `ev-` | P2 | 194 | 0 | 57 | 137 |
 | `orch-` | P3 | 137 | 0 | 87 | 50 |
 | `orch-sec-` | P3 | 25 | 0 | 15 | 10 |
-| `silv-` | P4 | 144 | 21 | 101 | 22 |
+| `silv-` | P4 | 144 | 0 | 101 | 43 |
 | `silv-sec-` | P4 | 43 | 0 | 21 | 22 |
-| `nur-sec-` | P5 | 43 | 5 | 28 | 10 |
-| `hms-` | P6 | 87 | 32 | 48 | 7 |
+| `nur-sec-` | P5 | 43 | 0 | 28 | 15 |
+| `hms-` | P6 | 87 | 0 | 48 | 39 |
 | `ag-` | — | 210 | 76 | 116 | 18 |
 | `con-` | — | 167 | 44 | 106 | 17 |
 | `edu-` | — | 129 | 48 | 64 | 17 |
@@ -49,13 +49,13 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Stratum | Items | no-path | objective-level | evidence-backed |
 |---|--:|--:|--:|--:|
-| s1-project-foundation | 254 | 11 | 6 | 237 |
+| s1-project-foundation | 254 | 6 | 6 | 242 |
 | s2-land-reading | 264 | 5 | 218 | 41 |
 | s3-systems-reading | 240 | 6 | 212 | 22 |
-| s4-foundation-decisions | 414 | 154 | 191 | 69 |
+| s4-foundation-decisions | 414 | 136 | 191 | 87 |
 | s5-system-design | 359 | 5 | 349 | 5 |
-| s6-integration-design | 234 | 96 | 102 | 36 |
-| s7-phasing-resourcing | 264 | 163 | 37 | 64 |
+| s6-integration-design | 234 | 86 | 102 | 46 |
+| s7-phasing-resourcing | 264 | 138 | 37 | 89 |
 
 ## Unmatched form arms (formId matches no checklist item)
 
@@ -70,64 +70,6 @@ Order for follow-up sessions, per the approved plan: **universal → ecovillage 
 
 | Objective | Ref | Stratum | Item | Label | Optional | Suggested capture |
 |---|---|---|---|---|---|---|
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c1` | Define routine health program per species - vaccination, drenching, parasite management |  | map arm (per-item bridge) |
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c2` | Define preventive care calendar - fertility, condition scoring, hoof care |  | schedule/protocol capture |
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c3` | Identify nearest veterinary service and emergency response time |  | decision form (form arm, formId = item id) |
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c4` | Define isolation facility requirements for sick or injured animals |  | decision form (form arm, formId = item id) |
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c5` | Define mortality management protocol |  | decision form (form arm, formId = item id) |
-| `silv-s4-animal-health` | SILV-S4.8 | s4-foundation-decisions | `silv-s4-animal-health-c6` | Confirm all handling facilities support low-stress routine health procedures |  | decision form (form arm, formId = item id) |
-| `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c1` | Define health indicators per species - body condition score, coat condition, mobility, behaviour |  | decision form (form arm, formId = item id) |
-| `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c2` | Define monitoring frequency - weekly minimum, daily for high-risk periods |  | log arm / review flow |
-| `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c3` | Define veterinary trigger thresholds - what condition score or symptom requires vet contact |  | decision form (form arm, formId = item id) |
-| `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c4` | Design health recording system - individual animal and mob records |  | log arm / review flow |
-| `silv-s6-animal-health-monitoring` | SILV-S6.3 | s6-integration-design | `silv-s6-animal-health-monitoring-c5` | Define seasonal health risk calendar - drenching, vaccination, fertility monitoring windows |  | schedule/protocol capture |
-| `silv-s7-financial-viability` | SILV-S7.6 | s7-phasing-resourcing | `silv-s7-financial-viability-c1` | Estimate total Phase 1 infrastructure cost |  | financial worksheet (Amanah-clean) |
-| `silv-s7-financial-viability` | SILV-S7.6 | s7-phasing-resourcing | `silv-s7-financial-viability-c2` | Estimate livestock acquisition cost per phase |  | financial worksheet (Amanah-clean) |
-| `silv-s7-financial-viability` | SILV-S7.6 | s7-phasing-resourcing | `silv-s7-financial-viability-c3` | Map revenue timeline - first sales, annual income at full stocking |  | map arm (per-item bridge) |
-| `silv-s7-financial-viability` | SILV-S7.6 | s7-phasing-resourcing | `silv-s7-financial-viability-c5` | Define minimum viable revenue threshold - what enterprise scale makes this financially viable |  | financial worksheet (Amanah-clean) |
-| `silv-s7-financial-viability` | SILV-S7.6 | s7-phasing-resourcing | `silv-s7-financial-viability-c6` | Define financial review trigger - market or production change that requires model review |  | financial worksheet (Amanah-clean) |
-| `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c1` | Confirm all boundary and subdivision fencing complete before any livestock arrive |  | map arm (per-item bridge) |
-| `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c2` | Confirm all paddock water points operational before livestock arrive |  | decision form (form arm, formId = item id) |
-| `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c3` | Confirm yards and handling facilities operational before livestock arrive |  | decision form (form arm, formId = item id) |
-| `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c4` | Define go/no-go test for each infrastructure category |  | decision form (form arm, formId = item id) |
-| `silv-s7-livestock-establishment` | SILV-S7.4 | s7-phasing-resourcing | `silv-s7-livestock-establishment-c5` | Define livestock sourcing timeline - breed, vendor, transport, quarantine |  | decision form (form arm, formId = item id) |
-| `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c1` | Test water quality for propagation suitability - pH, EC, biological contamination |  | log arm / review flow |
-| `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c2` | Test for chemical contamination relevant to sensitive propagation species |  | decision form (form arm, formId = item id) |
-| `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c3` | Measure static and dynamic pressure at proposed propagation points |  | decision form (form arm, formId = item id) |
-| `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c4` | Assess water softness - relevant for sensitive native species propagation |  | log arm / review flow |
-| `nur-sec-s1-water-survey` | NRS-S1.2 | s1-project-foundation | `nur-sec-s1-water-survey-c5` | Confirm water quality meets the growing system philosophy requirements |  | decision form (form arm, formId = item id) |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c1` | Assess current shelter condition and adequacy for all seasons |  | log arm / review flow |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c2` | Define heating fuel strategy - wood, passive solar, gas, electric, hybrid |  | decision form (form arm, formId = item id) |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c3` | Define backup power strategy - generator, battery, manual alternatives |  | decision form (form arm, formId = item id) |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c4` | Identify critical household systems that require power - water pump, refrigeration, communications |  | decision form (form arm, formId = item id) |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c5` | Define resilience threshold - minimum energy and shelter standard to maintain in disruption |  | decision form (form arm, formId = item id) |
-| `hms-s4-energy-shelter-resilience` | HMS-S4.6 | s4-foundation-decisions | `hms-s4-energy-shelter-resilience-c6` | Identify priority improvements required before Act begins |  | decision form (form arm, formId = item id) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c1` | Map household food needs from Tier 0 against what the site can produce |  | map arm (per-item bridge) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c2` | Select primary growing methods - annual beds, perennial systems, animals, preserving |  | decision form (form arm, formId = item id) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c3` | Define production targets per food category for first planning cycle |  | decision form (form arm, formId = item id) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c4` | Identify which high-value or high-frequency foods to prioritise first |  | decision form (form arm, formId = item id) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c5` | Define seed saving and variety selection strategy |  | decision form (form arm, formId = item id) |
-| `hms-s4-food-production-strategy` | HMS-S4.4 | s4-foundation-decisions | `hms-s4-food-production-strategy-c6` | Establish food preservation and storage approach - fermentation, drying, cellaring, freezing |  | decision form (form arm, formId = item id) |
-| `hms-s6-self-sufficiency-feedback` | HMS-S6.2 | s6-integration-design | `hms-s6-self-sufficiency-feedback-c1` | Design provision tracking system - record what was grown, preserved, and consumed from the homestead each season |  | log arm / review flow |
-| `hms-s6-self-sufficiency-feedback` | HMS-S6.2 | s6-integration-design | `hms-s6-self-sufficiency-feedback-c2` | Design gap tracking - record what was still purchased externally and at what cost |  | financial worksheet (Amanah-clean) |
-| `hms-s6-self-sufficiency-feedback` | HMS-S6.2 | s6-integration-design | `hms-s6-self-sufficiency-feedback-c3` | Connect tracking system to Tier 0 self-sufficiency targets - measure progress against original baseline |  | decision form (form arm, formId = item id) |
-| `hms-s6-self-sufficiency-feedback` | HMS-S6.2 | s6-integration-design | `hms-s6-self-sufficiency-feedback-c4` | Define seasonal review rhythm - when does the household assess progress and adjust plans |  | log arm / review flow |
-| `hms-s6-self-sufficiency-feedback` | HMS-S6.2 | s6-integration-design | `hms-s6-self-sufficiency-feedback-c5` | Specify record format - simple enough to maintain consistently |  | log arm / review flow |
-| `hms-s7-adaptive-management` | HMS-S7.6 | s7-phasing-resourcing | `hms-s7-adaptive-management-c1` | Define annual homestead review process - what monitoring data is reviewed and by whom |  | log arm / review flow |
-| `hms-s7-adaptive-management` | HMS-S7.6 | s7-phasing-resourcing | `hms-s7-adaptive-management-c2` | Define decision triggers - what gaps or conditions require a plan change |  | decision form (form arm, formId = item id) |
-| `hms-s7-adaptive-management` | HMS-S7.6 | s7-phasing-resourcing | `hms-s7-adaptive-management-c3` | Specify how plan changes are documented and why |  | decision form (form arm, formId = item id) |
-| `hms-s7-adaptive-management` | HMS-S7.6 | s7-phasing-resourcing | `hms-s7-adaptive-management-c4` | Define 3-year comprehensive review against Tier 0 self-sufficiency targets |  | log arm / review flow |
-| `hms-s7-adaptive-management` | HMS-S7.6 | s7-phasing-resourcing | `hms-s7-adaptive-management-c5` | Define contingency response for provision shortfalls or system failures - immediate actions when a self-sufficiency target is missed |  | decision form (form arm, formId = item id) |
-| `hms-s7-budget-input-reduction` | HMS-S7.5 | s7-phasing-resourcing | `hms-s7-budget-input-reduction-c1` | Record current annual household food and supply spend as baseline |  | log arm / review flow |
-| `hms-s7-budget-input-reduction` | HMS-S7.5 | s7-phasing-resourcing | `hms-s7-budget-input-reduction-c2` | Map which spend categories will be reduced in Phase 1 - and by how much |  | schedule/protocol capture |
-| `hms-s7-budget-input-reduction` | HMS-S7.5 | s7-phasing-resourcing | `hms-s7-budget-input-reduction-c3` | Define input reduction milestones by planning cycle |  | decision form (form arm, formId = item id) |
-| `hms-s7-budget-input-reduction` | HMS-S7.5 | s7-phasing-resourcing | `hms-s7-budget-input-reduction-c4` | Identify remaining external inputs that cannot be replaced and their cost |  | financial worksheet (Amanah-clean) |
-| `hms-s7-budget-input-reduction` | HMS-S7.5 | s7-phasing-resourcing | `hms-s7-budget-input-reduction-c5` | Define minimum financial viability threshold for the homestead |  | financial worksheet (Amanah-clean) |
-| `hms-s7-provision-phasing` | HMS-S7.4 | s7-phasing-resourcing | `hms-s7-provision-phasing-c1` | Identify fast-yielding enterprises for immediate planting - salad greens, herbs, eggs, sprouts |  | decision form (form arm, formId = item id) |
-| `hms-s7-provision-phasing` | HMS-S7.4 | s7-phasing-resourcing | `hms-s7-provision-phasing-c2` | Sequence medium-term production - annual vegetables, small fruit, preserving crops |  | schedule/protocol capture |
-| `hms-s7-provision-phasing` | HMS-S7.4 | s7-phasing-resourcing | `hms-s7-provision-phasing-c3` | Sequence long-term production - orchard, perennial systems, staple crops |  | schedule/protocol capture |
-| `hms-s7-provision-phasing` | HMS-S7.4 | s7-phasing-resourcing | `hms-s7-provision-phasing-c4` | Define ecological readiness criteria for each phase - what soil, water, or habitat conditions must be met before each production layer launches |  | schedule/protocol capture |
-| `hms-s7-provision-phasing` | HMS-S7.4 | s7-phasing-resourcing | `hms-s7-provision-phasing-c5` | Confirm sequencing reduces household grocery spend from earliest possible point |  | decision form (form arm, formId = item id) |
 | `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c1` | Define who will be living on the land - household members, dependents, seasonal residents |  | decision form (form arm, formId = item id) |
 | `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c2` | List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications |  | decision form (form arm, formId = item id) |
 | `res-s1-household-needs` | RES-S1.1 | s1-project-foundation | `res-s1-household-needs-c3` | Define food provision intent - what proportion of household food will come from the land |  | decision form (form arm, formId = item id) |

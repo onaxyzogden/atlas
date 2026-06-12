@@ -71,6 +71,20 @@ const EXPECTED_IDS = [
   'orch-s7-financial-viability',
   'orch-s7-planting-establishment',
   'orch-s7-succession-plan',
+  // Silvopasture workbench membership (2026-06-12)
+  'silv-s4-animal-health',
+  'silv-s6-animal-health-monitoring',
+  'silv-s7-financial-viability',
+  'silv-s7-livestock-establishment',
+  // Nursery-secondary workbench membership (2026-06-12)
+  'nur-sec-s1-water-survey',
+  // Homestead workbench membership (2026-06-12)
+  'hms-s4-energy-shelter-resilience',
+  'hms-s4-food-production-strategy',
+  'hms-s6-self-sufficiency-feedback',
+  'hms-s7-adaptive-management',
+  'hms-s7-budget-input-reduction',
+  'hms-s7-provision-phasing',
 ] as const;
 
 describe('tierZeroObjectives -- membership set', () => {

@@ -6,21 +6,14 @@
       "auto-answer": 4,
       "auto-formula": 13,
       "form-capture": 215,
-      "workbench-capture": 242,
+      "workbench-capture": 300,
       "objective-map": 1103,
       "objective-log": 6,
       "objective-flow": 6,
-      "no-path": 440
+      "no-path": 382
     }
   },
   "noPath": {
-    "nur-sec-s1-water-survey": [
-      "nur-sec-s1-water-survey-c1",
-      "nur-sec-s1-water-survey-c2",
-      "nur-sec-s1-water-survey-c3",
-      "nur-sec-s1-water-survey-c4",
-      "nur-sec-s1-water-survey-c5"
-    ],
     "res-s1-household-needs": [
       "res-s1-household-needs-c1",
       "res-s1-household-needs-c2",
@@ -105,22 +98,6 @@
       "edu-s4-program-delivery-c5",
       "edu-s4-program-delivery-c6"
     ],
-    "hms-s4-energy-shelter-resilience": [
-      "hms-s4-energy-shelter-resilience-c1",
-      "hms-s4-energy-shelter-resilience-c2",
-      "hms-s4-energy-shelter-resilience-c3",
-      "hms-s4-energy-shelter-resilience-c4",
-      "hms-s4-energy-shelter-resilience-c5",
-      "hms-s4-energy-shelter-resilience-c6"
-    ],
-    "hms-s4-food-production-strategy": [
-      "hms-s4-food-production-strategy-c1",
-      "hms-s4-food-production-strategy-c2",
-      "hms-s4-food-production-strategy-c3",
-      "hms-s4-food-production-strategy-c4",
-      "hms-s4-food-production-strategy-c5",
-      "hms-s4-food-production-strategy-c6"
-    ],
     "lvs-s4-grazing-system": [
       "lvs-s4-grazing-system-c1",
       "lvs-s4-grazing-system-c2",
@@ -187,14 +164,6 @@
       "ofg-s4-water-system-redundancy-c4",
       "ofg-s4-water-system-redundancy-c5",
       "ofg-s4-water-system-redundancy-c6"
-    ],
-    "silv-s4-animal-health": [
-      "silv-s4-animal-health-c1",
-      "silv-s4-animal-health-c2",
-      "silv-s4-animal-health-c3",
-      "silv-s4-animal-health-c4",
-      "silv-s4-animal-health-c5",
-      "silv-s4-animal-health-c6"
     ],
     "well-s4-healing-garden-strategy": [
       "well-s4-healing-garden-strategy-c1",
@@ -311,13 +280,6 @@
       "edu-s6-program-evaluation-c5",
       "edu-s6-program-evaluation-c6"
     ],
-    "hms-s6-self-sufficiency-feedback": [
-      "hms-s6-self-sufficiency-feedback-c1",
-      "hms-s6-self-sufficiency-feedback-c2",
-      "hms-s6-self-sufficiency-feedback-c3",
-      "hms-s6-self-sufficiency-feedback-c4",
-      "hms-s6-self-sufficiency-feedback-c5"
-    ],
     "lvs-s6-herd-health": [
       "lvs-s6-herd-health-c1",
       "lvs-s6-herd-health-c2",
@@ -360,13 +322,6 @@
       "ofg-s6-systems-performance-monitoring-c3",
       "ofg-s6-systems-performance-monitoring-c4",
       "ofg-s6-systems-performance-monitoring-c5"
-    ],
-    "silv-s6-animal-health-monitoring": [
-      "silv-s6-animal-health-monitoring-c1",
-      "silv-s6-animal-health-monitoring-c2",
-      "silv-s6-animal-health-monitoring-c3",
-      "silv-s6-animal-health-monitoring-c4",
-      "silv-s6-animal-health-monitoring-c5"
     ],
     "well-s6-external-relations": [
       "well-s6-external-relations-c1",
@@ -491,27 +446,6 @@
       "edu-s7-program-launch-c5",
       "edu-s7-program-launch-c6"
     ],
-    "hms-s7-adaptive-management": [
-      "hms-s7-adaptive-management-c1",
-      "hms-s7-adaptive-management-c2",
-      "hms-s7-adaptive-management-c3",
-      "hms-s7-adaptive-management-c4",
-      "hms-s7-adaptive-management-c5"
-    ],
-    "hms-s7-budget-input-reduction": [
-      "hms-s7-budget-input-reduction-c1",
-      "hms-s7-budget-input-reduction-c2",
-      "hms-s7-budget-input-reduction-c3",
-      "hms-s7-budget-input-reduction-c4",
-      "hms-s7-budget-input-reduction-c5"
-    ],
-    "hms-s7-provision-phasing": [
-      "hms-s7-provision-phasing-c1",
-      "hms-s7-provision-phasing-c2",
-      "hms-s7-provision-phasing-c3",
-      "hms-s7-provision-phasing-c4",
-      "hms-s7-provision-phasing-c5"
-    ],
     "lvs-s7-break-even": [
       "lvs-s7-break-even-c1",
       "lvs-s7-break-even-c2",
@@ -576,20 +510,6 @@
       "rf-s7-enterprise-sequencing-c3",
       "rf-s7-enterprise-sequencing-c4",
       "rf-s7-enterprise-sequencing-c5"
-    ],
-    "silv-s7-financial-viability": [
-      "silv-s7-financial-viability-c1",
-      "silv-s7-financial-viability-c2",
-      "silv-s7-financial-viability-c3",
-      "silv-s7-financial-viability-c5",
-      "silv-s7-financial-viability-c6"
-    ],
-    "silv-s7-livestock-establishment": [
-      "silv-s7-livestock-establishment-c1",
-      "silv-s7-livestock-establishment-c2",
-      "silv-s7-livestock-establishment-c3",
-      "silv-s7-livestock-establishment-c4",
-      "silv-s7-livestock-establishment-c5"
     ],
     "well-s7-adaptive-management": [
       "well-s7-adaptive-management-c1",
@@ -3399,7 +3319,7 @@
       "itemId": "nur-sec-s1-water-survey-c1",
       "itemLabel": "Test water quality for propagation suitability - pH, EC, biological contamination",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-water-survey",
@@ -3408,7 +3328,7 @@
       "itemId": "nur-sec-s1-water-survey-c2",
       "itemLabel": "Test for chemical contamination relevant to sensitive propagation species",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-water-survey",
@@ -3417,7 +3337,7 @@
       "itemId": "nur-sec-s1-water-survey-c3",
       "itemLabel": "Measure static and dynamic pressure at proposed propagation points",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-water-survey",
@@ -3426,7 +3346,7 @@
       "itemId": "nur-sec-s1-water-survey-c4",
       "itemLabel": "Assess water softness - relevant for sensitive native species propagation",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "nur-sec-s1-water-survey",
@@ -3435,7 +3355,7 @@
       "itemId": "nur-sec-s1-water-survey-c5",
       "itemLabel": "Confirm water quality meets the growing system philosophy requirements",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "ofg-s1-critical-systems-redundancy",
@@ -10845,7 +10765,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c1",
       "itemLabel": "Assess current shelter condition and adequacy for all seasons",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -10854,7 +10774,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c2",
       "itemLabel": "Define heating fuel strategy - wood, passive solar, gas, electric, hybrid",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -10863,7 +10783,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c3",
       "itemLabel": "Define backup power strategy - generator, battery, manual alternatives",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -10872,7 +10792,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c4",
       "itemLabel": "Identify critical household systems that require power - water pump, refrigeration, communications",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -10881,7 +10801,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c5",
       "itemLabel": "Define resilience threshold - minimum energy and shelter standard to maintain in disruption",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-energy-shelter-resilience",
@@ -10890,7 +10810,7 @@
       "itemId": "hms-s4-energy-shelter-resilience-c6",
       "itemLabel": "Identify priority improvements required before Act begins",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-fertility-strategy",
@@ -10959,7 +10879,7 @@
       "itemId": "hms-s4-food-production-strategy-c1",
       "itemLabel": "Map household food needs from Tier 0 against what the site can produce",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-food-production-strategy",
@@ -10968,7 +10888,7 @@
       "itemId": "hms-s4-food-production-strategy-c2",
       "itemLabel": "Select primary growing methods - annual beds, perennial systems, animals, preserving",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-food-production-strategy",
@@ -10977,7 +10897,7 @@
       "itemId": "hms-s4-food-production-strategy-c3",
       "itemLabel": "Define production targets per food category for first planning cycle",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-food-production-strategy",
@@ -10986,7 +10906,7 @@
       "itemId": "hms-s4-food-production-strategy-c4",
       "itemLabel": "Identify which high-value or high-frequency foods to prioritise first",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-food-production-strategy",
@@ -10995,7 +10915,7 @@
       "itemId": "hms-s4-food-production-strategy-c5",
       "itemLabel": "Define seed saving and variety selection strategy",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s4-food-production-strategy",
@@ -11004,7 +10924,7 @@
       "itemId": "hms-s4-food-production-strategy-c6",
       "itemLabel": "Establish food preservation and storage approach - fermentation, drying, cellaring, freezing",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s4-grazing-system",
@@ -12683,7 +12603,7 @@
       "itemId": "silv-s4-animal-health-c1",
       "itemLabel": "Define routine health program per species - vaccination, drenching, parasite management",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-animal-health",
@@ -12692,7 +12612,7 @@
       "itemId": "silv-s4-animal-health-c2",
       "itemLabel": "Define preventive care calendar - fertility, condition scoring, hoof care",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-animal-health",
@@ -12701,7 +12621,7 @@
       "itemId": "silv-s4-animal-health-c3",
       "itemLabel": "Identify nearest veterinary service and emergency response time",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-animal-health",
@@ -12710,7 +12630,7 @@
       "itemId": "silv-s4-animal-health-c4",
       "itemLabel": "Define isolation facility requirements for sick or injured animals",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-animal-health",
@@ -12719,7 +12639,7 @@
       "itemId": "silv-s4-animal-health-c5",
       "itemLabel": "Define mortality management protocol",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-animal-health",
@@ -12728,7 +12648,7 @@
       "itemId": "silv-s4-animal-health-c6",
       "itemLabel": "Confirm all handling facilities support low-stress routine health procedures",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s4-forage-improvement",
@@ -17938,7 +17858,7 @@
       "itemId": "hms-s6-self-sufficiency-feedback-c1",
       "itemLabel": "Design provision tracking system - record what was grown, preserved, and consumed from the homestead each season",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s6-self-sufficiency-feedback",
@@ -17947,7 +17867,7 @@
       "itemId": "hms-s6-self-sufficiency-feedback-c2",
       "itemLabel": "Design gap tracking - record what was still purchased externally and at what cost",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s6-self-sufficiency-feedback",
@@ -17956,7 +17876,7 @@
       "itemId": "hms-s6-self-sufficiency-feedback-c3",
       "itemLabel": "Connect tracking system to Tier 0 self-sufficiency targets - measure progress against original baseline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s6-self-sufficiency-feedback",
@@ -17965,7 +17885,7 @@
       "itemId": "hms-s6-self-sufficiency-feedback-c4",
       "itemLabel": "Define seasonal review rhythm - when does the household assess progress and adjust plans",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s6-self-sufficiency-feedback",
@@ -17974,7 +17894,7 @@
       "itemId": "hms-s6-self-sufficiency-feedback-c5",
       "itemLabel": "Specify record format - simple enough to maintain consistently",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s6-biosecurity",
@@ -19052,7 +18972,7 @@
       "itemId": "silv-s6-animal-health-monitoring-c1",
       "itemLabel": "Define health indicators per species - body condition score, coat condition, mobility, behaviour",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s6-animal-health-monitoring",
@@ -19061,7 +18981,7 @@
       "itemId": "silv-s6-animal-health-monitoring-c2",
       "itemLabel": "Define monitoring frequency - weekly minimum, daily for high-risk periods",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s6-animal-health-monitoring",
@@ -19070,7 +18990,7 @@
       "itemId": "silv-s6-animal-health-monitoring-c3",
       "itemLabel": "Define veterinary trigger thresholds - what condition score or symptom requires vet contact",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s6-animal-health-monitoring",
@@ -19079,7 +18999,7 @@
       "itemId": "silv-s6-animal-health-monitoring-c4",
       "itemLabel": "Design health recording system - individual animal and mob records",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s6-animal-health-monitoring",
@@ -19088,7 +19008,7 @@
       "itemId": "silv-s6-animal-health-monitoring-c5",
       "itemLabel": "Define seasonal health risk calendar - drenching, vaccination, fertility monitoring windows",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s6-pasture-monitoring",
@@ -20331,7 +20251,7 @@
       "itemId": "hms-s7-adaptive-management-c1",
       "itemLabel": "Define annual homestead review process - what monitoring data is reviewed and by whom",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-adaptive-management",
@@ -20340,7 +20260,7 @@
       "itemId": "hms-s7-adaptive-management-c2",
       "itemLabel": "Define decision triggers - what gaps or conditions require a plan change",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-adaptive-management",
@@ -20349,7 +20269,7 @@
       "itemId": "hms-s7-adaptive-management-c3",
       "itemLabel": "Specify how plan changes are documented and why",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-adaptive-management",
@@ -20358,7 +20278,7 @@
       "itemId": "hms-s7-adaptive-management-c4",
       "itemLabel": "Define 3-year comprehensive review against Tier 0 self-sufficiency targets",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-adaptive-management",
@@ -20367,7 +20287,7 @@
       "itemId": "hms-s7-adaptive-management-c5",
       "itemLabel": "Define contingency response for provision shortfalls or system failures - immediate actions when a self-sufficiency target is missed",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-budget-input-reduction",
@@ -20376,7 +20296,7 @@
       "itemId": "hms-s7-budget-input-reduction-c1",
       "itemLabel": "Record current annual household food and supply spend as baseline",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-budget-input-reduction",
@@ -20385,7 +20305,7 @@
       "itemId": "hms-s7-budget-input-reduction-c2",
       "itemLabel": "Map which spend categories will be reduced in Phase 1 - and by how much",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-budget-input-reduction",
@@ -20394,7 +20314,7 @@
       "itemId": "hms-s7-budget-input-reduction-c3",
       "itemLabel": "Define input reduction milestones by planning cycle",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-budget-input-reduction",
@@ -20403,7 +20323,7 @@
       "itemId": "hms-s7-budget-input-reduction-c4",
       "itemLabel": "Identify remaining external inputs that cannot be replaced and their cost",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-budget-input-reduction",
@@ -20412,7 +20332,7 @@
       "itemId": "hms-s7-budget-input-reduction-c5",
       "itemLabel": "Define minimum financial viability threshold for the homestead",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-provision-phasing",
@@ -20421,7 +20341,7 @@
       "itemId": "hms-s7-provision-phasing-c1",
       "itemLabel": "Identify fast-yielding enterprises for immediate planting - salad greens, herbs, eggs, sprouts",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-provision-phasing",
@@ -20430,7 +20350,7 @@
       "itemId": "hms-s7-provision-phasing-c2",
       "itemLabel": "Sequence medium-term production - annual vegetables, small fruit, preserving crops",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-provision-phasing",
@@ -20439,7 +20359,7 @@
       "itemId": "hms-s7-provision-phasing-c3",
       "itemLabel": "Sequence long-term production - orchard, perennial systems, staple crops",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-provision-phasing",
@@ -20448,7 +20368,7 @@
       "itemId": "hms-s7-provision-phasing-c4",
       "itemLabel": "Define ecological readiness criteria for each phase - what soil, water, or habitat conditions must be met before each production layer launches",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "hms-s7-provision-phasing",
@@ -20457,7 +20377,7 @@
       "itemId": "hms-s7-provision-phasing-c5",
       "itemLabel": "Confirm sequencing reduces household grocery spend from earliest possible point",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "lvs-s7-break-even",
@@ -21361,7 +21281,7 @@
       "itemId": "silv-s7-financial-viability-c1",
       "itemLabel": "Estimate total Phase 1 infrastructure cost",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-financial-viability",
@@ -21370,7 +21290,7 @@
       "itemId": "silv-s7-financial-viability-c2",
       "itemLabel": "Estimate livestock acquisition cost per phase",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-financial-viability",
@@ -21379,7 +21299,7 @@
       "itemId": "silv-s7-financial-viability-c3",
       "itemLabel": "Map revenue timeline - first sales, annual income at full stocking",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-financial-viability",
@@ -21397,7 +21317,7 @@
       "itemId": "silv-s7-financial-viability-c5",
       "itemLabel": "Define minimum viable revenue threshold - what enterprise scale makes this financially viable",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-financial-viability",
@@ -21406,7 +21326,7 @@
       "itemId": "silv-s7-financial-viability-c6",
       "itemLabel": "Define financial review trigger - market or production change that requires model review",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-livestock-establishment",
@@ -21415,7 +21335,7 @@
       "itemId": "silv-s7-livestock-establishment-c1",
       "itemLabel": "Confirm all boundary and subdivision fencing complete before any livestock arrive",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-livestock-establishment",
@@ -21424,7 +21344,7 @@
       "itemId": "silv-s7-livestock-establishment-c2",
       "itemLabel": "Confirm all paddock water points operational before livestock arrive",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-livestock-establishment",
@@ -21433,7 +21353,7 @@
       "itemId": "silv-s7-livestock-establishment-c3",
       "itemLabel": "Confirm yards and handling facilities operational before livestock arrive",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-livestock-establishment",
@@ -21442,7 +21362,7 @@
       "itemId": "silv-s7-livestock-establishment-c4",
       "itemLabel": "Define go/no-go test for each infrastructure category",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-livestock-establishment",
@@ -21451,7 +21371,7 @@
       "itemId": "silv-s7-livestock-establishment-c5",
       "itemLabel": "Define livestock sourcing timeline - breed, vendor, transport, quarantine",
       "optional": false,
-      "classification": "no-path"
+      "classification": "workbench-capture"
     },
     {
       "objectiveId": "silv-s7-pasture-spelling",
