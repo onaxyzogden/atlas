@@ -96,6 +96,7 @@ export * from './livestockWork/expandRecurrence.js';
 export * from './livestockWork/generateLivestockWorkPlan.js';
 export * from './livestockWork/diffWorkPlan.js';
 export * from './livestockWork/matchLivestockFulfillment.js';
+export * from './communityWork/generateCommunityWorkPlan.js';
 
 // Constants
 export * from './constants/dataSources.js';
