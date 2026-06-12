@@ -15,7 +15,7 @@
 
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Camera, Check, ClipboardCheck, Plus, Sprout } from 'lucide-react';
+import { Camera, Check, ClipboardCheck, ClipboardList, Plus, Sprout } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -80,6 +80,8 @@ import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
 import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
+import { workDisplayStatus } from '../../../features/work/workSelectors.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -275,6 +277,44 @@ export default function ActTierExecutionPanel({
         .sort((a, b) => Date.parse(b.capturedAt) - Date.parse(a.capturedAt)),
     [pointsByProject, projectId, objective.id],
   );
+
+  // -------------------------------------------------------------------------
+  // Generated livestock work rollup (work-management layer, Phase 4).
+  // Spine rows this objective's Plan decisions generated (source
+  // 'livestock-plan', provenance sourceObjectiveId) and the operator has
+  // confirmed. Subscribe to the raw items array and derive in useMemo
+  // (zustand-selector-stability ADR). Cancelled rows are excluded — the
+  // operator retired them.
+  // -------------------------------------------------------------------------
+  const workItems = useWorkItemStore((s) => s.items);
+  const generatedWork = useMemo(() => {
+    const todayISO = new Date().toISOString().slice(0, 10);
+    let workTotal = 0;
+    let workDone = 0;
+    let workOverdue = 0;
+    for (const item of workItems) {
+      if (item.projectId !== projectId || item.source !== 'livestock-plan') {
+        continue;
+      }
+      if (item.sourceObjectiveId !== objective.id) continue;
+      const workStatus = workDisplayStatus(item, todayISO);
+      if (workStatus === 'cancelled') continue;
+      workTotal += 1;
+      if (workStatus === 'done') workDone += 1;
+      else if (workStatus === 'overdue') workOverdue += 1;
+    }
+    return { total: workTotal, done: workDone, overdue: workOverdue };
+  }, [workItems, projectId, objective.id]);
+
+  // Open the work schedule drill-down: route to the BARE tier-shell with
+  // ?panel=work (dropping the objective param flips the rail out of detail
+  // mode, which otherwise wins over the panel in the rightBody chain).
+  const openWorkSchedule = () =>
+    navigate({
+      to: '/v3/project/$projectId/act/tier-shell',
+      params: { projectId },
+      search: { panel: 'work' },
+    } as never);
 
   // -------------------------------------------------------------------------
   // Progress derivations.
@@ -671,6 +711,26 @@ export default function ActTierExecutionPanel({
           })}
         </div>
       </section>
+
+      {generatedWork.total > 0 && (
+        <section className={styles.execSection}>
+          <h4 className={styles.execSectionTitle}>Generated work</h4>
+          <p className={styles.execGenWork} data-testid="exec-generated-work">
+            Generated work: {generatedWork.done} of {generatedWork.total} done
+            {generatedWork.overdue > 0
+              ? ` · ${generatedWork.overdue} overdue`
+              : ''}
+          </p>
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={openWorkSchedule}
+          >
+            <ClipboardList size={13} aria-hidden="true" />
+            Open work schedule
+          </button>
+        </section>
+      )}
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Placed features</h4>

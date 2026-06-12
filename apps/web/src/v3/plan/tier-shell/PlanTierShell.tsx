@@ -114,6 +114,11 @@ import ActFlowConnectorPopover from '../../act/asBuilt/ActFlowConnectorPopover.j
 import { decodeSteward, stewardInvitesToQueued } from '../../act/tier-shell/StewardCapture.js';
 import { FORAGE_PREFIX, planForagePaddockReconcile } from '../../act/tier-shell/ForageCapture.js';
 import {
+  generateAndApplyLivestockWork,
+  isLivestockCaptureForm,
+} from '../../../features/livestock/livestockWorkInputs.js';
+import { useLivestockWorkPlanStore } from '../../../store/livestockWorkPlanStore.js';
+import {
   ACT_TOOL_CATEGORIES,
   resolveActTools,
   type ActTool,
@@ -485,8 +490,35 @@ export default function PlanTierShell() {
           .getState()
           .setItemComplete(id, objectiveId, formId);
       }
+      // Livestock work-management layer: a husbandry / grazing / intent
+      // decision save regenerates the PROPOSAL layer (never the spine —
+      // sovereign steward) and surfaces a "Review in Act" toast deep-linking
+      // the Act work panel, so generated work is reviewed where it runs.
+      if (isLivestockCaptureForm(formId)) {
+        generateAndApplyLivestockWork(id);
+        const proposedCount = useLivestockWorkPlanStore
+          .getState()
+          .proposals.filter(
+            (p) => p.projectId === id && p.status === 'proposed',
+          ).length;
+        if (proposedCount > 0) {
+          toast.action(
+            'info',
+            `${proposedCount} work item${proposedCount === 1 ? '' : 's'} proposed — review in Act`,
+            {
+              label: 'Review in Act',
+              onClick: () =>
+                navigate({
+                  to: '/v3/project/$projectId/act/tier-shell',
+                  params: { projectId: id },
+                  search: { panel: 'work', workFilter: 'proposed' },
+                } as never),
+            },
+          );
+        }
+      }
     },
-    [id, objectiveId],
+    [id, objectiveId, navigate],
   );
 
   const handleSaveRationale = useCallback(

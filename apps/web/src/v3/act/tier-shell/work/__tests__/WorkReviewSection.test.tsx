@@ -14,7 +14,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { LivestockWorkInstance } from '@ogden/shared';
 import { useLivestockWorkPlanStore } from '../../../../../store/livestockWorkPlanStore.js';
 import { useWorkItemStore } from '../../../../../store/workItemStore.js';
@@ -100,6 +100,62 @@ describe('WorkReviewSection', () => {
     fireEvent.click(screen.getByTestId('work-bulk-confirm'));
     expect(spine().items).toHaveLength(2);
     expect(plan().proposals.every((p) => p.status === 'confirmed')).toBe(true);
+  });
+
+  it('needs-review "changed": flag renders, nothing moves until the operator resolves', () => {
+    plan().applyGeneration(P, { rules: [], instances: [inst(K1)] });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    // Regeneration with different content → 'changed' flag (advisory only).
+    act(() => {
+      plan().applyGeneration(P, {
+        rules: [],
+        instances: [
+          inst(K1, {
+            title: 'Fortnightly welfare check',
+            inputsHash: 'hash0002',
+          }),
+        ],
+      });
+    });
+    const row = screen.getByTestId('work-needs-review-row');
+    expect(row.textContent).toContain('plan changed');
+    expect(row.textContent).toContain('Fortnightly welfare check');
+    // Confirmed-never-mutated: the spine row is untouched by the regeneration.
+    expect(spine().items[0]!.title).toBe('Weekly welfare & condition check');
+    fireEvent.click(screen.getByRole('button', { name: 'Accept update' }));
+    expect(spine().items[0]!.title).toBe('Fortnightly welfare check');
+    expect(screen.queryByTestId('work-needs-review-row')).toBeNull();
+  });
+
+  it('needs-review "orphaned": Cancel work cancels the spine row (kept for audit)', () => {
+    plan().applyGeneration(P, { rules: [], instances: [inst(K1)] });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    act(() => {
+      plan().applyGeneration(P, { rules: [], instances: [] });
+    });
+    const row = screen.getByTestId('work-needs-review-row');
+    expect(row.textContent).toContain('orphaned');
+    // Orphaned has no regenerated instance to accept.
+    expect(screen.queryByRole('button', { name: 'Accept update' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel work' }));
+    expect(spine().items).toHaveLength(1);
+    expect(spine().items[0]!.status).toBe('cancelled');
+    expect(plan().proposals[0]!.status).toBe('dismissed');
+  });
+
+  it('needs-review "Keep mine": flag clears, spine untouched', () => {
+    plan().applyGeneration(P, { rules: [], instances: [inst(K1)] });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    act(() => {
+      plan().applyGeneration(P, { rules: [], instances: [] });
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Keep mine' }));
+    expect(screen.queryByTestId('work-needs-review-row')).toBeNull();
+    expect(spine().items[0]!.status).toBe('todo');
+    expect(plan().proposals[0]!.status).toBe('confirmed');
   });
 
   it('Dismiss keeps the spine untouched; Restore re-proposes', () => {

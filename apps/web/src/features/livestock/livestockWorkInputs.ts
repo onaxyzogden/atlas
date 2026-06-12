@@ -230,3 +230,17 @@ export function generateAndApplyLivestockWork(projectId: string): void {
   const plan = generateLivestockWorkPlan(input);
   useLivestockWorkPlanStore.getState().applyGeneration(projectId, plan);
 }
+
+/**
+ * Is this Tier-0 capture form one of the livestock decision surfaces the
+ * generator reads (husbandry / grazing / livestock intent)? Used by the Plan
+ * shell to regenerate proposals — and surface the "Review in Act" toast —
+ * only when a save can actually change the work plan.
+ */
+export function isLivestockCaptureForm(formId: string): boolean {
+  return Boolean(
+    husbandryModeFor(formId) ??
+      grazingModeFor(formId) ??
+      livestockIntentModeFor(formId),
+  );
+}

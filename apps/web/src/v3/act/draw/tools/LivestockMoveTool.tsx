@@ -230,10 +230,11 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             addEvent(entryLeg);
             if (pending) {
               // Entry leg is the planned arrival — that's the proof event.
-              confirmTypedProofMatch(pending.workItemId, {
-                store: 'livestock-move',
-                eventId: entryLeg.id,
-              });
+              confirmTypedProofMatch(
+                pending.workItemId,
+                { store: 'livestock-move', eventId: entryLeg.id },
+                { actualEnd: entryLeg.date },
+              );
               useWorkExecutionStore.getState().clearPending();
               setMismatchWarning(null);
             }
@@ -251,10 +252,11 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
           });
           if (pending) {
-            confirmTypedProofMatch(pending.workItemId, {
-              store: 'livestock-move',
-              eventId: id,
-            });
+            confirmTypedProofMatch(
+              pending.workItemId,
+              { store: 'livestock-move', eventId: id },
+              { actualEnd: date },
+            );
             useWorkExecutionStore.getState().clearPending();
             setMismatchWarning(null);
           }

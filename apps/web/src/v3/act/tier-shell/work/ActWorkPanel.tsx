@@ -21,6 +21,7 @@ import { ChevronLeft, RefreshCw } from 'lucide-react';
 import type { WorkItem } from '@ogden/shared';
 import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import { generateAndApplyLivestockWork } from '../../../../features/livestock/livestockWorkInputs.js';
+import { useLivestockFulfillmentSync } from '../../../../features/livestock/useLivestockFulfillmentSync.js';
 import {
   addDaysISO,
   isLivestockWork,
@@ -51,6 +52,10 @@ export default function ActWorkPanel({ projectId, onBack, initialFilter }: Props
   useEffect(() => {
     generateAndApplyLivestockWork(projectId);
   }, [projectId]);
+
+  // ±7d auto-fulfilment: link already-logged moves to due livestock work
+  // (record-keeping only — see useLivestockFulfillmentSync).
+  useLivestockFulfillmentSync(projectId);
 
   const todayISO = new Date().toISOString().slice(0, 10);
 

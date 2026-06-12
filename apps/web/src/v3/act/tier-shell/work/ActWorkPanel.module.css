@@ -180,6 +180,12 @@
   border-color: var(--color-success, #8fae6f);
 }
 
+/* Regeneration review flags (plan changed / orphaned). */
+.pill[data-tone='danger'] {
+  color: var(--color-danger, #d27b6b);
+  border-color: var(--color-danger, #d27b6b);
+}
+
 .chip {
   font-size: 10px;
   padding: 1px 6px;
@@ -358,4 +364,92 @@
 .summaryBadge[data-tone='danger'] {
   color: var(--color-danger, #d27b6b);
   border-color: var(--color-danger, #d27b6b);
+}
+
+/* ---- ops-dashboard progress card (per-objective done/open/overdue bars) -- */
+
+.progressCard {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease;
+  font-family: inherit;
+}
+
+.progressCard:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.progressCard:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.progressHeader {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.progressRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.progressRowTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.progressLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressCount {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.progressBar {
+  display: flex;
+  height: 5px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-border, rgba(242, 237, 227, 0.12)) 60%, transparent);
+}
+
+.progressSeg {
+  flex-basis: 0;
+}
+
+.progressSeg[data-kind='done'] {
+  background: var(--color-success, #8fae6f);
+}
+
+.progressSeg[data-kind='open'] {
+  background: var(--color-gold-brand, #c4a265);
+}
+
+.progressSeg[data-kind='overdue'] {
+  background: var(--color-danger, #d27b6b);
 }

@@ -12,6 +12,7 @@
 
 import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import ActWorkSummaryCard from '../tier-shell/work/ActWorkSummaryCard.js';
+import ActWorkProgressCard from '../tier-shell/work/ActWorkProgressCard.js';
 import WeatherStrip from '../ops/WeatherStrip.js';
 import TodaysPriorities from '../ops/TodaysPriorities.js';
 import AlertsPanel from '../ops/AlertsPanel.js';
@@ -47,6 +48,10 @@ export default function ActOpsDashboard({
       )}
       <WeatherStrip projectId={projectId} onOpen={onOpenWeather ?? noop} />
       <ActWorkSummaryCard
+        projectId={projectId}
+        {...(onOpenWork ? { onOpen: onOpenWork } : {})}
+      />
+      <ActWorkProgressCard
         projectId={projectId}
         {...(onOpenWork ? { onOpen: onOpenWork } : {})}
       />

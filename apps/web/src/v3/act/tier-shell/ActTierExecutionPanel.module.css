@@ -290,6 +290,13 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
+/* ---- Generated work (livestock work-management rollup) ------------------ */
+.execGenWork {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text, #f2ede3);
+}
+
 /* ---- Placed features (objective-scoped, derived) ----------------------- */
 .pfList {
   display: flex;

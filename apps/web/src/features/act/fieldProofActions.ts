@@ -66,6 +66,10 @@ type TypedStore = Exclude<ProofTarget, 'generic'>;
 export function confirmTypedProofMatch(
   workItemId: string,
   link: { store: TypedStore; eventId: string },
+  // Optional actuals (e.g. the typed event's field date as actualEnd) so
+  // schedule variance reflects when the work HAPPENED, not when it was
+  // linked. Additive default keeps every existing call-site byte-identical.
+  capture: ProofCapture = {},
 ): void {
   switch (link.store) {
     case 'maintenance':
@@ -84,5 +88,5 @@ export function confirmTypedProofMatch(
         .updateTransfer(link.eventId, { workItemId });
       break;
   }
-  useWorkItemStore.getState().fulfilWorkItem(workItemId, {});
+  useWorkItemStore.getState().fulfilWorkItem(workItemId, capture);
 }

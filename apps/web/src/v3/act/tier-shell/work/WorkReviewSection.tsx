@@ -11,6 +11,12 @@
  * scopeNotes render verbatim on the proposal row itself as well — the
  * operator sees the caution at the point of the individual confirm, not
  * only in the bulk overlay.
+ *
+ * Needs-review subsection (Phase 4): confirmed proposals flagged by a
+ * regeneration (`needsReview` 'changed' | 'orphaned') surface here for the
+ * operator to resolve — accept-update / keep-mine / cancel-work. The flag
+ * is advisory; nothing on the spine moves until the operator picks
+ * (`resolveReview` owns the writes, confirmed-never-mutated covenant).
  */
 
 import { useMemo, useState } from 'react';
@@ -135,12 +141,83 @@ function ProposalRow({ proposal }: { proposal: LivestockWorkProposal }) {
   );
 }
 
+/**
+ * One regeneration-flagged confirmed proposal. Shows WHAT changed (or that
+ * the Plan no longer generates this work) and the three resolutions.
+ */
+function ReviewFlagRow({ proposal }: { proposal: LivestockWorkProposal }) {
+  const review = proposal.needsReview;
+  if (!review) return null;
+  const inst = proposal.instance;
+  const resolve = (resolution: 'accept-update' | 'keep-mine' | 'cancel-work') =>
+    useLivestockWorkPlanStore
+      .getState()
+      .resolveReview(proposal.projectId, inst.key, resolution);
+
+  return (
+    <div className={styles.reviewRow} data-testid="work-needs-review-row">
+      <div className={styles.rowMain}>
+        <span className={styles.rowTitle}>{inst.title}</span>
+        <span className={styles.pill} data-tone="danger">
+          {review.reason === 'changed' ? 'plan changed' : 'orphaned'}
+        </span>
+      </div>
+      <div className={styles.rowMeta}>
+        {review.reason === 'changed' && review.next ? (
+          <span>
+            Regenerated: {review.next.title} · due {review.next.dueDate}
+            {review.next.suggestedCarer
+              ? ` · ${review.next.suggestedCarer}`
+              : ''}
+          </span>
+        ) : (
+          <span>
+            The Plan decision behind this confirmed work no longer generates
+            it.
+          </span>
+        )}
+      </div>
+      {review.next?.scopeNotes && (
+        <div className={styles.scopeNotes} data-testid="work-review-scope-notes">
+          {review.next.scopeNotes}
+        </div>
+      )}
+      <div className={styles.actions}>
+        {review.reason === 'changed' && review.next && (
+          <button
+            type="button"
+            className={styles.actionBtn}
+            data-variant="primary"
+            onClick={() => resolve('accept-update')}
+          >
+            Accept update
+          </button>
+        )}
+        <button
+          type="button"
+          className={styles.actionBtn}
+          onClick={() => resolve('keep-mine')}
+        >
+          Keep mine
+        </button>
+        <button
+          type="button"
+          className={styles.actionBtn}
+          onClick={() => resolve('cancel-work')}
+        >
+          Cancel work
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WorkReviewSection({ projectId }: Props) {
   const proposals = useLivestockWorkPlanStore((s) => s.proposals);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [showDismissed, setShowDismissed] = useState(false);
 
-  const { proposed, dismissed } = useMemo(() => {
+  const { proposed, dismissed, flaggedForReview } = useMemo(() => {
     const mine = proposals.filter((p) => p.projectId === projectId);
     return {
       proposed: mine
@@ -152,18 +229,37 @@ export default function WorkReviewSection({ projectId }: Props) {
             : 1,
         ),
       dismissed: mine.filter((p) => p.status === 'dismissed'),
+      flaggedForReview: mine.filter((p) => Boolean(p.needsReview)),
     };
   }, [proposals, projectId]);
 
-  if (proposed.length === 0 && dismissed.length === 0) return null;
+  if (
+    proposed.length === 0 &&
+    dismissed.length === 0 &&
+    flaggedForReview.length === 0
+  ) {
+    return null;
+  }
 
   const flagged = proposed.filter((p) => Boolean(p.instance.scopeNotes));
 
   return (
     <div className={styles.section} data-testid="work-review-section">
-      <div className={styles.sectionTitle} data-tone="gold">
-        Proposed — review &amp; confirm ({proposed.length})
-      </div>
+      {flaggedForReview.length > 0 && (
+        <>
+          <div className={styles.sectionTitle} data-tone="danger">
+            Needs review — Plan changed ({flaggedForReview.length})
+          </div>
+          {flaggedForReview.map((p) => (
+            <ReviewFlagRow key={p.id} proposal={p} />
+          ))}
+        </>
+      )}
+      {(proposed.length > 0 || dismissed.length > 0) && (
+        <div className={styles.sectionTitle} data-tone="gold">
+          Proposed — review &amp; confirm ({proposed.length})
+        </div>
+      )}
       {proposed.map((p) => (
         <ProposalRow key={p.id} proposal={p} />
       ))}
