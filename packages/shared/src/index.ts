@@ -271,6 +271,23 @@ export {
   STRATUM_ACT_TOOLS_DEFAULT,
 } from './relationships/objectiveActTools.js';
 export {
+  auditAllCompletionPaths,
+  auditObjectiveCompletionPaths,
+  classifyChecklistItem,
+  EVIDENCE_BACKED_CLASSES,
+  OBJECTIVE_LEVEL_CLASSES,
+  type ActToolArmDescriptor,
+  type ActToolArmIndex,
+  type ActToolArmKind,
+  type ClassifyOptions,
+  type CompletionPathAuditSummary,
+  type ItemClassification,
+  type ItemCompletionClass,
+  type ItemCompletionPath,
+  type ObjectiveCompletionAudit,
+  type UnmatchedFormArm,
+} from './relationships/objectiveCompletionPaths.js';
+export {
   getObjectiveEvidence,
   EVIDENCE_CATALOG,
   OBJECTIVE_EVIDENCE_OVERRIDE,

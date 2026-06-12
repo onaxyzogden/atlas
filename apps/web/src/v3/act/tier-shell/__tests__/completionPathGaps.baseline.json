@@ -1,0 +1,2446 @@
+{
+  "//": "Ratchet baseline for completionPathAudit.ratchet.test.ts. Regenerate ONLY via: npx tsx scripts/audit-checklist-completion-paths.ts --write-baseline",
+  "noPath": {
+    "nur-sec-s1-propagation-infra-survey": [
+      "nur-sec-s1-propagation-infra-survey-c1",
+      "nur-sec-s1-propagation-infra-survey-c2",
+      "nur-sec-s1-propagation-infra-survey-c3",
+      "nur-sec-s1-propagation-infra-survey-c4",
+      "nur-sec-s1-propagation-infra-survey-c5"
+    ],
+    "nur-sec-s1-water-survey": [
+      "nur-sec-s1-water-survey-c1",
+      "nur-sec-s1-water-survey-c2",
+      "nur-sec-s1-water-survey-c3",
+      "nur-sec-s1-water-survey-c4",
+      "nur-sec-s1-water-survey-c5"
+    ],
+    "res-s1-household-needs": [
+      "res-s1-household-needs-c1",
+      "res-s1-household-needs-c2",
+      "res-s1-household-needs-c3",
+      "res-s1-household-needs-c4",
+      "res-s1-household-needs-c5",
+      "res-s1-household-needs-c6"
+    ],
+    "s1-boundaries": [
+      "s1-boundaries-c2",
+      "s1-boundaries-c1",
+      "s1-boundaries-c3",
+      "s1-boundaries-c4",
+      "s1-boundaries-c5",
+      "s1-boundaries-c6",
+      "s1-boundaries-c7"
+    ],
+    "ag-s2-seasonal-patterns": [
+      "ag-s2-seasonal-patterns-c1",
+      "ag-s2-seasonal-patterns-c2",
+      "ag-s2-seasonal-patterns-c3",
+      "ag-s2-seasonal-patterns-c4",
+      "ag-s2-seasonal-patterns-c5"
+    ],
+    "ev-s2-social-fabric": [
+      "ev-s2-social-fabric-c1",
+      "ev-s2-social-fabric-c2",
+      "ev-s2-social-fabric-c3",
+      "ev-s2-social-fabric-c4",
+      "ev-s2-social-fabric-c5",
+      "ev-s2-social-fabric-c6"
+    ],
+    "ofg-s3-energy-demand-balance": [
+      "ofg-s3-energy-demand-balance-c1",
+      "ofg-s3-energy-demand-balance-c2",
+      "ofg-s3-energy-demand-balance-c3",
+      "ofg-s3-energy-demand-balance-c4",
+      "ofg-s3-energy-demand-balance-c5",
+      "ofg-s3-energy-demand-balance-c6"
+    ],
+    "ag-s4-food-strategy": [
+      "ag-s4-food-strategy-c1",
+      "ag-s4-food-strategy-c2",
+      "ag-s4-food-strategy-c3",
+      "ag-s4-food-strategy-c4",
+      "ag-s4-food-strategy-c5",
+      "ag-s4-food-strategy-c6"
+    ],
+    "ag-s4-revenue-model": [
+      "ag-s4-revenue-model-c1",
+      "ag-s4-revenue-model-c2",
+      "ag-s4-revenue-model-c3",
+      "ag-s4-revenue-model-c4",
+      "ag-s4-revenue-model-c5",
+      "ag-s4-revenue-model-c6",
+      "ag-s4-revenue-model-c7",
+      "ag-s4-revenue-model-c8",
+      "ag-s4-revenue-model-c9",
+      "ag-s4-revenue-model-c10",
+      "ag-s4-revenue-model-c11",
+      "ag-s4-revenue-model-c12"
+    ],
+    "ag-s4-service-model": [
+      "ag-s4-service-model-c1",
+      "ag-s4-service-model-c2",
+      "ag-s4-service-model-c3",
+      "ag-s4-service-model-c4",
+      "ag-s4-service-model-c5",
+      "ag-s4-service-model-c6"
+    ],
+    "con-s4-native-species-provenance": [
+      "con-s4-native-species-provenance-c1",
+      "con-s4-native-species-provenance-c2",
+      "con-s4-native-species-provenance-c3",
+      "con-s4-native-species-provenance-c4",
+      "con-s4-native-species-provenance-c5",
+      "con-s4-native-species-provenance-c6"
+    ],
+    "con-s4-pest-invasive-strategy": [
+      "con-s4-pest-invasive-strategy-c1",
+      "con-s4-pest-invasive-strategy-c2",
+      "con-s4-pest-invasive-strategy-c3",
+      "con-s4-pest-invasive-strategy-c4",
+      "con-s4-pest-invasive-strategy-c5",
+      "con-s4-pest-invasive-strategy-c6"
+    ],
+    "edu-s4-food-hospitality": [
+      "edu-s4-food-hospitality-c1",
+      "edu-s4-food-hospitality-c2",
+      "edu-s4-food-hospitality-c3",
+      "edu-s4-food-hospitality-c4",
+      "edu-s4-food-hospitality-c5"
+    ],
+    "edu-s4-program-delivery": [
+      "edu-s4-program-delivery-c1",
+      "edu-s4-program-delivery-c2",
+      "edu-s4-program-delivery-c3",
+      "edu-s4-program-delivery-c4",
+      "edu-s4-program-delivery-c5",
+      "edu-s4-program-delivery-c6"
+    ],
+    "ev-s4-financial-model": [
+      "ev-s4-financial-model-c1",
+      "ev-s4-financial-model-c2",
+      "ev-s4-financial-model-c3",
+      "ev-s4-financial-model-c4",
+      "ev-s4-financial-model-c5",
+      "ev-s4-financial-model-c6",
+      "ev-s4-financial-model-c7"
+    ],
+    "ev-s4-food-system": [
+      "ev-s4-food-system-c1",
+      "ev-s4-food-system-c2",
+      "ev-s4-food-system-c3",
+      "ev-s4-food-system-c4",
+      "ev-s4-food-system-c5",
+      "ev-s4-food-system-c6"
+    ],
+    "ev-s4-infra-strategy": [
+      "ev-s4-infra-strategy-c1",
+      "ev-s4-infra-strategy-c2",
+      "ev-s4-infra-strategy-c3",
+      "ev-s4-infra-strategy-c4",
+      "ev-s4-infra-strategy-c5",
+      "ev-s4-infra-strategy-c6"
+    ],
+    "ev-s4-settlement-strategy": [
+      "ev-s4-settlement-strategy-c1",
+      "ev-s4-settlement-strategy-c2",
+      "ev-s4-settlement-strategy-c3",
+      "ev-s4-settlement-strategy-c4",
+      "ev-s4-settlement-strategy-c5",
+      "ev-s4-settlement-strategy-c6"
+    ],
+    "hms-s4-energy-shelter-resilience": [
+      "hms-s4-energy-shelter-resilience-c1",
+      "hms-s4-energy-shelter-resilience-c2",
+      "hms-s4-energy-shelter-resilience-c3",
+      "hms-s4-energy-shelter-resilience-c4",
+      "hms-s4-energy-shelter-resilience-c5",
+      "hms-s4-energy-shelter-resilience-c6"
+    ],
+    "hms-s4-food-production-strategy": [
+      "hms-s4-food-production-strategy-c1",
+      "hms-s4-food-production-strategy-c2",
+      "hms-s4-food-production-strategy-c3",
+      "hms-s4-food-production-strategy-c4",
+      "hms-s4-food-production-strategy-c5",
+      "hms-s4-food-production-strategy-c6"
+    ],
+    "lvs-s4-grazing-system": [
+      "lvs-s4-grazing-system-c1",
+      "lvs-s4-grazing-system-c2",
+      "lvs-s4-grazing-system-c3",
+      "lvs-s4-grazing-system-c4",
+      "lvs-s4-grazing-system-c5"
+    ],
+    "lvs-s4-species-breed": [
+      "lvs-s4-species-breed-c1",
+      "lvs-s4-species-breed-c2",
+      "lvs-s4-species-breed-c3",
+      "lvs-s4-species-breed-c4",
+      "lvs-s4-species-breed-c5"
+    ],
+    "lvs-s4-stocking-rate": [
+      "lvs-s4-stocking-rate-c2",
+      "lvs-s4-stocking-rate-c3",
+      "lvs-s4-stocking-rate-c4",
+      "lvs-s4-stocking-rate-c5"
+    ],
+    "lvs-sec-s4-species-stocking": [
+      "lvs-sec-s4-species-stocking-c1",
+      "lvs-sec-s4-species-stocking-c2",
+      "lvs-sec-s4-species-stocking-c3",
+      "lvs-sec-s4-species-stocking-c4",
+      "lvs-sec-s4-species-stocking-c5",
+      "lvs-sec-s4-species-stocking-c6"
+    ],
+    "ofg-s4-emergency-comms-response": [
+      "ofg-s4-emergency-comms-response-c1",
+      "ofg-s4-emergency-comms-response-c2",
+      "ofg-s4-emergency-comms-response-c3",
+      "ofg-s4-emergency-comms-response-c4",
+      "ofg-s4-emergency-comms-response-c5",
+      "ofg-s4-emergency-comms-response-c6"
+    ],
+    "ofg-s4-energy-system-redundancy": [
+      "ofg-s4-energy-system-redundancy-c1",
+      "ofg-s4-energy-system-redundancy-c2",
+      "ofg-s4-energy-system-redundancy-c3",
+      "ofg-s4-energy-system-redundancy-c4",
+      "ofg-s4-energy-system-redundancy-c5",
+      "ofg-s4-energy-system-redundancy-c6"
+    ],
+    "ofg-s4-food-security-storage": [
+      "ofg-s4-food-security-storage-c1",
+      "ofg-s4-food-security-storage-c2",
+      "ofg-s4-food-security-storage-c3",
+      "ofg-s4-food-security-storage-c4",
+      "ofg-s4-food-security-storage-c5"
+    ],
+    "ofg-s4-shelter-thermal-performance": [
+      "ofg-s4-shelter-thermal-performance-c1",
+      "ofg-s4-shelter-thermal-performance-c2",
+      "ofg-s4-shelter-thermal-performance-c3",
+      "ofg-s4-shelter-thermal-performance-c4",
+      "ofg-s4-shelter-thermal-performance-c5",
+      "ofg-s4-shelter-thermal-performance-c6"
+    ],
+    "ofg-s4-water-system-redundancy": [
+      "ofg-s4-water-system-redundancy-c1",
+      "ofg-s4-water-system-redundancy-c2",
+      "ofg-s4-water-system-redundancy-c3",
+      "ofg-s4-water-system-redundancy-c4",
+      "ofg-s4-water-system-redundancy-c5",
+      "ofg-s4-water-system-redundancy-c6"
+    ],
+    "orch-s4-species-mix": [
+      "orch-s4-species-mix-c1",
+      "orch-s4-species-mix-c2",
+      "orch-s4-species-mix-c3",
+      "orch-s4-species-mix-c4",
+      "orch-s4-species-mix-c5",
+      "orch-s4-species-mix-c6",
+      "orch-s4-species-mix-c7"
+    ],
+    "orch-s4-succession-management": [
+      "orch-s4-succession-management-c1",
+      "orch-s4-succession-management-c2",
+      "orch-s4-succession-management-c3",
+      "orch-s4-succession-management-c4",
+      "orch-s4-succession-management-c5"
+    ],
+    "orch-sec-s4-species-pollination": [
+      "orch-sec-s4-species-pollination-c1",
+      "orch-sec-s4-species-pollination-c2",
+      "orch-sec-s4-species-pollination-c3",
+      "orch-sec-s4-species-pollination-c4",
+      "orch-sec-s4-species-pollination-c5"
+    ],
+    "s4-direction": [
+      "s4-direction-c1",
+      "s4-direction-c2",
+      "s4-direction-c3",
+      "s4-direction-c4",
+      "s4-direction-c5",
+      "s4-direction-c6"
+    ],
+    "silv-s4-animal-health": [
+      "silv-s4-animal-health-c1",
+      "silv-s4-animal-health-c2",
+      "silv-s4-animal-health-c3",
+      "silv-s4-animal-health-c4",
+      "silv-s4-animal-health-c5",
+      "silv-s4-animal-health-c6"
+    ],
+    "silv-sec-s4-husbandry-framework": [
+      "silv-sec-s4-husbandry-framework-c1",
+      "silv-sec-s4-husbandry-framework-c2",
+      "silv-sec-s4-husbandry-framework-c3",
+      "silv-sec-s4-husbandry-framework-c4",
+      "silv-sec-s4-husbandry-framework-c5",
+      "silv-sec-s4-husbandry-framework-c6"
+    ],
+    "well-s4-healing-garden-strategy": [
+      "well-s4-healing-garden-strategy-c1",
+      "well-s4-healing-garden-strategy-c2",
+      "well-s4-healing-garden-strategy-c3",
+      "well-s4-healing-garden-strategy-c4",
+      "well-s4-healing-garden-strategy-c5"
+    ],
+    "well-s4-safeguarding-protocol": [
+      "well-s4-safeguarding-protocol-c1",
+      "well-s4-safeguarding-protocol-c2",
+      "well-s4-safeguarding-protocol-c3",
+      "well-s4-safeguarding-protocol-c4",
+      "well-s4-safeguarding-protocol-c5",
+      "well-s4-safeguarding-protocol-c6",
+      "well-s4-safeguarding-protocol-c7"
+    ],
+    "well-s4-sensory-design-standards": [
+      "well-s4-sensory-design-standards-c1",
+      "well-s4-sensory-design-standards-c2",
+      "well-s4-sensory-design-standards-c3",
+      "well-s4-sensory-design-standards-c4",
+      "well-s4-sensory-design-standards-c5",
+      "well-s4-sensory-design-standards-c6",
+      "well-s4-sensory-design-standards-c7"
+    ],
+    "well-s4-therapeutic-program": [
+      "well-s4-therapeutic-program-c1",
+      "well-s4-therapeutic-program-c2",
+      "well-s4-therapeutic-program-c3",
+      "well-s4-therapeutic-program-c4",
+      "well-s4-therapeutic-program-c5",
+      "well-s4-therapeutic-program-c6"
+    ],
+    "well-sec-s4-safeguarding": [
+      "well-sec-s4-safeguarding-c1",
+      "well-sec-s4-safeguarding-c2",
+      "well-sec-s4-safeguarding-c3",
+      "well-sec-s4-safeguarding-c4",
+      "well-sec-s4-safeguarding-c5"
+    ],
+    "well-sec-s4-sensory-standards": [
+      "well-sec-s4-sensory-standards-c1",
+      "well-sec-s4-sensory-standards-c2",
+      "well-sec-s4-sensory-standards-c3",
+      "well-sec-s4-sensory-standards-c4",
+      "well-sec-s4-sensory-standards-c5"
+    ],
+    "well-sec-s4-therapeutic-program": [
+      "well-sec-s4-therapeutic-program-c1",
+      "well-sec-s4-therapeutic-program-c2",
+      "well-sec-s4-therapeutic-program-c3",
+      "well-sec-s4-therapeutic-program-c4",
+      "well-sec-s4-therapeutic-program-c5"
+    ],
+    "lvs-s5-feed-budget": [
+      "lvs-s5-feed-budget-c1",
+      "lvs-s5-feed-budget-c2",
+      "lvs-s5-feed-budget-c3",
+      "lvs-s5-feed-budget-c4",
+      "lvs-s5-feed-budget-c5"
+    ],
+    "ag-s6-compliance-monitoring": [
+      "ag-s6-compliance-monitoring-c1",
+      "ag-s6-compliance-monitoring-c2",
+      "ag-s6-compliance-monitoring-c3",
+      "ag-s6-compliance-monitoring-c4",
+      "ag-s6-compliance-monitoring-c5",
+      "ag-s6-compliance-monitoring-c6"
+    ],
+    "ag-s6-experience-feedback": [
+      "ag-s6-experience-feedback-c1",
+      "ag-s6-experience-feedback-c2",
+      "ag-s6-experience-feedback-c3",
+      "ag-s6-experience-feedback-c4",
+      "ag-s6-experience-feedback-c5",
+      "ag-s6-experience-feedback-c6"
+    ],
+    "ag-s6-load-monitoring": [
+      "ag-s6-load-monitoring-c1",
+      "ag-s6-load-monitoring-c2",
+      "ag-s6-load-monitoring-c3",
+      "ag-s6-load-monitoring-c4",
+      "ag-s6-load-monitoring-c5"
+    ],
+    "con-s6-external-relations-compliance": [
+      "con-s6-external-relations-compliance-c1",
+      "con-s6-external-relations-compliance-c2",
+      "con-s6-external-relations-compliance-c3",
+      "con-s6-external-relations-compliance-c4",
+      "con-s6-external-relations-compliance-c5"
+    ],
+    "edu-s6-adaptive-management": [
+      "edu-s6-adaptive-management-c1",
+      "edu-s6-adaptive-management-c2",
+      "edu-s6-adaptive-management-c3",
+      "edu-s6-adaptive-management-c4",
+      "edu-s6-adaptive-management-c5",
+      "edu-s6-adaptive-management-c6"
+    ],
+    "edu-s6-external-relations-compliance": [
+      "edu-s6-external-relations-compliance-c1",
+      "edu-s6-external-relations-compliance-c2",
+      "edu-s6-external-relations-compliance-c3",
+      "edu-s6-external-relations-compliance-c4",
+      "edu-s6-external-relations-compliance-c5",
+      "edu-s6-external-relations-compliance-c6"
+    ],
+    "edu-s6-program-evaluation": [
+      "edu-s6-program-evaluation-c1",
+      "edu-s6-program-evaluation-c2",
+      "edu-s6-program-evaluation-c3",
+      "edu-s6-program-evaluation-c4",
+      "edu-s6-program-evaluation-c5",
+      "edu-s6-program-evaluation-c6"
+    ],
+    "ev-s6-coordination-feedback": [
+      "ev-s6-coordination-feedback-c1",
+      "ev-s6-coordination-feedback-c2",
+      "ev-s6-coordination-feedback-c3",
+      "ev-s6-coordination-feedback-c4",
+      "ev-s6-coordination-feedback-c5",
+      "ev-s6-coordination-feedback-c6"
+    ],
+    "ev-s6-external-relations": [
+      "ev-s6-external-relations-c1",
+      "ev-s6-external-relations-c2",
+      "ev-s6-external-relations-c7",
+      "ev-s6-external-relations-c3",
+      "ev-s6-external-relations-c4",
+      "ev-s6-external-relations-c5",
+      "ev-s6-external-relations-c6"
+    ],
+    "ev-s6-maintenance-protocol": [
+      "ev-s6-maintenance-protocol-c1",
+      "ev-s6-maintenance-protocol-c2",
+      "ev-s6-maintenance-protocol-c3",
+      "ev-s6-maintenance-protocol-c4",
+      "ev-s6-maintenance-protocol-c6",
+      "ev-s6-maintenance-protocol-c5"
+    ],
+    "ev-s6-social-monitoring": [
+      "ev-s6-social-monitoring-c1",
+      "ev-s6-social-monitoring-c2",
+      "ev-s6-social-monitoring-c7",
+      "ev-s6-social-monitoring-c3",
+      "ev-s6-social-monitoring-c4",
+      "ev-s6-social-monitoring-c5",
+      "ev-s6-social-monitoring-c6"
+    ],
+    "hms-s6-self-sufficiency-feedback": [
+      "hms-s6-self-sufficiency-feedback-c1",
+      "hms-s6-self-sufficiency-feedback-c2",
+      "hms-s6-self-sufficiency-feedback-c3",
+      "hms-s6-self-sufficiency-feedback-c4",
+      "hms-s6-self-sufficiency-feedback-c5"
+    ],
+    "lvs-s6-herd-health": [
+      "lvs-s6-herd-health-c1",
+      "lvs-s6-herd-health-c2",
+      "lvs-s6-herd-health-c3",
+      "lvs-s6-herd-health-c4",
+      "lvs-s6-herd-health-c5",
+      "lvs-s6-herd-health-c6"
+    ],
+    "mgd-s6-adaptive-management": [
+      "mgd-s6-adaptive-management-c1",
+      "mgd-s6-adaptive-management-c2",
+      "mgd-s6-adaptive-management-c3",
+      "mgd-s6-adaptive-management-c4",
+      "mgd-s6-adaptive-management-c5"
+    ],
+    "mgd-s6-sales-revenue-tracking": [
+      "mgd-s6-sales-revenue-tracking-c1",
+      "mgd-s6-sales-revenue-tracking-c2",
+      "mgd-s6-sales-revenue-tracking-c3",
+      "mgd-s6-sales-revenue-tracking-c4",
+      "mgd-s6-sales-revenue-tracking-c5"
+    ],
+    "ofg-s6-adaptive-management": [
+      "ofg-s6-adaptive-management-c1",
+      "ofg-s6-adaptive-management-c2",
+      "ofg-s6-adaptive-management-c3",
+      "ofg-s6-adaptive-management-c4",
+      "ofg-s6-adaptive-management-c5"
+    ],
+    "ofg-s6-emergency-preparedness-monitoring": [
+      "ofg-s6-emergency-preparedness-monitoring-c1",
+      "ofg-s6-emergency-preparedness-monitoring-c2",
+      "ofg-s6-emergency-preparedness-monitoring-c3",
+      "ofg-s6-emergency-preparedness-monitoring-c4",
+      "ofg-s6-emergency-preparedness-monitoring-c5"
+    ],
+    "ofg-s6-systems-performance-monitoring": [
+      "ofg-s6-systems-performance-monitoring-c1",
+      "ofg-s6-systems-performance-monitoring-c2",
+      "ofg-s6-systems-performance-monitoring-c3",
+      "ofg-s6-systems-performance-monitoring-c4",
+      "ofg-s6-systems-performance-monitoring-c5"
+    ],
+    "orch-s6-adaptive-management": [
+      "orch-s6-adaptive-management-c1",
+      "orch-s6-adaptive-management-c2",
+      "orch-s6-adaptive-management-c3",
+      "orch-s6-adaptive-management-c4",
+      "orch-s6-adaptive-management-c5"
+    ],
+    "orch-sec-s6-perennial-care": [
+      "orch-sec-s6-perennial-care-c1",
+      "orch-sec-s6-perennial-care-c2",
+      "orch-sec-s6-perennial-care-c3",
+      "orch-sec-s6-perennial-care-c4",
+      "orch-sec-s6-perennial-care-c5"
+    ],
+    "silv-s6-animal-health-monitoring": [
+      "silv-s6-animal-health-monitoring-c1",
+      "silv-s6-animal-health-monitoring-c2",
+      "silv-s6-animal-health-monitoring-c3",
+      "silv-s6-animal-health-monitoring-c4",
+      "silv-s6-animal-health-monitoring-c5"
+    ],
+    "well-s6-external-relations": [
+      "well-s6-external-relations-c1",
+      "well-s6-external-relations-c2",
+      "well-s6-external-relations-c3",
+      "well-s6-external-relations-c4",
+      "well-s6-external-relations-c5"
+    ],
+    "well-s6-outcome-monitoring": [
+      "well-s6-outcome-monitoring-c1",
+      "well-s6-outcome-monitoring-c2",
+      "well-s6-outcome-monitoring-c3",
+      "well-s6-outcome-monitoring-c4",
+      "well-s6-outcome-monitoring-c5"
+    ],
+    "well-s6-sensory-monitoring": [
+      "well-s6-sensory-monitoring-c1",
+      "well-s6-sensory-monitoring-c2",
+      "well-s6-sensory-monitoring-c3",
+      "well-s6-sensory-monitoring-c4",
+      "well-s6-sensory-monitoring-c5"
+    ],
+    "ag-s7-adaptive-management": [
+      "ag-s7-adaptive-management-c1",
+      "ag-s7-adaptive-management-c2",
+      "ag-s7-adaptive-management-c3",
+      "ag-s7-adaptive-management-c4",
+      "ag-s7-adaptive-management-c5"
+    ],
+    "ag-s7-booking-system": [
+      "ag-s7-booking-system-c1",
+      "ag-s7-booking-system-c2",
+      "ag-s7-booking-system-c3",
+      "ag-s7-booking-system-c4",
+      "ag-s7-booking-system-c5",
+      "ag-s7-booking-system-c6"
+    ],
+    "ag-s7-phased-launch": [
+      "ag-s7-phased-launch-c1",
+      "ag-s7-phased-launch-c2",
+      "ag-s7-phased-launch-c3",
+      "ag-s7-phased-launch-c4",
+      "ag-s7-phased-launch-c5",
+      "ag-s7-phased-launch-c6",
+      "ag-s7-phased-launch-c7"
+    ],
+    "ag-s7-seasonal-resilience": [
+      "ag-s7-seasonal-resilience-c1",
+      "ag-s7-seasonal-resilience-c2",
+      "ag-s7-seasonal-resilience-c3",
+      "ag-s7-seasonal-resilience-c4",
+      "ag-s7-seasonal-resilience-c5",
+      "ag-s7-seasonal-resilience-c6"
+    ],
+    "ag-s7-staffing-training": [
+      "ag-s7-staffing-training-c1",
+      "ag-s7-staffing-training-c2",
+      "ag-s7-staffing-training-c3",
+      "ag-s7-staffing-training-c4",
+      "ag-s7-staffing-training-c5",
+      "ag-s7-staffing-training-c6"
+    ],
+    "con-s7-adaptive-management": [
+      "con-s7-adaptive-management-c1",
+      "con-s7-adaptive-management-c2",
+      "con-s7-adaptive-management-c3",
+      "con-s7-adaptive-management-c4",
+      "con-s7-adaptive-management-c5"
+    ],
+    "con-s7-funding-resourcing": [
+      "con-s7-funding-resourcing-c1",
+      "con-s7-funding-resourcing-c2",
+      "con-s7-funding-resourcing-c3",
+      "con-s7-funding-resourcing-c4",
+      "con-s7-funding-resourcing-c5",
+      "con-s7-funding-resourcing-c6"
+    ],
+    "con-s7-longterm-timeline": [
+      "con-s7-longterm-timeline-c1",
+      "con-s7-longterm-timeline-c2",
+      "con-s7-longterm-timeline-c3",
+      "con-s7-longterm-timeline-c4",
+      "con-s7-longterm-timeline-c5"
+    ],
+    "con-s7-phase1-priorities": [
+      "con-s7-phase1-priorities-c1",
+      "con-s7-phase1-priorities-c2",
+      "con-s7-phase1-priorities-c3",
+      "con-s7-phase1-priorities-c4",
+      "con-s7-phase1-priorities-c5"
+    ],
+    "con-s7-volunteer-stewardship": [
+      "con-s7-volunteer-stewardship-c1",
+      "con-s7-volunteer-stewardship-c2",
+      "con-s7-volunteer-stewardship-c3",
+      "con-s7-volunteer-stewardship-c4",
+      "con-s7-volunteer-stewardship-c5",
+      "con-s7-volunteer-stewardship-c6"
+    ],
+    "edu-s7-financial-viability": [
+      "edu-s7-financial-viability-c1",
+      "edu-s7-financial-viability-c2",
+      "edu-s7-financial-viability-c3",
+      "edu-s7-financial-viability-c4",
+      "edu-s7-financial-viability-c5",
+      "edu-s7-financial-viability-c6",
+      "edu-s7-financial-viability-c7"
+    ],
+    "edu-s7-instructor-onboarding": [
+      "edu-s7-instructor-onboarding-c1",
+      "edu-s7-instructor-onboarding-c2",
+      "edu-s7-instructor-onboarding-c3",
+      "edu-s7-instructor-onboarding-c4",
+      "edu-s7-instructor-onboarding-c5",
+      "edu-s7-instructor-onboarding-c6"
+    ],
+    "edu-s7-program-launch": [
+      "edu-s7-program-launch-c1",
+      "edu-s7-program-launch-c2",
+      "edu-s7-program-launch-c3",
+      "edu-s7-program-launch-c4",
+      "edu-s7-program-launch-c5",
+      "edu-s7-program-launch-c6"
+    ],
+    "ev-s7-adaptive-management": [
+      "ev-s7-adaptive-management-c1",
+      "ev-s7-adaptive-management-c2",
+      "ev-s7-adaptive-management-c3",
+      "ev-s7-adaptive-management-c4",
+      "ev-s7-adaptive-management-c5"
+    ],
+    "ev-s7-exit-succession": [
+      "ev-s7-exit-succession-c1",
+      "ev-s7-exit-succession-c2",
+      "ev-s7-exit-succession-c3",
+      "ev-s7-exit-succession-c4",
+      "ev-s7-exit-succession-c6",
+      "ev-s7-exit-succession-c5"
+    ],
+    "ev-s7-financial-plan": [
+      "ev-s7-financial-plan-c1",
+      "ev-s7-financial-plan-c2",
+      "ev-s7-financial-plan-c3",
+      "ev-s7-financial-plan-c4",
+      "ev-s7-financial-plan-c6",
+      "ev-s7-financial-plan-c5"
+    ],
+    "ev-s7-launch-sequence": [
+      "ev-s7-launch-sequence-c1",
+      "ev-s7-launch-sequence-c2",
+      "ev-s7-launch-sequence-c3",
+      "ev-s7-launch-sequence-c4",
+      "ev-s7-launch-sequence-c5",
+      "ev-s7-launch-sequence-c6"
+    ],
+    "ev-s7-onboarding": [
+      "ev-s7-onboarding-c1",
+      "ev-s7-onboarding-c2",
+      "ev-s7-onboarding-c3",
+      "ev-s7-onboarding-c4",
+      "ev-s7-onboarding-c6",
+      "ev-s7-onboarding-c5"
+    ],
+    "ev-s7-settlement-plan": [
+      "ev-s7-settlement-plan-c1",
+      "ev-s7-settlement-plan-c2",
+      "ev-s7-settlement-plan-c3",
+      "ev-s7-settlement-plan-c4",
+      "ev-s7-settlement-plan-c6",
+      "ev-s7-settlement-plan-c5"
+    ],
+    "hms-s7-adaptive-management": [
+      "hms-s7-adaptive-management-c1",
+      "hms-s7-adaptive-management-c2",
+      "hms-s7-adaptive-management-c3",
+      "hms-s7-adaptive-management-c4",
+      "hms-s7-adaptive-management-c5"
+    ],
+    "hms-s7-budget-input-reduction": [
+      "hms-s7-budget-input-reduction-c1",
+      "hms-s7-budget-input-reduction-c2",
+      "hms-s7-budget-input-reduction-c3",
+      "hms-s7-budget-input-reduction-c4",
+      "hms-s7-budget-input-reduction-c5"
+    ],
+    "hms-s7-provision-phasing": [
+      "hms-s7-provision-phasing-c1",
+      "hms-s7-provision-phasing-c2",
+      "hms-s7-provision-phasing-c3",
+      "hms-s7-provision-phasing-c4",
+      "hms-s7-provision-phasing-c5"
+    ],
+    "lvs-s7-break-even": [
+      "lvs-s7-break-even-c1",
+      "lvs-s7-break-even-c2",
+      "lvs-s7-break-even-c4",
+      "lvs-s7-break-even-c5"
+    ],
+    "lvs-s7-herd-buildup": [
+      "lvs-s7-herd-buildup-c1",
+      "lvs-s7-herd-buildup-c2",
+      "lvs-s7-herd-buildup-c3",
+      "lvs-s7-herd-buildup-c4",
+      "lvs-s7-herd-buildup-c5"
+    ],
+    "lvs-s7-marketing": [
+      "lvs-s7-marketing-c1",
+      "lvs-s7-marketing-c2",
+      "lvs-s7-marketing-c3",
+      "lvs-s7-marketing-c4",
+      "lvs-s7-marketing-c5",
+      "lvs-s7-marketing-c6"
+    ],
+    "mgd-s7-financial-viability": [
+      "mgd-s7-financial-viability-c1",
+      "mgd-s7-financial-viability-c2",
+      "mgd-s7-financial-viability-c3",
+      "mgd-s7-financial-viability-c4",
+      "mgd-s7-financial-viability-c5",
+      "mgd-s7-financial-viability-c6"
+    ],
+    "ofg-s7-phased-habitation": [
+      "ofg-s7-phased-habitation-c1",
+      "ofg-s7-phased-habitation-c2",
+      "ofg-s7-phased-habitation-c3",
+      "ofg-s7-phased-habitation-c4",
+      "ofg-s7-phased-habitation-c5"
+    ],
+    "ofg-s7-resourcing-supply-chain": [
+      "ofg-s7-resourcing-supply-chain-c1",
+      "ofg-s7-resourcing-supply-chain-c2",
+      "ofg-s7-resourcing-supply-chain-c3",
+      "ofg-s7-resourcing-supply-chain-c4",
+      "ofg-s7-resourcing-supply-chain-c5"
+    ],
+    "ofg-s7-systems-establishment-sequence": [
+      "ofg-s7-systems-establishment-sequence-c1",
+      "ofg-s7-systems-establishment-sequence-c2",
+      "ofg-s7-systems-establishment-sequence-c3",
+      "ofg-s7-systems-establishment-sequence-c4",
+      "ofg-s7-systems-establishment-sequence-c5",
+      "ofg-s7-systems-establishment-sequence-c6"
+    ],
+    "orch-s7-financial-viability": [
+      "orch-s7-financial-viability-c1",
+      "orch-s7-financial-viability-c2",
+      "orch-s7-financial-viability-c3",
+      "orch-s7-financial-viability-c4",
+      "orch-s7-financial-viability-c5",
+      "orch-s7-financial-viability-c6"
+    ],
+    "orch-s7-planting-establishment": [
+      "orch-s7-planting-establishment-c1",
+      "orch-s7-planting-establishment-c2",
+      "orch-s7-planting-establishment-c3",
+      "orch-s7-planting-establishment-c4",
+      "orch-s7-planting-establishment-c5"
+    ],
+    "orch-s7-succession-plan": [
+      "orch-s7-succession-plan-c1",
+      "orch-s7-succession-plan-c2",
+      "orch-s7-succession-plan-c3",
+      "orch-s7-succession-plan-c4",
+      "orch-s7-succession-plan-c5",
+      "orch-s7-succession-plan-c6"
+    ],
+    "rf-s7-cash-flow": [
+      "rf-s7-cash-flow-c1",
+      "rf-s7-cash-flow-c2",
+      "rf-s7-cash-flow-c3",
+      "rf-s7-cash-flow-c4",
+      "rf-s7-cash-flow-c5"
+    ],
+    "rf-s7-enterprise-sequencing": [
+      "rf-s7-enterprise-sequencing-c1",
+      "rf-s7-enterprise-sequencing-c2",
+      "rf-s7-enterprise-sequencing-c3",
+      "rf-s7-enterprise-sequencing-c4",
+      "rf-s7-enterprise-sequencing-c5"
+    ],
+    "s7-phase1": [
+      "s7-phase1-c1",
+      "s7-phase1-c2",
+      "s7-phase1-c3",
+      "s7-phase1-c4",
+      "s7-phase1-c5"
+    ],
+    "s7-resource-plan": [
+      "s7-resource-plan-c1",
+      "s7-resource-plan-c2",
+      "s7-resource-plan-c3",
+      "s7-resource-plan-c4",
+      "s7-resource-plan-c5"
+    ],
+    "silv-s7-financial-viability": [
+      "silv-s7-financial-viability-c1",
+      "silv-s7-financial-viability-c2",
+      "silv-s7-financial-viability-c3",
+      "silv-s7-financial-viability-c5",
+      "silv-s7-financial-viability-c6"
+    ],
+    "silv-s7-livestock-establishment": [
+      "silv-s7-livestock-establishment-c1",
+      "silv-s7-livestock-establishment-c2",
+      "silv-s7-livestock-establishment-c3",
+      "silv-s7-livestock-establishment-c4",
+      "silv-s7-livestock-establishment-c5"
+    ],
+    "well-s7-adaptive-management": [
+      "well-s7-adaptive-management-c1",
+      "well-s7-adaptive-management-c2",
+      "well-s7-adaptive-management-c3",
+      "well-s7-adaptive-management-c4",
+      "well-s7-adaptive-management-c5"
+    ],
+    "well-s7-practitioner-onboarding": [
+      "well-s7-practitioner-onboarding-c1",
+      "well-s7-practitioner-onboarding-c2",
+      "well-s7-practitioner-onboarding-c3",
+      "well-s7-practitioner-onboarding-c4",
+      "well-s7-practitioner-onboarding-c5"
+    ],
+    "well-s7-program-launch": [
+      "well-s7-program-launch-c1",
+      "well-s7-program-launch-c2",
+      "well-s7-program-launch-c3",
+      "well-s7-program-launch-c4",
+      "well-s7-program-launch-c5"
+    ]
+  },
+  "objectiveSpatialOnly": {
+    "ofg-s1-site-selection-access": [
+      "ofg-s1-site-selection-access-c1",
+      "ofg-s1-site-selection-access-c2",
+      "ofg-s1-site-selection-access-c3",
+      "ofg-s1-site-selection-access-c4",
+      "ofg-s1-site-selection-access-c5",
+      "ofg-s1-site-selection-access-c6"
+    ],
+    "s1-stakeholders": [
+      "s1-stakeholders-c1",
+      "s1-stakeholders-c2",
+      "s1-stakeholders-c3",
+      "s1-stakeholders-c4",
+      "s1-stakeholders-c5",
+      "s1-stakeholders-c6"
+    ],
+    "ag-s2-arrival-experience": [
+      "ag-s2-arrival-experience-c1",
+      "ag-s2-arrival-experience-c2",
+      "ag-s2-arrival-experience-c3",
+      "ag-s2-arrival-experience-c4",
+      "ag-s2-arrival-experience-c5"
+    ],
+    "ag-s2-hospitality-infra": [
+      "ag-s2-hospitality-infra-c1",
+      "ag-s2-hospitality-infra-c2",
+      "ag-s2-hospitality-infra-c3",
+      "ag-s2-hospitality-infra-c4",
+      "ag-s2-hospitality-infra-c5",
+      "ag-s2-hospitality-infra-c6"
+    ],
+    "ag-s2-landscape-context": [
+      "ag-s2-landscape-context-c1",
+      "ag-s2-landscape-context-c2",
+      "ag-s2-landscape-context-c3",
+      "ag-s2-landscape-context-c4",
+      "ag-s2-landscape-context-c5"
+    ],
+    "con-s2-baseline-condition": [
+      "con-s2-baseline-condition-c1",
+      "con-s2-baseline-condition-c2",
+      "con-s2-baseline-condition-c3",
+      "con-s2-baseline-condition-c4",
+      "con-s2-baseline-condition-c5",
+      "con-s2-baseline-condition-c6"
+    ],
+    "con-s2-degradation-history": [
+      "con-s2-degradation-history-c1",
+      "con-s2-degradation-history-c2",
+      "con-s2-degradation-history-c3",
+      "con-s2-degradation-history-c4",
+      "con-s2-degradation-history-c5"
+    ],
+    "con-s2-invasive-distribution": [
+      "con-s2-invasive-distribution-c1",
+      "con-s2-invasive-distribution-c2",
+      "con-s2-invasive-distribution-c3",
+      "con-s2-invasive-distribution-c4",
+      "con-s2-invasive-distribution-c5",
+      "con-s2-invasive-distribution-c6"
+    ],
+    "con-s2-landscape-context": [
+      "con-s2-landscape-context-c1",
+      "con-s2-landscape-context-c2",
+      "con-s2-landscape-context-c3",
+      "con-s2-landscape-context-c4",
+      "con-s2-landscape-context-c5",
+      "con-s2-landscape-context-c6"
+    ],
+    "edu-s2-landscape-vectors": [
+      "edu-s2-landscape-vectors-c1",
+      "edu-s2-landscape-vectors-c2",
+      "edu-s2-landscape-vectors-c3",
+      "edu-s2-landscape-vectors-c4",
+      "edu-s2-landscape-vectors-c5"
+    ],
+    "edu-s2-learning-potential": [
+      "edu-s2-learning-potential-c1",
+      "edu-s2-learning-potential-c2",
+      "edu-s2-learning-potential-c3",
+      "edu-s2-learning-potential-c4",
+      "edu-s2-learning-potential-c5"
+    ],
+    "edu-s2-teaching-infrastructure": [
+      "edu-s2-teaching-infrastructure-c1",
+      "edu-s2-teaching-infrastructure-c2",
+      "edu-s2-teaching-infrastructure-c3",
+      "edu-s2-teaching-infrastructure-c4",
+      "edu-s2-teaching-infrastructure-c5"
+    ],
+    "ev-s2-carrying-capacity": [
+      "ev-s2-carrying-capacity-c1",
+      "ev-s2-carrying-capacity-c2",
+      "ev-s2-carrying-capacity-c3",
+      "ev-s2-carrying-capacity-c4",
+      "ev-s2-carrying-capacity-c5",
+      "ev-s2-carrying-capacity-c6",
+      "ev-s2-carrying-capacity-c7"
+    ],
+    "ev-s2-landscape-vectors": [
+      "ev-s2-landscape-vectors-c1",
+      "ev-s2-landscape-vectors-c2",
+      "ev-s2-landscape-vectors-c3",
+      "ev-s2-landscape-vectors-c4",
+      "ev-s2-landscape-vectors-c5",
+      "ev-s2-landscape-vectors-c6"
+    ],
+    "ev-s2-tenure-boundary": [
+      "ev-s2-tenure-boundary-c1",
+      "ev-s2-tenure-boundary-c2",
+      "ev-s2-tenure-boundary-c3",
+      "ev-s2-tenure-boundary-c4",
+      "ev-s2-tenure-boundary-c5"
+    ],
+    "hms-s2-landscape-vectors": [
+      "hms-s2-landscape-vectors-c1",
+      "hms-s2-landscape-vectors-c2",
+      "hms-s2-landscape-vectors-c3",
+      "hms-s2-landscape-vectors-c4",
+      "hms-s2-landscape-vectors-c5",
+      "hms-s2-landscape-vectors-c6"
+    ],
+    "hms-s2-productive-capacity": [
+      "hms-s2-productive-capacity-c1",
+      "hms-s2-productive-capacity-c2",
+      "hms-s2-productive-capacity-c3",
+      "hms-s2-productive-capacity-c4",
+      "hms-s2-productive-capacity-c5",
+      "hms-s2-productive-capacity-c6"
+    ],
+    "hms-s2-resource-flows": [
+      "hms-s2-resource-flows-c1",
+      "hms-s2-resource-flows-c2",
+      "hms-s2-resource-flows-c3",
+      "hms-s2-resource-flows-c4",
+      "hms-s2-resource-flows-c5",
+      "hms-s2-resource-flows-c6"
+    ],
+    "lvs-s2-existing-infrastructure": [
+      "lvs-s2-existing-infrastructure-c1",
+      "lvs-s2-existing-infrastructure-c2",
+      "lvs-s2-existing-infrastructure-c3",
+      "lvs-s2-existing-infrastructure-c4",
+      "lvs-s2-existing-infrastructure-c5"
+    ],
+    "lvs-s2-forage-base": [
+      "lvs-s2-forage-base-c1",
+      "lvs-s2-forage-base-c2",
+      "lvs-s2-forage-base-c3",
+      "lvs-s2-forage-base-c4",
+      "lvs-s2-forage-base-c5",
+      "lvs-s2-forage-base-c6"
+    ],
+    "lvs-s2-stock-water-sources": [
+      "lvs-s2-stock-water-sources-c1",
+      "lvs-s2-stock-water-sources-c2",
+      "lvs-s2-stock-water-sources-c3",
+      "lvs-s2-stock-water-sources-c4",
+      "lvs-s2-stock-water-sources-c5"
+    ],
+    "mgd-s2-landscape-vectors": [
+      "mgd-s2-landscape-vectors-c1",
+      "mgd-s2-landscape-vectors-c2",
+      "mgd-s2-landscape-vectors-c3",
+      "mgd-s2-landscape-vectors-c4",
+      "mgd-s2-landscape-vectors-c5",
+      "mgd-s2-landscape-vectors-c6"
+    ],
+    "mgd-s2-soil-fertility-bed-potential": [
+      "mgd-s2-soil-fertility-bed-potential-c1",
+      "mgd-s2-soil-fertility-bed-potential-c2",
+      "mgd-s2-soil-fertility-bed-potential-c3",
+      "mgd-s2-soil-fertility-bed-potential-c4",
+      "mgd-s2-soil-fertility-bed-potential-c5",
+      "mgd-s2-soil-fertility-bed-potential-c6"
+    ],
+    "mgd-s2-water-access-irrigation": [
+      "mgd-s2-water-access-irrigation-c1",
+      "mgd-s2-water-access-irrigation-c2",
+      "mgd-s2-water-access-irrigation-c3",
+      "mgd-s2-water-access-irrigation-c4",
+      "mgd-s2-water-access-irrigation-c5"
+    ],
+    "nur-sec-s2-biosecurity-survey": [
+      "nur-sec-s2-biosecurity-survey-c1",
+      "nur-sec-s2-biosecurity-survey-c2",
+      "nur-sec-s2-biosecurity-survey-c3",
+      "nur-sec-s2-biosecurity-survey-c4",
+      "nur-sec-s2-biosecurity-survey-c5"
+    ],
+    "ofg-s2-access-road-emergency-route": [
+      "ofg-s2-access-road-emergency-route-c1",
+      "ofg-s2-access-road-emergency-route-c2",
+      "ofg-s2-access-road-emergency-route-c3",
+      "ofg-s2-access-road-emergency-route-c4",
+      "ofg-s2-access-road-emergency-route-c5",
+      "ofg-s2-access-road-emergency-route-c6"
+    ],
+    "ofg-s2-energy-generation-potential": [
+      "ofg-s2-energy-generation-potential-c1",
+      "ofg-s2-energy-generation-potential-c2",
+      "ofg-s2-energy-generation-potential-c3",
+      "ofg-s2-energy-generation-potential-c4",
+      "ofg-s2-energy-generation-potential-c5",
+      "ofg-s2-energy-generation-potential-c6"
+    ],
+    "ofg-s2-fire-risk-evacuation": [
+      "ofg-s2-fire-risk-evacuation-c1",
+      "ofg-s2-fire-risk-evacuation-c2",
+      "ofg-s2-fire-risk-evacuation-c3",
+      "ofg-s2-fire-risk-evacuation-c4",
+      "ofg-s2-fire-risk-evacuation-c5",
+      "ofg-s2-fire-risk-evacuation-c6"
+    ],
+    "ofg-s2-water-sources-yield": [
+      "ofg-s2-water-sources-yield-c1",
+      "ofg-s2-water-sources-yield-c2",
+      "ofg-s2-water-sources-yield-c3",
+      "ofg-s2-water-sources-yield-c4",
+      "ofg-s2-water-sources-yield-c5",
+      "ofg-s2-water-sources-yield-c6"
+    ],
+    "orch-s2-frost-drainage": [
+      "orch-s2-frost-drainage-c1",
+      "orch-s2-frost-drainage-c2",
+      "orch-s2-frost-drainage-c3",
+      "orch-s2-frost-drainage-c4",
+      "orch-s2-frost-drainage-c5",
+      "orch-s2-frost-drainage-c6"
+    ],
+    "orch-s2-landscape-context": [
+      "orch-s2-landscape-context-c1",
+      "orch-s2-landscape-context-c2",
+      "orch-s2-landscape-context-c3",
+      "orch-s2-landscape-context-c4",
+      "orch-s2-landscape-context-c5"
+    ],
+    "orch-s2-tree-cover": [
+      "orch-s2-tree-cover-c1",
+      "orch-s2-tree-cover-c2",
+      "orch-s2-tree-cover-c3",
+      "orch-s2-tree-cover-c4",
+      "orch-s2-tree-cover-c5",
+      "orch-s2-tree-cover-c6"
+    ],
+    "orch-sec-s2-climate-chill-fit": [
+      "orch-sec-s2-climate-chill-fit-c1",
+      "orch-sec-s2-climate-chill-fit-c2",
+      "orch-sec-s2-climate-chill-fit-c3",
+      "orch-sec-s2-climate-chill-fit-c4",
+      "orch-sec-s2-climate-chill-fit-c5"
+    ],
+    "rf-s2-land-health": [
+      "rf-s2-land-health-c1",
+      "rf-s2-land-health-c2",
+      "rf-s2-land-health-c3",
+      "rf-s2-land-health-c4",
+      "rf-s2-land-health-c5",
+      "rf-s2-land-health-c6",
+      "rf-s2-land-health-c7",
+      "rf-s2-land-health-c8",
+      "rf-s2-land-health-c9"
+    ],
+    "rf-s2-landscape-context": [
+      "rf-s2-landscape-context-c1",
+      "rf-s2-landscape-context-c2",
+      "rf-s2-landscape-context-c3",
+      "rf-s2-landscape-context-c4",
+      "rf-s2-landscape-context-c5",
+      "rf-s2-landscape-context-c6"
+    ],
+    "s2-climate": [
+      "s2-climate-c1",
+      "s2-climate-c2",
+      "s2-climate-c3",
+      "s2-climate-c4",
+      "s2-climate-c5",
+      "s2-climate-c6"
+    ],
+    "s2-ecology": [
+      "s2-ecology-c1",
+      "s2-ecology-c2",
+      "s2-ecology-c3",
+      "s2-ecology-c4",
+      "s2-ecology-c5"
+    ],
+    "s2-infrastructure": [
+      "s2-infrastructure-c1",
+      "s2-infrastructure-c2",
+      "s2-infrastructure-c3",
+      "s2-infrastructure-c4",
+      "s2-infrastructure-c5"
+    ],
+    "s2-terrain": [
+      "s2-terrain-c1",
+      "s2-terrain-c2",
+      "s2-terrain-c3",
+      "s2-terrain-c4",
+      "s2-terrain-c5"
+    ],
+    "silv-s2-grazing-history": [
+      "silv-s2-grazing-history-c1",
+      "silv-s2-grazing-history-c2",
+      "silv-s2-grazing-history-c3",
+      "silv-s2-grazing-history-c4",
+      "silv-s2-grazing-history-c5",
+      "silv-s2-grazing-history-c6"
+    ],
+    "silv-s2-landscape-context": [
+      "silv-s2-landscape-context-c1",
+      "silv-s2-landscape-context-c2",
+      "silv-s2-landscape-context-c3",
+      "silv-s2-landscape-context-c4",
+      "silv-s2-landscape-context-c5"
+    ],
+    "silv-s2-livestock-infrastructure": [
+      "silv-s2-livestock-infrastructure-c1",
+      "silv-s2-livestock-infrastructure-c2",
+      "silv-s2-livestock-infrastructure-c3",
+      "silv-s2-livestock-infrastructure-c4",
+      "silv-s2-livestock-infrastructure-c5"
+    ],
+    "silv-s2-pasture-condition": [
+      "silv-s2-pasture-condition-c1",
+      "silv-s2-pasture-condition-c2",
+      "silv-s2-pasture-condition-c3",
+      "silv-s2-pasture-condition-c4",
+      "silv-s2-pasture-condition-c6"
+    ],
+    "well-s2-landscape-context": [
+      "well-s2-landscape-context-c1",
+      "well-s2-landscape-context-c2",
+      "well-s2-landscape-context-c3",
+      "well-s2-landscape-context-c4",
+      "well-s2-landscape-context-c5"
+    ],
+    "well-s2-privacy-gradient": [
+      "well-s2-privacy-gradient-c1",
+      "well-s2-privacy-gradient-c2",
+      "well-s2-privacy-gradient-c3",
+      "well-s2-privacy-gradient-c4",
+      "well-s2-privacy-gradient-c5"
+    ],
+    "well-s2-retreat-infrastructure": [
+      "well-s2-retreat-infrastructure-c1",
+      "well-s2-retreat-infrastructure-c2",
+      "well-s2-retreat-infrastructure-c3",
+      "well-s2-retreat-infrastructure-c4",
+      "well-s2-retreat-infrastructure-c5"
+    ],
+    "well-s2-sensory-environment": [
+      "well-s2-sensory-environment-c1",
+      "well-s2-sensory-environment-c2",
+      "well-s2-sensory-environment-c3",
+      "well-s2-sensory-environment-c4",
+      "well-s2-sensory-environment-c5",
+      "well-s2-sensory-environment-c6"
+    ],
+    "ag-s3-ecological-carrying-capacity": [
+      "ag-s3-ecological-carrying-capacity-c1",
+      "ag-s3-ecological-carrying-capacity-c2",
+      "ag-s3-ecological-carrying-capacity-c3",
+      "ag-s3-ecological-carrying-capacity-c4",
+      "ag-s3-ecological-carrying-capacity-c5",
+      "ag-s3-ecological-carrying-capacity-c6"
+    ],
+    "ag-s3-emergency-access": [
+      "ag-s3-emergency-access-c1",
+      "ag-s3-emergency-access-c2",
+      "ag-s3-emergency-access-c3",
+      "ag-s3-emergency-access-c4",
+      "ag-s3-emergency-access-c5",
+      "ag-s3-emergency-access-c6"
+    ],
+    "ag-s3-food-production-capacity": [
+      "ag-s3-food-production-capacity-c1",
+      "ag-s3-food-production-capacity-c2",
+      "ag-s3-food-production-capacity-c3",
+      "ag-s3-food-production-capacity-c4",
+      "ag-s3-food-production-capacity-c5"
+    ],
+    "ag-s3-sensory-environment": [
+      "ag-s3-sensory-environment-c1",
+      "ag-s3-sensory-environment-c2",
+      "ag-s3-sensory-environment-c3",
+      "ag-s3-sensory-environment-c4",
+      "ag-s3-sensory-environment-c5"
+    ],
+    "ag-s3-water-sanitation-demand": [
+      "ag-s3-water-sanitation-demand-c1",
+      "ag-s3-water-sanitation-demand-c2",
+      "ag-s3-water-sanitation-demand-c3",
+      "ag-s3-water-sanitation-demand-c4",
+      "ag-s3-water-sanitation-demand-c5",
+      "ag-s3-water-sanitation-demand-c6"
+    ],
+    "con-s3-fire-history": [
+      "con-s3-fire-history-c1",
+      "con-s3-fire-history-c2",
+      "con-s3-fire-history-c3",
+      "con-s3-fire-history-c4",
+      "con-s3-fire-history-c5",
+      "con-s3-fire-history-c6"
+    ],
+    "con-s3-soil-biology-seedbank": [
+      "con-s3-soil-biology-seedbank-c1",
+      "con-s3-soil-biology-seedbank-c2",
+      "con-s3-soil-biology-seedbank-c3",
+      "con-s3-soil-biology-seedbank-c4",
+      "con-s3-soil-biology-seedbank-c5"
+    ],
+    "con-s3-water-regime-degradation": [
+      "con-s3-water-regime-degradation-c1",
+      "con-s3-water-regime-degradation-c2",
+      "con-s3-water-regime-degradation-c3",
+      "con-s3-water-regime-degradation-c4",
+      "con-s3-water-regime-degradation-c5",
+      "con-s3-water-regime-degradation-c6"
+    ],
+    "con-s3-wildlife-presence": [
+      "con-s3-wildlife-presence-c1",
+      "con-s3-wildlife-presence-c2",
+      "con-s3-wildlife-presence-c3",
+      "con-s3-wildlife-presence-c4",
+      "con-s3-wildlife-presence-c5",
+      "con-s3-wildlife-presence-c6"
+    ],
+    "edu-s3-demo-baseline": [
+      "edu-s3-demo-baseline-c1",
+      "edu-s3-demo-baseline-c2",
+      "edu-s3-demo-baseline-c3",
+      "edu-s3-demo-baseline-c4",
+      "edu-s3-demo-baseline-c5"
+    ],
+    "edu-s3-learner-access-safety": [
+      "edu-s3-learner-access-safety-c1",
+      "edu-s3-learner-access-safety-c2",
+      "edu-s3-learner-access-safety-c3",
+      "edu-s3-learner-access-safety-c4",
+      "edu-s3-learner-access-safety-c5",
+      "edu-s3-learner-access-safety-c6"
+    ],
+    "ev-s3-energy-potential": [
+      "ev-s3-energy-potential-c1",
+      "ev-s3-energy-potential-c2",
+      "ev-s3-energy-potential-c3",
+      "ev-s3-energy-potential-c4",
+      "ev-s3-energy-potential-c5",
+      "ev-s3-energy-potential-c6"
+    ],
+    "ev-s3-infra-condition": [
+      "ev-s3-infra-condition-c1",
+      "ev-s3-infra-condition-c2",
+      "ev-s3-infra-condition-c3",
+      "ev-s3-infra-condition-c4",
+      "ev-s3-infra-condition-c5"
+    ],
+    "ev-s3-waste-cycling": [
+      "ev-s3-waste-cycling-c1",
+      "ev-s3-waste-cycling-c2",
+      "ev-s3-waste-cycling-c3",
+      "ev-s3-waste-cycling-c4",
+      "ev-s3-waste-cycling-c5",
+      "ev-s3-waste-cycling-c6"
+    ],
+    "ev-s3-water-yield": [
+      "ev-s3-water-yield-c1",
+      "ev-s3-water-yield-c2",
+      "ev-s3-water-yield-c3",
+      "ev-s3-water-yield-c4",
+      "ev-s3-water-yield-c5",
+      "ev-s3-water-yield-c6"
+    ],
+    "hms-s3-water-quality": [
+      "hms-s3-water-quality-c1",
+      "hms-s3-water-quality-c2",
+      "hms-s3-water-quality-c3",
+      "hms-s3-water-quality-c4",
+      "hms-s3-water-quality-c5",
+      "hms-s3-water-quality-c6"
+    ],
+    "lvs-s3-carrying-capacity": [
+      "lvs-s3-carrying-capacity-c3",
+      "lvs-s3-carrying-capacity-c4",
+      "lvs-s3-carrying-capacity-c5"
+    ],
+    "lvs-s3-health-baseline": [
+      "lvs-s3-health-baseline-c1",
+      "lvs-s3-health-baseline-c2",
+      "lvs-s3-health-baseline-c3",
+      "lvs-s3-health-baseline-c4",
+      "lvs-s3-health-baseline-c5"
+    ],
+    "lvs-s3-predator-risk": [
+      "lvs-s3-predator-risk-c1",
+      "lvs-s3-predator-risk-c2",
+      "lvs-s3-predator-risk-c3",
+      "lvs-s3-predator-risk-c4",
+      "lvs-s3-predator-risk-c5"
+    ],
+    "lvs-sec-s3-carrying-capacity-fit": [
+      "lvs-sec-s3-carrying-capacity-fit-c1",
+      "lvs-sec-s3-carrying-capacity-fit-c4",
+      "lvs-sec-s3-carrying-capacity-fit-c5"
+    ],
+    "mgd-s3-irrigation-water-quality": [
+      "mgd-s3-irrigation-water-quality-c1",
+      "mgd-s3-irrigation-water-quality-c2",
+      "mgd-s3-irrigation-water-quality-c3",
+      "mgd-s3-irrigation-water-quality-c4",
+      "mgd-s3-irrigation-water-quality-c5"
+    ],
+    "mgd-s3-pest-disease-weed-pressure": [
+      "mgd-s3-pest-disease-weed-pressure-c1",
+      "mgd-s3-pest-disease-weed-pressure-c2",
+      "mgd-s3-pest-disease-weed-pressure-c3",
+      "mgd-s3-pest-disease-weed-pressure-c4",
+      "mgd-s3-pest-disease-weed-pressure-c5",
+      "mgd-s3-pest-disease-weed-pressure-c6"
+    ],
+    "nur-sec-s3-growing-media": [
+      "nur-sec-s3-growing-media-c1",
+      "nur-sec-s3-growing-media-c2",
+      "nur-sec-s3-growing-media-c3",
+      "nur-sec-s3-growing-media-c4",
+      "nur-sec-s3-growing-media-c5",
+      "nur-sec-s3-growing-media-c6"
+    ],
+    "nur-sec-s3-propagation-strategy": [
+      "nur-sec-s3-propagation-strategy-c1",
+      "nur-sec-s3-propagation-strategy-c2",
+      "nur-sec-s3-propagation-strategy-c3",
+      "nur-sec-s3-propagation-strategy-c4",
+      "nur-sec-s3-propagation-strategy-c5",
+      "nur-sec-s3-propagation-strategy-c6"
+    ],
+    "ofg-s3-communications-connectivity": [
+      "ofg-s3-communications-connectivity-c1",
+      "ofg-s3-communications-connectivity-c2",
+      "ofg-s3-communications-connectivity-c3",
+      "ofg-s3-communications-connectivity-c4",
+      "ofg-s3-communications-connectivity-c5",
+      "ofg-s3-communications-connectivity-c6"
+    ],
+    "ofg-s3-food-production-storage-conditions": [
+      "ofg-s3-food-production-storage-conditions-c1",
+      "ofg-s3-food-production-storage-conditions-c2",
+      "ofg-s3-food-production-storage-conditions-c3",
+      "ofg-s3-food-production-storage-conditions-c4",
+      "ofg-s3-food-production-storage-conditions-c5",
+      "ofg-s3-food-production-storage-conditions-c6"
+    ],
+    "ofg-s3-water-quality-treatment": [
+      "ofg-s3-water-quality-treatment-c1",
+      "ofg-s3-water-quality-treatment-c2",
+      "ofg-s3-water-quality-treatment-c3",
+      "ofg-s3-water-quality-treatment-c4",
+      "ofg-s3-water-quality-treatment-c5",
+      "ofg-s3-water-quality-treatment-c6"
+    ],
+    "orch-s3-pest-disease-pressure": [
+      "orch-s3-pest-disease-pressure-c1",
+      "orch-s3-pest-disease-pressure-c2",
+      "orch-s3-pest-disease-pressure-c3",
+      "orch-s3-pest-disease-pressure-c4",
+      "orch-s3-pest-disease-pressure-c5"
+    ],
+    "orch-s3-rootzone-depth": [
+      "orch-s3-rootzone-depth-c1",
+      "orch-s3-rootzone-depth-c2",
+      "orch-s3-rootzone-depth-c3",
+      "orch-s3-rootzone-depth-c4",
+      "orch-s3-rootzone-depth-c5",
+      "orch-s3-rootzone-depth-c6"
+    ],
+    "orch-s3-water-availability": [
+      "orch-s3-water-availability-c1",
+      "orch-s3-water-availability-c2",
+      "orch-s3-water-availability-c3",
+      "orch-s3-water-availability-c4",
+      "orch-s3-water-availability-c5"
+    ],
+    "res-s3-water-quality": [
+      "res-s3-water-quality-c1",
+      "res-s3-water-quality-c2",
+      "res-s3-water-quality-c3",
+      "res-s3-water-quality-c4",
+      "res-s3-water-quality-c5",
+      "res-s3-water-quality-c6",
+      "res-s3-water-quality-c7"
+    ],
+    "rf-s3-nutrient-cycling": [
+      "rf-s3-nutrient-cycling-c1",
+      "rf-s3-nutrient-cycling-c2",
+      "rf-s3-nutrient-cycling-c3",
+      "rf-s3-nutrient-cycling-c4",
+      "rf-s3-nutrient-cycling-c5",
+      "rf-s3-nutrient-cycling-c6"
+    ],
+    "rf-s3-pest-pressure": [
+      "rf-s3-pest-pressure-c1",
+      "rf-s3-pest-pressure-c2",
+      "rf-s3-pest-pressure-c3",
+      "rf-s3-pest-pressure-c4",
+      "rf-s3-pest-pressure-c5",
+      "rf-s3-pest-pressure-c6",
+      "rf-s3-pest-pressure-c7"
+    ],
+    "s3-hydrology": [
+      "s3-hydrology-c1",
+      "s3-hydrology-c2",
+      "s3-hydrology-c3",
+      "s3-hydrology-c4",
+      "s3-hydrology-c5"
+    ],
+    "s3-soil": [
+      "s3-soil-c1",
+      "s3-soil-c2",
+      "s3-soil-c3",
+      "s3-soil-c4",
+      "s3-soil-c5"
+    ],
+    "silv-s3-forage-productivity": [
+      "silv-s3-forage-productivity-c1",
+      "silv-s3-forage-productivity-c2",
+      "silv-s3-forage-productivity-c3",
+      "silv-s3-forage-productivity-c4"
+    ],
+    "silv-s3-soil-compaction": [
+      "silv-s3-soil-compaction-c1",
+      "silv-s3-soil-compaction-c2",
+      "silv-s3-soil-compaction-c3",
+      "silv-s3-soil-compaction-c4",
+      "silv-s3-soil-compaction-c5"
+    ],
+    "silv-s3-stock-water-availability": [
+      "silv-s3-stock-water-availability-c2",
+      "silv-s3-stock-water-availability-c3",
+      "silv-s3-stock-water-availability-c4",
+      "silv-s3-stock-water-availability-c5",
+      "silv-s3-stock-water-availability-c6"
+    ],
+    "silv-sec-s3-forage-survey": [
+      "silv-sec-s3-forage-survey-c1",
+      "silv-sec-s3-forage-survey-c2",
+      "silv-sec-s3-forage-survey-c4",
+      "silv-sec-s3-forage-survey-c5"
+    ],
+    "well-s3-acoustic-conditions": [
+      "well-s3-acoustic-conditions-c1",
+      "well-s3-acoustic-conditions-c2",
+      "well-s3-acoustic-conditions-c3",
+      "well-s3-acoustic-conditions-c4",
+      "well-s3-acoustic-conditions-c5"
+    ],
+    "well-s3-healing-garden-ecology": [
+      "well-s3-healing-garden-ecology-c1",
+      "well-s3-healing-garden-ecology-c2",
+      "well-s3-healing-garden-ecology-c3",
+      "well-s3-healing-garden-ecology-c4",
+      "well-s3-healing-garden-ecology-c5"
+    ],
+    "well-s3-water-features": [
+      "well-s3-water-features-c1",
+      "well-s3-water-features-c2",
+      "well-s3-water-features-c3",
+      "well-s3-water-features-c4",
+      "well-s3-water-features-c5"
+    ],
+    "ag-s4-biosecurity-zoning": [
+      "ag-s4-biosecurity-zoning-c1",
+      "ag-s4-biosecurity-zoning-c2",
+      "ag-s4-biosecurity-zoning-c3",
+      "ag-s4-biosecurity-zoning-c4",
+      "ag-s4-biosecurity-zoning-c5",
+      "ag-s4-biosecurity-zoning-c6",
+      "ag-s4-biosecurity-zoning-c7"
+    ],
+    "ag-s4-circulation-strategy": [
+      "ag-s4-circulation-strategy-c1",
+      "ag-s4-circulation-strategy-c2",
+      "ag-s4-circulation-strategy-c3",
+      "ag-s4-circulation-strategy-c4",
+      "ag-s4-circulation-strategy-c5",
+      "ag-s4-circulation-strategy-c6",
+      "ag-s4-circulation-strategy-c7"
+    ],
+    "ag-s4-safety-compliance": [
+      "ag-s4-safety-compliance-c1",
+      "ag-s4-safety-compliance-c2",
+      "ag-s4-safety-compliance-c3",
+      "ag-s4-safety-compliance-c4",
+      "ag-s4-safety-compliance-c5",
+      "ag-s4-safety-compliance-c6",
+      "ag-s4-safety-compliance-c7"
+    ],
+    "con-s4-fire-management-strategy": [
+      "con-s4-fire-management-strategy-c1",
+      "con-s4-fire-management-strategy-c2",
+      "con-s4-fire-management-strategy-c3",
+      "con-s4-fire-management-strategy-c4",
+      "con-s4-fire-management-strategy-c5",
+      "con-s4-fire-management-strategy-c6"
+    ],
+    "con-s4-restoration-priority-zones": [
+      "con-s4-restoration-priority-zones-c1",
+      "con-s4-restoration-priority-zones-c2",
+      "con-s4-restoration-priority-zones-c3",
+      "con-s4-restoration-priority-zones-c4",
+      "con-s4-restoration-priority-zones-c5"
+    ],
+    "con-s4-water-regime-restoration": [
+      "con-s4-water-regime-restoration-c1",
+      "con-s4-water-regime-restoration-c2",
+      "con-s4-water-regime-restoration-c3",
+      "con-s4-water-regime-restoration-c4",
+      "con-s4-water-regime-restoration-c5",
+      "con-s4-water-regime-restoration-c6"
+    ],
+    "edu-s4-safety-risk-framework": [
+      "edu-s4-safety-risk-framework-c1",
+      "edu-s4-safety-risk-framework-c2",
+      "edu-s4-safety-risk-framework-c3",
+      "edu-s4-safety-risk-framework-c4",
+      "edu-s4-safety-risk-framework-c5",
+      "edu-s4-safety-risk-framework-c6",
+      "edu-s4-safety-risk-framework-c7"
+    ],
+    "edu-s4-teaching-zone-allocation": [
+      "edu-s4-teaching-zone-allocation-c1",
+      "edu-s4-teaching-zone-allocation-c2",
+      "edu-s4-teaching-zone-allocation-c3",
+      "edu-s4-teaching-zone-allocation-c4",
+      "edu-s4-teaching-zone-allocation-c5",
+      "edu-s4-teaching-zone-allocation-c6",
+      "edu-s4-teaching-zone-allocation-c7"
+    ],
+    "ev-s4-housing-cluster": [
+      "ev-s4-housing-cluster-c1",
+      "ev-s4-housing-cluster-c2",
+      "ev-s4-housing-cluster-c3",
+      "ev-s4-housing-cluster-c4",
+      "ev-s4-housing-cluster-c5"
+    ],
+    "hms-s4-fertility-strategy": [
+      "hms-s4-fertility-strategy-c1",
+      "hms-s4-fertility-strategy-c2",
+      "hms-s4-fertility-strategy-c3",
+      "hms-s4-fertility-strategy-c4",
+      "hms-s4-fertility-strategy-c5",
+      "hms-s4-fertility-strategy-c6"
+    ],
+    "lvs-s4-stock-water-strategy": [
+      "lvs-s4-stock-water-strategy-c2",
+      "lvs-s4-stock-water-strategy-c3",
+      "lvs-s4-stock-water-strategy-c4",
+      "lvs-s4-stock-water-strategy-c5"
+    ],
+    "lvs-sec-s4-stock-infrastructure": [
+      "lvs-sec-s4-stock-infrastructure-c1",
+      "lvs-sec-s4-stock-infrastructure-c2",
+      "lvs-sec-s4-stock-infrastructure-c3",
+      "lvs-sec-s4-stock-infrastructure-c4",
+      "lvs-sec-s4-stock-infrastructure-c5"
+    ],
+    "mgd-s4-crop-rotation-bed-layout": [
+      "mgd-s4-crop-rotation-bed-layout-c1",
+      "mgd-s4-crop-rotation-bed-layout-c2",
+      "mgd-s4-crop-rotation-bed-layout-c3",
+      "mgd-s4-crop-rotation-bed-layout-c4",
+      "mgd-s4-crop-rotation-bed-layout-c5",
+      "mgd-s4-crop-rotation-bed-layout-c6"
+    ],
+    "mgd-s4-fertility-strategy": [
+      "mgd-s4-fertility-strategy-c1",
+      "mgd-s4-fertility-strategy-c2",
+      "mgd-s4-fertility-strategy-c3",
+      "mgd-s4-fertility-strategy-c4",
+      "mgd-s4-fertility-strategy-c5",
+      "mgd-s4-fertility-strategy-c6"
+    ],
+    "mgd-s4-ipm-strategy": [
+      "mgd-s4-ipm-strategy-c1",
+      "mgd-s4-ipm-strategy-c2",
+      "mgd-s4-ipm-strategy-c3",
+      "mgd-s4-ipm-strategy-c4",
+      "mgd-s4-ipm-strategy-c5",
+      "mgd-s4-ipm-strategy-c6"
+    ],
+    "mgd-s4-irrigation-strategy": [
+      "mgd-s4-irrigation-strategy-c1",
+      "mgd-s4-irrigation-strategy-c2",
+      "mgd-s4-irrigation-strategy-c3",
+      "mgd-s4-irrigation-strategy-c4",
+      "mgd-s4-irrigation-strategy-c5"
+    ],
+    "mgd-s4-post-harvest-handling": [
+      "mgd-s4-post-harvest-handling-c1",
+      "mgd-s4-post-harvest-handling-c2",
+      "mgd-s4-post-harvest-handling-c3",
+      "mgd-s4-post-harvest-handling-c4",
+      "mgd-s4-post-harvest-handling-c5",
+      "mgd-s4-post-harvest-handling-c6"
+    ],
+    "nur-sec-s4-irrigation-design": [
+      "nur-sec-s4-irrigation-design-c1",
+      "nur-sec-s4-irrigation-design-c2",
+      "nur-sec-s4-irrigation-design-c3",
+      "nur-sec-s4-irrigation-design-c4",
+      "nur-sec-s4-irrigation-design-c5"
+    ],
+    "nur-sec-s4-propagation-infra-design": [
+      "nur-sec-s4-propagation-infra-design-c1",
+      "nur-sec-s4-propagation-infra-design-c2",
+      "nur-sec-s4-propagation-infra-design-c3",
+      "nur-sec-s4-propagation-infra-design-c4",
+      "nur-sec-s4-propagation-infra-design-c5",
+      "nur-sec-s4-propagation-infra-design-c6"
+    ],
+    "nur-sec-s4-sales-dispatch": [
+      "nur-sec-s4-sales-dispatch-c1",
+      "nur-sec-s4-sales-dispatch-c2",
+      "nur-sec-s4-sales-dispatch-c3",
+      "nur-sec-s4-sales-dispatch-c4",
+      "nur-sec-s4-sales-dispatch-c5"
+    ],
+    "orch-s4-guild-planting": [
+      "orch-s4-guild-planting-c1",
+      "orch-s4-guild-planting-c2",
+      "orch-s4-guild-planting-c3",
+      "orch-s4-guild-planting-c4",
+      "orch-s4-guild-planting-c5",
+      "orch-s4-guild-planting-c6"
+    ],
+    "orch-s4-pest-disease-management": [
+      "orch-s4-pest-disease-management-c1",
+      "orch-s4-pest-disease-management-c2",
+      "orch-s4-pest-disease-management-c3",
+      "orch-s4-pest-disease-management-c4",
+      "orch-s4-pest-disease-management-c5",
+      "orch-s4-pest-disease-management-c6"
+    ],
+    "orch-s4-water-strategy": [
+      "orch-s4-water-strategy-c1",
+      "orch-s4-water-strategy-c2",
+      "orch-s4-water-strategy-c3",
+      "orch-s4-water-strategy-c4",
+      "orch-s4-water-strategy-c5"
+    ],
+    "res-s4-living-zone": [
+      "res-s4-living-zone-c1",
+      "res-s4-living-zone-c2",
+      "res-s4-living-zone-c3",
+      "res-s4-living-zone-c4",
+      "res-s4-living-zone-c5",
+      "res-s4-living-zone-c6"
+    ],
+    "rf-s4-biodiversity-strategy": [
+      "rf-s4-biodiversity-strategy-c1",
+      "rf-s4-biodiversity-strategy-c2",
+      "rf-s4-biodiversity-strategy-c3",
+      "rf-s4-biodiversity-strategy-c4",
+      "rf-s4-biodiversity-strategy-c5",
+      "rf-s4-biodiversity-strategy-c6"
+    ],
+    "rf-s4-fertility-strategy": [
+      "rf-s4-fertility-strategy-c1",
+      "rf-s4-fertility-strategy-c2",
+      "rf-s4-fertility-strategy-c3",
+      "rf-s4-fertility-strategy-c4",
+      "rf-s4-fertility-strategy-c5",
+      "rf-s4-fertility-strategy-c6"
+    ],
+    "s4-water-strategy": [
+      "s4-water-strategy-c1",
+      "s4-water-strategy-c2",
+      "s4-water-strategy-c3",
+      "s4-water-strategy-c4",
+      "s4-water-strategy-c5",
+      "s4-water-strategy-c6"
+    ],
+    "s4-zones": [
+      "s4-zones-c1",
+      "s4-zones-c2",
+      "s4-zones-c3",
+      "s4-zones-c4",
+      "s4-zones-c5",
+      "s4-zones-c6"
+    ],
+    "silv-s4-forage-improvement": [
+      "silv-s4-forage-improvement-c1",
+      "silv-s4-forage-improvement-c2",
+      "silv-s4-forage-improvement-c3",
+      "silv-s4-forage-improvement-c4",
+      "silv-s4-forage-improvement-c5",
+      "silv-s4-forage-improvement-c6"
+    ],
+    "silv-s4-paddock-layout": [
+      "silv-s4-paddock-layout-c1",
+      "silv-s4-paddock-layout-c2",
+      "silv-s4-paddock-layout-c3",
+      "silv-s4-paddock-layout-c4",
+      "silv-s4-paddock-layout-c6"
+    ],
+    "silv-s4-stock-water-strategy": [
+      "silv-s4-stock-water-strategy-c1",
+      "silv-s4-stock-water-strategy-c2",
+      "silv-s4-stock-water-strategy-c3",
+      "silv-s4-stock-water-strategy-c4",
+      "silv-s4-stock-water-strategy-c5",
+      "silv-s4-stock-water-strategy-c6"
+    ],
+    "silv-s4-tree-integration": [
+      "silv-s4-tree-integration-c1",
+      "silv-s4-tree-integration-c2",
+      "silv-s4-tree-integration-c3",
+      "silv-s4-tree-integration-c4",
+      "silv-s4-tree-integration-c5",
+      "silv-s4-tree-integration-c6"
+    ],
+    "silv-sec-s4-grazing-design": [
+      "silv-sec-s4-grazing-design-c1",
+      "silv-sec-s4-grazing-design-c2",
+      "silv-sec-s4-grazing-design-c3",
+      "silv-sec-s4-grazing-design-c4",
+      "silv-sec-s4-grazing-design-c5",
+      "silv-sec-s4-grazing-design-c6"
+    ],
+    "silv-sec-s4-stock-infrastructure": [
+      "silv-sec-s4-stock-infrastructure-c1",
+      "silv-sec-s4-stock-infrastructure-c2",
+      "silv-sec-s4-stock-infrastructure-c3",
+      "silv-sec-s4-stock-infrastructure-c4",
+      "silv-sec-s4-stock-infrastructure-c5"
+    ],
+    "well-s4-privacy-zone-hierarchy": [
+      "well-s4-privacy-zone-hierarchy-c1",
+      "well-s4-privacy-zone-hierarchy-c2",
+      "well-s4-privacy-zone-hierarchy-c3",
+      "well-s4-privacy-zone-hierarchy-c4",
+      "well-s4-privacy-zone-hierarchy-c5"
+    ],
+    "ag-s5-accommodation": [
+      "ag-s5-accommodation-c1",
+      "ag-s5-accommodation-c2",
+      "ag-s5-accommodation-c3",
+      "ag-s5-accommodation-c4",
+      "ag-s5-accommodation-c5",
+      "ag-s5-accommodation-c6"
+    ],
+    "ag-s5-decentralised-servicing": [
+      "ag-s5-decentralised-servicing-c1",
+      "ag-s5-decentralised-servicing-c2",
+      "ag-s5-decentralised-servicing-c3",
+      "ag-s5-decentralised-servicing-c4",
+      "ag-s5-decentralised-servicing-c5",
+      "ag-s5-decentralised-servicing-c6",
+      "ag-s5-decentralised-servicing-c7"
+    ],
+    "ag-s5-dining-infra": [
+      "ag-s5-dining-infra-c1",
+      "ag-s5-dining-infra-c2",
+      "ag-s5-dining-infra-c3",
+      "ag-s5-dining-infra-c4",
+      "ag-s5-dining-infra-c5",
+      "ag-s5-dining-infra-c6"
+    ],
+    "ag-s5-dispersed-siting": [
+      "ag-s5-dispersed-siting-c1",
+      "ag-s5-dispersed-siting-c2",
+      "ag-s5-dispersed-siting-c3",
+      "ag-s5-dispersed-siting-c4",
+      "ag-s5-dispersed-siting-c5",
+      "ag-s5-dispersed-siting-c6",
+      "ag-s5-dispersed-siting-c7"
+    ],
+    "ag-s5-programming-infra": [
+      "ag-s5-programming-infra-c1",
+      "ag-s5-programming-infra-c2",
+      "ag-s5-programming-infra-c3",
+      "ag-s5-programming-infra-c4",
+      "ag-s5-programming-infra-c5",
+      "ag-s5-programming-infra-c6"
+    ],
+    "ag-s5-safety-infra": [
+      "ag-s5-safety-infra-c1",
+      "ag-s5-safety-infra-c2",
+      "ag-s5-safety-infra-c3",
+      "ag-s5-safety-infra-c4",
+      "ag-s5-safety-infra-c5",
+      "ag-s5-safety-infra-c6",
+      "ag-s5-safety-infra-c7"
+    ],
+    "ag-s5-sanitation-infra": [
+      "ag-s5-sanitation-infra-c1",
+      "ag-s5-sanitation-infra-c2",
+      "ag-s5-sanitation-infra-c3",
+      "ag-s5-sanitation-infra-c4",
+      "ag-s5-sanitation-infra-c5",
+      "ag-s5-sanitation-infra-c6"
+    ],
+    "con-s5-fencing-exclusion": [
+      "con-s5-fencing-exclusion-c1",
+      "con-s5-fencing-exclusion-c2",
+      "con-s5-fencing-exclusion-c3",
+      "con-s5-fencing-exclusion-c4",
+      "con-s5-fencing-exclusion-c5",
+      "con-s5-fencing-exclusion-c6"
+    ],
+    "con-s5-native-planting-plan": [
+      "con-s5-native-planting-plan-c1",
+      "con-s5-native-planting-plan-c2",
+      "con-s5-native-planting-plan-c3",
+      "con-s5-native-planting-plan-c4",
+      "con-s5-native-planting-plan-c5",
+      "con-s5-native-planting-plan-c6"
+    ],
+    "con-s5-pest-control-infrastructure": [
+      "con-s5-pest-control-infrastructure-c1",
+      "con-s5-pest-control-infrastructure-c2",
+      "con-s5-pest-control-infrastructure-c3",
+      "con-s5-pest-control-infrastructure-c4",
+      "con-s5-pest-control-infrastructure-c5"
+    ],
+    "con-s5-water-regime-infrastructure": [
+      "con-s5-water-regime-infrastructure-c1",
+      "con-s5-water-regime-infrastructure-c2",
+      "con-s5-water-regime-infrastructure-c3",
+      "con-s5-water-regime-infrastructure-c4",
+      "con-s5-water-regime-infrastructure-c5"
+    ],
+    "con-s5-wildlife-habitat-infrastructure": [
+      "con-s5-wildlife-habitat-infrastructure-c1",
+      "con-s5-wildlife-habitat-infrastructure-c2",
+      "con-s5-wildlife-habitat-infrastructure-c3",
+      "con-s5-wildlife-habitat-infrastructure-c4",
+      "con-s5-wildlife-habitat-infrastructure-c5"
+    ],
+    "edu-s5-demo-plots-signage": [
+      "edu-s5-demo-plots-signage-c1",
+      "edu-s5-demo-plots-signage-c2",
+      "edu-s5-demo-plots-signage-c3",
+      "edu-s5-demo-plots-signage-c4",
+      "edu-s5-demo-plots-signage-c5",
+      "edu-s5-demo-plots-signage-c6"
+    ],
+    "edu-s5-food-kitchen": [
+      "edu-s5-food-kitchen-c1",
+      "edu-s5-food-kitchen-c2",
+      "edu-s5-food-kitchen-c3",
+      "edu-s5-food-kitchen-c4",
+      "edu-s5-food-kitchen-c5",
+      "edu-s5-food-kitchen-c6"
+    ],
+    "edu-s5-learner-amenity": [
+      "edu-s5-learner-amenity-c1",
+      "edu-s5-learner-amenity-c2",
+      "edu-s5-learner-amenity-c3",
+      "edu-s5-learner-amenity-c4",
+      "edu-s5-learner-amenity-c5",
+      "edu-s5-learner-amenity-c6"
+    ],
+    "edu-s5-teaching-spaces": [
+      "edu-s5-teaching-spaces-c1",
+      "edu-s5-teaching-spaces-c2",
+      "edu-s5-teaching-spaces-c3",
+      "edu-s5-teaching-spaces-c4",
+      "edu-s5-teaching-spaces-c5",
+      "edu-s5-teaching-spaces-c6"
+    ],
+    "ev-s5-cluster-layout": [
+      "ev-s5-cluster-layout-c1",
+      "ev-s5-cluster-layout-c2",
+      "ev-s5-cluster-layout-c3",
+      "ev-s5-cluster-layout-c4",
+      "ev-s5-cluster-layout-c5",
+      "ev-s5-cluster-layout-c6",
+      "ev-s5-cluster-layout-c7"
+    ],
+    "ev-s5-communal-systems": [
+      "ev-s5-communal-systems-c1",
+      "ev-s5-communal-systems-c2",
+      "ev-s5-communal-systems-c3",
+      "ev-s5-communal-systems-c4",
+      "ev-s5-communal-systems-c5",
+      "ev-s5-communal-systems-c6",
+      "ev-s5-communal-systems-c7"
+    ],
+    "ev-s5-energy-system": [
+      "ev-s5-energy-system-c1",
+      "ev-s5-energy-system-c2",
+      "ev-s5-energy-system-c7",
+      "ev-s5-energy-system-c3",
+      "ev-s5-energy-system-c4",
+      "ev-s5-energy-system-c5",
+      "ev-s5-energy-system-c6"
+    ],
+    "ev-s5-food-zones": [
+      "ev-s5-food-zones-c1",
+      "ev-s5-food-zones-c2",
+      "ev-s5-food-zones-c7",
+      "ev-s5-food-zones-c3",
+      "ev-s5-food-zones-c4",
+      "ev-s5-food-zones-c5",
+      "ev-s5-food-zones-c6"
+    ],
+    "ev-s5-sanitation-waste": [
+      "ev-s5-sanitation-waste-c1",
+      "ev-s5-sanitation-waste-c2",
+      "ev-s5-sanitation-waste-c7",
+      "ev-s5-sanitation-waste-c3",
+      "ev-s5-sanitation-waste-c4",
+      "ev-s5-sanitation-waste-c5",
+      "ev-s5-sanitation-waste-c6"
+    ],
+    "hms-s5-animal-husbandry": [
+      "hms-s5-animal-husbandry-c1",
+      "hms-s5-animal-husbandry-c2",
+      "hms-s5-animal-husbandry-c3",
+      "hms-s5-animal-husbandry-c4",
+      "hms-s5-animal-husbandry-c5",
+      "hms-s5-animal-husbandry-c6"
+    ],
+    "hms-s5-energy-shelter-systems": [
+      "hms-s5-energy-shelter-systems-c1",
+      "hms-s5-energy-shelter-systems-c2",
+      "hms-s5-energy-shelter-systems-c3",
+      "hms-s5-energy-shelter-systems-c4",
+      "hms-s5-energy-shelter-systems-c5"
+    ],
+    "hms-s5-food-zones-layout": [
+      "hms-s5-food-zones-layout-c1",
+      "hms-s5-food-zones-layout-c2",
+      "hms-s5-food-zones-layout-c3",
+      "hms-s5-food-zones-layout-c4",
+      "hms-s5-food-zones-layout-c5",
+      "hms-s5-food-zones-layout-c6",
+      "hms-s5-food-zones-layout-c7"
+    ],
+    "lvs-s5-fencing-water": [
+      "lvs-s5-fencing-water-c1",
+      "lvs-s5-fencing-water-c2",
+      "lvs-s5-fencing-water-c3",
+      "lvs-s5-fencing-water-c4",
+      "lvs-s5-fencing-water-c5"
+    ],
+    "lvs-s5-handling-shelter": [
+      "lvs-s5-handling-shelter-c1",
+      "lvs-s5-handling-shelter-c2",
+      "lvs-s5-handling-shelter-c3",
+      "lvs-s5-handling-shelter-c4",
+      "lvs-s5-handling-shelter-c5"
+    ],
+    "lvs-s5-paddock-layout": [
+      "lvs-s5-paddock-layout-c1",
+      "lvs-s5-paddock-layout-c2",
+      "lvs-s5-paddock-layout-c3",
+      "lvs-s5-paddock-layout-c4",
+      "lvs-s5-paddock-layout-c5"
+    ],
+    "lvs-sec-s5-integration-timing": [
+      "lvs-sec-s5-integration-timing-c1",
+      "lvs-sec-s5-integration-timing-c2",
+      "lvs-sec-s5-integration-timing-c3",
+      "lvs-sec-s5-integration-timing-c4",
+      "lvs-sec-s5-integration-timing-c5"
+    ],
+    "mgd-s5-bed-growing-infrastructure": [
+      "mgd-s5-bed-growing-infrastructure-c1",
+      "mgd-s5-bed-growing-infrastructure-c2",
+      "mgd-s5-bed-growing-infrastructure-c3",
+      "mgd-s5-bed-growing-infrastructure-c4",
+      "mgd-s5-bed-growing-infrastructure-c5",
+      "mgd-s5-bed-growing-infrastructure-c6"
+    ],
+    "mgd-s5-fertility-composting-infrastructure": [
+      "mgd-s5-fertility-composting-infrastructure-c1",
+      "mgd-s5-fertility-composting-infrastructure-c2",
+      "mgd-s5-fertility-composting-infrastructure-c3",
+      "mgd-s5-fertility-composting-infrastructure-c4",
+      "mgd-s5-fertility-composting-infrastructure-c5"
+    ],
+    "mgd-s5-irrigation-system": [
+      "mgd-s5-irrigation-system-c1",
+      "mgd-s5-irrigation-system-c2",
+      "mgd-s5-irrigation-system-c3",
+      "mgd-s5-irrigation-system-c4",
+      "mgd-s5-irrigation-system-c5",
+      "mgd-s5-irrigation-system-c6"
+    ],
+    "mgd-s5-propagation-nursery": [
+      "mgd-s5-propagation-nursery-c1",
+      "mgd-s5-propagation-nursery-c2",
+      "mgd-s5-propagation-nursery-c3",
+      "mgd-s5-propagation-nursery-c4",
+      "mgd-s5-propagation-nursery-c5",
+      "mgd-s5-propagation-nursery-c6"
+    ],
+    "mgd-s5-wash-pack-cold-storage": [
+      "mgd-s5-wash-pack-cold-storage-c1",
+      "mgd-s5-wash-pack-cold-storage-c2",
+      "mgd-s5-wash-pack-cold-storage-c3",
+      "mgd-s5-wash-pack-cold-storage-c4",
+      "mgd-s5-wash-pack-cold-storage-c5",
+      "mgd-s5-wash-pack-cold-storage-c6"
+    ],
+    "ofg-s5-communications-emergency-infrastructure": [
+      "ofg-s5-communications-emergency-infrastructure-c1",
+      "ofg-s5-communications-emergency-infrastructure-c2",
+      "ofg-s5-communications-emergency-infrastructure-c3",
+      "ofg-s5-communications-emergency-infrastructure-c4",
+      "ofg-s5-communications-emergency-infrastructure-c5",
+      "ofg-s5-communications-emergency-infrastructure-c6"
+    ],
+    "ofg-s5-energy-system-infrastructure": [
+      "ofg-s5-energy-system-infrastructure-c1",
+      "ofg-s5-energy-system-infrastructure-c2",
+      "ofg-s5-energy-system-infrastructure-c3",
+      "ofg-s5-energy-system-infrastructure-c4",
+      "ofg-s5-energy-system-infrastructure-c5",
+      "ofg-s5-energy-system-infrastructure-c6"
+    ],
+    "ofg-s5-food-production-infrastructure": [
+      "ofg-s5-food-production-infrastructure-c1",
+      "ofg-s5-food-production-infrastructure-c2",
+      "ofg-s5-food-production-infrastructure-c3",
+      "ofg-s5-food-production-infrastructure-c4",
+      "ofg-s5-food-production-infrastructure-c5"
+    ],
+    "ofg-s5-shelter-thermal-infrastructure": [
+      "ofg-s5-shelter-thermal-infrastructure-c1",
+      "ofg-s5-shelter-thermal-infrastructure-c2",
+      "ofg-s5-shelter-thermal-infrastructure-c3",
+      "ofg-s5-shelter-thermal-infrastructure-c4",
+      "ofg-s5-shelter-thermal-infrastructure-c5",
+      "ofg-s5-shelter-thermal-infrastructure-c6"
+    ],
+    "ofg-s5-water-system-infrastructure": [
+      "ofg-s5-water-system-infrastructure-c1",
+      "ofg-s5-water-system-infrastructure-c2",
+      "ofg-s5-water-system-infrastructure-c3",
+      "ofg-s5-water-system-infrastructure-c4",
+      "ofg-s5-water-system-infrastructure-c5",
+      "ofg-s5-water-system-infrastructure-c6"
+    ],
+    "orch-s5-access-harvest": [
+      "orch-s5-access-harvest-c1",
+      "orch-s5-access-harvest-c2",
+      "orch-s5-access-harvest-c3",
+      "orch-s5-access-harvest-c4",
+      "orch-s5-access-harvest-c5"
+    ],
+    "orch-s5-establishment-irrigation": [
+      "orch-s5-establishment-irrigation-c1",
+      "orch-s5-establishment-irrigation-c2",
+      "orch-s5-establishment-irrigation-c3",
+      "orch-s5-establishment-irrigation-c4",
+      "orch-s5-establishment-irrigation-c5",
+      "orch-s5-establishment-irrigation-c6"
+    ],
+    "orch-s5-guild-plan": [
+      "orch-s5-guild-plan-c1",
+      "orch-s5-guild-plan-c2",
+      "orch-s5-guild-plan-c3",
+      "orch-s5-guild-plan-c4",
+      "orch-s5-guild-plan-c5"
+    ],
+    "orch-s5-planting-layout": [
+      "orch-s5-planting-layout-c1",
+      "orch-s5-planting-layout-c2",
+      "orch-s5-planting-layout-c3",
+      "orch-s5-planting-layout-c4",
+      "orch-s5-planting-layout-c5",
+      "orch-s5-planting-layout-c6"
+    ],
+    "orch-s5-tree-protection": [
+      "orch-s5-tree-protection-c1",
+      "orch-s5-tree-protection-c2",
+      "orch-s5-tree-protection-c3",
+      "orch-s5-tree-protection-c4",
+      "orch-s5-tree-protection-c5"
+    ],
+    "orch-sec-s5-guild-layout": [
+      "orch-sec-s5-guild-layout-c1",
+      "orch-sec-s5-guild-layout-c2",
+      "orch-sec-s5-guild-layout-c3",
+      "orch-sec-s5-guild-layout-c4",
+      "orch-sec-s5-guild-layout-c5"
+    ],
+    "res-s5-living-infrastructure": [
+      "res-s5-living-infrastructure-c1",
+      "res-s5-living-infrastructure-c2",
+      "res-s5-living-infrastructure-c3",
+      "res-s5-living-infrastructure-c4",
+      "res-s5-living-infrastructure-c5",
+      "res-s5-living-infrastructure-c6",
+      "res-s5-living-infrastructure-c7",
+      "res-s5-living-infrastructure-c8"
+    ],
+    "rf-s5-fertility-system": [
+      "rf-s5-fertility-system-c1",
+      "rf-s5-fertility-system-c2",
+      "rf-s5-fertility-system-c3",
+      "rf-s5-fertility-system-c4",
+      "rf-s5-fertility-system-c5",
+      "rf-s5-fertility-system-c6"
+    ],
+    "rf-s5-windbreaks": [
+      "rf-s5-windbreaks-c1",
+      "rf-s5-windbreaks-c2",
+      "rf-s5-windbreaks-c3",
+      "rf-s5-windbreaks-c4",
+      "rf-s5-windbreaks-c5",
+      "rf-s5-windbreaks-c6",
+      "rf-s5-windbreaks-c7",
+      "rf-s5-windbreaks-c8"
+    ],
+    "s5-access": [
+      "s5-access-c1",
+      "s5-access-c2",
+      "s5-access-c3",
+      "s5-access-c4",
+      "s5-access-c5"
+    ],
+    "s5-soil-improvement": [
+      "s5-soil-improvement-c1",
+      "s5-soil-improvement-c2",
+      "s5-soil-improvement-c3",
+      "s5-soil-improvement-c4",
+      "s5-soil-improvement-c5"
+    ],
+    "s5-water-infrastructure": [
+      "s5-water-infrastructure-c1",
+      "s5-water-infrastructure-c2",
+      "s5-water-infrastructure-c3",
+      "s5-water-infrastructure-c4",
+      "s5-water-infrastructure-c5"
+    ],
+    "silv-s5-fencing": [
+      "silv-s5-fencing-c1",
+      "silv-s5-fencing-c2",
+      "silv-s5-fencing-c3",
+      "silv-s5-fencing-c4",
+      "silv-s5-fencing-c5",
+      "silv-s5-fencing-c6"
+    ],
+    "silv-s5-shelters-handling": [
+      "silv-s5-shelters-handling-c1",
+      "silv-s5-shelters-handling-c2",
+      "silv-s5-shelters-handling-c3",
+      "silv-s5-shelters-handling-c4",
+      "silv-s5-shelters-handling-c5"
+    ],
+    "silv-s5-stock-water-distribution": [
+      "silv-s5-stock-water-distribution-c1",
+      "silv-s5-stock-water-distribution-c2",
+      "silv-s5-stock-water-distribution-c3",
+      "silv-s5-stock-water-distribution-c4",
+      "silv-s5-stock-water-distribution-c5",
+      "silv-s5-stock-water-distribution-c6"
+    ],
+    "silv-s5-tree-planting": [
+      "silv-s5-tree-planting-c1",
+      "silv-s5-tree-planting-c2",
+      "silv-s5-tree-planting-c3",
+      "silv-s5-tree-planting-c4",
+      "silv-s5-tree-planting-c5",
+      "silv-s5-tree-planting-c6"
+    ],
+    "silv-sec-s5-tree-establishment": [
+      "silv-sec-s5-tree-establishment-c1",
+      "silv-sec-s5-tree-establishment-c2",
+      "silv-sec-s5-tree-establishment-c3",
+      "silv-sec-s5-tree-establishment-c4",
+      "silv-sec-s5-tree-establishment-c5",
+      "silv-sec-s5-tree-establishment-c6"
+    ],
+    "well-s5-dining-nourishment": [
+      "well-s5-dining-nourishment-c1",
+      "well-s5-dining-nourishment-c2",
+      "well-s5-dining-nourishment-c3",
+      "well-s5-dining-nourishment-c4",
+      "well-s5-dining-nourishment-c5",
+      "well-s5-dining-nourishment-c6"
+    ],
+    "well-s5-guest-accommodation": [
+      "well-s5-guest-accommodation-c1",
+      "well-s5-guest-accommodation-c2",
+      "well-s5-guest-accommodation-c3",
+      "well-s5-guest-accommodation-c4",
+      "well-s5-guest-accommodation-c5",
+      "well-s5-guest-accommodation-c6"
+    ],
+    "well-s5-healing-garden-design": [
+      "well-s5-healing-garden-design-c1",
+      "well-s5-healing-garden-design-c2",
+      "well-s5-healing-garden-design-c3",
+      "well-s5-healing-garden-design-c4",
+      "well-s5-healing-garden-design-c5",
+      "well-s5-healing-garden-design-c6"
+    ],
+    "well-s5-privacy-screening": [
+      "well-s5-privacy-screening-c1",
+      "well-s5-privacy-screening-c2",
+      "well-s5-privacy-screening-c3",
+      "well-s5-privacy-screening-c4",
+      "well-s5-privacy-screening-c5"
+    ],
+    "well-s5-treatment-spaces": [
+      "well-s5-treatment-spaces-c1",
+      "well-s5-treatment-spaces-c2",
+      "well-s5-treatment-spaces-c3",
+      "well-s5-treatment-spaces-c4",
+      "well-s5-treatment-spaces-c5",
+      "well-s5-treatment-spaces-c6"
+    ],
+    "ag-s6-food-integration": [
+      "ag-s6-food-integration-c1",
+      "ag-s6-food-integration-c2",
+      "ag-s6-food-integration-c3",
+      "ag-s6-food-integration-c4",
+      "ag-s6-food-integration-c5",
+      "ag-s6-food-integration-c6"
+    ],
+    "con-s6-ecological-monitoring": [
+      "con-s6-ecological-monitoring-c1",
+      "con-s6-ecological-monitoring-c2",
+      "con-s6-ecological-monitoring-c3",
+      "con-s6-ecological-monitoring-c4",
+      "con-s6-ecological-monitoring-c5",
+      "con-s6-ecological-monitoring-c6"
+    ],
+    "con-s6-fire-monitoring": [
+      "con-s6-fire-monitoring-c1",
+      "con-s6-fire-monitoring-c2",
+      "con-s6-fire-monitoring-c3",
+      "con-s6-fire-monitoring-c4",
+      "con-s6-fire-monitoring-c5"
+    ],
+    "con-s6-pest-monitoring": [
+      "con-s6-pest-monitoring-c1",
+      "con-s6-pest-monitoring-c2",
+      "con-s6-pest-monitoring-c3",
+      "con-s6-pest-monitoring-c4",
+      "con-s6-pest-monitoring-c5"
+    ],
+    "lvs-s6-biosecurity": [
+      "lvs-s6-biosecurity-c1",
+      "lvs-s6-biosecurity-c2",
+      "lvs-s6-biosecurity-c3",
+      "lvs-s6-biosecurity-c4",
+      "lvs-s6-biosecurity-c5"
+    ],
+    "lvs-s6-nutrient-cycling": [
+      "lvs-s6-nutrient-cycling-c1",
+      "lvs-s6-nutrient-cycling-c2",
+      "lvs-s6-nutrient-cycling-c3",
+      "lvs-s6-nutrient-cycling-c4",
+      "lvs-s6-nutrient-cycling-c5"
+    ],
+    "lvs-sec-s6-health-biosecurity": [
+      "lvs-sec-s6-health-biosecurity-c1",
+      "lvs-sec-s6-health-biosecurity-c2",
+      "lvs-sec-s6-health-biosecurity-c3",
+      "lvs-sec-s6-health-biosecurity-c4",
+      "lvs-sec-s6-health-biosecurity-c5",
+      "lvs-sec-s6-health-biosecurity-c6",
+      "lvs-sec-s6-health-biosecurity-c7"
+    ],
+    "lvs-sec-s6-nutrient-integration": [
+      "lvs-sec-s6-nutrient-integration-c1",
+      "lvs-sec-s6-nutrient-integration-c2",
+      "lvs-sec-s6-nutrient-integration-c3",
+      "lvs-sec-s6-nutrient-integration-c4",
+      "lvs-sec-s6-nutrient-integration-c5",
+      "lvs-sec-s6-nutrient-integration-c6"
+    ],
+    "mgd-s6-crop-yield-monitoring": [
+      "mgd-s6-crop-yield-monitoring-c1",
+      "mgd-s6-crop-yield-monitoring-c2",
+      "mgd-s6-crop-yield-monitoring-c3",
+      "mgd-s6-crop-yield-monitoring-c4",
+      "mgd-s6-crop-yield-monitoring-c5"
+    ],
+    "orch-s6-pest-disease-monitoring": [
+      "orch-s6-pest-disease-monitoring-c1",
+      "orch-s6-pest-disease-monitoring-c2",
+      "orch-s6-pest-disease-monitoring-c3",
+      "orch-s6-pest-disease-monitoring-c4",
+      "orch-s6-pest-disease-monitoring-c5"
+    ],
+    "orch-s6-phenological-monitoring": [
+      "orch-s6-phenological-monitoring-c1",
+      "orch-s6-phenological-monitoring-c2",
+      "orch-s6-phenological-monitoring-c3",
+      "orch-s6-phenological-monitoring-c4",
+      "orch-s6-phenological-monitoring-c5"
+    ],
+    "orch-sec-s6-harvest-pathway": [
+      "orch-sec-s6-harvest-pathway-c1",
+      "orch-sec-s6-harvest-pathway-c2",
+      "orch-sec-s6-harvest-pathway-c3",
+      "orch-sec-s6-harvest-pathway-c4",
+      "orch-sec-s6-harvest-pathway-c5"
+    ],
+    "res-s6-self-sufficiency": [
+      "res-s6-self-sufficiency-c1",
+      "res-s6-self-sufficiency-c2",
+      "res-s6-self-sufficiency-c3",
+      "res-s6-self-sufficiency-c4",
+      "res-s6-self-sufficiency-c5"
+    ],
+    "rf-s6-biodiversity-monitoring": [
+      "rf-s6-biodiversity-monitoring-c1",
+      "rf-s6-biodiversity-monitoring-c2",
+      "rf-s6-biodiversity-monitoring-c3",
+      "rf-s6-biodiversity-monitoring-c4",
+      "rf-s6-biodiversity-monitoring-c5"
+    ],
+    "rf-s6-enterprise-integration": [
+      "rf-s6-enterprise-integration-c1",
+      "rf-s6-enterprise-integration-c2",
+      "rf-s6-enterprise-integration-c3",
+      "rf-s6-enterprise-integration-c4",
+      "rf-s6-enterprise-integration-c5",
+      "rf-s6-enterprise-integration-c6",
+      "rf-s6-enterprise-integration-c7"
+    ],
+    "s6-monitoring": [
+      "s6-monitoring-c1",
+      "s6-monitoring-c2",
+      "s6-monitoring-c3",
+      "s6-monitoring-c4",
+      "s6-monitoring-c5"
+    ],
+    "silv-s6-adaptive-management": [
+      "silv-s6-adaptive-management-c1",
+      "silv-s6-adaptive-management-c2",
+      "silv-s6-adaptive-management-c3",
+      "silv-s6-adaptive-management-c4",
+      "silv-s6-adaptive-management-c5"
+    ],
+    "silv-s6-pasture-monitoring": [
+      "silv-s6-pasture-monitoring-c1",
+      "silv-s6-pasture-monitoring-c2",
+      "silv-s6-pasture-monitoring-c3",
+      "silv-s6-pasture-monitoring-c4",
+      "silv-s6-pasture-monitoring-c5"
+    ],
+    "silv-sec-s6-pasture-tree-monitoring": [
+      "silv-sec-s6-pasture-tree-monitoring-c1",
+      "silv-sec-s6-pasture-tree-monitoring-c2",
+      "silv-sec-s6-pasture-tree-monitoring-c3",
+      "silv-sec-s6-pasture-tree-monitoring-c4",
+      "silv-sec-s6-pasture-tree-monitoring-c5"
+    ],
+    "mgd-s7-crop-calendar": [
+      "mgd-s7-crop-calendar-c1",
+      "mgd-s7-crop-calendar-c2",
+      "mgd-s7-crop-calendar-c3",
+      "mgd-s7-crop-calendar-c4",
+      "mgd-s7-crop-calendar-c5",
+      "mgd-s7-crop-calendar-c6"
+    ],
+    "mgd-s7-season-startup-readiness": [
+      "mgd-s7-season-startup-readiness-c1",
+      "mgd-s7-season-startup-readiness-c2",
+      "mgd-s7-season-startup-readiness-c3",
+      "mgd-s7-season-startup-readiness-c4",
+      "mgd-s7-season-startup-readiness-c5",
+      "mgd-s7-season-startup-readiness-c6"
+    ],
+    "res-s7-phasing": [
+      "res-s7-phasing-c1",
+      "res-s7-phasing-c2",
+      "res-s7-phasing-c3",
+      "res-s7-phasing-c4",
+      "res-s7-phasing-c5"
+    ],
+    "s7-risk-register": [
+      "s7-risk-register-c1",
+      "s7-risk-register-c2",
+      "s7-risk-register-c3",
+      "s7-risk-register-c4",
+      "s7-risk-register-c5"
+    ],
+    "silv-s7-pasture-spelling": [
+      "silv-s7-pasture-spelling-c1",
+      "silv-s7-pasture-spelling-c2",
+      "silv-s7-pasture-spelling-c3",
+      "silv-s7-pasture-spelling-c4",
+      "silv-s7-pasture-spelling-c5"
+    ],
+    "silv-s7-stocking-buildup": [
+      "silv-s7-stocking-buildup-c1",
+      "silv-s7-stocking-buildup-c2",
+      "silv-s7-stocking-buildup-c3",
+      "silv-s7-stocking-buildup-c4",
+      "silv-s7-stocking-buildup-c5"
+    ],
+    "silv-sec-s7-stocking-phasing": [
+      "silv-sec-s7-stocking-phasing-c1",
+      "silv-sec-s7-stocking-phasing-c2",
+      "silv-sec-s7-stocking-phasing-c3",
+      "silv-sec-s7-stocking-phasing-c4",
+      "silv-sec-s7-stocking-phasing-c5"
+    ]
+  },
+  "intentionalUnmatchedFormIds": [
+    "mgd-s1-growing-system-philosophy-c6",
+    "orch-s1-production-intent-c6",
+    "orch-s1-species-philosophy-c6",
+    "silv-s1-land-improvement-philosophy-c6"
+  ]
+}
