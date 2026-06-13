@@ -565,6 +565,11 @@ const v3PlanCommandCentreRoute = createRoute({
 type PlanSearch = {
   highlightIncomplete?: 's1';
   planMode?: 'protocol';
+  // Selected protocol id while the Plan tier-shell rail is in `planMode=protocol`.
+  // Mirrors the Act tier-shell's `?protocol` selection param so the steward's
+  // chosen protocol (whose thresholds/lifecycle they're editing) survives in the
+  // URL across stratum/objective navigation. Absent = no protocol selected.
+  protocol?: string;
   // Deep-link intent flag: when an objective detail is reached from Act's
   // "Open guild builder in Plan" affordance, expand the REFERENCE section on
   // arrival so the steward lands directly on the Plan designer rather than a
@@ -581,6 +586,9 @@ const validatePlanSearch = (
   }
   if (search.planMode === 'protocol') {
     out.planMode = 'protocol';
+  }
+  if (typeof search.protocol === 'string' && search.protocol) {
+    out.protocol = search.protocol;
   }
   if (search.expandRef === '1') {
     out.expandRef = '1';
