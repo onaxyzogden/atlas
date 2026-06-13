@@ -23,7 +23,8 @@
       "name": "web",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd apps\\web && npx vite"],
-      "port": 5200
+      "port": 5200,
+      "autoPort": true
     },
     {
       "name": "api",

@@ -2522,3 +2522,20 @@ gates can't exercise; mind the [[project-screenshot-hang]] map-view caveat). Com
 pathspec (the foreign `actToolCatalog.ts`/`objectiveActTools.ts` + the in-flight EcologyCapture
 cluster left unstaged), on **main**, **not pushed**.
 Log [[log/2026-06-10-atlas-act-placed-features-objective-list]].
+
+## DEFERRED — generic objective-tools map takeover, Act side (filed 2026-06-13)
+
+The generic "open map with tools" takeover shipped **Plan-only** on 2026-06-13 (commit `304e6997`;
+see [[entities/plan-tier-shell]] → "Generic objective-tools map takeover"). The store
+(`apps/web/src/store/objectiveToolsTakeoverStore.ts`) and components
+(`apps/web/src/v3/_shared/map-takeover/{OpenMapToolsButton,ObjectiveToolsPanel}.tsx`) are
+**shell-agnostic by design**, so wiring the Act side is a small follow-up with **no new mechanism**:
+mirror the Plan wiring in `ActTierShell.tsx` — compute `toolsTakeoverActive`, swap the Act right rail
+to `<ObjectiveToolsPanel projectId objective>` while active, and mount `<OpenMapToolsButton>` on the
+Act objective surface (e.g. in `ActTierExecutionPanel`'s objective region) gated by
+`objectiveNeedsMap`. Reuse the same `useObjectiveToolsTakeoverStore` instance — its `open()` already
+closes the slope/veg survey takeovers for mutual exclusion, and the survey summaries already
+reverse-close the generic takeover. **Deferred** purely because `ActTierShell.tsx` is currently
+operator WIP (must not be edited/committed this session); it is the recommended next session for this
+feature. Log [[log/2026-06-13-atlas-plan-survey-fixes-map-takeover]]. Amanah: surfaces existing draw
+tools per objective only — no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
