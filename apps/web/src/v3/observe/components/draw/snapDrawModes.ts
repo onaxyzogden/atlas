@@ -16,6 +16,11 @@
  * is in range `snapDrawPoint` returns the raw point unchanged, so draw behaviour
  * away from features is byte-for-byte the stock behaviour.
  *
+ * Phase 6 adds self-snap: each committed vertex is recorded onto
+ * `state.selfVertices` (`recordSelfVertex`, after the stock commit) and folded
+ * into the candidate set by `applySnap`, so a sketch can lock onto itself — most
+ * usefully a closing polygon onto its own origin vertex.
+ *
  * See ADR wiki/decisions/2026-06-04-atlas-act-adopt-and-draw-snapping.
  */
 
@@ -46,16 +51,47 @@ export function applySnap(this: any, state: any, e: any): void {
   // effect on the next pointer event. The snap mode stays selected; this gate
   // simply lets the raw click through unchanged when the magnet is off.
   if (!useMapToolStore.getState().snapEnabled) return;
-  const targets: SnapTargets | undefined | null = state?.snapTargets;
-  if (!targets || !e?.lngLat) return;
+  if (!e?.lngLat) return;
   const map = this.map;
   if (!map) return;
+  const baseTargets: SnapTargets | undefined | null = state?.snapTargets;
+  // Self-snap (Phase 6): the draft's own committed vertices, accumulated by
+  // `recordSelfVertex` on each commit. Folding them into the candidate set lets
+  // a sketch lock onto itself — e.g. a closing polygon onto its origin vertex.
+  // Additive: `baseTargets` is never mutated, and self-vertices ride the same
+  // vertices-beat-edges priority as existing targets.
+  const selfVertices: [number, number][] = Array.isArray(state?.selfVertices)
+    ? state.selfVertices
+    : [];
+  if (!baseTargets && selfVertices.length === 0) return;
+  const targets: SnapTargets = selfVertices.length
+    ? {
+        vertices: [...(baseTargets?.vertices ?? []), ...selfVertices],
+        lines: baseTargets?.lines ?? [],
+      }
+    : baseTargets!;
   const snapped = snapDrawPoint(map, [e.lngLat.lng, e.lngLat.lat], targets);
   if (snapped.snappedTo) {
     // Stock draw modes read `[e.lngLat.lng, e.lngLat.lat]`, so a plain object
     // is sufficient (no need to construct a maplibre LngLat instance).
     e.lngLat = { lng: snapped.position[0], lat: snapped.position[1] };
   }
+}
+
+/**
+ * Record a just-committed vertex onto the draft's running self-vertex list so
+ * later pointer events in the same draw session can snap to it (Phase 6).
+ *
+ * Called AFTER the stock click/tap handler, so `e.lngLat` is the committed
+ * (already-snapped) coordinate. Only committed vertices are recorded — never
+ * the rubber-band cursor (`onMouseMove`) — so the candidate set is exactly the
+ * vertices the steward has placed. The list lives on `state`, so it is created
+ * fresh per draw session and discarded when the mode ends.
+ */
+export function recordSelfVertex(state: any, e: any): void {
+  if (!e?.lngLat) return;
+  if (!Array.isArray(state.selfVertices)) state.selfVertices = [];
+  state.selfVertices.push([e.lngLat.lng, e.lngLat.lat]);
 }
 
 function makeSnapMode(stock: any): any {
@@ -72,17 +108,24 @@ function makeSnapMode(stock: any): any {
 
     onClick(this: any, state: any, e: any) {
       applySnap.call(this, state, e);
-      return stock.onClick?.call(this, state, e);
+      const result = stock.onClick?.call(this, state, e);
+      // Record the committed (snapped) vertex so later events can self-snap.
+      recordSelfVertex(state, e);
+      return result;
     },
 
     onMouseMove(this: any, state: any, e: any) {
+      // Preview only — snap against existing + already-committed vertices, but
+      // never record the rubber-band cursor as a committed vertex.
       applySnap.call(this, state, e);
       return stock.onMouseMove?.call(this, state, e);
     },
 
     onTap(this: any, state: any, e: any) {
       applySnap.call(this, state, e);
-      return stock.onTap?.call(this, state, e);
+      const result = stock.onTap?.call(this, state, e);
+      recordSelfVertex(state, e);
+      return result;
     },
   };
 }
