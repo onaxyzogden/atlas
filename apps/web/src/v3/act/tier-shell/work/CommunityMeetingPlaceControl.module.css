@@ -1,0 +1,115 @@
+/* CommunityMeetingPlaceControl — compact card in the work panel's community
+   area letting the steward designate the communal meeting place (gathering
+   structure or dropped pin). Reuses the ActWorkPanel rail tokens; the teal
+   accent matches the map marker (CommunityMeetingMarker COMMUNITY_ACCENT). */
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.readout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+  min-width: 0;
+}
+
+.readout[data-set='false'] {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-weight: 400;
+}
+
+.readoutIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #2f9e8f;
+}
+
+.warning {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-danger, #d27b6b);
+}
+
+.nudge {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #2f9e8f;
+}
+
+.armedHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #2f9e8f;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn {
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.btn:hover {
+  background: color-mix(in srgb, #2f9e8f 16%, transparent);
+  color: var(--color-text, #f2ede3);
+  border-color: #2f9e8f;
+}
+
+.cancelBtn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.select {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}

@@ -22,9 +22,21 @@
 // old CSS `zoom` box is gone; the UI renders at Act's natural proportions (see
 // the de-zoom rebake in ./components.tsx and the spine in ./ObserveLensSpine.tsx).
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
+import { DEFAULT_COMMUNITY_HORIZON_DAYS } from '@ogden/shared';
 import type { ObserveLensDataSource } from '../../../store/projectStore.js';
+import { useCommunityWorkPlanStore } from '../../../store/communityWorkPlanStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
+import {
+  useCommunityMeetingPlaceStore,
+  selectMeetingPlace,
+} from '../../../store/communityMeetingPlaceStore.js';
+import {
+  resolveMeetingPlaceCoords,
+  selectUpcomingCommunityMeetings,
+} from '../../../features/community/communityMeetingPlace.js';
 import StageShell from '../../_shell/StageShell.js';
 import { C, F } from './tokens.js';
 import { LensDataProvider } from './lensData/LensDataContext.js';
@@ -40,7 +52,7 @@ import {
   PseudoMap,
   RecentObservationsStrip,
 } from './components.js';
-import ObserveMap from './ObserveMap.js';
+import ObserveMap, { type ObserveMeetingPlace } from './ObserveMap.js';
 import css from './ObserveLensDashboard.module.css';
 
 interface Props {
@@ -71,6 +83,49 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
   const liveBundle = useLiveLensBundle(projectId ?? '');
   const useMock = dataSource === 'mock' || !projectId;
   const bundle = useMock ? mockBundle : liveBundle;
+
+  // Communal-meeting marker (live + real geometry only). Raw subscriptions
+  // derived in useMemo (Zustand selector-stability rule): the steward's
+  // EXPLICIT meeting-place designation + the CONFIRMED community meetings,
+  // cross-checked against the WorkItem spine — all via the shared pure helpers.
+  const meetingDesignation = useCommunityMeetingPlaceStore((s) =>
+    selectMeetingPlace(s, projectId ?? ''),
+  );
+  const beEntities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  const communityProposals = useCommunityWorkPlanStore((s) => s.proposals);
+  const workItems = useWorkItemStore((s) => s.items);
+  const meetingTodayISO = useMemo(
+    () => new Date().toISOString().slice(0, 10),
+    [],
+  );
+  const meetingPlace = useMemo<ObserveMeetingPlace | null>(() => {
+    if (useMock || !projectId) return null;
+    const coords = resolveMeetingPlaceCoords(meetingDesignation, beEntities);
+    if (!coords) return null;
+    const spineStatusById = new Map<string, string>();
+    for (const it of workItems) spineStatusById.set(it.id, it.status);
+    const entries = selectUpcomingCommunityMeetings(
+      communityProposals,
+      projectId,
+      meetingTodayISO,
+      DEFAULT_COMMUNITY_HORIZON_DAYS,
+      spineStatusById,
+    );
+    if (entries.length === 0) return null;
+    return {
+      lng: coords[0],
+      lat: coords[1],
+      entries: entries.map((e) => ({ title: e.title, dueDate: e.dueDate })),
+    };
+  }, [
+    useMock,
+    projectId,
+    meetingDesignation,
+    beEntities,
+    communityProposals,
+    workItems,
+    meetingTodayISO,
+  ]);
 
   const handleLensChange = (id: string) => {
     setActiveLens(id);
@@ -130,6 +185,7 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
                 onObsClick={handleObsClick}
                 selectedObs={selectedObs}
                 demoGeometry={bundle.map.demoGeometry}
+                meetingPlace={meetingPlace}
               />
             ) : (
               <PseudoMap

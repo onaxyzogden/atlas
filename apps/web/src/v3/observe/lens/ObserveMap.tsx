@@ -14,9 +14,21 @@ import {
   hasMapToken,
 } from '../../../lib/maplibre.js';
 import { C, F } from './tokens.js';
-import { ObservationPin } from './components.js';
+import { ObservationPin, CommunityMeetingPin } from './components.js';
 import { useLensData } from './lensData/LensDataContext.js';
 import type { BBox, LensDisplay, MockObservation, ObserveMapMarker } from './types.js';
+
+/** Read-only communal-meeting overlay: a single pulsing pin at the designated
+ *  meeting place, listing the upcoming community meetings/decisions. */
+export interface ObserveMeetingPlace {
+  lng: number;
+  lat: number;
+  entries: { title: string; dueDate: string }[];
+}
+
+/** Stable key for the meeting-place position in the projected-positions map
+ *  (kept distinct from observation ids, which are content-derived). */
+const MEETING_POS_KEY = '__community-meeting__';
 
 export interface ObserveMapProps {
   boundary: GeoJSON.FeatureCollection | null;
@@ -26,6 +38,8 @@ export interface ObserveMapProps {
   onObsClick: (obs: MockObservation) => void;
   selectedObs: MockObservation | null;
   demoGeometry: boolean;
+  /** Optional communal-meeting marker (live geometry only; omit to hide). */
+  meetingPlace?: ObserveMeetingPlace | null;
 }
 
 export default function ObserveMap({
@@ -36,6 +50,7 @@ export default function ObserveMap({
   onObsClick,
   selectedObs,
   demoGeometry,
+  meetingPlace = null,
 }: ObserveMapProps) {
   const { lenses: LENSES } = useLensData();
   const lensById: Record<string, LensDisplay> = Object.fromEntries(LENSES.map((l) => [l.id, l]));
@@ -44,11 +59,15 @@ export default function ObserveMap({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<ObserveMapMarker[]>(markers);
   const boundaryRef = useRef<GeoJSON.FeatureCollection | null>(boundary);
+  const meetingPlaceRef = useRef<ObserveMeetingPlace | null>(meetingPlace);
   markersRef.current = markers;
   boundaryRef.current = boundary;
+  meetingPlaceRef.current = meetingPlace;
 
   const [ready, setReady] = useState(false);
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
+  // Read-only meeting-list popover toggle (Observe never mutates).
+  const [meetingOpen, setMeetingOpen] = useState(false);
 
   // Re-project every marker's [lng,lat] to screen px. Reads refs so the map
   // event listeners never capture a stale marker list.
@@ -59,6 +78,11 @@ export default function ObserveMap({
     for (const m of markersRef.current) {
       const p = map.project([m.lng, m.lat]);
       next[m.id] = { x: p.x, y: p.y };
+    }
+    const mp = meetingPlaceRef.current;
+    if (mp) {
+      const p = map.project([mp.lng, mp.lat]);
+      next[MEETING_POS_KEY] = { x: p.x, y: p.y };
     }
     setPositions(next);
   }, []);
@@ -112,12 +136,14 @@ export default function ObserveMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reposition]);
 
-  // Re-project when the marker set changes after the map is ready.
+  // Re-project when the marker set (or the meeting place) changes after the
+  // map is ready.
   useEffect(() => {
     if (ready) reposition();
-  }, [markers, ready, reposition]);
+  }, [markers, meetingPlace, ready, reposition]);
 
   const sel = selectedObs && positions[selectedObs.id] ? positions[selectedObs.id] : null;
+  const meetingPos = meetingPlace && positions[MEETING_POS_KEY] ? positions[MEETING_POS_KEY] : null;
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: '#0D1209', overflow: 'hidden' }}>
@@ -148,6 +174,14 @@ export default function ObserveMap({
               />
             );
           })}
+        {ready && meetingPlace && meetingPos && (
+          <CommunityMeetingPin
+            px={meetingPos.x}
+            py={meetingPos.y}
+            count={meetingPlace.entries.length}
+            onClick={() => setMeetingOpen((v) => !v)}
+          />
+        )}
       </svg>
 
       {selectedObs && sel && (
@@ -169,6 +203,50 @@ export default function ObserveMap({
           <div style={{ fontSize: 13, color: C.textPrimary, fontWeight: 600, fontFamily: F.sans }}>{selectedObs.label}</div>
           <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3, fontFamily: F.mono }}>
             {selectedObs.type} - {selectedObs.age} ago
+          </div>
+        </div>
+      )}
+
+      {/* Read-only communal-meeting list popover. Mirrors the selected-obs
+          tooltip's container; Observe never mutates, so the only affordance is
+          Close (and the pin click toggles it). */}
+      {meetingOpen && meetingPlace && meetingPos && (
+        <div
+          style={{
+            position: 'absolute',
+            left: meetingPos.x + 14,
+            top: meetingPos.y - 20,
+            background: C.bg3,
+            border: `1px solid ${C.borderLight}`,
+            borderRadius: 8,
+            padding: '10px 12px',
+            maxWidth: 240,
+            zIndex: 11,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 12, color: C.textPrimary, fontWeight: 700, fontFamily: F.sans, letterSpacing: '0.02em' }}>
+              {meetingPlace.entries.length === 1
+                ? '1 upcoming gathering'
+                : `${meetingPlace.entries.length} upcoming gatherings`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setMeetingOpen(false)}
+              aria-label="Close meeting list"
+              style={{ background: 'none', border: 'none', color: C.textTertiary, fontSize: 13, lineHeight: 1, cursor: 'pointer', padding: 0, fontFamily: F.sans }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto' }}>
+            {meetingPlace.entries.map((e, i) => (
+              <div key={`${e.dueDate}-${i}`} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <span style={{ fontSize: 11, color: C.teal, fontFamily: F.mono, fontWeight: 600, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{e.dueDate}</span>
+                <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.35 }}>{e.title}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

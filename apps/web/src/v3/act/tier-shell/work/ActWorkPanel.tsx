@@ -41,6 +41,7 @@ import WorkCarerSummary from './WorkCarerSummary.js';
 import WorkConflictSection from './WorkConflictSection.js';
 import WorkMonthGrid from './WorkMonthGrid.js';
 import WorkReviewSection from './WorkReviewSection.js';
+import CommunityMeetingPlaceControl from './CommunityMeetingPlaceControl.js';
 import styles from './ActWorkPanel.module.css';
 
 type WorkTab = 'today' | 'week' | 'season';
@@ -190,6 +191,10 @@ export default function ActWorkPanel({
         <WorkConflictSection />
 
         <WorkReviewSection projectId={projectId} />
+
+        {/* Where the community gathers — drives the pulsing meeting marker on
+            the Act + Observe maps. Renders only for ecovillage projects. */}
+        <CommunityMeetingPlaceControl projectId={projectId} />
 
         {overdue.length > 0 && (
           <div className={styles.section}>

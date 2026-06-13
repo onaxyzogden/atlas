@@ -124,6 +124,8 @@ import ActSearchRail from './ActSearchRail.js';
 import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
+import CommunityMeetingMarker from './CommunityMeetingMarker.js';
+import CommunityMeetingPlaceDrawHandler from './CommunityMeetingPlaceDrawHandler.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
@@ -1125,6 +1127,26 @@ export default function ActTierShell() {
                         centroid={baseCentroid}
                         triggeredCount={triggeredCount}
                       />
+                      {/*
+                        Community (ecovillage) meeting/decision marker: a single
+                        pulsing ring at the steward-designated communal meeting
+                        place while upcoming governance meetings, commons /
+                        adaptive / five-year reviews, or member ratifications
+                        exist. Inert on non-ecovillage projects (no confirmed
+                        community proposals ⇒ no marker) and until a place is set.
+                      */}
+                      <CommunityMeetingMarker
+                        map={map}
+                        projectId={id}
+                        onOpenWork={openWorkPanel}
+                      />
+                      {/*
+                        Map-interaction half of the "drop a pin" meeting-place
+                        affordance: while the work-panel control has armed pin
+                        placement for THIS project, the next map click sets a
+                        point meeting place. Renders null otherwise.
+                      */}
+                      <CommunityMeetingPlaceDrawHandler map={map} projectId={id} />
                       <ActDrawHost map={map} projectId={params.projectId ?? null} />
                       {/*
                         s2-ecology-c1 vegetation survey: the layer renders all

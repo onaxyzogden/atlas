@@ -96,6 +96,52 @@ export function ObservationPin({
   );
 }
 
+// --- COMMUNITY MEETING PIN (ObserveMap only) ----------------------------------
+// A single pulsing ring at the steward-designated communal meeting place, shown
+// while upcoming community meetings/decisions exist. Read-only on the Observe
+// side (Observe = synthesis); the click just toggles a list popover, never
+// mutates. Reuses ObservationPin's `<animate>` ring idiom verbatim (a DRY
+// extraction, not a redesign); the teal accent matches the Act-tier marker
+// (CommunityMeetingMarker COMMUNITY_ACCENT). `pointerEvents: 'auto'` keeps it
+// clickable under ObserveMap's pointer-events:none SVG overlay.
+const COMMUNITY_MEETING_PIN_COLOR = '#2f9e8f';
+
+export function CommunityMeetingPin({
+  px,
+  py,
+  count,
+  onClick,
+}: {
+  px: number;
+  py: number;
+  count: number;
+  onClick: () => void;
+}) {
+  const color = COMMUNITY_MEETING_PIN_COLOR;
+  return (
+    <g style={{ cursor: 'pointer', pointerEvents: 'auto' }} onClick={onClick}>
+      <circle cx={px} cy={py} r={14} fill="none" stroke={color} strokeWidth="1.5" opacity="0.6">
+        <animate attributeName="r" from="10" to="22" dur="1.8s" repeatCount="indefinite" />
+        <animate attributeName="opacity" from="0.6" to="0" dur="1.8s" repeatCount="indefinite" />
+      </circle>
+      <circle cx={px} cy={py} r={8} fill={color} stroke="#EDE9E0" strokeWidth="1.5" filter="url(#glow)" />
+      <text
+        x={px}
+        y={py}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="10"
+        fontWeight="700"
+        fill="#ffffff"
+        fontFamily="system-ui, sans-serif"
+        style={{ pointerEvents: 'none' }}
+      >
+        {count}
+      </text>
+    </g>
+  );
+}
+
 // ─── PSEUDO MAP ───────────────────────────────────────────────────────────────
 export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
   activeLens: string;
