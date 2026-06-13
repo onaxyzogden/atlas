@@ -19,6 +19,7 @@ import {
   useSlopeSurveyStore,
   SLOPE_CLASS_COLORS,
 } from '../../../store/slopeSurveyStore.js';
+import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { SLOPE_CLASSES } from '../tier-shell/TerrainCapture.js';
 
 const SOURCE_ID = 'slope-survey-src';
@@ -51,6 +52,7 @@ interface Props {
 
 export default function SlopeSurveyLayer({ map, projectId }: Props) {
   const byProject = useSlopeSurveyStore((s) => s.byProject);
+  const visible = useMatrixTogglesStore((s) => s.slopeSurvey);
 
   const data = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -141,6 +143,13 @@ export default function SlopeSurveyLayer({ map, projectId }: Props) {
             },
           });
         }
+        // Apply the matrix-toggle visibility on every (re)apply so it survives
+        // basemap swaps and feature edits (mirrors PlanSunPathOverlay).
+        for (const id of [FILL_LAYER, LINE_LAYER, LABEL_LAYER]) {
+          if (map.getLayer(id)) {
+            map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+          }
+        }
       } catch {
         /* map mid-teardown; the next style.load re-applies */
       }
@@ -161,7 +170,7 @@ export default function SlopeSurveyLayer({ map, projectId }: Props) {
         /* map already disposed */
       }
     };
-  }, [map, data]);
+  }, [map, data, visible]);
 
   return null;
 }

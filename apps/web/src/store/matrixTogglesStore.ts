@@ -31,7 +31,9 @@ export type MatrixToggleKey =
   | 'seededZones'
   | 'placedZones'
   | 'scheduledMoves'
-  | 'waterRouter';
+  | 'waterRouter'
+  | 'slopeSurvey'
+  | 'vegetationSurvey';
 
 export interface MatrixTogglesState {
   topography: boolean;
@@ -87,6 +89,20 @@ export interface MatrixTogglesState {
    * Defaults off so existing stewards don't inherit an unfamiliar layer.
    */
   waterRouter: boolean;
+  /**
+   * PLAN + ACT — visibility of the DRAWN slope-survey class polygons
+   * (s2-terrain-c2) rendered by SlopeSurveyLayer. Defaults ON so drawn
+   * extents are visible by default, matching `placedZones`. Only mounts
+   * while a slope-survey takeover is open, so the toggle is a no-op
+   * elsewhere (it pre-arms visibility for the next open survey).
+   */
+  slopeSurvey: boolean;
+  /**
+   * PLAN + ACT — visibility of the DRAWN vegetation-community polygons
+   * (s2-ecology-c1) rendered by VegetationSurveyLayer. Defaults ON,
+   * matching `slopeSurvey` / `placedZones`. Same mount caveat as above.
+   */
+  vegetationSurvey: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -106,6 +122,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       placedZones: true,
       scheduledMoves: false,
       waterRouter: false,
+      slopeSurvey: true,
+      vegetationSurvey: true,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
         set(() => ({
@@ -121,6 +139,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           placedZones: value,
           scheduledMoves: value,
           waterRouter: value,
+          slopeSurvey: value,
+          vegetationSurvey: value,
         })),
     }),
     {
@@ -153,6 +173,11 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
+      // v16 (2026-06-13): added slopeSurvey + vegetationSurvey — visibility
+      //  toggles for the DRAWN slope-class / vegetation-community survey
+      //  polygons (SlopeSurveyLayer / VegetationSurveyLayer; PLAN + ACT).
+      //  Default ON (like placedZones) so drawn extents stay visible; migrate
+      //  seeds both true for existing snapshots.
       // v15 (2026-06-10): added placedZones — visibility toggle for hand-drawn
       //  ("manual") Plan zones on the shared plan-data layers (all stages).
       //  Defaults ON so existing stewards keep the current always-visible
@@ -161,7 +186,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       //  (flow arrows + suggested catchment pins for low-in-watershed water
       //  elements). Defaults off so existing stewards don't inherit an
       //  unfamiliar layer.
-      version: 15,
+      version: 16,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState> & {
           // v13 drop list: retained here so the migrate signature is
@@ -183,6 +208,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           placedZones: prev.placedZones ?? true,
           scheduledMoves: prev.scheduledMoves ?? false,
           waterRouter: prev.waterRouter ?? false,
+          slopeSurvey: prev.slopeSurvey ?? true,
+          vegetationSurvey: prev.vegetationSurvey ?? true,
         } as MatrixTogglesState;
       },
     },

@@ -21,6 +21,7 @@ import {
   VEG_COMMUNITY_COLORS,
   type VegCommunityKey,
 } from '../../../store/vegetationSurveyStore.js';
+import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { VEG_COMMUNITIES } from '../tier-shell/EcologyCapture.js';
 
 const SOURCE_ID = 'veg-survey-src';
@@ -53,6 +54,7 @@ interface Props {
 
 export default function VegetationSurveyLayer({ map, projectId }: Props) {
   const byProject = useVegetationSurveyStore((s) => s.byProject);
+  const visible = useMatrixTogglesStore((s) => s.vegetationSurvey);
 
   const data = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -143,6 +145,13 @@ export default function VegetationSurveyLayer({ map, projectId }: Props) {
             },
           });
         }
+        // Apply the matrix-toggle visibility on every (re)apply so it survives
+        // basemap swaps and feature edits (mirrors PlanSunPathOverlay).
+        for (const id of [FILL_LAYER, LINE_LAYER, LABEL_LAYER]) {
+          if (map.getLayer(id)) {
+            map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+          }
+        }
       } catch {
         /* map mid-teardown; the next style.load re-applies */
       }
@@ -163,7 +172,7 @@ export default function VegetationSurveyLayer({ map, projectId }: Props) {
         /* map already disposed */
       }
     };
-  }, [map, data]);
+  }, [map, data, visible]);
 
   return null;
 }

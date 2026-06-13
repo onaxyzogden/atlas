@@ -43,6 +43,8 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'placedZones', label: 'Placed zones', swatch: '#7a8c62' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
   { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
+  { key: 'slopeSurvey', label: 'Slope survey (drawn slope-class extents)', swatch: '#b5722e' },
+  { key: 'vegetationSurvey', label: 'Vegetation survey (drawn community extents)', swatch: '#4f7a3a' },
 ];
 
 // Per-stage overlay scoping: hide rows whose underlying layer isn't mounted on
@@ -62,10 +64,16 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // would be dead no-ops on Vision Layout. A canvas that does not mount an
 // overlay passes its dead keys via the `hiddenOverlays` prop — suppression
 // is the union of STAGE_HIDDEN[stage] and hiddenOverlays.
+//
+// The drawn-survey overlays (slopeSurvey / vegetationSurvey) are mounted by
+// SlopeSurveyLayer / VegetationSurveyLayer only while a survey takeover is open
+// on Plan or Act — never on Observe — so they are hidden on Observe here. On
+// Plan + Act the row stays (the toggle pre-arms visibility for the next open
+// survey even when no layer is currently mounted).
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
-  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
+  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter', 'slopeSurvey', 'vegetationSurvey'],
   plan: [],
   act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
 };
