@@ -8,6 +8,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -25,13 +26,15 @@ const SINK_DEPTH_CM = 60;
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
   /** Parcel boundary for the placement gate's containment rule. */
   parcelBoundary?: GeoJSON.Polygon;
 }
 
-export default function WaterSinkTool({ map, projectId, sourceObjectiveId, parcelBoundary }: Props) {
+export default function WaterSinkTool({ map, projectId, sourceObjectiveId, parcelBoundary, getSnapTargets }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -42,6 +45,8 @@ export default function WaterSinkTool({ map, projectId, sourceObjectiveId, parce
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: async (geom) => {
       const id = newAnnotationId('wn-x');
       const anchor = geom.coordinates as [number, number];

@@ -19,17 +19,20 @@ import { useZoneStore } from '../../../../store/zoneStore.js';
 import { runZoneGenerator } from '../../engine/zoneGenerators/index.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { toast } from '../../../../components/Toast.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
 }
 
-export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId }: Props) {
+export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, getSnapTargets }: Props) {
   const projects = useProjectStore((s) => s.projects);
   const zones = useZoneStore((s) => s.zones);
   const addZone = useZoneStore((s) => s.addZone);
@@ -38,6 +41,8 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId }
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: (geom) => {
       const anchorPoint = geom.coordinates as [number, number];
       const project = projects.find((p) => p.id === projectId);

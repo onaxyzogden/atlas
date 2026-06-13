@@ -9,6 +9,7 @@ import {
 } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -19,6 +20,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Plan objective active in the Act tier when this tool is armed (Phase-5 provenance stamp). */
   sourceObjectiveId?: string | null;
   /** Parcel boundary for the placement gate's containment rule. */
@@ -29,7 +32,7 @@ const STORAGE_OPTIONS: { value: StorageNodeKind; label: string }[] = (
   Object.keys(STORAGE_LABEL) as StorageNodeKind[]
 ).map((k) => ({ value: k, label: STORAGE_LABEL[k] }));
 
-export default function WaterStorageTool({ map, projectId, sourceObjectiveId, parcelBoundary }: Props) {
+export default function WaterStorageTool({ map, projectId, sourceObjectiveId, parcelBoundary, getSnapTargets }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
@@ -40,6 +43,8 @@ export default function WaterStorageTool({ map, projectId, sourceObjectiveId, pa
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: async (geom) => {
       const id = newAnnotationId('wn-s');
       const anchor = geom.coordinates as [number, number];

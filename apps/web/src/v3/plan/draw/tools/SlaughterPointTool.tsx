@@ -20,6 +20,7 @@ import {
 } from '../../../../store/agribusinessStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -27,6 +28,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: SlaughterKind; label: string }[] = [
@@ -36,7 +39,7 @@ const KIND_OPTIONS: { value: SlaughterKind; label: string }[] = [
   { value: 'contract', label: 'Contract processor' },
 ];
 
-export default function SlaughterPointTool({ map, projectId }: Props) {
+export default function SlaughterPointTool({ map, projectId, getSnapTargets }: Props) {
   const addSlaughterPoint = useAgribusinessStore((s) => s.addSlaughterPoint);
   const updateSlaughterPoint = useAgribusinessStore((s) => s.updateSlaughterPoint);
   const deleteSlaughterPoint = useAgribusinessStore((s) => s.deleteSlaughterPoint);
@@ -46,6 +49,8 @@ export default function SlaughterPointTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: (geom) => {
       const id = newAnnotationId('slp');
       const anchor = geom.coordinates as [number, number];

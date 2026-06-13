@@ -20,6 +20,7 @@ import {
 } from '../../../../store/utilityStore.js';
 import { UTILITY_POINT_TYPE_OPTIONS } from './utilityPointTypes.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { gatePlacement } from '../../validation/placementGate.js';
@@ -28,13 +29,15 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Parcel boundary for the placement gate's containment rule. */
   parcelBoundary?: GeoJSON.Polygon;
 }
 
 const DEFAULT_TYPE: UtilityType = 'rain_catchment';
 
-export default function UtilityPointTool({ map, projectId, parcelBoundary }: Props) {
+export default function UtilityPointTool({ map, projectId, parcelBoundary, getSnapTargets }: Props) {
   const addUtility = useUtilityStore((s) => s.addUtility);
   const updateUtility = useUtilityStore((s) => s.updateUtility);
   const deleteUtility = useUtilityStore((s) => s.deleteUtility);
@@ -44,6 +47,8 @@ export default function UtilityPointTool({ map, projectId, parcelBoundary }: Pro
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: async (geom) => {
       const id = crypto.randomUUID();
       const center = geom.coordinates as [number, number];

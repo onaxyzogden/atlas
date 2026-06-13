@@ -156,6 +156,7 @@ export default function PlanDrawHost({
         <WaterStorageTool
           map={map}
           projectId={projectId}
+          getSnapTargets={getSnapTargets}
           sourceObjectiveId={sourceObjectiveId}
           parcelBoundary={parcelBoundary}
         />
@@ -177,6 +178,7 @@ export default function PlanDrawHost({
         <WaterSinkTool
           map={map}
           projectId={projectId}
+          getSnapTargets={getSnapTargets}
           sourceObjectiveId={sourceObjectiveId}
           parcelBoundary={parcelBoundary}
         />
@@ -198,6 +200,7 @@ export default function PlanDrawHost({
         <ZoneSeedAnchorTool
           map={map}
           projectId={projectId}
+          getSnapTargets={getSnapTargets}
           sourceObjectiveId={sourceObjectiveId}
         />
       );
@@ -228,10 +231,10 @@ export default function PlanDrawHost({
       );
       break;
     case 'plan.plant-systems.guild':
-      tool = <GuildTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} />;
+      tool = <GuildTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.soil-fertility.fertility-unit':
-      tool = <FertilityInfraTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} />;
+      tool = <FertilityInfraTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.soil-fertility.flow-connector':
       tool = (
@@ -265,7 +268,7 @@ export default function PlanDrawHost({
       );
       break;
     case 'plan.structures-subsystems.structure':
-      tool = <StructureTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} />;
+      tool = <StructureTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.structures-subsystems.utility-run':
       tool = (
@@ -278,10 +281,10 @@ export default function PlanDrawHost({
       );
       break;
     case 'plan.structures-subsystems.utility-point':
-      tool = <UtilityPointTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} />;
+      tool = <UtilityPointTool map={map} projectId={projectId} parcelBoundary={parcelBoundary} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.principle-verification.note':
-      tool = <EcologicalNoteTool map={map} projectId={projectId} />;
+      tool = <EcologicalNoteTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.principle-verification.transect':
       tool = (
@@ -293,13 +296,13 @@ export default function PlanDrawHost({
       );
       break;
     case 'plan.livestock.slaughter-point':
-      tool = <SlaughterPointTool map={map} projectId={projectId} />;
+      tool = <SlaughterPointTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.livestock.cold-chain-unit':
-      tool = <ColdChainUnitTool map={map} projectId={projectId} />;
+      tool = <ColdChainUnitTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.livestock.market-node':
-      tool = <MarketNodeTool map={map} projectId={projectId} />;
+      tool = <MarketNodeTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'plan.livestock.schedule-move':
       tool = <PlanScheduleMoveTool map={map} projectId={projectId} />;

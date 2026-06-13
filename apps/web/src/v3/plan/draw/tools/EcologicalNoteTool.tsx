@@ -14,6 +14,7 @@ import {
 } from '../../../../store/ecologicalNoteStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -22,13 +23,15 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: EcologicalNoteKind; label: string }[] = (
   Object.keys(NOTE_KIND_CONFIG) as EcologicalNoteKind[]
 ).map((k) => ({ value: k, label: NOTE_KIND_CONFIG[k].label }));
 
-export default function EcologicalNoteTool({ map, projectId }: Props) {
+export default function EcologicalNoteTool({ map, projectId, getSnapTargets }: Props) {
   const addNote = useEcologicalNoteStore((s) => s.addNote);
   const updateNote = useEcologicalNoteStore((s) => s.updateNote);
   const deleteNote = useEcologicalNoteStore((s) => s.deleteNote);
@@ -39,6 +42,8 @@ export default function EcologicalNoteTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: (geom) => {
       const id = newAnnotationId('note');
       const anchor = geom.coordinates as [number, number];

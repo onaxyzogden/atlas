@@ -31,6 +31,7 @@ import {
 } from '../../../../store/closedLoopStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -40,6 +41,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Parcel boundary for the placement gate's containment rule. */
   parcelBoundary?: GeoJSON.Polygon;
 }
@@ -56,7 +59,7 @@ const TYPE_OPTIONS: { value: FertilityInfraType; label: string }[] = [
   { value: 'rotational_grazing',  label: 'Rotational grazing' },
 ];
 
-export default function FertilityInfraTool({ map, projectId, parcelBoundary }: Props) {
+export default function FertilityInfraTool({ map, projectId, parcelBoundary, getSnapTargets }: Props) {
   const addFertilityInfra = useClosedLoopStore((s) => s.addFertilityInfra);
   const updateFertilityInfra = useClosedLoopStore((s) => s.updateFertilityInfra);
   const removeFertilityInfra = useClosedLoopStore((s) => s.removeFertilityInfra);
@@ -67,6 +70,8 @@ export default function FertilityInfraTool({ map, projectId, parcelBoundary }: P
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: async (geom) => {
       const id = newAnnotationId('fert');
       const anchor = geom.coordinates as [number, number];

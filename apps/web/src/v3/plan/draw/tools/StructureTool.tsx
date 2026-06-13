@@ -32,6 +32,7 @@ import {
 } from '../../../../features/structures/footprints.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -45,6 +46,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Parcel boundary for the placement gate's containment rule. */
   parcelBoundary?: GeoJSON.Polygon;
 }
@@ -98,7 +101,7 @@ function midCost(type: StructureType): number {
   return Math.round((lo + hi) / 2);
 }
 
-export default function StructureTool({ map, projectId, parcelBoundary }: Props) {
+export default function StructureTool({ map, projectId, parcelBoundary, getSnapTargets }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
@@ -242,6 +245,8 @@ export default function StructureTool({ map, projectId, parcelBoundary }: Props)
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     enabled: dimMode === 'freehand',
     onComplete: async (geom) => {
       const center = geom.coordinates as [number, number];

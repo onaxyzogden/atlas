@@ -15,6 +15,7 @@ import {
 } from '../../../../store/agribusinessStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -22,6 +23,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: MarketKind; label: string }[] = [
@@ -31,7 +34,7 @@ const KIND_OPTIONS: { value: MarketKind; label: string }[] = [
   { value: 'csa-dropoff',  label: 'CSA drop-off' },
 ];
 
-export default function MarketNodeTool({ map, projectId }: Props) {
+export default function MarketNodeTool({ map, projectId, getSnapTargets }: Props) {
   const addMarketNode = useAgribusinessStore((s) => s.addMarketNode);
   const updateMarketNode = useAgribusinessStore((s) => s.updateMarketNode);
   const deleteMarketNode = useAgribusinessStore((s) => s.deleteMarketNode);
@@ -41,6 +44,8 @@ export default function MarketNodeTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: (geom) => {
       const id = newAnnotationId('mkt');
       const anchor = geom.coordinates as [number, number];

@@ -16,6 +16,7 @@ import {
 } from '../../../../store/agribusinessStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -23,6 +24,8 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: ColdChainKind; label: string }[] = [
@@ -32,7 +35,7 @@ const KIND_OPTIONS: { value: ColdChainKind; label: string }[] = [
   { value: 'reefer',  label: 'Reefer (mobile)' },
 ];
 
-export default function ColdChainUnitTool({ map, projectId }: Props) {
+export default function ColdChainUnitTool({ map, projectId, getSnapTargets }: Props) {
   const addColdChainUnit = useAgribusinessStore((s) => s.addColdChainUnit);
   const updateColdChainUnit = useAgribusinessStore((s) => s.updateColdChainUnit);
   const deleteColdChainUnit = useAgribusinessStore((s) => s.deleteColdChainUnit);
@@ -42,6 +45,8 @@ export default function ColdChainUnitTool({ map, projectId }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: (geom) => {
       const id = newAnnotationId('cc');
       const anchor = geom.coordinates as [number, number];

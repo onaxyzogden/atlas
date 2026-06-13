@@ -25,6 +25,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -37,11 +38,13 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
   /** Parcel boundary for the placement gate's containment rule. */
   parcelBoundary?: GeoJSON.Polygon;
 }
 
-export default function GuildTool({ map, projectId, parcelBoundary }: Props) {
+export default function GuildTool({ map, projectId, parcelBoundary, getSnapTargets }: Props) {
   const addGuild = usePolycultureStore((s) => s.addGuild);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const removeGuild = usePolycultureStore((s) => s.removeGuild);
@@ -71,6 +74,8 @@ export default function GuildTool({ map, projectId, parcelBoundary }: Props) {
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    snap: true,
+    getSnapTargets,
     onComplete: async (geom) => {
       const id = newAnnotationId('gld');
       const anchor = geom.coordinates as [number, number];
