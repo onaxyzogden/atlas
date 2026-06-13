@@ -66,6 +66,16 @@
   min-width: 0;
 }
 
+/* Read-only derived ceiling value (R3 P1: "derived replaces manual" -- shown in
+   place of the Stepper when ev-s2-carrying-capacity has been assessed). */
+.derivedMaxVal {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text, #1b1e22);
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+}
+
 /* ---------- Inputs ---------- */
 
 .textarea {

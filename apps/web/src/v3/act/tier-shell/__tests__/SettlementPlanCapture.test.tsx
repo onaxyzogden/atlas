@@ -64,10 +64,44 @@ import {
   summariseSettlementPlan,
   settlementPhasesFrom,
   enforcementSignatory,
+  capacityFitEffectiveMax,
   SETTLEMENT_PLAN_PREFIX,
   type SettlementPlanMode,
 } from '../SettlementPlanCapture.js';
+import {
+  computeSynthesis,
+  CARRYING_CAPACITY_PREFIX,
+} from '../CarryingCapacityCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
+
+// An "assessed" ev-s2-carrying-capacity sibling map (real operator inputs across
+// c1..c5). carryingCapacityAssessed -> true, so settlement-plan c6 derives its
+// ceiling from the synthesis (R3 P1 "derived replaces manual"). Values mirror the
+// coherent demo scenario but are now persisted operator entries, so minPeople>0.
+const ASSESSED_CC_SIBLINGS: Record<string, FormValue> = {
+  [`${CARRYING_CAPACITY_PREFIX}-c1`]: {
+    hh: '8',
+    pph: '2.5',
+    wDom: '80',
+    wIrr: '1200',
+    wLive: '400',
+    wSupply: '5000',
+  },
+  [`${CARRYING_CAPACITY_PREFIX}-c2`]: {
+    fArea: '20000',
+    fExtern: '30',
+    ccFoodIntensity: '450',
+  },
+  [`${CARRYING_CAPACITY_PREFIX}-c3`]: { nComp: '25' },
+  [`${CARRYING_CAPACITY_PREFIX}-c4`]: { eDemand: '8', eSolar: '20' },
+  [`${CARRYING_CAPACITY_PREFIX}-c5`]: {
+    spaceTotalHa: '45',
+    sWild: '27',
+    sFood: '4',
+    sComm: '0.5',
+    sHh: '0.5',
+  },
+};
 
 // A fully-signed c5 enforcement FormValue (enforcer + ack + named non-self
 // verifier with a timestamp) -- the only shape that satisfies the F1 hard gate.
@@ -344,6 +378,22 @@ describe('isSettlementPlanValid', () => {
     expect(isSettlementPlanValid('capacityFit', { spMaxPopulation: '10', spCapacityConfirmed: 'on' })).toBe(true);
   });
 
+  it('capacityFit: derived path -- valid on confirm even with NO manual spMaxPopulation', () => {
+    // When carrying capacity is assessed, the ceiling is derived from the
+    // synthesis; the manual stepper is irrelevant. Confirm alone (+ a positive
+    // derived max) makes it valid.
+    expect(
+      isSettlementPlanValid('capacityFit', {}, ASSESSED_CC_SIBLINGS),
+    ).toBe(false); // not confirmed
+    expect(
+      isSettlementPlanValid(
+        'capacityFit',
+        { spCapacityConfirmed: 'on' },
+        ASSESSED_CC_SIBLINGS,
+      ),
+    ).toBe(true); // derived max>0 + confirmed, no spMaxPopulation
+  });
+
   it('enforcement c5 -- hard gate: requires enforcer + ack + a NAMED, signed non-self verifier', () => {
     // Neither set -> invalid
     expect(isSettlementPlanValid('enforcement', {})).toBe(false);
@@ -438,6 +488,22 @@ describe('summariseSettlementPlan', () => {
     const s = summariseSettlementPlan('capacityFit', value);
     expect(s).toContain('20');
     expect(s).toContain('confirmed');
+    // Unassessed -> labels the source as manual.
+    expect(s).toContain('manual');
+  });
+
+  it('capacityFit summary labels the carrying-capacity source when assessed', () => {
+    const min = computeSynthesis(ASSESSED_CC_SIBLINGS, CARRYING_CAPACITY_PREFIX)
+      .minPeople;
+    // Manual spMaxPopulation is present but must be IGNORED in favour of derived.
+    const s = summariseSettlementPlan(
+      'capacityFit',
+      { spMaxPopulation: '999', spCapacityConfirmed: 'on' },
+      ASSESSED_CC_SIBLINGS,
+    );
+    expect(s).toContain(`Max ${min}`);
+    expect(s).toContain('from carrying capacity');
+    expect(s).not.toContain('999');
   });
 
   it('enforcement summary references enforcer or not-self-reported', () => {
@@ -618,9 +684,41 @@ describe('schedule -- render / interaction', () => {
   });
 });
 
+describe('capacityFitEffectiveMax (derived replaces manual)', () => {
+  it('falls back to the manual spMaxPopulation when carrying capacity is unassessed', () => {
+    expect(capacityFitEffectiveMax({ spMaxPopulation: '15' }, {})).toEqual({
+      max: 15,
+      derived: false,
+    });
+    // An empty c1 FormValue is NOT an assessment -> still manual.
+    expect(
+      capacityFitEffectiveMax(
+        { spMaxPopulation: '15' },
+        { [`${CARRYING_CAPACITY_PREFIX}-c1`]: {} },
+      ),
+    ).toEqual({ max: 15, derived: false });
+  });
+
+  it('derives the ceiling (minPeople + binding) from the synthesis when assessed', () => {
+    const syn = computeSynthesis(ASSESSED_CC_SIBLINGS, CARRYING_CAPACITY_PREFIX);
+    expect(syn.minPeople).toBeGreaterThan(0);
+    const eff = capacityFitEffectiveMax(
+      { spMaxPopulation: '999' },
+      ASSESSED_CC_SIBLINGS,
+    );
+    expect(eff.derived).toBe(true);
+    expect(eff.max).toBe(syn.minPeople); // manual 999 ignored
+    expect(eff.bindingName).toBe(syn.bindingName);
+  });
+});
+
 describe('capacityFit -- render / interaction', () => {
-  it('renders the confirm button and toggles it', () => {
+  it('renders the manual stepper + not-yet-assessed hint and the confirm button', () => {
     const { onChange } = renderMode('capacityFit', { spMaxPopulation: '20' });
+    // Unassessed -> manual stepper present (its aria-labelled control) + hint.
+    expect(
+      screen.getByText(/carrying capacity not yet assessed/i),
+    ).toBeTruthy();
     // Confirm button should be present
     const confirmBtn = screen.getByRole('button', {
       name: /Confirm scheduled cohort sizes/i,
@@ -630,6 +728,30 @@ describe('capacityFit -- render / interaction', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     const emitted = onChange.mock.calls[0]![0] as FormValue;
     expect(emitted.spCapacityConfirmed).toBe('on');
+  });
+
+  it('renders the read-only derived ceiling + binding constraint when assessed (no manual stepper)', () => {
+    const syn = computeSynthesis(ASSESSED_CC_SIBLINGS, CARRYING_CAPACITY_PREFIX);
+    renderMode(
+      'capacityFit',
+      { spMaxPopulation: '999' },
+      { siblingValues: ASSESSED_CC_SIBLINGS },
+    );
+    // Read-only derived value present...
+    const derivedVal = screen.getByLabelText(
+      /Maximum sustainable population \(derived from carrying capacity\)/i,
+    );
+    expect(derivedVal.textContent).toBe(String(syn.minPeople));
+    // ...binding constraint surfaced...
+    expect(
+      screen.getByText(
+        new RegExp(`binding constraint: ${syn.bindingName}`, 'i'),
+      ),
+    ).toBeTruthy();
+    // ...and the manual stepper is NOT rendered.
+    expect(
+      screen.queryByLabelText('Maximum sustainable population'),
+    ).toBeNull();
   });
 });
 

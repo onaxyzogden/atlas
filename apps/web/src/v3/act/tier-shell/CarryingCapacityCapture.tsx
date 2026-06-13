@@ -605,6 +605,52 @@ export function computeSynthesis(
 }
 
 // ---------------------------------------------------------------------------
+// "assessed?" predicate: distinguishes a real operator assessment from the
+// always-computable demo fallback in computeSynthesis. computeSynthesis ALWAYS
+// returns a number (empty fields fall back to DEF demo values), so a consumer
+// that wants to adopt the derived ceiling must first confirm the operator has
+// actually entered something. Returns true iff ANY tracked raw input across the
+// c1..c5 sibling FormValues is a non-empty string. Pure; no decode side
+// effects. Used by SettlementPlanCapture c6 to gate "derived replaces manual".
+// ---------------------------------------------------------------------------
+
+/** Raw FormValue keys the operator can fill across c1..c5 (the assessment signal). */
+const CARRYING_CAPACITY_INPUT_KEYS: readonly string[] = [
+  'hh',
+  'pph',
+  'wDom',
+  'wIrr',
+  'wLive',
+  'wSupply',
+  'fArea',
+  'fExtern',
+  'ccFoodIntensity',
+  'nComp',
+  'eDemand',
+  'eSolar',
+  'spaceTotalHa',
+  'sWild',
+  'sFood',
+  'sComm',
+  'sHh',
+];
+
+export function carryingCapacityAssessed(
+  siblingValues: Record<string, FormValue>,
+  prefix: string = CARRYING_CAPACITY_PREFIX,
+): boolean {
+  for (let c = 1; c <= 5; c += 1) {
+    const v = siblingValues[`${prefix}-c${c}`];
+    if (!v) continue;
+    for (const key of CARRYING_CAPACITY_INPUT_KEYS) {
+      const raw = v[key];
+      if (typeof raw === 'string' && raw.trim() !== '') return true;
+    }
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // validity gates (per mode)
 // ---------------------------------------------------------------------------
 

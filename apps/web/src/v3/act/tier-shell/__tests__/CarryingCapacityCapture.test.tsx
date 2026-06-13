@@ -68,6 +68,8 @@ import {
   computeSpaceCeiling,
   computePopulation,
   computeSynthesis,
+  carryingCapacityAssessed,
+  CARRYING_CAPACITY_PREFIX,
   type CarryingCapacityMode,
 } from '../CarryingCapacityCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
@@ -257,6 +259,63 @@ describe('computeSynthesis (defaults)', () => {
     expect(syn.maxHH).toBe(0);
     expect(Number.isNaN(syn.intendedPeople)).toBe(false);
     expect(Number.isFinite(syn.intendedPeople)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// carryingCapacityAssessed -- the "real assessment?" predicate that gates
+// settlement-plan c6 "derived replaces manual" (so demo-fallback numbers never
+// leak). computeSynthesis ALWAYS returns a number; this distinguishes a real
+// assessment from the always-computable demo defaults.
+// ---------------------------------------------------------------------------
+
+describe('carryingCapacityAssessed', () => {
+  it('is false for an empty map and for empty per-item FormValues', () => {
+    expect(carryingCapacityAssessed({})).toBe(false);
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c1`]: {},
+        [`${CARRYING_CAPACITY_PREFIX}-c5`]: {},
+      }),
+    ).toBe(false);
+  });
+
+  it('is false when only whitespace / non-tracked keys are present', () => {
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c1`]: { hh: '   ', somethingElse: 'x' },
+      }),
+    ).toBe(false);
+  });
+
+  it('is true when ANY single tracked field across c1..c5 is non-empty', () => {
+    // population anchor on c1
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c1`]: { hh: '8' },
+      }),
+    ).toBe(true);
+    // a domain field on c3 (waste)
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c3`]: { nComp: '25' },
+      }),
+    ).toBe(true);
+    // the food-intensity selector on c2
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c2`]: { ccFoodIntensity: '450' },
+      }),
+    ).toBe(true);
+  });
+
+  it('ignores c6/c7 (synthesis/gate carry no tracked inputs)', () => {
+    expect(
+      carryingCapacityAssessed({
+        [`${CARRYING_CAPACITY_PREFIX}-c6`]: { anything: 'x' },
+        [`${CARRYING_CAPACITY_PREFIX}-c7`]: { pathway: 'confirm' },
+      }),
+    ).toBe(false);
   });
 });
 

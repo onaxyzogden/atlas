@@ -64,6 +64,11 @@ import {
   StatusPill,
   Stepper,
 } from './captures/controls/index.js';
+import {
+  CARRYING_CAPACITY_PREFIX,
+  carryingCapacityAssessed,
+  computeSynthesis,
+} from './CarryingCapacityCapture.js';
 import css from './SettlementPlanCapture.module.css';
 
 // ---------------------------------------------------------------------------
@@ -401,6 +406,30 @@ export function scheduledPopulationFrom(scheduleValue: FormValue): number {
   );
 }
 
+/**
+ * c6 effective maximum sustainable population. "Derived replaces manual"
+ * (R3 P1): when the Stratum 2 ev-s2-carrying-capacity assessment carries real
+ * operator inputs, the synthesised ceiling (minPeople, with its binding
+ * constraint) is authoritative and the manual stepper is hidden; otherwise fall
+ * back to the hand-entered spMaxPopulation. The derived value is RECOMPUTED ON
+ * READ from the carrying-capacity siblings -- never persisted into
+ * spMaxPopulation -- so it can never go stale against a later carrying-capacity
+ * edit (same display-only-derived discipline as the c3/c6 strips). We gate on
+ * carryingCapacityAssessed (NOT on computeSynthesis returning a number, which it
+ * always does via demo-fallback defaults) so a fresh project never inherits the
+ * carrying-capacity demo ceiling. Pure: no store, no Date.now().
+ */
+export function capacityFitEffectiveMax(
+  value: FormValue,
+  siblingValues: Record<string, FormValue> = {},
+): { max: number; derived: boolean; bindingName?: string } {
+  if (carryingCapacityAssessed(siblingValues, CARRYING_CAPACITY_PREFIX)) {
+    const syn = computeSynthesis(siblingValues, CARRYING_CAPACITY_PREFIX);
+    return { max: syn.minPeople, derived: true, bindingName: syn.bindingName };
+  }
+  return { max: asNum(value.spMaxPopulation), derived: false };
+}
+
 // ---------------------------------------------------------------------------
 // decode: FormValue -> SettlementPlanModel (TOTAL / defensive)
 // ---------------------------------------------------------------------------
@@ -530,8 +559,11 @@ export function isSettlementPlanValid(
     }
     case 'capacityFit': {
       const m = decodeSettlementPlan('capacityFit', value) as CapacityFitModel;
-      // Steward decision 5: manual max + confirm toggle. Gate on the confirm.
-      return m.maxPopulation > 0 && m.confirmed;
+      // "Derived replaces manual" (R3 P1): the maximum comes from the
+      // carrying-capacity synthesis when that assessment exists, else the manual
+      // stepper. Either way the confirm toggle still gates recording.
+      const { max } = capacityFitEffectiveMax(value, siblingValues);
+      return max > 0 && m.confirmed;
     }
     case 'enforcement': {
       const m = decodeSettlementPlan('enforcement', value) as EnforcementModel;
@@ -587,10 +619,17 @@ export function summariseSettlementPlan(
     }
     case 'capacityFit': {
       const m = decodeSettlementPlan('capacityFit', value) as CapacityFitModel;
+      const { max, derived, bindingName } = capacityFitEffectiveMax(
+        value,
+        siblingValues,
+      );
       const scheduled = scheduledPopulationFrom(
         siblingValues['ev-s7-settlement-plan-c4'] ?? {},
       );
-      return `Max ${m.maxPopulation}; scheduled ${scheduled}; ${
+      const src = derived
+        ? `from carrying capacity${bindingName ? ` -- binding: ${bindingName}` : ''}`
+        : 'manual';
+      return `Max ${max} (${src}); scheduled ${scheduled}; ${
         m.confirmed ? 'within maximum confirmed' : 'not confirmed'
       }`;
     }
@@ -951,11 +990,18 @@ export function SettlementPlanCapture({
     );
   }
 
-  // -- c6: capacityFit (manual max + display-only derived strip + confirm) ---
+  // -- c6: capacityFit (derived OR manual max + display-only strip + confirm) -
   if (mode === 'capacityFit') {
     const model = decodeSettlementPlan('capacityFit', value) as CapacityFitModel;
     const set = (patch: Partial<CapacityFitModel>): void =>
       onChange(encodeSettlementPlan({ ...model, ...patch }));
+    // "Derived replaces manual" (R3 P1): the ceiling is the carrying-capacity
+    // synthesis when ev-s2-carrying-capacity has been assessed, else the manual
+    // stepper value. Recomputed on read; never persisted.
+    const { max, derived, bindingName } = capacityFitEffectiveMax(
+      value,
+      siblingValues,
+    );
     // Display-only derived strip (steward decision 5): read scheduled population
     // from the c4 sibling -- NO live coupling, NO write.
     const scheduled = scheduledPopulationFrom(
@@ -968,20 +1014,43 @@ export function SettlementPlanCapture({
       ) as CohortModel
     ).households;
     const totalPlanned = scheduled + founding;
-    const within = model.maxPopulation > 0 && totalPlanned <= model.maxPopulation;
+    const within = max > 0 && totalPlanned <= max;
     return (
       <div className={css.root} data-sp-mode="capacityFit">
         <div className={css.row}>
           <span className={css.rowLbl}>
             Stratum 2 maximum sustainable population
           </span>
-          <Stepper
-            value={model.maxPopulation}
-            min={0}
-            ariaLabel="Maximum sustainable population"
-            onChange={(n) => set({ maxPopulation: n })}
-          />
+          {derived ? (
+            <span
+              className={css.derivedMaxVal}
+              aria-label="Maximum sustainable population (derived from carrying capacity)"
+            >
+              {max}
+            </span>
+          ) : (
+            <Stepper
+              value={model.maxPopulation}
+              min={0}
+              ariaLabel="Maximum sustainable population"
+              onChange={(n) => set({ maxPopulation: n })}
+            />
+          )}
         </div>
+
+        {derived ? (
+          <p className={css.modeHint}>
+            {`From the Stratum 2 carrying capacity assessment -- binding constraint: ${
+              bindingName ?? 'unknown'
+            }.`}
+          </p>
+        ) : (
+          <p className={css.modeHint}>
+            Stratum 2 carrying capacity not yet assessed -- complete
+            ev-s2-carrying-capacity for an automatic ceiling, or enter a maximum
+            here.
+          </p>
+        )}
 
         <div className={css.derivedStrip} aria-label="Planned population (display only)">
           <div className={css.derivedItem}>
@@ -999,9 +1068,9 @@ export function SettlementPlanCapture({
             <span className={css.derivedLbl}>Planned total</span>
           </div>
           <StatusPill
-            tone={model.maxPopulation === 0 ? 'neutral' : within ? 'success' : 'warn'}
+            tone={max === 0 ? 'neutral' : within ? 'success' : 'warn'}
             label={
-              model.maxPopulation === 0
+              max === 0
                 ? 'set a maximum'
                 : within
                   ? 'within maximum'
