@@ -74,6 +74,17 @@ interface Props {
    *  Null = full design-element set (no focus). Mirrors the strict
    *  single-objective rail/overlay focus. */
   activeModule?: PlanModule | null;
+  /** When set, re-stack the design-el layers to sit *just above* the highest
+   *  layer whose id starts with this prefix, after each ensure pass — but no
+   *  higher (any non-matching, non-design-el layer above that anchor stays on
+   *  top). Used on the Act canvas with `"plan-data-"` so placed elements render
+   *  above the permaculture zone fills (which add with no beforeId and can
+   *  otherwise land on top of late-mounted design elements) while staying below
+   *  the Act execution/survey overlays (act-data-*, *-survey-*). `apply()`
+   *  re-runs on every styledata/style.load, so the order self-corrects across
+   *  basemap swaps and new placements. Undefined (the Plan default) keeps the
+   *  mount-order stacking. */
+  keepAbovePrefix?: string;
   /** Parcel boundary for the drag-move placement gate's containment rule.
    *  Only threaded on editable mounts (Plan Current); other mounts leave it
    *  undefined and the boundary rule no-ops on drag re-validation. */
@@ -118,6 +129,7 @@ export default function DesignElementLayers({
   onHoverChange,
   onSelect,
   activeModule = null,
+  keepAbovePrefix,
   parcelBoundary,
 }: Props) {
   // Opt into draft rows so the generated-design review layer renders;
@@ -473,6 +485,65 @@ export default function DesignElementLayers({
           'text-halo-width': 1.2,
         },
       });
+
+      // Re-stack the design-el layers to sit just above the `keepAbovePrefix`
+      // family (Act passes "plan-data-", the permaculture zone fills). Those
+      // fills add with no `beforeId` and, when zone data loads after the design
+      // elements, can land on top and occlude placed orchards. We lift design-el
+      // back above the highest such layer — but only as high as the first
+      // non-matching, non-design-el layer above it (the `ceiling`), so the Act
+      // execution/survey overlays (act-data-*, *-survey-*) stay on top. A null
+      // ceiling means nothing but our own layers sits above the anchor, so we
+      // move to the very top. `apply()` re-runs on every styledata/style.load,
+      // making the order self-correcting across basemap swaps and new
+      // placements. Mirrors the move-to-top idiom in ObserveAnnotationLayers.
+      if (keepAbovePrefix) {
+        let order: string[] = [];
+        try {
+          order = map.getStyle().layers.map((l) => l.id);
+        } catch {
+          /* style not introspectable this tick — next pass retries */
+        }
+        let anchorIdx = -1;
+        for (let i = 0; i < order.length; i++) {
+          if (order[i]?.startsWith(keepAbovePrefix)) anchorIdx = i;
+        }
+        if (anchorIdx >= 0) {
+          // First layer above the anchor that is neither part of the anchored
+          // family nor one of our own design-el layers — design-el sits just
+          // beneath it. Undefined => move to top.
+          let ceilingId: string | undefined;
+          for (let i = anchorIdx + 1; i < order.length; i++) {
+            const lid = order[i];
+            if (
+              lid == null ||
+              lid.startsWith(keepAbovePrefix) ||
+              lid.startsWith(LAYER_PREFIX)
+            ) {
+              continue;
+            }
+            ceilingId = lid;
+            break;
+          }
+          for (const suffix of [
+            'utility-conflict-poly',
+            'utility-conflict-line',
+            'poly-fill',
+            'poly-line',
+            'poly-line-draft',
+            'line',
+            'point',
+            'label',
+          ]) {
+            const id = `${LAYER_PREFIX}${suffix}`;
+            try {
+              if (map.getLayer(id)) map.moveLayer(id, ceilingId);
+            } catch {
+              /* layer not yet in style — next styledata pass re-stacks */
+            }
+          }
+        }
+      }
     };
 
     apply();
@@ -495,7 +566,7 @@ export default function DesignElementLayers({
         /* map already disposed */
       }
     };
-  }, [map, polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC]);
+  }, [map, polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC, keepAbovePrefix]);
 
   // Pointer hover bookkeeping — report enter/leave on any of the three
   // clickable design-element layers up to the canvas so the centralized

@@ -785,10 +785,10 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // blocks / management zones (zone), site away from frost pockets (frost-pocket).
   // gap: spacing math (decision).
   'orch-s5-planting-layout': ['orchards', 'zone', 'frost-pocket'],
-  // S5 — guild plan: place orchard guild blocks (orchards), understorey / support
-  // plantings (vegetation). Carries legacyCardSectionId 'plan-guild-builder'.
-  // gap: species list (decision).
-  'orch-s5-guild-plan': ['orchards', 'vegetation'],
+  // S5 — guild plan: place guild rings on map (guild), orchard guild blocks
+  // (orchards), understorey / support plantings (vegetation). Carries
+  // legacyCardSectionId 'plan-guild-builder'. gap: species list (decision).
+  'orch-s5-guild-plan': ['guild', 'orchards', 'vegetation'],
   // S5 — establishment irrigation: install supply lines (water-lines), holding
   // tanks for establishment watering (tanks). gap: emitter spec (decision).
   'orch-s5-establishment-irrigation': ['water-lines', 'tanks'],
@@ -827,10 +827,11 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S4 — species & pollination partners: cultivar / rootstock / pollination-
   // partner selection — a selection decision. gap: all.
   'orch-sec-s4-species-pollination': [],
-  // S5 — guild layout: place multilayer guild blocks (orchards), support-species
-  // plantings (vegetation), guild management zones (zone). Carries
-  // legacyCardSectionId 'plan-guild-builder'. gap: light-budget math (decision).
-  'orch-sec-s5-guild-layout': ['orchards', 'vegetation', 'zone'],
+  // S5 — guild layout: place guild rings on map (guild), multilayer guild blocks
+  // (orchards), support-species plantings (vegetation), guild management zones
+  // (zone). Carries legacyCardSectionId 'plan-guild-builder'. gap: light-budget
+  // math (decision).
+  'orch-sec-s5-guild-layout': ['guild', 'orchards', 'vegetation', 'zone'],
   // S6 — perennial care commitment: pruning / IPM regime + labour commitment —
   // a management commitment / resourcing decision. gap: all.
   'orch-sec-s6-perennial-care': [],

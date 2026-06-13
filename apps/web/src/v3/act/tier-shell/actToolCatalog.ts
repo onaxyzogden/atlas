@@ -766,6 +766,13 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'production-systems',
     arm: { kind: 'map', mapToolId: 'plan.plant-systems.orchard' },
   },
+  guild: {
+    id: 'guild',
+    label: 'Guild',
+    icon: TreeDeciduous,
+    category: 'production-systems',
+    arm: { kind: 'map', mapToolId: 'plan.plant-systems.guild' },
+  },
   paddocks: {
     id: 'paddocks',
     label: 'Paddocks',
