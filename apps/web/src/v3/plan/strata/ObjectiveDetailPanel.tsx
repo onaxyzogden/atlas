@@ -16,7 +16,12 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
-import { enterprisesForProjectTypes, isCyclicalReviewDue } from '@ogden/shared';
+import {
+  enterprisesForProjectTypes,
+  isCyclicalReviewDue,
+  UNIVERSAL_DOMAIN_LABELS,
+} from '@ogden/shared';
+import { describeReviewReason } from '../../observe/dashboard/revision/describeObserveChange.js';
 import type { Project } from '../../types.js';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
@@ -31,6 +36,7 @@ import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
+import ObserveUpdatesSection from './ObserveUpdatesSection.js';
 import AsBuiltReconciliationCard from './AsBuiltReconciliationCard.js';
 import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import { findUpstreamSourceObjectives } from '../objectiveCatalog.js';
@@ -193,6 +199,32 @@ export default function ObjectiveDetailPanel({
   const confirmDecision = useCyclicalReviewStore((s) => s.confirmDecision);
   const acknowledgeRevise = useCyclicalReviewStore((s) => s.acknowledgeRevise);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // ADR 11 Screen 2 variant + the effects snapshot taken at resolution time
+  // (confirm/revise CLEAR triggerContext in the store, so we snapshot the
+  // diverged-domain labels before firing the mutation).
+  const [confirmVariant, setConfirmVariant] = useState<'confirmed' | 'updated'>(
+    'confirmed',
+  );
+  const [confirmEffects, setConfirmEffects] = useState<readonly string[]>([]);
+  // "Dismiss for now" — local snooze of the Observe-driven prompt. The advisory
+  // flag is untouched, so the prompt returns on remount while the divergence is
+  // still active. Reset per objective (panel is keyed by objective.id).
+  const [reviewDismissed, setReviewDismissed] = useState(false);
+
+  // Observe-driven trigger attribution (null when flagged only by the 90-day
+  // cadence or the dev-tools forceTrigger). Drives the Screen 1 reason copy and
+  // the OBSERVE UPDATES section domains.
+  const triggerContext = reviewRecord.triggerContext;
+  const triggerDomainLabels = useMemo(
+    () =>
+      (triggerContext?.domains ?? []).map(
+        (d) => UNIVERSAL_DOMAIN_LABELS[d] ?? d,
+      ),
+    [triggerContext],
+  );
+  const reviewReason = triggerContext
+    ? describeReviewReason(triggerContext.via, triggerContext.domains)
+    : undefined;
 
   // T1.7 -- downstream review flags for this objective.
   const allReviewFlags = useReviewFlagsForObjective(projectId, objective.id);
@@ -254,14 +286,21 @@ export default function ObjectiveDetailPanel({
 
   const handleConfirmDecision = () => {
     if (!projectId) return;
+    setConfirmEffects(triggerDomainLabels);
+    setConfirmVariant('confirmed');
     confirmDecision(projectId, objective.id);
     setShowConfirmModal(true);
   };
 
   const handleReviseDecision = () => {
     if (!projectId) return;
+    setConfirmEffects(triggerDomainLabels);
+    setConfirmVariant('updated');
     acknowledgeRevise(projectId, objective.id);
+    setShowConfirmModal(true);
   };
+
+  const handleDismissReview = () => setReviewDismissed(true);
 
   const toggleOverlay = (overlayId: OverlayId) => {
     setActiveOverlayIds((prev) =>
@@ -315,10 +354,15 @@ export default function ObjectiveDetailPanel({
         derivedEvidence={visionDerivedMap}
       />
 
-      {reviewDue && (
+      {reviewDue && !reviewDismissed && (
         <CyclicalReviewBanner
+          reason={reviewReason}
+          eyebrow={triggerContext ? 'Conditions have changed' : undefined}
           onConfirm={handleConfirmDecision}
           onRevise={handleReviseDecision}
+          // "Dismiss for now" only on the Observe-driven prompt; the cadence
+          // prompt keeps its original confirm/revise-only affordances.
+          onDismiss={triggerContext ? handleDismissReview : undefined}
         />
       )}
 
@@ -464,6 +508,17 @@ export default function ObjectiveDetailPanel({
         </section>
       )}
 
+      {/* OBSERVE UPDATES (ADR 11 §2b) — the Observe changes that drove this
+          objective's review flag, between MAP ACTIVATION and YOUR DECISIONS.
+          Renders nothing when there is no active divergence in the trigger
+          domains, so non-flagged objectives are untouched. */}
+      {triggerContext && (
+        <ObserveUpdatesSection
+          projectId={projectId}
+          domains={triggerContext.domains}
+        />
+      )}
+
       <DecisionChecklist
         projectId={projectId}
         objective={objective}
@@ -541,6 +596,8 @@ export default function ObjectiveDetailPanel({
       {showConfirmModal && (
         <CyclicalReviewModal
           objective={objective}
+          variant={confirmVariant}
+          effects={confirmEffects}
           onDismiss={() => setShowConfirmModal(false)}
         />
       )}
