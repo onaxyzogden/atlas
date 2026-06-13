@@ -76,10 +76,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-species-philosophy-c1',
         'Define primary design intent - commercial orchard, homestead food forest, ecological food forest, or hybrid',
+        { feeds: ['orch-s4-species-mix', 'orch-s4-succession-management'] },
       ),
       ck(
         'orch-s1-species-philosophy-c2',
         'Define succession trajectory - pioneer to climax, or maintained productive stage',
+        { feeds: ['orch-s4-succession-management', 'orch-s7-succession-plan'] },
       ),
       ck(
         'orch-s1-species-philosophy-c3',
@@ -92,6 +94,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-species-philosophy-c5',
         'Document species philosophy as design constraint - all Tier 3 species decisions evaluated against it',
+        { feeds: ['orch-s4-species-mix'] },
       ),
     ],
     decisionGroups: [
@@ -117,18 +120,22 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-production-intent-c1',
         'Define primary production intent - commercial sales, household supply, processing, or combination',
+        { feeds: ['orch-s4-species-mix', 'orch-s7-financial-viability'] },
       ),
       ck(
         'orch-s1-production-intent-c2',
         'Identify species prioritised for commercial production vs. ecological function',
+        { feeds: ['orch-s4-species-mix'] },
       ),
       ck(
         'orch-s1-production-intent-c3',
         'Define harvest scale and handling requirement',
+        { feeds: ['orch-s5-access-harvest', 'orch-sec-s6-harvest-pathway'] },
       ),
       ck(
         'orch-s1-production-intent-c4',
         'Define sales channels if commercial - direct, wholesale, processing',
+        { feeds: ['orch-s7-financial-viability'] },
       ),
       ck(
         'orch-s1-production-intent-c5',
@@ -158,6 +165,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-provenance-sourcing-c1',
         'Define rootstock selection by species - dwarfing, semi-dwarfing, standard relative to production intent',
+        { feeds: ['orch-s4-species-mix', 'orch-sec-s4-species-pollination'] },
       ),
       ck(
         'orch-s1-provenance-sourcing-c2',
@@ -170,6 +178,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-provenance-sourcing-c4',
         'Define lead time requirements - order 1-2 seasons ahead for quality stock',
+        { feeds: ['orch-s7-planting-establishment'] },
       ),
       ck(
         'orch-s1-provenance-sourcing-c5',
@@ -178,6 +187,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s1-provenance-sourcing-c6',
         'Confirm all species are legally available in this jurisdiction - biosecurity restrictions',
+        { feeds: ['orch-s4-species-mix', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -206,10 +216,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-tree-cover-c1',
         'Inventory all existing trees - species, age, condition, production history',
+        { feeds: ['orch-s4-species-mix', 'orch-s4-succession-management'] },
       ),
       ck(
         'orch-s2-tree-cover-c2',
         'Assess canopy cover and light transmission by zone',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s2-tree-cover-c3',
@@ -222,10 +234,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-tree-cover-c5',
         'Map canopy gaps and open areas for new planting',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s2-tree-cover-c6',
         'Assess existing guild species and understory composition',
+        { feeds: ['orch-s4-guild-planting'] },
       ),
     ],
     decisionGroups: [
@@ -251,10 +265,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-frost-drainage-c1',
         'Map cold air drainage paths from high ground to low points',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s2-frost-drainage-c2',
         'Identify frost pocket zones - hollow ground, dam edges, wind shadow areas',
+        { feeds: ['orch-s5-planting-layout', 's7-risk-register'] },
       ),
       ck(
         'orch-s2-frost-drainage-c3',
@@ -267,6 +283,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-frost-drainage-c5',
         'Identify warmest microclimate zones - suitable for frost-sensitive species',
+        { feeds: ['orch-s4-species-mix', 'orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s2-frost-drainage-c6',
@@ -296,14 +313,17 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-landscape-context-c1',
         'Map surrounding land uses within 2km - particularly neighbouring orchards and spray programs',
+        { feeds: ['orch-s5-tree-protection'] },
       ),
       ck(
         'orch-s2-landscape-context-c2',
         'Identify neighbouring spray regimes and their drift risk by wind direction',
+        { feeds: ['orch-s4-pest-disease-management', 's7-risk-register'] },
       ),
       ck(
         'orch-s2-landscape-context-c3',
         'Assess pollination resources in surrounding landscape - wild bee habitat, neighbouring orchards',
+        { feeds: ['orch-sec-s4-species-pollination'] },
       ),
       ck(
         'orch-s2-landscape-context-c4',
@@ -312,6 +332,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s2-landscape-context-c5',
         'Identify landscape-scale pest and disease pressure sources - codling moth, fireblight',
+        { feeds: ['orch-s4-pest-disease-management', 'orch-s6-pest-disease-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -341,10 +362,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-rootzone-depth-c2',
         'Map rootzone depth across all proposed planting zones',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s3-rootzone-depth-c3',
         'Identify hardpan, clay pan, or rock layers that restrict rooting depth',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'orch-s3-rootzone-depth-c4',
@@ -357,6 +380,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-rootzone-depth-c6',
         'Flag planting sites that fail minimum rootzone requirement for remediation or exclusion',
+        { feeds: ['s5-soil-improvement', 'orch-s5-planting-layout'] },
       ),
     ],
     decisionGroups: [
@@ -386,10 +410,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-water-availability-c2',
         'Calculate establishment irrigation demand per tree per week for 3-5 year establishment period',
+        { feeds: ['orch-s4-water-strategy', 'orch-s5-establishment-irrigation'] },
       ),
       ck(
         'orch-s3-water-availability-c3',
         'Calculate total irrigation demand at planned planting density',
+        { feeds: ['orch-s4-water-strategy'] },
       ),
       ck(
         'orch-s3-water-availability-c4',
@@ -398,6 +424,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-water-availability-c5',
         'Confirm water source can meet establishment demand - or define the gap',
+        { feeds: ['orch-s4-water-strategy', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -423,14 +450,17 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-pest-disease-pressure-c1',
         'Identify pest species relevant to intended fruit and nut crops - codling moth, leaf curler, aphids',
+        { feeds: ['orch-s4-pest-disease-management', 'orch-s6-pest-disease-monitoring'] },
       ),
       ck(
         'orch-s3-pest-disease-pressure-c2',
         'Identify disease risks by crop family - fireblight for pome fruit, brown rot for stone fruit, black spot',
+        { feeds: ['orch-s4-pest-disease-management'] },
       ),
       ck(
         'orch-s3-pest-disease-pressure-c3',
         'Assess soil-borne disease risk from site history - Phytophthora, Armillaria',
+        { feeds: ['orch-s4-pest-disease-management', 's7-risk-register'] },
       ),
       ck(
         'orch-s3-pest-disease-pressure-c4',
@@ -439,6 +469,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s3-pest-disease-pressure-c5',
         'Record any prior crop failures related to pest or disease at this location',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -465,10 +496,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-species-mix-c1',
         'Define canopy species and their proportion of total planting',
+        { feeds: ['orch-s5-planting-layout', 's7-phase1'] },
       ),
       ck(
         'orch-s4-species-mix-c2',
         'Define understory species - productive and ecological function',
+        { feeds: ['orch-s5-guild-plan'] },
       ),
       ck(
         'orch-s4-species-mix-c3',
@@ -489,6 +522,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-species-mix-c7',
         'Confirm all species are available from identified nursery sources',
+        { feeds: ['orch-s7-planting-establishment'] },
       ),
     ],
     decisionGroups: [
@@ -514,6 +548,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-water-strategy-c1',
         'Define drip irrigation layout for establishment period',
+        { feeds: ['orch-s5-establishment-irrigation', 's5-water-infrastructure'] },
       ),
       ck(
         'orch-s4-water-strategy-c2',
@@ -526,10 +561,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-water-strategy-c4',
         'Define mature system supplemental irrigation triggers - drought threshold',
+        { feeds: ['s6-monitoring', 's7-risk-register'] },
       ),
       ck(
         'orch-s4-water-strategy-c5',
         'Define permanent vs. temporary irrigation infrastructure',
+        { feeds: ['orch-s5-establishment-irrigation', 's5-water-infrastructure'] },
       ),
     ],
     decisionGroups: [
@@ -555,10 +592,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-guild-planting-c1',
         'Define guild composition per tree species - companions that support health and productivity',
+        { feeds: ['orch-s5-guild-plan'] },
       ),
       ck(
         'orch-s4-guild-planting-c2',
         'Select nitrogen-fixing species for each planting zone',
+        { feeds: ['orch-s5-guild-plan', 's5-soil-improvement'] },
       ),
       ck(
         'orch-s4-guild-planting-c3',
@@ -571,6 +610,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-guild-planting-c5',
         'Define ground cover strategy - living mulch vs. mulched paths',
+        { feeds: ['orch-s5-guild-plan'] },
       ),
       ck(
         'orch-s4-guild-planting-c6',
@@ -600,10 +640,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-succession-management-c1',
         'Define succession stage targets at 5, 10, and 25 years',
+        { feeds: ['orch-s7-succession-plan'] },
       ),
       ck(
         'orch-s4-succession-management-c2',
         'Define management interventions at each stage - chop and drop, coppicing, thinning',
+        { feeds: ['orch-s6-adaptive-management', 'orch-s7-succession-plan'] },
       ),
       ck(
         'orch-s4-succession-management-c3',
@@ -612,10 +654,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-succession-management-c4',
         'Define canopy management approach - light penetration targets for productive understory',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-s4-succession-management-c5',
         'Define system maturity indicator - when management reduces to minimal intervention',
+        { feeds: ['orch-s6-phenological-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -641,10 +685,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-pest-disease-management-c1',
         'Define variety selection criteria - disease resistance as primary filter',
+        { feeds: ['orch-sec-s6-perennial-care'] },
       ),
       ck(
         'orch-s4-pest-disease-management-c2',
         'Define biological control strategy - predator habitat, beneficial release if applicable',
+        { feeds: ['orch-s6-pest-disease-monitoring'] },
       ),
       ck(
         'orch-s4-pest-disease-management-c3',
@@ -657,6 +703,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s4-pest-disease-management-c5',
         'Define monitoring trigger thresholds - when observation leads to intervention',
+        { feeds: ['orch-s6-pest-disease-monitoring', 's6-monitoring'] },
       ),
       ck(
         'orch-s4-pest-disease-management-c6',
@@ -695,6 +742,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-planting-layout-c3',
         'Map species placement relative to frost drainage, aspect, and soil zones',
+        { feeds: ['orch-s6-phenological-monitoring'] },
       ),
       ck(
         'orch-s5-planting-layout-c4',
@@ -707,6 +755,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-planting-layout-c6',
         'Produce planting map with species, coordinates, and planting date',
+        { feeds: ['orch-s7-planting-establishment', 's7-phase1'] },
       ),
     ],
     decisionGroups: [
@@ -736,6 +785,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-guild-plan-c2',
         'Design planting sequence - pioneer species before trees, groundcovers after establishment',
+        { feeds: ['orch-s7-planting-establishment'] },
       ),
       ck(
         'orch-s5-guild-plan-c3',
@@ -748,6 +798,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-guild-plan-c5',
         'Confirm all guild species are sourced and available for Phase 1 planting',
+        { feeds: ['orch-s7-planting-establishment', 's7-phase1'] },
       ),
     ],
     decisionGroups: [
@@ -776,6 +827,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-establishment-irrigation-c1',
         'Design mainline and submain layout to all planting zones',
+        { feeds: ['orch-s7-planting-establishment', 's7-phase1'] },
       ),
       ck(
         'orch-s5-establishment-irrigation-c2',
@@ -792,6 +844,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-establishment-irrigation-c5',
         'Specify pipe materials, diameter, and burial depth',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-s5-establishment-irrigation-c6',
@@ -821,6 +874,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-access-harvest-c1',
         'Design picking path width and surface between tree rows - equipment specific',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'orch-s5-access-harvest-c2',
@@ -829,10 +883,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-access-harvest-c3',
         'Design pack-out staging - proximity to cool storage or pack shed',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-s5-access-harvest-c4',
         'Design ladder and platform storage if applicable',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-s5-access-harvest-c5',
@@ -862,6 +918,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-tree-protection-c1',
         'Specify tree guard type per threat - rabbit, hare, possum, deer, wallaby',
+        { feeds: ['orch-s7-planting-establishment', 's7-resource-plan'] },
       ),
       ck(
         'orch-s5-tree-protection-c2',
@@ -870,6 +927,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s5-tree-protection-c3',
         'Design temporary exclusion fencing for high-threat zones',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'orch-s5-tree-protection-c4',
@@ -904,6 +962,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s6-phenological-monitoring-c1',
         'Define phenological calendar - bud break, bloom, fruitset, harvest per species',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'orch-s6-phenological-monitoring-c2',
@@ -920,6 +979,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s6-phenological-monitoring-c5',
         'Confirm phenological data feeds variety selection and management decisions annually',
+        { feeds: ['orch-s7-succession-plan'] },
       ),
     ],
     decisionGroups: [
@@ -949,10 +1009,12 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s6-pest-disease-monitoring-c2',
         'Define monitoring frequency by season - weekly at peak pest pressure',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-s6-pest-disease-monitoring-c3',
         'Define intervention threshold per pest and disease',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'orch-s6-pest-disease-monitoring-c4',
@@ -986,6 +1048,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s6-adaptive-management-c1',
         'Define annual review process - phenological data, yield data, pest pressure, soil health reviewed together',
+        { feeds: ['orch-s7-succession-plan'] },
       ),
       ck(
         'orch-s6-adaptive-management-c2',
@@ -998,6 +1061,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-s6-adaptive-management-c4',
         'Define succession deviation response - what canopy or layer imbalance triggers intervention',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'orch-s6-adaptive-management-c5',
@@ -1185,10 +1249,12 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s2-climate-chill-fit-c1',
         'Estimate site chill-hour accumulation and compare against each intended species requirement',
+        { feeds: ['orch-s4-species-mix', 'orch-sec-s4-species-pollination'] },
       ),
       ck(
         'orch-sec-s2-climate-chill-fit-c2',
         'Map bloom-period frost risk - late frost against early-flowering species',
+        { feeds: ['orch-s5-planting-layout', 's7-risk-register'] },
       ),
       ck(
         'orch-sec-s2-climate-chill-fit-c3',
@@ -1201,6 +1267,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s2-climate-chill-fit-c5',
         'Record the climate-matched species shortlist as a constraint on later selection',
+        { feeds: ['orch-s4-species-mix', 'orch-sec-s4-species-pollination'] },
       ),
     ],
     decisionGroups: [
@@ -1232,10 +1299,12 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s4-species-pollination-c2',
         'Select rootstock per species by vigor - which drives final spacing and density',
+        { feeds: ['orch-s5-planting-layout', 'orch-sec-s5-guild-layout'] },
       ),
       ck(
         'orch-sec-s4-species-pollination-c3',
         'Define pollination groups and bloom-overlap partners for cross-pollinated species',
+        { feeds: ['orch-s5-planting-layout'] },
       ),
       ck(
         'orch-sec-s4-species-pollination-c4',
@@ -1244,6 +1313,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s4-species-pollination-c5',
         'Confirm true-to-type planting-stock sourcing and lead time for each cultivar and rootstock',
+        { feeds: ['orch-s7-planting-establishment'] },
       ),
     ],
     decisionGroups: [
@@ -1275,6 +1345,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s5-guild-layout-c2',
         'Design the multilayer guild - canopy, understory, shrub, and ground layers per zone',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'orch-sec-s5-guild-layout-c3',
@@ -1287,6 +1358,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s5-guild-layout-c5',
         'Integrate the layout with the host primary existing zones, access, and infrastructure',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -1328,14 +1400,17 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s6-perennial-care-c3',
         'Cost the seasonal-labor peaks - pruning, thinning, and harvest - against available capacity',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-sec-s6-perennial-care-c4',
         'Address the skills and tools gap - training, contractors, or equipment required',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-sec-s6-perennial-care-c5',
         'Confirm the recurring regime is committed and resourced before any trees are planted',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1362,10 +1437,12 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s6-harvest-pathway-c1',
         'Define harvest windows and expected yield ramp per species across establishment years',
+        { feeds: ['orch-s7-financial-viability'] },
       ),
       ck(
         'orch-sec-s6-harvest-pathway-c2',
         'Define post-harvest handling and cold or dry storage appropriate to each crop',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'orch-sec-s6-harvest-pathway-c3',
@@ -1374,6 +1451,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'orch-sec-s6-harvest-pathway-c4',
         'Define the destination - subsistence, direct sale, or wholesale - as a halal pathway with no riba or gharar',
+        { feeds: ['orch-s7-financial-viability'] },
       ),
       ck(
         'orch-sec-s6-harvest-pathway-c5',

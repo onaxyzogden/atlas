@@ -85,6 +85,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-healing-philosophy-c2',
         'Identify primary therapeutic modalities offered - somatic, contemplative, nature-based, integrative',
+        { feeds: ['s4-direction', 'well-s4-therapeutic-program'] },
       ),
       ck(
         'well-s1-healing-philosophy-c3',
@@ -93,6 +94,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-healing-philosophy-c4',
         'Establish which environmental conditions are non-negotiable for this philosophy - silence thresholds, light quality, privacy levels',
+        { feeds: ['well-s4-sensory-design-standards', 's7-risk-register'] },
       ),
       ck(
         'well-s1-healing-philosophy-c5',
@@ -135,6 +137,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-guest-intake-c1',
         'Define target guest profile - who this sanctuary serves',
+        { feeds: ['well-s4-therapeutic-program', 's7-resource-plan'] },
       ),
       ck(
         'well-s1-guest-intake-c2',
@@ -147,6 +150,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-guest-intake-c4',
         'Define conditions outside scope - those requiring clinical referral only',
+        { feeds: ['well-s4-safeguarding-protocol', 's7-risk-register'] },
       ),
       ck(
         'well-s1-guest-intake-c5',
@@ -189,6 +193,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-regulatory-standards-c1',
         'Define required practitioner qualifications for each modality offered',
+        { feeds: ['well-s4-therapeutic-program'] },
       ),
       ck(
         'well-s1-regulatory-standards-c2',
@@ -201,6 +206,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-regulatory-standards-c4',
         'Identify health and safety compliance requirements for therapeutic services',
+        { feeds: ['well-s4-safeguarding-protocol', 's7-risk-register'] },
       ),
       ck(
         'well-s1-regulatory-standards-c5',
@@ -254,6 +260,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-privacy-policy-c2',
         'Define data storage, access, and retention policy',
+        { feeds: ['s6-monitoring', 'well-s6-outcome-monitoring'] },
       ),
       ck(
         'well-s1-privacy-policy-c3',
@@ -262,6 +269,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s1-privacy-policy-c4',
         'Define disclosure protocol - what triggers a mandatory disclosure and to whom',
+        { feeds: ['well-s4-safeguarding-protocol', 's7-risk-register'] },
       ),
       ck(
         'well-s1-privacy-policy-c5',
@@ -305,10 +313,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s2-sensory-environment-c1',
         'Record ambient noise levels by zone, time of day, and season - in decibels where possible',
+        { feeds: ['well-s4-sensory-design-standards'] },
       ),
       ck(
         'well-s2-sensory-environment-c2',
         'Map noise sources - roads, neighbours, farm operations, aircraft corridors',
+        { feeds: ['well-s4-sensory-design-standards', 's4-zones'] },
       ),
       ck(
         'well-s2-sensory-environment-c3',
@@ -356,6 +366,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s2-retreat-infrastructure-c1',
         'Inventory all existing spaces with therapeutic reuse potential - condition, size, acoustic quality',
+        { feeds: ['well-s5-treatment-spaces', 'well-s5-guest-accommodation'] },
       ),
       ck(
         'well-s2-retreat-infrastructure-c2',
@@ -372,6 +383,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s2-retreat-infrastructure-c5',
         'Identify renovation requirements and therapeutic enhancement potential for each space',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -417,10 +429,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s2-landscape-context-c4',
         'Assess drinking water catchment contamination risk from surrounding landscape vectors',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'well-s2-landscape-context-c5',
         'Identify any surrounding developments that could compromise sanctuary character',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -462,14 +476,17 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s2-privacy-gradient-c3',
         'Assess buffer distances between site boundaries and potential accommodation zones',
+        { feeds: ['well-s4-privacy-zone-hierarchy', 's4-zones'] },
       ),
       ck(
         'well-s2-privacy-gradient-c4',
         'Identify natural privacy assets - dense vegetation, topographic screening, water features',
+        { feeds: ['well-s4-privacy-zone-hierarchy', 'well-s5-privacy-screening'] },
       ),
       ck(
         'well-s2-privacy-gradient-c5',
         'Identify privacy gaps requiring designed mitigation',
+        { feeds: ['well-s5-privacy-screening'] },
       ),
     ],
     decisionGroups: [
@@ -508,6 +525,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s3-acoustic-conditions-c2',
         'Record peak and average noise levels in proposed treatment, accommodation, and meditation zones',
+        { feeds: ['well-s4-sensory-design-standards'] },
       ),
       ck(
         'well-s3-acoustic-conditions-c3',
@@ -516,10 +534,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s3-acoustic-conditions-c4',
         'Assess acoustic transmission between proposed zones',
+        { feeds: ['well-s4-privacy-zone-hierarchy', 'well-s5-treatment-spaces'] },
       ),
       ck(
         'well-s3-acoustic-conditions-c5',
         'Confirm whether existing acoustic conditions meet healing philosophy thresholds - or define the mitigation gap',
+        { feeds: ['well-s4-sensory-design-standards', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -561,14 +581,17 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s3-water-features-c3',
         'Assess therapeutic potential - visual, acoustic, tactile qualities',
+        { feeds: ['well-s4-healing-garden-strategy'] },
       ),
       ck(
         'well-s3-water-features-c4',
         'Identify new water feature potential based on hydrological survey findings',
+        { feeds: ['well-s4-healing-garden-strategy', 's4-water-strategy'] },
       ),
       ck(
         'well-s3-water-features-c5',
         'Confirm water features are compatible with guest safety requirements',
+        { feeds: ['well-s4-safeguarding-protocol', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -602,10 +625,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s3-healing-garden-ecology-c1',
         'Identify existing medicinal and therapeutic plant species on site',
+        { feeds: ['well-s4-healing-garden-strategy'] },
       ),
       ck(
         'well-s3-healing-garden-ecology-c2',
         'Assess soil health in proposed healing garden zones',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'well-s3-healing-garden-ecology-c3',
@@ -614,10 +639,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s3-healing-garden-ecology-c4',
         'Identify existing plants with strong sensory value - scent, texture, colour',
+        { feeds: ['well-s4-healing-garden-strategy'] },
       ),
       ck(
         'well-s3-healing-garden-ecology-c5',
         'Define what the site can support without intensive soil improvement',
+        { feeds: ['well-s4-healing-garden-strategy', 's5-soil-improvement'] },
       ),
     ],
     decisionGroups: [
@@ -652,10 +679,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-sensory-design-standards-c1',
         'Define maximum noise threshold in treatment and meditation zones - in decibels',
+        { feeds: ['well-s5-treatment-spaces', 'well-s5-privacy-screening'] },
       ),
       ck(
         'well-s4-sensory-design-standards-c2',
         'Define maximum noise threshold in accommodation zones',
+        { feeds: ['well-s5-guest-accommodation'] },
       ),
       ck(
         'well-s4-sensory-design-standards-c3',
@@ -676,6 +705,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-sensory-design-standards-c7',
         'Document standards as design gate - all Tier 4 decisions evaluated against them',
+        { feeds: ['well-s5-dining-nourishment', 'well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -721,10 +751,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-therapeutic-program-c3',
         'Define practitioner-to-guest ratio for each modality',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'well-s4-therapeutic-program-c4',
         'Define session structure, duration, and sequencing',
+        { feeds: ['well-s7-program-launch'] },
       ),
       ck(
         'well-s4-therapeutic-program-c5',
@@ -733,6 +765,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-therapeutic-program-c6',
         'Confirm all practitioners hold required qualifications and insurance before programme launch',
+        { feeds: ['well-s7-practitioner-onboarding'] },
       ),
     ],
     decisionGroups: [
@@ -767,18 +800,22 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-privacy-zone-hierarchy-c1',
         'Define privacy tier for each zone - public approach, semi-private communal, private guest, most private treatment',
+        { feeds: ['well-s5-guest-accommodation', 'well-s5-privacy-screening'] },
       ),
       ck(
         'well-s4-privacy-zone-hierarchy-c2',
         'Define physical separation method between privacy tiers - distance, planting, earth form, acoustic barrier',
+        { feeds: ['well-s5-privacy-screening'] },
       ),
       ck(
         'well-s4-privacy-zone-hierarchy-c3',
         'Define transition design between tiers - how guests move from one privacy level to the next',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'well-s4-privacy-zone-hierarchy-c4',
         'Define access control between zones - who can enter what, under what conditions',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'well-s4-privacy-zone-hierarchy-c5',
@@ -816,14 +853,17 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-healing-garden-strategy-c1',
         'Define therapeutic planting palette - species selected for scent, texture, colour, and medicinal value',
+        { feeds: ['well-s5-healing-garden-design', 's5-soil-improvement'] },
       ),
       ck(
         'well-s4-healing-garden-strategy-c2',
         'Define water feature strategy - existing features enhanced, new features designed',
+        { feeds: ['well-s5-healing-garden-design', 's5-water-infrastructure'] },
       ),
       ck(
         'well-s4-healing-garden-strategy-c3',
         'Define sensory walk and contemplative path approach',
+        { feeds: ['well-s5-healing-garden-design', 's5-access'] },
       ),
       ck(
         'well-s4-healing-garden-strategy-c4',
@@ -881,10 +921,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s4-safeguarding-protocol-c5',
         'Define incident recording and review system',
+        { feeds: ['well-s6-external-relations', 's7-risk-register'] },
       ),
       ck(
         'well-s4-safeguarding-protocol-c6',
         'Confirm all practitioners are trained in safeguarding protocol before first guest arrival',
+        { feeds: ['well-s7-practitioner-onboarding'] },
       ),
       ck(
         'well-s4-safeguarding-protocol-c7',
@@ -927,6 +969,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-treatment-spaces-c1',
         'Design treatment room layout - acoustic isolation, natural light, thermal comfort, privacy',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'well-s5-treatment-spaces-c2',
@@ -947,6 +990,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-treatment-spaces-c6',
         'Confirm all spaces meet sensory design standard thresholds',
+        { feeds: ['well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -981,6 +1025,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-healing-garden-design-c1',
         'Design therapeutic planting zones - species placement, layering, seasonal succession',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'well-s5-healing-garden-design-c2',
@@ -1001,6 +1046,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-healing-garden-design-c6',
         'Confirm all elements meet sensory design standards',
+        { feeds: ['well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1035,6 +1081,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-guest-accommodation-c1',
         'Design accommodation placement - maximum distance from noise sources, acoustic shelter from site operations',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'well-s5-guest-accommodation-c2',
@@ -1055,6 +1102,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-guest-accommodation-c6',
         'Confirm accommodation meets sensory design standard thresholds',
+        { feeds: ['well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1089,6 +1137,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-privacy-screening-c1',
         'Design screening planting along site boundaries - species, density, layering',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'well-s5-privacy-screening-c2',
@@ -1105,6 +1154,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-privacy-screening-c5',
         'Confirm all screening meets privacy gradient and sensory design standards',
+        { feeds: ['well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1138,6 +1188,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-dining-nourishment-c1',
         'Design kitchen layout - quiet operation priority, natural materials, good natural light',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'well-s5-dining-nourishment-c2',
@@ -1158,6 +1209,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s5-dining-nourishment-c6',
         'Confirm dining design is consistent with sensory design standards',
+        { feeds: ['well-s6-sensory-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1193,6 +1245,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-outcome-monitoring-c1',
         'Define therapeutic outcome indicators - what change in guests defines success',
+        { feeds: ['s7-phase1', 'well-s7-adaptive-management'] },
       ),
       ck(
         'well-s6-outcome-monitoring-c2',
@@ -1205,6 +1258,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-outcome-monitoring-c4',
         'Define outcome review frequency and programme adjustment protocol',
+        { feeds: ['well-s7-adaptive-management'] },
       ),
       ck(
         'well-s6-outcome-monitoring-c5',
@@ -1242,6 +1296,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-sensory-monitoring-c1',
         'Design acoustic monitoring protocol - periodic noise measurement in treatment and accommodation zones',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'well-s6-sensory-monitoring-c2',
@@ -1254,6 +1309,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-sensory-monitoring-c4',
         'Define sensory standard breach protocol - what triggers a response and what the response is',
+        { feeds: ['well-s7-adaptive-management', 's7-risk-register'] },
       ),
       ck(
         'well-s6-sensory-monitoring-c5',
@@ -1291,10 +1347,12 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-external-relations-c1',
         'Design compliance calendar - practitioner registration renewals, insurance renewals, CPD obligations',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'well-s6-external-relations-c2',
         'Define safeguarding audit schedule and reviewer',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'well-s6-external-relations-c3',
@@ -1304,6 +1362,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'well-s6-external-relations-c5',
         'Define annual external relations review',
+        { feeds: ['well-s7-adaptive-management'] },
       ),
     ],
     decisionGroups: [
@@ -1498,9 +1557,9 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       "When wellness is layered onto this land's primary purpose, what does healing mean here and how does it constrain the host design?",
     checklist: [
       ck('well-sec-s1-healing-philosophy-c1', 'Define the healing philosophy this wellness layer brings to the host project - what it believes about healing'),
-      ck('well-sec-s1-healing-philosophy-c2', 'Identify the therapeutic modalities the layer offers alongside the primary land use'),
+      ck('well-sec-s1-healing-philosophy-c2', 'Identify the therapeutic modalities the layer offers alongside the primary land use', { feeds: ['s4-direction', 'well-sec-s4-therapeutic-program'] }),
       ck('well-sec-s1-healing-philosophy-c3', 'Define which host activities and conditions are compatible with therapeutic guest presence'),
-      ck('well-sec-s1-healing-philosophy-c4', 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy'),
+      ck('well-sec-s1-healing-philosophy-c4', 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy', { feeds: ['well-sec-s4-sensory-standards', 's7-risk-register'] }),
       ck('well-sec-s1-healing-philosophy-c5', 'Confirm the healing overlay supports rather than competes with the primary land purpose'),
     ],
     decisionGroups: [
@@ -1533,9 +1592,9 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     scopeNotes:
       'Hard gate - no therapeutic service runs alongside the primary use until practitioner qualifications, registrations, and insurance are confirmed.',
     checklist: [
-      ck('well-sec-s1-regulatory-standards-c1', 'Identify required practitioner qualifications and registrations for each modality offered'),
+      ck('well-sec-s1-regulatory-standards-c1', 'Identify required practitioner qualifications and registrations for each modality offered', { feeds: ['well-sec-s4-therapeutic-program'] }),
       ck('well-sec-s1-regulatory-standards-c2', 'Define professional insurance and scope-of-practice requirements for the therapeutic layer'),
-      ck('well-sec-s1-regulatory-standards-c3', 'Identify therapeutic-service health, safety, and licensing obligations beyond the primary use'),
+      ck('well-sec-s1-regulatory-standards-c3', 'Identify therapeutic-service health, safety, and licensing obligations beyond the primary use', { feeds: ['well-sec-s4-safeguarding', 's7-risk-register'] }),
       ck('well-sec-s1-regulatory-standards-c4', 'Define the compliance calendar for the therapeutic layer - renewals, CPD, audits'),
       ck('well-sec-s1-regulatory-standards-c5', 'Confirm no therapeutic service is offered until all qualifications and insurance are in place'),
     ],
@@ -1568,9 +1627,9 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       "What measurable sensory thresholds must therapeutic zones meet, given the host primary's operations nearby?",
     checklist: [
-      ck('well-sec-s4-sensory-standards-c1', 'Define maximum noise thresholds for treatment, meditation, and guest zones - in decibels'),
+      ck('well-sec-s4-sensory-standards-c1', 'Define maximum noise thresholds for treatment, meditation, and guest zones - in decibels', { feeds: ['s6-monitoring', 's7-phase1'] }),
       ck('well-sec-s4-sensory-standards-c2', 'Define lighting and scent standards for therapeutic spaces - natural priority, no synthetic fragrance'),
-      ck('well-sec-s4-sensory-standards-c3', 'Map host primary operations that could breach sensory thresholds and define buffering'),
+      ck('well-sec-s4-sensory-standards-c3', 'Map host primary operations that could breach sensory thresholds and define buffering', { feeds: ['s7-phase1', 's7-risk-register'] }),
       ck('well-sec-s4-sensory-standards-c4', 'Define visual-complexity and privacy standards separating therapeutic zones from the working land'),
       ck('well-sec-s4-sensory-standards-c5', 'Confirm sensory standards are achievable alongside the primary land operations'),
     ],
@@ -1604,8 +1663,8 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'What modalities are offered, who delivers them, and how do sessions fit around the primary land use?',
     checklist: [
       ck('well-sec-s4-therapeutic-program-c1', 'Confirm modalities offered against the therapeutic regulatory standards'),
-      ck('well-sec-s4-therapeutic-program-c2', 'Define practitioner qualifications and practitioner-to-guest ratios per modality'),
-      ck('well-sec-s4-therapeutic-program-c3', 'Define session structure, duration, and scheduling around primary land operations'),
+      ck('well-sec-s4-therapeutic-program-c2', 'Define practitioner qualifications and practitioner-to-guest ratios per modality', { feeds: ['s7-resource-plan'] }),
+      ck('well-sec-s4-therapeutic-program-c3', 'Define session structure, duration, and scheduling around primary land operations', { feeds: ['s7-phase1'] }),
       ck('well-sec-s4-therapeutic-program-c4', 'Define the referral network for conditions outside scope'),
       ck('well-sec-s4-therapeutic-program-c5', 'Confirm all practitioners hold required qualifications and insurance before launch'),
     ],
@@ -1639,11 +1698,11 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     scopeNotes:
       'This protocol precedes the therapeutic programme - define the crisis response before defining what is offered.',
     checklist: [
-      ck('well-sec-s4-safeguarding-c1', 'Define crisis response steps when a guest presents in distress on the host site'),
+      ck('well-sec-s4-safeguarding-c1', 'Define crisis response steps when a guest presents in distress on the host site', { feeds: ['s7-risk-register'] }),
       ck('well-sec-s4-safeguarding-c2', 'Define trauma disclosure response and guest support pathway'),
       ck('well-sec-s4-safeguarding-c3', 'Define the clinical referral and emergency services contact pathway'),
-      ck('well-sec-s4-safeguarding-c4', 'Define incident recording and review, including any host-staff involvement'),
-      ck('well-sec-s4-safeguarding-c5', 'Confirm all practitioners and relevant host staff are trained before the first guest'),
+      ck('well-sec-s4-safeguarding-c4', 'Define incident recording and review, including any host-staff involvement', { feeds: ['s6-monitoring', 's7-risk-register'] }),
+      ck('well-sec-s4-safeguarding-c5', 'Confirm all practitioners and relevant host staff are trained before the first guest', { feeds: ['s7-phase1'] }),
     ],
     decisionGroups: [
       dg('well-sec-s4-safeguarding-dg1', 'Crisis & trauma response', [

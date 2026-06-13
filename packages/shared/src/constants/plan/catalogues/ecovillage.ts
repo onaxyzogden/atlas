@@ -95,6 +95,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s1-legal-governance-c3',
         'Define land tenure model - collective ownership, leasehold, equity shares, or hybrid',
         {
+          feeds: ['ev-s4-housing-cluster', 'ev-s7-exit-succession'],
           feedHint:
             'Waqf-compatible perpetual holding recommended - land is an amanah, not an asset to be extracted',
           feedNote:
@@ -105,6 +106,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s1-legal-governance-c4',
         'Define decision-making framework - consensus, sociocracy, majority vote, or hybrid',
         {
+          feeds: ['ev-s6-coordination-feedback', 'ev-s7-adaptive-management'],
           feedHint:
             'Shura as governing principle - three tiers of authority: steward / committee / full shura',
           feedNote:
@@ -115,6 +117,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s1-legal-governance-c5',
         'Define financial governance - how community funds are held, authorised, and reported',
         {
+          feeds: ['ev-s4-financial-model', 'ev-s7-financial-plan'],
           feedHint:
             'Riba-free banking - qist in expense authorisation - quarterly reporting to all members',
           feedNote:
@@ -125,6 +128,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s1-legal-governance-c6',
         'Establish membership rights and obligations in the governance model',
         {
+          feeds: ['ev-s7-onboarding', 'ev-s7-exit-succession'],
           feedHint:
             'What membership confers and what it requires - including entry, exit, and covenant obligations',
           feedNote:
@@ -158,18 +162,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s1-provision-balance-c1',
         'Define communal infrastructure commitments - water, energy, sanitation, shared buildings',
+        { feeds: ['ev-s4-infra-strategy', 'ev-s7-launch-sequence'] },
       ),
       ck(
         'ev-s1-provision-balance-c2',
         'Define food system approach - communal production, individual plots, or hybrid',
+        { feeds: ['ev-s4-food-system'] },
       ),
       ck(
         'ev-s1-provision-balance-c3',
         'Define financial sharing model - communal fund contributions, shared cost pools',
+        { feeds: ['ev-s4-financial-model'] },
       ),
       ck(
         'ev-s1-provision-balance-c4',
         'Define private household entitlements - space, resources, privacy',
+        { feeds: ['ev-s4-housing-cluster'] },
       ),
       ck(
         'ev-s1-provision-balance-c5',
@@ -201,26 +209,32 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s1-conflict-framework-c1',
         'Define formal decision-making process with clear steps and quorum requirements',
+        { feeds: ['ev-s6-coordination-feedback', 'ev-s7-onboarding'] },
       ),
       ck(
         'ev-s1-conflict-framework-c2',
         'Define dispute resolution pathway - informal, mediation, formal arbitration',
+        { feeds: ['ev-s7-onboarding'] },
       ),
       ck(
         'ev-s1-conflict-framework-c3',
         'Establish community agreements on behaviour, noise, visitors, and shared space use',
+        { feeds: ['ev-s6-coordination-feedback', 'ev-s7-onboarding'] },
       ),
       ck(
         'ev-s1-conflict-framework-c4',
         'Define member exit process - notice period, financial settlement, dwelling transition',
+        { feeds: ['ev-s7-exit-succession'] },
       ),
       ck(
         'ev-s1-conflict-framework-c5',
         'Define community dissolution protocol - how assets are distributed if the community ends',
+        { feeds: ['ev-s7-exit-succession'] },
       ),
       ck(
         'ev-s1-conflict-framework-c6',
         'Establish regular community review process - frequency, format, decision record-keeping',
+        { feeds: ['ev-s6-social-monitoring', 'ev-s7-adaptive-management'] },
       ),
       ck(
         'ev-s1-conflict-framework-c7',
@@ -250,7 +264,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-social-fabric-c1',
         'Map existing relationships between founding members - duration, depth, shared history',
-        { mode: 'Relationship map' },
+        { feeds: ['ev-s6-social-monitoring'], mode: 'Relationship map' },
       ),
       ck(
         'ev-s2-social-fabric-c2',
@@ -265,7 +279,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-social-fabric-c4',
         'Assess founding group cohesion - areas of strong alignment and known tension',
-        { mode: 'Cohesion map' },
+        { feeds: ['ev-s6-social-monitoring'], mode: 'Cohesion map' },
       ),
       ck(
         'ev-s2-social-fabric-c5',
@@ -307,6 +321,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-carrying-capacity-c2',
         'Estimate food production potential relative to intended population - calories, nutrition diversity',
+        { feeds: ['ev-s4-food-system', 'ev-s5-food-zones'] },
       ),
       ck(
         'ev-s2-carrying-capacity-c3',
@@ -323,6 +338,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-carrying-capacity-c6',
         'Define maximum sustainable population for this site based on findings',
+        { feeds: ['ev-s4-settlement-strategy', 'ev-s5-cluster-layout', 'ev-s7-settlement-plan'] },
       ),
       ck(
         'ev-s2-carrying-capacity-c7',
@@ -348,10 +364,13 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What are the legal access conditions, shared boundary agreements, and rights of way that affect communal land use?',
     checklist: [
-      ck('ev-s2-tenure-boundary-c1', 'Map all shared boundary conditions and obligations'),
+      ck('ev-s2-tenure-boundary-c1', 'Map all shared boundary conditions and obligations', {
+        feeds: ['s5-access', 'ev-s4-housing-cluster'],
+      }),
       ck(
         'ev-s2-tenure-boundary-c2',
         'Identify rights of way affecting communal land use and movement',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'ev-s2-tenure-boundary-c3',
@@ -360,6 +379,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-tenure-boundary-c4',
         'Identify any title conditions that restrict multi-dwelling or communal use',
+        { feeds: ['ev-s4-housing-cluster', 's7-risk-register'] },
       ),
       ck(
         'ev-s2-tenure-boundary-c5',
@@ -390,22 +410,27 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s2-landscape-vectors-c2',
         'Identify neighbouring land-use practices and their spray, runoff, and contamination risk',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'ev-s2-landscape-vectors-c3',
         'Assess local authority and planning environment - is multi-dwelling community development supported?',
+        { feeds: ['ev-s6-external-relations', 's7-risk-register'] },
       ),
       ck(
         'ev-s2-landscape-vectors-c4',
         'Identify community groups, networks, or advocacy organisations in the region',
+        { feeds: ['ev-s6-external-relations'] },
       ),
       ck(
         'ev-s2-landscape-vectors-c5',
         'Record any prior planning disputes or community opposition in the area',
+        { feeds: ['ev-s6-external-relations', 's7-risk-register'] },
       ),
       ck(
         'ev-s2-landscape-vectors-c6',
         'Assess drinking water catchment contamination risk from surrounding landscape vectors',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -432,15 +457,23 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-water-yield-c1',
         'Calculate total water demand for intended population - domestic, food production, animals, fire protection',
+        { feeds: ['s4-water-strategy'] },
       ),
       ck(
         'ev-s3-water-yield-c2',
         'Assess all available water source yields across dry and wet seasons',
+        { feeds: ['s4-water-strategy'] },
       ),
-      ck('ev-s3-water-yield-c3', 'Map seasonal supply and demand curves - identify gap periods'),
+      ck('ev-s3-water-yield-c3', 'Map seasonal supply and demand curves - identify gap periods', {
+        feeds: ['s4-water-strategy'],
+      }),
       ck('ev-s3-water-yield-c4', 'Assess water quality for domestic and food production use'),
-      ck('ev-s3-water-yield-c5', 'Identify storage requirements to bridge seasonal gaps'),
-      ck('ev-s3-water-yield-c6', 'Define maximum population supportable by available water'),
+      ck('ev-s3-water-yield-c5', 'Identify storage requirements to bridge seasonal gaps', {
+        feeds: ['s5-water-infrastructure'],
+      }),
+      ck('ev-s3-water-yield-c6', 'Define maximum population supportable by available water', {
+        feeds: ['ev-s4-settlement-strategy'],
+      }),
     ],
     decisionGroups: [
       dg('ev-s3-water-yield-dg1', 'Demand vs. source yield', ['ev-s3-water-yield-c1', 'ev-s3-water-yield-c2'], ['Water & Hydrology']),
@@ -465,18 +498,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-waste-cycling-c1',
         'Estimate sewage and grey water volumes at intended population density',
+        { feeds: ['ev-s5-sanitation-waste'] },
       ),
       ck(
         'ev-s3-waste-cycling-c2',
         'Assess soil percolation and treatment capacity for on-site waste processing',
+        { feeds: ['ev-s5-sanitation-waste'] },
       ),
       ck(
         'ev-s3-waste-cycling-c3',
         'Identify setback requirements from water sources for waste systems',
+        { feeds: ['ev-s5-sanitation-waste'] },
       ),
       ck(
         'ev-s3-waste-cycling-c4',
         'Assess composting and organic waste processing capacity required',
+        { feeds: ['ev-s5-sanitation-waste'] },
       ),
       ck('ev-s3-waste-cycling-c5', 'Map available land area for waste treatment systems'),
       ck('ev-s3-waste-cycling-c6', 'Identify regulatory requirements for communal waste systems'),
@@ -504,7 +541,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-energy-potential-c1',
         'Assess solar generation potential - roof area, ground-mount zones, shading analysis',
-        { mode: 'Capacity calc' },
+        { feeds: ['ev-s5-energy-system'], mode: 'Capacity calc' },
       ),
       ck(
         'ev-s3-energy-potential-c2',
@@ -520,12 +557,12 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-energy-potential-c5',
         'Estimate total community energy demand for intended population',
-        { mode: 'Capacity calc' },
+        { feeds: ['ev-s5-energy-system'], mode: 'Capacity calc' },
       ),
       ck(
         'ev-s3-energy-potential-c6',
         'Map distribution infrastructure requirements - grid connection, battery storage, micro-grid',
-        { mode: 'Strategic choice' },
+        { feeds: ['ev-s5-energy-system'], mode: 'Strategic choice' },
       ),
     ],
     decisionGroups: [
@@ -551,7 +588,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-infra-condition-c1',
         'Inventory all existing communal or shared buildings with condition assessment',
-        { mode: 'Inventory' },
+        { feeds: ['ev-s4-infra-strategy', 'ev-s6-maintenance-protocol'], mode: 'Inventory' },
       ),
       ck(
         'ev-s3-infra-condition-c2',
@@ -571,7 +608,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s3-infra-condition-c5',
         'Identify reuse, renovation, or demolition requirements for each existing element',
-        { mode: 'Strategic choice' },
+        { feeds: ['ev-s4-infra-strategy', 'ev-s5-communal-systems'], mode: 'Strategic choice' },
       ),
     ],
     decisionGroups: [
@@ -600,12 +637,12 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-settlement-strategy-c1',
         'Define founding cohort - who moves in during Phase 1 and under what criteria',
-        { mode: 'Cohort definition' },
+        { feeds: ['ev-s7-settlement-plan'], mode: 'Cohort definition' },
       ),
       ck(
         'ev-s4-settlement-strategy-c2',
         'Define infrastructure habitability threshold per cohort - what must be complete before each group arrives',
-        { mode: 'Habitability gates' },
+        { feeds: ['ev-s7-settlement-plan', 'ev-s7-launch-sequence'], mode: 'Habitability gates' },
       ),
       ck(
         'ev-s4-settlement-strategy-c3',
@@ -615,7 +652,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-settlement-strategy-c4',
         'Define trial residency period before full membership for each new household',
-        { mode: 'Trial residency' },
+        { feeds: ['ev-s7-onboarding'], mode: 'Trial residency' },
       ),
       ck(
         'ev-s4-settlement-strategy-c5',
@@ -625,7 +662,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-settlement-strategy-c6',
         'Define go/no-go criteria for each settlement phase - hard gates, not aspirational targets',
-        { mode: 'Go/no-go gates' },
+        { feeds: ['ev-s7-settlement-plan', 'ev-s7-launch-sequence'], mode: 'Go/no-go gates' },
       ),
     ],
     decisionGroups: [
@@ -651,18 +688,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-infra-strategy-c1',
         'Define communal infrastructure list - kitchen, meeting hall, workshop, water system, energy grid, sanitation',
+        { feeds: ['ev-s5-communal-systems', 'ev-s7-launch-sequence'] },
       ),
       ck(
         'ev-s4-infra-strategy-c2',
         'Prioritise communal infrastructure by Phase 1 habitability requirements',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ev-s4-infra-strategy-c3',
         'Define ownership and maintenance governance for each communal asset',
+        { feeds: ['ev-s6-maintenance-protocol'] },
       ),
       ck(
         'ev-s4-infra-strategy-c4',
         'Define cost-sharing model for communal infrastructure construction and maintenance',
+        { feeds: ['ev-s7-financial-plan'] },
       ),
       ck(
         'ev-s4-infra-strategy-c5',
@@ -696,18 +737,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-housing-cluster-c1',
         'Define cluster sizes and maximum dwelling density per cluster',
+        { feeds: ['ev-s5-cluster-layout'] },
       ),
       ck(
         'ev-s4-housing-cluster-c2',
         'Define private zone boundary for each dwelling type - outdoor space, garden, privacy screening',
+        { feeds: ['ev-s5-cluster-layout'] },
       ),
       ck(
         'ev-s4-housing-cluster-c3',
         'Define shared transitional zones between private and communal areas',
+        { feeds: ['ev-s5-cluster-layout'] },
       ),
       ck(
         'ev-s4-housing-cluster-c4',
         'Establish design standards for dwelling interface with communal space',
+        { feeds: ['ev-s5-cluster-layout'] },
       ),
       ck(
         'ev-s4-housing-cluster-c5',
@@ -742,17 +787,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-food-system-c2',
         'Define communal food production commitments - crops, volume, labour contribution model',
-        { mode: 'Crop commitments' },
+        { feeds: ['ev-s5-food-zones'], mode: 'Crop commitments' },
       ),
       ck(
         'ev-s4-food-system-c3',
         'Define individual plot allocation - size, location, tenure, maintenance obligations',
-        { mode: 'Plot register' },
+        { feeds: ['ev-s5-food-zones'], mode: 'Plot register' },
       ),
       ck(
         'ev-s4-food-system-c4',
         'Define food sharing and distribution protocol for communal harvests',
-        { mode: 'Distribution' },
+        { feeds: ['ev-s6-coordination-feedback'], mode: 'Distribution' },
       ),
       ck(
         'ev-s4-food-system-c5',
@@ -788,7 +833,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-financial-model-c1',
         'Define member buy-in contribution - amount, payment schedule, what it covers',
-        { mode: 'Buy-in' },
+        { feeds: ['ev-s7-financial-plan'], mode: 'Buy-in' },
       ),
       ck(
         'ev-s4-financial-model-c2',
@@ -808,7 +853,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s4-financial-model-c5',
         'Define capital reserve strategy - how the community saves for major infrastructure renewal',
-        { mode: 'Reserves' },
+        { feeds: ['ev-s7-financial-plan'], mode: 'Reserves' },
       ),
       ck(
         'ev-s4-financial-model-c6',
@@ -844,6 +889,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-cluster-layout-c1',
         'Design cluster layout for each housing zone - dwelling orientation, spacing, shared edges',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ev-s5-cluster-layout-c2',
@@ -856,6 +902,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-cluster-layout-c4',
         'Specify dwelling design standards - footprint, height, materials palette, energy performance',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ev-s5-cluster-layout-c5',
@@ -893,6 +940,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-communal-systems-c1',
         'Design communal kitchen and dining facility - capacity, equipment, layout',
+        { feeds: ['ev-s6-maintenance-protocol', 's7-phase1'] },
       ),
       ck(
         'ev-s5-communal-systems-c2',
@@ -906,6 +954,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-communal-systems-c5',
         'Specify materials and construction standards for communal buildings',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ev-s5-communal-systems-c6',
@@ -939,6 +988,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-sanitation-waste-c1',
         'Design sewage treatment system - composting toilets, biodigester, constructed wetland, or connection to municipal system',
+        { feeds: ['ev-s6-maintenance-protocol', 's7-phase1', 'ev-s7-launch-sequence'] },
       ),
       ck('ev-s5-sanitation-waste-c2', 'Design grey water collection, treatment, and reuse network'),
       ck(
@@ -979,6 +1029,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-energy-system-c1',
         'Design primary generation system - solar array, wind, micro-hydro, or hybrid',
+        { feeds: ['ev-s6-maintenance-protocol', 's7-phase1', 'ev-s7-launch-sequence'] },
       ),
       ck('ev-s5-energy-system-c2', 'Design battery or thermal storage capacity'),
       ck(
@@ -988,6 +1039,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-energy-system-c3',
         'Design micro-grid distribution network to all dwellings and communal buildings',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ev-s5-energy-system-c4',
@@ -1022,6 +1074,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-food-zones-c1',
         'Design communal growing areas - bed layout, access paths, irrigation, tool storage',
+        { feeds: ['s7-phase1', 'ev-s7-launch-sequence'] },
       ),
       ck(
         'ev-s5-food-zones-c2',
@@ -1039,6 +1092,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s5-food-zones-c5',
         'Design food storage and processing infrastructure - cool room, drying shed, preserving kitchen',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ev-s5-food-zones-c6',
@@ -1069,6 +1123,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-social-monitoring-c1',
         'Define social health indicators - meeting attendance, decision-making quality, conflict frequency, member satisfaction',
+        { feeds: ['ev-s7-adaptive-management'] },
       ),
       ck(
         'ev-s6-social-monitoring-c2',
@@ -1086,6 +1141,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-social-monitoring-c5',
         'Define escalation pathway when social health indicators deteriorate',
+        { feeds: ['ev-s7-adaptive-management'] },
       ),
       ck('ev-s6-social-monitoring-c6', 'Specify record-keeping system for community health data'),
     ],
@@ -1112,6 +1168,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-maintenance-protocol-c1',
         'Define maintenance schedule for each communal infrastructure system',
+        { feeds: ['ev-s7-adaptive-management'] },
       ),
       ck(
         'ev-s6-maintenance-protocol-c2',
@@ -1120,6 +1177,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-maintenance-protocol-c3',
         'Define maintenance fund contribution and reserve requirements',
+        { feeds: ['ev-s7-financial-plan'] },
       ),
       ck('ev-s6-maintenance-protocol-c4', 'Design inspection and condition reporting system'),
       ck(
@@ -1170,6 +1228,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-coordination-feedback-c5',
         'Define decision triggers - when individual household behaviour requires community response',
+        { feeds: ['ev-s7-adaptive-management'] },
       ),
       ck(
         'ev-s6-coordination-feedback-c6',
@@ -1203,6 +1262,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ev-s6-external-relations-c2',
         'Design planning compliance monitoring system - track all conditions, review dates, and obligations',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'ev-s6-external-relations-c7',
@@ -1220,7 +1280,9 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ev-s6-external-relations-c5',
         'Establish relationship with local authority planning officer before construction begins',
       ),
-      ck('ev-s6-external-relations-c6', 'Define annual community external relations review'),
+      ck('ev-s6-external-relations-c6', 'Define annual community external relations review', {
+        feeds: ['ev-s7-adaptive-management'],
+      }),
     ],
     decisionGroups: [
       dg('ev-s6-external-relations-dg1', 'Neighbour & planning monitoring', ['ev-s6-external-relations-c1', 'ev-s6-external-relations-c2', 'ev-s6-external-relations-c7'], []),

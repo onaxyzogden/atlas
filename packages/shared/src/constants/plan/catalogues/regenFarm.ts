@@ -43,26 +43,32 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s1-enterprise-mix-c1',
         'List all intended enterprises with a brief description of each',
+        { feeds: ['s4-direction', 'rf-s6-enterprise-integration'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c2',
         'Assign priority tier to each enterprise - core, supporting, or aspirational',
+        { feeds: ['s4-direction', 'rf-s7-enterprise-sequencing'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c3',
         'Map interdependencies: which enterprises enable, support, or feed each other',
+        { feeds: ['rf-s6-enterprise-integration', 'rf-s7-enterprise-sequencing'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c4',
         'Identify which enterprises require others to be established first',
+        { feeds: ['rf-s7-enterprise-sequencing'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c5',
         'Estimate timeline to first production or revenue for each enterprise',
+        { feeds: ['rf-s7-enterprise-sequencing', 'rf-s7-cash-flow'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c6',
         'Record enterprise spatial conflicts or resource competition',
+        { feeds: ['s4-zones'] },
       ),
       ck(
         'rf-s1-enterprise-mix-c7',
@@ -104,9 +110,15 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What is the current productive and ecological condition of the land, and what degradation must be addressed?',
     checklist: [
-      ck('rf-s2-land-health-c1', 'Map areas of soil erosion - sheet, rill, and gully'),
-      ck('rf-s2-land-health-c2', 'Assess compaction depth and distribution across the site'),
-      ck('rf-s2-land-health-c3', 'Record weed burden by species and zone - density and spread'),
+      ck('rf-s2-land-health-c1', 'Map areas of soil erosion - sheet, rill, and gully', {
+        feeds: ['s5-soil-improvement', 'rf-s4-fertility-strategy'],
+      }),
+      ck('rf-s2-land-health-c2', 'Assess compaction depth and distribution across the site', {
+        feeds: ['s5-soil-improvement', 'rf-s4-fertility-strategy'],
+      }),
+      ck('rf-s2-land-health-c3', 'Record weed burden by species and zone - density and spread', {
+        feeds: ['rf-s4-fertility-strategy'],
+      }),
       ck(
         'rf-s2-land-health-c4',
         'Conduct historical land-use forensics - research past cropping history, chemical inputs, hardpan formation, and structural degradation legacies',
@@ -122,11 +134,15 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s2-land-health-c7',
         'Identify areas of soil loss, nutrient depletion, or chemical contamination',
+        { feeds: ['s5-soil-improvement', 'rf-s4-fertility-strategy'] },
       ),
-      ck('rf-s2-land-health-c8', 'Map drainage problems - waterlogging, salt scalds, hardpan'),
+      ck('rf-s2-land-health-c8', 'Map drainage problems - waterlogging, salt scalds, hardpan', {
+        feeds: ['s4-water-strategy', 's5-soil-improvement'],
+      }),
       ck(
         'rf-s2-land-health-c9',
         'Prioritise degradation zones by urgency and design implication',
+        { feeds: ['s5-soil-improvement', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -167,23 +183,31 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How does the surrounding landscape shape the opportunities and constraints of this project?',
     checklist: [
-      ck('rf-s2-landscape-context-c1', 'Map surrounding land uses within 2km radius'),
+      ck('rf-s2-landscape-context-c1', 'Map surrounding land uses within 2km radius', {
+        feeds: ['s4-zones', 's7-risk-register'],
+      }),
       ck(
         'rf-s2-landscape-context-c2',
         'Identify neighbouring agricultural practices and their spray and runoff risk',
+        { feeds: ['rf-s4-biodiversity-strategy', 's7-risk-register'] },
       ),
-      ck('rf-s2-landscape-context-c3', 'Assess landscape-scale water catchment context'),
+      ck('rf-s2-landscape-context-c3', 'Assess landscape-scale water catchment context', {
+        feeds: ['s4-water-strategy'],
+      }),
       ck(
         'rf-s2-landscape-context-c4',
         'Identify wildlife corridors and movement patterns in the broader landscape',
+        { feeds: ['rf-s4-biodiversity-strategy', 'rf-s5-windbreaks'] },
       ),
       ck(
         'rf-s2-landscape-context-c5',
         'Record landscape-scale pest and weed pressure sources',
+        { feeds: ['rf-s4-biodiversity-strategy', 's7-risk-register'] },
       ),
       ck(
         'rf-s2-landscape-context-c6',
         'Note landscape-scale opportunities - shared water, wildlife, markets',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -227,20 +251,28 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s3-nutrient-cycling-c1',
         'Assess existing decomposer activity - fungi, invertebrates, bacteria indicators',
+        { feeds: ['rf-s4-fertility-strategy'] },
       ),
       ck(
         'rf-s3-nutrient-cycling-c2',
         'Record organic matter inputs currently entering the system',
+        { feeds: ['rf-s4-fertility-strategy', 's5-soil-improvement'] },
       ),
       ck(
         'rf-s3-nutrient-cycling-c3',
         'Identify nutrient loss pathways - leaching, erosion, removal',
+        { feeds: ['rf-s4-fertility-strategy', 's5-soil-improvement'] },
       ),
-      ck('rf-s3-nutrient-cycling-c4', 'Assess existing composting or fertility infrastructure'),
-      ck('rf-s3-nutrient-cycling-c5', 'Map variation in organic matter levels across the site'),
+      ck('rf-s3-nutrient-cycling-c4', 'Assess existing composting or fertility infrastructure', {
+        feeds: ['rf-s4-fertility-strategy', 'rf-s5-fertility-system'],
+      }),
+      ck('rf-s3-nutrient-cycling-c5', 'Map variation in organic matter levels across the site', {
+        feeds: ['s5-soil-improvement', 'rf-s5-fertility-system'],
+      }),
       ck(
         'rf-s3-nutrient-cycling-c6',
         'Record biological indicators of soil health - earthworm counts, root depth, smell',
+        { feeds: ['rf-s4-fertility-strategy', 's6-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -287,24 +319,33 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s3-pest-pressure-c1',
         'Map weed species by zone - density, spread, and seasonal pattern',
+        { feeds: ['rf-s4-biodiversity-strategy'] },
       ),
       ck(
         'rf-s3-pest-pressure-c2',
         'Identify pest species present and their population indicators',
+        { feeds: ['rf-s4-biodiversity-strategy', 'rf-s6-biodiversity-monitoring'] },
       ),
       ck(
         'rf-s3-pest-pressure-c3',
         'Record known disease pressure history for intended enterprises',
+        { feeds: ['rf-s4-biodiversity-strategy', 's7-risk-register'] },
       ),
       ck(
         'rf-s3-pest-pressure-c4',
         'Assess relationships between pest and disease pressure and land condition',
+        { feeds: ['rf-s4-biodiversity-strategy'] },
       ),
-      ck('rf-s3-pest-pressure-c5', 'Identify pest pressure sources in surrounding landscape'),
-      ck('rf-s3-pest-pressure-c6', 'Record natural predator and beneficial species presence'),
+      ck('rf-s3-pest-pressure-c5', 'Identify pest pressure sources in surrounding landscape', {
+        feeds: ['rf-s4-biodiversity-strategy', 's7-risk-register'],
+      }),
+      ck('rf-s3-pest-pressure-c6', 'Record natural predator and beneficial species presence', {
+        feeds: ['rf-s4-biodiversity-strategy', 'rf-s5-windbreaks'],
+      }),
       ck(
         'rf-s3-pest-pressure-c7',
         'Prioritise pressures by enterprise risk and design implication',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -343,18 +384,27 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s4-fertility-strategy-c1',
         'Define primary fertility inputs - compost, animal manure, green manures, mulch',
+        { feeds: ['rf-s5-fertility-system', 's5-soil-improvement'] },
       ),
       ck(
         'rf-s4-fertility-strategy-c2',
         'Design compost production system - type, scale, feedstock sources',
+        { feeds: ['rf-s5-fertility-system'] },
       ),
-      ck('rf-s4-fertility-strategy-c3', 'Define animal integration role in fertility cycling'),
+      ck('rf-s4-fertility-strategy-c3', 'Define animal integration role in fertility cycling', {
+        feeds: ['rf-s5-fertility-system', 'rf-s6-enterprise-integration'],
+      }),
       ck(
         'rf-s4-fertility-strategy-c4',
         'Select cover crop and green manure species for rotation',
+        { feeds: ['rf-s5-fertility-system'] },
       ),
-      ck('rf-s4-fertility-strategy-c5', 'Define external input reduction targets'),
-      ck('rf-s4-fertility-strategy-c6', 'Establish fertility monitoring indicators'),
+      ck('rf-s4-fertility-strategy-c5', 'Define external input reduction targets', {
+        feeds: ['rf-s5-fertility-system', 's7-resource-plan'],
+      }),
+      ck('rf-s4-fertility-strategy-c6', 'Establish fertility monitoring indicators', {
+        feeds: ['s6-monitoring'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -396,24 +446,31 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s4-biodiversity-strategy-c1',
         'Define biodiversity readiness goals - what ecological functions must be present before each enterprise launches',
+        { feeds: ['rf-s6-biodiversity-monitoring', 'rf-s7-enterprise-sequencing'] },
       ),
       ck(
         'rf-s4-biodiversity-strategy-c2',
         'Identify zones for native habitat establishment - wild margins, corridors, riparian areas',
+        { feeds: ['rf-s5-windbreaks'] },
       ),
       ck(
         'rf-s4-biodiversity-strategy-c3',
         'Decide raptor and predator habitat infrastructure - pole placement zones, nesting box locations, perch sites',
+        { feeds: ['rf-s5-windbreaks'] },
       ),
       ck(
         'rf-s4-biodiversity-strategy-c4',
         'Define minimum wild zone commitments - areas that will not be managed for production',
+        { feeds: ['rf-s5-windbreaks'] },
       ),
       ck(
         'rf-s4-biodiversity-strategy-c5',
         'Select ecological indicator species for each habitat zone',
+        { feeds: ['rf-s6-biodiversity-monitoring'] },
       ),
-      ck('rf-s4-biodiversity-strategy-c6', 'Define invasive species management strategy'),
+      ck('rf-s4-biodiversity-strategy-c6', 'Define invasive species management strategy', {
+        feeds: ['s7-risk-register'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -457,21 +514,29 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s5-fertility-system-c1',
         'Design compost production infrastructure - bays, turning equipment, feedstock management',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'rf-s5-fertility-system-c2',
         'Design compost application system - machinery, timing, rates by zone',
+        { feeds: ['s7-resource-plan'] },
       ),
-      ck('rf-s5-fertility-system-c3', 'Design animal integration rotation for fertility transfer'),
+      ck('rf-s5-fertility-system-c3', 'Design animal integration rotation for fertility transfer', {
+        feeds: ['rf-s6-enterprise-integration'],
+      }),
       ck(
         'rf-s5-fertility-system-c4',
         'Design cover crop and green manure rotation by field block',
+        { feeds: ['rf-s6-enterprise-integration', 's7-phase1'] },
       ),
       ck(
         'rf-s5-fertility-system-c5',
         'Specify external input substitution plan - what gets replaced, by what, by when',
+        { feeds: ['s7-resource-plan'] },
       ),
-      ck('rf-s5-fertility-system-c6', 'Design nutrient monitoring and adjustment protocol'),
+      ck('rf-s5-fertility-system-c6', 'Design nutrient monitoring and adjustment protocol', {
+        feeds: ['s6-monitoring'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -511,32 +576,41 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s5-windbreaks-c1',
         'Map windbreak and shelterbelt locations relative to prevailing wind sectors and Santa Ana or regional wind events',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'rf-s5-windbreaks-c2',
         'Design multi-strata planting structure - canopy, understory, and groundcover layers for each shelterbelt',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'rf-s5-windbreaks-c3',
         'Select species for each windbreak function - wind buffering, frost mitigation, wildlife habitat, productive yield',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'rf-s5-windbreaks-c4',
         'Design wildlife corridor connectivity - map shelterbelt network as continuous habitat linkage across the farm',
+        { feeds: ['rf-s6-biodiversity-monitoring'] },
       ),
       ck(
         'rf-s5-windbreaks-c5',
         'Specify raptor and predator habitat features within shelterbelts - perch sites, nesting structure, roost zones',
+        { feeds: ['rf-s6-biodiversity-monitoring'] },
       ),
       ck(
         'rf-s5-windbreaks-c6',
         'Design wildfire mitigation function - moisture-retaining species selection, green buffer placement, firebreak integration',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'rf-s5-windbreaks-c7',
         'Specify planting layout - species mix, spacing, row configuration, and establishment sequence',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
-      ck('rf-s5-windbreaks-c8', 'Define long-term management and coppicing strategy'),
+      ck('rf-s5-windbreaks-c8', 'Define long-term management and coppicing strategy', {
+        feeds: ['s6-monitoring'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -577,11 +651,20 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s6-biodiversity-monitoring-c1',
         'Select biodiversity indicators - species groups, habitat markers, ecological processes',
+        { feeds: ['s7-phase1'] },
       ),
-      ck('rf-s6-biodiversity-monitoring-c2', 'Design monitoring transects or sampling zones'),
-      ck('rf-s6-biodiversity-monitoring-c3', 'Define survey frequency and seasonal timing'),
-      ck('rf-s6-biodiversity-monitoring-c4', 'Specify recording methods and data storage'),
-      ck('rf-s6-biodiversity-monitoring-c5', 'Define threshold triggers for management response'),
+      ck('rf-s6-biodiversity-monitoring-c2', 'Design monitoring transects or sampling zones', {
+        feeds: ['s7-resource-plan'],
+      }),
+      ck('rf-s6-biodiversity-monitoring-c3', 'Define survey frequency and seasonal timing', {
+        feeds: ['s7-resource-plan'],
+      }),
+      ck('rf-s6-biodiversity-monitoring-c4', 'Specify recording methods and data storage', {
+        feeds: ['s7-resource-plan'],
+      }),
+      ck('rf-s6-biodiversity-monitoring-c5', 'Define threshold triggers for management response', {
+        feeds: ['s7-risk-register'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -621,30 +704,37 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s6-enterprise-integration-c1',
         'Complete a waste-to-input matrix: for each enterprise, identify its primary waste stream or pest pressure and map which enterprise or biological process treats it as an input',
+        { feeds: ['rf-s7-enterprise-sequencing'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c2',
         'Confirm at least one verified closed loop per enterprise before this objective gates - unconnected enterprises must be flagged',
+        { feeds: ['rf-s7-enterprise-sequencing', 's7-risk-register'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c3',
         'Design operational sequences for each confirmed loop - timing, movement protocol, quantities',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c4',
         'Define fertility transfer protocols - which animal enterprise moves to which crop zone, when, and at what stocking density',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c5',
         'Specify decision triggers - what observable condition in Enterprise A initiates a management response in Enterprise B',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c6',
         'Design integrated farm calendar mapping all enterprise rhythms and handoff moments',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'rf-s6-enterprise-integration-c7',
         'Define record-keeping system for tracking loop performance over time',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [

@@ -181,6 +181,18 @@ describe('OLOS Objective catalogue', () => {
       expect(o.requiredInputs.length).toBeGreaterThan(0);
     }
   });
+  it('every requiredInputs objectiveId resolves to a real upstream objective', () => {
+    const objectiveIds = new Set(UNIVERSAL_OBJECTIVES.map((o) => o.id));
+    const dangling: string[] = [];
+    for (const o of UNIVERSAL_OBJECTIVES) {
+      for (const input of o.requiredInputs) {
+        if (input.objectiveId && !objectiveIds.has(input.objectiveId)) {
+          dangling.push(`${o.id} -> ${input.objectiveId}`);
+        }
+      }
+    }
+    expect(dangling).toEqual([]);
+  });
   it('every objective has a non-empty default overlay bundle and checklist', () => {
     for (const o of UNIVERSAL_OBJECTIVES) {
       expect(o.defaultOverlayBundle.length).toBeGreaterThan(0);

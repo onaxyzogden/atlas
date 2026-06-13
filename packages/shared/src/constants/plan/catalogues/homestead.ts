@@ -64,22 +64,27 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s1-household-needs-c1',
         'List all household food needs by category - vegetables, fruit, protein, dairy, staples',
+        { feeds: ['hms-s4-food-production-strategy'] },
       ),
       ck(
         'hms-s1-household-needs-c2',
         'Estimate current annual spend per category as a baseline',
+        { feeds: ['hms-s7-budget-input-reduction'] },
       ),
       ck(
         'hms-s1-household-needs-c3',
         'Define self-sufficiency targets per category - full, partial, or not applicable',
+        { feeds: ['hms-s4-food-production-strategy', 'hms-s6-self-sufficiency-feedback'] },
       ),
       ck(
         'hms-s1-household-needs-c4',
         'Identify non-food household needs the land could supply - fuel, fibre, medicine, building materials',
+        { feeds: ['hms-s4-energy-shelter-resilience'] },
       ),
       ck(
         'hms-s1-household-needs-c5',
         'Define minimum provision threshold - the baseline that makes the homestead viable',
+        { feeds: ['hms-s7-provision-phasing'] },
       ),
       ck(
         'hms-s1-household-needs-c6',
@@ -122,14 +127,17 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s2-resource-flows-c3',
         'Map existing household organic outputs available for fertility cycling - kitchen scraps, grey water, humanure potential',
+        { feeds: ['hms-s4-fertility-strategy'] },
       ),
       ck(
         'hms-s2-resource-flows-c4',
         'Record current energy sources and consumption patterns',
+        { feeds: ['hms-s4-energy-shelter-resilience'] },
       ),
       ck(
         'hms-s2-resource-flows-c5',
         'Identify all external inputs that could potentially be replaced by home production',
+        { feeds: ['hms-s7-budget-input-reduction'] },
       ),
       ck(
         'hms-s2-resource-flows-c6',
@@ -159,26 +167,32 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s2-productive-capacity-c1',
         'Inventory all existing food-producing plants - trees, shrubs, perennial vegetables',
+        { feeds: ['hms-s4-food-production-strategy', 'hms-s5-food-zones-layout'] },
       ),
       ck(
         'hms-s2-productive-capacity-c2',
         'Assess condition and yield potential of each existing productive element',
+        { feeds: ['hms-s4-food-production-strategy'] },
       ),
       ck(
         'hms-s2-productive-capacity-c3',
         'Identify existing water harvesting or storage infrastructure',
+        { feeds: ['s5-water-infrastructure'] },
       ),
       ck(
         'hms-s2-productive-capacity-c4',
         'Note existing compost, worm farm, or fertility infrastructure',
+        { feeds: ['hms-s4-fertility-strategy'] },
       ),
       ck(
         'hms-s2-productive-capacity-c5',
         'Record any existing animal infrastructure - coops, pens, fencing',
+        { feeds: ['hms-s5-animal-husbandry'] },
       ),
       ck(
         'hms-s2-productive-capacity-c6',
         'Identify areas of existing soil health vs. degradation',
+        { feeds: ['s5-soil-improvement'] },
       ),
     ],
     decisionGroups: [
@@ -208,18 +222,22 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s2-landscape-vectors-c2',
         'Identify neighbouring agricultural or horticultural practices and their spray, runoff, and contamination risk',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'hms-s2-landscape-vectors-c3',
         'Assess prevailing wind direction relative to neighbouring chemical use - drift risk by season',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'hms-s2-landscape-vectors-c4',
         'Identify upstream water sources and any contamination risk from surrounding land',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'hms-s2-landscape-vectors-c5',
         'Record any landscape-scale pest and weed pressure sources',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'hms-s2-landscape-vectors-c6',
@@ -256,10 +274,12 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s3-water-quality-c2',
         'Test for chemical contamination relevant to landscape vector findings - herbicides, nitrates, heavy metals',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'hms-s3-water-quality-c3',
         'Assess irrigation water quality for food production suitability',
+        { feeds: ['s4-water-strategy', 'hms-s4-food-production-strategy'] },
       ),
       ck(
         'hms-s3-water-quality-c4',
@@ -272,6 +292,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s3-water-quality-c6',
         'Define potability status for each water source - drinking, cooking, irrigation, animal use only',
+        { feeds: ['s4-water-strategy', 's5-water-infrastructure'] },
       ),
     ],
     decisionGroups: [
@@ -304,22 +325,27 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s4-food-production-strategy-c2',
         'Select primary growing methods - annual beds, perennial systems, animals, preserving',
+        { feeds: ['hms-s5-food-zones-layout'] },
       ),
       ck(
         'hms-s4-food-production-strategy-c3',
         'Define production targets per food category for first planning cycle',
+        { feeds: ['hms-s6-self-sufficiency-feedback', 'hms-s7-provision-phasing'] },
       ),
       ck(
         'hms-s4-food-production-strategy-c4',
         'Identify which high-value or high-frequency foods to prioritise first',
+        { feeds: ['hms-s7-provision-phasing'] },
       ),
       ck(
         'hms-s4-food-production-strategy-c5',
         'Define seed saving and variety selection strategy',
+        { feeds: ['hms-s5-food-zones-layout'] },
       ),
       ck(
         'hms-s4-food-production-strategy-c6',
         'Establish food preservation and storage approach - fermentation, drying, cellaring, freezing',
+        { feeds: ['hms-s5-food-zones-layout'] },
       ),
     ],
     decisionGroups: [
@@ -345,6 +371,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s4-fertility-strategy-c1',
         'Define primary composting approach - hot compost, cold compost, worm farm, bokashi',
+        { feeds: ['s5-soil-improvement', 'hms-s5-food-zones-layout'] },
       ),
       ck(
         'hms-s4-fertility-strategy-c2',
@@ -357,14 +384,17 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s4-fertility-strategy-c4',
         'Define animal integration role in fertility cycling if animals are present',
+        { feeds: ['hms-s5-animal-husbandry'] },
       ),
       ck(
         'hms-s4-fertility-strategy-c5',
         'Establish cover crop and green manure strategy for garden zones',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'hms-s4-fertility-strategy-c6',
         'Define external input reduction targets - what gets replaced, by what, by when',
+        { feeds: ['hms-s7-budget-input-reduction'] },
       ),
     ],
     decisionGroups: [
@@ -394,10 +424,12 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s4-energy-shelter-resilience-c2',
         'Define heating fuel strategy - wood, passive solar, gas, electric, hybrid',
+        { feeds: ['hms-s5-energy-shelter-systems'] },
       ),
       ck(
         'hms-s4-energy-shelter-resilience-c3',
         'Define backup power strategy - generator, battery, manual alternatives',
+        { feeds: ['hms-s5-energy-shelter-systems'] },
       ),
       ck(
         'hms-s4-energy-shelter-resilience-c4',
@@ -406,10 +438,12 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s4-energy-shelter-resilience-c5',
         'Define resilience threshold - minimum energy and shelter standard to maintain in disruption',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'hms-s4-energy-shelter-resilience-c6',
         'Identify priority improvements required before Act begins',
+        { feeds: ['hms-s5-energy-shelter-systems', 's7-phase1'] },
       ),
     ],
     decisionGroups: [
@@ -436,6 +470,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-food-zones-layout-c1',
         'Design kitchen garden layout - bed dimensions, paths, orientation',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'hms-s5-food-zones-layout-c2',
@@ -448,6 +483,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-food-zones-layout-c4',
         'Design protected growing infrastructure if required - glasshouse, cold frame, tunnel',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'hms-s5-food-zones-layout-c5',
@@ -485,6 +521,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-energy-shelter-systems-c1',
         'Design heating system - wood fuel storage, stove placement, passive solar improvements',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'hms-s5-energy-shelter-systems-c2',
@@ -493,6 +530,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-energy-shelter-systems-c3',
         'Design backup power system - capacity, placement, fuel storage',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'hms-s5-energy-shelter-systems-c4',
@@ -526,6 +564,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-animal-husbandry-c1',
         'Design animal housing - coops, pens, shelters appropriate to species',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'hms-s5-animal-husbandry-c2',
@@ -538,6 +577,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s5-animal-husbandry-c4',
         'Design feed storage and preparation areas',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'hms-s5-animal-husbandry-c5',
@@ -574,10 +614,12 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s6-self-sufficiency-feedback-c1',
         'Design provision tracking system - record what was grown, preserved, and consumed from the homestead each season',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'hms-s6-self-sufficiency-feedback-c2',
         'Design gap tracking - record what was still purchased externally and at what cost',
+        { feeds: ['hms-s7-budget-input-reduction'] },
       ),
       ck(
         'hms-s6-self-sufficiency-feedback-c3',
@@ -586,6 +628,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'hms-s6-self-sufficiency-feedback-c4',
         'Define seasonal review rhythm - when does the household assess progress and adjust plans',
+        { feeds: ['hms-s7-adaptive-management'] },
       ),
       ck(
         'hms-s6-self-sufficiency-feedback-c5',

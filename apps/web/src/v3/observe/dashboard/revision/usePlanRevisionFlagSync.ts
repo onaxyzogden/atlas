@@ -16,11 +16,17 @@
  *      one diverged ObserveFeedEntry (Phase 3 substrate, `sourceType ===
  *      'diverged'`), projected from `feedKey` (objective id) via
  *      `resolveDomainByObjectiveId`.
- *   3. For each PLAN_TIER_OBJECTIVE, compute
- *      `computeObserveRevisionFlag` with its mapped domains (full set
- *      via `resolveAllDomainsForObjective`). Diff against the persisted
- *      `forcedTrigger` flag and `forceTrigger` / `clearForcedTrigger`
- *      only on the delta.
+ *   3. Feed the UNION of those diverged domains to the shared
+ *      `resolveReviewFlaggedObjectives` resolver, which returns the
+ *      objectives to flag — the union of three `feedsInto`-derived
+ *      signals (domain MEMBERSHIP, UPSTREAM feeders, DOWNSTREAM
+ *      consumers) — each attributed with `via` + `domains`. This is the
+ *      reverse half of the feeds-into data model (ADR
+ *      2026-05-29-atlas-spec-feeds-into-data-model): the flag set is
+ *      data-derived, not hand-authored. Diff against the persisted
+ *      `forcedTrigger` / `triggerContext` and `forceTrigger` /
+ *      `clearForcedTrigger` only on the delta (also refresh the stored
+ *      attribution when the divergence set changes shape).
  *
  * The hook is intentionally side-effectful on mount + on store mutation
  * (Zustand selectors give us shallow-stable inputs). It does NOT poll
@@ -32,7 +38,7 @@
 
 import { useEffect, useMemo } from 'react';
 import {
-  computeObserveRevisionFlag,
+  resolveReviewFlaggedObjectives,
   type UniversalDomain,
 } from '@ogden/shared';
 import {
@@ -44,10 +50,7 @@ import {
   selectObserveFeedForProject,
 } from '../../../../store/observeFeedStore.js';
 import { useCyclicalReviewStore } from '../../../../store/cyclicalReviewStore.js';
-import {
-  resolveAllDomainsForObjective,
-  resolveDomainByObjectiveId,
-} from './resolveDomainForObjective.js';
+import { resolveDomainByObjectiveId } from './resolveDomainForObjective.js';
 import { useProjectObjectives } from '../../../plan/strata/useProjectObjectives.js';
 
 const DIVERGENT_STATUSES = new Set([
@@ -88,22 +91,34 @@ export function usePlanRevisionFlagSync(projectId: string | undefined): void {
     return Array.from(set);
   }, [feedEntries]);
 
+  const divergedDomains = useMemo<readonly UniversalDomain[]>(() => {
+    const set = new Set<UniversalDomain>();
+    for (const d of divergedDataPointDomains) set.add(d);
+    for (const d of divergedFeedDomains) set.add(d);
+    return Array.from(set);
+  }, [divergedDataPointDomains, divergedFeedDomains]);
+
   useEffect(() => {
     if (!projectId) return;
     const store = useCyclicalReviewStore.getState();
+    // One resolver pass derives the full flagged set (membership ∪ upstream ∪
+    // downstream), project-scoped and attributed. We then diff per objective.
+    const flagged = resolveReviewFlaggedObjectives({ objectives, divergedDomains });
     for (const objective of objectives) {
-      const objectiveDomainIds = resolveAllDomainsForObjective(objective);
-      const flag = computeObserveRevisionFlag({
-        objectiveDomainIds,
-        divergedDataPointDomains,
-        divergedFeedDomains,
-      });
-      const currentlyForced = store.isForced(projectId, objective.id);
-      if (flag && !currentlyForced) {
-        store.forceTrigger(projectId, objective.id);
-      } else if (!flag && currentlyForced) {
+      const desired = flagged.get(objective.id) ?? null;
+      const record = store.getRecord(projectId, objective.id);
+      const currentlyForced = record.forcedTrigger === true;
+      if (desired) {
+        // Refresh when not yet forced OR the attribution changed shape, so the
+        // Screen 1 / OBSERVE UPDATES copy always reflects the live divergence.
+        const ctxChanged =
+          JSON.stringify(record.triggerContext) !== JSON.stringify(desired);
+        if (!currentlyForced || ctxChanged) {
+          store.forceTrigger(projectId, objective.id, desired);
+        }
+      } else if (currentlyForced) {
         store.clearForcedTrigger(projectId, objective.id);
       }
     }
-  }, [projectId, objectives, divergedDataPointDomains, divergedFeedDomains]);
+  }, [projectId, objectives, divergedDomains]);
 }

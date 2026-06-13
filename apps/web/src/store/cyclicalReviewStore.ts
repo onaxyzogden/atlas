@@ -31,6 +31,7 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { cycleAdvance } from './cycleAdvance.js';
 import { remapId } from '@ogden/shared';
+import type { ReviewFlagAttribution } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-cyclical-review';
 
@@ -38,12 +39,23 @@ export interface CyclicalReviewRecord {
   lastReviewedAt: string | null;
   lastDecisionConfirmedAt: string | null;
   forcedTrigger: boolean;
+  /**
+   * Why this objective was flagged for review THIS cycle — the `via` signals
+   * (membership / upstream / downstream) and the diverged Observe domains
+   * responsible, as produced by `resolveReviewFlaggedObjectives`. Drives the
+   * Screen 1 review-entry copy ("Soil at Zone 2 changed; this decision
+   * consumed that read") and the OBSERVE UPDATES detail-panel section. `null`
+   * when the objective is not currently flagged (or was flagged by the legacy
+   * dev-tools `forceTrigger` with no context). ADVISORY ONLY — never a gate.
+   */
+  triggerContext: ReviewFlagAttribution | null;
 }
 
 const EMPTY_RECORD: CyclicalReviewRecord = Object.freeze({
   lastReviewedAt: null,
   lastDecisionConfirmedAt: null,
   forcedTrigger: false,
+  triggerContext: null,
 });
 
 type ByObjective = Readonly<Record<string, CyclicalReviewRecord>>;
@@ -72,12 +84,19 @@ interface CyclicalReviewState {
    *  modal). The steward edits the checklist directly afterward. */
   acknowledgeRevise: (projectId: string, objectiveId: string) => void;
 
-  /** Dev-tools entry (also Phase 4's Observe-flag stand-in): force the
-   *  predicate to return true on next read. */
-  forceTrigger: (projectId: string, objectiveId: string) => void;
+  /** Force the predicate to return true on next read, recording WHY via the
+   *  optional `triggerContext` (the resolver attribution). Called by
+   *  `usePlanRevisionFlagSync` when an Observe domain diverges, and by
+   *  dev-tools (no context). */
+  forceTrigger: (
+    projectId: string,
+    objectiveId: string,
+    triggerContext?: ReviewFlagAttribution | null,
+  ) => void;
 
-  /** Clear the forced trigger without recording a review — escape hatch
-   *  for tests / dev-tools. */
+  /** Clear the forced trigger (and its context) without recording a review —
+   *  escape hatch for tests / dev-tools and the sync diff when an objective
+   *  stops being flagged. */
   clearForcedTrigger: (projectId: string, objectiveId: string) => void;
 }
 
@@ -103,12 +122,18 @@ function patchObjective(
 }
 
 /**
- * persist `migrate` (v1 -> v2). The Plan tier spine was renamed to Stratum
- * 1-7; renumber the objective-id KEYS that index each project's review map
- * (t{n}- -> s{n+1}-, via `remapId`). The record VALUES are slug-free
- * (timestamps + a boolean) and are preserved verbatim; projectId keys are
- * opaque and left untouched. Idempotent on v2+ input (remapId is a no-op on
- * already-renumbered s{n} ids). Exported for the round-trip migration test.
+ * persist `migrate`.
+ *
+ *  - v1 -> v2: the Plan tier spine was renamed to Stratum 1-7; renumber the
+ *    objective-id KEYS that index each project's review map (t{n}- -> s{n+1}-,
+ *    via `remapId`). projectId keys are opaque and left untouched.
+ *  - v2 -> v3: `triggerContext` was added to the record. ADDITIVE — backfill
+ *    `null` on every existing record so reads are well-typed. All prior values
+ *    (timestamps + `forcedTrigger`) are preserved verbatim.
+ *
+ * Idempotent on the current version (remapId is a no-op on already-renumbered
+ * s{n} ids; the backfill leaves an existing `triggerContext` untouched).
+ * Exported for the round-trip migration test.
  */
 export function migrateCyclicalReview(
   persistedState: unknown,
@@ -126,6 +151,20 @@ export function migrateCyclicalReview(
       remapped[projectId] = remappedObjectives;
     }
     byProject = remapped;
+  }
+  if (version < 3) {
+    const backfilled: Record<string, ByObjective> = {};
+    for (const [projectId, byObjective] of Object.entries(byProject)) {
+      const next: Record<string, CyclicalReviewRecord> = {};
+      for (const [objectiveId, rec] of Object.entries(byObjective ?? {})) {
+        next[objectiveId] = {
+          ...rec,
+          triggerContext: rec.triggerContext ?? null,
+        };
+      }
+      backfilled[projectId] = next;
+    }
+    byProject = backfilled;
   }
   return { ...safe, byProject } as CyclicalReviewState;
 }
@@ -157,6 +196,7 @@ export const useCyclicalReviewStore = create<CyclicalReviewState>()(
             lastReviewedAt: nowIso,
             lastDecisionConfirmedAt: nowIso,
             forcedTrigger: false,
+            triggerContext: null,
           }),
         );
         cycleAdvance(projectId, objectiveId, 'plan_revision_confirmed', {
@@ -170,6 +210,7 @@ export const useCyclicalReviewStore = create<CyclicalReviewState>()(
           patchObjective(s, projectId, objectiveId, {
             lastReviewedAt: nowIso,
             forcedTrigger: false,
+            triggerContext: null,
           }),
         );
         cycleAdvance(projectId, objectiveId, 'plan_revision_revised', {
@@ -177,21 +218,27 @@ export const useCyclicalReviewStore = create<CyclicalReviewState>()(
         });
       },
 
-      forceTrigger: (projectId, objectiveId) =>
+      forceTrigger: (projectId, objectiveId, triggerContext = null) =>
         set((s) =>
-          patchObjective(s, projectId, objectiveId, { forcedTrigger: true }),
+          patchObjective(s, projectId, objectiveId, {
+            forcedTrigger: true,
+            triggerContext,
+          }),
         ),
 
       clearForcedTrigger: (projectId, objectiveId) =>
         set((s) =>
-          patchObjective(s, projectId, objectiveId, { forcedTrigger: false }),
+          patchObjective(s, projectId, objectiveId, {
+            forcedTrigger: false,
+            triggerContext: null,
+          }),
         ),
     }),
     {
       name: PERSIST_KEY,
       // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
       storage: idbPersistStorage,
-      version: 2,
+      version: 3,
       partialize: (state) => ({ byProject: state.byProject }),
       migrate: migrateCyclicalReview,
     },

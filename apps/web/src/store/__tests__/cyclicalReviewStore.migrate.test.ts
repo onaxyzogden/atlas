@@ -31,11 +31,13 @@ describe('migrateCyclicalReview (v1 -> v2): objective-key renumber', () => {
     lastReviewedAt: '2026-01-01T00:00:00.000Z',
     lastDecisionConfirmedAt: '2026-01-02T00:00:00.000Z',
     forcedTrigger: false,
+    triggerContext: null,
   };
   const recB: CyclicalReviewRecord = {
     lastReviewedAt: '2026-03-01T00:00:00.000Z',
     lastDecisionConfirmedAt: null,
     forcedTrigger: true,
+    triggerContext: null,
   };
   const v1 = {
     byProject: {
@@ -73,6 +75,7 @@ describe('migrateCyclicalReview - idempotency + safety', () => {
       lastReviewedAt: '2026-01-01T00:00:00.000Z',
       lastDecisionConfirmedAt: null,
       forcedTrigger: false,
+      triggerContext: null,
     };
     const out = migrateCyclicalReview(
       { byProject: { p: { 's1-vision': rec } } },
@@ -97,6 +100,47 @@ describe('migrateCyclicalReview - idempotency + safety', () => {
     expect(Object.keys(out.byProject.p!)).toEqual(['s2-land-baseline']);
     const fromNull = migrateCyclicalReview(null, 1) as unknown as LooseReviewState;
     expect(fromNull.byProject).toEqual({});
+  });
+});
+
+describe('migrateCyclicalReview (v2 -> v3): triggerContext backfill', () => {
+  it('backfills triggerContext: null on a v2 record that lacks the field', () => {
+    const v2 = {
+      byProject: {
+        p: {
+          's5-water-strategy': {
+            lastReviewedAt: '2026-04-01T00:00:00.000Z',
+            lastDecisionConfirmedAt: null,
+            forcedTrigger: true,
+          },
+        },
+      },
+    };
+    const out = migrateCyclicalReview(v2, 2) as unknown as LooseReviewState;
+    const rec = out.byProject.p!['s5-water-strategy']!;
+    // additive: prior values preserved verbatim
+    expect(rec.lastReviewedAt).toBe('2026-04-01T00:00:00.000Z');
+    expect(rec.forcedTrigger).toBe(true);
+    // new field present and null
+    expect(rec.triggerContext).toBeNull();
+  });
+
+  it('preserves an existing triggerContext (idempotent on v3 shape)', () => {
+    const ctx = { via: ['membership' as const], domains: ['soil' as const] };
+    const v3 = {
+      byProject: {
+        p: {
+          's2-land-baseline': {
+            lastReviewedAt: null,
+            lastDecisionConfirmedAt: null,
+            forcedTrigger: true,
+            triggerContext: ctx,
+          },
+        },
+      },
+    };
+    const out = migrateCyclicalReview(v3, 3) as unknown as LooseReviewState;
+    expect(out.byProject.p!['s2-land-baseline']!.triggerContext).toEqual(ctx);
   });
 });
 

@@ -104,14 +104,17 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s1-experience-vision-c1',
         'Define the core guest experience in plain language - what makes this farm distinct',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s4-service-model'] },
       ),
       ck(
         'ag-s1-experience-vision-c2',
         'Identify visitor types - day visitors, overnight guests, retreat participants, school groups',
+        { feeds: ['ag-s4-service-model', 's5-access'] },
       ),
       ck(
         'ag-s1-experience-vision-c3',
         'Define the commercial proposition - what is offered and at what price point',
+        { feeds: ['ag-s4-revenue-model', 's7-resource-plan'] },
       ),
       ck(
         'ag-s1-experience-vision-c4',
@@ -120,10 +123,12 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s1-experience-vision-c5',
         'Confirm the commercial model is achievable within steward capacity',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s1-experience-vision-c6',
         'Record what will never be compromised for commercial gain',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -156,22 +161,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s1-visitor-capacity-c1',
         'Define maximum simultaneous guest capacity - accommodation, dining, programming',
+        { feeds: ['ag-s4-revenue-model', 'ag-s5-accommodation'] },
       ),
       ck(
         'ag-s1-visitor-capacity-c2',
         'Define visit type limits - maximum day visitors, overnight guests, event attendees',
+        { feeds: ['ag-s7-booking-system'] },
       ),
       ck(
         'ag-s1-visitor-capacity-c3',
         'Define operational boundaries - what farm activities are incompatible with guest presence',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s4-biosecurity-zoning'] },
       ),
       ck(
         'ag-s1-visitor-capacity-c4',
         'Define seasonal capacity variation - peak and off-peak limits',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s1-visitor-capacity-c5',
         'Confirm capacity is consistent with regulatory requirements and infrastructure potential',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -203,30 +213,37 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s1-regulatory-framework-c1',
         'Identify food service permit requirements - preparation, service, storage',
+        { feeds: ['ag-s4-safety-compliance'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c2',
         'Identify accommodation licensing requirements for intended accommodation type',
+        { feeds: ['ag-s5-accommodation'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c3',
         'Define public liability insurance requirements and coverage',
+        { feeds: ['ag-s4-safety-compliance'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c4',
         'Identify health and safety compliance requirements for public access',
+        { feeds: ['ag-s4-safety-compliance', 's7-risk-register'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c5',
         'Identify any resource consent requirements for visitor infrastructure',
+        { feeds: ['ag-s4-circulation-strategy', 's7-risk-register'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c6',
         'Define compliance calendar - renewal dates and ongoing obligations',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s1-regulatory-framework-c7',
         'Obtain legal or compliance advice before any guest-facing infrastructure is built',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -265,22 +282,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s2-arrival-experience-c1',
         'Assess road quality and signage from nearest main road to property entry',
+        { feeds: ['ag-s4-circulation-strategy', 's5-access'] },
       ),
       ck(
         'ag-s2-arrival-experience-c2',
         'Assess parking capacity and surface quality',
+        { feeds: ['s4-zones', 's5-access'] },
       ),
       ck(
         'ag-s2-arrival-experience-c3',
         'Assess entry gate, driveway, and approach aesthetic',
+        { feeds: ['ag-s4-circulation-strategy'] },
       ),
       ck(
         'ag-s2-arrival-experience-c4',
         'Identify safety hazards on arrival route - blind corners, livestock crossings, overhead clearance',
+        { feeds: ['ag-s4-safety-compliance', 's7-risk-register'] },
       ),
       ck(
         'ag-s2-arrival-experience-c5',
         'Record first impression sequence - what does a guest see from the moment they arrive',
+        { feeds: ['ag-s4-circulation-strategy'] },
       ),
     ],
     decisionGroups: [
@@ -312,26 +334,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s2-hospitality-infra-c1',
         'Inventory all existing accommodation - rooms, cabins, outbuildings - with condition assessment',
+        { feeds: ['ag-s5-accommodation'] },
       ),
       ck(
         'ag-s2-hospitality-infra-c2',
         'Assess existing kitchen and food preparation infrastructure',
+        { feeds: ['ag-s5-dining-infra'] },
       ),
       ck(
         'ag-s2-hospitality-infra-c3',
         'Assess existing bathroom and toilet facilities',
+        { feeds: ['ag-s5-sanitation-infra'] },
       ),
       ck(
         'ag-s2-hospitality-infra-c4',
         'Assess existing gathering spaces - indoor and outdoor',
+        { feeds: ['ag-s5-programming-infra'] },
       ),
       ck(
         'ag-s2-hospitality-infra-c5',
         'Identify reuse, renovation, or demolition requirements for each element',
+        { feeds: ['ag-s5-accommodation', 's7-phase1'] },
       ),
       ck(
         'ag-s2-hospitality-infra-c6',
         'Estimate renovation cost for highest-potential reuse items',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -361,22 +389,28 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How does the surrounding landscape shape the guest experience - visual amenity, noise, neighbouring activities - and what contamination risks apply?',
     checklist: [
-      ck('ag-s2-landscape-context-c1', 'Map surrounding land uses within 2km'),
+      ck('ag-s2-landscape-context-c1', 'Map surrounding land uses within 2km', {
+        feeds: ['ag-s4-circulation-strategy', 's4-zones'],
+      }),
       ck(
         'ag-s2-landscape-context-c2',
         'Identify visual amenity values and any eyesores visible from guest areas',
+        { feeds: ['ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s2-landscape-context-c3',
         'Identify noise sources from neighbouring properties and roads',
+        { feeds: ['ag-s5-dispersed-siting', 's7-risk-register'] },
       ),
       ck(
         'ag-s2-landscape-context-c4',
         'Assess drinking water catchment contamination risk from surrounding landscape vectors',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'ag-s2-landscape-context-c5',
         'Record any neighbouring activities that could affect guest experience - spray drift, dust, traffic',
+        { feeds: ['ag-s4-biosecurity-zoning', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -408,22 +442,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s2-seasonal-patterns-c1',
         'Define peak guest season by climate and farm calendar',
+        { feeds: ['ag-s7-staffing-training', 'ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s2-seasonal-patterns-c2',
         'Define off-peak periods and their limiting factors - weather, farm activity, access',
+        { feeds: ['ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s2-seasonal-patterns-c3',
         'Identify farm activities that are incompatible with simultaneous guest presence',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s4-biosecurity-zoning'] },
       ),
       ck(
         'ag-s2-seasonal-patterns-c4',
         'Map farming calendar against potential guest programming calendar',
+        { feeds: ['ag-s4-food-strategy'] },
       ),
       ck(
         'ag-s2-seasonal-patterns-c5',
         'Define minimum and maximum viable operating weeks per year',
+        { feeds: ['ag-s4-revenue-model', 's7-phase1'] },
       ),
     ],
     decisionGroups: [
@@ -456,26 +495,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s3-water-sanitation-demand-c1',
         'Calculate water demand at peak guest capacity - domestic, kitchen, bathroom, irrigation',
+        { feeds: ['s4-water-strategy', 'ag-s5-sanitation-infra'] },
       ),
       ck(
         'ag-s3-water-sanitation-demand-c2',
         'Assess available water source yield for combined farm and guest demand',
+        { feeds: ['s4-water-strategy', 's5-water-infrastructure'] },
       ),
       ck(
         'ag-s3-water-sanitation-demand-c3',
         'Identify water quality requirements for food service and accommodation',
+        { feeds: ['ag-s5-dining-infra', 'ag-s5-sanitation-infra'] },
       ),
       ck(
         'ag-s3-water-sanitation-demand-c4',
         'Assess on-site sanitation capacity - septic, composting, or connection to municipal system',
+        { feeds: ['ag-s5-sanitation-infra', 'ag-s5-decentralised-servicing'] },
       ),
       ck(
         'ag-s3-water-sanitation-demand-c5',
         'Identify regulatory requirements for guest sanitation infrastructure',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'ag-s3-water-sanitation-demand-c6',
         'Define maximum guest capacity supportable by available water and sanitation',
+        { feeds: ['ag-s6-load-monitoring', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -508,22 +553,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s3-sensory-environment-c1',
         'Record ambient noise levels across the site by season and time of day',
+        { feeds: ['ag-s5-dispersed-siting', 'ag-s5-decentralised-servicing'] },
       ),
       ck(
         'ag-s3-sensory-environment-c2',
         'Identify farm operational noises that could affect guest experience',
+        { feeds: ['ag-s4-circulation-strategy'] },
       ),
       ck(
         'ag-s3-sensory-environment-c3',
         'Map visual amenity from proposed guest areas - views, screening needs',
+        { feeds: ['ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s3-sensory-environment-c4',
         'Identify odour sources - livestock, composting, machinery - relative to guest zones',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s4-biosecurity-zoning'] },
       ),
       ck(
         'ag-s3-sensory-environment-c5',
         'Assess privacy conditions in proposed accommodation locations',
+        { feeds: ['ag-s5-accommodation', 'ag-s5-dispersed-siting'] },
       ),
     ],
     decisionGroups: [
@@ -555,26 +605,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s3-emergency-access-c1',
         'Map emergency vehicle access routes to all guest areas',
+        { feeds: ['ag-s4-safety-compliance', 'ag-s5-safety-infra'] },
       ),
       ck(
         'ag-s3-emergency-access-c2',
         'Identify evacuation routes for fire, flood, and other emergencies',
+        { feeds: ['ag-s4-safety-compliance', 'ag-s5-safety-infra'] },
       ),
       ck(
         'ag-s3-emergency-access-c3',
         'Assess first aid access and response time from nearest medical facility',
+        { feeds: ['ag-s4-safety-compliance'] },
       ),
       ck(
         'ag-s3-emergency-access-c4',
         'Identify safety hazards across all areas guests will access - terrain, machinery, animals',
+        { feeds: ['ag-s4-safety-compliance', 's7-risk-register'] },
       ),
       ck(
         'ag-s3-emergency-access-c5',
         'Assess fire risk and evacuation complexity',
+        { feeds: ['ag-s4-safety-compliance', 's7-risk-register'] },
       ),
       ck(
         'ag-s3-emergency-access-c6',
         'Confirm emergency access meets regulatory requirements for public accommodation',
+        { feeds: ['ag-s5-safety-infra'] },
       ),
     ],
     decisionGroups: [
@@ -609,22 +665,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s3-food-production-capacity-c1',
         'Inventory all current food-producing elements - gardens, orchards, animals',
+        { feeds: ['ag-s4-food-strategy'] },
       ),
       ck(
         'ag-s3-food-production-capacity-c2',
         'Assess current yield potential by enterprise',
+        { feeds: ['ag-s4-food-strategy'] },
       ),
       ck(
         'ag-s3-food-production-capacity-c3',
         'Identify seasonal production gaps relative to intended guest dining calendar',
+        { feeds: ['ag-s4-food-strategy', 'ag-s6-food-integration'] },
       ),
       ck(
         'ag-s3-food-production-capacity-c4',
         'Assess food storage, preservation, and preparation infrastructure',
+        { feeds: ['ag-s5-dining-infra'] },
       ),
       ck(
         'ag-s3-food-production-capacity-c5',
         'Define what additional production is required to support intended hospitality model',
+        { feeds: ['ag-s4-food-strategy', 's7-phase1'] },
       ),
     ],
     decisionGroups: [
@@ -657,26 +718,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s3-ecological-carrying-capacity-c1',
         'Map guest-trafficked zones against soil type and compaction / erosion susceptibility',
+        { feeds: ['ag-s4-circulation-strategy', 's5-soil-improvement'] },
       ),
       ck(
         'ag-s3-ecological-carrying-capacity-c2',
         'Assess trampling and trail-erosion thresholds for proposed paths and gathering areas',
+        { feeds: ['ag-s5-programming-infra', 'ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s3-ecological-carrying-capacity-c3',
         'Identify sensitive habitats and wildlife corridors to exclude or buffer from guest access',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s3-ecological-carrying-capacity-c4',
         'Define seasonal sensitivity windows (wet soil, breeding, regeneration) when access must reduce or close',
+        { feeds: ['ag-s6-load-monitoring', 'ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s3-ecological-carrying-capacity-c5',
         'Define sacrificial vs protected ground - where wear is accepted and hardened vs prevented',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s3-ecological-carrying-capacity-c6',
         'Set an ecological carrying-capacity ceiling that feeds the Stratum 6 load monitor and Stratum 4 zoning',
+        { feeds: ['ag-s4-circulation-strategy', 'ag-s6-load-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -724,26 +791,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-circulation-strategy-c1',
         'Define accessible guest zones - accommodation, dining, trails, demonstration areas',
+        { feeds: ['ag-s5-accommodation', 'ag-s5-programming-infra'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c2',
         'Define visitor circulation route - arrival, orientation, experience sequence, departure',
+        { feeds: ['ag-s5-programming-infra', 's7-phase1'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c3',
         'Define hard boundaries between guest zones and farm operations',
+        { feeds: ['ag-s5-safety-infra'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c4',
         'Define signage and wayfinding approach',
+        { feeds: ['ag-s5-programming-infra'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c5',
         'Define supervised vs. self-guided zones',
+        { feeds: ['ag-s7-staffing-training'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c6',
         'Confirm circulation route is compatible with emergency evacuation requirements',
+        { feeds: ['ag-s5-safety-infra', 's7-risk-register'] },
       ),
       ck(
         'ag-s4-circulation-strategy-c7',
@@ -783,22 +856,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-service-model-c1',
         'Define accommodation types and standards - farm stay rooms, cabins, glamping',
+        { feeds: ['ag-s5-accommodation'] },
       ),
       ck(
         'ag-s4-service-model-c2',
         'Define dining model - farm breakfast, shared dinners, self-catering, or hybrid',
+        { feeds: ['ag-s5-dining-infra'] },
       ),
       ck(
         'ag-s4-service-model-c3',
         'Define programming offer - farm tours, workshops, retreats, harvest experiences',
+        { feeds: ['ag-s5-programming-infra'] },
       ),
       ck(
         'ag-s4-service-model-c4',
         'Define service standard for each offering - what is included, what is extra',
+        { feeds: ['ag-s5-accommodation', 'ag-s7-staffing-training'] },
       ),
       ck(
         'ag-s4-service-model-c5',
         'Confirm service model is achievable within steward capacity and licensing framework',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s4-service-model-c6',
@@ -835,22 +913,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-food-strategy-c1',
         'Map current farm production against guest dining calendar - what is available when',
+        { feeds: ['ag-s6-food-integration'] },
       ),
       ck(
         'ag-s4-food-strategy-c2',
         'Define priority enterprises for guest food supply - vegetables, eggs, meat, dairy, fruit',
+        { feeds: ['ag-s5-dining-infra', 'ag-s6-food-integration'] },
       ),
       ck(
         'ag-s4-food-strategy-c3',
         'Define food production gaps and sourcing strategy for gaps - local farms, suppliers',
+        { feeds: ['ag-s6-food-integration', 's7-resource-plan'] },
       ),
       ck(
         'ag-s4-food-strategy-c4',
         'Define food preparation approach - farm kitchen standards, preservation, seasonal menus',
+        { feeds: ['ag-s5-dining-infra'] },
       ),
       ck(
         'ag-s4-food-strategy-c5',
         'Confirm farm-to-guest supply chain is consistent with food safety requirements',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'ag-s4-food-strategy-c6',
@@ -887,26 +970,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-safety-compliance-c1',
         'Define fire evacuation plan for all guest areas',
+        { feeds: ['ag-s5-safety-infra'] },
       ),
       ck(
         'ag-s4-safety-compliance-c2',
         'Define first aid protocol - trained personnel, equipment, emergency contacts',
+        { feeds: ['ag-s5-safety-infra', 'ag-s7-staffing-training'] },
       ),
       ck(
         'ag-s4-safety-compliance-c3',
         'Define hazard identification and management system for all guest zones',
+        { feeds: ['ag-s5-safety-infra', 's7-risk-register'] },
       ),
       ck(
         'ag-s4-safety-compliance-c4',
         'Define food safety management plan for all food service activities',
+        { feeds: ['ag-s5-dining-infra', 'ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s4-safety-compliance-c5',
         'Define public liability coverage requirements and confirm insurance',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s4-safety-compliance-c6',
         'Confirm all compliance obligations are met before first guest arrival',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'ag-s4-safety-compliance-c7',
@@ -948,22 +1037,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-revenue-model-c1',
         'Define pricing for each experience offering',
+        { feeds: ['ag-s7-booking-system', 's7-phase1'] },
       ),
       ck(
         'ag-s4-revenue-model-c2',
         'Define booking terms - advance booking, deposits, cancellation policy',
+        { feeds: ['ag-s7-booking-system'] },
       ),
       ck(
         'ag-s4-revenue-model-c3',
         'Define peak and off-peak pricing strategy',
+        { feeds: ['ag-s7-booking-system'] },
       ),
       ck(
         'ag-s4-revenue-model-c4',
         'Calculate minimum viable occupancy rate for financial viability',
+        { feeds: ['ag-s6-load-monitoring', 'ag-s7-phased-launch'] },
       ),
       ck(
         'ag-s4-revenue-model-c5',
         'Define revenue targets for Phase 1 and break-even timeline',
+        { feeds: ['ag-s7-phased-launch'] },
       ),
       ck(
         'ag-s4-revenue-model-c6',
@@ -984,6 +1078,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-revenue-model-c10',
         'Bound member access, especially off-season, within the AG-S3.7 ecological carrying-capacity ceiling and its seasonal sensitivity windows; coordinate with AG-S7.8 so member presence supports off-season resilience without exceeding load limits; if member access extends beyond any hardened visitor precinct, AG-S3.7 must be in scope - the membership can pull it into scope',
+        { feeds: ['ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s4-revenue-model-c11',
@@ -1037,22 +1132,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s4-biosecurity-zoning-c1',
         'Identify contamination pathways between guest areas and production / livestock / spray zones (both directions)',
+        { feeds: ['ag-s5-dispersed-siting', 's7-risk-register'] },
       ),
       ck(
         'ag-s4-biosecurity-zoning-c2',
         'Set buffer distances and physical separation between guest circulation and sensitive production',
+        { feeds: ['ag-s5-dispersed-siting'] },
       ),
       ck(
         'ag-s4-biosecurity-zoning-c3',
         'Specify arrival hygiene measures - foot-baths, wash points, signage - where guests cross into or near production',
+        { feeds: ['ag-s5-programming-infra'] },
       ),
       ck(
         'ag-s4-biosecurity-zoning-c4',
         'Define weed / pathogen controls on guest vehicles, gear, and pets entering the property',
+        { feeds: ['ag-s6-compliance-monitoring', 's7-risk-register'] },
       ),
       ck(
         'ag-s4-biosecurity-zoning-c5',
         'Define safe guest-animal interaction protocols covering both animal welfare and zoonosis risk',
+        { feeds: ['ag-s7-staffing-training', 's7-risk-register'] },
       ),
       ck(
         'ag-s4-biosecurity-zoning-c6',
@@ -1100,26 +1200,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-accommodation-c1',
         'Design accommodation layout - room configuration, cabin placement, glamping site layout',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-accommodation-c2',
         'Specify construction or renovation standard for each accommodation type',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-accommodation-c3',
         'Design thermal performance - insulation, heating, cooling',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-accommodation-c4',
         'Design guest room amenities to defined service standard',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-accommodation-c5',
         'Confirm accommodation design meets building code and accommodation licensing requirements',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-accommodation-c6',
         'Confirm accommodation capacity matches Stratum 1 visitor capacity definition',
+        { feeds: ['ag-s6-load-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1154,26 +1260,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-dining-infra-c1',
         'Design farm kitchen layout - preparation, cooking, storage, wash-up',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-dining-infra-c2',
         'Specify kitchen equipment to food service permit standard',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-dining-infra-c3',
         'Design dining area - capacity, layout, indoor/outdoor options',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-dining-infra-c4',
         'Design food storage - cool room, dry store, preservation',
+        { feeds: ['ag-s6-food-integration', 's7-resource-plan'] },
       ),
       ck(
         'ag-s5-dining-infra-c5',
         'Confirm kitchen and dining design meets food safety compliance requirements',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-dining-infra-c6',
         'Size food storage and preparation design against the Stratum 3 food production capacity and storage findings',
+        { feeds: ['ag-s6-food-integration'] },
       ),
     ],
     decisionGroups: [
@@ -1206,26 +1318,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-programming-infra-c1',
         'Design farm tour route - waypoints, interpretation, safety',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-programming-infra-c2',
         'Design walking trails - surfaces, grades, waymarking, distances',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-programming-infra-c3',
         'Design workshop and demonstration space - layout, equipment, capacity',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-programming-infra-c4',
         'Design outdoor event or gathering space if applicable',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-programming-infra-c5',
         'Confirm all programming infrastructure meets safety requirements for public access',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-programming-infra-c6',
         'Confirm programming infrastructure serves the Stratum 1 guest experience vision and visitor types',
+        { feeds: ['ag-s6-experience-feedback'] },
       ),
     ],
     decisionGroups: [
@@ -1258,26 +1376,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-sanitation-infra-c1',
         'Calculate bathroom and toilet fixture requirements at peak guest numbers',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-sanitation-infra-c2',
         'Design bathroom layout and location relative to accommodation',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-sanitation-infra-c3',
         'Specify hot water system capacity for peak guest demand',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-sanitation-infra-c4',
         'Design waste system - septic, composting, or connection to confirm capacity',
+        { feeds: ['ag-s6-load-monitoring', 's7-resource-plan'] },
       ),
       ck(
         'ag-s5-sanitation-infra-c5',
         'Confirm sanitation design meets regulatory requirements for accommodation type',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-sanitation-infra-c6',
         'Size fixtures and hot water against the Stratum 3 guest water and sanitation demand assessment',
+        { feeds: ['ag-s6-load-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1310,26 +1434,32 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-safety-infra-c1',
         'Design evacuation signage and route marking for all guest areas',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-safety-infra-c2',
         'Specify fire extinguisher, hose reel, and smoke detector placement',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-safety-infra-c3',
         'Design first aid station locations and equipment specification',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-safety-infra-c4',
         'Design emergency vehicle access points and turning areas',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-safety-infra-c5',
         'Specify hazard identification signage for guest zones',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-safety-infra-c6',
         'Confirm all safety infrastructure meets regulatory requirements',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
       ck(
         'ag-s5-safety-infra-c7',
@@ -1370,22 +1500,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-dispersed-siting-c1',
         'Locate candidate unit sites against the AG-S3.7 ecological carrying-capacity and protected-area map',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-dispersed-siting-c2',
         'Minimise ground disturbance per site - favour zero / minimal-foundation platforms over excavation',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-dispersed-siting-c3',
         'Ensure each site is reversible - the land can be returned to its prior state if a unit is removed',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-dispersed-siting-c4',
         'Set inter-unit spacing for guest privacy, sense of immersion, and ecological breathing room',
+        { feeds: ['ag-s6-load-monitoring'] },
       ),
       ck(
         'ag-s5-dispersed-siting-c5',
         'Plan low-impact access to each site - foot paths / light tracks rather than engineered roads',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-dispersed-siting-c6',
@@ -1440,22 +1575,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-decentralised-servicing-c1',
         'Design point-of-use water supply per site - local rainwater capture and / or reticulated delivery',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'ag-s5-decentralised-servicing-c2',
         'Design greywater / blackwater treatment at or near each site (composting / sealed / on-site treatment)',
+        { feeds: ['ag-s6-compliance-monitoring', 's7-resource-plan'] },
       ),
       ck(
         'ag-s5-decentralised-servicing-c3',
         'Provide off-grid power and refrigeration appropriate to dispersed, low-impact sites',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'ag-s5-decentralised-servicing-c4',
         'Specify dark-sky-compliant lighting - shielded, warm, minimal - to protect the night-sky experience',
+        { feeds: ['ag-s6-experience-feedback'] },
       ),
       ck(
         'ag-s5-decentralised-servicing-c5',
         'Define acoustic-quiet zoning so plant, generators, and guest noise do not break the quiet baseline',
+        { feeds: ['ag-s6-load-monitoring'] },
       ),
       ck(
         'ag-s5-decentralised-servicing-c6',
@@ -1464,6 +1604,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s5-decentralised-servicing-c7',
         'Confirm sanitation and discharge designs meet applicable regulation',
+        { feeds: ['ag-s6-compliance-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -1512,22 +1653,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s6-experience-feedback-c1',
         'Design guest feedback collection - post-visit survey, in-person, online reviews',
+        { feeds: ['ag-s7-phased-launch'] },
       ),
       ck(
         'ag-s6-experience-feedback-c2',
         'Define guest satisfaction indicators - what metrics define a successful visit',
+        { feeds: ['ag-s7-phased-launch'] },
       ),
       ck(
         'ag-s6-experience-feedback-c3',
         'Define repeat visit tracking system',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-experience-feedback-c4',
         'Define review and response protocol for online feedback',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-experience-feedback-c5',
         'Define quality improvement process - how feedback triggers operational changes',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-experience-feedback-c6',
@@ -1566,22 +1712,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s6-compliance-monitoring-c1',
         'Design compliance calendar - all permit renewal dates, audit schedules, reporting obligations',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-compliance-monitoring-c2',
         'Define compliance monitoring responsibilities - who checks what, when',
+        { feeds: ['ag-s7-staffing-training'] },
       ),
       ck(
         'ag-s6-compliance-monitoring-c3',
         'Define neighbour communication rhythm and nominated farm contact',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-compliance-monitoring-c4',
         'Design complaint response process',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-compliance-monitoring-c5',
         'Define annual external relations review',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-compliance-monitoring-c6',
@@ -1623,22 +1774,27 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s6-food-integration-c1',
         'Design tracking system for farm produce used in guest dining each season',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-food-integration-c2',
         'Define gap tracking - what was sourced externally and at what cost',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-food-integration-c3',
         'Define seasonal menu planning process connected to farm production calendar',
+        { feeds: ['ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s6-food-integration-c4',
         'Define farm production adjustment protocol when guest demand reveals gaps',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-food-integration-c5',
         'Define review cadence and owner for the farm-to-guest loop - who reviews produce tracking and gap data each season and decides next-season adjustments',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-food-integration-c6',
@@ -1677,18 +1833,22 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s6-load-monitoring-c1',
         'Define capacity tracking system - actual vs. intended guest numbers by period',
+        { feeds: ['ag-s7-phased-launch'] },
       ),
       ck(
         'ag-s6-load-monitoring-c2',
         'Define infrastructure load indicators - water use, sanitation load, parking utilisation',
+        { feeds: ['ag-s7-adaptive-management'] },
       ),
       ck(
         'ag-s6-load-monitoring-c3',
         'Define staff workload monitoring - hours, task completion, incident rate',
+        { feeds: ['ag-s7-staffing-training'] },
       ),
       ck(
         'ag-s6-load-monitoring-c4',
         'Define capacity threshold triggers - what load level initiates a booking pause or operational review',
+        { feeds: ['ag-s7-phased-launch', 'ag-s7-seasonal-resilience'] },
       ),
       ck(
         'ag-s6-load-monitoring-c5',

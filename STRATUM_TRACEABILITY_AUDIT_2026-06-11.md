@@ -1,5 +1,13 @@
 # STRATUM TRACEABILITY AUDIT — 2026-06-11
 
+> **§5 + §9.1 SUPERSEDED (2026-06-13).** The forward `feedsInto` channel this audit found
+> "almost entirely unwired" has since been **fully wired across `universal.ts` + all 14 per-type
+> catalogues (1327 feed-bearing items)** and locked with a full-participation conformance invariant.
+> See [FEEDS_INTO_WIRING_2026-06-13.md](FEEDS_INTO_WIRING_2026-06-13.md) and the decision record
+> `wiki/decisions/2026-06-13-feedsinto-forward-wiring.md`. Note also that the §5 snapshot was
+> already partly stale at audit time: universal S2/S3 items had been wired in the interim. The
+> §1–§4 structural/content findings and the §9.3 prose-cite backfill remain valid.
+
 **Question:** Does every design and decision from Stratum 4 onwards refer to a design and/or decision made in Stratum 1, 2, and/or 3?
 **Scope:** All 226 S4–S7 objectives across the Plan objective layer — 14 per-type catalogues (212), `universal.ts` (10), and the legacy skeleton `stratumObjectives.ts` (4) — plus the enforcement layer (resolver, status engine, conformance tests).
 **Mode:** Report-only (operator decision) — no source, config, or git-index changes. Remediation filed as a deferred backlog (§9).

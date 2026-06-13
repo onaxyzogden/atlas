@@ -1,0 +1,11 @@
+{
+  "$comment": "Forward feedsInto coverage allowlist for spineTraceability.conformance.test.ts. Mirrors the completionPathGaps baseline/ratchet idiom. Every S1-S6 objective must feed >=1 downstream objective; every S4-S7 objective must be fed by >=1 upstream item. The two maps below allowlist the legitimate exceptions (id -> human reason). Entries are RATCHETED: the stale-guard assertions fail the build if an allowlisted id no longer exists, has moved out of its stratum band, or has since become wired (so the file cannot rot). feedsInto is display-only (a dangling target degrades to a raw-id label), so this enforces wiring HYGIENE, never runtime behaviour. Populated 2026-06-13 from a full empty-allowlist sweep of the live catalogues.",
+  "terminalObjectives": {},
+  "rootObjectives": {
+    "mgd-s6-adaptive-management": "S6 end-of-season adaptive-management protocol. Its only conceivable inbound is same-stratum S6 monitoring, which strictly-later forbids; all five items feed S7 (season-startup-readiness, crop-calendar, risk-register). Genuine feedback-loop root.",
+    "ofg-s6-adaptive-management": "S6 adaptive-management protocol (off-grid). Same feedback-loop shape as mgd-s6-adaptive-management: fed only by co-stratum S6 monitoring (forbidden), items feed S7 phased-habitation. Genuine root.",
+    "con-s6-external-relations-compliance": "S6 external-relations & compliance monitoring system, seeded from universal stakeholder context plus the regulatory/funding environment rather than any same-catalogue earlier-stratum survey; all items feed S7. Genuine root.",
+    "silv-sec-s4-stock-infrastructure": "Additive secondary (livestock) layer entry decision at S4 - 'ready core stock infrastructure before any animal arrives'. The additive layer begins at S4 and carries no S1-S3 reads of its own, so it has no upstream feeder; its items feed S5/S7. Genuine layer-root.",
+    "lvs-sec-s4-stock-infrastructure": "Additive secondary stock-infrastructure & establishment gate at S4, the entry decision of the livestock secondary layer (same shape as silv-sec-s4-stock-infrastructure). No earlier-stratum read of its own; items feed S5/S7. Genuine layer-root."
+  }
+}

@@ -256,6 +256,12 @@ export {
   type ObserveRevisionTriggerInput,
 } from './relationships/observeRevisionTrigger.js';
 export {
+  resolveReviewFlaggedObjectives,
+  type ReviewFlagVia,
+  type ReviewFlagAttribution,
+  type ResolveReviewFlagsInput,
+} from './relationships/reviewFlagResolver.js';
+export {
   computeRevisionPriority,
   FOUNDATION_DOMAINS_FOR_REVISION,
   type RevisionEvent,

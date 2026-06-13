@@ -97,6 +97,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's1-vision-labour',
         'Inventory available labour - hours per week, seasonal variation, skill level',
+        { feeds: ['s4-direction', 's7-resource-plan'] },
       ),
       // Capital band = the Vision Builder budget + timeline bands (both axes
       // required to count as answered, matching the legacy s1-vision-c3 rule).
@@ -109,9 +110,15 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
           editRoute: { kind: 'wizard-step', step: 'vision' },
         },
       ),
-      ck('s1-vision-constraints', 'Identify non-negotiables and hard constraints'),
-      ck('s1-vision-classify', 'Classify vision elements as committed vs. aspirational'),
-      ck('s1-vision-assumptions', 'Record assumptions and known unknowns'),
+      ck('s1-vision-constraints', 'Identify non-negotiables and hard constraints', {
+        feeds: ['s4-direction', 's7-risk-register'],
+      }),
+      ck('s1-vision-classify', 'Classify vision elements as committed vs. aspirational', {
+        feeds: ['s4-direction'],
+      }),
+      ck('s1-vision-assumptions', 'Record assumptions and known unknowns', {
+        feeds: ['s4-direction', 's7-risk-register'],
+      }),
     ],
     decisionGroups: [
       dg('s1-vision-dg1', 'Purpose & intent', [
@@ -142,11 +149,14 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       'What are the legal, physical, and regulatory boundaries within which this project must operate?',
     checklist: [
       // Group 1 -- Title & boundary
-      ck('s1-boundaries-c2', 'Map property boundaries on base layer'),
+      ck('s1-boundaries-c2', 'Map property boundaries on base layer', {
+        feeds: ['s4-zones'],
+      }),
       ck(
         's1-boundaries-c1',
         'Obtain and verify current title and deed documents',
         {
+          feeds: ['s4-direction'],
           feedNote:
             'Title documents feed Plan: Land Base & Legal Context. No design work proceeds where title is unverified.',
         },
@@ -156,17 +166,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-boundaries-c3',
         'Identify all easements, rights of way, and encumbrances',
         {
+          feeds: ['s4-zones', 's7-risk-register'],
           feedHint: 'Feeds Plan: Land use constraint map',
           feedNote:
             'Mapped easements feed Plan: Land use constraint map and the Risk / Compliance overlay.',
         },
       ),
       ck('s1-boundaries-c4', 'Check zoning and permitted land uses', {
+        feeds: ['s4-direction', 's7-risk-register'],
         feedHint: 'Feeds Plan: Risk / Compliance overlay',
         feedNote:
           'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Tier 0.',
       }),
       ck('s1-boundaries-c5', 'Identify water rights and entitlements', {
+        feeds: ['s4-water-strategy', 's5-water-infrastructure'],
         feedHint: 'Feeds Tier 2: Water strategy',
         feedNote:
           'Water entitlements feed Tier 2: Water strategy and constrain all water harvesting and storage design.',
@@ -175,6 +188,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-boundaries-c6',
         'Record covenant, heritage, or conservation obligations',
         {
+          feeds: ['s4-zones', 's7-risk-register'],
           feedNote:
             'Covenants feed Plan: Risk / Compliance overlay as hard constraints that gate Act handoffs in affected zones.',
         },
@@ -183,6 +197,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-boundaries-c7',
         'Note required permits for planned activities - building, earthworks, water harvesting',
         {
+          feeds: ['s7-phase1', 's7-risk-register'],
           feedNote:
             'Permit requirements become prerequisites on Act handoff packages in Tiers 3-6.',
         },
@@ -215,20 +230,26 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'Who has an interest in, connection to, or jurisdiction over this land and project?',
     checklist: [
-      ck('s1-stakeholders-c1', 'Map immediate neighbours and shared boundary relationships'),
+      ck('s1-stakeholders-c1', 'Map immediate neighbours and shared boundary relationships', {
+        feeds: ['s5-access'],
+      }),
       ck('s1-stakeholders-c2', 'Identify local authority contacts and relevant officers'),
       ck(
         's1-stakeholders-c3',
         'Record any Indigenous land relationships or cultural obligations',
+        { feeds: ['s4-zones', 's7-risk-register'] },
       ),
       ck(
         's1-stakeholders-c4',
         'Identify community members affected by or interested in the project',
       ),
-      ck('s1-stakeholders-c5', 'Note existing conflict, goodwill, or partnership relationships'),
+      ck('s1-stakeholders-c5', 'Note existing conflict, goodwill, or partnership relationships', {
+        feeds: ['s7-risk-register'],
+      }),
       ck(
         's1-stakeholders-c6',
         'Record preferred communication channels for each stakeholder group',
+        { feeds: ['s6-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -526,11 +547,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's4-direction-c2',
         'Classify each vision element as feasible, conditional, deferred, or rejected',
+        { feeds: ['s7-phase1'] },
       ),
-      ck('s4-direction-c3', 'Identify minimum viable project scope for first planning cycle'),
-      ck('s4-direction-c4', 'Define first-cycle success criteria'),
-      ck('s4-direction-c5', 'Record assumptions and unresolved questions'),
-      ck('s4-direction-c6', 'Approve bounded planning direction'),
+      ck('s4-direction-c3', 'Identify minimum viable project scope for first planning cycle', {
+        feeds: ['s7-phase1'],
+      }),
+      ck('s4-direction-c4', 'Define first-cycle success criteria', {
+        feeds: ['s6-monitoring', 's7-phase1'],
+      }),
+      ck('s4-direction-c5', 'Record assumptions and unresolved questions', {
+        feeds: ['s7-risk-register'],
+      }),
+      ck('s4-direction-c6', 'Approve bounded planning direction', {
+        feeds: ['s7-phase1'],
+      }),
     ],
     decisionGroups: [
       dg('s4-direction-dg1', 'Survey validation', [
@@ -561,17 +591,26 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's4-water-strategy-c1',
         'Assess total water demand across all enterprises and domestic use',
+        { feeds: ['s5-water-infrastructure'] },
       ),
       ck(
         's4-water-strategy-c2',
         'Evaluate water source options - rainfall, groundwater, surface water, municipal',
+        { feeds: ['s5-water-infrastructure'] },
       ),
-      ck('s4-water-strategy-c3', 'Select primary and backup water supply strategy'),
-      ck('s4-water-strategy-c4', 'Define storage capacity requirements'),
-      ck('s4-water-strategy-c5', 'Select water harvesting approach appropriate to site'),
+      ck('s4-water-strategy-c3', 'Select primary and backup water supply strategy', {
+        feeds: ['s5-water-infrastructure'],
+      }),
+      ck('s4-water-strategy-c4', 'Define storage capacity requirements', {
+        feeds: ['s5-water-infrastructure'],
+      }),
+      ck('s4-water-strategy-c5', 'Select water harvesting approach appropriate to site', {
+        feeds: ['s5-water-infrastructure'],
+      }),
       ck(
         's4-water-strategy-c6',
         'Define water conservation priorities and drought response protocol',
+        { feeds: ['s6-monitoring', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -610,12 +649,23 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's4-zones-c1',
         'Establish zone framework based on use frequency and energy requirements',
+        { feeds: ['s5-access', 's5-soil-improvement'] },
       ),
-      ck('s4-zones-c2', 'Define sector influences on zone placement'),
-      ck('s4-zones-c3', 'Allocate enterprise zones based on survey findings'),
-      ck('s4-zones-c4', 'Resolve spatial conflicts between enterprises'),
-      ck('s4-zones-c5', 'Define buffer zones and transition areas'),
-      ck('s4-zones-c6', 'Confirm zone framework against capacity and feasibility constraints'),
+      ck('s4-zones-c2', 'Define sector influences on zone placement', {
+        feeds: ['s5-access'],
+      }),
+      ck('s4-zones-c3', 'Allocate enterprise zones based on survey findings', {
+        feeds: ['s5-access', 's5-water-infrastructure', 's5-soil-improvement', 's7-phase1'],
+      }),
+      ck('s4-zones-c4', 'Resolve spatial conflicts between enterprises', {
+        feeds: ['s5-access'],
+      }),
+      ck('s4-zones-c5', 'Define buffer zones and transition areas', {
+        feeds: ['s5-access'],
+      }),
+      ck('s4-zones-c6', 'Confirm zone framework against capacity and feasibility constraints', {
+        feeds: ['s7-phase1'],
+      }),
     ],
     decisionGroups: [
       dg('s4-zones-dg1', 'Zone allocation', [
@@ -649,8 +699,11 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's5-access-c1',
         'Design primary vehicle access route from entry to all enterprise zones',
+        { feeds: ['s7-phase1'] },
       ),
-      ck('s5-access-c2', 'Define road and track standards for each use type'),
+      ck('s5-access-c2', 'Define road and track standards for each use type', {
+        feeds: ['s7-resource-plan'],
+      }),
       ck('s5-access-c3', 'Design pedestrian pathways between key working areas'),
       ck('s5-access-c4', 'Resolve conflicts between vehicle, animal, and pedestrian movement'),
       ck('s5-access-c5', 'Specify turning radii and passing points for farm vehicles'),
@@ -686,14 +739,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's5-water-infrastructure-c1',
         'Design primary water harvesting structures - dams, swales, tanks, ponds',
+        { feeds: ['s7-phase1'] },
       ),
       ck('s5-water-infrastructure-c2', 'Specify storage capacity and locations'),
       ck(
         's5-water-infrastructure-c3',
         'Design distribution network - pipelines, gravity feeds, pumping systems',
+        { feeds: ['s7-resource-plan'] },
       ),
-      ck('s5-water-infrastructure-c4', 'Design emergency overflow and spillway infrastructure'),
-      ck('s5-water-infrastructure-c5', 'Specify materials and construction standards'),
+      ck('s5-water-infrastructure-c4', 'Design emergency overflow and spillway infrastructure', {
+        feeds: ['s7-risk-register'],
+      }),
+      ck('s5-water-infrastructure-c5', 'Specify materials and construction standards', {
+        feeds: ['s7-resource-plan'],
+      }),
     ],
     decisionGroups: [
       dg(
@@ -729,13 +788,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's5-soil-improvement-c1',
         'Design soil improvement program by zone - composting, mulching, cover cropping',
+        { feeds: ['s7-phase1'] },
       ),
-      ck('s5-soil-improvement-c2', 'Specify application rates and timing for each zone'),
-      ck('s5-soil-improvement-c3', 'Define machinery and equipment requirements'),
-      ck('s5-soil-improvement-c4', 'Define priority zones for first-cycle improvement'),
+      ck('s5-soil-improvement-c2', 'Specify application rates and timing for each zone', {
+        feeds: ['s7-resource-plan'],
+      }),
+      ck('s5-soil-improvement-c3', 'Define machinery and equipment requirements', {
+        feeds: ['s7-resource-plan'],
+      }),
+      ck('s5-soil-improvement-c4', 'Define priority zones for first-cycle improvement', {
+        feeds: ['s7-phase1'],
+      }),
       ck(
         's5-soil-improvement-c5',
         'Establish soil health monitoring baseline for improvement tracking',
+        { feeds: ['s6-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -770,13 +837,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will the farm continuously read its own performance and feed that data back into Observe?',
     checklist: [
-      ck('s6-monitoring-c1', 'Define key indicators to monitor across all enterprises'),
-      ck('s6-monitoring-c2', 'Design data collection methods and recording systems'),
+      ck('s6-monitoring-c1', 'Define key indicators to monitor across all enterprises', {
+        feeds: ['s7-phase1'],
+      }),
+      ck('s6-monitoring-c2', 'Design data collection methods and recording systems', {
+        feeds: ['s7-resource-plan'],
+      }),
       ck('s6-monitoring-c3', 'Specify monitoring frequency by indicator'),
-      ck('s6-monitoring-c4', 'Define responsibility for each monitoring stream'),
+      ck('s6-monitoring-c4', 'Define responsibility for each monitoring stream', {
+        feeds: ['s7-resource-plan'],
+      }),
       ck(
         's6-monitoring-c5',
         'Define Observe feedback trigger points - when data initiates a Plan review',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [

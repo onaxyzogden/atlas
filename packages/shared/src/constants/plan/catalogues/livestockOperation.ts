@@ -73,10 +73,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s1-enterprise-vision-c1',
         'Define the enterprise type(s) - breeding herd/flock, grow-out/finishing, dairy, fibre, dual-purpose, or mixed',
+        { feeds: ['s4-direction', 'lvs-s4-species-breed'] },
       ),
       ck(
         'lvs-s1-enterprise-vision-c2',
         'Define species and candidate breeds - cattle, sheep, goats, pigs, poultry, or combination',
+        { feeds: ['lvs-s4-species-breed'] },
       ),
       ck(
         'lvs-s1-enterprise-vision-c3',
@@ -89,10 +91,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s1-enterprise-vision-c5',
         'Confirm the enterprise vision fits the steward experience and available labour',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s1-enterprise-vision-c6',
         'Confirm the vision is consistent with the site climate and feed base',
+        { feeds: ['lvs-s4-species-breed'] },
       ),
     ],
     decisionGroups: [
@@ -118,26 +122,32 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s1-production-goals-c1',
         'Define measurable production targets - head sold/yr, kg liveweight, litres, dozen eggs, breeding replacements',
+        { feeds: ['lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s1-production-goals-c2',
         'Define the target full-establishment herd/flock size',
+        { feeds: ['lvs-s4-stocking-rate'] },
       ),
       ck(
         'lvs-s1-production-goals-c3',
         'Define the establishment horizon - how many seasons to reach full scale',
+        { feeds: ['lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s1-production-goals-c4',
         'Assess steward stockmanship capacity - daily check, handling, calving/lambing, health intervention skill',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s1-production-goals-c5',
         'Confirm capital and operating budget envelope is realistic for the scale',
+        { feeds: ['lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s1-production-goals-c6',
         'Confirm a continuity / absence-cover plan exists - animals need daily care',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -163,26 +173,32 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s1-welfare-ethic-c1',
         'Define minimum space and stocking-density standards per species',
+        { feeds: ['lvs-s4-stocking-rate'] },
       ),
       ck(
         'lvs-s1-welfare-ethic-c2',
         'Define shelter standards per species - shade, wind protection, wet-weather and extreme-heat/cold refuge',
+        { feeds: ['lvs-s5-handling-shelter'] },
       ),
       ck(
         'lvs-s1-welfare-ethic-c3',
         'Define constant access to feed and clean water as a standing requirement',
+        { feeds: ['lvs-s4-stock-water-strategy', 'lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s1-welfare-ethic-c4',
         'Define a low-stress handling commitment and handling-frequency norms',
+        { feeds: ['lvs-s5-handling-shelter'] },
       ),
       ck(
         'lvs-s1-welfare-ethic-c5',
         'Define a humane health-intervention and end-of-life / emergency-euthanasia protocol',
+        { feeds: ['lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s1-welfare-ethic-c6',
         'Confirm standards meet or exceed applicable animal-welfare legislation',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -211,26 +227,32 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s2-forage-base-c1',
         'Map pasture/forage communities by zone - species composition and ground cover',
+        { feeds: ['s5-soil-improvement', 'lvs-s4-grazing-system'] },
       ),
       ck(
         'lvs-s2-forage-base-c2',
         'Assess forage condition per zone - excellent, good, fair, poor, degraded',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'lvs-s2-forage-base-c3',
         'Identify desirable forage species and legume content present',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'lvs-s2-forage-base-c4',
         'Identify weed, toxic, and bare-ground problem areas',
+        { feeds: ['s5-soil-improvement', 's7-risk-register'] },
       ),
       ck(
         'lvs-s2-forage-base-c5',
         'Record seasonal forage availability and quality curve across the year',
+        { feeds: ['lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s2-forage-base-c6',
         'Estimate the share of annual feed the land can supply vs bought-in feed',
+        { feeds: ['lvs-s4-grazing-system', 'lvs-s5-feed-budget'] },
       ),
     ],
     decisionGroups: [
@@ -256,22 +278,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s2-stock-water-sources-c1',
         'Inventory all potential stock-water sources - wells, dams/ponds, streams, mains, rainwater',
+        { feeds: ['s4-water-strategy', 'lvs-s4-stock-water-strategy'] },
       ),
       ck(
         'lvs-s2-stock-water-sources-c2',
         'Assess each source reliability across seasons and drought',
+        { feeds: ['lvs-s4-stock-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'lvs-s2-stock-water-sources-c3',
         'Test/record water quality and stock-suitability concerns',
+        { feeds: ['lvs-s4-stock-water-strategy'] },
       ),
       ck(
         'lvs-s2-stock-water-sources-c4',
         'Map existing reticulation - pipes, troughs, tanks, pumps and their condition',
+        { feeds: ['s5-water-infrastructure', 'lvs-s5-fencing-water'] },
       ),
       ck(
         'lvs-s2-stock-water-sources-c5',
         'Identify paddocks/zones with no current water access',
+        { feeds: ['lvs-s4-stock-water-strategy', 'lvs-s5-fencing-water'] },
       ),
     ],
     decisionGroups: [
@@ -297,22 +324,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s2-existing-infrastructure-c1',
         'Inventory existing fencing - type, condition, and stock-tightness per species',
+        { feeds: ['lvs-s5-fencing-water'] },
       ),
       ck(
         'lvs-s2-existing-infrastructure-c2',
         'Assess existing yards and handling facilities - capacity, layout, safety, condition',
+        { feeds: ['lvs-s5-handling-shelter'] },
       ),
       ck(
         'lvs-s2-existing-infrastructure-c3',
         'Assess existing shelters and barns - condition and species suitability',
+        { feeds: ['lvs-s5-handling-shelter'] },
       ),
       ck(
         'lvs-s2-existing-infrastructure-c4',
         'Map existing laneways and gateways - width, surface, flow, condition',
+        { feeds: ['s5-access', 'lvs-s5-paddock-layout'] },
       ),
       ck(
         'lvs-s2-existing-infrastructure-c5',
         'Record reuse potential and obvious replacement needs',
+        { feeds: ['s7-resource-plan', 'lvs-s7-herd-buildup'] },
       ),
     ],
     decisionGroups: [
@@ -357,14 +389,17 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s3-carrying-capacity-c3',
         'Identify the feed-deficit (bottleneck) season that sets the safe stocking ceiling',
+        { feeds: ['lvs-s4-stocking-rate', 'lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s3-carrying-capacity-c4',
         'Define the conservative vs productive stocking-rate scenarios',
+        { feeds: ['lvs-s4-stocking-rate'] },
       ),
       ck(
         'lvs-s3-carrying-capacity-c5',
         'Record assumptions and confidence level behind the estimate',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -390,22 +425,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s3-health-baseline-c1',
         'Record regional/endemic disease pressures relevant to the chosen species',
+        { feeds: ['lvs-s4-species-breed', 'lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s3-health-baseline-c2',
         'Record internal/external parasite pressure and known resistance issues',
+        { feeds: ['lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s3-health-baseline-c3',
         'Record soil/forage mineral status driving deficiency or toxicity risk',
+        { feeds: ['s5-soil-improvement', 'lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s3-health-baseline-c4',
         'Identify notifiable diseases and mandatory reporting/movement rules',
+        { feeds: ['lvs-s6-biosecurity', 's7-risk-register'] },
       ),
       ck(
         'lvs-s3-health-baseline-c5',
         'Record the nearest veterinary and diagnostic support and response time',
+        { feeds: ['lvs-s6-herd-health', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -431,22 +471,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s3-predator-risk-c1',
         'Identify predator species and historical predation pressure by zone',
+        { feeds: ['lvs-s5-fencing-water', 'lvs-s6-biosecurity'] },
       ),
       ck(
         'lvs-s3-predator-risk-c2',
         'Identify biosecurity incursion vectors - boundaries, shared water, neighbour stock, wildlife',
+        { feeds: ['lvs-s6-biosecurity'] },
       ),
       ck(
         'lvs-s3-predator-risk-c3',
         'Identify climate hazards to stock - heat, cold, flood, fire, drought',
+        { feeds: ['lvs-s5-handling-shelter', 's7-risk-register'] },
       ),
       ck(
         'lvs-s3-predator-risk-c4',
         'Record boundary security and neighbour-stock contact risk',
+        { feeds: ['lvs-s5-fencing-water', 'lvs-s6-biosecurity'] },
       ),
       ck(
         'lvs-s3-predator-risk-c5',
         'Rank the risks by likelihood and impact',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -473,18 +518,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s4-species-breed-c1',
         'Commit final species selection against feed base and steward capacity',
+        { feeds: ['lvs-s5-feed-budget', 'lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s4-species-breed-c2',
         'Commit breed(s) per species - hardiness, temperament, market fit, climate adaptation',
+        { feeds: ['lvs-s6-herd-health', 'lvs-s7-marketing'] },
       ),
       ck(
         'lvs-s4-species-breed-c3',
         'Decide breeding-stock sourcing strategy - buy in, raise replacements, or both',
+        { feeds: ['lvs-s7-herd-buildup', 'lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s4-species-breed-c4',
         'Decide genetic/health entry standards for incoming stock',
+        { feeds: ['lvs-s6-biosecurity'] },
       ),
       ck(
         'lvs-s4-species-breed-c5',
@@ -523,18 +572,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s4-stocking-rate-c2',
         'Decide herd/flock structure - breeders, replacements, growers, finishers, sires',
+        { feeds: ['lvs-s5-paddock-layout', 'lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s4-stocking-rate-c3',
         'Decide the flex/destock policy for feed-deficit seasons and drought',
+        { feeds: ['lvs-s5-feed-budget', 's7-risk-register'] },
       ),
       ck(
         'lvs-s4-stocking-rate-c4',
         'Decide the replacement and culling rate to hold structure stable',
+        { feeds: ['lvs-s6-herd-health'] },
       ),
       ck(
         'lvs-s4-stocking-rate-c5',
         'Confirm the stocking decision leaves a feed-safety margin',
+        { feeds: ['lvs-s5-feed-budget'] },
       ),
     ],
     decisionGroups: [
@@ -560,18 +613,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s4-grazing-system-c1',
         'Decide the core grazing method - continuous, rotational, adaptive multi-paddock, or mob',
+        { feeds: ['lvs-s5-paddock-layout', 'lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s4-grazing-system-c2',
         'Decide the role and timing of any confinement / barn feeding',
+        { feeds: ['lvs-s5-handling-shelter', 'lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s4-grazing-system-c3',
         'Decide rest-and-recovery rules - graze period, rest period, residual targets',
+        { feeds: ['s5-soil-improvement', 'lvs-s5-paddock-layout'] },
       ),
       ck(
         'lvs-s4-grazing-system-c4',
         'Decide the supplementary-feeding trigger and policy',
+        { feeds: ['lvs-s5-feed-budget'] },
       ),
       ck(
         'lvs-s4-grazing-system-c5',
@@ -610,18 +667,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s4-stock-water-strategy-c2',
         'Decide source priority and any new source development',
+        { feeds: ['s5-water-infrastructure', 'lvs-s5-fencing-water'] },
       ),
       ck(
         'lvs-s4-stock-water-strategy-c3',
         'Decide the reticulation approach - gravity, pumped, storage buffering',
+        { feeds: ['lvs-s5-fencing-water'] },
       ),
       ck(
         'lvs-s4-stock-water-strategy-c4',
         'Decide maximum walk-to-water distance per species and paddock',
+        { feeds: ['lvs-s5-paddock-layout'] },
       ),
       ck(
         'lvs-s4-stock-water-strategy-c5',
         'Confirm supply meets peak demand with a drought buffer',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -664,10 +725,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s5-paddock-layout-c3',
         'Design laneways and gate placement for low-stress flow to water and yards',
+        { feeds: ['lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-paddock-layout-c4',
         'Locate sacrifice / stand-off areas for wet conditions and confinement feeding',
+        { feeds: ['lvs-s6-nutrient-cycling'] },
       ),
       ck(
         'lvs-s5-paddock-layout-c5',
@@ -697,22 +760,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s5-fencing-water-c1',
         'Specify perimeter and subdivision fencing types per species and budget',
+        { feeds: ['s7-resource-plan', 'lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s5-fencing-water-c2',
         'Specify permanent vs temporary/electric fencing for flexible grazing',
+        { feeds: ['lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-fencing-water-c3',
         'Design the water reticulation - mains, pipe runs, tanks, trough placement',
+        { feeds: ['s7-resource-plan', 'lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-fencing-water-c4',
         'Specify pump/power and storage to hold peak demand',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s5-fencing-water-c5',
         'Sequence fencing and water builds against the establishment plan',
+        { feeds: ['lvs-s7-herd-buildup'] },
       ),
     ],
     decisionGroups: [
@@ -738,18 +806,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s5-handling-shelter-c1',
         'Design yards, race, and crush/handling system sized to peak throughput and species',
+        { feeds: ['s7-resource-plan', 'lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-handling-shelter-c2',
         'Locate handling facilities for low-stress access from all paddocks',
+        { feeds: ['lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-handling-shelter-c3',
         'Design shade, wind, and wet/extreme-weather shelter per species',
+        { feeds: ['s7-resource-plan', 'lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-handling-shelter-c4',
         'Design loading/unloading and quarantine/sick-bay provision',
+        { feeds: ['lvs-s6-biosecurity', 'lvs-s7-herd-buildup'] },
       ),
       ck(
         'lvs-s5-handling-shelter-c5',
@@ -787,14 +859,17 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s5-feed-budget-c2',
         'Quantify the deficit-season gap to fill with conserved or bought-in feed',
+        { feeds: ['lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s5-feed-budget-c3',
         'Decide conserved-feed strategy - hay/silage made on-site vs purchased',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s5-feed-budget-c4',
         'Decide storage and the safe-reserve (drought buffer) volume',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'lvs-s5-feed-budget-c5',
@@ -825,26 +900,32 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s6-herd-health-c1',
         'Define the animal-health calendar - vaccination, parasite, mineral, hoof/teeth, body-condition checks',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'lvs-s6-herd-health-c2',
         'Define the breeding plan - mating/joining windows, gestation, calving/lambing/farrowing management',
+        { feeds: ['lvs-s7-herd-buildup', 'lvs-s7-break-even'] },
       ),
       ck(
         'lvs-s6-herd-health-c3',
         'Define replacement, weaning, and culling decisions and timing',
+        { feeds: ['lvs-s7-break-even', 'lvs-s7-marketing'] },
       ),
       ck(
         'lvs-s6-herd-health-c4',
         'Define identification, record-keeping, and traceability practice',
+        { feeds: ['lvs-s7-marketing'] },
       ),
       ck(
         'lvs-s6-herd-health-c5',
         'Define the veterinary relationship and intervention thresholds',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s6-herd-health-c6',
         'Define the response protocol for sick, injured, or down animals',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -870,18 +951,22 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s6-nutrient-cycling-c1',
         'Define how grazing impact and dung/urine distribution are managed to lift fertility',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'lvs-s6-nutrient-cycling-c2',
         'Define manure handling from confinement/handling areas - capture, compost, return',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'lvs-s6-nutrient-cycling-c3',
         'Define the pasture-recovery and overseeding/renovation approach',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'lvs-s6-nutrient-cycling-c4',
         'Define nutrient-balance monitoring to avoid hotspots and runoff',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-s6-nutrient-cycling-c5',
@@ -911,22 +996,27 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-s6-biosecurity-c1',
         'Define predator-deterrence measures - guardian animals, fencing, night housing, husbandry timing',
+        { feeds: ['lvs-s7-herd-buildup', 's7-risk-register'] },
       ),
       ck(
         'lvs-s6-biosecurity-c2',
         'Define the guardian-animal plan if used - species, number, integration, welfare',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-s6-biosecurity-c3',
         'Define the biosecurity protocol - quarantine of incoming stock, visitor/vehicle hygiene',
+        { feeds: ['lvs-s7-herd-buildup', 's7-risk-register'] },
       ),
       ck(
         'lvs-s6-biosecurity-c4',
         'Define boundary and shared-water controls against neighbour-stock contact',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-s6-biosecurity-c5',
         'Define the disease-outbreak response and notifiable-disease procedure',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1128,18 +1218,22 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s1-enterprise-intent-c1',
         'Define the enterprise intent - product (meat, milk, fibre, eggs), land-management service, or both',
+        { feeds: ['s4-direction', 'lvs-sec-s4-species-stocking'] },
       ),
       ck(
         'lvs-sec-s1-enterprise-intent-c2',
         'Identify candidate species and classes of stock - ruminants, poultry, pigs, mixed',
+        { feeds: ['lvs-sec-s4-species-stocking'] },
       ),
       ck(
         'lvs-sec-s1-enterprise-intent-c3',
         'Define how the herd relates to the host enterprise - complementary, supplementary, or competing for land and labour',
+        { feeds: ['lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s1-enterprise-intent-c4',
         'Identify operator livestock experience and the daily labour available for stock care',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-sec-s1-enterprise-intent-c5',
@@ -1171,6 +1265,7 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s3-carrying-capacity-fit-c1',
         'Map the host grazeable forage by zone - pasture, crop residue, understorey, cover crops - composition and condition',
+        { feeds: ['s5-soil-improvement', 'lvs-sec-s4-species-stocking'] },
       ),
       ckF(
         'lvs-sec-s3-carrying-capacity-fit-c2',
@@ -1193,10 +1288,12 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s3-carrying-capacity-fit-c4',
         'Identify how much host area is realistically available to stock without compromising the primary enterprise',
+        { feeds: ['lvs-sec-s4-species-stocking', 'lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s3-carrying-capacity-fit-c5',
         'Assess weed and toxic-plant presence relevant to the candidate stock species',
+        { feeds: ['lvs-sec-s4-species-stocking', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1224,6 +1321,7 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s4-species-stocking-c1',
         'Confirm species and breed selection against the host climate, forage, and enterprise intent',
+        { feeds: ['lvs-sec-s5-integration-timing', 'lvs-sec-s6-health-biosecurity'] },
       ),
       ckF(
         'lvs-sec-s4-species-stocking-c2',
@@ -1237,14 +1335,17 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s4-species-stocking-c3',
         'Define the grazing system - continuous, rotational, cell, or mob - and the rationale',
+        { feeds: ['lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s4-species-stocking-c4',
         'Define graze-period and rest-period targets per season, tied to recovery indicators',
+        { feeds: ['s5-soil-improvement', 'lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s4-species-stocking-c5',
         'Define the winter / dry-season feed budget and its contingency - carried fodder, supplementary feed, planned destocking, or agistment triggers',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'lvs-sec-s4-species-stocking-c6',
@@ -1275,22 +1376,27 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s4-stock-infrastructure-c1',
         'Design fencing - perimeter and subdivision, type per zone (permanent, electric, or hybrid) appropriate to the candidate species',
+        { feeds: ['s5-access', 'lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s4-stock-infrastructure-c2',
         'Design handling facilities - yards, race, and loading sized to species and scale for low-stress routine husbandry',
+        { feeds: ['s7-resource-plan', 'lvs-sec-s5-integration-timing'] },
       ),
       ck(
         'lvs-sec-s4-stock-infrastructure-c3',
         'Design shelter - shade and weather refuge adequate to the stock and the host climate',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-sec-s4-stock-infrastructure-c4',
         'Confirm water reticulation is installed and proven to every grazing area (demand detail owned by the water-strategy patch)',
+        { feeds: ['s5-water-infrastructure'] },
       ),
       ck(
         'lvs-sec-s4-stock-infrastructure-c5',
         'Define the establishment go/no-go - no livestock arrive before water, fencing, and handling each pass an independent readiness test',
+        { feeds: ['s7-phase1', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1320,14 +1426,17 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s5-integration-timing-c1',
         'Map the animal-impact windows against the host production calendar - when stock are invited in (orchard floor post-harvest, market-garden beds between rotations, cover-crop termination) and when they are excluded (fruit set/drop, seedling establishment, food-safety pre-harvest intervals)',
+        { feeds: ['lvs-sec-s6-health-biosecurity', 'lvs-sec-s6-nutrient-integration'] },
       ),
       ck(
         'lvs-sec-s5-integration-timing-c2',
         'Define functional stacking per species - each animal performing more than grazing (poultry: eggs, tillage, pest control, manure; pigs: windfall and cleanup; geese: selective grazing; ruminants: mowing and fertility)',
+        { feeds: ['lvs-sec-s6-nutrient-integration'] },
       ),
       ck(
         'lvs-sec-s5-integration-timing-c3',
         'Define sequencing / leader-follower moves where multi-species - the spatial flow across the host',
+        { feeds: ['s7-phase1'] },
       ),
       ckF(
         'lvs-sec-s5-integration-timing-c4',
@@ -1341,6 +1450,7 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s5-integration-timing-c5',
         'Confirm the impact timing protects the host primary yield and is consistent with the grazing system and the host calendar',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1368,30 +1478,37 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s6-health-biosecurity-c1',
         'Define the animal health program - vaccination, parasite management, and the veterinary relationship',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c2',
         'Define the daily welfare standard - feed, water, shade, low-stress handling - and humane and halal handling / slaughter-pathway intent where stock is raised for meat',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c3',
         'Define biosecurity at the host interface - separating stock from food crops, nursery stock, and visitor areas; manure-pathogen and zoonosis controls',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c4',
         'Define predator pressure and guardian strategy - guardian animals (dogs, geese, donkeys), night housing, and fencing appropriate to the host and candidate stock',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c5',
         'Define wildlife and neighbouring-stock disease-vector controls and a quarantine protocol for incoming animals',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c6',
         'Confirm regulatory compliance - animal-welfare legislation and any stock identification / movement requirements for the jurisdiction',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-health-biosecurity-c7',
         'Define record-keeping for stock numbers, health events, and movements',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -1420,22 +1537,27 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'lvs-sec-s6-nutrient-integration-c1',
         'Map manure / nutrient flows from stock into the host crops, orchard floor, or pasture',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'lvs-sec-s6-nutrient-integration-c2',
         'Assess the livestock-to-land fertility balance - is the herd under-, at-, or over-stocked for closed-loop fertility (carrying enough animals to be self-sufficient in fertility without importing inputs)',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'lvs-sec-s6-nutrient-integration-c3',
         'Identify manure as a substrate for on-farm preparations / composting - e.g. quality compost, and for a biodynamic steward preparation-making such as horn-manure - fertility the host would otherwise buy in',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'lvs-sec-s6-nutrient-integration-c4',
         'Define safe manure handling - composting and withholding periods before food-crop contact (food-safety contamination guard)',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-nutrient-integration-c5',
         'Define the overgrazing / compaction guard on the host productive ground - graze/rest thresholds, exclusion zones, and nutrient-loading limits so density does not over-fertilise or pollute waterways',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'lvs-sec-s6-nutrient-integration-c6',

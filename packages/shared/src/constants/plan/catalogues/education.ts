@@ -66,11 +66,11 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What will people learn here, who are they, and what outcomes define educational success?',
     checklist: [
-      ck('edu-s1-mission-audience-c1', 'Define primary educational mission in plain language'),
+      ck('edu-s1-mission-audience-c1', 'Define primary educational mission in plain language', { feeds: ['s4-direction', 'edu-s6-program-evaluation'] }),
       ck('edu-s1-mission-audience-c2', 'Identify primary audience - school groups, farmers, general public, practitioners, children'),
-      ck('edu-s1-mission-audience-c3', 'Define learning outcomes per program type'),
+      ck('edu-s1-mission-audience-c3', 'Define learning outcomes per program type', { feeds: ['edu-s6-program-evaluation'] }),
       ck('edu-s1-mission-audience-c4', 'Define what this site teaches that cannot be taught in a classroom'),
-      ck('edu-s1-mission-audience-c5', 'Confirm mission is achievable within steward knowledge and site capacity'),
+      ck('edu-s1-mission-audience-c5', 'Confirm mission is achievable within steward knowledge and site capacity', { feeds: ['s7-resource-plan'] }),
     ],
     decisionGroups: [
       dg('edu-s1-mission-audience-dg1', 'Mission & audience', ['edu-s1-mission-audience-c1', 'edu-s1-mission-audience-c2']),
@@ -91,10 +91,10 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What programs will be offered - and how do they determine infrastructure sizing and scheduling?',
     checklist: [
-      ck('edu-s1-curriculum-programs-c1', 'Define program types - day workshops, half-day tours, school excursions, multi-day residencies, online hybrid'),
+      ck('edu-s1-curriculum-programs-c1', 'Define program types - day workshops, half-day tours, school excursions, multi-day residencies, online hybrid', { feeds: ['edu-s4-program-delivery', 'edu-s7-program-launch'] }),
       ck('edu-s1-curriculum-programs-c2', 'Define curriculum themes per program type - soil, food systems, ecology, permaculture design'),
-      ck('edu-s1-curriculum-programs-c3', 'Define maximum group size per program type'),
-      ck('edu-s1-curriculum-programs-c4', 'Define annual program calendar - frequency, seasonality'),
+      ck('edu-s1-curriculum-programs-c3', 'Define maximum group size per program type', { feeds: ['edu-s5-teaching-spaces', 'edu-s5-learner-amenity', 'edu-s7-financial-viability'] }),
+      ck('edu-s1-curriculum-programs-c4', 'Define annual program calendar - frequency, seasonality', { feeds: ['edu-s7-program-launch', 'edu-s7-financial-viability'] }),
       ck('edu-s1-curriculum-programs-c5', 'Confirm curriculum framework is consistent with educational mission'),
       ck('edu-s1-curriculum-programs-c6', 'Define curriculum development and review process'),
     ],
@@ -118,12 +118,12 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What permits, insurance, and compliance obligations must be in place before the public arrives?',
     checklist: [
-      ck('edu-s1-regulatory-framework-c1', 'Identify public access and liability insurance requirements'),
+      ck('edu-s1-regulatory-framework-c1', 'Identify public access and liability insurance requirements', { feeds: ['edu-s6-external-relations-compliance', 's7-risk-register'] }),
       ck('edu-s1-regulatory-framework-c2', 'Identify working with children or vulnerable persons requirements if applicable'),
-      ck('edu-s1-regulatory-framework-c3', 'Identify food handling permits if meals or food tasting is offered'),
+      ck('edu-s1-regulatory-framework-c3', 'Identify food handling permits if meals or food tasting is offered', { feeds: ['edu-s4-food-hospitality', 'edu-s5-food-kitchen'] }),
       ck('edu-s1-regulatory-framework-c4', 'Identify building permits for teaching structures'),
       ck('edu-s1-regulatory-framework-c5', 'Define any accreditation intent - RTO, CPD provider, curriculum alignment'),
-      ck('edu-s1-regulatory-framework-c6', 'Define compliance calendar - renewal dates and ongoing obligations'),
+      ck('edu-s1-regulatory-framework-c6', 'Define compliance calendar - renewal dates and ongoing obligations', { feeds: ['edu-s6-external-relations-compliance', 'edu-s7-instructor-onboarding'] }),
     ],
     decisionGroups: [
       dg('edu-s1-regulatory-framework-dg1', 'Access, liability & child safety', ['edu-s1-regulatory-framework-c1', 'edu-s1-regulatory-framework-c2']),
@@ -148,8 +148,8 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What teaching rooms, demonstration areas, outdoor classrooms, and interpretive infrastructure already exist?',
     checklist: [
-      ck('edu-s2-teaching-infrastructure-c1', 'Inventory all existing teaching-capable spaces - indoor and outdoor'),
-      ck('edu-s2-teaching-infrastructure-c2', 'Assess capacity, comfort, and suitability per program type'),
+      ck('edu-s2-teaching-infrastructure-c1', 'Inventory all existing teaching-capable spaces - indoor and outdoor', { feeds: ['edu-s4-teaching-zone-allocation', 'edu-s5-teaching-spaces'] }),
+      ck('edu-s2-teaching-infrastructure-c2', 'Assess capacity, comfort, and suitability per program type', { feeds: ['edu-s5-teaching-spaces'] }),
       ck('edu-s2-teaching-infrastructure-c3', 'Assess acoustic quality in existing teaching spaces'),
       ck('edu-s2-teaching-infrastructure-c4', 'Identify demonstration plots or displays already established'),
       ck('edu-s2-teaching-infrastructure-c5', 'Assess interpretive signage and wayfinding condition'),
@@ -173,8 +173,8 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What features of this site are most valuable for teaching - and which are underutilised?',
     checklist: [
-      ck('edu-s2-learning-potential-c1', 'Map all site features with demonstration potential - soil profiles, water systems, plant communities, productive zones'),
-      ck('edu-s2-learning-potential-c2', 'Assess which features best illustrate the curriculum themes'),
+      ck('edu-s2-learning-potential-c1', 'Map all site features with demonstration potential - soil profiles, water systems, plant communities, productive zones', { feeds: ['edu-s4-teaching-zone-allocation', 'edu-s5-demo-plots-signage'] }),
+      ck('edu-s2-learning-potential-c2', 'Assess which features best illustrate the curriculum themes', { feeds: ['edu-s4-teaching-zone-allocation'] }),
       ck('edu-s2-learning-potential-c3', 'Identify gaps - what curriculum themes lack a physical demonstration on site'),
       ck('edu-s2-learning-potential-c4', 'Define site learning strengths - what this site teaches better than any other'),
       ck('edu-s2-learning-potential-c5', 'Define site learning limitations - what must be supplemented with off-site resources'),
@@ -200,9 +200,9 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'What surrounding landscape context enriches or constrains the educational program?',
     checklist: [
       ck('edu-s2-landscape-vectors-c1', 'Map surrounding land uses within 2km - relevant to landscape ecology teaching'),
-      ck('edu-s2-landscape-vectors-c2', 'Identify landscape-scale features with educational value - watershed, corridor, land use contrast'),
-      ck('edu-s2-landscape-vectors-c3', 'Assess contamination risk to site from surrounding land - relevant if food tasting offered'),
-      ck('edu-s2-landscape-vectors-c4', 'Assess drinking water catchment contamination risk if food or drink served on site'),
+      ck('edu-s2-landscape-vectors-c2', 'Identify landscape-scale features with educational value - watershed, corridor, land use contrast', { feeds: ['edu-s4-teaching-zone-allocation'] }),
+      ck('edu-s2-landscape-vectors-c3', 'Assess contamination risk to site from surrounding land - relevant if food tasting offered', { feeds: ['edu-s4-food-hospitality', 's7-risk-register'] }),
+      ck('edu-s2-landscape-vectors-c4', 'Assess drinking water catchment contamination risk if food or drink served on site', { feeds: ['edu-s4-food-hospitality', 's7-risk-register'] }),
       ck('edu-s2-landscape-vectors-c5', 'Identify community resources that could enrich curriculum - reserves, farms, cultural sites'),
     ],
     decisionGroups: [
@@ -225,12 +225,12 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What access, mobility, and safety conditions affect how learners move through the site?',
     checklist: [
-      ck('edu-s3-learner-access-safety-c1', 'Assess accessibility - wheelchair and mobility-impaired access to all intended teaching zones'),
-      ck('edu-s3-learner-access-safety-c2', 'Identify trip hazards, uneven surfaces, and safety risks on all learner pathways'),
-      ck('edu-s3-learner-access-safety-c3', 'Assess toilet facility location and adequacy for group sizes'),
-      ck('edu-s3-learner-access-safety-c4', 'Assess first aid access and response time'),
+      ck('edu-s3-learner-access-safety-c1', 'Assess accessibility - wheelchair and mobility-impaired access to all intended teaching zones', { feeds: ['s5-access', 'edu-s5-learner-amenity'] }),
+      ck('edu-s3-learner-access-safety-c2', 'Identify trip hazards, uneven surfaces, and safety risks on all learner pathways', { feeds: ['edu-s4-safety-risk-framework', 's7-risk-register'] }),
+      ck('edu-s3-learner-access-safety-c3', 'Assess toilet facility location and adequacy for group sizes', { feeds: ['edu-s5-learner-amenity'] }),
+      ck('edu-s3-learner-access-safety-c4', 'Assess first aid access and response time', { feeds: ['edu-s5-learner-amenity'] }),
       ck('edu-s3-learner-access-safety-c5', 'Assess bus and vehicle drop-off safety'),
-      ck('edu-s3-learner-access-safety-c6', 'Identify hazardous areas requiring exclusion fencing or signage'),
+      ck('edu-s3-learner-access-safety-c6', 'Identify hazardous areas requiring exclusion fencing or signage', { feeds: ['edu-s4-safety-risk-framework'] }),
     ],
     decisionGroups: [
       dg('edu-s3-learner-access-safety-dg1', 'Accessibility & hazards', ['edu-s3-learner-access-safety-c1', 'edu-s3-learner-access-safety-c2']),
@@ -251,11 +251,11 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What is the current ecological and productive condition of proposed demonstration sites?',
     checklist: [
-      ck('edu-s3-demo-baseline-c1', 'Assess soil health in proposed demonstration garden zones'),
+      ck('edu-s3-demo-baseline-c1', 'Assess soil health in proposed demonstration garden zones', { feeds: ['s5-soil-improvement', 'edu-s5-demo-plots-signage'] }),
       ck('edu-s3-demo-baseline-c2', 'Record existing productive plants and their condition'),
       ck('edu-s3-demo-baseline-c3', 'Identify weed pressure in demonstration areas'),
-      ck('edu-s3-demo-baseline-c4', 'Assess water access for demonstration zone irrigation'),
-      ck('edu-s3-demo-baseline-c5', 'Define soil and ecological improvement required before demonstration planting begins'),
+      ck('edu-s3-demo-baseline-c4', 'Assess water access for demonstration zone irrigation', { feeds: ['s5-water-infrastructure'] }),
+      ck('edu-s3-demo-baseline-c5', 'Define soil and ecological improvement required before demonstration planting begins', { feeds: ['edu-s5-demo-plots-signage', 'edu-s6-adaptive-management'] }),
     ],
     decisionGroups: [
       dg('edu-s3-demo-baseline-dg1', 'Soil & plant condition', ['edu-s3-demo-baseline-c1', 'edu-s3-demo-baseline-c2']),
@@ -278,10 +278,10 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Where will each teaching space, demonstration plot, and interpretive feature be located - and how do they connect into a coherent learning journey?',
     checklist: [
       ck('edu-s4-teaching-zone-allocation-c1', 'Define indoor teaching space location - weather backup for all outdoor programs'),
-      ck('edu-s4-teaching-zone-allocation-c2', 'Define outdoor classroom location - shade, acoustics, sight lines for demonstrations'),
-      ck('edu-s4-teaching-zone-allocation-c3', 'Define demonstration plot locations by curriculum theme'),
-      ck('edu-s4-teaching-zone-allocation-c4', 'Define interpretive trail route connecting key teaching features'),
-      ck('edu-s4-teaching-zone-allocation-c5', 'Define learner journey sequence - arrival, orientation, program flow, departure'),
+      ck('edu-s4-teaching-zone-allocation-c2', 'Define outdoor classroom location - shade, acoustics, sight lines for demonstrations', { feeds: ['edu-s5-teaching-spaces'] }),
+      ck('edu-s4-teaching-zone-allocation-c3', 'Define demonstration plot locations by curriculum theme', { feeds: ['edu-s5-demo-plots-signage'] }),
+      ck('edu-s4-teaching-zone-allocation-c4', 'Define interpretive trail route connecting key teaching features', { feeds: ['edu-s5-demo-plots-signage'] }),
+      ck('edu-s4-teaching-zone-allocation-c5', 'Define learner journey sequence - arrival, orientation, program flow, departure', { feeds: ['edu-s5-learner-amenity', 'edu-s7-program-launch'] }),
       ck('edu-s4-teaching-zone-allocation-c6', 'Confirm all teaching zones are accessible and safe for target audience'),
       ck('edu-s4-teaching-zone-allocation-c7', 'Ground teaching zone placement in the Tier 1 site learning potential and teaching infrastructure surveys'),
     ],
@@ -304,12 +304,12 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What safety systems, risk assessments, and emergency protocols must be in place before any learner group arrives?',
     checklist: [
-      ck('edu-s4-safety-risk-framework-c1', 'Define site risk assessment - all hazards mapped and mitigation confirmed'),
+      ck('edu-s4-safety-risk-framework-c1', 'Define site risk assessment - all hazards mapped and mitigation confirmed', { feeds: ['edu-s5-learner-amenity', 's7-risk-register'] }),
       ck('edu-s4-safety-risk-framework-c2', 'Define emergency evacuation plan for group sizes'),
-      ck('edu-s4-safety-risk-framework-c3', 'Define first aid protocol - trained personnel, equipment, contacts'),
+      ck('edu-s4-safety-risk-framework-c3', 'Define first aid protocol - trained personnel, equipment, contacts', { feeds: ['edu-s5-learner-amenity'] }),
       ck('edu-s4-safety-risk-framework-c4', 'Define hazardous area exclusion - fencing, signage, supervision requirements'),
       ck('edu-s4-safety-risk-framework-c5', 'Define child safety protocol if programs include minors'),
-      ck('edu-s4-safety-risk-framework-c6', 'Confirm all safety requirements are met before first group arrival'),
+      ck('edu-s4-safety-risk-framework-c6', 'Confirm all safety requirements are met before first group arrival', { feeds: ['edu-s7-program-launch'] }),
       ck('edu-s4-safety-risk-framework-c7', 'Ground the risk assessment in the Tier 2 learner access and safety conditions survey'),
     ],
     decisionGroups: [
@@ -335,10 +335,10 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'How will programs be delivered - who teaches, what format, and how is quality maintained?',
     checklist: [
       ck('edu-s4-program-delivery-c1', 'Define delivery format per program type - facilitated, self-guided, hybrid'),
-      ck('edu-s4-program-delivery-c2', 'Define instructor requirements per program - qualifications, experience, group ratios'),
+      ck('edu-s4-program-delivery-c2', 'Define instructor requirements per program - qualifications, experience, group ratios', { feeds: ['edu-s7-instructor-onboarding', 'edu-s7-financial-viability'] }),
       ck('edu-s4-program-delivery-c3', 'Define program structure - arrival, orientation, activities, reflection, departure'),
-      ck('edu-s4-program-delivery-c4', 'Define quality standards - what defines a successful program delivery'),
-      ck('edu-s4-program-delivery-c5', 'Define program development and review cycle'),
+      ck('edu-s4-program-delivery-c4', 'Define quality standards - what defines a successful program delivery', { feeds: ['edu-s6-program-evaluation', 'edu-s7-instructor-onboarding'] }),
+      ck('edu-s4-program-delivery-c5', 'Define program development and review cycle', { feeds: ['edu-s6-program-evaluation'] }),
       ck('edu-s4-program-delivery-c6', 'Confirm formats and ratios against the Tier 0 program types and maximum group sizes'),
     ],
     decisionGroups: [
@@ -361,10 +361,10 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'If food or drink is served - what is the provision model and what compliance obligations apply?',
     checklist: [
-      ck('edu-s4-food-hospitality-c1', 'Define food provision scope - morning tea, lunch, food tasting, farm-to-table meal'),
+      ck('edu-s4-food-hospitality-c1', 'Define food provision scope - morning tea, lunch, food tasting, farm-to-table meal', { feeds: ['edu-s5-food-kitchen'] }),
       ck('edu-s4-food-hospitality-c2', 'Define food sourcing - from site, local farms, or catered'),
-      ck('edu-s4-food-hospitality-c3', 'Define food preparation infrastructure required - kitchen, outdoor cooking, cold storage'),
-      ck('edu-s4-food-hospitality-c4', 'Define food safety compliance requirements for group service'),
+      ck('edu-s4-food-hospitality-c3', 'Define food preparation infrastructure required - kitchen, outdoor cooking, cold storage', { feeds: ['edu-s5-food-kitchen'] }),
+      ck('edu-s4-food-hospitality-c4', 'Define food safety compliance requirements for group service', { feeds: ['edu-s5-food-kitchen'] }),
       ck('edu-s4-food-hospitality-c5', 'Confirm food provision is consistent with regulatory framework from Tier 0'),
     ],
     decisionGroups: [
@@ -388,10 +388,10 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will indoor and outdoor teaching spaces be designed for the defined program types and group sizes?',
     checklist: [
-      ck('edu-s5-teaching-spaces-c1', 'Design indoor teaching space - capacity, acoustic quality, natural light, weather-proofing'),
+      ck('edu-s5-teaching-spaces-c1', 'Design indoor teaching space - capacity, acoustic quality, natural light, weather-proofing', { feeds: ['s7-phase1'] }),
       ck('edu-s5-teaching-spaces-c2', 'Design outdoor classroom - seating, shade structure, acoustic design, whiteboard or display surface'),
       ck('edu-s5-teaching-spaces-c3', 'Design demonstration staging areas - sight lines for group observation of demonstrations'),
-      ck('edu-s5-teaching-spaces-c4', 'Specify materials - natural, durable, consistent with educational aesthetic'),
+      ck('edu-s5-teaching-spaces-c4', 'Specify materials - natural, durable, consistent with educational aesthetic', { feeds: ['s7-resource-plan'] }),
       ck('edu-s5-teaching-spaces-c5', 'Confirm capacity meets maximum group size per program type'),
       ck('edu-s5-teaching-spaces-c6', 'Confirm space designs against the Tier 1 teaching infrastructure survey capacity and acoustics findings'),
     ],
@@ -414,9 +414,9 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will demonstration plots, trail features, and interpretive signage be designed as teaching tools?',
     checklist: [
-      ck('edu-s5-demo-plots-signage-c1', 'Design demonstration plot layout by curriculum theme - beds, labels, observation access'),
+      ck('edu-s5-demo-plots-signage-c1', 'Design demonstration plot layout by curriculum theme - beds, labels, observation access', { feeds: ['s7-phase1'] }),
       ck('edu-s5-demo-plots-signage-c2', 'Design interpretive trail waypoints - content, sign design, placement'),
-      ck('edu-s5-demo-plots-signage-c3', 'Specify signage materials and legibility standard'),
+      ck('edu-s5-demo-plots-signage-c3', 'Specify signage materials and legibility standard', { feeds: ['s7-resource-plan'] }),
       ck('edu-s5-demo-plots-signage-c4', 'Design observation infrastructure - sight lines, platforms, access for group viewing'),
       ck('edu-s5-demo-plots-signage-c5', 'Design seasonal rotation of demonstrations to match curriculum calendar'),
       ck('edu-s5-demo-plots-signage-c6', 'Site demonstration plots against the Tier 2 demonstration site baseline'),
@@ -440,11 +440,11 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will toilets, handwashing, shade, seating, and emergency infrastructure be designed for group use?',
     checklist: [
-      ck('edu-s5-learner-amenity-c1', 'Design toilet facilities - capacity for maximum group size, accessible'),
+      ck('edu-s5-learner-amenity-c1', 'Design toilet facilities - capacity for maximum group size, accessible', { feeds: ['s7-phase1', 's7-resource-plan'] }),
       ck('edu-s5-learner-amenity-c2', 'Design handwashing infrastructure - outdoor, accessible, food-safe'),
       ck('edu-s5-learner-amenity-c3', 'Design group seating and shade areas at key rest points'),
       ck('edu-s5-learner-amenity-c4', 'Design first aid station - location, equipment'),
-      ck('edu-s5-learner-amenity-c5', 'Design emergency assembly point - clearly marked, accessible from all teaching zones'),
+      ck('edu-s5-learner-amenity-c5', 'Design emergency assembly point - clearly marked, accessible from all teaching zones', { feeds: ['s7-risk-register'] }),
       ck('edu-s5-learner-amenity-c6', 'Size toilets and first aid provision against the Tier 2 learner access and safety findings'),
     ],
     decisionGroups: [
@@ -466,8 +466,8 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will food preparation, cooking demonstrations, and group dining be designed - if food service is part of the program?',
     checklist: [
-      ck('edu-s5-food-kitchen-c1', 'Design teaching kitchen layout - demonstration bench, learner observation positions'),
-      ck('edu-s5-food-kitchen-c2', 'Specify kitchen equipment to food safety standard'),
+      ck('edu-s5-food-kitchen-c1', 'Design teaching kitchen layout - demonstration bench, learner observation positions', { feeds: ['s7-phase1'] }),
+      ck('edu-s5-food-kitchen-c2', 'Specify kitchen equipment to food safety standard', { feeds: ['s7-resource-plan'] }),
       ck('edu-s5-food-kitchen-c3', 'Design group dining area - capacity, shade, accessibility'),
       ck('edu-s5-food-kitchen-c4', 'Design food storage - cold chain, dry storage'),
       ck('edu-s5-food-kitchen-c5', 'Confirm design meets food safety compliance requirements'),
@@ -494,8 +494,8 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will program quality and learning outcomes be tracked and improved?',
     checklist: [
-      ck('edu-s6-program-evaluation-c1', 'Design participant feedback collection - post-program survey, facilitator debrief'),
-      ck('edu-s6-program-evaluation-c2', 'Define learning outcome indicators per program type'),
+      ck('edu-s6-program-evaluation-c1', 'Design participant feedback collection - post-program survey, facilitator debrief', { feeds: ['s7-resource-plan'] }),
+      ck('edu-s6-program-evaluation-c2', 'Define learning outcome indicators per program type', { feeds: ['edu-s7-program-launch'] }),
       ck('edu-s6-program-evaluation-c3', 'Define facilitator performance review process'),
       ck('edu-s6-program-evaluation-c4', 'Define curriculum improvement protocol - how feedback triggers program changes'),
       ck('edu-s6-program-evaluation-c5', 'Define annual program quality review'),
@@ -520,11 +520,11 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will insurance renewals, permits, accreditation, and stakeholder relationships be actively managed?',
     checklist: [
-      ck('edu-s6-external-relations-compliance-c1', 'Design compliance calendar - all permit renewals, insurance, CPD obligations'),
+      ck('edu-s6-external-relations-compliance-c1', 'Design compliance calendar - all permit renewals, insurance, CPD obligations', { feeds: ['edu-s7-instructor-onboarding', 's7-risk-register'] }),
       ck('edu-s6-external-relations-compliance-c2', 'Define neighbour communication rhythm'),
       ck('edu-s6-external-relations-compliance-c3', 'Design complaint response process'),
       ck('edu-s6-external-relations-compliance-c4', 'Define annual external relations review'),
-      ck('edu-s6-external-relations-compliance-c5', 'Define accreditation maintenance requirements if applicable'),
+      ck('edu-s6-external-relations-compliance-c5', 'Define accreditation maintenance requirements if applicable', { feeds: ['edu-s7-instructor-onboarding'] }),
       ck('edu-s6-external-relations-compliance-c6', 'Build the compliance calendar from the Tier 0 regulatory framework obligations'),
     ],
     decisionGroups: [
@@ -546,8 +546,8 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'How will program performance data and site health data drive annual improvements?',
     checklist: [
-      ck('edu-s6-adaptive-management-c1', 'Define annual review process - participant feedback, revenue, site health reviewed together'),
-      ck('edu-s6-adaptive-management-c2', 'Define decision triggers - what performance drives curriculum or infrastructure change'),
+      ck('edu-s6-adaptive-management-c1', 'Define annual review process - participant feedback, revenue, site health reviewed together', { feeds: ['s7-resource-plan'] }),
+      ck('edu-s6-adaptive-management-c2', 'Define decision triggers - what performance drives curriculum or infrastructure change', { feeds: ['edu-s7-financial-viability', 's7-risk-register'] }),
       ck('edu-s6-adaptive-management-c3', 'Define program retirement protocol - when a program is discontinued'),
       ck('edu-s6-adaptive-management-c4', 'Document all changes with reason and outcome'),
       // c5 added 2026-06-02 to meet Authoring Standards v1.4 (5-item floor); the

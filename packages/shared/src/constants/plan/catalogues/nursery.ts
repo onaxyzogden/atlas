@@ -54,6 +54,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s1-propagation-infra-survey-c1',
         'Inventory existing propagation infrastructure - glasshouses, shade houses, benches, misting systems',
+        { feeds: ['nur-sec-s4-propagation-infra-design', 's4-zones'] },
       ),
       ck(
         'nur-sec-s1-propagation-infra-survey-c2',
@@ -62,6 +63,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s1-propagation-infra-survey-c3',
         'Identify on-site growing media inputs - compost, woodchip, soil, leaf mould',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'nur-sec-s1-propagation-infra-survey-c4',
@@ -70,6 +72,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s1-propagation-infra-survey-c5',
         'Identify local growing media components available - perlite, coir, sand, biochar sources',
+        { feeds: ['s5-soil-improvement', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -96,6 +99,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s1-water-survey-c1',
         'Test water quality for propagation suitability - pH, EC, biological contamination',
+        { feeds: ['s4-water-strategy', 'nur-sec-s4-irrigation-design'] },
       ),
       ck(
         'nur-sec-s1-water-survey-c2',
@@ -104,6 +108,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s1-water-survey-c3',
         'Measure static and dynamic pressure at proposed propagation points',
+        { feeds: ['s4-water-strategy', 'nur-sec-s4-irrigation-design'] },
       ),
       ck(
         'nur-sec-s1-water-survey-c4',
@@ -139,6 +144,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s2-biosecurity-survey-c1',
         'Identify soil-borne diseases in proposed propagation areas - Phytophthora, damping off risk',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'nur-sec-s2-biosecurity-survey-c2',
@@ -151,10 +157,12 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s2-biosecurity-survey-c4',
         'Assess biosecurity risk from existing plant material on site',
+        { feeds: ['nur-sec-s4-sales-dispatch', 's7-risk-register'] },
       ),
       ck(
         'nur-sec-s2-biosecurity-survey-c5',
         'Define sanitation and hygiene baseline for proposed propagation areas',
+        { feeds: ['nur-sec-s4-sales-dispatch'] },
       ),
     ],
     decisionGroups: [
@@ -181,10 +189,12 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s3-propagation-strategy-c1',
         'Define primary propagation purpose - own transplants, surplus sales, restoration stock, or combination',
+        { feeds: ['nur-sec-s4-propagation-infra-design', 's7-resource-plan', 's7-phase1'] },
       ),
       ck(
         'nur-sec-s3-propagation-strategy-c2',
         'Define production mix - vegetable seedlings, native tubes, trees, herbs, seeds',
+        { feeds: ['nur-sec-s4-propagation-infra-design', 's7-phase1'] },
       ),
       ck(
         'nur-sec-s3-propagation-strategy-c3',
@@ -193,10 +203,12 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s3-propagation-strategy-c4',
         'Define biosecurity framework - incoming material quarantine protocol, sanitation standards',
+        { feeds: ['nur-sec-s4-sales-dispatch', 's7-risk-register'] },
       ),
       ck(
         'nur-sec-s3-propagation-strategy-c5',
         'Identify nursery registration or accreditation requirements if selling to public',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'nur-sec-s3-propagation-strategy-c6',
@@ -228,6 +240,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s3-growing-media-c1',
         'Define growing media formulation per plant category - propagation mix, potting mix, native mix',
+        { feeds: ['s5-soil-improvement', 'nur-sec-s4-propagation-infra-design'] },
       ),
       ck(
         'nur-sec-s3-growing-media-c2',
@@ -236,6 +249,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s3-growing-media-c3',
         'Define external inputs required and sourcing',
+        { feeds: ['s5-soil-improvement', 's7-resource-plan'] },
       ),
       ck(
         'nur-sec-s3-growing-media-c4',
@@ -248,6 +262,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s3-growing-media-c6',
         'Define quality testing protocol for growing media batches',
+        { feeds: ['s6-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -294,6 +309,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s4-propagation-infra-design-c6',
         'Confirm capacity meets propagation calendar requirements',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -336,6 +352,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s4-irrigation-design-c5',
         'Confirm system delivers required uniformity and pressure across all production areas',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -361,6 +378,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s4-sales-dispatch-c1',
         'Design sales or dispatch area - separated from main production zones',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'nur-sec-s4-sales-dispatch-c2',
@@ -377,6 +395,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'nur-sec-s4-sales-dispatch-c5',
         'Confirm biosecurity zone separation is maintained - production zones isolated from public access',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [

@@ -81,26 +81,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s1-enterprise-mix-c1',
         'Define species and breeds selected - cattle, sheep, goats, pigs, poultry, or combination',
+        { feeds: ['s4-direction', 'silv-s4-paddock-layout', 'silv-s4-animal-health'] },
       ),
       ck(
         'silv-s1-enterprise-mix-c2',
         'Define production intent per species - meat, milk, fibre, eggs, land improvement',
+        { feeds: ['s4-direction'] },
       ),
       ck(
         'silv-s1-enterprise-mix-c3',
         'Estimate target stocking numbers at full establishment',
+        { feeds: ['silv-s4-paddock-layout', 'silv-s4-stock-water-strategy'] },
       ),
       ck(
         'silv-s1-enterprise-mix-c4',
         'Define integration logic between species if multi-species',
+        { feeds: ['silv-s4-paddock-layout'] },
       ),
       ck(
         'silv-s1-enterprise-mix-c5',
         'Confirm enterprise mix is achievable within steward capacity and site carrying capacity',
+        { feeds: ['s4-direction', 's7-resource-plan'] },
       ),
       ck(
         'silv-s1-enterprise-mix-c6',
         'Define marketing and sales strategy for each enterprise',
+        { feeds: ['silv-s7-financial-viability'] },
       ),
     ],
     decisionGroups: [
@@ -126,22 +132,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s1-land-improvement-philosophy-c1',
         'Define primary land management intent - land improvement through animal impact, production on existing land, or both',
+        { feeds: ['s4-direction', 'silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s1-land-improvement-philosophy-c2',
         'Define grazing philosophy - adaptive multi-paddock, holistic planned grazing, or conventional rotational',
+        { feeds: ['silv-s4-paddock-layout'] },
       ),
       ck(
         'silv-s1-land-improvement-philosophy-c3',
         'Define land improvement targets - bare ground reduction, pasture species diversity, soil organic matter',
+        { feeds: ['silv-s4-forage-improvement', 's6-monitoring'] },
       ),
       ck(
         'silv-s1-land-improvement-philosophy-c4',
         'Document philosophy as design constraint - all Tier 3-4 decisions evaluated against it',
+        { feeds: ['s4-direction'] },
       ),
       ck(
         'silv-s1-land-improvement-philosophy-c5',
         'Confirm philosophy is consistent with tree integration intent',
+        { feeds: ['silv-s4-tree-integration'] },
       ),
     ],
     decisionGroups: [
@@ -167,26 +178,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s1-animal-welfare-c1',
         'Define minimum space requirements per species at defined stocking density',
+        { feeds: ['silv-s4-paddock-layout'] },
       ),
       ck(
         'silv-s1-animal-welfare-c2',
         'Define shelter requirements per species - shade, wind protection, wet weather refuge',
+        { feeds: ['silv-s5-shelters-handling'] },
       ),
       ck(
         'silv-s1-animal-welfare-c3',
         'Define water access standards - maximum distance from water per species',
+        { feeds: ['silv-s4-stock-water-strategy'] },
       ),
       ck(
         'silv-s1-animal-welfare-c4',
         'Define handling frequency and low-stress handling commitment',
+        { feeds: ['silv-s4-animal-health', 'silv-s5-shelters-handling'] },
       ),
       ck(
         'silv-s1-animal-welfare-c5',
         'Define emergency animal welfare response protocol',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s1-animal-welfare-c6',
         'Confirm standards comply with relevant animal welfare legislation',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -213,18 +230,22 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s2-pasture-condition-c1',
         'Map pasture vegetation communities by zone - species composition and cover',
+        { feeds: ['silv-s4-forage-improvement', 's4-zones'] },
       ),
       ck(
         'silv-s2-pasture-condition-c2',
         'Assess pasture condition per zone - excellent, good, fair, poor, degraded',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-pasture-condition-c3',
         'Identify desirable forage species present',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-pasture-condition-c4',
         'Identify undesirable or weed species in pasture',
+        { feeds: ['silv-s4-forage-improvement', 's7-risk-register'] },
       ),
       ckF(
         'silv-s2-pasture-condition-c5',
@@ -238,6 +259,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s2-pasture-condition-c6',
         'Record seasonal variation in pasture availability and quality',
+        { feeds: ['silv-s4-forage-improvement', 'silv-s4-stock-water-strategy'] },
       ),
     ],
     decisionGroups: [
@@ -263,22 +285,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s2-livestock-infrastructure-c1',
         'Inventory all existing fencing - type, condition, stock-tightness per species',
+        { feeds: ['silv-s5-fencing'] },
       ),
       ck(
         'silv-s2-livestock-infrastructure-c2',
         'Assess existing yards and handling facilities - capacity, layout, condition',
+        { feeds: ['silv-s5-shelters-handling'] },
       ),
       ck(
         'silv-s2-livestock-infrastructure-c3',
         'Inventory existing water troughs and their supply infrastructure',
+        { feeds: ['silv-s4-stock-water-strategy', 'silv-s5-stock-water-distribution'] },
       ),
       ck(
         'silv-s2-livestock-infrastructure-c4',
         'Map existing laneways - width, surface, condition',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'silv-s2-livestock-infrastructure-c5',
         'Assess existing shelters - condition and species suitability',
+        { feeds: ['silv-s5-shelters-handling'] },
       ),
     ],
     decisionGroups: [
@@ -304,22 +331,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s2-landscape-context-c1',
         'Map surrounding land uses within 2km',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s2-landscape-context-c2',
         'Identify neighbouring agricultural practices - spray drift risk to pasture and animals',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s2-landscape-context-c3',
         'Assess biosecurity risk from neighbouring livestock operations',
+        { feeds: ['silv-s4-animal-health', 's7-risk-register'] },
       ),
       ck(
         'silv-s2-landscape-context-c4',
         'Assess drinking water catchment contamination risk from surrounding landscape',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'silv-s2-landscape-context-c5',
         'Identify landscape-scale weed pressure sources affecting pasture',
+        { feeds: ['silv-s4-forage-improvement', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -344,26 +376,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s2-grazing-history-c1',
         'Record historical stocking rates and species from all available sources',
+        { feeds: ['silv-s4-paddock-layout', 'silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-grazing-history-c2',
         'Map compaction zones - depth profiling under historically grazed areas',
+        { feeds: ['s5-soil-improvement', 'silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-grazing-history-c3',
         'Assess bare ground distribution and extent',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-grazing-history-c4',
         'Map weed invasion associated with historical overgrazing',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-grazing-history-c5',
         'Assess recovery potential of degraded zones based on soil biology and seed bank',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s2-grazing-history-c6',
         'Define restoration baseline - what must improve before target stocking is reached',
+        { feeds: ['silv-s7-stocking-buildup', 's6-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -399,22 +437,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s3-stock-water-availability-c2',
         'Assess all available water source yields through dry season',
+        { feeds: ['silv-s4-stock-water-strategy'] },
       ),
       ck(
         'silv-s3-stock-water-availability-c3',
         'Map seasonal supply and demand - identify gap periods',
+        { feeds: ['silv-s4-stock-water-strategy'] },
       ),
       ck(
         'silv-s3-stock-water-availability-c4',
         'Assess water source distribution relative to proposed paddock layout',
+        { feeds: ['silv-s4-stock-water-strategy', 'silv-s4-paddock-layout'] },
       ),
       ck(
         'silv-s3-stock-water-availability-c5',
         'Define storage requirements to bridge seasonal gaps',
+        { feeds: ['silv-s4-stock-water-strategy', 's5-water-infrastructure'] },
       ),
       ck(
         'silv-s3-stock-water-availability-c6',
         'Confirm maximum stocking supportable by available water',
+        { feeds: ['silv-s4-paddock-layout'] },
       ),
     ],
     decisionGroups: [
@@ -440,22 +483,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s3-soil-compaction-c1',
         'Conduct penetrometer testing across representative zones',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'silv-s3-soil-compaction-c2',
         'Map compaction depth and severity by zone',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'silv-s3-soil-compaction-c3',
         'Correlate compaction with historical stocking intensity',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s3-soil-compaction-c4',
         'Assess subsoil structure and drainage class under compacted zones',
+        { feeds: ['s5-soil-improvement'] },
       ),
       ck(
         'silv-s3-soil-compaction-c5',
         'Define compaction remediation requirements per zone - biological, mechanical, or management',
+        { feeds: ['s5-soil-improvement', 'silv-s4-forage-improvement'] },
       ),
     ],
     decisionGroups: [
@@ -481,18 +529,22 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s3-forage-productivity-c1',
         'Estimate dry matter production per hectare by zone and season',
+        { feeds: ['silv-s4-forage-improvement', 'silv-s4-paddock-layout'] },
       ),
       ck(
         'silv-s3-forage-productivity-c2',
         'Assess nutritional quality of existing forage - protein, energy, mineral content where possible',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s3-forage-productivity-c3',
         'Identify seasonal nutritional gaps - energy deficit, mineral deficiency',
+        { feeds: ['silv-s4-forage-improvement'] },
       ),
       ck(
         'silv-s3-forage-productivity-c4',
         'Define supplementary feeding requirements based on gaps',
+        { feeds: ['silv-s4-forage-improvement', 'silv-s7-stocking-buildup'] },
       ),
       ckF(
         'silv-s3-forage-productivity-c5',
@@ -528,14 +580,17 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-paddock-layout-c1',
         'Define number of paddocks based on target species, numbers, and rest period',
+        { feeds: ['silv-s5-fencing'] },
       ),
       ck(
         'silv-s4-paddock-layout-c2',
         'Map paddock boundaries relative to topography and existing fencing',
+        { feeds: ['silv-s5-fencing', 'silv-s5-stock-water-distribution'] },
       ),
       ck(
         'silv-s4-paddock-layout-c3',
         'Define rotation interval and minimum rest period per paddock',
+        { feeds: ['silv-s6-pasture-monitoring', 'silv-s7-pasture-spelling'] },
       ),
       ckF(
         'silv-s4-paddock-layout-c4',
@@ -560,6 +615,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-paddock-layout-c6',
         'Confirm paddock layout is achievable with available fencing budget',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -585,26 +641,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-stock-water-strategy-c1',
         'Define primary water source for stock water system',
+        { feeds: ['silv-s5-stock-water-distribution'] },
       ),
       ck(
         'silv-s4-stock-water-strategy-c2',
         'Design distribution network - pipelines, gravity, pumping',
+        { feeds: ['silv-s5-stock-water-distribution', 's7-resource-plan'] },
       ),
       ck(
         'silv-s4-stock-water-strategy-c3',
         'Specify trough locations and types for each paddock',
+        { feeds: ['silv-s5-stock-water-distribution'] },
       ),
       ck(
         'silv-s4-stock-water-strategy-c4',
         'Define water point density - maximum distance from water per species',
+        { feeds: ['silv-s5-stock-water-distribution'] },
       ),
       ck(
         'silv-s4-stock-water-strategy-c5',
         'Define emergency water supply if primary system fails',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s4-stock-water-strategy-c6',
         'Confirm system capacity against seasonal demand assessment',
+        { feeds: ['silv-s7-livestock-establishment'] },
       ),
     ],
     decisionGroups: [
@@ -630,26 +692,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-forage-improvement-c1',
         'Define target forage species mix by zone - productive and ecologically diverse',
+        { feeds: ['s5-soil-improvement', 'silv-s6-pasture-monitoring'] },
       ),
       ck(
         'silv-s4-forage-improvement-c2',
         'Define overseeding methodology - direct drilling, broadcasting, cultivation',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'silv-s4-forage-improvement-c3',
         'Define fertility input strategy - animal impact, composting, mineral amendments',
+        { feeds: ['s5-soil-improvement', 's7-resource-plan'] },
       ),
       ck(
         'silv-s4-forage-improvement-c4',
         'Define weed control approach - consistent with land improvement philosophy',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s4-forage-improvement-c5',
         'Define pasture improvement sequence - priority zones first',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s4-forage-improvement-c6',
         'Set measurable pasture improvement targets with timeframes',
+        { feeds: ['silv-s6-pasture-monitoring'] },
       ),
     ],
     decisionGroups: [
@@ -675,26 +743,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-tree-integration-c1',
         'Define tree species for silvopasture integration - shade, fodder, timber, fruit, nitrogen-fixing',
+        { feeds: ['silv-s5-tree-planting'] },
       ),
       ck(
         'silv-s4-tree-integration-c2',
         'Map tree placement relative to paddock framework - rows, scattered, clustered',
+        { feeds: ['silv-s5-tree-planting'] },
       ),
       ck(
         'silv-s4-tree-integration-c3',
         'Define tree density and spacing',
+        { feeds: ['silv-s5-tree-planting'] },
       ),
       ck(
         'silv-s4-tree-integration-c4',
         'Define grazing management to protect establishing trees - timing, temporary exclusion',
+        { feeds: ['silv-s5-tree-planting', 'silv-s7-stocking-buildup'] },
       ),
       ck(
         'silv-s4-tree-integration-c5',
         'Define long-term canopy management and coppicing strategy',
+        { feeds: ['silv-s6-adaptive-management'] },
       ),
       ck(
         'silv-s4-tree-integration-c6',
         'Confirm species selection is consistent with land improvement philosophy and climate',
+        { feeds: ['silv-s5-tree-planting'] },
       ),
     ],
     decisionGroups: [
@@ -720,26 +794,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s4-animal-health-c1',
         'Define routine health program per species - vaccination, drenching, parasite management',
+        { feeds: ['silv-s6-animal-health-monitoring', 's7-resource-plan'] },
       ),
       ck(
         'silv-s4-animal-health-c2',
         'Define preventive care calendar - fertility, condition scoring, hoof care',
+        { feeds: ['silv-s6-animal-health-monitoring'] },
       ),
       ck(
         'silv-s4-animal-health-c3',
         'Identify nearest veterinary service and emergency response time',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s4-animal-health-c4',
         'Define isolation facility requirements for sick or injured animals',
+        { feeds: ['silv-s5-shelters-handling'] },
       ),
       ck(
         'silv-s4-animal-health-c5',
         'Define mortality management protocol',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s4-animal-health-c6',
         'Confirm all handling facilities support low-stress routine health procedures',
+        { feeds: ['silv-s5-shelters-handling'] },
       ),
     ],
     decisionGroups: [
@@ -766,26 +846,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s5-fencing-c1',
         'Design internal subdivision fencing to defined paddock layout',
+        { feeds: ['s7-phase1', 'silv-s7-livestock-establishment'] },
       ),
       ck(
         'silv-s5-fencing-c2',
         'Specify fence type per location - permanent, semi-permanent, temporary electric',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-fencing-c3',
         'Design gate placement - all paddocks accessible from laneway without crossing other paddocks',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s5-fencing-c4',
         'Design boundary fence upgrades where required for species being run',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-fencing-c5',
         'Specify water crossing points and wildlife crossings in fence lines',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s5-fencing-c6',
         'Define fencing installation sequence - align with stocking buildup plan',
+        { feeds: ['silv-s7-livestock-establishment', 'silv-s7-stocking-buildup'] },
       ),
     ],
     decisionGroups: [
@@ -811,26 +897,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s5-stock-water-distribution-c1',
         'Design pipeline network from primary source to all paddock water points',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'silv-s5-stock-water-distribution-c2',
         'Specify trough types and sizes per species and paddock',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-stock-water-distribution-c3',
         'Design float valve, overflow, and drainage for each trough',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-stock-water-distribution-c4',
         'Design solar or gravity pressure system as applicable',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-stock-water-distribution-c5',
         'Specify pipe materials and burial depth',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-stock-water-distribution-c6',
         'Confirm all troughs meet species welfare water access standard',
+        { feeds: ['silv-s7-livestock-establishment'] },
       ),
     ],
     decisionGroups: [
@@ -856,22 +948,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s5-shelters-handling-c1',
         'Design yards - capacity for target stocking, flow from laneway, low-stress layout',
+        { feeds: ['s7-phase1', 'silv-s7-livestock-establishment'] },
       ),
       ck(
         'silv-s5-shelters-handling-c2',
         'Design crush and race - species-appropriate, safe for handlers and animals',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-shelters-handling-c3',
         'Design shade shelter placement per paddock - species-specific requirements',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s5-shelters-handling-c4',
         'Design isolation pen - separate water, shelter, accessible for treatment',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s5-shelters-handling-c5',
         'Confirm all facilities meet animal welfare standards defined in Tier 0',
+        { feeds: ['silv-s7-livestock-establishment'] },
       ),
     ],
     decisionGroups: [
@@ -897,26 +994,32 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s5-tree-planting-c1',
         'Map tree planting locations within paddock framework per Tier 3 strategy',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s5-tree-planting-c2',
         'Specify planting method - tube stock, direct seeding, transplant',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-tree-planting-c3',
         'Design tree protection - guards, temporary fencing, repellent',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'silv-s5-tree-planting-c4',
         'Design establishment irrigation where required',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s5-tree-planting-c5',
         'Specify planting sequence - align with paddock rotation to allow recovery time',
+        { feeds: ['s7-phase1', 'silv-s7-pasture-spelling'] },
       ),
       ck(
         'silv-s5-tree-planting-c6',
         'Define grazing exclusion period per tree species until establishment is confirmed',
+        { feeds: ['silv-s7-stocking-buildup'] },
       ),
     ],
     decisionGroups: [
@@ -943,22 +1046,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s6-pasture-monitoring-c1',
         'Define pasture condition scoring method - cover, species composition, height before and after grazing',
+        { feeds: ['s7-phase1', 'silv-s7-stocking-buildup'] },
       ),
       ck(
         'silv-s6-pasture-monitoring-c2',
         'Define monitoring frequency - pre- and post-grazing assessment per paddock',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s6-pasture-monitoring-c3',
         'Design grazing impact assessment - bare ground, compaction, species shift',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s6-pasture-monitoring-c4',
         'Define pasture recovery assessment - recovery criteria before re-entry',
+        { feeds: ['silv-s7-pasture-spelling'] },
       ),
       ck(
         'silv-s6-pasture-monitoring-c5',
         'Specify data recording system - simple paddock diary or digital log',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -984,22 +1092,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s6-animal-health-monitoring-c1',
         'Define health indicators per species - body condition score, coat condition, mobility, behaviour',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-s6-animal-health-monitoring-c2',
         'Define monitoring frequency - weekly minimum, daily for high-risk periods',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s6-animal-health-monitoring-c3',
         'Define veterinary trigger thresholds - what condition score or symptom requires vet contact',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-s6-animal-health-monitoring-c4',
         'Design health recording system - individual animal and mob records',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-s6-animal-health-monitoring-c5',
         'Define seasonal health risk calendar - drenching, vaccination, fertility monitoring windows',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1025,22 +1138,27 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'silv-s6-adaptive-management-c1',
         'Define stocking rate review process - triggered by pasture condition data, not calendar',
+        { feeds: ['silv-s7-stocking-buildup'] },
       ),
       ck(
         'silv-s6-adaptive-management-c2',
         'Define rotation adjustment triggers - what pasture condition defers or extends a rotation',
+        { feeds: ['silv-s7-pasture-spelling'] },
       ),
       ck(
         'silv-s6-adaptive-management-c3',
         'Define destocking trigger - what pasture condition requires stocking reduction',
+        { feeds: ['s7-risk-register', 'silv-s7-stocking-buildup'] },
       ),
       ck(
         'silv-s6-adaptive-management-c4',
         'Define annual enterprise review - pasture trend, animal performance, tree establishment progress',
+        { feeds: ['silv-s7-financial-viability'] },
       ),
       ck(
         'silv-s6-adaptive-management-c5',
         'Document all management changes with date, trigger, and outcome',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -1281,22 +1399,27 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s1-livestock-intent-c1',
         'Define the integration rationale - grazing as a land-management tool, a production enterprise, or both',
+        { feeds: ['s4-direction', 'silv-sec-s4-grazing-design'] },
       ),
       ck(
         'silv-sec-s1-livestock-intent-c2',
         'Identify candidate species and classes of stock under consideration - ruminants, poultry, mixed',
+        { feeds: ['silv-sec-s4-grazing-design', 'silv-sec-s4-husbandry-framework'] },
       ),
       ck(
         'silv-sec-s1-livestock-intent-c3',
         'Define how livestock relate to the primary enterprise - complementary, supplementary, or competing for land',
+        { feeds: ['s4-direction'] },
       ),
       ck(
         'silv-sec-s1-livestock-intent-c4',
         'Identify operator livestock experience and labour availability for daily stock care',
+        { feeds: ['silv-sec-s4-husbandry-framework', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s1-livestock-intent-c5',
         'Confirm livestock intent is compatible with the primary enterprise vision and site scale',
+        { feeds: ['s4-direction'] },
       ),
     ],
     decisionGroups: [
@@ -1324,10 +1447,12 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s3-forage-survey-c1',
         'Map existing pasture and understorey forage by zone - species composition and condition',
+        { feeds: ['silv-sec-s4-grazing-design'] },
       ),
       ck(
         'silv-sec-s3-forage-survey-c2',
         'Assess seasonal forage availability and identify feed gaps across the year',
+        { feeds: ['silv-sec-s4-grazing-design'] },
       ),
       ckF(
         'silv-sec-s3-forage-survey-c3',
@@ -1341,10 +1466,12 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s3-forage-survey-c4',
         'Identify shade, shelter, and tree-protection constraints that affect grazeable area',
+        { feeds: ['silv-sec-s4-grazing-design', 'silv-sec-s5-tree-establishment'] },
       ),
       ck(
         'silv-sec-s3-forage-survey-c5',
         'Assess weed and toxic-plant presence relevant to the candidate stock species',
+        { feeds: ['silv-sec-s4-grazing-design', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1372,22 +1499,27 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s4-grazing-design-c1',
         'Define the grazing method - rotational, cell, or set-stocking - and the rationale',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring', 'silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s4-grazing-design-c2',
         'Define paddock or cell layout and target mob size per move',
+        { feeds: ['s7-phase1', 'silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s4-grazing-design-c3',
         'Define graze-period and rest-period targets per season tied to recovery indicators',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring'] },
       ),
       ck(
         'silv-sec-s4-grazing-design-c4',
         'Define tree-protection rules - exclusion windows for young plantings, browse limits',
+        { feeds: ['silv-sec-s5-tree-establishment', 'silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s4-grazing-design-c5',
         'Define the feed-gap contingency - supplementary feed, destocking, or agistment triggers',
+        { feeds: ['silv-sec-s7-stocking-phasing', 's7-risk-register'] },
       ),
       ckF(
         'silv-sec-s4-grazing-design-c6',
@@ -1423,22 +1555,27 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s4-stock-infrastructure-c1',
         'Design stock water reticulation - troughs, supply lines, and per-paddock access',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s4-stock-infrastructure-c2',
         'Design perimeter and subdivision fencing - permanent, electric, or hybrid per zone',
+        { feeds: ['s7-phase1', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s4-stock-infrastructure-c3',
         'Design stock handling facilities - yards, race, and loading appropriate to species and scale',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-sec-s4-stock-infrastructure-c4',
         'Design shade and shelter provision adequate for the candidate stock and climate',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-sec-s4-stock-infrastructure-c5',
         'Confirm infrastructure sequencing - the go/no-go that no livestock arrive before water, fencing, and handling all pass independent readiness checks',
+        { feeds: ['silv-sec-s7-stocking-phasing', 's7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -1465,26 +1602,32 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s4-husbandry-framework-c1',
         'Define animal health program - vaccination, parasite management, and veterinary relationship',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s4-husbandry-framework-c2',
         'Define breeding or replacement strategy and seasonal husbandry calendar',
+        { feeds: ['silv-sec-s7-stocking-phasing', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s4-husbandry-framework-c3',
         'Define daily welfare standard - feed, water, shade, and handling stress minimisation',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring'] },
       ),
       ck(
         'silv-sec-s4-husbandry-framework-c4',
         'Define humane and halal handling and slaughter-pathway intent where stock is raised for meat',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-sec-s4-husbandry-framework-c5',
         'Define record-keeping for stock numbers, health events, and movements',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring', 's7-resource-plan'] },
       ),
       ck(
         'silv-sec-s4-husbandry-framework-c6',
         'Confirm the husbandry framework is consistent with available labour and the welfare standard',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -1512,26 +1655,32 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s5-tree-establishment-c1',
         'Select species by browse tolerance, climate suitability, and silvopasture function - shade, fodder, timber, or multi-purpose',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring', 'silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s5-tree-establishment-c2',
         'Map planting layout - row spacing, alley width for livestock and machinery access, and per-hectare density targets',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-sec-s5-tree-establishment-c3',
         'Design the protection strategy - individual guards, temporary exclusion fencing, or permanent browse barriers - and the threshold before livestock re-entry',
+        { feeds: ['silv-sec-s6-pasture-tree-monitoring', 'silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s5-tree-establishment-c4',
         'Set the planting season and establishment schedule coordinated with the host primary operations calendar',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'silv-sec-s5-tree-establishment-c5',
         'Plan establishment-phase water access - mulching, drip irrigation, or tree guards for moisture retention',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'silv-sec-s5-tree-establishment-c6',
         'Confirm tree procurement source, lead time, and contingency for stock unavailability',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -1568,22 +1717,27 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       ck(
         'silv-sec-s6-pasture-tree-monitoring-c1',
         'Set a tree survival rate target and inspection cadence - define the remediation protocol when the threshold is breached',
+        { feeds: ['silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s6-pasture-tree-monitoring-c2',
         'Define browse damage assessment - visual inspection frequency, damage threshold, and response triggers',
+        { feeds: ['silv-sec-s7-stocking-phasing', 's7-risk-register'] },
       ),
       ck(
         'silv-sec-s6-pasture-tree-monitoring-c3',
         'Define pasture recovery indicators - sward height, species composition, ground cover - and the minimum rest period before livestock re-entry',
+        { feeds: ['silv-sec-s7-stocking-phasing'] },
       ),
       ck(
         'silv-sec-s6-pasture-tree-monitoring-c4',
         'Define adaptive grazing trigger rules - what evidence prompts a rotation change and who has authority to act',
+        { feeds: ['s7-risk-register'] },
       ),
       ck(
         'silv-sec-s6-pasture-tree-monitoring-c5',
         'Choose a record-keeping system and assign responsibility - field cards, app, or integration with the host primary monitoring process',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [

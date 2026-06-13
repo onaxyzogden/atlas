@@ -67,26 +67,32 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'res-s1-household-needs-c1',
         'Define who will be living on the land - household members, dependents, seasonal residents',
+        { feeds: ['res-s4-living-zone', 's7-resource-plan'] },
       ),
       ck(
         'res-s1-household-needs-c2',
         'List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications',
+        { feeds: ['s4-water-strategy', 'res-s5-living-infrastructure', 'res-s6-self-sufficiency'] },
       ),
       ck(
         'res-s1-household-needs-c3',
         'Define food provision intent - what proportion of household food will come from the land',
+        { feeds: ['res-s6-self-sufficiency', 's7-phase1'] },
       ),
       ck(
         'res-s1-household-needs-c4',
         'Identify domestic infrastructure required before the land is habitable - dwelling condition, utilities',
+        { feeds: ['res-s5-living-infrastructure', 'res-s7-phasing'] },
       ),
       ck(
         'res-s1-household-needs-c5',
         'Define minimum habitability threshold - what must be in place before the household moves on-site',
+        { feeds: ['res-s7-phasing', 's7-phase1'] },
       ),
       ck(
         'res-s1-household-needs-c6',
         'Record domestic needs that will always be sourced externally',
+        { feeds: ['res-s6-self-sufficiency'] },
       ),
     ],
     decisionGroups: [
@@ -122,27 +128,35 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'res-s3-water-quality-c1',
         'Test all drinking and cooking water sources for biological contamination - bacteria, pathogens, parasites',
+        { feeds: ['s4-water-strategy', 'res-s5-living-infrastructure'] },
       ),
       ck(
         'res-s3-water-quality-c2',
         'Test for chemical contamination relevant to landscape vector findings - herbicides, nitrates, heavy metals, petroleum',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
       ),
       ck(
         'res-s3-water-quality-c3',
         'Test for naturally occurring contaminants relevant to local geology - arsenic, fluoride, iron',
+        { feeds: ['s4-water-strategy'] },
       ),
       ck(
         'res-s3-water-quality-c4',
         'Assess rainwater harvesting catchment surfaces for contamination risk',
+        { feeds: ['s4-water-strategy', 's5-water-infrastructure'] },
       ),
-      ck('res-s3-water-quality-c5', 'Record seasonal variation in water quality'),
+      ck('res-s3-water-quality-c5', 'Record seasonal variation in water quality', {
+        feeds: ['s6-monitoring'],
+      }),
       ck(
         'res-s3-water-quality-c6',
         'Define potability status for each source - drinking, cooking, bathing, irrigation, animal use only',
+        { feeds: ['s4-water-strategy', 'res-s5-living-infrastructure'] },
       ),
       ck(
         'res-s3-water-quality-c7',
         'Define treatment requirements for each source to reach intended use standard',
+        { feeds: ['s5-water-infrastructure', 'res-s5-living-infrastructure'] },
       ),
     ],
     decisionGroups: [
@@ -184,26 +198,33 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     focusedQuestion:
       'Where does private household life happen on this working land, and how is it protected from operational activity, visitors, and noise?',
     checklist: [
-      ck('res-s4-living-zone-c1', 'Define domestic living zone boundary on zone framework map'),
+      ck('res-s4-living-zone-c1', 'Define domestic living zone boundary on zone framework map', {
+        feeds: ['s5-access', 'res-s5-living-infrastructure', 's7-phase1'],
+      }),
       ck(
         'res-s4-living-zone-c2',
         'Specify privacy gradient from living zone to working zones - buffer distance, screening, acoustic separation',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'res-s4-living-zone-c3',
         'Define access control to living zone - who can enter, under what conditions',
+        { feeds: ['s5-access'] },
       ),
       ck(
         'res-s4-living-zone-c4',
         'Resolve conflict between living zone and any visitor or public access zones',
+        { feeds: ['s5-access', 's7-risk-register'] },
       ),
       ck(
         'res-s4-living-zone-c5',
         'Define domestic zone requirements that constrain enterprise placement - noise exclusion zones, chemical buffer distances',
+        { feeds: ['s5-access', 's7-risk-register'] },
       ),
       ck(
         'res-s4-living-zone-c6',
         'Confirm living zone placement is safe from operational hazards - machinery routes, chemical storage, livestock',
+        { feeds: ['s7-risk-register'] },
       ),
     ],
     decisionGroups: [
@@ -237,34 +258,42 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'res-s5-living-infrastructure-c1',
         'Assess existing dwelling condition - structural, weather-tight, insulation, ventilation',
+        { feeds: ['s7-phase1', 'res-s7-phasing'] },
       ),
       ck(
         'res-s5-living-infrastructure-c2',
         'Specify required dwelling repairs or improvements before habitation',
+        { feeds: ['res-s7-phasing', 's7-resource-plan'] },
       ),
       ck(
         'res-s5-living-infrastructure-c3',
         'Design domestic heating system - wood stove, passive solar, heat pump, or hybrid',
+        { feeds: ['s7-resource-plan', 'res-s7-phasing'] },
       ),
       ck(
         'res-s5-living-infrastructure-c4',
         'Design domestic power system - grid connection, solar, battery, generator backup',
+        { feeds: ['s7-resource-plan', 'res-s7-phasing'] },
       ),
       ck(
         'res-s5-living-infrastructure-c5',
         'Design domestic water delivery - pump, gravity feed, pressure system, filtration and treatment',
+        { feeds: ['s7-resource-plan', 'res-s7-phasing'] },
       ),
       ck(
         'res-s5-living-infrastructure-c6',
         'Design grey water reuse system where permitted - garden irrigation, constructed wetland',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'res-s5-living-infrastructure-c7',
         'Design domestic waste management - composting toilet, septic, worm farm, recycling',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
       ),
       ck(
         'res-s5-living-infrastructure-c8',
         'Specify communications infrastructure - internet, phone, emergency communications',
+        { feeds: ['res-s7-phasing', 's7-resource-plan'] },
       ),
     ],
     decisionGroups: [
@@ -318,22 +347,27 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
       ck(
         'res-s6-self-sufficiency-c1',
         'Design provision tracking system - record what was grown, preserved, and consumed from the land each season',
+        { feeds: ['s7-resource-plan', 's7-phase1'] },
       ),
       ck(
         'res-s6-self-sufficiency-c2',
         'Design gap tracking - record what was still purchased externally and at what cost',
+        { feeds: ['s7-resource-plan'] },
       ),
       ck(
         'res-s6-self-sufficiency-c3',
         'Connect tracking to Stratum 1 residential household needs - measure provision gap reduction against baseline',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'res-s6-self-sufficiency-c4',
         'Define seasonal review rhythm - when does the household assess progress and adjust',
+        { feeds: ['s7-phase1'] },
       ),
       ck(
         'res-s6-self-sufficiency-c5',
         'Specify record format - simple enough to maintain consistently alongside working the land',
+        { feeds: ['s7-resource-plan'] },
       ),
     ],
     decisionGroups: [

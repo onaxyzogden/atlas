@@ -34,6 +34,9 @@
 // ever authored, assertion 4 will fail HERE first — relaxing it must be a
 // conscious edit with the silent-lock invariant in view, not an accident.
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import type {
   PlanStratumId,
@@ -276,6 +279,122 @@ describe('spine traceability — feedsInto forward wiring (audit remediation #1)
     ]) {
       expect(fed.has(consumer), `${consumer} receives no feed`).toBe(true);
     }
+  });
+});
+
+describe('spine traceability — feedsInto coverage invariant (full forward participation)', () => {
+  // Supersedes the five-consumer floor above with the full invariant the
+  // 2026-06-13 forward-wiring pass established across universal.ts + all 14
+  // per-type catalogues:
+  //
+  //   OUTBOUND — every S1-S6 objective has >=1 checklist item carrying >=1
+  //   feedsInto target (it informs something downstream), OR it is an
+  //   allowlisted terminal (e.g. an objective whose every item is a ckA/ckF
+  //   that structurally cannot carry feeds, or a pure read-back echo).
+  //
+  //   INBOUND — every S4-S7 objective is the feedsInto target of >=1 upstream
+  //   item (something feeds it), OR it is an allowlisted root.
+  //
+  // Stratum scoping: OUTBOUND stops at S6 because S7 is the terminal phasing
+  // tier (nothing later to feed). INBOUND starts at S4 — feedsInto targets are
+  // S4-S7 by construction (the universal forward-target menu plus same-catalogue
+  // later objectives), so S1 (the entry tier) and S2-S3 (land/systems reading,
+  // i.e. observation INPUTS) are sources of the forward graph, not sinks.
+  // Asserting inbound on S2-S3 would force a wholesale two-stratum root
+  // exemption that encodes a structural truth as noise; scoping to S4-S7 keeps
+  // every allowlist entry a genuine, reviewable design call.
+  //
+  // The allowlists live in feedsIntoCoverage.baseline.json (the established
+  // baseline/ratchet idiom). The stale-guard assertions below reject any
+  // allowlist entry that no longer earns its keep, so wiring a currently-exempt
+  // objective forces the operator to drop it from the baseline rather than
+  // letting a now-false exemption linger.
+  const OUTBOUND_MAX_STRATUM = 6;
+  const INBOUND_MIN_STRATUM = 4;
+
+  const baseline = JSON.parse(
+    readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        'feedsIntoCoverage.baseline.json',
+      ),
+      'utf8',
+    ),
+  ) as {
+    terminalObjectives: Record<string, string>;
+    rootObjectives: Record<string, string>;
+  };
+  const terminalAllow = baseline.terminalObjectives;
+  const rootAllow = baseline.rootObjectives;
+
+  const outboundFeeders = new Set<string>();
+  const fedTargets = new Set<string>();
+  for (const o of ALL_AUTHORED) {
+    for (const item of o.checklist) {
+      if (item.feedsInto.length > 0) outboundFeeders.add(o.id);
+      for (const target of item.feedsInto) fedTargets.add(target);
+    }
+  }
+  const AUTHORED_BY_ID = new Map(ALL_AUTHORED.map((o) => [o.id, o] as const));
+
+  it('every S1-S6 objective feeds >=1 downstream objective (or is an allowlisted terminal)', () => {
+    const unfed: string[] = [];
+    for (const o of ALL_AUTHORED) {
+      if (STRATUM_ORDER[o.stratumId] > OUTBOUND_MAX_STRATUM) continue;
+      if (outboundFeeders.has(o.id)) continue;
+      if (o.id in terminalAllow) continue;
+      unfed.push(`${o.id} (${o.stratumId})`);
+    }
+    expect(unfed).toEqual([]);
+  });
+
+  it('every S4-S7 objective is fed by >=1 upstream item (or is an allowlisted root)', () => {
+    const unsourced: string[] = [];
+    for (const o of ALL_AUTHORED) {
+      if (STRATUM_ORDER[o.stratumId] < INBOUND_MIN_STRATUM) continue;
+      if (fedTargets.has(o.id)) continue;
+      if (o.id in rootAllow) continue;
+      unsourced.push(`${o.id} (${o.stratumId})`);
+    }
+    expect(unsourced).toEqual([]);
+  });
+
+  it('no stale terminal allowlist entry (each names a real S1-S6 objective genuinely without outbound feed)', () => {
+    const stale: string[] = [];
+    for (const id of Object.keys(terminalAllow)) {
+      const o = AUTHORED_BY_ID.get(id);
+      if (!o) {
+        stale.push(`${id} (not an authored objective)`);
+        continue;
+      }
+      if (STRATUM_ORDER[o.stratumId] > OUTBOUND_MAX_STRATUM) {
+        stale.push(`${id} (S7 is terminal by definition — drop)`);
+        continue;
+      }
+      if (outboundFeeders.has(id)) {
+        stale.push(`${id} (now feeds downstream — drop from allowlist)`);
+      }
+    }
+    expect(stale).toEqual([]);
+  });
+
+  it('no stale root allowlist entry (each names a real S4-S7 objective genuinely without inbound feed)', () => {
+    const stale: string[] = [];
+    for (const id of Object.keys(rootAllow)) {
+      const o = AUTHORED_BY_ID.get(id);
+      if (!o) {
+        stale.push(`${id} (not an authored objective)`);
+        continue;
+      }
+      if (STRATUM_ORDER[o.stratumId] < INBOUND_MIN_STRATUM) {
+        stale.push(`${id} (below S4 — not subject to the inbound invariant)`);
+        continue;
+      }
+      if (fedTargets.has(id)) {
+        stale.push(`${id} (now fed by an upstream item — drop from allowlist)`);
+      }
+    }
+    expect(stale).toEqual([]);
   });
 });
 
