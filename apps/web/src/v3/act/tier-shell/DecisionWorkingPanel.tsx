@@ -179,6 +179,7 @@ import {
 import {
   ConflictFrameworkCapture,
   conflictFrameworkModeFor,
+  householdsFrom,
   isConflictFrameworkValid,
   summariseConflictFramework,
   type ConflictFrameworkMode,
@@ -700,6 +701,12 @@ export default function DecisionWorkingPanel({
     decision.isConflictFramework
       ? conflictFrameworkModeFor(decision.itemId)
       : null;
+  // Derive the sign-off roster from the sibling StewardCapture (same seam as
+  // provision ratify / labour). Computed whenever conflictFrameworkMode is active
+  // so validity and summary both see the current roster.
+  const conflictRoster = conflictFrameworkMode
+    ? householdsFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}))
+    : [];
 
   // Husbandry & welfare framework is a 6-mode capture (health/breeding/welfare/
   // halal/records/labour) routed by husbandryModeFor(itemId). Advisory only --
@@ -884,7 +891,7 @@ export default function DecisionWorkingPanel({
   } else if (livestockIntentMode) {
     valid = isLivestockIntentValid(livestockIntentMode, draft);
   } else if (conflictFrameworkMode) {
-    valid = isConflictFrameworkValid(conflictFrameworkMode, draft);
+    valid = isConflictFrameworkValid(conflictFrameworkMode, draft, conflictRoster);
   } else if (husbandryMode) {
     valid = isHusbandryValid(husbandryMode, draft);
   } else if (soilMode) {
@@ -1196,7 +1203,7 @@ export default function DecisionWorkingPanel({
     } else if (livestockIntentMode) {
       summary = summariseLivestockIntent(livestockIntentMode, draft, siblingValues);
     } else if (conflictFrameworkMode) {
-      summary = summariseConflictFramework(conflictFrameworkMode, draft);
+      summary = summariseConflictFramework(conflictFrameworkMode, draft, conflictRoster);
     } else if (husbandryMode) {
       summary = summariseHusbandry(husbandryMode, draft);
     } else if (soilMode) {
@@ -1465,6 +1472,7 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             projectId={projectId}
+            roster={conflictRoster}
           />
         ) : husbandryMode ? (
           <HusbandryCapture

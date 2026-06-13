@@ -60,10 +60,11 @@ import {
   conflictFrameworkModeFor,
   decodeConflictFramework,
   encodeConflictFramework,
+  householdsFrom,
   isConflictFrameworkValid,
   summariseConflictFramework,
   signOffSignatories,
-  FOUNDING_HOUSEHOLDS,
+  type FoundingHousehold,
   type ConflictFrameworkMode,
   type SignOffModel,
   type CommunityAgreementsModel,
@@ -71,15 +72,29 @@ import {
 } from '../ConflictFrameworkCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
-function renderMode(mode: ConflictFrameworkMode, value: FormValue) {
+// Fixture roster used across signOff tests. Uses mc1..mc4 ids to keep test
+// data compact; householdsFrom tests (below) verify the real seed-N output.
+const FIXTURE_ROSTER: readonly FoundingHousehold[] = [
+  { id: 'mc1', initials: 'SM', name: 'Sarah Mitchell', avatar: 'av1' },
+  { id: 'mc2', initials: 'MD', name: 'Marcus Delacroix', avatar: 'av2' },
+  { id: 'mc3', initials: 'AN', name: 'Aroha Ngai', avatar: 'av3' },
+  { id: 'mc4', initials: 'EY', name: 'Elif Yildiz', avatar: 'av4' },
+];
+
+function renderMode(
+  mode: ConflictFrameworkMode,
+  value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
+) {
   const onChange = vi.fn();
   render(
     <ConflictFrameworkCapture
       mode={mode}
       value={value}
       onChange={onChange}
-      itemId={`ev-s1-conflict-framework-c1`}
+      itemId="ev-s1-conflict-framework-c1"
       projectId="ev-demo"
+      roster={roster}
     />,
   );
   return { onChange };
@@ -420,6 +435,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
         'mc2::bogus',
         'mc3::reservations',
       ]),
+      FIXTURE_ROSTER,
     ) as SignOffModel;
     expect(m.signatures).toEqual({ mc1: 'signed', mc3: 'reservations' });
     // No third segment -> no attestation timestamps recorded.
@@ -430,6 +446,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
     const m = decodeConflictFramework(
       'signOff',
       sigValue([`mc1::signed::${TS}`, 'mc2::signed']),
+      FIXTURE_ROSTER,
     ) as SignOffModel;
     expect(m.signatures).toEqual({ mc1: 'signed', mc2: 'signed' });
     // Only mc1 carried a timestamp; mc2 is an un-timestamped (legacy) toggle.
@@ -437,7 +454,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
   });
 
   it('decode of empty leaves every household pending', () => {
-    const m = decodeConflictFramework('signOff', {}) as SignOffModel;
+    const m = decodeConflictFramework('signOff', {}, FIXTURE_ROSTER) as SignOffModel;
     expect(m.signatures).toEqual({});
     expect(m.signedAt).toEqual({});
   });
@@ -446,18 +463,20 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
     const model = decodeConflictFramework(
       'signOff',
       sigValue([`mc1::signed::${TS}`, 'mc2::reservations']),
+      FIXTURE_ROSTER,
     );
     expect(
-      decodeConflictFramework('signOff', encodeConflictFramework(model)),
+      decodeConflictFramework('signOff', encodeConflictFramework(model, FIXTURE_ROSTER), FIXTURE_ROSTER),
     ).toEqual(model);
   });
 
-  it('HARD GATE: locked until all 4 households sign or reserve', () => {
-    expect(isConflictFrameworkValid('signOff', {})).toBe(false);
+  it('HARD GATE: locked until all households sign or reserve', () => {
+    expect(isConflictFrameworkValid('signOff', {}, FIXTURE_ROSTER)).toBe(false);
     expect(
       isConflictFrameworkValid(
         'signOff',
         sigValue([`mc1::signed::${TS}`, `mc2::signed::${TS}`, `mc3::signed::${TS}`]),
+        FIXTURE_ROSTER,
       ),
     ).toBe(false);
     // All 4: a mix of signed + reservations unlocks (reservations non-blocking).
@@ -470,6 +489,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
           `mc3::signed::${TS}`,
           `mc4::reservations::${TS}`,
         ]),
+        FIXTURE_ROSTER,
       ),
     ).toBe(true);
     // A pending among the 4 keeps it locked.
@@ -482,6 +502,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
           `mc3::signed::${TS}`,
           'mc4::pending',
         ]),
+        FIXTURE_ROSTER,
       ),
     ).toBe(false);
   });
@@ -493,15 +514,23 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
       isConflictFrameworkValid(
         'signOff',
         sigValue(['mc1::signed', 'mc2::signed', 'mc3::signed', 'mc4::signed']),
+        FIXTURE_ROSTER,
       ),
     ).toBe(false);
     // The same four, timestamped, unlock.
-    expect(isConflictFrameworkValid('signOff', sigValue(allSignedAt))).toBe(true);
+    expect(isConflictFrameworkValid('signOff', sigValue(allSignedAt), FIXTURE_ROSTER)).toBe(true);
+  });
+
+  it('R2: empty roster cannot vacuously pass the gate', () => {
+    // A2 guard: roster.length < 1 must return false even though 0 === 0.
+    expect(isConflictFrameworkValid('signOff', sigValue(allSignedAt), [])).toBe(false);
+    expect(isConflictFrameworkValid('signOff', {}, [])).toBe(false);
   });
 
   it('signOffSignatories returns a ProofSignatory per timestamped signature', () => {
     const sigs = signOffSignatories(
       sigValue([`mc1::signed::${TS}`, `mc2::reservations::${TS}`, 'mc3::signed']),
+      FIXTURE_ROSTER,
     );
     // mc3 has no timestamp -> not a signature proof; mc4 pending -> absent.
     expect(sigs).toHaveLength(2);
@@ -521,23 +550,24 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
       summariseConflictFramework(
         'signOff',
         sigValue(['mc1::signed', 'mc2::reservations']),
+        FIXTURE_ROSTER,
       ),
     ).toBe('2/4 households signed (1 with reservations)');
     expect(
-      summariseConflictFramework('signOff', sigValue(['mc1::signed'])),
+      summariseConflictFramework('signOff', sigValue(['mc1::signed']), FIXTURE_ROSTER),
     ).toBe('1/4 households signed');
   });
 
-  it('renders all 4 founding households and the framework checklist', () => {
-    renderMode('signOff', {});
-    for (const h of FOUNDING_HOUSEHOLDS) {
+  it('renders all fixture households and the framework checklist', () => {
+    renderMode('signOff', {}, FIXTURE_ROSTER);
+    for (const h of FIXTURE_ROSTER) {
       expect(screen.getByText(h.name)).toBeTruthy();
     }
     expect(screen.getByText('Framework being signed off')).toBeTruthy();
   });
 
   it('signing a household emits a timestamped signature entry', () => {
-    const { onChange } = renderMode('signOff', {});
+    const { onChange } = renderMode('signOff', {}, FIXTURE_ROSTER);
     fireEvent.click(screen.getAllByText('Signed -- I agree')[0]!);
     const emitted = onChange.mock.calls[0]![0] as FormValue;
     const entries = emitted.cfSignatures as string[];
@@ -547,14 +577,21 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
     expect(mc1!.split('::')[2]).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it('gate flips to unlocked once the 4th household signs', () => {
+  it('renders empty when roster is [] (no households shown, gate locked)', () => {
+    renderMode('signOff', {}, []);
+    expect(screen.queryByText('Signed -- I agree')).toBeNull();
+    // Gate status shows 0/0 but is locked.
+    expect(screen.getByText('0/0 households signed')).toBeTruthy();
+  });
+
+  it('gate flips to unlocked once the last household signs', () => {
     // 3 of 4 already signed (timestamped) -> still locked.
     const threeSigned = sigValue([
       `mc1::signed::${TS}`,
       `mc2::signed::${TS}`,
       `mc3::signed::${TS}`,
     ]);
-    expect(isConflictFrameworkValid('signOff', threeSigned)).toBe(false);
+    expect(isConflictFrameworkValid('signOff', threeSigned, FIXTURE_ROSTER)).toBe(false);
 
     const onChange = vi.fn();
     render(
@@ -564,11 +601,70 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
         onChange={onChange}
         itemId="ev-s1-conflict-framework-c7"
         projectId="ev-demo"
+        roster={FIXTURE_ROSTER}
       />,
     );
     // Sign the 4th household.
     fireEvent.click(screen.getAllByText('Signed -- I agree')[3]!);
     const emitted = onChange.mock.calls.at(-1)![0] as FormValue;
-    expect(isConflictFrameworkValid('signOff', emitted)).toBe(true);
+    expect(isConflictFrameworkValid('signOff', emitted, FIXTURE_ROSTER)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// householdsFrom -- roster derivation from StewardModel
+// ---------------------------------------------------------------------------
+
+describe('householdsFrom', () => {
+  it('returns empty array for no invites', () => {
+    expect(householdsFrom({ invites: [] })).toEqual([]);
+  });
+
+  it('excludes contractors and blank-name invites', () => {
+    const result = householdsFrom({
+      invites: [
+        { name: 'Alice Brown', email: 'a@x.com', role: 'team_member' },
+        { name: 'Bob Crew', email: 'b@x.com', role: 'contractor' },
+        { name: '', email: 'c@x.com', role: 'team_member' },
+        { name: 'Clara Davis', email: 'd@x.com', role: 'landowner' },
+      ],
+    });
+    expect(result).toHaveLength(2);
+    expect(result[0]!.name).toBe('Alice Brown');
+    expect(result[1]!.name).toBe('Clara Davis');
+  });
+
+  it('assigns deterministic seed-N ids', () => {
+    const result = householdsFrom({
+      invites: [
+        { name: 'Alice Brown', email: 'a@x.com', role: 'team_member' },
+        { name: 'Clara Davis', email: 'c@x.com', role: 'landowner' },
+      ],
+    });
+    expect(result[0]!.id).toBe('seed-0');
+    expect(result[1]!.id).toBe('seed-1');
+  });
+
+  it('derives initials from first + last word', () => {
+    const result = householdsFrom({
+      invites: [
+        { name: 'Alice Brown', email: 'a@x.com', role: 'team_member' },
+        { name: 'SingleName', email: 'b@x.com', role: 'team_member' },
+        { name: 'Ali ibn Abi Talib', email: 'c@x.com', role: 'team_member' },
+      ],
+    });
+    expect(result[0]!.initials).toBe('AB');
+    expect(result[1]!.initials).toBe('S');
+    expect(result[2]!.initials).toBe('AT');
+  });
+
+  it('cycles avatar slots av1..av4 for more than 4 members', () => {
+    const invites = Array.from({ length: 5 }, (_, i) => ({
+      name: `Member ${i}`,
+      email: `m${i}@x.com`,
+      role: 'team_member' as const,
+    }));
+    const result = householdsFrom({ invites });
+    expect(result.map((h) => h.avatar)).toEqual(['av1', 'av2', 'av3', 'av4', 'av1']);
   });
 });

@@ -19,14 +19,12 @@
  * they never throw and never fabricate seed data (an empty FormValue decodes to
  * every select unset, no agreements enabled, every household "pending").
  *
- * SIMPLIFICATIONS (deferred follow-ups, by design, confirmed with the operator
- * 2026-06-09):
- *   - c7 sign-off roster is the mockup's 4 STATIC founding households
- *     (FOUNDING_HOUSEHOLDS). Wiring it to the project's real member roster is a
- *     deferred follow-up.
- *   - Mockup-default toggle/select states are NOT pre-seeded (decode never
- *     fabricates). The surface starts blank and the steward chooses; the
- *     validity gate makes the headline decisions mandatory before Record.
+ * c7 sign-off roster derives from the sibling StewardCapture invites via
+ * householdsFrom(steward) (the same seam as ProvisionBalance/LabourInventory).
+ * Contractors and blank-name invites are excluded; ids are "seed-<N>".
+ * Mockup-default toggle/select states are NOT pre-seeded (decode never
+ * fabricates). The surface starts blank and the steward chooses; the
+ * validity gate makes the headline decisions mandatory before Record.
  *
  * ASCII-only: em-dash -> " -- "; no smart quotes; apostrophes use double-quoted
  * JS strings; all icons are lucide. FormValue keys are mode-namespaced ("cf*").
@@ -37,6 +35,7 @@ import { ArrowRight, Check, Info, Lock, ShieldCheck, TriangleAlert } from 'lucid
 
 import type { ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
+import type { StewardModel } from './StewardCapture.js';
 import {
   Dropdown,
   InterpretationBlock,
@@ -87,9 +86,10 @@ export function conflictFrameworkModeFor(
 }
 
 // ---------------------------------------------------------------------------
-// Founding households (c7). VERBATIM from the mockup sign-off cards. Names are
-// transliterated to ASCII per the project ASCII-only constraint. STATIC roster
-// (real members-wiring is a deferred follow-up).
+// Founding households (c7). Roster derives from the sibling StewardCapture
+// invites at render time via householdsFrom(steward) -- the same seam as
+// ProvisionBalance/LabourInventory. Contractors and blank-name invites are
+// excluded; ids are "seed-<N>" (deterministic, never mint at render time).
 // ---------------------------------------------------------------------------
 
 export type SignatureStatus = 'signed' | 'reservations' | 'pending';
@@ -102,12 +102,34 @@ export interface FoundingHousehold {
   avatar: 'av1' | 'av2' | 'av3' | 'av4';
 }
 
-export const FOUNDING_HOUSEHOLDS: readonly FoundingHousehold[] = [
-  { id: 'mc1', initials: 'SM', name: 'Sarah Mitchell', avatar: 'av1' },
-  { id: 'mc2', initials: 'MD', name: 'Marcus Delacroix', avatar: 'av3' },
-  { id: 'mc3', initials: 'AJ', name: 'Aroha & James Ngai', avatar: 'av2' },
-  { id: 'mc4', initials: 'EY', name: 'Elif Yildiz & family', avatar: 'av4' },
+const AVATAR_SLOTS: readonly ('av1' | 'av2' | 'av3' | 'av4')[] = [
+  'av1', 'av2', 'av3', 'av4',
 ];
+
+/**
+ * Build the sign-off roster from the sibling StewardCapture invites.
+ * One entry per named non-contractor invite. Ids are deterministic
+ * ("seed-<N>") because this runs at render time; new id minting stays
+ * handler-only. Contractors are excluded (they are not founding members).
+ */
+export function householdsFrom(
+  steward: StewardModel,
+): readonly FoundingHousehold[] {
+  const result: FoundingHousehold[] = [];
+  for (const invite of steward.invites) {
+    if (invite.role === 'contractor') continue;
+    const name = invite.name.trim();
+    if (name === '') continue;
+    const words = name.split(/\s+/).filter(Boolean);
+    const initials =
+      words.length >= 2
+        ? (words[0]![0]! + words[words.length - 1]![0]!).toUpperCase()
+        : (words[0]?.[0] ?? 'H').toUpperCase();
+    const i = result.length;
+    result.push({ id: `seed-${i}`, initials, name, avatar: AVATAR_SLOTS[i % 4]! });
+  }
+  return result;
+}
 
 const SIGNATURE_ACK =
   'I have read, understood, and agree to be bound by the community agreement ' +
@@ -280,8 +302,8 @@ const DISPUTE_TIERS: readonly TierSpec[] = [
         key: 'cfT2Facilitator',
         label: 'Facilitator',
         options: [
-          'SM -- consensus facilitation training',
           'Any non-involved founding member',
+          'Rotating -- community member designated at each session',
         ],
       },
       {
@@ -730,6 +752,7 @@ function formatSignedDate(iso: string): string {
 export function decodeConflictFramework(
   mode: ConflictFrameworkMode,
   value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
 ): ConflictFrameworkModel {
   if (isSelectMode(mode)) {
     return { kind: mode, sel: selFrom(SELECT_KEYS_BY_MODE[mode] ?? [], value) };
@@ -752,7 +775,7 @@ export function decodeConflictFramework(
     const id = parts[0] ?? '';
     const raw = parts[1] ?? '';
     const ts = parts[2] ?? '';
-    if (!FOUNDING_HOUSEHOLDS.some((h) => h.id === id)) continue;
+    if (!roster.some((h) => h.id === id)) continue;
     if (raw === 'signed' || raw === 'reservations' || raw === 'pending') {
       signatures[id] = raw;
       // Keep a timestamp only for an actual attestation (signed/reservations).
@@ -768,6 +791,7 @@ export function decodeConflictFramework(
 
 export function encodeConflictFramework(
   model: ConflictFrameworkModel,
+  roster: readonly FoundingHousehold[] = [],
 ): FormValue {
   if (model.kind === 'communityAgreements') {
     const out: FormValue = { cfAgreements: [...model.enabled] };
@@ -775,7 +799,7 @@ export function encodeConflictFramework(
     return out;
   }
   if (model.kind === 'signOff') {
-    const cfSignatures = FOUNDING_HOUSEHOLDS.filter(
+    const cfSignatures = roster.filter(
       (h) => (model.signatures[h.id] ?? 'pending') !== 'pending',
     ).map((h) => {
       const status = model.signatures[h.id];
@@ -804,14 +828,17 @@ export function statusFor(
 export function isConflictFrameworkValid(
   mode: ConflictFrameworkMode,
   value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
 ): boolean {
   if (mode === 'communityAgreements') {
     const model = decodeConflictFramework('communityAgreements', value) as CommunityAgreementsModel;
     return model.enabled.length >= 1;
   }
   if (mode === 'signOff') {
-    const model = decodeConflictFramework('signOff', value) as SignOffModel;
-    return FOUNDING_HOUSEHOLDS.every((h) => {
+    // A2: empty roster cannot vacuously pass the pre-land-work gate.
+    if (roster.length < 1) return false;
+    const model = decodeConflictFramework('signOff', value, roster) as SignOffModel;
+    return roster.every((h) => {
       const s = statusFor(model.signatures, h.id);
       const attested = s === 'signed' || s === 'reservations';
       // F1 gate: a real attestation carries a timestamp, not just a toggled
@@ -837,6 +864,7 @@ function head(option: string): string {
 export function summariseConflictFramework(
   mode: ConflictFrameworkMode,
   value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
 ): string {
   switch (mode) {
     case 'decisionProcess': {
@@ -874,15 +902,15 @@ export function summariseConflictFramework(
         : 'Review cadence defined';
     }
     case 'signOff': {
-      const model = decodeConflictFramework('signOff', value) as SignOffModel;
+      const model = decodeConflictFramework('signOff', value, roster) as SignOffModel;
       let signed = 0;
       let reservations = 0;
-      for (const h of FOUNDING_HOUSEHOLDS) {
+      for (const h of roster) {
         const s = statusFor(model.signatures, h.id);
         if (s === 'signed' || s === 'reservations') signed++;
         if (s === 'reservations') reservations++;
       }
-      const base = `${signed}/${FOUNDING_HOUSEHOLDS.length} households signed`;
+      const base = `${signed}/${roster.length} households signed`;
       return reservations > 0 ? `${base} (${reservations} with reservations)` : base;
     }
     default: {
@@ -897,10 +925,13 @@ export function summariseConflictFramework(
  *  System-2 (decision-capture) analogue of a ProofRecord{kind:'signature'} --
  *  a typed, timestamped, named attestation rather than a bare toggle. Households
  *  with no timestamp (legacy toggles) are NOT signature proofs and are omitted. */
-export function signOffSignatories(value: FormValue): ProofSignatory[] {
-  const model = decodeConflictFramework('signOff', value) as SignOffModel;
+export function signOffSignatories(
+  value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
+): ProofSignatory[] {
+  const model = decodeConflictFramework('signOff', value, roster) as SignOffModel;
   const out: ProofSignatory[] = [];
-  for (const h of FOUNDING_HOUSEHOLDS) {
+  for (const h of roster) {
     const s = statusFor(model.signatures, h.id);
     if (s !== 'signed' && s !== 'reservations') continue;
     const signedAt = model.signedAt[h.id];
@@ -930,6 +961,10 @@ export interface ConflictFrameworkCaptureProps {
   itemId: string;
   /** owning project id; consumed at Record time, unused for rendering. */
   projectId: string;
+  /** Derived from the real team via householdsFrom(steward) -- who must sign
+   *  the community agreement framework. Defaults to [] (gate stays locked until
+   *  the steward has at least one non-contractor invite). */
+  roster?: readonly FoundingHousehold[];
 }
 
 /** Labelled single-select row backed by Dropdown (stores the chosen label). */
@@ -970,6 +1005,7 @@ export function ConflictFrameworkCapture({
   onChange,
   itemId,
   projectId,
+  roster = [],
 }: ConflictFrameworkCaptureProps): React.JSX.Element {
   void itemId;
   void projectId;
@@ -1214,7 +1250,7 @@ export function ConflictFrameworkCapture({
   }
 
   // ===================== c7 signOff =====================
-  const model = decodeConflictFramework('signOff', value) as SignOffModel;
+  const model = decodeConflictFramework('signOff', value, roster) as SignOffModel;
   const setStatus = (id: string, status: SignatureStatus): void => {
     const current = statusFor(model.signatures, id);
     const nextSig: Record<string, SignatureStatus> = { ...model.signatures };
@@ -1233,25 +1269,27 @@ export function ConflictFrameworkCapture({
         kind: 'signOff',
         signatures: nextSig,
         signedAt: nextAt,
-      }),
+      }, roster),
     );
   };
 
   let signedCount = 0;
   let reservationsCount = 0;
-  for (const h of FOUNDING_HOUSEHOLDS) {
+  for (const h of roster) {
     const s = statusFor(model.signatures, h.id);
     if (s === 'signed' || s === 'reservations') signedCount++;
     if (s === 'reservations') reservationsCount++;
   }
-  const allSigned = signedCount === FOUNDING_HOUSEHOLDS.length;
+  // roster.length > 0 guard closes the vacuous-truth bug: an empty roster
+  // must not show as "unlocked" even though 0 === 0.
+  const allSigned = roster.length > 0 && signedCount === roster.length;
   const unlocked = allSigned;
 
   let gateTone: 'pass' | 'warn' | 'info' = 'info';
   let gateText: string;
   if (!allSigned) {
     gateText =
-      'Awaiting all 4 household signatures. No land work -- groundworks, ' +
+      'Awaiting all household signatures. No land work -- groundworks, ' +
       'construction, or infrastructure -- begins until all members have signed.';
   } else if (reservationsCount > 0) {
     gateTone = 'warn';
@@ -1261,7 +1299,7 @@ export function ConflictFrameworkCapture({
   } else {
     gateTone = 'pass';
     gateText =
-      'All 4 founding households have signed. Community agreement framework is ' +
+      'All households have signed. Community agreement framework is ' +
       'complete. Land work may now begin.';
   }
 
@@ -1284,7 +1322,7 @@ export function ConflictFrameworkCapture({
         ))}
       </div>
 
-      {FOUNDING_HOUSEHOLDS.map((h) => {
+      {roster.map((h) => {
         const s = statusFor(model.signatures, h.id);
         return (
           <div
@@ -1340,14 +1378,14 @@ export function ConflictFrameworkCapture({
         </span>
         <div className={css.gateBody}>
           <div className={css.gateStatus}>
-            {signedCount}/{FOUNDING_HOUSEHOLDS.length} households signed
+            {signedCount}/{roster.length} households signed
           </div>
           <div className={css.gateTxt}>{gateText}</div>
         </div>
       </div>
 
       <FeedsNote>
-        All 4 founding households must sign before <strong>land work</strong>{' '}
+        All households must sign before <strong>land work</strong>{' '}
         -- groundworks, construction, or infrastructure -- unlocks.
       </FeedsNote>
     </div>
