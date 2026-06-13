@@ -56,10 +56,9 @@ import {
   skillBadgeFor,
   expBuckets,
   cohTally,
-  REL_HOUSEHOLDS,
+  relHouseholdsFrom,
+  expHouseholdsFrom,
   REL_SINCE_OPTIONS,
-  EXP_HOUSEHOLDS,
-  PA_SEED,
   PA_BY_OPTIONS,
   COH_DOMAINS,
   COH_LEVELS,
@@ -73,9 +72,17 @@ import {
   type SkillsModel,
   type NetworksModel,
 } from '../SocialFabricCapture.js';
+import type { FoundingHousehold } from '../ConflictFrameworkCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
 
 const NOOP = (): void => {};
+
+const FIXTURE_ROSTER: readonly FoundingHousehold[] = [
+  { id: 'mc1', initials: 'SM', name: 'Sarah Mitchell', avatar: 'av1' },
+  { id: 'mc2', initials: 'MD', name: 'Marcus Delacroix', avatar: 'av2' },
+  { id: 'mc3', initials: 'AN', name: 'Aroha Ngai', avatar: 'av3' },
+  { id: 'mc4', initials: 'EY', name: 'Elif Yildiz', avatar: 'av4' },
+];
 
 const ALL_MODES: readonly SocialFabricMode[] = [
   'relationships',
@@ -87,8 +94,11 @@ const ALL_MODES: readonly SocialFabricMode[] = [
 ];
 
 /** decode-then-encode: the canonical seeded FormValue for a mode. */
-function decodeToValue(mode: SocialFabricMode): FormValue {
-  return encodeSocialFabric(mode, decodeSocialFabric(mode, {}));
+function decodeToValue(
+  mode: SocialFabricMode,
+  roster: readonly FoundingHousehold[] = [],
+): FormValue {
+  return encodeSocialFabric(mode, decodeSocialFabric(mode, {}, roster));
 }
 
 // ---------------------------------------------------------------------------
@@ -143,25 +153,31 @@ describe('decodeSocialFabric (defensive + seeded)', () => {
     }
   });
 
-  it('seeds relationships from the mockup defaults when empty', () => {
+  it('decode relationships with roster returns empty-string arrays of roster length', () => {
+    const m = decodeSocialFabric('relationships', {}, FIXTURE_ROSTER) as RelationshipsModel;
+    expect(m.since).toHaveLength(FIXTURE_ROSTER.length);
+    expect(m.depth).toHaveLength(FIXTURE_ROSTER.length);
+    expect(m.cohab).toHaveLength(FIXTURE_ROSTER.length);
+    expect(m.notes).toHaveLength(FIXTURE_ROSTER.length);
+    expect(m.since.every((s) => s === '')).toBe(true);
+  });
+
+  it('decode relationships with no roster returns empty arrays', () => {
     const m = decodeSocialFabric('relationships', {}) as RelationshipsModel;
-    expect(m.since).toEqual(REL_HOUSEHOLDS.map((h) => h.since));
-    expect(m.depth).toEqual(REL_HOUSEHOLDS.map((h) => h.depth));
-    expect(m.cohab).toEqual(REL_HOUSEHOLDS.map((h) => h.cohab));
-    expect(m.notes).toHaveLength(REL_HOUSEHOLDS.length);
+    expect(m.since).toHaveLength(0);
+    expect(m.notes).toHaveLength(0);
   });
 
-  it('seeds experience chips per household from the mockup defaults', () => {
-    const m = decodeSocialFabric('experience', {}) as ExperienceModel;
-    expect(m.chips).toHaveLength(EXP_HOUSEHOLDS.length);
-    expect(m.chips[0]).toEqual([...EXP_HOUSEHOLDS[0]!.chipsOn]);
-    expect(m.notes[2]).toBe(EXP_HOUSEHOLDS[2]!.note);
+  it('decode experience with roster returns empty chips and notes per household', () => {
+    const m = decodeSocialFabric('experience', {}, FIXTURE_ROSTER) as ExperienceModel;
+    expect(m.chips).toHaveLength(FIXTURE_ROSTER.length);
+    expect(m.chips[0]).toEqual([]);
+    expect(m.notes[0]).toBe('');
   });
 
-  it('seeds a single prior attempt from PA_SEED when empty', () => {
+  it('decode priorattempts with no stored data returns 0 rows', () => {
     const m = decodeSocialFabric('priorattempts', {}) as PriorAttemptsModel;
-    expect(m.by).toEqual([PA_SEED.by]);
-    expect(m.end).toEqual([PA_SEED.end]);
+    expect(m.by).toHaveLength(0);
     expect(m.noAttempts).toBe('');
   });
 
@@ -186,11 +202,11 @@ describe('decodeSocialFabric (defensive + seeded)', () => {
     expect(m.custom).toBe('');
   });
 
-  it('drops an out-of-set relationship select back to the verbatim default', () => {
+  it('drops an out-of-set relationship select back to empty string', () => {
     const m = decodeSocialFabric('relationships', {
       sfRelSince: ['NOT A REAL OPTION', '', '', ''],
-    }) as RelationshipsModel;
-    expect(m.since[0]).toBe(REL_HOUSEHOLDS[0]!.since);
+    }, FIXTURE_ROSTER) as RelationshipsModel;
+    expect(m.since[0]).toBe('');
   });
 });
 
@@ -199,18 +215,20 @@ describe('decodeSocialFabric (defensive + seeded)', () => {
 // ---------------------------------------------------------------------------
 
 describe('encodeSocialFabric (lossless roundtrip)', () => {
-  const cases: Array<{ mode: SocialFabricMode; value: FormValue }> = [
+  const cases: Array<{ mode: SocialFabricMode; value: FormValue; roster?: readonly FoundingHousehold[] }> = [
     {
       mode: 'relationships',
+      roster: FIXTURE_ROSTER,
       value: {
-        sfRelSince: REL_HOUSEHOLDS.map((h) => h.since),
-        sfRelDepth: REL_HOUSEHOLDS.map((h) => h.depth),
-        sfRelCohab: REL_HOUSEHOLDS.map((h) => h.cohab),
+        sfRelSince: ['3-5 years', '1-2 years', '6-10 years', 'Less than 1 year'],
+        sfRelDepth: ['Close friend', 'Colleague', 'Close friend', 'Acquaintance'],
+        sfRelCohab: ['None', 'None', 'Shared work project', 'None'],
         sfRelNotes: ['note a', '', 'note c', ''],
       },
     },
     {
       mode: 'experience',
+      roster: FIXTURE_ROSTER,
       value: {
         sfExpChips0: ['Intentional community'],
         sfExpChips1: ['Cooperative living'],
@@ -257,20 +275,20 @@ describe('encodeSocialFabric (lossless roundtrip)', () => {
     },
   ];
 
-  for (const { mode, value } of cases) {
+  for (const { mode, value, roster = [] } of cases) {
     it(`roundtrips ${mode} through decode -> encode unchanged`, () => {
-      const decoded = decodeSocialFabric(mode, value);
+      const decoded = decodeSocialFabric(mode, value, roster);
       const encoded = encodeSocialFabric(mode, decoded);
-      expect(decodeSocialFabric(mode, encoded)).toEqual(decoded);
+      expect(decodeSocialFabric(mode, encoded, roster)).toEqual(decoded);
     });
   }
 
   it('stores register sets as parallel string[] columns', () => {
-    const v = decodeToValue('relationships');
+    const v = decodeToValue('relationships', FIXTURE_ROSTER);
     expect(Array.isArray(v.sfRelSince)).toBe(true);
     expect(Array.isArray(v.sfRelDepth)).toBe(true);
-    expect((v.sfRelSince as string[]).length).toBe(REL_HOUSEHOLDS.length);
-    expect((v.sfRelDepth as string[]).length).toBe(REL_HOUSEHOLDS.length);
+    expect((v.sfRelSince as string[]).length).toBe(FIXTURE_ROSTER.length);
+    expect((v.sfRelDepth as string[]).length).toBe(FIXTURE_ROSTER.length);
   });
 
   it('preserves a multi-attempt register length through a roundtrip', () => {
@@ -298,9 +316,14 @@ describe('pure helpers', () => {
     expect(skillBadgeFor('Building & construction', 2)).toBe('Covered');
   });
 
-  it('expBuckets reproduces the mockup 1/2/1 tally from the seed', () => {
-    const m = decodeSocialFabric('experience', {}) as ExperienceModel;
-    const b = expBuckets(m.chips);
+  it('expBuckets returns correct tally for given chips', () => {
+    const chips = [
+      ['Intentional community', 'Cooperative living'],
+      ['Cooperative living'],
+      ['Farm collective'],
+      ['None'],
+    ];
+    const b = expBuckets(chips);
     expect(b).toEqual({ intentional: 1, coop: 2, none: 1 });
   });
 
@@ -315,23 +338,40 @@ describe('pure helpers', () => {
 // ---------------------------------------------------------------------------
 
 describe('isSocialFabricValid', () => {
-  it('relationships/experience/cohesion/skills/networks are seeded-valid', () => {
-    for (const mode of ['relationships', 'experience', 'cohesion', 'skills', 'networks'] as const) {
+  it('cohesion/skills/networks are seeded-valid without roster', () => {
+    for (const mode of ['cohesion', 'skills', 'networks'] as const) {
       expect(isSocialFabricValid(mode, decodeToValue(mode))).toBe(true);
     }
   });
 
-  it('priorattempts valid with a seeded attempt, invalid when emptied + unconfirmed', () => {
-    expect(isSocialFabricValid('priorattempts', decodeToValue('priorattempts'))).toBe(true);
-    const emptied: FormValue = {
-      sfPaNoAttempts: '',
-      sfPaBy: [],
-      sfPaLand: [],
-      sfPaDuration: [],
-      sfPaEnd: [],
-      sfPaNote: [],
+  it('relationships and experience are invalid when no household data is stored', () => {
+    expect(isSocialFabricValid('relationships', {}, FIXTURE_ROSTER)).toBe(false);
+    expect(isSocialFabricValid('experience', {}, FIXTURE_ROSTER)).toBe(false);
+  });
+
+  it('relationships valid when at least one household has a since value', () => {
+    const value: FormValue = { sfRelSince: ['3-5 years', '', '', ''] };
+    expect(isSocialFabricValid('relationships', value, FIXTURE_ROSTER)).toBe(true);
+  });
+
+  it('experience valid when at least one household has a chip selected', () => {
+    const value: FormValue = { sfExpChips0: ['Intentional community'] };
+    expect(isSocialFabricValid('experience', value, FIXTURE_ROSTER)).toBe(true);
+  });
+
+  it('priorattempts invalid when empty and unconfirmed', () => {
+    expect(isSocialFabricValid('priorattempts', {})).toBe(false);
+  });
+
+  it('priorattempts valid when a stored attempt exists', () => {
+    const value: FormValue = {
+      sfPaBy: ['This group'],
+      sfPaLand: ['Yes'],
+      sfPaDuration: ['1-3 years'],
+      sfPaEnd: ['Still active'],
+      sfPaNote: [''],
     };
-    expect(isSocialFabricValid('priorattempts', emptied)).toBe(false);
+    expect(isSocialFabricValid('priorattempts', value)).toBe(true);
   });
 
   it('priorattempts valid when no-attempts is confirmed with zero rows', () => {
@@ -359,12 +399,16 @@ describe('summariseSocialFabric', () => {
     }
   });
 
-  it('ignores siblingValues (no cross-item reads)', () => {
+  it('produces a stable summary (no external state reads)', () => {
     const a = summariseSocialFabric('cohesion', decodeToValue('cohesion'));
-    const b = summariseSocialFabric('cohesion', decodeToValue('cohesion'), {
-      'ev-s2-social-fabric-c1': { sfRelSince: ['99'] },
-    });
+    const b = summariseSocialFabric('cohesion', decodeToValue('cohesion'));
     expect(a).toBe(b);
+  });
+
+  it('reflects 0 of N households mapped for empty relationships with roster', () => {
+    expect(summariseSocialFabric('relationships', {}, FIXTURE_ROSTER)).toBe(
+      '0 of 4 founding households mapped',
+    );
   });
 
   it('reflects the cohesion tally', () => {
@@ -387,27 +431,91 @@ describe('summariseSocialFabric', () => {
 });
 
 // ---------------------------------------------------------------------------
+// relHouseholdsFrom / expHouseholdsFrom
+// ---------------------------------------------------------------------------
+
+describe('relHouseholdsFrom', () => {
+  it('returns empty array for empty roster', () => {
+    expect(relHouseholdsFrom([])).toHaveLength(0);
+  });
+
+  it('derives name and initials from roster', () => {
+    const hh = relHouseholdsFrom(FIXTURE_ROSTER);
+    expect(hh[0]!.name).toBe('Sarah Mitchell');
+    expect(hh[0]!.initials).toBe('SM');
+  });
+
+  it('first household gets primary steward role; subsequent get Household N', () => {
+    const hh = relHouseholdsFrom(FIXTURE_ROSTER);
+    expect(hh[0]!.role).toBe('Primary steward - initiating member');
+    expect(hh[1]!.role).toBe('Household 2');
+    expect(hh[3]!.role).toBe('Household 4');
+  });
+
+  it('since/depth/cohab default to empty string (operator must fill in)', () => {
+    const hh = relHouseholdsFrom(FIXTURE_ROSTER);
+    expect(hh[0]!.since).toBe('');
+    expect(hh[0]!.depth).toBe('');
+    expect(hh[0]!.cohab).toBe('');
+  });
+
+  it('cycles tone slots for rosters longer than 4', () => {
+    const longRoster: readonly FoundingHousehold[] = Array.from({ length: 5 }, (_, i) => ({
+      id: `h${i}`,
+      initials: `H${i}`,
+      name: `Household ${i}`,
+      avatar: 'av1' as const,
+    }));
+    const hh = relHouseholdsFrom(longRoster);
+    expect(hh[4]!.tone).toBe('1');
+  });
+});
+
+describe('expHouseholdsFrom', () => {
+  it('returns empty array for empty roster', () => {
+    expect(expHouseholdsFrom([])).toHaveLength(0);
+  });
+
+  it('derives name and initials; chipsOn defaults to [] and note to ""', () => {
+    const hh = expHouseholdsFrom(FIXTURE_ROSTER);
+    expect(hh[0]!.name).toBe('Sarah Mitchell');
+    expect(hh[0]!.chipsOn).toEqual([]);
+    expect(hh[0]!.note).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // component render -- distinctive verbatim strings per mode
 // ---------------------------------------------------------------------------
 
-function renderMode(mode: SocialFabricMode, value: FormValue = {}): void {
+function renderMode(
+  mode: SocialFabricMode,
+  value: FormValue = {},
+  roster: readonly FoundingHousehold[] = [],
+): void {
   render(
     <SocialFabricCapture
       mode={mode}
       value={value}
       onChange={NOOP}
       itemId={`${SOCIAL_FABRIC_PREFIX}-c1`}
+      roster={roster}
     />,
   );
 }
 
 describe('SocialFabricCapture render', () => {
-  it('relationships renders all four households', () => {
-    renderMode('relationships');
+  it('relationships renders the fixture-roster households', () => {
+    renderMode('relationships', {}, FIXTURE_ROSTER);
     expect(screen.getByText('Sarah Mitchell')).toBeTruthy();
-    expect(screen.getByText('Aroha & James Ngai')).toBeTruthy();
     expect(screen.getByText('Marcus Delacroix')).toBeTruthy();
-    expect(screen.getByText('Elif Yildiz & family')).toBeTruthy();
+    expect(screen.getByText('Aroha Ngai')).toBeTruthy();
+    expect(screen.getByText('Elif Yildiz')).toBeTruthy();
+  });
+
+  it('relationships renders empty when no roster is provided', () => {
+    renderMode('relationships');
+    expect(screen.queryByText('Sarah Mitchell')).toBeNull();
   });
 
   it('experience renders the live tally strip', () => {

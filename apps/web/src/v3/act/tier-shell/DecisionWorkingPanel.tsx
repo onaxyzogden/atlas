@@ -803,6 +803,10 @@ export default function DecisionWorkingPanel({
     ? socialFabricModeFor(decision.itemId)
     : null;
 
+  const socialFabricRoster = socialFabricMode
+    ? householdsFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}))
+    : [];
+
   // Infra-condition survey is a 5-mode capture (buildings / compliance /
   // utilities / access / reuse) routed by infraConditionModeFor(itemId).
   // Advisory only -- it validates / summarises directly off the FormValue and
@@ -913,7 +917,7 @@ export default function DecisionWorkingPanel({
   } else if (adaptiveManagementMode) {
     valid = isAdaptiveManagementValid(adaptiveManagementMode, draft);
   } else if (socialFabricMode) {
-    valid = isSocialFabricValid(socialFabricMode, draft);
+    valid = isSocialFabricValid(socialFabricMode, draft, socialFabricRoster);
   } else if (infraConditionMode) {
     valid = isInfraConditionValid(infraConditionMode, draft);
   } else if (settlementPlanMode) {
@@ -1233,7 +1237,7 @@ export default function DecisionWorkingPanel({
         siblingValues,
       );
     } else if (socialFabricMode) {
-      summary = summariseSocialFabric(socialFabricMode, draft, siblingValues);
+      summary = summariseSocialFabric(socialFabricMode, draft, socialFabricRoster);
     } else if (infraConditionMode) {
       summary = summariseInfraCondition(infraConditionMode, draft, siblingValues);
     } else if (settlementPlanMode) {
@@ -1569,7 +1573,7 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}
-            siblingValues={siblingValues}
+            roster={socialFabricRoster}
           />
         ) : infraConditionMode ? (
           <InfraConditionCapture

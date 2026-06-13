@@ -46,6 +46,7 @@ import * as React from 'react';
 import { ArrowRight, Check, Plus, X } from 'lucide-react';
 
 import type { FormValue } from './actToolCatalog.js';
+import type { FoundingHousehold } from './ConflictFrameworkCapture.js';
 import { ChipSelect, SectionEyebrow } from './captures/controls/index.js';
 import css from './SocialFabricCapture.module.css';
 
@@ -92,6 +93,8 @@ export function socialFabricModeFor(itemId: string): SocialFabricMode | null {
 /** avatar tone slot 1..4 (success / info / stage-act / error) */
 export type AvTone = '1' | '2' | '3' | '4';
 
+const TONE_SLOTS: readonly AvTone[] = ['1', '2', '3', '4'];
+
 // -- relationships (c1) -- 4-household relationship map (mockup p1) --
 
 export const REL_SINCE_OPTIONS: readonly string[] = [
@@ -127,53 +130,22 @@ export interface RelHouseholdSpec {
   depth: string;
   cohab: string;
 }
-export const REL_HOUSEHOLDS: readonly RelHouseholdSpec[] = [
-  {
-    key: 'sm',
-    initials: 'SM',
-    tone: '1',
-    name: 'Sarah Mitchell',
-    role: 'Primary steward - initiating member',
+/** Derive household specs for c1 (relationships) from the real founding roster. */
+export function relHouseholdsFrom(
+  roster: readonly FoundingHousehold[],
+): readonly RelHouseholdSpec[] {
+  return roster.map((h, i) => ({
+    key: h.id,
+    initials: h.initials,
+    tone: TONE_SLOTS[i % 4]!,
+    name: h.name,
+    role: i === 0 ? 'Primary steward - initiating member' : `Household ${i + 1}`,
     hasNote: true,
-    since: '3-5 years',
-    depth: 'Close friend',
-    cohab: 'None',
-  },
-  {
-    key: 'aj',
-    initials: 'AJ',
-    tone: '2',
-    name: 'Aroha & James Ngai',
-    role: 'Household 2',
-    hasNote: true,
-    since: '1-2 years',
-    depth: 'Colleague',
-    cohab: 'None',
-  },
-  {
-    key: 'md',
-    initials: 'MD',
-    tone: '3',
-    name: 'Marcus Delacroix',
-    role: 'Household 3',
-    hasNote: true,
-    since: '6-10 years',
-    depth: 'Close friend',
-    cohab: 'Shared work project',
-  },
-  {
-    key: 'ey',
-    initials: 'EY',
-    tone: '4',
-    name: 'Elif Yildiz & family',
-    role: 'Household 4',
-    hasNote: false,
-    since: 'Less than 1 year',
-    depth: 'Acquaintance',
-    cohab: 'None',
-  },
-];
-const REL_LEN = REL_HOUSEHOLDS.length;
+    since: '',
+    depth: '',
+    cohab: '',
+  }));
+}
 
 export const REL_NOTE_PLACEHOLDER =
   'Notes on relationship history, conflicts resolved, shared values confirmed...';
@@ -206,41 +178,19 @@ export interface ExpHouseholdSpec {
   chipsOn: readonly string[];
   note: string;
 }
-export const EXP_HOUSEHOLDS: readonly ExpHouseholdSpec[] = [
-  {
-    key: 'sm',
-    initials: 'SM',
-    tone: '1',
-    name: 'Sarah Mitchell',
-    chipsOn: ['Intentional community', 'Cooperative living', 'Permaculture project'],
-    note: 'Lived at Solterra Ecovillage for 3 years (2018-2021). Left due to relocation, not community breakdown. Strong consensus facilitation skills developed there.',
-  },
-  {
-    key: 'aj',
-    initials: 'AJ',
-    tone: '2',
-    name: 'Aroha & James Ngai',
-    chipsOn: ['Cooperative living'],
-    note: 'Shared a 4-bedroom house with 2 other families for 18 months. Positive experience but no formal governance structures.',
-  },
-  {
-    key: 'md',
-    initials: 'MD',
-    tone: '3',
-    name: 'Marcus Delacroix',
-    chipsOn: ['Permaculture project', 'Farm collective'],
-    note: '5 years on a market garden cooperative. Strong practical skills; no residential community experience.',
-  },
-  {
-    key: 'ey',
-    initials: 'EY',
-    tone: '4',
-    name: 'Elif Yildiz & family',
-    chipsOn: ['None'],
-    note: 'No prior communal living experience. Strong motivation; this is the first intentional step.',
-  },
-];
-const EXP_LEN = EXP_HOUSEHOLDS.length;
+/** Derive household specs for c2 (experience) from the real founding roster. */
+export function expHouseholdsFrom(
+  roster: readonly FoundingHousehold[],
+): readonly ExpHouseholdSpec[] {
+  return roster.map((h, i) => ({
+    key: h.id,
+    initials: h.initials,
+    tone: TONE_SLOTS[i % 4]!,
+    name: h.name,
+    chipsOn: [],
+    note: '',
+  }));
+}
 
 export const EXP_NOTE_PLACEHOLDER =
   'Duration, location, role, what was learned or what failed...';
@@ -599,36 +549,39 @@ function storedArr(value: FormValue, key: string): string[] | null {
 export function decodeSocialFabric(
   mode: SocialFabricMode,
   value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
 ): SocialFabricModel {
   switch (mode) {
     case 'relationships': {
+      const hh = relHouseholdsFrom(roster);
       const sinceS = storedArr(value, 'sfRelSince');
       const depthS = storedArr(value, 'sfRelDepth');
       const cohabS = storedArr(value, 'sfRelCohab');
       const notesS = storedArr(value, 'sfRelNotes');
       return {
         kind: 'relationships',
-        since: REL_HOUSEHOLDS.map((h, i) =>
-          sinceS ? constrain(sinceS[i] ?? '', REL_SINCE_OPTIONS, h.since) : h.since,
+        since: hh.map((h, i) =>
+          sinceS ? constrain(sinceS[i] ?? '', REL_SINCE_OPTIONS, '') : h.since,
         ),
-        depth: REL_HOUSEHOLDS.map((h, i) =>
-          depthS ? constrain(depthS[i] ?? '', REL_DEPTH_OPTIONS, h.depth) : h.depth,
+        depth: hh.map((h, i) =>
+          depthS ? constrain(depthS[i] ?? '', REL_DEPTH_OPTIONS, '') : h.depth,
         ),
-        cohab: REL_HOUSEHOLDS.map((h, i) =>
-          cohabS ? constrain(cohabS[i] ?? '', REL_COHAB_OPTIONS, h.cohab) : h.cohab,
+        cohab: hh.map((h, i) =>
+          cohabS ? constrain(cohabS[i] ?? '', REL_COHAB_OPTIONS, '') : h.cohab,
         ),
-        notes: REL_HOUSEHOLDS.map((_, i) => (notesS ? (notesS[i] ?? '') : '')),
+        notes: hh.map((_, i) => (notesS ? (notesS[i] ?? '') : '')),
       };
     }
     case 'experience': {
+      const hh = expHouseholdsFrom(roster);
       const notesS = storedArr(value, 'sfExpNotes');
       return {
         kind: 'experience',
-        chips: EXP_HOUSEHOLDS.map((h, i) => {
+        chips: hh.map((h, i) => {
           const raw = value[`sfExpChips${i}`];
           return Array.isArray(raw) ? asStrArr(raw) : [...h.chipsOn];
         }),
-        notes: EXP_HOUSEHOLDS.map((h, i) => (notesS ? (notesS[i] ?? h.note) : h.note)),
+        notes: hh.map((h, i) => (notesS ? (notesS[i] ?? h.note) : h.note)),
       };
     }
     case 'priorattempts': {
@@ -638,11 +591,11 @@ export function decodeSocialFabric(
         return {
           kind: 'priorattempts',
           noAttempts,
-          by: [PA_SEED.by],
-          land: [PA_SEED.land],
-          duration: [PA_SEED.duration],
-          end: [PA_SEED.end],
-          note: [PA_SEED.note],
+          by: [],
+          land: [],
+          duration: [],
+          end: [],
+          note: [],
         };
       }
       const n = byS.length;
@@ -807,14 +760,18 @@ export function cohTally(levels: readonly string[]): {
 // is a real gate -- it needs at least one attempt OR the no-attempts confirm.
 // ---------------------------------------------------------------------------
 
-export function isSocialFabricValid(mode: SocialFabricMode, value: FormValue): boolean {
+export function isSocialFabricValid(
+  mode: SocialFabricMode,
+  value: FormValue,
+  roster: readonly FoundingHousehold[] = [],
+): boolean {
   switch (mode) {
     case 'relationships': {
-      const m = decodeSocialFabric('relationships', value) as RelationshipsModel;
+      const m = decodeSocialFabric('relationships', value, roster) as RelationshipsModel;
       return m.since.some((s) => s.trim() !== '');
     }
     case 'experience': {
-      const m = decodeSocialFabric('experience', value) as ExperienceModel;
+      const m = decodeSocialFabric('experience', value, roster) as ExperienceModel;
       return m.chips.some((row) => row.length > 0);
     }
     case 'priorattempts': {
@@ -848,17 +805,16 @@ export function isSocialFabricValid(mode: SocialFabricMode, value: FormValue): b
 export function summariseSocialFabric(
   mode: SocialFabricMode,
   value: FormValue,
-  siblingValues?: Record<string, FormValue>,
+  roster: readonly FoundingHousehold[] = [],
 ): string {
-  void siblingValues;
   switch (mode) {
     case 'relationships': {
-      const m = decodeSocialFabric('relationships', value) as RelationshipsModel;
+      const m = decodeSocialFabric('relationships', value, roster) as RelationshipsModel;
       const n = m.since.filter((s) => s.trim() !== '').length;
-      return `${n} of ${REL_LEN} founding households mapped`;
+      return `${n} of ${m.since.length} founding households mapped`;
     }
     case 'experience': {
-      const m = decodeSocialFabric('experience', value) as ExperienceModel;
+      const m = decodeSocialFabric('experience', value, roster) as ExperienceModel;
       const b = expBuckets(m.chips);
       return `${b.intentional} intentional-community, ${b.coop} co-op/collective, ${b.none} no experience`;
     }
@@ -908,6 +864,8 @@ export interface SocialFabricCaptureProps {
   itemId: string;
   /** full per-item FormValue map; reserved -- this capture reads no siblings. */
   siblingValues?: Record<string, FormValue>;
+  /** founding households derived from the steward model; drives c1/c2 rosters. */
+  roster?: readonly FoundingHousehold[];
 }
 
 export function SocialFabricCapture({
@@ -916,13 +874,17 @@ export function SocialFabricCapture({
   onChange,
   itemId,
   siblingValues = {},
+  roster = [],
 }: SocialFabricCaptureProps): React.JSX.Element {
   void itemId;
   void siblingValues;
 
+  const relHH = relHouseholdsFrom(roster);
+  const expHH = expHouseholdsFrom(roster);
+
   // -- P1: relationships ----------------------------------------------------
   if (mode === 'relationships') {
-    const model = decodeSocialFabric('relationships', value) as RelationshipsModel;
+    const model = decodeSocialFabric('relationships', value, roster) as RelationshipsModel;
     const setCol = (col: 'since' | 'depth' | 'cohab' | 'notes', i: number, v: string): void => {
       const next = model[col].slice();
       next[i] = v;
@@ -932,7 +894,7 @@ export function SocialFabricCapture({
       <div className={css.root} data-sf-mode="relationships">
         <div>
           <SectionEyebrow>Per-household relationship profile</SectionEyebrow>
-          {REL_HOUSEHOLDS.map((h, i) => (
+          {relHH.map((h, i) => (
             <div key={h.key} className={css.member}>
               <div className={css.memHead}>
                 <span className={css.memAv} data-tone={h.tone}>
@@ -997,7 +959,7 @@ export function SocialFabricCapture({
 
   // -- P2: experience -------------------------------------------------------
   if (mode === 'experience') {
-    const model = decodeSocialFabric('experience', value) as ExperienceModel;
+    const model = decodeSocialFabric('experience', value, roster) as ExperienceModel;
     const setChips = (i: number, next: string[]): void => {
       const chips = model.chips.map((c, j) => (j === i ? next : c));
       onChange(encodeSocialFabric('experience', { ...model, chips }));
@@ -1012,7 +974,7 @@ export function SocialFabricCapture({
       <div className={css.root} data-sf-mode="experience">
         <div>
           <SectionEyebrow>Per-household experience profile (tap to select all that apply)</SectionEyebrow>
-          {EXP_HOUSEHOLDS.map((h, i) => (
+          {expHH.map((h, i) => (
             <div key={h.key} className={css.member}>
               <div className={css.memHead}>
                 <span className={css.memAv} data-tone={h.tone}>
@@ -1126,7 +1088,7 @@ export function SocialFabricCapture({
                   <span className={css.rowLbl}>By whom</span>
                   <SfSelect
                     className={css.sfSel}
-                    value={model.by[i] ?? PA_SEED.by}
+                    value={model.by[i] ?? PA_NEW.by}
                     options={PA_BY_OPTIONS}
                     ariaLabel={`Attempt ${i + 1} by whom`}
                     onChange={(v) => setCol('by', i, v)}
@@ -1136,7 +1098,7 @@ export function SocialFabricCapture({
                   <span className={css.rowLbl}>On this land?</span>
                   <SfSelect
                     className={css.sfSel}
-                    value={model.land[i] ?? PA_SEED.land}
+                    value={model.land[i] ?? PA_NEW.land}
                     options={PA_LAND_OPTIONS}
                     ariaLabel={`Attempt ${i + 1} on this land`}
                     onChange={(v) => setCol('land', i, v)}
@@ -1146,7 +1108,7 @@ export function SocialFabricCapture({
                   <span className={css.rowLbl}>Duration</span>
                   <SfSelect
                     className={css.sfSel}
-                    value={model.duration[i] ?? PA_SEED.duration}
+                    value={model.duration[i] ?? PA_NEW.duration}
                     options={PA_DURATION_OPTIONS}
                     ariaLabel={`Attempt ${i + 1} duration`}
                     onChange={(v) => setCol('duration', i, v)}
@@ -1156,7 +1118,7 @@ export function SocialFabricCapture({
                   <span className={css.rowLbl}>How did it end</span>
                   <SfSelect
                     className={css.sfSel}
-                    value={model.end[i] ?? PA_SEED.end}
+                    value={model.end[i] ?? PA_NEW.end}
                     options={PA_END_OPTIONS}
                     ariaLabel={`Attempt ${i + 1} how it ended`}
                     onChange={(v) => setCol('end', i, v)}
