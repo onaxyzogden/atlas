@@ -176,11 +176,23 @@ export type MapToolId =
 export interface MapToolState {
   activeTool: MapToolId | null;
   setActiveTool: (tool: MapToolId | null) => void;
+  /**
+   * Magnet toggle (Phase 4): whether vertex/edge snapping is armed for draw
+   * tools. Default on. Read live at snap-application time (`snapDrawModes`
+   * `applySnap` + the continuous-point `snap` helper) so flipping it mid-draw
+   * takes effect on the next pointer event without re-arming the active tool.
+   * One central gate rather than threading `snap: snapEnabled` through ~40
+   * call sites — behaviour-equivalent and live-toggleable.
+   */
+  snapEnabled: boolean;
+  setSnapEnabled: (enabled: boolean) => void;
 }
 
 export const useMapToolStore = create<MapToolState>((set) => ({
   activeTool: null,
   setActiveTool: (tool) => set({ activeTool: tool }),
+  snapEnabled: true,
+  setSnapEnabled: (enabled) => set({ snapEnabled: enabled }),
 }));
 
 export type BasemapKey =

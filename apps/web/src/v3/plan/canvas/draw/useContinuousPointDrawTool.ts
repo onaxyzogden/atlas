@@ -18,6 +18,7 @@ import { useEffect, useRef } from 'react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { snapDrawPoint, type SnapTargets } from '../../../lib/snapPoint.js';
+import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 
 const DBLCLICK_WINDOW_MS = 260;
 const DBLCLICK_PIXEL_TOLERANCE = 4;
@@ -105,7 +106,12 @@ export function useContinuousPointDrawTool({
     // provided it is a no-op, so behaviour away from features is unchanged.
     const snapTargets = getSnapTargetsRef.current?.() ?? null;
     const snap = (lng: number, lat: number): [number, number] => {
-      if (!snapTargets) return [lng, lat];
+      // Magnet toggle (Phase 4): read live so flipping snapping off mid-draw
+      // lets a drop land exactly at the click even atop a target. Mirrors the
+      // central gate in `snapDrawModes.applySnap` for the mapbox-draw modes.
+      if (!snapTargets || !useMapToolStore.getState().snapEnabled) {
+        return [lng, lat];
+      }
       return snapDrawPoint(map, [lng, lat], snapTargets).position;
     };
 

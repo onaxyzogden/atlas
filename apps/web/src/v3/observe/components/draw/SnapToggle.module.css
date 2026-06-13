@@ -1,0 +1,46 @@
+/*
+ * SnapToggle — magnet chip styling. Two visual states share the box geometry;
+ * the "on" state uses the estate-gold brand fill (matches primaryBtn / active
+ * toolbar buttons), the "off" state is the dark outline pill used elsewhere in
+ * the dock. `pointer-events: auto` re-enables clicks inside the dock's
+ * `pointer-events: none` row.
+ */
+
+.btnOn,
+.btnOff {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.btnOn {
+  background: var(--color-gold-brand, #c4a265);
+  color: #2a2018;
+  border: 1px solid var(--color-gold-brand, #c4a265);
+}
+
+.btnOff {
+  background: rgba(20, 25, 31, 0.95);
+  color: var(--color-text);
+  border: 1px solid rgba(242, 237, 227, 0.25);
+  opacity: 0.85;
+}
+
+.btnOff:hover {
+  opacity: 1;
+  border-color: rgba(242, 237, 227, 0.45);
+}
+
+.label {
+  letter-spacing: 0.02em;
+}

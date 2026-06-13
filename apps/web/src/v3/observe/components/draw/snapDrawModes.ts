@@ -21,6 +21,7 @@
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { snapDrawPoint, type SnapTargets } from '../../../lib/snapPoint.js';
+import { useMapToolStore } from '../measure/useMapToolStore.js';
 
 export const SNAP_DRAW_POINT = 'snap_draw_point';
 export const SNAP_DRAW_LINE_STRING = 'snap_draw_line_string';
@@ -33,9 +34,18 @@ export const SNAP_DRAW_POLYGON = 'snap_draw_polygon';
 /**
  * Rewrite `e.lngLat` in place to the snapped position when a target is in range.
  * No-op when there are no targets, no pointer coord, or nothing within radius —
- * leaving the stock handler to see the raw click.
+ * leaving the stock handler to see the raw click. Also a no-op when the magnet
+ * is off (`useMapToolStore.snapEnabled === false`).
+ *
+ * Exported for unit testing the magnet gate without a live MapboxDraw instance:
+ * call it with a stub `this` (`{ map }`), a `{ snapTargets }` state, and a
+ * mutable `{ lngLat }` event, then assert the event was / wasn't rewritten.
  */
-function applySnap(this: any, state: any, e: any): void {
+export function applySnap(this: any, state: any, e: any): void {
+  // Magnet toggle (Phase 4): read live so flipping snapping off mid-draw takes
+  // effect on the next pointer event. The snap mode stays selected; this gate
+  // simply lets the raw click through unchanged when the magnet is off.
+  if (!useMapToolStore.getState().snapEnabled) return;
   const targets: SnapTargets | undefined | null = state?.snapTargets;
   if (!targets || !e?.lngLat) return;
   const map = this.map;

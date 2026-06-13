@@ -32,6 +32,7 @@ import ColdChainUnitTool from './tools/ColdChainUnitTool.js';
 import MarketNodeTool from './tools/MarketNodeTool.js';
 import PlanScheduleMoveTool from './tools/PlanScheduleMoveTool.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
+import SnapToggle from '../../observe/components/draw/SnapToggle.js';
 import { usePlanSnapTargets } from './tools/usePlanSnapTargets.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
@@ -114,6 +115,7 @@ export default function PlanDrawHost({
           parcelBoundary={parcelBoundary}
           sourceObjectiveId={sourceObjectiveId}
         />
+        <SnapToggle />
       </div>
     );
   }
@@ -134,6 +136,7 @@ export default function PlanDrawHost({
           getSnapTargets={getSnapTargets}
           sourceObjectiveId={sourceObjectiveId}
         />
+        <SnapToggle />
       </div>
     );
   }
@@ -312,5 +315,10 @@ export default function PlanDrawHost({
   }
 
   if (!tool) return null;
-  return <div className={css.dock}>{tool}</div>;
+  return (
+    <div className={css.dock}>
+      {tool}
+      <SnapToggle />
+    </div>
+  );
 }

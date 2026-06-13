@@ -44,6 +44,7 @@ import FenceTool from './FenceTool.js';
 import GateTool from './GateTool.js';
 import ExistingDrivewayTool from './ExistingDrivewayTool.js';
 import BeV2ExistingTool from './BeV2ExistingTool.js';
+import SnapToggle from './SnapToggle.js';
 import { useObserveSnapTargets } from './useObserveSnapTargets.js';
 import {
   BUILT_ENVIRONMENT_KINDS,
@@ -263,5 +264,10 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
 
   if (!tool) return null;
 
-  return <div className={css.dock}>{tool}</div>;
+  return (
+    <div className={css.dock}>
+      {tool}
+      <SnapToggle />
+    </div>
+  );
 }
