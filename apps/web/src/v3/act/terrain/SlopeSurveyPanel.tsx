@@ -9,8 +9,9 @@
  * encodes the class. A row here is the SECOND arming surface -- clicking it
  * arms that class's 'act.terrain.slope-*' tool (so the steward can arm from the
  * panel or the bottom tray interchangeably). Each row shows the live,
- * auto-computed `% of site` (summed drawn acres / project.location.acreage) and
- * a feature count; a trailing "Unclassified / not yet surveyed" row surfaces
+ * auto-computed `% of site` (summed drawn acres / parcel acres, via
+ * `resolveSiteAcres`) and a feature count; a trailing "Unclassified / not yet
+ * surveyed" row surfaces
  * the coverage gap. Per-feature delete lives in an expandable list under the
  * active row.
  */
@@ -18,6 +19,7 @@
 import { useMemo } from 'react';
 import { Mountain } from 'lucide-react';
 import { useV3Project } from '../../data/useV3Project.js';
+import { resolveSiteAcres } from '../../data/siteArea.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -48,7 +50,7 @@ export default function SlopeSurveyPanel({ projectId }: Props) {
     [byProject, projectId],
   );
 
-  const siteAcres = project?.location.acreage ?? 0;
+  const siteAcres = resolveSiteAcres(project?.location);
   const totals = useMemo(
     () => selectSlopeSurveyTotals(features, siteAcres),
     [features, siteAcres],

@@ -129,6 +129,20 @@ export function parcelAreaValue(
 }
 
 /**
+ * Inverse of `parcelAreaValue`: convert a value already expressed in the
+ * project's preferred display unit (hectares for `metric`, acres for
+ * `imperial`) back to canonical **acres**. Use this when a caller holds a
+ * display-unit area (e.g. v3 `location.acreage`) but needs acres to compare
+ * against turf-measured geometry, which is always acres (`parcelAcres`).
+ */
+export function parcelAreaToAcres(
+  value: number,
+  units: 'metric' | 'imperial',
+): number {
+  return units === 'metric' ? value / HA_PER_ACRE : value;
+}
+
+/**
  * Format a canonical **acres** value (`project.acreage`) for display in the
  * project's preferred unit: hectares for `metric`, acres for `imperial`.
  * Returns an em dash for nullish / non-finite input.

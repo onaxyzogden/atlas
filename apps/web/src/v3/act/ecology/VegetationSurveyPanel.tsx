@@ -9,14 +9,16 @@
  * vegetation community. Selecting a community row sets `activeCommunity` AND
  * arms the `act.ecology.veg-survey` map tool, so the next polygon the steward
  * draws is tagged to that community. Each row shows the live, auto-computed
- * `% of site` (summed drawn acres / project.acreage) and a feature count; a
- * trailing "Unclassified / not yet surveyed" row surfaces the coverage gap.
+ * `% of site` (summed drawn acres / parcel acres, via `resolveSiteAcres`) and a
+ * feature count; a trailing "Unclassified / not yet surveyed" row surfaces the
+ * coverage gap.
  * Per-feature delete lives in an expandable list under each active row.
  */
 
 import { useMemo } from 'react';
 import { Trees } from 'lucide-react';
 import { useV3Project } from '../../data/useV3Project.js';
+import { resolveSiteAcres } from '../../data/siteArea.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import {
   useVegetationSurveyStore,
@@ -46,7 +48,7 @@ export default function VegetationSurveyPanel({ projectId }: Props) {
     [byProject, projectId],
   );
 
-  const siteAcres = project?.location.acreage ?? 0;
+  const siteAcres = resolveSiteAcres(project?.location);
   const totals = useMemo(
     () => selectVegetationSurveyTotals(features, siteAcres),
     [features, siteAcres],

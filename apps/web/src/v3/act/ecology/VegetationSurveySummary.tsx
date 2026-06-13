@@ -25,6 +25,7 @@ import { ArrowRight, Map as MapIcon } from 'lucide-react';
 import type { FormValue } from '../tier-shell/actToolCatalog.js';
 import { VEG_COMMUNITIES } from '../tier-shell/EcologyCapture.js';
 import { useV3Project } from '../../data/useV3Project.js';
+import { resolveSiteAcres } from '../../data/siteArea.js';
 import {
   useVegetationSurveyStore,
   selectVegetationSurveyTotals,
@@ -56,7 +57,7 @@ export default function VegetationSurveySummary({
     () => Object.values(byProject[projectId] ?? {}),
     [byProject, projectId],
   );
-  const siteAcres = project?.location.acreage ?? 0;
+  const siteAcres = resolveSiteAcres(project?.location);
   const totals = useMemo(
     () => selectVegetationSurveyTotals(features, siteAcres),
     [features, siteAcres],

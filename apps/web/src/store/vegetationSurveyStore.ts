@@ -200,9 +200,11 @@ rehydrateWithLogging(useVegetationSurveyStore);
 
 // ---------------------------------------------------------------------------
 // Pure selector -- per-community summed acres + % of site, plus the
-// "unclassified / not yet surveyed" remainder. siteAcres is the canonical
-// project.acreage (acres). Percentages are NOT rounded here (display rounds);
-// the remainder is 100 - sum(pct), clamped >= 0.
+// "unclassified / not yet surveyed" remainder. siteAcres MUST be in acres
+// (resolve it with `resolveSiteAcres`, which prefers the turf-measured parcel
+// boundary so it matches the drawn polygons' units and is never zeroed when the
+// project's display acreage is unset). Percentages are NOT rounded here (display
+// rounds); the remainder is 100 - sum(pct), clamped >= 0.
 // ---------------------------------------------------------------------------
 
 export interface CommunityTotal {
