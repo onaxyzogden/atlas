@@ -61,6 +61,14 @@ interface Props {
   secondaryTypeIds: readonly ProjectTypeId[];
   /** Active stratum — scopes the protocol list to this stratum's group (Act). */
   activeStratumId: string | null;
+  /**
+   * Stratum scope for the protocols list specifically. Omitted -> defaults to
+   * `activeStratumId` (Act behaviour, per-stratum). Pass `null` to show the full
+   * S1->S7 library regardless of the open stratum (Plan tier shell). Kept
+   * separate from `activeStratumId` so the objectives list still tracks the open
+   * stratum while the protocol list spans every stratum.
+   */
+  protocolScopeStratumId?: string | null;
   /** Currently-selected protocol template id (drives the right-rail detail). */
   selectedProtocolId: string | null;
   /** Fired when a protocol card is clicked — opens the right-rail detail. */
@@ -91,6 +99,7 @@ export default function ActTierObjectiveRail({
   primaryTypeId,
   secondaryTypeIds,
   activeStratumId,
+  protocolScopeStratumId,
   selectedProtocolId,
   onSelectProtocol,
   bulkActivation = false,
@@ -151,7 +160,11 @@ export default function ActTierObjectiveRail({
             projectId={projectId}
             primaryTypeId={primaryTypeId}
             secondaryTypeIds={secondaryTypeIds}
-            activeStratumId={activeStratumId}
+            activeStratumId={
+              protocolScopeStratumId !== undefined
+                ? protocolScopeStratumId
+                : activeStratumId
+            }
             selectedProtocolId={selectedProtocolId}
             onSelectProtocol={onSelectProtocol}
             bulkActivation={bulkActivation}
