@@ -27,6 +27,13 @@ interface Props {
    * matching stratum is already complete.
    */
   highlightStratumId?: string | null;
+  /**
+   * ADR 11 soft gate — stratum ids that are `locked` by state but contain a
+   * previously-completed objective now accessible for review. Rendered as
+   * amber accessible tiers rather than dimmed hard locks. Empty/omitted = no
+   * soft gates (steady state).
+   */
+  softStratumIds?: ReadonlySet<string>;
   onSelectStratum: (stratum: PlanStratum) => void;
 }
 
@@ -37,6 +44,7 @@ export default function StratumSpine({
   stratumStates,
   activeStratumId,
   highlightStratumId,
+  softStratumIds,
   onSelectStratum,
 }: Props) {
   return (
@@ -70,6 +78,7 @@ export default function StratumSpine({
               completeCount={completeCount}
               isActive={stratum.id === activeStratumId}
               isHighlighting={isHighlighting}
+              isSoftAccessible={softStratumIds?.has(stratum.id) ?? false}
               onSelect={onSelectStratum}
             />
           </li>

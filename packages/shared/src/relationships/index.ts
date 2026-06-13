@@ -8,6 +8,7 @@ export * from './stratumState.js';
 export * from './actStratumExecution.js';
 export * from './cyclicalReviewTrigger.js';
 export * from './reviewFlagResolver.js';
+export * from './softGate.js';
 export * from './fieldActionStatus.js';
 export * from './urgencyScore.js';
 export * from './resolveProjectObjectives.js';

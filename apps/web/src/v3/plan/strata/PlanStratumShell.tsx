@@ -18,6 +18,7 @@ import {
   getPrimaryDomainForObjective,
   getTensionConcernObjectiveIds,
   getTensionConcernsByStratum,
+  resolveSoftGates,
 } from '@ogden/shared';
 import type {
   DesignTension,
@@ -60,6 +61,10 @@ import PruneLedgerModal from './PruneLedgerModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
 import CoOccurrenceVerdictBanner from './CoOccurrenceVerdictBanner.js';
 import ChronicVerdictBanner from './ChronicVerdictBanner.js';
+import {
+  useCyclicalReviewStore,
+  selectProjectReviewMap,
+} from '../../../store/cyclicalReviewStore.js';
 import { useCoOccurrenceClusters } from '../../../store/reviewFlagStore.js';
 import { useChronicVerdicts } from '../../../store/chronicVerdicts.js';
 import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
@@ -212,6 +217,30 @@ export default function PlanStratumShell() {
       ),
     [objectives, objectiveStatuses],
   );
+
+  // ADR 11 soft gates — while an Observe-driven review is active, a `locked`
+  // objective that was PREVIOUSLY completed (cyclicalReviewStore
+  // `lastReviewedAt != null`) is softened into an accessible amber review
+  // checkpoint instead of a hard lock, so a revised upstream can't trap the
+  // steward behind a re-locked downstream tier. Computed in the UI layer over
+  // the review store; the status engine stays I/O-free. Only ever OPENS access.
+  const reviewMap = useCyclicalReviewStore((s) =>
+    selectProjectReviewMap(s, projectId),
+  );
+  const softGates = useMemo(() => {
+    const previouslyCompleted = new Set<string>();
+    let reviewActive = false;
+    for (const [objectiveId, record] of Object.entries(reviewMap)) {
+      if (record.lastReviewedAt != null) previouslyCompleted.add(objectiveId);
+      if (record.forcedTrigger === true) reviewActive = true;
+    }
+    return resolveSoftGates({
+      objectives,
+      objectiveStatuses,
+      previouslyCompleted,
+      reviewActive,
+    });
+  }, [reviewMap, objectives, objectiveStatuses]);
 
   // Overall progress across the project's resolved objective set — drives the
   // footer pinned beneath the strata spine (mirrors the Plan Spine prototype's
@@ -686,7 +715,10 @@ export default function PlanStratumShell() {
 
   const handleSelectStratum = (stratum: PlanStratum) => {
     const state = stratumStates[stratum.id] ?? 'locked';
-    if (state === 'locked') {
+    // ADR 11 soft gate — a locked tier that holds a previously-completed
+    // review checkpoint is accessible; route the tap INTO the tier rather than
+    // the locked popover so the steward can re-review it.
+    if (state === 'locked' && !softGates.softStratumIds.has(stratum.id)) {
       setLockedPopoverStratum(stratum);
       return;
     }
@@ -961,6 +993,7 @@ export default function PlanStratumShell() {
           stratumStates={stratumStates}
           activeStratumId={activeStratumId}
           highlightStratumId={highlightStratumId}
+          softStratumIds={softGates.softStratumIds}
           onSelectStratum={handleSelectStratum}
         />
 
@@ -1045,6 +1078,7 @@ export default function PlanStratumShell() {
           tensions={activeTensions}
           activeStratumId={activeStratumId}
           tensionStrataHints={tensionStrataHints}
+          softReviewObjectiveIds={softGates.softObjectiveIds}
           onSelectTension={handleSelectTension}
           onSelectTensionStratum={handleSelectTensionStratum}
           onSelectObjective={handleSelectObjective}

@@ -90,6 +90,13 @@ interface Props {
    * concerned cards there. Omitted → no chips render.
    */
   onSelectTensionStratum?: (tensionId: string, stratumId: string) => void;
+  /**
+   * ADR 11 soft gate — objective ids that are `locked` by status but render
+   * as accessible amber review checkpoints (previously completed, now under an
+   * active review). Forwarded to the matching ObjectiveCard. Empty/omitted =
+   * no soft checkpoints.
+   */
+  softReviewObjectiveIds?: ReadonlySet<string>;
   onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
@@ -141,6 +148,7 @@ export default function ObjectiveColumn({
   onSelectTension,
   tensionStrataHints,
   onSelectTensionStratum,
+  softReviewObjectiveIds,
   onSelectObjective,
   onObjectiveDivergenceClick,
   onRestoreObjective,
@@ -433,6 +441,7 @@ export default function ObjectiveColumn({
                 divergenceCount={divergenceByObjective[obj.id] ?? 0}
                 reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                 reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
+                reviewCheckpoint={softReviewObjectiveIds?.has(obj.id) ?? false}
                 onSelect={onSelectObjective}
                 onDivergenceClick={onObjectiveDivergenceClick}
               />

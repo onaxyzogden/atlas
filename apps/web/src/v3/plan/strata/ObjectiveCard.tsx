@@ -50,6 +50,15 @@ interface Props {
    * locked/active/available card.
    */
   reviewSuggested?: boolean;
+  /**
+   * ADR 11 soft gate — true when this objective is `locked` by the status
+   * engine BUT was previously completed and a review is active, so it should
+   * render as an ACCESSIBLE amber review checkpoint instead of a hard lock.
+   * Lifts the locked dimming, recolours the status pill amber, and surfaces a
+   * "Review" badge. UI-only: the underlying status is unchanged and the card
+   * was always clickable. Only ever set on a `locked` card.
+   */
+  reviewCheckpoint?: boolean;
   onSelect: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — optional callback fired when the divergence pill is
@@ -82,6 +91,7 @@ export default function ObjectiveCard({
   divergenceCount = 0,
   reviewFlagCount = 0,
   reviewSuggested = false,
+  reviewCheckpoint = false,
   onSelect,
   onDivergenceClick,
   onRestore,
@@ -97,6 +107,10 @@ export default function ObjectiveCard({
     );
   }
   if (reviewSuggested) ariaParts.push('review suggested');
+  // Soft gate only meaningfully applies to a locked card; guard so a stray
+  // flag on a non-locked status can never recolour it.
+  const isReviewCheckpoint = reviewCheckpoint && status === 'locked';
+  if (isReviewCheckpoint) ariaParts.push('review checkpoint, accessible');
   const ariaLabel = ariaParts.join(' — ');
   const handleClick = () => onSelect(objective);
   const handleKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -122,6 +136,7 @@ export default function ObjectiveCard({
       data-active={isActive}
       data-highlighting={isHighlighting ? 'true' : undefined}
       data-has-divergence={hasDivergence ? 'true' : undefined}
+      data-soft-review={isReviewCheckpoint ? 'true' : undefined}
       onClick={handleClick}
       onKeyDown={handleKey}
       aria-label={ariaLabel}
@@ -172,6 +187,16 @@ export default function ObjectiveCard({
             Review
           </span>
         )}
+        {isReviewCheckpoint && (
+          <span
+            className={css.reviewBadgeAmber}
+            data-testid={`objective-review-checkpoint-${objective.id}`}
+            title="Previously completed — accessible to re-review while conditions are changing"
+          >
+            <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
+            Review
+          </span>
+        )}
         {isDeferred && onRestore && (
           <button
             type="button"
@@ -185,7 +210,9 @@ export default function ObjectiveCard({
             Restore
           </button>
         )}
-        <span className={css.pill}>{STATUS_LABEL[status]}</span>
+        <span className={css.pill}>
+          {isReviewCheckpoint ? 'Review' : STATUS_LABEL[status]}
+        </span>
       </span>
     </div>
   );

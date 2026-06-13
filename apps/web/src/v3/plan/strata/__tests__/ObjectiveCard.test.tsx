@@ -65,3 +65,48 @@ describe('ObjectiveCard -- reviewFlagChip', () => {
     ).toBeNull();
   });
 });
+
+describe('ObjectiveCard -- soft review checkpoint (ADR 11)', () => {
+  const checkpointTestId = `objective-review-checkpoint-${objective.id}`;
+
+  it('renders the amber checkpoint badge + accessible amber state on a locked card', () => {
+    render(
+      <ObjectiveCard
+        {...BASE_PROPS}
+        status="locked"
+        reviewCheckpoint
+      />,
+    );
+
+    const badge = screen.queryByTestId(checkpointTestId);
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent).toBe('Review');
+
+    // The card lifts the locked dimming via data-soft-review, and the status
+    // pill reads "Review" rather than "Locked".
+    const card = screen.getByRole('button', { name: /review checkpoint/i });
+    expect(card.getAttribute('data-soft-review')).toBe('true');
+    expect(card.getAttribute('data-status')).toBe('locked');
+    expect(card.textContent).toContain('Review');
+    expect(card.textContent).not.toContain('Locked');
+  });
+
+  it('does NOT soften a non-locked card even when reviewCheckpoint is set', () => {
+    // Guard: a stray flag on an active card must never recolour it.
+    render(
+      <ObjectiveCard {...BASE_PROPS} status="active" reviewCheckpoint />,
+    );
+
+    expect(screen.queryByTestId(checkpointTestId)).toBeNull();
+    const card = screen.getByRole('button');
+    expect(card.getAttribute('data-soft-review')).toBeNull();
+  });
+
+  it('does NOT render the checkpoint badge by default on a locked card', () => {
+    render(<ObjectiveCard {...BASE_PROPS} status="locked" />);
+
+    expect(screen.queryByTestId(checkpointTestId)).toBeNull();
+    const card = screen.getByRole('button');
+    expect(card.getAttribute('data-soft-review')).toBeNull();
+  });
+});

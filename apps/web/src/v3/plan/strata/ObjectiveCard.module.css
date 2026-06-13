@@ -292,6 +292,37 @@
   color: var(--color-info, #5aa9c9);
 }
 
+/* ADR 11 soft gate — a `locked` objective that was previously completed and
+   is now an accessible review checkpoint (a revised upstream cascaded it back
+   to locked during an active review). Amber, NOT dimmed: it is reachable.
+   Overrides the `data-status='locked'` opacity + muted colour so the card
+   reads as an open checkpoint rather than a hard lock. */
+.card[data-soft-review='true'] {
+  opacity: 1;
+  --status-color: #e8a958;
+  border-color: rgba(232, 169, 88, 0.45);
+}
+
+/* Amber "Review" badge for the soft checkpoint — the amber sibling of the blue
+   .reviewBadge (90-day cadence cue). Amber, because this review was driven by
+   a field change cascading through feedsInto, the same amber family as the
+   divergence pill. */
+.reviewBadgeAmber {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(232, 169, 88, 0.16);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.45);
+}
+
 /* --- Slice 2.4 highlight flash ------------------------------------------ */
 /* See StratumRow.module.css for the rationale + the matching animation on the
    spine row; the card-level flash points the steward at the specific

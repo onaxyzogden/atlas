@@ -27,6 +27,16 @@ interface Props {
    * (the shell already guards this) but harmless if passed true.
    */
   isHighlighting?: boolean;
+  /**
+   * ADR 11 soft gate — true when this stratum is `locked` by the status engine
+   * BUT contains >= 1 previously-completed objective that is now an accessible
+   * review checkpoint (a revised upstream cascaded it back to locked during an
+   * active review). Renders the circle as an amber accessible tier instead of a
+   * dimmed hard lock. UI-only: the underlying state is unchanged and the click
+   * still fires (the shell routes a soft-locked tap into the tier rather than
+   * the locked popover).
+   */
+  isSoftAccessible?: boolean;
   onSelect: (stratum: PlanStratum) => void;
 }
 
@@ -37,6 +47,7 @@ export default function StratumSpineCircle({
   completeCount,
   isActive,
   isHighlighting = false,
+  isSoftAccessible = false,
   onSelect,
 }: Props) {
   const n = stratum.ordinal;
@@ -44,9 +55,13 @@ export default function StratumSpineCircle({
   const done = completeCount;
   const status = state;
   const pct = total ? (done / total) * 100 : 0;
+  // A locked tier softened into an accessible review checkpoint reads as amber
+  // and is no longer dimmed — it can be re-entered.
+  const softUnlocked = isSoftAccessible && status === 'locked';
 
-  const ring =
-    status === 'complete'
+  const ring = softUnlocked
+    ? C.amber
+    : status === 'complete'
       ? C.green
       : status === 'active'
         ? C.blue
@@ -77,6 +92,7 @@ export default function StratumSpineCircle({
       aria-current={isActive ? 'true' : undefined}
       data-stratum-id={stratum.id}
       data-stratum-state={status}
+      data-soft-accessible={softUnlocked ? 'true' : undefined}
       style={{
         padding: '8px 12px',
         cursor: 'pointer',
@@ -140,7 +156,7 @@ export default function StratumSpineCircle({
             fill={ellipseFill}
             stroke={ring}
             strokeWidth={status === 'active' ? 1.5 : 1}
-            opacity={status === 'locked' ? 0.35 : 1}
+            opacity={status === 'locked' && !softUnlocked ? 0.35 : 1}
           />
           {/* Icon/number — show the stratum slug "S{n}"; locked state is
               conveyed by ring colour + ellipse opacity, not a symbol.
@@ -180,7 +196,10 @@ export default function StratumSpineCircle({
           style={{
             fontSize: 12,
             fontWeight: 700,
-            color: status === 'locked' ? C.textTertiary : C.textPrimary,
+            color:
+              status === 'locked' && !softUnlocked
+                ? C.textTertiary
+                : C.textPrimary,
             fontFamily: F.sans,
             marginBottom: 2,
             letterSpacing: '0.01em',
@@ -191,7 +210,7 @@ export default function StratumSpineCircle({
         >
           {stratum.title}
         </div>
-        {status !== 'locked' && (
+        {(status !== 'locked' || softUnlocked) && (
           <div
             style={{ fontSize: 12, color: ring, marginTop: 3, fontFamily: F.mono }}
           >

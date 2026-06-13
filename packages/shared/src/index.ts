@@ -262,6 +262,11 @@ export {
   type ResolveReviewFlagsInput,
 } from './relationships/reviewFlagResolver.js';
 export {
+  resolveSoftGates,
+  type ResolveSoftGatesInput,
+  type SoftGateResult,
+} from './relationships/softGate.js';
+export {
   computeRevisionPriority,
   FOUNDATION_DOMAINS_FOR_REVISION,
   type RevisionEvent,
