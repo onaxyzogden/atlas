@@ -46,13 +46,11 @@ import {
   ArrowRight,
   Building2,
   Clock,
-  Droplet,
-  Flame,
-  Recycle,
+  Plus,
   Route,
   TriangleAlert,
   Warehouse,
-  Wifi,
+  X,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -107,46 +105,6 @@ export const CONDITION_OPTIONS: readonly string[] = [
   'Poor',
   'Unsafe',
 ];
-
-export interface BuildingSpec {
-  key: string;
-  Icon: LucideIcon;
-  name: string;
-  info: string;
-  defCondition: string;
-  detail: string;
-}
-
-export const BUILDINGS: readonly BuildingSpec[] = [
-  {
-    key: 'north-shed',
-    Icon: Warehouse,
-    name: 'North shed',
-    info: 'Timber frame - 85 m2 - Est. 1972',
-    defCondition: 'Fair',
-    detail:
-      'Corrugated iron roof with several rusted sheets requiring replacement. Timber cladding sound on east and south faces; deteriorated on west face (prevailing weather). Concrete slab floor, intact. Currently used for small equipment storage.',
-  },
-  {
-    key: 'old-dairy',
-    Icon: Building2,
-    name: 'Old dairy / milking shed',
-    info: 'Brick masonry - 180 m2 - Est. 1954',
-    defCondition: 'Poor',
-    detail:
-      'Significant roof structure failure -- multiple purlin failures and partial ridge collapse on northern bay. Brick walls structurally intact but mortar erosion on south face. Asbestos ceiling sheeting identified (heavily deteriorated in north bay -- friable). Non-compliant electrical wiring throughout. Subject to structural report.',
-  },
-  {
-    key: 'pumphouse',
-    Icon: Building2,
-    name: 'Dam pumphouse',
-    info: 'Steel frame, box section - 12 m2 - 2005',
-    defCondition: 'Good',
-    detail:
-      'Purpose-built housing for bore pump and pressure tank. Steel frame in good condition, no structural concerns. Single-phase power, RCD-protected. Adequate for current use. Access path from main driveway (gravel, 80m) in good order.',
-  },
-];
-const BUILDINGS_LEN = BUILDINGS.length;
 
 // -- compliance (c2) -- 3 compliance cards + OH&S note (mockup p2) --
 
@@ -271,111 +229,17 @@ export const COMPLIANCE_OHS_LEAD = 'Old dairy -- friable asbestos:';
 export const COMPLIANCE_OHS_BODY =
   'This is an occupational health and safety obligation independent of the reuse decision. Even if the building is demolished, licensed Class A removal must precede demolition. Act task generated on recording.';
 
-// -- utilities (c3) -- 5 utility rows (mockup p3) --
+// -- utilities (c3) -- operator-entered utility register --
 
 export const UTILITY_STATUS_OPTIONS: readonly string[] = ['Active', 'Limited', 'None'];
 
-export interface UtilitySpec {
-  key: string;
-  Icon: LucideIcon;
-  name: string;
-  defStatus: string;
-  detail: string;
-  /** capacity warning ("" if none) */
-  capWarn: string;
-}
-
-export const UTILITIES: readonly UtilitySpec[] = [
-  {
-    key: 'electrical',
-    Icon: Zap,
-    name: 'Electrical supply',
-    defStatus: 'Active',
-    detail:
-      'Single-phase 240V, 60A main breaker at road entry. Connection point: road boundary service pillar, 80m cable to shed. Meter in pumphouse.',
-    capWarn:
-      'Insufficient for 8 households -- 60A single-phase supports ~2-3 dwellings max. Upgrade to 3-phase 200A, or supplement with community solar + battery off-grid system before occupation.',
-  },
-  {
-    key: 'bore-water',
-    Icon: Droplet,
-    name: 'Bore water system',
-    defStatus: 'Active',
-    detail:
-      '80mm bore, 5,000 L/day yield (from Tier 1 water survey). Submersible pump, pressure tank, 25mm poly distribution to shed and trough. No mains connection. Water quality tested in Tier 2 -- compliant for all uses.',
-    capWarn: '',
-  },
-  {
-    key: 'wastewater',
-    Icon: Recycle,
-    name: 'Wastewater / drainage',
-    defStatus: 'Limited',
-    detail:
-      'Single 3,000L concrete septic tank + single-bay absorption trench. Aged -- concrete lid cracked, trench likely saturated. Single-dwelling capacity only.',
-    capWarn:
-      'Assessed in waste & nutrient cycling objective (Tier 2) -- full replacement required for community scale. Include in waste system upgrade Act task.',
-  },
-  {
-    key: 'communications',
-    Icon: Wifi,
-    name: 'Communications',
-    defStatus: 'Active',
-    detail:
-      'NBN Fixed Wireless (Sky Muster satellite backup). 25/5 Mbps current service. -75 dBm signal from tower at Ridgeline Road. Modem in pumphouse, no structured cabling. Adequate for 1-2 users; community will require distribution infrastructure (Wi-Fi mesh or LAN cabling).',
-    capWarn: '',
-  },
-  {
-    key: 'gas',
-    Icon: Flame,
-    name: 'Gas',
-    defStatus: 'None',
-    detail:
-      'No gas supply on site. LPG delivery available -- not currently present. Community energy plan assumes no gas supply.',
-    capWarn: '',
-  },
-];
-const UTILITIES_LEN = UTILITIES.length;
-const UTILITY_CAPWARN_COUNT = UTILITIES.filter((u) => u.capWarn !== '').length;
-
-// -- access (c4) -- 3 access-route cards (mockup p4) --
+// -- access (c4) -- operator-entered access-route register --
 
 export const PASSABILITY_OPTIONS: readonly string[] = [
   'All-weather',
   'Dry season only',
   'Seasonally impassable',
 ];
-
-export interface TrackSpec {
-  key: string;
-  name: string;
-  defPassability: string;
-  detail: string;
-}
-
-export const TRACKS: readonly TrackSpec[] = [
-  {
-    key: 'main-driveway',
-    name: 'Main driveway -- road entry to shed',
-    defPassability: 'All-weather',
-    detail:
-      'Compacted gravel surface, 4m wide, 250m length. Good condition throughout. Adequate for light trucks and emergency vehicles. Single lane with no passing bay -- add passing bay at mid-point before community occupation. Locked 5-bar gate at road boundary.',
-  },
-  {
-    key: 'north-paddock-track',
-    name: 'North paddock track',
-    defPassability: 'Dry season only',
-    detail:
-      'Bare earth surface, 3m wide, 600m length. Passable May-November in dry conditions. Impassable after significant rain -- clay base becomes deeply rutted. Gates in poor condition (two hanging off hinges). Priority: grade and gravel for community access to north paddock and proposed housing area.',
-  },
-  {
-    key: 'creek-ford',
-    name: 'Creek ford crossing -- seasonal creek',
-    defPassability: 'Seasonally impassable',
-    detail:
-      'Gravel ford, 4m wide. Adequate when creek is dry or low flow (September-May). Flood velocity during winter peak events makes crossing dangerous and impassable -- vehicle access to north paddock blocked for ~8-12 weeks/year. Design decision required: culvert/bridge vs. seasonal access management plan.',
-  },
-];
-const TRACKS_LEN = TRACKS.length;
 
 // -- reuse (c5) -- 8-element reuse/renovate/demolish register (mockup p5) --
 
@@ -526,8 +390,11 @@ const REUSE_GROUPS: readonly ReuseElementSpec['group'][] = ['Buildings', 'Utilit
 
 export interface BuildingsModel {
   kind: 'buildings';
-  /** length === BUILDINGS.length */
+  /** parallel operator-entered columns; all same length */
+  names: string[];
+  info: string[];
   condition: string[];
+  detail: string[];
 }
 export interface ComplianceModel {
   kind: 'compliance';
@@ -536,13 +403,17 @@ export interface ComplianceModel {
 }
 export interface UtilitiesModel {
   kind: 'utilities';
-  /** length === UTILITIES.length */
+  /** parallel operator-entered columns; all same length */
+  names: string[];
   status: string[];
+  detail: string[];
 }
 export interface AccessModel {
   kind: 'access';
-  /** length === TRACKS.length */
+  /** parallel operator-entered columns; all same length */
+  names: string[];
   passability: string[];
+  detail: string[];
 }
 export interface ReuseModel {
   kind: 'reuse';
@@ -575,6 +446,11 @@ function asStrArr(v: FormValue[string] | undefined): string[] {
 /** Constrain a raw value to the allowed set, else fallback. */
 function constrain(raw: string, allowed: readonly string[], fallback: string): string {
   return allowed.includes(raw) ? raw : fallback;
+}
+
+/** Read a stored array for `key`, or null when nothing is stored. */
+function storedArr(v: FormValue[string] | undefined): string[] | null {
+  return Array.isArray(v) ? asStrArr(v) : null;
 }
 
 /** Seeded column decode: a stored array (if present) wins; else the seed column. */
@@ -610,14 +486,26 @@ export function decodeInfraCondition(
   value: FormValue,
 ): InfraConditionModel {
   switch (mode) {
-    case 'buildings':
+    case 'buildings': {
+      const namesS = storedArr(value.icBldgNames);
+      if (!namesS) {
+        return { kind: 'buildings', names: [], info: [], condition: [], detail: [] };
+      }
+      const n = namesS.length;
+      const infoS = storedArr(value.icBldgInfo) ?? [];
+      const condS = storedArr(value.icBldgCondition) ?? [];
+      const detailS = storedArr(value.icBldgDetail) ?? [];
+      const condDef = CONDITION_OPTIONS[2] ?? 'Fair';
       return {
         kind: 'buildings',
-        condition: decodeSlots(
-          value.icBldgCondition,
-          BUILDINGS.map((b) => ({ options: CONDITION_OPTIONS, def: b.defCondition })),
+        names: namesS,
+        info: Array.from({ length: n }, (_, i) => infoS[i] ?? ''),
+        condition: Array.from({ length: n }, (_, i) =>
+          constrain(condS[i] ?? '', CONDITION_OPTIONS, condDef),
         ),
+        detail: Array.from({ length: n }, (_, i) => detailS[i] ?? ''),
       };
+    }
     case 'compliance':
       return {
         kind: 'compliance',
@@ -629,22 +517,42 @@ export function decodeInfraCondition(
           })),
         ),
       };
-    case 'utilities':
+    case 'utilities': {
+      const namesS = storedArr(value.icUtilNames);
+      if (!namesS) {
+        return { kind: 'utilities', names: [], status: [], detail: [] };
+      }
+      const n = namesS.length;
+      const statS = storedArr(value.icUtilStatus) ?? [];
+      const detailS = storedArr(value.icUtilDetail) ?? [];
+      const statDef = UTILITY_STATUS_OPTIONS[0] ?? 'Active';
       return {
         kind: 'utilities',
-        status: decodeSlots(
-          value.icUtilStatus,
-          UTILITIES.map((u) => ({ options: UTILITY_STATUS_OPTIONS, def: u.defStatus })),
+        names: namesS,
+        status: Array.from({ length: n }, (_, i) =>
+          constrain(statS[i] ?? '', UTILITY_STATUS_OPTIONS, statDef),
         ),
+        detail: Array.from({ length: n }, (_, i) => detailS[i] ?? ''),
       };
-    case 'access':
+    }
+    case 'access': {
+      const namesS = storedArr(value.icAccessNames);
+      if (!namesS) {
+        return { kind: 'access', names: [], passability: [], detail: [] };
+      }
+      const n = namesS.length;
+      const passS = storedArr(value.icAccessPass) ?? [];
+      const detailS = storedArr(value.icAccessDetail) ?? [];
+      const passDef = PASSABILITY_OPTIONS[0] ?? 'All-weather';
       return {
         kind: 'access',
-        passability: decodeSlots(
-          value.icAccessPass,
-          TRACKS.map((t) => ({ options: PASSABILITY_OPTIONS, def: t.defPassability })),
+        names: namesS,
+        passability: Array.from({ length: n }, (_, i) =>
+          constrain(passS[i] ?? '', PASSABILITY_OPTIONS, passDef),
         ),
+        detail: Array.from({ length: n }, (_, i) => detailS[i] ?? ''),
       };
+    }
     case 'reuse':
       return {
         kind: 'reuse',
@@ -674,13 +582,26 @@ export function encodeInfraCondition(
 ): FormValue {
   switch (model.kind) {
     case 'buildings':
-      return { icBldgCondition: [...model.condition] };
+      return {
+        icBldgNames: [...model.names],
+        icBldgInfo: [...model.info],
+        icBldgCondition: [...model.condition],
+        icBldgDetail: [...model.detail],
+      };
     case 'compliance':
       return { icCompOverall: [...model.overall] };
     case 'utilities':
-      return { icUtilStatus: [...model.status] };
+      return {
+        icUtilNames: [...model.names],
+        icUtilStatus: [...model.status],
+        icUtilDetail: [...model.detail],
+      };
     case 'access':
-      return { icAccessPass: [...model.passability] };
+      return {
+        icAccessNames: [...model.names],
+        icAccessPass: [...model.passability],
+        icAccessDetail: [...model.detail],
+      };
     case 'reuse':
       return {
         icReuseDisp: [...model.disposition],
@@ -753,7 +674,7 @@ export function summariseInfraCondition(
     case 'buildings': {
       const m = decodeInfraCondition('buildings', value) as BuildingsModel;
       const flagged = m.condition.filter((c) => c === 'Poor' || c === 'Unsafe').length;
-      return `${BUILDINGS_LEN} structures inventoried, ${flagged} flagged Poor/Unsafe`;
+      return `${m.names.length} structures inventoried, ${flagged} flagged Poor/Unsafe`;
     }
     case 'compliance': {
       const m = decodeInfraCondition('compliance', value) as ComplianceModel;
@@ -764,13 +685,13 @@ export function summariseInfraCondition(
     }
     case 'utilities': {
       const m = decodeInfraCondition('utilities', value) as UtilitiesModel;
-      void m;
-      return `${UTILITIES_LEN} utilities recorded, ${UTILITY_CAPWARN_COUNT} capacity warnings`;
+      const inactive = m.status.filter((s) => s === 'None').length;
+      return `${m.names.length} utilities recorded, ${inactive} inactive`;
     }
     case 'access': {
       const m = decodeInfraCondition('access', value) as AccessModel;
       const limited = m.passability.filter((p) => p !== 'All-weather').length;
-      return `${TRACKS_LEN} routes assessed, ${limited} with passability limits`;
+      return `${m.names.length} routes assessed, ${limited} with passability limits`;
     }
     case 'reuse': {
       const m = decodeInfraCondition('reuse', value) as ReuseModel;
@@ -813,48 +734,91 @@ export function InfraConditionCapture({
   // -- P1: buildings --------------------------------------------------------
   if (mode === 'buildings') {
     const model = decodeInfraCondition('buildings', value) as BuildingsModel;
-    const setCondition = (i: number, v: string): void => {
-      const next = model.condition.slice();
+    const setField = (field: 'names' | 'info' | 'condition' | 'detail', i: number, v: string): void => {
+      const next = model[field].slice();
       next[i] = v;
-      onChange(encodeInfraCondition('buildings', { ...model, condition: next }));
+      onChange(encodeInfraCondition('buildings', { ...model, [field]: next }));
+    };
+    const addRow = (): void => {
+      onChange(encodeInfraCondition('buildings', {
+        ...model,
+        names: [...model.names, ''],
+        info: [...model.info, ''],
+        condition: [...model.condition, CONDITION_OPTIONS[2] ?? 'Fair'],
+        detail: [...model.detail, ''],
+      }));
+    };
+    const removeRow = (i: number): void => {
+      const drop = <T,>(arr: T[]): T[] => arr.filter((_, j) => j !== i);
+      onChange(encodeInfraCondition('buildings', {
+        ...model,
+        names: drop(model.names),
+        info: drop(model.info),
+        condition: drop(model.condition),
+        detail: drop(model.detail),
+      }));
     };
     return (
       <div className={css.root} data-ic-mode="buildings">
         <div>
           <div className={css.regHead}>
             <span className={css.regTitle}>Building register</span>
-            <span className={css.regCount}>{BUILDINGS_LEN} structures</span>
+            <span className={css.regCount}>{model.names.length} structures</span>
           </div>
-          {BUILDINGS.map((b, i) => {
-            const Icon = b.Icon;
-            return (
-              <div key={b.key} className={css.bldgCard}>
-                <div className={css.bldgHead}>
-                  <span className={css.bldgIcon} aria-hidden="true">
-                    <Icon size={15} />
-                  </span>
-                  <div className={css.bldgMeta}>
-                    <div className={css.bldgName}>{b.name}</div>
-                    <div className={css.bldgInfo}>{b.info}</div>
-                  </div>
-                  <FsSelect
-                    className={css.condSel}
-                    value={model.condition[i] ?? b.defCondition}
-                    options={CONDITION_OPTIONS}
-                    ariaLabel={`${b.name} condition`}
-                    onChange={(v) => setCondition(i, v)}
+          {model.names.map((name, i) => (
+            <div key={i} className={css.bldgCard}>
+              <div className={css.bldgHead}>
+                <span className={css.bldgIcon} aria-hidden="true">
+                  <Building2 size={15} />
+                </span>
+                <div className={css.bldgMeta}>
+                  <input
+                    className={css.bldgName}
+                    value={name}
+                    placeholder="Structure name"
+                    aria-label={`Structure ${i + 1} name`}
+                    onChange={(e) => setField('names', i, e.target.value)}
+                  />
+                  <input
+                    className={css.bldgInfo}
+                    value={model.info[i] ?? ''}
+                    placeholder="Type, size, era -- e.g. Timber frame - 85 m2 - Est. 1972"
+                    aria-label={`Structure ${i + 1} info`}
+                    onChange={(e) => setField('info', i, e.target.value)}
                   />
                 </div>
-                <div className={css.bldgDetail}>{b.detail}</div>
+                <FsSelect
+                  className={css.condSel}
+                  value={model.condition[i] ?? (CONDITION_OPTIONS[2] ?? 'Fair')}
+                  options={CONDITION_OPTIONS}
+                  ariaLabel={`Structure ${i + 1} condition`}
+                  onChange={(v) => setField('condition', i, v)}
+                />
+                <button
+                  type="button"
+                  className={css.attRemove}
+                  aria-label={`Remove structure ${i + 1}`}
+                  onClick={() => removeRow(i)}
+                >
+                  <X size={12} />
+                </button>
               </div>
-            );
-          })}
+              <textarea
+                className={css.bldgDetail}
+                value={model.detail[i] ?? ''}
+                placeholder="Structural notes, materials, known issues, heritage status..."
+                aria-label={`Structure ${i + 1} detail`}
+                onChange={(e) => setField('detail', i, e.target.value)}
+              />
+            </div>
+          ))}
+          <button type="button" className={css.addBtn} onClick={addRow}>
+            <Plus size={12} aria-hidden="true" /> Add structure
+          </button>
         </div>
         <FeedsNote>
           Building inventory feeds the <strong>compliance assessment</strong> (item 2) and
-          the <strong>reuse decision register</strong> (item 5). The old dairy&apos;s
-          condition and asbestos risk will drive the most consequential reuse decision in
-          this objective.
+          the <strong>reuse decision register</strong> (item 5).
         </FeedsNote>
       </div>
     );
@@ -918,50 +882,82 @@ export function InfraConditionCapture({
   // -- P3: utilities --------------------------------------------------------
   if (mode === 'utilities') {
     const model = decodeInfraCondition('utilities', value) as UtilitiesModel;
-    const setStatus = (i: number, v: string): void => {
-      const next = model.status.slice();
+    const setField = (field: 'names' | 'status' | 'detail', i: number, v: string): void => {
+      const next = model[field].slice();
       next[i] = v;
-      onChange(encodeInfraCondition('utilities', { ...model, status: next }));
+      onChange(encodeInfraCondition('utilities', { ...model, [field]: next }));
+    };
+    const addRow = (): void => {
+      onChange(encodeInfraCondition('utilities', {
+        ...model,
+        names: [...model.names, ''],
+        status: [...model.status, UTILITY_STATUS_OPTIONS[0] ?? 'Active'],
+        detail: [...model.detail, ''],
+      }));
+    };
+    const removeRow = (i: number): void => {
+      const drop = <T,>(arr: T[]): T[] => arr.filter((_, j) => j !== i);
+      onChange(encodeInfraCondition('utilities', {
+        ...model,
+        names: drop(model.names),
+        status: drop(model.status),
+        detail: drop(model.detail),
+      }));
     };
     return (
       <div className={css.root} data-ic-mode="utilities">
         <div>
-          <SectionEyebrow>Utility infrastructure register</SectionEyebrow>
-          {UTILITIES.map((u, i) => {
-            const Icon = u.Icon;
-            return (
-              <div key={u.key} className={css.utilRow} data-warn={u.capWarn !== ''}>
-                <span className={css.utilIcon} aria-hidden="true">
-                  <Icon size={15} />
-                </span>
-                <div className={css.utilBody}>
-                  <div className={css.utilTop}>
-                    <span className={css.utilType}>{u.name}</span>
-                    <FsSelect
-                      className={css.utilSel}
-                      value={model.status[i] ?? u.defStatus}
-                      options={UTILITY_STATUS_OPTIONS}
-                      ariaLabel={`${u.name} status`}
-                      onChange={(v) => setStatus(i, v)}
-                    />
-                  </div>
-                  <div className={css.utilDetail}>{u.detail}</div>
-                  {u.capWarn !== '' ? (
-                    <div className={css.utilCapWarn}>
-                      <TriangleAlert size={11} className={css.utilCapIcon} aria-hidden="true" />
-                      <span>{u.capWarn}</span>
-                    </div>
-                  ) : null}
+          <div className={css.regHead}>
+            <span className={css.regTitle}>Utility register</span>
+            <span className={css.regCount}>{model.names.length} utilities</span>
+          </div>
+          {model.names.map((name, i) => (
+            <div key={i} className={css.utilRow}>
+              <span className={css.utilIcon} aria-hidden="true">
+                <Zap size={15} />
+              </span>
+              <div className={css.utilBody}>
+                <div className={css.utilTop}>
+                  <input
+                    className={css.utilType}
+                    value={name}
+                    placeholder="Utility name -- e.g. Electrical supply, Bore water, Wastewater"
+                    aria-label={`Utility ${i + 1} name`}
+                    onChange={(e) => setField('names', i, e.target.value)}
+                  />
+                  <FsSelect
+                    className={css.utilSel}
+                    value={model.status[i] ?? (UTILITY_STATUS_OPTIONS[0] ?? 'Active')}
+                    options={UTILITY_STATUS_OPTIONS}
+                    ariaLabel={`Utility ${i + 1} status`}
+                    onChange={(v) => setField('status', i, v)}
+                  />
+                  <button
+                    type="button"
+                    className={css.attRemove}
+                    aria-label={`Remove utility ${i + 1}`}
+                    onClick={() => removeRow(i)}
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
+                <textarea
+                  className={css.utilDetail}
+                  value={model.detail[i] ?? ''}
+                  placeholder="Supply details, capacity notes, existing condition..."
+                  aria-label={`Utility ${i + 1} detail`}
+                  onChange={(e) => setField('detail', i, e.target.value)}
+                />
               </div>
-            );
-          })}
+            </div>
+          ))}
+          <button type="button" className={css.addBtn} onClick={addRow}>
+            <Plus size={12} aria-hidden="true" /> Add utility
+          </button>
         </div>
         <FeedsNote>
-          Two utilities flagged insufficient for community scale: electrical supply (upgrade
-          or solar offset) and drainage (full replacement). Both enter the{' '}
-          <strong>reuse decision register</strong> (item 5) as infrastructure requiring
-          upgrade.
+          Utility inventory feeds the <strong>reuse decision register</strong> (item 5).
+          Flag capacity-insufficient utilities so their upgrade scope enters Act tasks.
         </FeedsNote>
       </div>
     );
@@ -970,39 +966,81 @@ export function InfraConditionCapture({
   // -- P4: access -----------------------------------------------------------
   if (mode === 'access') {
     const model = decodeInfraCondition('access', value) as AccessModel;
-    const setPass = (i: number, v: string): void => {
-      const next = model.passability.slice();
+    const setField = (field: 'names' | 'passability' | 'detail', i: number, v: string): void => {
+      const next = model[field].slice();
       next[i] = v;
-      onChange(encodeInfraCondition('access', { ...model, passability: next }));
+      onChange(encodeInfraCondition('access', { ...model, [field]: next }));
+    };
+    const addRow = (): void => {
+      onChange(encodeInfraCondition('access', {
+        ...model,
+        names: [...model.names, ''],
+        passability: [...model.passability, PASSABILITY_OPTIONS[0] ?? 'All-weather'],
+        detail: [...model.detail, ''],
+      }));
+    };
+    const removeRow = (i: number): void => {
+      const drop = <T,>(arr: T[]): T[] => arr.filter((_, j) => j !== i);
+      onChange(encodeInfraCondition('access', {
+        ...model,
+        names: drop(model.names),
+        passability: drop(model.passability),
+        detail: drop(model.detail),
+      }));
     };
     return (
       <div className={css.root} data-ic-mode="access">
         <div>
-          <SectionEyebrow>Access route register</SectionEyebrow>
-          {TRACKS.map((t, i) => (
-            <div key={t.key} className={css.trackCard}>
+          <div className={css.regHead}>
+            <span className={css.regTitle}>Access route register</span>
+            <span className={css.regCount}>{model.names.length} routes</span>
+          </div>
+          {model.names.map((name, i) => (
+            <div key={i} className={css.trackCard}>
               <div className={css.tcHead}>
                 <span className={css.tcIcon} aria-hidden="true">
                   <Route size={14} />
                 </span>
-                <span className={css.tcName}>{t.name}</span>
+                <input
+                  className={css.tcName}
+                  value={name}
+                  placeholder="Route name -- e.g. Main driveway, North paddock track"
+                  aria-label={`Route ${i + 1} name`}
+                  onChange={(e) => setField('names', i, e.target.value)}
+                />
                 <FsSelect
                   className={css.tcSel}
-                  value={model.passability[i] ?? t.defPassability}
+                  value={model.passability[i] ?? (PASSABILITY_OPTIONS[0] ?? 'All-weather')}
                   options={PASSABILITY_OPTIONS}
-                  ariaLabel={`${t.name} passability`}
-                  onChange={(v) => setPass(i, v)}
+                  ariaLabel={`Route ${i + 1} passability`}
+                  onChange={(v) => setField('passability', i, v)}
                 />
+                <button
+                  type="button"
+                  className={css.attRemove}
+                  aria-label={`Remove route ${i + 1}`}
+                  onClick={() => removeRow(i)}
+                >
+                  <X size={12} />
+                </button>
               </div>
-              <div className={css.tcDetail}>{t.detail}</div>
+              <textarea
+                className={css.tcDetail}
+                value={model.detail[i] ?? ''}
+                placeholder="Surface, width, length, condition, seasonal constraints..."
+                aria-label={`Route ${i + 1} detail`}
+                onChange={(e) => setField('detail', i, e.target.value)}
+              />
             </div>
           ))}
+          <button type="button" className={css.addBtn} onClick={addRow}>
+            <Plus size={12} aria-hidden="true" /> Add route
+          </button>
         </div>
         <FeedsNote>
-          Track conditions and passability constraints feed{' '}
-          <strong>Tier 3: Spatial framework</strong> -- the north paddock seasonal access
-          restriction affects where housing can be sited and what access is guaranteed
-          year-round.
+          Access route conditions feed the <strong>reuse decision register</strong> (item 5)
+          and the <strong>spatial framework</strong> -- seasonally impassable routes affect
+          where occupation can be sited.
         </FeedsNote>
       </div>
     );

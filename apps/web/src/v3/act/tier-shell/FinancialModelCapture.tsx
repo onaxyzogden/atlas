@@ -356,7 +356,7 @@ interface RatifyBriefRow {
   tone: RbTone;
 }
 
-const RATIFY_BRIEF_HEADER = 'Kinfolk Ridge - Financial Contribution Model';
+const RATIFY_BRIEF_HEADER = 'Illustrative reference - Financial Contribution Model';
 const RATIFY_BRIEF: readonly RatifyBriefRow[] = [
   { key: 'Buy-in range', value: '$82,000 - $102,500 per household', tone: 'ok' },
   { key: 'Total capitalisation', value: '$389,500', tone: 'ok' },

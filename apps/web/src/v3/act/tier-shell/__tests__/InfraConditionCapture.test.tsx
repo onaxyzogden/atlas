@@ -55,15 +55,12 @@ import {
   isInfraConditionValid,
   summariseInfraCondition,
   CONDITION_OPTIONS,
-  BUILDINGS,
   COMPLIANCE_OVERALL_OPTIONS,
   COMPLIANCE_CARDS,
   COMPLIANCE_OHS_LEAD,
   COMPLIANCE_OHS_BODY,
   UTILITY_STATUS_OPTIONS,
-  UTILITIES,
   PASSABILITY_OPTIONS,
-  TRACKS,
   REUSE_ELEMENTS,
   type InfraConditionMode,
   type BuildingsModel,
@@ -139,9 +136,10 @@ describe('decodeInfraCondition (defensive + seeded)', () => {
     }
   });
 
-  it('seeds building conditions from the mockup defaults when empty', () => {
+  it('decode buildings with no stored data returns empty arrays (operator enters rows)', () => {
     const m = decodeInfraCondition('buildings', {}) as BuildingsModel;
-    expect(m.condition).toEqual(BUILDINGS.map((b) => b.defCondition));
+    expect(m.names).toHaveLength(0);
+    expect(m.condition).toHaveLength(0);
   });
 
   it('seeds compliance overall status from the mockup defaults when empty', () => {
@@ -149,14 +147,16 @@ describe('decodeInfraCondition (defensive + seeded)', () => {
     expect(m.overall).toEqual(COMPLIANCE_CARDS.map((c) => c.defOverall));
   });
 
-  it('seeds utility status from the mockup defaults when empty', () => {
+  it('decode utilities with no stored data returns empty arrays (operator enters rows)', () => {
     const m = decodeInfraCondition('utilities', {}) as UtilitiesModel;
-    expect(m.status).toEqual(UTILITIES.map((u) => u.defStatus));
+    expect(m.names).toHaveLength(0);
+    expect(m.status).toHaveLength(0);
   });
 
-  it('seeds access passability from the mockup defaults when empty', () => {
+  it('decode access with no stored data returns empty arrays (operator enters rows)', () => {
     const m = decodeInfraCondition('access', {}) as AccessModel;
-    expect(m.passability).toEqual(TRACKS.map((t) => t.defPassability));
+    expect(m.names).toHaveLength(0);
+    expect(m.passability).toHaveLength(0);
   });
 
   it('seeds reuse dispositions + scopes from the mockup, with two pending', () => {
@@ -167,11 +167,12 @@ describe('decodeInfraCondition (defensive + seeded)', () => {
     expect(m.disposition.filter((d) => d === '')).toHaveLength(2);
   });
 
-  it('drops an out-of-set building condition back to the verbatim default', () => {
+  it('drops an out-of-set building condition back to Fair (CONDITION_OPTIONS[2])', () => {
     const m = decodeInfraCondition('buildings', {
-      icBldgCondition: ['NOT A REAL OPTION', '', '', ''],
+      icBldgNames: ['North shed'],
+      icBldgCondition: ['NOT A REAL OPTION'],
     }) as BuildingsModel;
-    expect(m.condition[0]).toBe(BUILDINGS[0]!.defCondition);
+    expect(m.condition[0]).toBe('Fair');
   });
 });
 
@@ -183,7 +184,12 @@ describe('encodeInfraCondition (lossless roundtrip)', () => {
   const cases: Array<{ mode: InfraConditionMode; value: FormValue }> = [
     {
       mode: 'buildings',
-      value: { icBldgCondition: ['Good', 'Unsafe', 'Excellent'] },
+      value: {
+        icBldgNames: ['North shed', 'Old dairy', 'Dam pumphouse'],
+        icBldgInfo: ['Timber frame', 'Brick masonry', 'Steel frame'],
+        icBldgCondition: ['Good', 'Unsafe', 'Excellent'],
+        icBldgDetail: ['detail 1', 'detail 2', 'detail 3'],
+      },
     },
     {
       mode: 'compliance',
@@ -193,11 +199,19 @@ describe('encodeInfraCondition (lossless roundtrip)', () => {
     },
     {
       mode: 'utilities',
-      value: { icUtilStatus: ['Active', 'Active', 'None', 'Limited', 'None'] },
+      value: {
+        icUtilNames: ['Electrical supply', 'Bore water', 'Wastewater', 'Communications', 'Gas'],
+        icUtilStatus: ['Active', 'Active', 'None', 'Limited', 'None'],
+        icUtilDetail: ['d1', 'd2', 'd3', 'd4', 'd5'],
+      },
     },
     {
       mode: 'access',
-      value: { icAccessPass: ['All-weather', 'All-weather', 'Dry season only'] },
+      value: {
+        icAccessNames: ['Main driveway', 'North paddock track', 'Creek ford'],
+        icAccessPass: ['All-weather', 'All-weather', 'Dry season only'],
+        icAccessDetail: ['d1', 'd2', 'd3'],
+      },
     },
     {
       mode: 'reuse',
@@ -282,21 +296,34 @@ describe('summariseInfraCondition', () => {
     expect(a).toBe(b);
   });
 
-  it('reflects the seeded counts per mode', () => {
-    // old dairy is the single Poor structure.
+  it('reflects empty counts for buildings, utilities, access (operator enters rows)', () => {
     expect(summariseInfraCondition('buildings', {})).toBe(
-      '3 structures inventoried, 1 flagged Poor/Unsafe',
+      '0 structures inventoried, 0 flagged Poor/Unsafe',
     );
-    expect(summariseInfraCondition('compliance', {})).toBe('1 major, 1 minor, 1 clear');
     expect(summariseInfraCondition('utilities', {})).toBe(
-      '5 utilities recorded, 2 capacity warnings',
+      '0 utilities recorded, 0 inactive',
     );
-    // only the main driveway is All-weather.
     expect(summariseInfraCondition('access', {})).toBe(
-      '3 routes assessed, 2 with passability limits',
+      '0 routes assessed, 0 with passability limits',
     );
     expect(summariseInfraCondition('reuse', {})).toBe(
       '2 of 8 elements pending disposition',
+    );
+  });
+
+  it('compliance summary reflects seeded major/minor/clear counts', () => {
+    expect(summariseInfraCondition('compliance', {})).toBe('1 major, 1 minor, 1 clear');
+  });
+
+  it('buildings summary reflects operator-entered rows', () => {
+    const value: FormValue = {
+      icBldgNames: ['Shed A', 'Old dairy'],
+      icBldgCondition: ['Good', 'Poor'],
+      icBldgInfo: ['', ''],
+      icBldgDetail: ['', ''],
+    };
+    expect(summariseInfraCondition('buildings', value)).toBe(
+      '2 structures inventoried, 1 flagged Poor/Unsafe',
     );
   });
 });
@@ -321,12 +348,21 @@ function renderMode(
 }
 
 describe('InfraConditionCapture render', () => {
-  it('buildings renders the register and all three structures', () => {
+  it('buildings renders the register header and "Add structure" button when empty', () => {
     renderMode('buildings');
     expect(screen.getByText('Building register')).toBeTruthy();
-    expect(screen.getByText('North shed')).toBeTruthy();
-    expect(screen.getByText('Old dairy / milking shed')).toBeTruthy();
-    expect(screen.getByText('Dam pumphouse')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Add structure/i })).toBeTruthy();
+  });
+
+  it('buildings renders operator-entered structure rows', () => {
+    renderMode('buildings', {
+      icBldgNames: ['North shed', 'Old dairy'],
+      icBldgCondition: ['Good', 'Poor'],
+      icBldgInfo: ['Timber frame', 'Brick masonry'],
+      icBldgDetail: ['detail a', 'detail b'],
+    });
+    expect(screen.getByDisplayValue('North shed')).toBeTruthy();
+    expect(screen.getByDisplayValue('Old dairy')).toBeTruthy();
   });
 
   it('compliance surfaces the friable-asbestos OH&S obligation verbatim', () => {
@@ -338,19 +374,36 @@ describe('InfraConditionCapture render', () => {
     expect(screen.getByText('Friable')).toBeTruthy();
   });
 
-  it('utilities renders the capacity-warning detail', () => {
+  it('utilities renders the register header and "Add utility" button when empty', () => {
     renderMode('utilities', {}, 'c3');
-    expect(screen.getByText('Electrical supply')).toBeTruthy();
-    expect(
-      screen.getByText(/60A single-phase supports ~2-3 dwellings max/),
-    ).toBeTruthy();
+    expect(screen.getByText('Utility register')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Add utility/i })).toBeTruthy();
   });
 
-  it('access renders all three routes', () => {
+  it('utilities renders operator-entered utility rows', () => {
+    renderMode('utilities', {
+      icUtilNames: ['Electrical supply', 'Bore water'],
+      icUtilStatus: ['Active', 'Limited'],
+      icUtilDetail: ['d1', 'd2'],
+    }, 'c3');
+    expect(screen.getByDisplayValue('Electrical supply')).toBeTruthy();
+    expect(screen.getByDisplayValue('Bore water')).toBeTruthy();
+  });
+
+  it('access renders the register header and "Add route" button when empty', () => {
     renderMode('access', {}, 'c4');
-    expect(screen.getByText('Main driveway -- road entry to shed')).toBeTruthy();
-    expect(screen.getByText('North paddock track')).toBeTruthy();
-    expect(screen.getByText('Creek ford crossing -- seasonal creek')).toBeTruthy();
+    expect(screen.getByText('Access route register')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Add route/i })).toBeTruthy();
+  });
+
+  it('access renders operator-entered route rows', () => {
+    renderMode('access', {
+      icAccessNames: ['Main driveway', 'North paddock track'],
+      icAccessPass: ['All-weather', 'Dry season only'],
+      icAccessDetail: ['d1', 'd2'],
+    }, 'c4');
+    expect(screen.getByDisplayValue('Main driveway')).toBeTruthy();
+    expect(screen.getByDisplayValue('North paddock track')).toBeTruthy();
   });
 
   it('reuse renders the dynamic pending-disposition warning', () => {
@@ -377,7 +430,7 @@ describe('InfraConditionCapture render', () => {
 // ---------------------------------------------------------------------------
 
 describe('InfraConditionCapture interactions', () => {
-  it('changing a building condition emits an updated parallel array', () => {
+  it('clicking "Add structure" emits a new empty row with default Fair condition', () => {
     const onChange = vi.fn();
     render(
       <InfraConditionCapture
@@ -387,13 +440,34 @@ describe('InfraConditionCapture interactions', () => {
         itemId={`${INFRA_CONDITION_PREFIX}-c1`}
       />,
     );
-    fireEvent.change(screen.getByLabelText('North shed condition'), {
+    fireEvent.click(screen.getByRole('button', { name: /Add structure/i }));
+    const call = onChange.mock.calls[0]![0] as FormValue;
+    expect((call.icBldgNames as string[])).toEqual(['']);
+    expect((call.icBldgCondition as string[])[0]).toBe('Fair');
+  });
+
+  it('changing a building condition emits an updated parallel array', () => {
+    const onChange = vi.fn();
+    const preValue: FormValue = {
+      icBldgNames: ['North shed'],
+      icBldgCondition: ['Fair'],
+      icBldgInfo: [''],
+      icBldgDetail: [''],
+    };
+    render(
+      <InfraConditionCapture
+        mode="buildings"
+        value={preValue}
+        onChange={onChange}
+        itemId={`${INFRA_CONDITION_PREFIX}-c1`}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Structure 1 condition'), {
       target: { value: 'Unsafe' },
     });
     const call = onChange.mock.calls[0]![0] as FormValue;
     const conditions = call.icBldgCondition as string[];
     expect(conditions[0]).toBe('Unsafe');
-    // CONDITION_OPTIONS is the option set for that select.
     expect(CONDITION_OPTIONS).toContain('Unsafe');
   });
 

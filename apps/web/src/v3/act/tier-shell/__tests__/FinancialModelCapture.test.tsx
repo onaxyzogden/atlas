@@ -169,7 +169,7 @@ describe('FinancialModelCapture render (verbatim mockup content)', () => {
 
   it('ratify shows the construction gate warn, brief and founding-member roster', () => {
     renderMode('ratify');
-    expect(screen.getByText('Kinfolk Ridge - Financial Contribution Model')).toBeTruthy();
+    expect(screen.getByText('Illustrative reference - Financial Contribution Model')).toBeTruthy();
     expect(screen.getByText('Sarah Mitchell')).toBeTruthy();
     expect(screen.getByText('Aroha & James Ngai')).toBeTruthy();
     expect(screen.getByText('Elif Yildiz & family')).toBeTruthy();
