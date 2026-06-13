@@ -4,11 +4,11 @@
  *
  * Mirrors the `clickDeleteDirectSelect` precedent (a `{ ...stock, ...overrides }`
  * mode injected via `modes: { ...MapboxDraw.modes, [name]: mode }`). Each mode
- * wraps stock `draw_line_string` / `draw_polygon` and rewrites the incoming
- * pointer `e.lngLat` to a snapped position (via the pure `snapDrawPoint` helper)
- * before delegating to the stock handler. So both the committed vertex (onClick /
- * onTap) and the rubber-band preview (onMouseMove) lock onto existing
- * vertices/edges within the 8 px snap radius.
+ * wraps stock `draw_point` / `draw_line_string` / `draw_polygon` and rewrites the
+ * incoming pointer `e.lngLat` to a snapped position (via the pure `snapDrawPoint`
+ * helper) before delegating to the stock handler. So the committed vertex /
+ * dropped point (onClick / onTap) and the rubber-band preview (onMouseMove) lock
+ * onto existing vertices/edges within the 8 px snap radius.
  *
  * Snap targets are captured once at mode start: `changeMode(mode, { snapTargets })`
  * → `onSetup(opts)` stashes `state.snapTargets`. Targets = existing features at
@@ -22,6 +22,7 @@
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { snapDrawPoint, type SnapTargets } from '../../../lib/snapPoint.js';
 
+export const SNAP_DRAW_POINT = 'snap_draw_point';
 export const SNAP_DRAW_LINE_STRING = 'snap_draw_line_string';
 export const SNAP_DRAW_POLYGON = 'snap_draw_polygon';
 
@@ -77,9 +78,15 @@ function makeSnapMode(stock: any): any {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const stockPoint: any = (MapboxDraw as any).modes.draw_point;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const stockLine: any = (MapboxDraw as any).modes.draw_line_string;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const stockPolygon: any = (MapboxDraw as any).modes.draw_polygon;
 
+// Stock `draw_point` defines onSetup/onClick(/onTap) but no onMouseMove (a point
+// has no rubber-band preview); `makeSnapMode` guards each stock handler with `?.`,
+// so the dropped point snaps on click while the absent mousemove is a clean no-op.
+export const snapDrawPointMode = makeSnapMode(stockPoint);
 export const snapDrawLineString = makeSnapMode(stockLine);
 export const snapDrawPolygon = makeSnapMode(stockPolygon);

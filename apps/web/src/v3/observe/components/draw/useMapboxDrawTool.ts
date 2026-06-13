@@ -26,8 +26,10 @@ import * as turf from '@turf/turf';
 import { MAPLIBRE_DRAW_STYLES } from './mapboxDrawStyles.js';
 import type { SnapTargets } from '../../../lib/snapPoint.js';
 import {
+  SNAP_DRAW_POINT,
   SNAP_DRAW_LINE_STRING,
   SNAP_DRAW_POLYGON,
+  snapDrawPointMode,
   snapDrawLineString,
   snapDrawPolygon,
 } from './snapDrawModes.js';
@@ -53,10 +55,11 @@ export interface UseMapboxDrawToolArgs<G extends DrawGeometry> {
    */
   previewColor?: string;
   /**
-   * When true (and the mode is a line/polygon mode), draw with the snap-enabled
-   * custom modes (`snapDrawModes`) so clicked vertices snap to existing
-   * features. `draw_point` and `snap:false` (the default) keep the stock modes,
-   * leaving every existing caller byte-for-byte identical.
+   * When true, draw with the snap-enabled custom modes (`snapDrawModes`) so the
+   * dropped point / clicked vertex snaps to existing features — for all three
+   * modes (`draw_point`, `draw_line_string`, `draw_polygon`). `snap:false` (the
+   * default) keeps the stock modes, leaving every existing caller byte-for-byte
+   * identical.
    */
   snap?: boolean;
   /**
@@ -120,14 +123,18 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     // the canvas (the WizardDrawRectangleTool precedent) and restore on teardown.
     const canvas = map.getCanvas();
     const prevCursor = canvas.style.cursor;
-    // Snap is only meaningful for the line/polygon modes; point drops never
-    // snap. When armed, register the custom snap modes alongside the stock set.
-    const snapMode =
-      snap && mode === 'draw_line_string'
-        ? SNAP_DRAW_LINE_STRING
-        : snap && mode === 'draw_polygon'
-          ? SNAP_DRAW_POLYGON
-          : null;
+    // When `snap` is armed, route the active mode to its snap-enabled variant
+    // (point / line / polygon) and register all three custom modes alongside the
+    // stock set. `snap:false` leaves the stock modes untouched.
+    const snapMode = !snap
+      ? null
+      : mode === 'draw_point'
+        ? SNAP_DRAW_POINT
+        : mode === 'draw_line_string'
+          ? SNAP_DRAW_LINE_STRING
+          : mode === 'draw_polygon'
+            ? SNAP_DRAW_POLYGON
+            : null;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
@@ -137,6 +144,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
             modes: {
               ...(MapboxDraw as unknown as { modes: Record<string, unknown> })
                 .modes,
+              [SNAP_DRAW_POINT]: snapDrawPointMode,
               [SNAP_DRAW_LINE_STRING]: snapDrawLineString,
               [SNAP_DRAW_POLYGON]: snapDrawPolygon,
             },

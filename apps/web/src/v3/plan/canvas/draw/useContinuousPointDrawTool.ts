@@ -17,6 +17,7 @@
 import { useEffect, useRef } from 'react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import * as turf from '@turf/turf';
+import { snapDrawPoint, type SnapTargets } from '../../../lib/snapPoint.js';
 
 const DBLCLICK_WINDOW_MS = 260;
 const DBLCLICK_PIXEL_TOLERANCE = 4;
@@ -46,6 +47,14 @@ interface Args {
     radiusM: number;
     validate: (lngLat: [number, number]) => ValidateResult;
   };
+  /**
+   * Opt-in vertex/edge snapping. When provided, targets are captured once at
+   * arm time and every drop (and the spacing ring) snaps to the nearest
+   * existing vertex/edge within the 8 px radius (via the pure `snapDrawPoint`).
+   * Snapping runs BEFORE the spacing `validate` gate so validation sees the
+   * snapped point. Omit (or return empty targets) to place exactly at the click.
+   */
+  getSnapTargets?: () => SnapTargets;
 }
 
 export function useContinuousPointDrawTool({
@@ -54,10 +63,12 @@ export function useContinuousPointDrawTool({
   onExit,
   enabled = true,
   spacing,
+  getSnapTargets,
 }: Args) {
   const onPlaceRef = useRef(onPlace);
   const onExitRef = useRef(onExit);
   const spacingRef = useRef(spacing);
+  const getSnapTargetsRef = useRef(getSnapTargets);
   useEffect(() => {
     onPlaceRef.current = onPlace;
   }, [onPlace]);
@@ -67,6 +78,9 @@ export function useContinuousPointDrawTool({
   useEffect(() => {
     spacingRef.current = spacing;
   }, [spacing]);
+  useEffect(() => {
+    getSnapTargetsRef.current = getSnapTargets;
+  }, [getSnapTargets]);
 
   // Whether spacing is active is part of the effect's identity so the
   // preview-ring source/layer lifecycle stays clean on arm/disarm. We
@@ -82,6 +96,18 @@ export function useContinuousPointDrawTool({
 
     const dblclickZoomEnabled = map.doubleClickZoom.isEnabled();
     if (dblclickZoomEnabled) map.doubleClickZoom.disable();
+
+    // Snap targets are captured once here, at arm time — matching the
+    // mapbox-draw snap modes (targets = existing features at the moment the
+    // draw session begins). `snap` rewrites a raw lng/lat to the nearest
+    // existing vertex/edge when one is within the 8 px radius (via the pure
+    // `snapDrawPoint`), else returns the point unchanged. When no targets are
+    // provided it is a no-op, so behaviour away from features is unchanged.
+    const snapTargets = getSnapTargetsRef.current?.() ?? null;
+    const snap = (lng: number, lat: number): [number, number] => {
+      if (!snapTargets) return [lng, lat];
+      return snapDrawPoint(map, [lng, lat], snapTargets).position;
+    };
 
     let pendingTimer: ReturnType<typeof setTimeout> | null = null;
     let pendingPoint: { x: number; y: number; lng: number; lat: number } | null =
@@ -173,12 +199,17 @@ export function useContinuousPointDrawTool({
 
     const onMouseMove = (e: MapMouseEvent) => {
       if (!spacingRef.current) return;
-      updateRing([e.lngLat.lng, e.lngLat.lat]);
+      // Snap the ring centre so the preview previews the actual drop point.
+      updateRing(snap(e.lngLat.lng, e.lngLat.lat));
     };
 
     const onClick = (e: MapMouseEvent) => {
       const { x, y } = e.point;
-      const { lng, lat } = e.lngLat;
+      // Snap the click to the nearest existing vertex/edge (when snapping is
+      // armed and a target is in range) BEFORE validation/placement. The raw
+      // pixel x/y stay raw — dblclick detection compares screen pixels, not
+      // snapped coords, so a snap never trips the second-click-exits path.
+      const [lng, lat] = snap(e.lngLat.lng, e.lngLat.lat);
 
       if (
         pendingPoint &&

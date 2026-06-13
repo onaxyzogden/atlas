@@ -64,9 +64,10 @@ interface Args {
    */
   parcelBoundary?: GeoJSON.Polygon;
   /**
-   * Opt-in vertex/edge snapping for line/polygon element kinds. Forwarded
-   * verbatim into the inner `useMapboxDrawTool`. Inert for `draw_point`
-   * kinds (the hook only registers a snap mode for line/polygon).
+   * Opt-in vertex/edge snapping for every element kind. For line/polygon
+   * kinds it is forwarded into the inner `useMapboxDrawTool` (snap draw
+   * modes); for `draw_point` kinds it feeds the continuous-point tool, so a
+   * dropped point snaps onto an existing vertex/edge within the 8 px radius.
    */
   snap?: boolean;
   /** Snap-target source builder; only consulted when `snap` is true. */
@@ -470,6 +471,9 @@ export function useDesignElementDrawTool({
       onComplete?.();
     }, [onComplete]),
     spacing,
+    // Point kinds snap too: hand the continuous-point tool the same target
+    // builder the line/polygon path uses, gated on the `snap` toggle.
+    getSnapTargets: snap ? getSnapTargets : undefined,
   });
 
   const { liveArea, liveLength } = useMapboxDrawTool({
