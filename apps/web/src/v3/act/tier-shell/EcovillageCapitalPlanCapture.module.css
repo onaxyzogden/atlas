@@ -1,0 +1,293 @@
+/* EcovillageCapitalPlanCapture.module.css
+ *
+ * Styles for the 6-mode communal capital-plan capture (capitalRequirement /
+ * contributionSchedule / fundStructure / reportingSchedule / governanceConfirm /
+ * contributionCommitment) of objective ev-s7-financial-plan. Like its sibling
+ * captures this renders in the LIGHT workbench; the palette maps to design tokens
+ * with hex fallbacks rather than raw hues. ASCII-only; every glyph is a lucide
+ * icon. No bare hex outside a var() fallback or a scoped accent var.
+ *
+ * The c2 / c5 warn blocks carry the verbatim Amanah boundary (CAPITAL_SCOPE_NOTES)
+ * -- styled as a caution surface (not a hard error), matching the settlement
+ * scopeNotes pattern. The capital-channel enum is the structural fiqh guardrail
+ * (no advance-purchase channel exists); the warn block restates that boundary.
+ */
+
+.root {
+  --cp-teal: var(--color-stage-plan, #38a3a5);
+  --cp-amber: var(--color-stage-act, #d9a036);
+  --cp-rose: #c4507a;
+  --cp-info: var(--color-info, #5b8eaf);
+  --cp-ok: var(--color-success, #3f8f5b);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeHint {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hintInline {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 9.5px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- Shared labelled row ---------- */
+
+.rowGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.rowLbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Inputs ---------- */
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 56px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cp-teal) 50%, transparent);
+  outline-offset: 1px;
+}
+
+.dateInput {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 4px);
+  padding: 5px 7px;
+}
+
+/* ---------- Register rows ---------- */
+
+.regRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.scheduleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.scheduleMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.regInput {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text, #1b1e22);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-sm, 4px);
+  padding: 6px 8px;
+}
+
+.regInput:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cp-teal) 50%, transparent);
+  outline-offset: 1px;
+}
+
+/* ---------- Sign-off / toggle buttons ---------- */
+
+.confirmRow,
+.ackRow {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 7px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #565c63);
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.confirmRow:hover,
+.ackRow:hover {
+  border-color: var(--color-text-muted, #565c63);
+}
+
+.confirmRow[data-on='true'] {
+  background: color-mix(in srgb, var(--cp-ok) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cp-ok) 40%, transparent);
+  color: var(--cp-ok);
+}
+
+.ackRow[data-on='true'] {
+  background: color-mix(in srgb, var(--cp-teal) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cp-teal) 42%, transparent);
+  color: var(--cp-teal);
+}
+
+.signDot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.confirmRow[data-on='true'] .signDot {
+  background: var(--cp-ok);
+  border-color: var(--cp-ok);
+}
+
+.ackRow[data-on='true'] .signDot {
+  background: var(--cp-teal);
+  border-color: var(--cp-teal);
+}
+
+/* ---------- c2 scheduled-vs-required derived strip (display-only) ---------- */
+
+.derivedStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-surface-raised, #faf7ef);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: var(--radius-md, 8px);
+}
+
+.derivedItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.derivedNum {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text, #1b1e22);
+  font-variant-numeric: tabular-nums;
+}
+
+.derivedLbl {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.derivedOp {
+  font-size: 14px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- c2 / c5 Amanah warn block (verbatim CAPITAL_SCOPE_NOTES) ---------- */
+
+.warnBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--cp-amber) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cp-amber) 32%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.warnIcon {
+  color: var(--cp-amber);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.warnTxt {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+  line-height: 1.5;
+}
+
+/* ---------- Shared feeds info block ---------- */
+
+.feedsBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--cp-info) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cp-info) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+.feedsIcon {
+  color: var(--cp-info);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedsTxt {
+  font-size: 11px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.feedsTxt strong {
+  color: var(--cp-info);
+  font-weight: 500;
+}

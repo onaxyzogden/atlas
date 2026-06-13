@@ -344,6 +344,16 @@ export function buildDecisionTarget(
   // capital instrument. False for every other id.
   const isOnboarding = item.id.startsWith('ev-s7-onboarding-');
 
+  // Communal capital plan is a 6-item ecovillage S7 objective
+  // (ev-s7-financial-plan-c1..-c6); detected by id prefix. The panel's
+  // isCapitalPlan body-router arm (EcovillageCapitalPlanCapture self-routes on
+  // itemId via capitalPlanModeFor) takes precedence over any matched generic
+  // form. Advisory only -- no store write, no projectId. c2 reads the c1 sibling
+  // (scheduled-vs-required strip); c5 carries the contributions-committed hard
+  // gate. AMANAH: the capital-channel enum is the structural fiqh guardrail (no
+  // advance-purchase channel; CSRA erased 2026-05-04). False for every other id.
+  const isCapitalPlan = item.id.startsWith('ev-s7-financial-plan-');
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -408,6 +418,7 @@ export function buildDecisionTarget(
     isInfraCondition,
     isSettlementPlan,
     isOnboarding,
+    isCapitalPlan,
     deferLabel,
     deferrable,
   };

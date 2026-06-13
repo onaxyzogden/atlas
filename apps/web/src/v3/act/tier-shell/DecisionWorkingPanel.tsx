@@ -283,6 +283,13 @@ import {
   type OnboardingMode,
 } from './OnboardingCapture.js';
 import {
+  EcovillageCapitalPlanCapture,
+  capitalPlanModeFor,
+  isCapitalPlanValid,
+  summariseCapitalPlan,
+  type CapitalPlanMode,
+} from './EcovillageCapitalPlanCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -373,6 +380,8 @@ export interface DecisionPanelTarget {
   isSettlementPlan?: boolean;
   /** true => render OnboardingCapture (self-routing on itemId via onboardingModeFor). */
   isOnboarding?: boolean;
+  /** true => render EcovillageCapitalPlanCapture (self-routing on itemId via capitalPlanModeFor). */
+  isCapitalPlan?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -815,6 +824,19 @@ export default function DecisionWorkingPanel({
     ? onboardingModeFor(decision.itemId)
     : null;
 
+  // Communal capital plan is a 6-mode capture (capitalRequirement /
+  // contributionSchedule / fundStructure / reportingSchedule / governanceConfirm /
+  // contributionCommitment) routed by capitalPlanModeFor(itemId). Advisory only --
+  // validates / summarises off the FormValue, writes no store / takes no
+  // projectId. c2 reads the c1 sibling FormValue (scheduled-vs-required strip); c5
+  // carries the contributions-committed hard gate (its isValid returns false until
+  // acknowledged). AMANAH: the capital-channel enum is the structural fiqh
+  // guardrail (no advance-purchase channel; CSRA erased 2026-05-04). Only the
+  // resolved mode is held here.
+  const capitalPlanMode: CapitalPlanMode | null = decision.isCapitalPlan
+    ? capitalPlanModeFor(decision.itemId)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -893,6 +915,11 @@ export default function DecisionWorkingPanel({
     valid = isSettlementPlanValid(settlementPlanMode, draft, siblingValues);
   } else if (onboardingMode) {
     valid = isOnboardingValid(onboardingMode, draft);
+  } else if (capitalPlanMode) {
+    // c5 contributions-committed hard gate + c6 governance soft gate live inside
+    // isCapitalPlanValid. The c2 scheduled-vs-required strip is display-only, so
+    // validity does not depend on siblingValues.
+    valid = isCapitalPlanValid(capitalPlanMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1098,6 +1125,23 @@ export default function DecisionWorkingPanel({
                   ? 'Confirm both Stratum-1 inclusions in orientation to record'
                   : 'Choose at least one mentorship model to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (capitalPlanMode) {
+      // c5 contributionCommitment is a HARD GATE; c6 governanceConfirm is a soft
+      // gate. The verbatim Amanah boundary (CAPITAL_SCOPE_NOTES) is surfaced in the
+      // capture body's warn block, so the gate note here stays a short reason.
+      const note =
+        capitalPlanMode === 'contributionCommitment'
+          ? 'Confirm all founding contributions are committed before construction to record'
+          : capitalPlanMode === 'governanceConfirm'
+            ? 'Confirm the Stratum 1 financial governance rules to record'
+            : capitalPlanMode === 'capitalRequirement'
+              ? 'Set the total Phase 1 capital requirement (or a positive breakdown) to record'
+              : capitalPlanMode === 'contributionSchedule'
+                ? 'Add at least one contribution with a contributor and capital channel to record'
+                : capitalPlanMode === 'fundStructure'
+                  ? 'Choose a communal fund holding structure to record'
+                  : 'Choose a reporting cadence to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -1189,6 +1233,9 @@ export default function DecisionWorkingPanel({
       summary = summariseSettlementPlan(settlementPlanMode, draft, siblingValues);
     } else if (onboardingMode) {
       summary = summariseOnboarding(onboardingMode, draft);
+    } else if (capitalPlanMode) {
+      // c2 references the c1 sibling FormValue for the scheduled-vs-required line.
+      summary = summariseCapitalPlan(capitalPlanMode, draft, siblingValues);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1538,6 +1585,15 @@ export default function DecisionWorkingPanel({
           <OnboardingCapture
             key={decision.itemId}
             mode={onboardingMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
+            siblingValues={siblingValues}
+          />
+        ) : capitalPlanMode ? (
+          <EcovillageCapitalPlanCapture
+            key={decision.itemId}
+            mode={capitalPlanMode}
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}

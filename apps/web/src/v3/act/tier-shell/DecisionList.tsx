@@ -300,6 +300,16 @@ const MODE_LABELS: Record<string, string> = {
   'ob-inclusions': 'Stratum-1 inclusions',
   'ob-mentorship': 'Mentorship',
 
+  // Communal capital plan & contribution schedule (ev-s7-financial-plan) badge
+  // labels. Keys namespaced "cp-" by workbenchAffordances (NOT "fi-", which
+  // belongs to ev-s4-financial-model). 6 modes from capitalPlanModeFor.
+  'cp-capitalRequirement': 'Capital requirement',
+  'cp-contributionSchedule': 'Contribution schedule',
+  'cp-fundStructure': 'Fund structure',
+  'cp-reportingSchedule': 'Reporting schedule',
+  'cp-governanceConfirm': 'Governance alignment',
+  'cp-contributionCommitment': 'Contribution commitment',
+
   // Vision, goals & stewardship-capacity artifact badges (universal U-S1.1).
   // Unlike the other families these are not capture "modes" -- they are static
   // artifact TYPES mapped by workbenchAffordances VISION_ARTIFACT_BADGE. The

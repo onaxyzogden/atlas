@@ -930,10 +930,14 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
   // generic divider-derivation path must surface decision-group dividers for
   // them without any per-objective edit in the component.
   const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+  // NOTE: ev-s7-financial-plan was removed from this list when it gained a bespoke
+  // capture (EcovillageCapitalPlanCapture, 2026-06-13) -- it no longer uses the
+  // generic textarea fallback. Its coverage lives in the dedicated describe block
+  // below.
   const EV_GAP_CLOSURE_IDS = [
     'ev-s4-food-system','ev-s4-infra-strategy','ev-s6-coordination-feedback',
     'ev-s6-external-relations','ev-s6-maintenance-protocol','ev-s6-social-monitoring',
-    'ev-s7-financial-plan','ev-s7-launch-sequence','ev-s7-onboarding','ev-s7-settlement-plan',
+    'ev-s7-launch-sequence','ev-s7-onboarding','ev-s7-settlement-plan',
   ] as const;
 
   it.each(EV_GAP_CLOSURE_IDS)('%s mounts the generic 2-pane workbench', (id) => {
@@ -952,11 +956,12 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
   });
 
   it('recording via the generic fallback fires onRecord with the item id', () => {
-    // ev-s7-settlement-plan now routes to SettlementPlanCapture (bespoke capture,
-    // not the generic textarea). ev-s7-financial-plan has no workbenchAffordances
-    // entry and no bespoke capture flag, so its c1 items still use the generic
-    // textarea fallback and correctly test this path.
-    const objective = byId.get('ev-s7-financial-plan')!;
+    // ev-s7-settlement-plan and ev-s7-financial-plan now route to bespoke captures
+    // (SettlementPlanCapture / EcovillageCapitalPlanCapture), not the generic
+    // textarea. ev-s7-launch-sequence has no workbenchAffordances entry and no
+    // bespoke capture flag, so its c1 items still use the generic textarea fallback
+    // and correctly test this path.
+    const objective = byId.get('ev-s7-launch-sequence')!;
     const { onRecord } = renderWorkbench({
       objectives: [objective],
       activeObjectiveId: objective.id,
@@ -1313,6 +1318,59 @@ describe('ActTierZeroWorkbench -- onboarding objective (ob- badges + no generic 
 
   it('renders decision-group dividers for the onboarding objective', () => {
     const objective = byId.get('ev-s7-onboarding')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    if (objective.decisionGroups.length > 0) {
+      expect(screen.getAllByTestId('decision-group').length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('ActTierZeroWorkbench -- capital-plan objective (cp- badges + no generic textarea)', () => {
+  // ev-s7-financial-plan (ref EV-S7.5) now has a workbenchAffordances entry with
+  // showGroups:true and modeFor returning cp-* keys. Each checklist item shows its
+  // cp-* badge and routes to EcovillageCapitalPlanCapture, NOT the generic
+  // textarea. AMANAH: the capital-channel enum is the structural fiqh guardrail
+  // (no advance-purchase channel; CSRA erased 2026-05-04) -- pinned in the
+  // capture's own suite.
+  const byId = new Map(allCatalogueObjectives().map((o) => [o.id, o] as const));
+
+  it('renders cp-* mode badges on capital-plan decision rows', () => {
+    const objective = byId.get('ev-s7-financial-plan')!;
+    expect(objective).toBeDefined();
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // c1 -> cp-capitalRequirement badge
+    expect(screen.getByTestId('mode-badge-ev-s7-financial-plan-c1')).toBeTruthy();
+    // c5 -> cp-contributionCommitment badge (the hard-gate item)
+    expect(screen.getByTestId('mode-badge-ev-s7-financial-plan-c5')).toBeTruthy();
+  });
+
+  it('selecting c1 routes to EcovillageCapitalPlanCapture (no generic textarea)', () => {
+    const objective = byId.get('ev-s7-financial-plan')!;
+    renderWorkbench({
+      objectives: [objective],
+      activeObjectiveId: objective.id,
+    });
+    // Default selection is c1 (capitalRequirement); the capture renders -- its
+    // distinctive AmountRow label "Total founding infrastructure capital
+    // required" is present (not a generic fallback textarea). Anchored on the
+    // AmountRow label rather than the eyebrow because the eyebrow text overlaps
+    // the c1 checklist label ("Define total Phase 1 capital requirement").
+    expect(
+      screen.getByText(/Total founding infrastructure capital required/i),
+    ).toBeTruthy();
+    // No generic fallback textarea labelled with the c1 item label.
+    const c1 = objective.checklist[0]!;
+    expect(screen.queryByLabelText(c1.label)).toBeNull();
+  });
+
+  it('renders decision-group dividers for the capital-plan objective', () => {
+    const objective = byId.get('ev-s7-financial-plan')!;
     renderWorkbench({
       objectives: [objective],
       activeObjectiveId: objective.id,

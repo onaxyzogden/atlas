@@ -43,6 +43,7 @@ import { socialFabricModeFor } from './SocialFabricCapture.js';
 import { infraConditionModeFor } from './InfraConditionCapture.js';
 import { settlementPlanModeFor } from './SettlementPlanCapture.js';
 import { onboardingModeFor } from './OnboardingCapture.js';
+import { capitalPlanModeFor } from './EcovillageCapitalPlanCapture.js';
 
 export interface MapStripSpec {
   testId: string;
@@ -472,6 +473,28 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
       if (!itemId.startsWith('ev-s7-onboarding-')) return null;
       const m = onboardingModeFor(itemId);
       return m ? `ob-${m}` : null;
+    },
+  },
+
+  // Communal financial plan & contribution schedule (ev-s7-financial-plan, ref
+  // EV-S7.5): 6 decisions grouped (showGroups true); no map/register strips.
+  // Advisory form-only -- the capture writes no store and takes no projectId.
+  // capitalPlanModeFor returns mode keys (capitalRequirement /
+  // contributionSchedule / fundStructure / reportingSchedule / governanceConfirm
+  // / contributionCommitment); badge keys are namespaced "cp-" HERE (NOT "fi-",
+  // which belongs to the distinct ev-s4-financial-model objective). The affordance
+  // modeFor feeds the badge only; DecisionWorkingPanel routes off its own
+  // capitalPlanModeFor independently, and DecisionList carries matching cp-*
+  // labels. AMANAH: the capital-channel enum inside the capture is the structural
+  // fiqh guardrail (no advance-purchase channel exists; CSRA erased 2026-05-04).
+  'ev-s7-financial-plan': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => {
+      if (!itemId.startsWith('ev-s7-financial-plan-')) return null;
+      const m = capitalPlanModeFor(itemId);
+      return m ? `cp-${m}` : null;
     },
   },
 

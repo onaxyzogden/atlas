@@ -20,6 +20,7 @@ import { socialFabricModeFor } from '../SocialFabricCapture.js';
 import { infraConditionModeFor } from '../InfraConditionCapture.js';
 import { settlementPlanModeFor } from '../SettlementPlanCapture.js';
 import { onboardingModeFor } from '../OnboardingCapture.js';
+import { capitalPlanModeFor } from '../EcovillageCapitalPlanCapture.js';
 
 describe('workbenchAffordancesFor -- s1-boundaries', () => {
   const aff = workbenchAffordancesFor('s1-boundaries');
@@ -292,6 +293,34 @@ describe('workbenchAffordancesFor -- ev-s7-onboarding', () => {
     expect(aff.modeFor!('ev-s7-settlement-plan-c1')).toBeNull();
     // Bare objective id returns null
     expect(aff.modeFor!('ev-s7-onboarding')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- ev-s7-financial-plan (capital plan)', () => {
+  const aff = workbenchAffordancesFor('ev-s7-financial-plan');
+
+  it('carries no strips, shows decision groups, and provides a non-null modeFor', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('modeFor namespaces capital-plan modes "cp-" and guards the prefix', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    // c1 -> capitalRequirement, namespaced cp-capitalRequirement
+    const got = aff.modeFor!('ev-s7-financial-plan-c1');
+    expect(got).toBe('cp-capitalRequirement');
+    expect(got).toBe(`cp-${capitalPlanModeFor('ev-s7-financial-plan-c1')}`);
+    // All 6 modes
+    expect(aff.modeFor!('ev-s7-financial-plan-c2')).toBe('cp-contributionSchedule');
+    expect(aff.modeFor!('ev-s7-financial-plan-c3')).toBe('cp-fundStructure');
+    expect(aff.modeFor!('ev-s7-financial-plan-c4')).toBe('cp-reportingSchedule');
+    expect(aff.modeFor!('ev-s7-financial-plan-c6')).toBe('cp-governanceConfirm');
+    expect(aff.modeFor!('ev-s7-financial-plan-c5')).toBe('cp-contributionCommitment');
+    // Prefix guard: the near-name s4 financial-model returns null
+    expect(aff.modeFor!('ev-s4-financial-model-c1')).toBeNull();
+    // Bare objective id returns null
+    expect(aff.modeFor!('ev-s7-financial-plan')).toBeNull();
   });
 });
 
