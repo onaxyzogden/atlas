@@ -115,6 +115,9 @@ import VegetationSurveyPanel from '../../act/ecology/VegetationSurveyPanel.js';
 import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.js';
 import SlopeSurveyPanel from '../../act/terrain/SlopeSurveyPanel.js';
 import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
+import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
+import OpenMapToolsButton from '../../_shared/map-takeover/OpenMapToolsButton.js';
+import ObjectiveToolsPanel from '../../_shared/map-takeover/ObjectiveToolsPanel.js';
 import ActFlowConnectorPopover from '../../act/asBuilt/ActFlowConnectorPopover.js';
 import { decodeSteward, stewardInvitesToQueued } from '../../act/tier-shell/StewardCapture.js';
 import { FORAGE_PREFIX, planForagePaddockReconcile } from '../../act/tier-shell/ForageCapture.js';
@@ -333,6 +336,19 @@ export default function PlanTierShell() {
   );
   const slopeActive = slopeOpen && objectiveId === 's2-terrain';
 
+  // Generic objective-tools takeover (the shell-agnostic generalization of the
+  // two bespoke surveys above): any draw/place objective whose catalog resolves
+  // to >= 1 map tool can flip into a focused map+tools mode via
+  // OpenMapToolsButton. Active only when the store is open for THIS project AND
+  // the route's objective matches, so it stays latent on other objectives
+  // exactly like the survey takeovers.
+  const toolsTakeoverActive = useObjectiveToolsTakeoverStore(
+    (s) =>
+      s.active &&
+      s.activeProjectId === id &&
+      s.activeObjectiveId === objectiveId,
+  );
+
   // Tier-0 swap flag: render the interactive decision workbench in place of the
   // editable map canvas when the selected objective is a non-spatial Tier-0 one
   // ("Plan decides" — the workbench moved here from Act). Keyed off the
@@ -344,7 +360,11 @@ export default function PlanTierShell() {
     (isTierZeroObjectiveId(objectiveId) ||
       (selectedObjective != null && isTierZeroObjective(selectedObjective))) &&
     !surveyActive &&
-    !slopeActive;
+    !slopeActive &&
+    // A generic map-tools takeover also yields the workbench to the map (so a
+    // Tier-0 draw/place objective can reach its draw hosts), exactly like the
+    // bespoke survey takeovers above.
+    !toolsTakeoverActive;
 
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
@@ -866,7 +886,19 @@ export default function PlanTierShell() {
               )
             }
             rightRail={
-              // Survey rail takeover (mirrors ActTierShell:1126-1139): while a
+              // Generic objective-tools takeover: while armed for THIS objective,
+              // the focused map-tools panel replaces the rail (parity with the
+              // survey takeovers below). Done in the panel clears the store.
+              toolsTakeoverActive && selectedObjective ? (
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <ObjectiveToolsPanel
+                      projectId={id}
+                      objective={selectedObjective}
+                    />
+                  </div>
+                </div>
+              ) : // Survey rail takeover (mirrors ActTierShell:1126-1139): while a
               // survey is armed on s2-ecology/s2-terrain, the panel replaces the
               // dashboard/detail toggle. Done in the panel clears the store.
               surveyActive ? (
@@ -935,23 +967,33 @@ export default function PlanTierShell() {
                   {rightMode === 'detail' &&
                   selectedObjective &&
                   selectedObjectiveStratum ? (
-                    <ObjectiveDetailPanel
-                      key={selectedObjective.id}
-                      projectId={id}
-                      stratum={selectedObjectiveStratum}
-                      objective={selectedObjective}
-                      status={selectedObjectiveStatus}
-                      project={v3Project}
-                      onBackToStratum={(stratum) => goToStratum(stratum.id)}
-                      completedItemIds={
-                        effectiveProgress.byObjective[selectedObjective.id] ??
-                        EMPTY_COMPLETED
-                      }
-                      visionDerivedMap={derivedMap}
-                      // The map lives in the CENTER canvas; suppress the panel's
-                      // embedded ObjectiveMap so it isn't duplicated.
-                      hideMap
-                    />
+                    <>
+                      {/* Generic "Open map with tools" CTA — self-gates to
+                          objectives that resolve to >= 1 map draw/place tool, so
+                          it appears only for spatial objectives (the two bespoke
+                          surveys keep their own richer summary buttons). */}
+                      <OpenMapToolsButton
+                        projectId={id}
+                        objective={selectedObjective}
+                      />
+                      <ObjectiveDetailPanel
+                        key={selectedObjective.id}
+                        projectId={id}
+                        stratum={selectedObjectiveStratum}
+                        objective={selectedObjective}
+                        status={selectedObjectiveStatus}
+                        project={v3Project}
+                        onBackToStratum={(stratum) => goToStratum(stratum.id)}
+                        completedItemIds={
+                          effectiveProgress.byObjective[selectedObjective.id] ??
+                          EMPTY_COMPLETED
+                        }
+                        visionDerivedMap={derivedMap}
+                        // The map lives in the CENTER canvas; suppress the
+                        // panel's embedded ObjectiveMap so it isn't duplicated.
+                        hideMap
+                      />
+                    </>
                   ) : (
                     <PlanReadyCue projectId={params.projectId ?? null} />
                   )}

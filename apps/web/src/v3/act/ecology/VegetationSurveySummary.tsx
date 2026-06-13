@@ -32,6 +32,7 @@ import {
   VEG_COMMUNITY_COLORS,
   type VegCommunityKey,
 } from '../../../store/vegetationSurveyStore.js';
+import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
 import styles from './VegetationSurveySummary.module.css';
 
 interface Props {
@@ -52,6 +53,9 @@ export default function VegetationSurveySummary({
   const project = useV3Project(projectId);
   const open = useVegetationSurveyStore((s) => s.open);
   const byProject = useVegetationSurveyStore((s) => s.byProject);
+  // Reverse cross-store hygiene: opening this bespoke survey closes any generic
+  // objective-tools takeover so the two focused modes never coexist.
+  const closeToolsTakeover = useObjectiveToolsTakeoverStore((s) => s.close);
 
   const features = useMemo(
     () => Object.values(byProject[projectId] ?? {}),
@@ -137,7 +141,10 @@ export default function VegetationSurveySummary({
           type="button"
           className={styles.openBtn}
           data-testid="veg-open-survey"
-          onClick={() => open(projectId)}
+          onClick={() => {
+            closeToolsTakeover();
+            open(projectId);
+          }}
         >
           <MapIcon size={13} aria-hidden="true" />
           {recorded.length === 0 ? 'Open map survey' : 'Continue map survey'}

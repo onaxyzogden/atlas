@@ -40,6 +40,7 @@ import {
   SLOPE_CLASS_COLORS,
   type SlopeClassKey,
 } from '../../../store/slopeSurveyStore.js';
+import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
 import styles from './SlopeSurveySummary.module.css';
 
 interface Props {
@@ -62,6 +63,10 @@ export default function SlopeSurveySummary({
   const project = useV3Project(projectId);
   const open = useSlopeSurveyStore((s) => s.open);
   const byProject = useSlopeSurveyStore((s) => s.byProject);
+  // Reverse cross-store hygiene: opening this bespoke survey closes any generic
+  // objective-tools takeover so the two focused modes never coexist (the
+  // takeover store closes the surveys on its side; this closes it back).
+  const closeToolsTakeover = useObjectiveToolsTakeoverStore((s) => s.close);
 
   const features = useMemo(
     () => Object.values(byProject[projectId] ?? {}),
@@ -164,7 +169,10 @@ export default function SlopeSurveySummary({
           type="button"
           className={styles.openBtn}
           data-testid="slope-open-survey"
-          onClick={() => open(projectId)}
+          onClick={() => {
+            closeToolsTakeover();
+            open(projectId);
+          }}
         >
           <MapIcon size={13} aria-hidden="true" />
           {recorded.length === 0 ? 'Open map survey' : 'Continue map survey'}
