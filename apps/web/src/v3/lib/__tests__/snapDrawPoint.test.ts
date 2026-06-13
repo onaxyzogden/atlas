@@ -8,6 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { snapDrawPoint, type SnapTargets } from '../snapPoint.js';
+import { buildSnapTargets } from '../../plan/draw/tools/usePlanSnapTargets.js';
 
 type LngLat = [number, number];
 
@@ -89,6 +90,50 @@ describe('snapDrawPoint', () => {
   it('is a no-op when targets carry no lines or vertices', () => {
     const raw: LngLat = [3, 4];
     const r = snapDrawPoint(mockMap, raw, {});
+    expect(r.snappedTo).toBeNull();
+    expect(r.position).toEqual(raw);
+  });
+});
+
+/**
+ * Point-placement snapping (Phase 3): a dropped point is now run through the
+ * same `snapDrawPoint` against targets assembled by `buildSnapTargets` — the
+ * shared normalizer behind both `usePlanSnapTargets` and `useObserveSnapTargets`.
+ * The `SNAP_DRAW_POINT` MapboxDraw mode is a thin wrapper that feeds the placed
+ * coordinate through this exact composition, so exercising assembly → snap here
+ * proves the point-mode behaviour without a live draw instance.
+ */
+describe('point-placement snapping over assembled targets', () => {
+  it('snaps a dropped point onto an existing feature anchor (Point vertex)', () => {
+    // An existing tree/well/pin contributes one snappable vertex.
+    const targets = buildSnapTargets([{ type: 'Point', coordinates: [0, 0] }]);
+    // Drop 0.05 deg (5 px) away → within the 8 px radius.
+    const r = snapDrawPoint(mockMap, [0.05, 0], targets);
+    expect(r.snappedTo).toBe('vertex');
+    expect(r.position).toEqual([0, 0]);
+  });
+
+  it('snaps a dropped point onto a polygon corner', () => {
+    const ring: LngLat[] = [
+      [0, 0],
+      [4, 0],
+      [4, 4],
+      [0, 4],
+      [0, 0],
+    ];
+    const targets = buildSnapTargets([
+      { type: 'Polygon', coordinates: [ring] },
+    ]);
+    // Drop just inside the [4, 4] corner → corner wins (vertex beats edge).
+    const r = snapDrawPoint(mockMap, [3.97, 3.97], targets);
+    expect(r.snappedTo).toBe('vertex');
+    expect(r.position).toEqual([4, 4]);
+  });
+
+  it('leaves a free placement away from every feature exactly where dropped', () => {
+    const targets = buildSnapTargets([{ type: 'Point', coordinates: [0, 0] }]);
+    const raw: LngLat = [9, 9]; // far outside the 8 px radius
+    const r = snapDrawPoint(mockMap, raw, targets);
     expect(r.snappedTo).toBeNull();
     expect(r.position).toEqual(raw);
   });

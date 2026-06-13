@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import {
   useDimensionDrawStore,
@@ -14,9 +15,11 @@ import css from './ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
-export default function ContourLineTool({ map, projectId }: Props) {
+export default function ContourLineTool({ map, projectId, getSnapTargets }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimValues = useDimensionValues();
@@ -40,6 +43,8 @@ export default function ContourLineTool({ map, projectId }: Props) {
   const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
     map,
     mode: 'draw_line_string',
+    snap: true,
+    getSnapTargets,
     enabled: dimMode === 'freehand',
     onComplete: place,
   });

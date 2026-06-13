@@ -44,6 +44,7 @@ import FenceTool from './FenceTool.js';
 import GateTool from './GateTool.js';
 import ExistingDrivewayTool from './ExistingDrivewayTool.js';
 import BeV2ExistingTool from './BeV2ExistingTool.js';
+import { useObserveSnapTargets } from './useObserveSnapTargets.js';
 import {
   BUILT_ENVIRONMENT_KINDS,
   LEGACY_OBSERVE_BE_KINDS,
@@ -57,6 +58,11 @@ interface Props {
 
 export default function ObserveDrawHost({ map, projectId }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
+  // Shared snap-target builder (existing Observe annotations + BE v1/v2
+  // features + parcel boundary). Called unconditionally before any early
+  // return to respect the rules of hooks; `projectId ?? ''` yields empty
+  // targets when unused.
+  const getSnapTargets = useObserveSnapTargets(projectId ?? '');
 
   // When a draw tool is active, force the master annotations overlay on so the
   // record the user is about to create is actually visible after save. Without
@@ -78,52 +84,52 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
   let tool: React.ReactNode = null;
   switch (activeTool) {
     case 'observe.human-context.neighbour-pin':
-      tool = <NeighbourPinTool map={map} projectId={projectId} />;
+      tool = <NeighbourPinTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.human-context.steward':
-      tool = <HouseholdPinTool map={map} projectId={projectId} />;
+      tool = <HouseholdPinTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.human-context.access-road':
-      tool = <AccessRoadTool map={map} projectId={projectId} />;
+      tool = <AccessRoadTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.macroclimate-hazards.frost-pocket':
-      tool = <FrostPocketTool map={map} projectId={projectId} />;
+      tool = <FrostPocketTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.macroclimate-hazards.hazard-zone':
-      tool = <HazardZoneTool map={map} projectId={projectId} />;
+      tool = <HazardZoneTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.topography.contour-line':
-      tool = <ContourLineTool map={map} projectId={projectId} />;
+      tool = <ContourLineTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.topography.high-point':
-      tool = <HighPointTool map={map} projectId={projectId} />;
+      tool = <HighPointTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.topography.drainage-line':
-      tool = <DrainageLineTool map={map} projectId={projectId} />;
+      tool = <DrainageLineTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.topography.erosion-flag':
-      tool = <ErosionFlagTool map={map} projectId={projectId} />;
+      tool = <ErosionFlagTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.topography.runoff-path':
-      tool = <RunoffPathTool map={map} projectId={projectId} />;
+      tool = <RunoffPathTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.earth-water-ecology.watercourse':
-      tool = <WatercourseTool map={map} projectId={projectId} />;
+      tool = <WatercourseTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.earth-water-ecology.adopt-water':
       tool = <AdoptBasemapWaterTool map={map} projectId={projectId} />;
       break;
     case 'observe.earth-water-ecology.soil-sample':
-      tool = <SoilSampleTool map={map} projectId={projectId} />;
+      tool = <SoilSampleTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.earth-water-ecology.vegetation':
-      tool = <VegetationTool map={map} projectId={projectId} />;
+      tool = <VegetationTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.earth-water-ecology.pasture':
-      tool = <PastureTool map={map} projectId={projectId} />;
+      tool = <PastureTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.earth-water-ecology.conventional-crop':
-      tool = <ConventionalCropTool map={map} projectId={projectId} />;
+      tool = <ConventionalCropTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.sectors-zones.sun-summer':
       tool = (
@@ -189,43 +195,43 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       tool = <PermacultureZoneTool map={map} projectId={projectId} />;
       break;
     case 'observe.swot-synthesis.strength':
-      tool = <SwotTagTool map={map} projectId={projectId} bucket="S" />;
+      tool = <SwotTagTool map={map} projectId={projectId} bucket="S" getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.swot-synthesis.weakness':
-      tool = <SwotTagTool map={map} projectId={projectId} bucket="W" />;
+      tool = <SwotTagTool map={map} projectId={projectId} bucket="W" getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.swot-synthesis.opportunity':
-      tool = <SwotTagTool map={map} projectId={projectId} bucket="O" />;
+      tool = <SwotTagTool map={map} projectId={projectId} bucket="O" getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.swot-synthesis.threat':
-      tool = <SwotTagTool map={map} projectId={projectId} bucket="T" />;
+      tool = <SwotTagTool map={map} projectId={projectId} bucket="T" getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.adopt-basemap':
       tool = <AdoptBasemapBuildingTool map={map} projectId={projectId} />;
       break;
     case 'observe.built-environment.building':
-      tool = <BuildingTool map={map} projectId={projectId} />;
+      tool = <BuildingTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.well':
-      tool = <WellTool map={map} projectId={projectId} />;
+      tool = <WellTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.septic':
-      tool = <SepticTool map={map} projectId={projectId} />;
+      tool = <SepticTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.power-line':
-      tool = <PowerLineTool map={map} projectId={projectId} />;
+      tool = <PowerLineTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.buried-utility':
-      tool = <BuriedUtilityTool map={map} projectId={projectId} />;
+      tool = <BuriedUtilityTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.fence':
-      tool = <FenceTool map={map} projectId={projectId} />;
+      tool = <FenceTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.gate':
-      tool = <GateTool map={map} projectId={projectId} />;
+      tool = <GateTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     case 'observe.built-environment.driveway':
-      tool = <ExistingDrivewayTool map={map} projectId={projectId} />;
+      tool = <ExistingDrivewayTool map={map} projectId={projectId} getSnapTargets={getSnapTargets} />;
       break;
     default: {
       // Phase 5.2.A: dispatch the 23 non-bespoke BE kinds through the
@@ -240,7 +246,13 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
           BUILT_ENVIRONMENT_KINDS[kind]
         ) {
           tool = (
-            <BeV2ExistingTool map={map} projectId={projectId} kind={kind} />
+            <BeV2ExistingTool
+              map={map}
+              projectId={projectId}
+              kind={kind}
+              snap
+              getSnapTargets={getSnapTargets}
+            />
           );
           break;
         }

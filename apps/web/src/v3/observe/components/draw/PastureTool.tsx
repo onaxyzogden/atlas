@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
 import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
@@ -17,6 +18,8 @@ import css from './ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  /** Snap-target source builder; consulted only when snapping is armed. */
+  getSnapTargets?: () => SnapTargets;
 }
 
 /**
@@ -27,7 +30,7 @@ interface Props {
  * Math lives in `./subtractPatches.ts`.
  */
 
-export default function PastureTool({ map, projectId }: Props) {
+export default function PastureTool({ map, projectId, getSnapTargets }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimShape = useDimensionDrawStore((s) => s.shape);
@@ -63,6 +66,8 @@ export default function PastureTool({ map, projectId }: Props) {
   const { liveArea } = useMapboxDrawTool<GeoJSON.Polygon>({
     map,
     mode: 'draw_polygon',
+    snap: true,
+    getSnapTargets,
     enabled: dimMode === 'freehand',
     onComplete: place,
     previewColor: DRAW_PREVIEW_COLORS.pasture,
