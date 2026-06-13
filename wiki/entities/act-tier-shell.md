@@ -2523,19 +2523,47 @@ pathspec (the foreign `actToolCatalog.ts`/`objectiveActTools.ts` + the in-flight
 cluster left unstaged), on **main**, **not pushed**.
 Log [[log/2026-06-10-atlas-act-placed-features-objective-list]].
 
-## DEFERRED — generic objective-tools map takeover, Act side (filed 2026-06-13)
+## Generic objective-tools map takeover — Act side SHIPPED (2026-06-13, `74c51a81`)
 
-The generic "open map with tools" takeover shipped **Plan-only** on 2026-06-13 (commit `304e6997`;
-see [[entities/plan-tier-shell]] → "Generic objective-tools map takeover"). The store
-(`apps/web/src/store/objectiveToolsTakeoverStore.ts`) and components
+The generic "open map with tools" takeover now spans **both shells**. It shipped Plan-only on
+2026-06-13 (`304e6997`; see [[entities/plan-tier-shell]] → "Generic objective-tools map takeover"),
+and the deferred Act half landed the same day in commit **`74c51a81`** on `main` (**not pushed**),
+a **single-file mirror** of the four Plan edits into `ActTierShell.tsx` (+49/-12, no new files).
+
+The store (`apps/web/src/store/objectiveToolsTakeoverStore.ts`) and components
 (`apps/web/src/v3/_shared/map-takeover/{OpenMapToolsButton,ObjectiveToolsPanel}.tsx`) are
-**shell-agnostic by design**, so wiring the Act side is a small follow-up with **no new mechanism**:
-mirror the Plan wiring in `ActTierShell.tsx` — compute `toolsTakeoverActive`, swap the Act right rail
-to `<ObjectiveToolsPanel projectId objective>` while active, and mount `<OpenMapToolsButton>` on the
-Act objective surface (e.g. in `ActTierExecutionPanel`'s objective region) gated by
-`objectiveNeedsMap`. Reuse the same `useObjectiveToolsTakeoverStore` instance — its `open()` already
-closes the slope/veg survey takeovers for mutual exclusion, and the survey summaries already
-reverse-close the generic takeover. **Deferred** purely because `ActTierShell.tsx` is currently
-operator WIP (must not be edited/committed this session); it is the recommended next session for this
-feature. Log [[log/2026-06-13-atlas-plan-survey-fixes-map-takeover]]. Amanah: surfaces existing draw
-tools per objective only — no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
+**shell-agnostic by design**, so the Act wiring introduced **no new mechanism** — it reuses the same
+`useObjectiveToolsTakeoverStore` instance. The five edits:
+
+1. **Imports** — `useObjectiveToolsTakeoverStore`, `OpenMapToolsButton`, `ObjectiveToolsPanel`
+   (alongside the existing slope-survey imports).
+2. **`toolsTakeoverActive`** computed right after `slopeActive`: route-gated selector
+   `s.active && s.activeProjectId === id && s.activeObjectiveId === objectiveId`.
+3. **Workbench gate** — appended `&& !toolsTakeoverActive` to `showTierZeroWorkbench` so a Tier-0
+   draw/place objective yields its workbench to the map canvas (same rationale as the survey gates).
+4. **Right-rail branch** — new top branch in the rail ternary (before `surveyActive ?`):
+   `toolsTakeoverActive && selectedObjective ? <ObjectiveToolsPanel projectId objective> : …`.
+   Placed first; collision-free because `open()` already closed the surveys and the active flag is
+   route-gated on `objectiveId`.
+5. **`OpenMapToolsButton`** mounted above `ActTierExecutionPanel` in the `rightMode === 'detail'`
+   branch (wrapped in a fragment); self-gates via `objectiveNeedsMap`, so non-spatial objectives
+   show no button. `rightMode` defaults to `'detail'` when an objective is routed → discoverable.
+
+**Why the components drop in unchanged:** `objectiveMapTools` resolves via
+`resolvePlanTools(getObjectiveActTools(objective)).filter(arm.kind === 'map')`; `resolvePlanTools`
+delegates to the Act catalog and only drops Plan-dead `'log'` arms (never `kind:'map'`), so the
+`kind:'map'` subset is identical to what Act would resolve. **Mutual exclusion already held both
+directions** — `open()` closes the slope/veg survey stores, and the shared survey summaries
+(`SlopeSurveySummary`/`VegetationSurveySummary`) reverse-close the generic store — so zero extra Act
+wiring was needed.
+
+**Verification:** `npm run typecheck` EXIT 0 bar the 4 pre-existing baseline errors
+(`syncServiceWorkItemsFallback.test.ts` ×1, `WorkConflictSection.test.tsx` ×3); bounded vitest 5/5 on
+`objectiveToolsTakeoverStore.test.ts` (the mechanism is unchanged, so no new unit test — same as the
+Plan slice, which added no `PlanTierShell` render test). Live click-through fell back to static +
+store-test proof per the approved plan: RR7 won't navigate via raw `popstate`, and the operator's
+in-flight `ProtocolLibraryCard.tsx` WIP + offline API (:3001) were degrading the running app shell
+into the error boundary — both independent of this change ([[project-screenshot-hang]]). The Act
+wiring is a verbatim mirror of the already-verified Plan path. Log
+[[log/2026-06-13-atlas-plan-survey-fixes-map-takeover]]. Amanah: surfaces existing draw tools per
+objective only — no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
