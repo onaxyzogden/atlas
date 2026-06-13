@@ -10,9 +10,13 @@
  *                     statuses; unlike Act's spine, Plan strata DO lock).
  *   LEFT   rail      — useProjectObjectives filtered by the selected stratum,
  *                     each card showing effective checklist progress. The
- *                     Objectives/Protocols mode toggle is suppressed
- *                     (hideModeToggle) — Plan has no standing-protocol library
- *                     mode in this shell.
+ *                     Objectives/Protocols mode toggle is LIVE: Protocols mode
+ *                     lists the full S1->S7 standing-protocol library
+ *                     (protocolScopeStratumId=null) and the RIGHT rail swaps to
+ *                     the full-edit PlanProtocolDetailPane. Mode + selection are
+ *                     URL-driven (?planMode=protocol&protocol=<id>), mirroring
+ *                     the Act rail but with thresholds editable, since Plan is
+ *                     where standing protocols are designed.
  *   CENTER canvas    — the EDITABLE Plan design surface (VisionLayoutCanvas),
  *                     NOT Act's read-only substrate. This is the one structural
  *                     divergence from ActTierShell: Plan edits design geometry
@@ -34,7 +38,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutDashboard, Target } from 'lucide-react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import {
   PLAN_STRATA,
   computeAllObjectiveStatuses,
@@ -84,6 +88,7 @@ import PlanPhaseTabs from '../canvas/PlanPhaseTabs.js';
 import PlanReadyCue from '../components/PlanReadyCue.js';
 import PlanModuleSlideUp from '../PlanModuleSlideUp.js';
 import ObjectiveDetailPanel from '../strata/ObjectiveDetailPanel.js';
+import PlanProtocolDetailPane from '../strata/PlanProtocolDetailPane.js';
 import StratumLockedPopover from '../strata/StratumLockedPopover.js';
 import { pushHabitatFeaturesToSpine } from '../../../features/biodiversity/habitatFeatureSpineSync.js';
 import {
@@ -152,11 +157,6 @@ const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback (see ActTierShell). PLAN_STRATA is
 // non-empty, but noUncheckedIndexedAccess types [0] as possibly-undefined.
 const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
-// Inert handlers for the objective rail's protocol-mode props. PlanTierShell
-// runs the rail with hideModeToggle, so neither ever fires — but the rail still
-// types them as required (parity with Act's NOOP_RAIL_MODE / NOOP_PROTOCOL).
-const NOOP_RAIL_MODE = (_: RailMode) => {};
-const NOOP_PROTOCOL = (_: string) => {};
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -169,6 +169,17 @@ export default function PlanTierShell() {
   const id = params.projectId ?? 'mtc';
   const objectiveId = params.objectiveId ?? null;
   const navigate = useNavigate();
+
+  // Left-rail mode + protocol selection are URL-driven (same ?planMode/?protocol
+  // params the Act rail uses, validated by validatePlanSearch on all 3 plan
+  // routes). Plan has no evaluation engine, so there is never a triggered set.
+  const search = useSearch({ strict: false }) as {
+    planMode?: 'protocol';
+    protocol?: string;
+  };
+  const railMode: RailMode =
+    search.planMode === 'protocol' ? 'protocols' : 'objectives';
+  const selectedProtocolId = search.protocol ?? null;
 
   // LocalProject (projectStore) — drives the spine identity tile + the
   // PlanModuleSlideUp panels (which take a LocalProject).
@@ -591,6 +602,46 @@ export default function PlanTierShell() {
     [navigate, params.projectId, goToStratum],
   );
 
+  // Left-rail Objectives/Protocols toggle → rewrite ?planMode on the current
+  // path (`to: '.'`, the planMode pattern), so it works from the bare, stratum,
+  // and objective routes alike. Entering Protocols preserves any held ?protocol;
+  // leaving drops it (objectives mode has no protocol selection). `replace`
+  // keeps mode churn out of history.
+  const handleRailModeChange = useCallback(
+    (next: RailMode) => {
+      navigate({
+        to: '.',
+        search: (prev: Record<string, unknown>) => ({
+          ...prev,
+          planMode: next === 'protocols' ? 'protocol' : undefined,
+          protocol: next === 'protocols' ? prev?.protocol : undefined,
+        }),
+        replace: true,
+      } as never);
+    },
+    [navigate],
+  );
+
+  // Protocol card click → open its full-edit detail in the right rail.
+  // Re-clicking the active protocol deselects it (back to the dashboard),
+  // mirroring objectives. Writes ?planMode=protocol&protocol=<id> on the current
+  // path; toggle-off clears protocol. `replace` keeps selection churn out of
+  // history.
+  const handleSelectProtocol = useCallback(
+    (templateId: string) => {
+      navigate({
+        to: '.',
+        search: (prev: Record<string, unknown>) => ({
+          ...prev,
+          planMode: 'protocol',
+          protocol: prev?.protocol === templateId ? undefined : templateId,
+        }),
+        replace: true,
+      } as never);
+    },
+    [navigate],
+  );
+
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
       // Honour the Plan prerequisite gate: a locked stratum opens the
@@ -761,19 +812,20 @@ export default function PlanTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
-                // Plan has no protocol-library mode in this shell: hide the
-                // toggle and force the objectives list. The protocol props are
-                // inert stubs the rail still requires.
-                hideModeToggle
-                mode="objectives"
-                onModeChange={NOOP_RAIL_MODE}
+                // Protocols mode is LIVE in Plan: the toggle drives ?planMode,
+                // and the protocols list spans the full S1->S7 library
+                // (protocolScopeStratumId={null}) rather than the active stratum.
+                // Plan runs no evaluation engine, so triggeredCount is always 0.
+                mode={railMode}
+                onModeChange={handleRailModeChange}
                 triggeredCount={0}
                 projectId={id}
                 primaryTypeId={primaryTypeId}
                 secondaryTypeIds={secondaryTypeIds}
                 activeStratumId={selectedStratumId}
-                selectedProtocolId={null}
-                onSelectProtocol={NOOP_PROTOCOL}
+                protocolScopeStratumId={null}
+                selectedProtocolId={selectedProtocolId}
+                onSelectProtocol={handleSelectProtocol}
               />
             }
             canvas={
@@ -827,6 +879,25 @@ export default function PlanTierShell() {
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
                     <SlopeSurveyPanel projectId={id} />
+                  </div>
+                </div>
+              ) : railMode === 'protocols' ? (
+                // Protocols mode: the right rail is the full-edit protocol detail
+                // (card + editable thresholds + lifecycle), or the dashboard cue
+                // until a protocol is picked. No Objective tab — protocols mode
+                // has no objective selection.
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    {selectedProtocolId ? (
+                      <PlanProtocolDetailPane
+                        projectId={id}
+                        primaryTypeId={primaryTypeId}
+                        secondaryTypeIds={secondaryTypeIds}
+                        templateId={selectedProtocolId}
+                      />
+                    ) : (
+                      <PlanReadyCue projectId={params.projectId ?? null} />
+                    )}
                   </div>
                 </div>
               ) : (
