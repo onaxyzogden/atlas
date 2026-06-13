@@ -4160,6 +4160,15 @@ export default function PlanDataLayers({
       fertility: 'fertility',
       water_storage: 'water',
       water_sink: 'water',
+      // Phase 5: previously-unselectable drawn features. These render on the
+      // shared point/line layers above, so the existing listener picks them up
+      // — they just needed a kind mapping. The floater supplies their
+      // rename/delete actions. Fence selection coexists with LivestockPanel.
+      'fence-line': 'fence',
+      note: 'note',
+      slaughter_point: 'slaughter-point',
+      cold_chain_unit: 'cold-chain',
+      market_node: 'market-node',
     };
 
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {

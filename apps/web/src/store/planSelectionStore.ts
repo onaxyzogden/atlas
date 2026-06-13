@@ -26,7 +26,12 @@ export type PlanSelectionKind =
   | 'setback'
   | 'flow'
   | 'transect'
-  | 'design-element';
+  | 'design-element'
+  | 'fence'
+  | 'note'
+  | 'slaughter-point'
+  | 'cold-chain'
+  | 'market-node';
 
 export interface PlanSelectionItem {
   kind: PlanSelectionKind;

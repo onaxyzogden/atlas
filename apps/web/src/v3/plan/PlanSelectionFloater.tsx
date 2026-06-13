@@ -1,14 +1,24 @@
 /**
  * PlanSelectionFloater — Plan-stage analogue of Observe's SelectionFloater.
  * Renders a pill bar above the bottom rail when at least one Plan feature
- * is selected. Wires three actions:
+ * is selected. Every action is sourced from the per-kind registry in
+ * `planFeatureActions.ts` rather than hard-coded branches:
  *
+ *   - Count label → the kind's rich inline editor when it has one
+ *     (paddock / habitat / line); otherwise a plain label.
+ *   - Quick actions → the kind's `quickActions` (e.g. Rename for the simple
+ *     point/line kinds).
  *   - Edit vertices (only when exactly one polygon kind is selected) → sets
  *     the `planVertexEditStore.target` so `PlanVertexEditHandler` mounts a
  *     MapboxDraw `direct_select` instance for that feature.
- *   - Delete (any selection size) → removes each selected record from its
- *     namespace store. Each removal lands as a separate undo step.
+ *   - Delete (any selection size) → removes each selected record via the
+ *     registry's `remove`. Each removal lands as a separate undo step.
  *   - Clear (always) → drops the selection. Esc keydown also clears.
+ *
+ * Guild keeps two component-local concerns the registry can't own because they
+ * need live store subscriptions: the "name · N members" count label and the
+ * prop-driven "Open Guild Builder" button. The zone "Seeded" badge is likewise
+ * a reactive read kept here.
  */
 
 import { useEffect } from 'react';
@@ -25,124 +35,12 @@ import {
   type PlanVertexEditKind,
 } from '../../store/planVertexEditStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useCropStore } from '../../store/cropStore.js';
-import { useLivestockStore } from '../../store/livestockStore.js';
-import { usePathStore } from '../../store/pathStore.js';
-import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
-import { useUtilityRunStore } from '../../store/utilityRunStore.js';
-import { useSetbackStore } from '../../store/setbackStore.js';
-import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
-import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import {
-  getDesignElementsForProject,
-  removeDesignElement,
-  removeStructure,
-  updateDesignElement,
-} from '../../store/builtEnvironmentSelectors.js';
-import * as turf from '@turf/turf';
-import { useInlineFormStore } from './draw/inlineFormStore.js';
-import {
-  buildPaddockEditSchema,
-  buildHabitatFeatureEditSchema,
-  buildLineFeatureEditSchema,
-} from './layers/inlineEditSchemas.js';
-import {
-  resolveSilvopastureHosts,
-  listHostsForSelection,
-} from '../../features/agroforestry/silvopastureHosts.js';
+  PLAN_FEATURE_ACTIONS,
+  supportsVertexEditing,
+} from './planFeatureActions.js';
 import css from '../observe/components/SelectionFloater.module.css';
-
-const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
-  guild: 'Guild',
-  'guild-member': 'Guild member',
-  zone: 'Zone',
-  crop: 'Crop area',
-  paddock: 'Paddock',
-  path: 'Path',
-  structure: 'Structure',
-  fertility: 'Fertility node',
-  water: 'Water node',
-  utility: 'Utility run',
-  'utility-point': 'Utility point',
-  setback: 'Setback ring',
-  flow: 'Flow connector',
-  transect: 'Monitoring transect',
-  'design-element': 'Design element',
-};
-
-const POLYGON_KINDS: ReadonlySet<PlanSelectionItem['kind']> = new Set([
-  'zone',
-  'crop',
-  'paddock',
-  'structure',
-  // `design-element` is polygon-eligible too, but only when the specific
-  // record's geometry is a Polygon — checked dynamically below.
-  'design-element',
-]);
-
-/** Plain LineString DesignElement kinds whose only inline-edit affordance is
- *  the real-world `widthM` override + label (no bespoke metadata axis).
- *  `swale` is excluded (edited via its own water form); habitat lines like
- *  `insectary-strip` go through `buildHabitatFeatureEditSchema`. */
-const LINE_EDIT_KINDS: ReadonlySet<string> = new Set(['hedgerow', 'path', 'road']);
-
-/** Returns the geometry type for a design-element selection (used to
- *  decide whether Edit-vertices is available). */
-function designElementGeometryType(
-  projectId: string | undefined,
-  id: string,
-): GeoJSON.Geometry['type'] | null {
-  if (!projectId) return null;
-  const list = getDesignElementsForProject(projectId);
-  const el = list.find((e) => e.id === id);
-  return el?.geometry.type ?? null;
-}
-
-function removeOne(item: PlanSelectionItem): void {
-  switch (item.kind) {
-    case 'zone':
-      useZoneStore.getState().deleteZone(item.id);
-      return;
-    case 'crop':
-      useCropStore.getState().deleteCropArea(item.id);
-      return;
-    case 'paddock':
-      useLivestockStore.getState().deletePaddock(item.id);
-      return;
-    case 'path':
-      usePathStore.getState().deletePath(item.id);
-      return;
-    case 'structure':
-      removeStructure(item.id);
-      return;
-    case 'fertility':
-      useClosedLoopStore.getState().removeFertilityInfra(item.id);
-      return;
-    case 'guild':
-      usePolycultureStore.getState().removeGuild(item.id);
-      return;
-    case 'utility':
-      useUtilityRunStore.getState().deleteRun(item.id);
-      return;
-    case 'setback':
-      useSetbackStore.getState().deleteRing(item.id);
-      return;
-    case 'flow':
-      useClosedLoopStore.getState().removeMaterialFlow(item.id);
-      return;
-    case 'transect':
-      useMonitoringTransectStore.getState().deleteTransect(item.id);
-      return;
-    case 'water':
-      useWaterSystemsStore.getState().removeWaterNode(item.id);
-      return;
-    case 'design-element':
-      if (!item.projectId) return;
-      removeDesignElement(item.projectId, item.id);
-      return;
-  }
-}
 
 interface Props {
   onOpenGuildBuilder?: () => void;
@@ -183,19 +81,11 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
   if (items.length === 0) return null;
   if (!stackRoot) return null;
 
-  const isPolygonSelection = (item: PlanSelectionItem): boolean => {
-    if (!POLYGON_KINDS.has(item.kind)) return false;
-    if (item.kind === 'design-element') {
-      return designElementGeometryType(item.projectId, item.id) === 'Polygon';
-    }
-    return true;
-  };
-
-  const vertexEnabled = Boolean(single && isPolygonSelection(single));
+  const vertexEnabled = Boolean(single && supportsVertexEditing(single));
 
   const onEditVertices = () => {
     if (!single) return;
-    if (!isPolygonSelection(single)) return;
+    if (!supportsVertexEditing(single)) return;
     setVertexTarget({
       kind: single.kind as PlanVertexEditKind,
       id: single.id,
@@ -207,86 +97,30 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
     const n = items.length;
     const label =
       n === 1 && single
-        ? KIND_LABEL[single.kind].toLowerCase()
+        ? PLAN_FEATURE_ACTIONS[single.kind].label.toLowerCase()
         : `${n} items`;
     if (!confirm(`Delete ${label}?`)) return;
     for (const item of items) {
-      removeOne(item);
+      PLAN_FEATURE_ACTIONS[item.kind].remove(item);
     }
     clear();
   };
+
+  const editHandler = single
+    ? PLAN_FEATURE_ACTIONS[single.kind].getEditHandler?.(single) ?? null
+    : null;
+
+  const quickActions = single
+    ? PLAN_FEATURE_ACTIONS[single.kind].quickActions?.(single) ?? []
+    : [];
 
   const countLabel = single
     ? single.kind === 'guild' && guild
       ? `${guild.name || 'Guild'} · ${guild.members.length} member${
           guild.members.length === 1 ? '' : 's'
         }`
-      : KIND_LABEL[single.kind]
+      : PLAN_FEATURE_ACTIONS[single.kind].label
     : `${items.length} selected`;
-
-  const habitatElement =
-    single && single.kind === 'design-element' && single.projectId
-      ? getDesignElementsForProject(single.projectId).find(
-          (el) => el.id === single.id && el.category === 'habitat',
-        ) ?? null
-      : null;
-
-  const lineElement =
-    single && single.kind === 'design-element' && single.projectId
-      ? getDesignElementsForProject(single.projectId).find(
-          (el) => el.id === single.id && LINE_EDIT_KINDS.has(el.kind),
-        ) ?? null
-      : null;
-
-  const onOpenHabitatEdit = () => {
-    if (!habitatElement || !single || !single.projectId) return;
-    const projectId = single.projectId;
-    const centroid = turf.centroid(turf.feature(habitatElement.geometry));
-    const [lng, lat] = centroid.geometry.coordinates as [number, number];
-    const designElements = getDesignElementsForProject(projectId);
-    useInlineFormStore.getState().open({
-      ...buildHabitatFeatureEditSchema(
-        habitatElement,
-        projectId,
-        updateDesignElement,
-        designElements,
-      ),
-      anchor: [lng, lat],
-    });
-  };
-
-  const onOpenLineEdit = () => {
-    if (!lineElement || !single || !single.projectId) return;
-    const projectId = single.projectId;
-    const centroid = turf.centroid(turf.feature(lineElement.geometry));
-    const [lng, lat] = centroid.geometry.coordinates as [number, number];
-    useInlineFormStore.getState().open({
-      ...buildLineFeatureEditSchema(lineElement, projectId, updateDesignElement),
-      anchor: [lng, lat],
-    });
-  };
-
-  const onOpenPaddockEdit = () => {
-    if (!single || single.kind !== 'paddock') return;
-    const pd = useLivestockStore
-      .getState()
-      .paddocks.find((p) => p.id === single.id);
-    if (!pd) return;
-    const centroid = turf.centroid(turf.feature(pd.geometry));
-    const [lng, lat] = centroid.geometry.coordinates as [number, number];
-    const updatePaddock = useLivestockStore.getState().updatePaddock;
-    const hostOptions = listHostsForSelection(
-      resolveSilvopastureHosts(
-        pd.projectId,
-        useCropStore.getState().cropAreas,
-        getDesignElementsForProject(pd.projectId),
-      ),
-    );
-    useInlineFormStore.getState().open({
-      ...buildPaddockEditSchema(pd, updatePaddock, hostOptions),
-      anchor: [lng, lat],
-    });
-  };
 
   return createPortal(
     <div
@@ -295,32 +129,12 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
       aria-label="Plan selection actions"
       style={{ order: 2 }}
     >
-      {single?.kind === 'paddock' ? (
+      {editHandler ? (
         <button
           type="button"
           className={css.count}
-          onClick={onOpenPaddockEdit}
-          title="Edit paddock"
-          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
-        >
-          {countLabel}
-        </button>
-      ) : habitatElement ? (
-        <button
-          type="button"
-          className={css.count}
-          onClick={onOpenHabitatEdit}
-          title="Edit habitat feature"
-          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
-        >
-          {countLabel}
-        </button>
-      ) : lineElement ? (
-        <button
-          type="button"
-          className={css.count}
-          onClick={onOpenLineEdit}
-          title="Edit width & label"
+          onClick={editHandler.run}
+          title={editHandler.title}
           style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
         >
           {countLabel}
@@ -378,6 +192,17 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
           </button>
         </DelayedTooltip>
       ) : null}
+      {quickActions.map((qa) => {
+        const Icon = qa.icon;
+        return (
+          <DelayedTooltip key={qa.id} label={qa.label} position="top">
+            <button type="button" className={css.btn} onClick={qa.run}>
+              <Icon aria-hidden="true" />
+              <span>{qa.label}</span>
+            </button>
+          </DelayedTooltip>
+        );
+      })}
       <DelayedTooltip label="Delete selected" position="top">
         <button
           type="button"
