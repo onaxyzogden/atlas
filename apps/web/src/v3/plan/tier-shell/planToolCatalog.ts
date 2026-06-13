@@ -141,7 +141,14 @@ export const PLAN_MODULE_TOOLS: readonly PlanTool[] = PLAN_MODULES.filter(
  */
 export function resolvePlanTools(ids: readonly string[]): PlanTool[] {
   // resolveActTools returns ActTool[]; ActTool is assignable to PlanTool.
-  return resolveActTools(ids) as PlanTool[];
+  // Drop 'log'-arm tools (harvest / water / livestock): those are field-log
+  // captures armed against act.* log ids whose host (ActDrawHost) is NOT mounted
+  // in the Plan center canvas (VisionLayoutCanvas), so they would render as dead
+  // tiles on the Plan rail. Field logging is an Act-execution concern, not a
+  // planning one — it stays on the Act rail. No objective is emptied by this:
+  // every affected objective keeps its map/form tools and PLAN_MODULE_TOOLS is
+  // always appended.
+  return (resolveActTools(ids) as PlanTool[]).filter((t) => t.arm.kind !== 'log');
 }
 
 /** Direct catalog access for callers that already hold an id (parity helper). */

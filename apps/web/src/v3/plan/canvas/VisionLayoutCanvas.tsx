@@ -42,6 +42,7 @@ import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import { useActiveElementKind } from './useToolIdToElementKind.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
+import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
@@ -248,6 +249,19 @@ export default function VisionLayoutCanvas({
             parcelBoundary={boundary}
             variant="vision"
           />
+          {/* Observe create switchboard — arms the right observe.* draw tool
+              from useMapToolStore.activeTool (returns null otherwise). The Plan
+              canvas already renders these back (ObserveAnnotationLayers above)
+              and selects / links them out (PlanObserveSelectionHandler +
+              InlineFeaturePopover + ObserveLinkPopover), so this is the only
+              missing piece that lets the rail's reading tools (contour, sectors,
+              watercourse, neighbour-pin, …) actually place geometry. Disjoint
+              from PlanDrawHost (observe.* vs plan.* activeTool prefixes) and from
+              the gated slope / veg survey hosts (act.terrain.* / act.ecology.*),
+              so it composes without double-mounting. Post-placement geometry
+              editing is intentionally left to the Observe stage via link-out
+              (see the ObserveAnnotationLayers note above). */}
+          <ObserveDrawHost map={map} projectId={projectId} />
           {/*
             s2-ecology-c1 vegetation survey takeover (Plan): the layer renders
             every drawn community polygon; the draw host arms only when the
