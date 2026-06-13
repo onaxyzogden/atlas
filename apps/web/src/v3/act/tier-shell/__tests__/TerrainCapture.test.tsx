@@ -176,11 +176,18 @@ describe('slope -- decode / encode / validity / summarise / render', () => {
     expect(decodeTerrain('slope', encodeTerrain(model))).toEqual(model);
   });
 
-  it('valid only when allocations sum within +/-2 of 100', () => {
-    const short = decodeTerrain('slope', {
+  it('valid when any positive slope allocation exists (partial surveys allowed)', () => {
+    // Relaxed contract: slope is now surveyed by drawing polygons whose % is
+    // computed as % of TOTAL site area (slopeSurveyStore), so allocations
+    // legitimately sum to < 100 until the whole site is drawn. Any positive
+    // allocation is a valid partial survey; only a zero/empty allocation fails.
+    const none = decodeTerrain('slope', { terrainSlope: [] });
+    expect(isTerrainValid(none)).toBe(false);
+
+    const partial = decodeTerrain('slope', {
       terrainSlope: ['flat::20', 'gentle::20'],
     });
-    expect(isTerrainValid(short)).toBe(false);
+    expect(isTerrainValid(partial)).toBe(true);
 
     const full = decodeTerrain('slope', {
       terrainSlope: [
