@@ -63,10 +63,21 @@ import {
   isSettlementPlanValid,
   summariseSettlementPlan,
   settlementPhasesFrom,
+  enforcementSignatory,
   SETTLEMENT_PLAN_PREFIX,
   type SettlementPlanMode,
 } from '../SettlementPlanCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
+
+// A fully-signed c5 enforcement FormValue (enforcer + ack + named non-self
+// verifier with a timestamp) -- the only shape that satisfies the F1 hard gate.
+const SIGNED_ENFORCEMENT: FormValue = {
+  spEnforcer: 'Independent verifier -- someone other than the arriving household',
+  spNotSelfReportedAck: 'on',
+  spVerifierName: 'Layla Haddad',
+  spVerifierRole: 'independent',
+  spVerifiedAt: '2026-06-13T10:00:00.000Z',
+};
 
 function renderMode(
   mode: SettlementPlanMode,
@@ -150,9 +161,19 @@ describe('decodeSettlementPlan -- empty / undefined value never seeds', () => {
       expect(c.confirmed).toBe(false);
     }
     if (mode === 'enforcement') {
-      const e = m as { enforcer: string; notSelfReportedAck: boolean };
+      const e = m as {
+        enforcer: string;
+        notSelfReportedAck: boolean;
+        verifierName: string;
+        verifierRole: string;
+        verifiedAt: string;
+      };
       expect(e.enforcer).toBe('');
       expect(e.notSelfReportedAck).toBe(false);
+      // F1: the verifier signature fields default empty (never fabricated).
+      expect(e.verifierName).toBe('');
+      expect(e.verifierRole).toBe('');
+      expect(e.verifiedAt).toBe('');
     }
   });
 });
@@ -207,13 +228,14 @@ describe('encode round-trips', () => {
     expect(decodeSettlementPlan('capacityFit', encodeSettlementPlan(model))).toEqual(model);
   });
 
-  it('enforcement round-trips', () => {
-    const value: FormValue = {
-      spEnforcer: 'Independent verifier -- someone other than the arriving household',
-      spNotSelfReportedAck: 'on',
-    };
-    const model = decodeSettlementPlan('enforcement', value);
+  it('enforcement round-trips (incl. verifier signature fields)', () => {
+    const model = decodeSettlementPlan('enforcement', SIGNED_ENFORCEMENT);
     expect(decodeSettlementPlan('enforcement', encodeSettlementPlan(model))).toEqual(model);
+    // The verifier signature fields survive the round-trip.
+    const m = model as { verifierName: string; verifierRole: string; verifiedAt: string };
+    expect(m.verifierName).toBe('Layla Haddad');
+    expect(m.verifierRole).toBe('independent');
+    expect(m.verifiedAt).toBe('2026-06-13T10:00:00.000Z');
   });
 });
 
@@ -322,7 +344,7 @@ describe('isSettlementPlanValid', () => {
     expect(isSettlementPlanValid('capacityFit', { spMaxPopulation: '10', spCapacityConfirmed: 'on' })).toBe(true);
   });
 
-  it('enforcement c5 -- hard gate: invalid until notSelfReportedAck on', () => {
+  it('enforcement c5 -- hard gate: requires enforcer + ack + a NAMED, signed non-self verifier', () => {
     // Neither set -> invalid
     expect(isSettlementPlanValid('enforcement', {})).toBe(false);
     // Enforcer set but ack off -> invalid
@@ -331,11 +353,37 @@ describe('isSettlementPlanValid', () => {
     })).toBe(false);
     // Ack on but no enforcer -> invalid
     expect(isSettlementPlanValid('enforcement', { spNotSelfReportedAck: 'on' })).toBe(false);
-    // Both set -> valid
+    // F1 GATE: enforcer + ack ALONE no longer satisfy the gate -- the named
+    // third-party verifier must have signed in-app.
     expect(isSettlementPlanValid('enforcement', {
       spEnforcer: 'Independent verifier -- someone other than the arriving household',
       spNotSelfReportedAck: 'on',
-    })).toBe(true);
+    })).toBe(false);
+    // Fully signed -> valid
+    expect(isSettlementPlanValid('enforcement', SIGNED_ENFORCEMENT)).toBe(true);
+  });
+
+  it('enforcement c5 -- F1: a verifier name + timestamp without a role does NOT satisfy the gate', () => {
+    expect(isSettlementPlanValid('enforcement', {
+      ...SIGNED_ENFORCEMENT,
+      spVerifierRole: '',
+    })).toBe(false);
+  });
+
+  it('enforcement c5 -- F1: a named verifier WITHOUT a timestamp does NOT satisfy the gate', () => {
+    // A signer identity with no signedAt is a legacy/un-attested entry, never a signature.
+    expect(isSettlementPlanValid('enforcement', {
+      ...SIGNED_ENFORCEMENT,
+      spVerifiedAt: '',
+    })).toBe(false);
+  });
+
+  it('enforcement c5 -- F1: a "self" verifier role is dropped and never satisfies the gate', () => {
+    // scopeNotes forbid self-certification; constrain() drops 'self' to '' on decode.
+    expect(isSettlementPlanValid('enforcement', {
+      ...SIGNED_ENFORCEMENT,
+      spVerifierRole: 'self',
+    })).toBe(false);
   });
 });
 
@@ -400,6 +448,11 @@ describe('summariseSettlementPlan', () => {
     const s = summariseSettlementPlan('enforcement', value);
     expect(s.length).toBeGreaterThan(0);
     expect(s).toContain('not self-reported');
+  });
+
+  it('enforcement summary names the verifier once the check is signed', () => {
+    const s = summariseSettlementPlan('enforcement', SIGNED_ENFORCEMENT);
+    expect(s).toContain('verified by Layla Haddad');
   });
 
   it('empty value never throws and returns a string', () => {
@@ -597,5 +650,88 @@ describe('enforcement -- render / interaction (c5 hard gate)', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     const emitted = onChange.mock.calls[0]![0] as FormValue;
     expect(emitted.spNotSelfReportedAck).toBe('on');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// enforcementSignatory -- the System-2 signature proof for the c5 gate
+// ---------------------------------------------------------------------------
+
+describe('enforcementSignatory', () => {
+  it('returns null for an empty value', () => {
+    expect(enforcementSignatory({})).toBeNull();
+  });
+
+  it('returns null when a verifier is named but has NOT signed (no timestamp)', () => {
+    expect(
+      enforcementSignatory({ ...SIGNED_ENFORCEMENT, spVerifiedAt: '' }),
+    ).toBeNull();
+  });
+
+  it('returns null when the verifier role is missing', () => {
+    expect(
+      enforcementSignatory({ ...SIGNED_ENFORCEMENT, spVerifierRole: '' }),
+    ).toBeNull();
+  });
+
+  it('returns null for a dropped "self" role (self-certification forbidden)', () => {
+    expect(
+      enforcementSignatory({ ...SIGNED_ENFORCEMENT, spVerifierRole: 'self' }),
+    ).toBeNull();
+  });
+
+  it('returns a ProofSignatory carrying the verifier name, role slug, attestation and signedAt', () => {
+    const sig = enforcementSignatory(SIGNED_ENFORCEMENT);
+    expect(sig).not.toBeNull();
+    expect(sig!.signerName).toBe('Layla Haddad');
+    // signerRole is the VerifierRole enum slug (machine-recognisable), not the label.
+    expect(sig!.signerRole).toBe('independent');
+    expect(sig!.signedAt).toBe('2026-06-13T10:00:00.000Z');
+    expect(sig!.attestation).toContain('Self-certification was not relied upon');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// enforcement -- verifier signature interaction (c5 F1 sign button)
+// ---------------------------------------------------------------------------
+
+describe('enforcement -- verifier signature (c5 sign button)', () => {
+  // enforcer + ack + name + role set, but NOT yet signed (no timestamp).
+  const READY_TO_SIGN: FormValue = {
+    spEnforcer: 'Independent verifier -- someone other than the arriving household',
+    spNotSelfReportedAck: 'on',
+    spVerifierName: 'Layla Haddad',
+    spVerifierRole: 'independent',
+  };
+
+  it('the sign button is disabled until a verifier name and role are set', () => {
+    renderMode('enforcement', {});
+    const signBtn = screen.getByTestId('sp-verify-sign') as HTMLButtonElement;
+    expect(signBtn.disabled).toBe(true);
+  });
+
+  it('the sign button is enabled once name + role are present and stamps spVerifiedAt on click', () => {
+    const { onChange } = renderMode('enforcement', READY_TO_SIGN);
+    const signBtn = screen.getByTestId('sp-verify-sign') as HTMLButtonElement;
+    expect(signBtn.disabled).toBe(false);
+    fireEvent.click(signBtn);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    expect(typeof emitted.spVerifiedAt).toBe('string');
+    expect((emitted.spVerifiedAt as string).length).toBeGreaterThan(0);
+  });
+
+  it('once signed, the signed-meta is shown (no sign button) and editing the name CLEARS the signature', () => {
+    const { onChange } = renderMode('enforcement', SIGNED_ENFORCEMENT);
+    // Signed -> meta visible, sign button gone (re-attestation required to change).
+    expect(screen.getByTestId('sp-verified')).toBeTruthy();
+    expect(screen.queryByTestId('sp-verify-sign')).toBeNull();
+    // Editing the verifier identity clears the timestamp (forces re-signature).
+    const nameInput = screen.getByTestId('sp-verifier-name');
+    fireEvent.change(nameInput, { target: { value: 'Different Name' } });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    expect(emitted.spVerifierName).toBe('Different Name');
+    expect(emitted.spVerifiedAt).toBe('');
   });
 });

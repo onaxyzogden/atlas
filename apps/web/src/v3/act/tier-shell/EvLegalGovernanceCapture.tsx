@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Check } from 'lucide-react';
+import type { ProofSignatory } from '@ogden/shared';
 import css from './EvLegalGovernanceCapture.module.css';
 import type { FormValue } from './actToolCatalog.js';
 
@@ -87,6 +89,11 @@ export interface LegalAdviceGateModel {
   adviceScope: string[]; // 6 gate item ids; all 6 required for validity
   adviceWritten: string; // kept for round-trip compat; no longer checked by validity
   adviceDate: string; // kept for round-trip compat
+  advFirm: string; // adviser firm name (was a loose FormValue key; folded in for F1)
+  advName: string; // adviser name + call to bar; F1: the signatory identity
+  advDate: string; // adviser-entered "date advice received" (free text, DD/MM/YYYY)
+  advNature: string; // nature of advice (general guidance / formal opinion)
+  advSignedAt: string; // F1 signature: ISO timestamp stamped in-app; required for validity
 }
 export type LegalGovernanceModel =
   | LegalEntityPickerModel
@@ -167,6 +174,11 @@ export function decodeLegalGovernance(
         adviceScope: asArr(value.adviceScope),
         adviceWritten: asStr(value.adviceWritten),
         adviceDate: asStr(value.adviceDate),
+        advFirm: asStr(value.advFirm),
+        advName: asStr(value.advName),
+        advDate: asStr(value.advDate),
+        advNature: asStr(value.advNature),
+        advSignedAt: asStr(value.advSignedAt),
       };
   }
 }
@@ -212,6 +224,11 @@ function encodeLegalGovernance(model: LegalGovernanceModel): FormValue {
         adviceScope: [...model.adviceScope],
         adviceWritten: model.adviceWritten,
         adviceDate: model.adviceDate,
+        advFirm: model.advFirm,
+        advName: model.advName,
+        advDate: model.advDate,
+        advNature: model.advNature,
+        advSignedAt: model.advSignedAt,
       };
   }
 }
@@ -244,9 +261,15 @@ export function isLegalGovernanceValid(
     case 'membershipRegister':
       return true; // zero is recordable
     case 'legalAdviceGate':
-      // HARD GATE: all 6 advice-scope checkboxes must be confirmed.
-      // adviceWritten is no longer checked (gate replaced by 6 explicit items).
-      return model.adviceScope.length >= 6;
+      // HARD GATE (F1): all 6 advice-scope checkboxes confirmed AND a named legal
+      // adviser has signed the opinion in-app (a verifiable timestamp). A bare
+      // 6-of-6 toggle no longer satisfies the gate -- scopeNotes require the legal
+      // opinion be signed, not merely self-confirmed. adviceWritten unused.
+      return (
+        model.adviceScope.length >= 6 &&
+        model.advName.trim() !== '' &&
+        model.advSignedAt !== ''
+      );
   }
 }
 
@@ -298,6 +321,57 @@ export function emitLegalGovernance(
   model: LegalGovernanceModel,
 ): void {
   onChange(encodeLegalGovernance(model));
+}
+
+// ---------------------------------------------------------------------------
+// F1 signature support for the c7 legal-advice gate.
+// ---------------------------------------------------------------------------
+
+/** What the named legal adviser attests to when they sign the c7 gate. Verbatim
+ *  scope of the binding legal opinion the catalogue requires before Act begins. */
+const LEGAL_ADVICE_ACK =
+  'I have legally reviewed the entity structure, tenure model, dissolution and ' +
+  'asset-lock provisions, and governance framework for this community, and attest ' +
+  'that the arrangement is legally sound and binding.';
+
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+/** Current instant as an ISO-8601 string. Stamped when the adviser signs so the
+ *  attestation carries a verifiable time -- upgrading the toggle to a signature. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Format an ISO timestamp's calendar date as "13 Jun 2026" WITHOUT building a
+ *  Date (avoids timezone day-shift): reads the YYYY-MM-DD head directly. */
+function formatSignedDate(iso: string): string {
+  const head = iso.slice(0, 10);
+  const [y, m, d] = head.split('-');
+  const mi = Number(m) - 1;
+  if (!y || !d || Number.isNaN(mi) || mi < 0 || mi > 11) return head;
+  return `${Number(d)} ${MONTHS[mi]} ${y}`;
+}
+
+/** The signature proof captured by the c7 legal-advice gate: the named adviser's
+ *  timestamped attestation. This is the System-2 (decision-capture) analogue of a
+ *  ProofRecord{kind:'signature'}. Returns null until an adviser is named AND has
+ *  signed in-app (legacy entries with no timestamp are not signature proofs). */
+export function legalAdviceGateSignatory(value: FormValue): ProofSignatory | null {
+  const model = decodeLegalGovernance(
+    'ev-s1-legal-governance-c7',
+    value,
+  ) as LegalAdviceGateModel;
+  if (model.advName.trim() === '' || model.advSignedAt === '') return null;
+  const firm = model.advFirm.trim();
+  return {
+    signerName: model.advName.trim(),
+    signerRole: 'legal adviser',
+    attestation: firm !== '' ? `${LEGAL_ADVICE_ACK} (${firm})` : LEGAL_ADVICE_ACK,
+    signedAt: model.advSignedAt,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -1018,29 +1092,24 @@ export default function EvLegalGovernanceCapture({
   // Adviser fields (firm, name, date, nature) are stored as extra FormValue keys.
   // ---------------------------------------------------------------------------
   if (model.kind === 'legalAdviceGate') {
-    const advFirm = typeof value.advFirm === 'string' ? value.advFirm : '';
-    const advName = typeof value.advName === 'string' ? value.advName : '';
-    const advDate = typeof value.advDate === 'string' ? value.advDate : '';
-    const advNature = typeof value.advNature === 'string' ? value.advNature : '';
+    const { advFirm, advName, advDate, advNature, advSignedAt } = model;
 
-    // Preserve adviser fields when emitting adviceScope changes.
+    // Adviser fields now live in the model; every emit routes through encode.
     const emitGate = (next: LegalAdviceGateModel): void => {
-      onChange({
-        ...encodeLegalGovernance(next),
-        advFirm,
-        advName,
-        advDate,
-        advNature,
-      });
+      onChange(encodeLegalGovernance(next));
     };
-    const setAdviser = (patch: Partial<Record<string, string>>): void => {
-      onChange({
-        ...encodeLegalGovernance(model),
-        advFirm: patch.advFirm ?? advFirm,
-        advName: patch.advName ?? advName,
-        advDate: patch.advDate ?? advDate,
-        advNature: patch.advNature ?? advNature,
-      });
+    // Editing any adviser detail clears a prior signature: a fresh attestation is
+    // required if who/when/what changes (mirrors es-adv-name -> es-signed clearing).
+    const setAdviser = (
+      patch: Partial<Pick<
+        LegalAdviceGateModel,
+        'advFirm' | 'advName' | 'advDate' | 'advNature'
+      >>,
+    ): void => {
+      emitGate({ ...model, ...patch, advSignedAt: '' });
+    };
+    const signOpinion = (): void => {
+      emitGate({ ...model, advSignedAt: nowIso() });
     };
     const toggleScope = (id: string): void => {
       const next = model.adviceScope.includes(id)
@@ -1052,6 +1121,7 @@ export default function EvLegalGovernanceCapture({
     const confirmed = model.adviceScope.length;
     const total = GATE_ITEMS.length;
     const allDone = confirmed >= total;
+    const canSign = advName.trim() !== '';
 
     return (
       <div className={css.root} data-lg-mode="legalAdviceGate">
@@ -1125,6 +1195,27 @@ export default function EvLegalGovernanceCapture({
             placeholder="Nature of advice - general guidance / formal opinion..."
             onChange={(e) => setAdviser({ advNature: e.target.value })}
           />
+        </div>
+        <div className={css.signBlock}>
+          <span className={css.afLabel}>Legal opinion sign-off</span>
+          <div className={css.signAck}>{LEGAL_ADVICE_ACK}</div>
+          {advSignedAt ? (
+            <div className={css.signMeta} data-testid="lg-signed">
+              <Check size={13} aria-hidden="true" />
+              Signed by {advName.trim() || 'adviser'} on {formatSignedDate(advSignedAt)}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={css.signBtn}
+              data-testid="lg-sign"
+              disabled={!canSign}
+              onClick={signOpinion}
+            >
+              <Check size={13} aria-hidden="true" />
+              Mark legal opinion as signed
+            </button>
+          )}
         </div>
       </div>
     );

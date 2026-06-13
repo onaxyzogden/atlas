@@ -37,11 +37,13 @@ export const ProofGeotagSchema = z.object({
 export type ProofGeotag = z.infer<typeof ProofGeotagSchema>;
 
 // -- ProofDetails: per-type structured capture payload ------------------------
-// A discriminated union of type-specific structured proof data. Phase 2 ships
-// only the `inspection` variant; `signature` and `test` are reserved and will
-// be added additively (extend the union + the .discriminator key). `measurement`
+// A discriminated union of type-specific structured proof data. The `inspection`,
+// `signature`, and `test` variants are implemented; new variants are added
+// additively (extend the union + reuse the `kind` discriminator key). `measurement`
 // keeps its dedicated measurementValue/measurementUnit fields and is NOT modelled
-// here. Stored as a jsonb column (olos_proof_records.details).
+// here. Stored as a jsonb column (olos_proof_records.details) - nullable, no CHECK
+// constraint, so additive variants need no migration (validated by Zod at the API
+// boundary, like geotag).
 
 export const ProofInspectionItemSchema = z.object({
   label: z.string().min(1),
@@ -50,6 +52,19 @@ export const ProofInspectionItemSchema = z.object({
 });
 export type ProofInspectionItem = z.infer<typeof ProofInspectionItemSchema>;
 
+// One party's signed attestation. Reused both by the `signature` ProofDetails
+// variant (one record per signatory; multiple ProofRecords may attach to a task)
+// and by decision-capture sign-offs that record an array of these attestations.
+// `signerRole` distinguishes self vs third-party attestation (e.g. "founding
+// member", "legal adviser", "independent verifier"); absent = unspecified.
+export const ProofSignatorySchema = z.object({
+  signerName: z.string().min(1),
+  signerRole: z.string().optional(),
+  attestation: z.string().min(1),
+  signedAt: z.string().datetime(),
+});
+export type ProofSignatory = z.infer<typeof ProofSignatorySchema>;
+
 export const ProofDetailsSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('inspection'),
@@ -57,9 +72,21 @@ export const ProofDetailsSchema = z.discriminatedUnion('kind', [
     // so it is rejected at the schema boundary rather than stored as evidence.
     items: z.array(ProofInspectionItemSchema).min(1),
   }),
-  // RESERVED (not implemented in Phase 2 - add additively):
-  //   z.object({ kind: z.literal('signature'), signerName, attestation, signedAt }),
-  //   z.object({ kind: z.literal('test'), value, unit?, passed, method? }),
+  // One signed attestation by one signatory (signerName, attestation, signedAt,
+  // optional signerRole). Multi-party sign-offs attach one record per signatory.
+  z.object({
+    kind: z.literal('signature'),
+    ...ProofSignatorySchema.shape,
+  }),
+  // A measured test result with a pass/fail verdict (value, optional unit, passed,
+  // optional method). Distinct from `measurement` (a bare reading with no verdict).
+  z.object({
+    kind: z.literal('test'),
+    value: z.number(),
+    unit: z.string().optional(),
+    passed: z.boolean(),
+    method: z.string().optional(),
+  }),
 ]);
 export type ProofDetails = z.infer<typeof ProofDetailsSchema>;
 

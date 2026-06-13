@@ -52,9 +52,10 @@
  */
 
 import * as React from 'react';
-import { ArrowRight, ShieldAlert, Users } from 'lucide-react';
+import { ArrowRight, Check, ShieldAlert, Users } from 'lucide-react';
 
-import type { CommunitySettlementPhaseInput } from '@ogden/shared';
+import { VerifierRole } from '@ogden/shared';
+import type { CommunitySettlementPhaseInput, ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import {
   Dropdown,
@@ -125,6 +126,55 @@ export const ENFORCER_OPTION_LIST: readonly string[] = [
   'Steward for the relevant system -- confirms before move-in',
   'Two founding members jointly sign off',
 ];
+
+/** Recognised verifier roles for the c5 sign-off, EXCLUDING 'self' -- scopeNotes
+ *  require habitability be verified by someone OTHER than the arriving household,
+ *  so self-certification can never satisfy this gate. Values are VerifierRole
+ *  enum slugs (System-1 vocabulary) so the attestation is machine-recognisable. */
+export const VERIFIER_ROLE_LIST: readonly string[] = VerifierRole.options.filter(
+  (r) => r !== 'self',
+);
+
+/** Human labels for the slugs above (display only; the slug is what persists). */
+const VERIFIER_ROLE_LABEL: Record<string, string> = {
+  peer: 'Peer household',
+  steward: 'System steward',
+  'external-adviser': 'External adviser',
+  independent: 'Independent verifier',
+};
+const VERIFIER_ROLE_LABEL_LIST: readonly string[] = VERIFIER_ROLE_LIST.map(
+  (r) => VERIFIER_ROLE_LABEL[r] ?? r,
+);
+const SLUG_FOR_VERIFIER_LABEL: Record<string, string> = {};
+for (const slug of VERIFIER_ROLE_LIST) {
+  SLUG_FOR_VERIFIER_LABEL[VERIFIER_ROLE_LABEL[slug] ?? slug] = slug;
+}
+
+/** What the named third-party verifier attests to when they sign the c5 gate. */
+const ENFORCEMENT_ATTESTATION =
+  'I have verified that the habitability thresholds for this dwelling are met, as ' +
+  'someone other than the arriving household. Self-certification was not relied upon.';
+
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+/** Current instant as an ISO-8601 string. Stamped when the verifier signs so the
+ *  attestation carries a verifiable time -- upgrading the toggle to a signature. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Format an ISO timestamp's calendar date as "13 Jun 2026" WITHOUT building a
+ *  Date (avoids timezone day-shift): reads the YYYY-MM-DD head directly. */
+function formatSignedDate(iso: string): string {
+  const head = iso.slice(0, 10);
+  const [y, m, d] = head.split('-');
+  const mi = Number(m) - 1;
+  if (!y || !d || Number.isNaN(mi) || mi < 0 || mi > 11) return head;
+  return `${Number(d)} ${MONTHS[mi]} ${y}`;
+}
 
 // ---------------------------------------------------------------------------
 // Register row models (JSON-row persisted; see decode/encode)
@@ -205,6 +255,12 @@ export interface EnforcementModel {
   enforcer: string;
   /** hard-gate acknowledgement (steward decision 3): NOT self-reported. */
   notSelfReportedAck: boolean;
+  /** F1: the named third-party verifier who signs the habitability check. */
+  verifierName: string;
+  /** F1: the verifier's role (VerifierRole enum slug; never 'self'). */
+  verifierRole: string;
+  /** F1: ISO timestamp stamped in-app when the verifier signs. */
+  verifiedAt: string;
 }
 
 export type SettlementPlanModel =
@@ -395,6 +451,10 @@ export function decodeSettlementPlan(
         kind: 'enforcement',
         enforcer: constrain(asStr(value.spEnforcer), ENFORCER_OPTION_LIST),
         notSelfReportedAck: asBool(value.spNotSelfReportedAck),
+        verifierName: asStr(value.spVerifierName),
+        // constrain drops any unknown / legacy / 'self' value to '' (gate fails).
+        verifierRole: constrain(asStr(value.spVerifierRole), VERIFIER_ROLE_LIST),
+        verifiedAt: asStr(value.spVerifiedAt),
       };
     default: {
       const _exhaustive: never = mode;
@@ -431,6 +491,9 @@ export function encodeSettlementPlan(model: SettlementPlanModel): FormValue {
       return {
         spEnforcer: model.enforcer,
         spNotSelfReportedAck: model.notSelfReportedAck ? 'on' : 'off',
+        spVerifierName: model.verifierName,
+        spVerifierRole: model.verifierRole,
+        spVerifiedAt: model.verifiedAt,
       };
     default: {
       const _exhaustive: never = model;
@@ -472,9 +535,19 @@ export function isSettlementPlanValid(
     }
     case 'enforcement': {
       const m = decodeSettlementPlan('enforcement', value) as EnforcementModel;
-      // Steward decision 3 HARD GATE: not recordable until the not-self-reported
-      // acknowledgement is on AND an enforcer is chosen.
-      return m.enforcer !== '' && m.notSelfReportedAck;
+      // Steward decision 3 HARD GATE (F1): not recordable until an enforcer is
+      // chosen, the not-self-reported acknowledgement is on, AND a NAMED
+      // third-party verifier (a recognised non-self role) has signed the
+      // habitability check in-app. scopeNotes: "verified by someone other than the
+      // arriving household. Self-certification is not sufficient."
+      return (
+        m.enforcer !== '' &&
+        m.notSelfReportedAck &&
+        m.verifierName.trim() !== '' &&
+        m.verifierRole !== '' &&
+        m.verifierRole !== 'self' &&
+        m.verifiedAt !== ''
+      );
     }
     default: {
       const _exhaustive: never = mode;
@@ -524,7 +597,12 @@ export function summariseSettlementPlan(
     case 'enforcement': {
       const m = decodeSettlementPlan('enforcement', value) as EnforcementModel;
       const head = m.enforcer ? firstClause(m.enforcer) : 'No enforcer';
-      return `${head}${m.notSelfReportedAck ? ' -- not self-reported acknowledged' : ''}`;
+      const ack = m.notSelfReportedAck ? ' -- not self-reported acknowledged' : '';
+      const verified =
+        m.verifierName.trim() !== '' && m.verifiedAt !== ''
+          ? ` -- verified by ${m.verifierName.trim()}`
+          : '';
+      return `${head}${ack}${verified}`;
     }
     default: {
       const _exhaustive: never = mode;
@@ -535,6 +613,30 @@ export function summariseSettlementPlan(
 
 function firstClause(s: string): string {
   return (s.split(' -- ')[0] ?? s).trim();
+}
+
+/** The signature proof captured by the c5 enforcement gate: the named third-party
+ *  verifier's timestamped attestation that habitability was checked by someone
+ *  OTHER than the arriving household. System-2 (decision-capture) analogue of a
+ *  ProofRecord{kind:'signature'} carrying a VerifierRole. Returns null until a
+ *  non-self verifier is named AND has signed in-app (entries with no timestamp,
+ *  no role, or a dropped 'self' role are not signature proofs). */
+export function enforcementSignatory(value: FormValue): ProofSignatory | null {
+  const m = decodeSettlementPlan('enforcement', value) as EnforcementModel;
+  if (
+    m.verifierName.trim() === '' ||
+    m.verifierRole === '' ||
+    m.verifierRole === 'self' ||
+    m.verifiedAt === ''
+  ) {
+    return null;
+  }
+  return {
+    signerName: m.verifierName.trim(),
+    signerRole: m.verifierRole,
+    attestation: ENFORCEMENT_ATTESTATION,
+    signedAt: m.verifiedAt,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -972,6 +1074,56 @@ export function SettlementPlanCapture({
           households -- they are verified by the enforcer above.
         </span>
       </button>
+
+      <SectionEyebrow>Who signed the verification</SectionEyebrow>
+      <div className={css.row}>
+        <span className={css.rowLbl}>
+          <Users size={13} aria-hidden="true" /> Verifier
+        </span>
+        <input
+          type="text"
+          className={css.signInput}
+          data-testid="sp-verifier-name"
+          aria-label="Name of the verifier (not the arriving household)"
+          value={model.verifierName}
+          placeholder="Verifier name..."
+          onChange={(e) => set({ verifierName: e.target.value, verifiedAt: '' })}
+        />
+      </div>
+      <div className={css.row}>
+        <span className={css.rowLbl}>Verifier role</span>
+        <Dropdown
+          options={VERIFIER_ROLE_LABEL_LIST}
+          value={VERIFIER_ROLE_LABEL[model.verifierRole] ?? ''}
+          placeholder="Role -- never the arriving household"
+          ariaLabel="Verifier role"
+          onChange={(label) =>
+            set({ verifierRole: SLUG_FOR_VERIFIER_LABEL[label] ?? '', verifiedAt: '' })
+          }
+        />
+      </div>
+
+      <div className={css.signBlock}>
+        <div className={css.signAck}>{ENFORCEMENT_ATTESTATION}</div>
+        {model.verifiedAt ? (
+          <div className={css.signMeta} data-testid="sp-verified">
+            <Check size={13} aria-hidden="true" />
+            Verified by {model.verifierName.trim() || 'verifier'} on{' '}
+            {formatSignedDate(model.verifiedAt)}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={css.signBtn}
+            data-testid="sp-verify-sign"
+            disabled={model.verifierName.trim() === '' || model.verifierRole === ''}
+            onClick={() => set({ verifiedAt: nowIso() })}
+          >
+            <Check size={13} aria-hidden="true" />
+            Sign verification
+          </button>
+        )}
+      </div>
 
       <FeedsNote>
         Enforcement closes the arrival sign-off loop -- the criteria checklist

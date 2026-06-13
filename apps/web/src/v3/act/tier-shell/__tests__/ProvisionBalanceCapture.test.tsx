@@ -69,6 +69,7 @@ import {
   summariseProvisionBalance,
   deriveTensionCards,
   ratifySeedFrom,
+  ratifySignatories,
   type ProvisionBalanceMode,
   type RatifyMember,
 } from '../ProvisionBalanceCapture.js';
@@ -436,13 +437,14 @@ describe('ratify -- decode / validity / summarise / render', () => {
     ).toEqual(model);
   });
 
-  it('valid only when >=1 member AND none pending', () => {
+  it('valid only when >=1 member, none pending, AND each carries a timestamp', () => {
+    const TS = '2026-06-13T10:00:00.000Z';
     const empty = decodeProvisionBalance('ratify', {});
     expect(isProvisionBalanceValid(empty)).toBe(false);
 
     const pending = decodeProvisionBalance('ratify', {
       ratifyMembers: [
-        JSON.stringify({ id: 'a', name: 'A', status: 'confirmed', note: '' }),
+        JSON.stringify({ id: 'a', name: 'A', status: 'confirmed', signedAt: TS, note: '' }),
         JSON.stringify({ id: 'b', name: 'B', status: 'pending', note: '' }),
       ],
     });
@@ -450,11 +452,43 @@ describe('ratify -- decode / validity / summarise / render', () => {
 
     const all = decodeProvisionBalance('ratify', {
       ratifyMembers: [
+        JSON.stringify({ id: 'a', name: 'A', status: 'confirmed', signedAt: TS, note: '' }),
+        JSON.stringify({ id: 'b', name: 'B', status: 'offplatform', signedAt: TS, note: 'x' }),
+      ],
+    });
+    expect(isProvisionBalanceValid(all)).toBe(true);
+  });
+
+  it('F1 GATE: a confirmed member WITHOUT a timestamp does not satisfy the gate', () => {
+    // A legacy bare toggle (no signedAt) decodes but is not a binding ratification.
+    const legacy = decodeProvisionBalance('ratify', {
+      ratifyMembers: [
         JSON.stringify({ id: 'a', name: 'A', status: 'confirmed', note: '' }),
         JSON.stringify({ id: 'b', name: 'B', status: 'offplatform', note: 'x' }),
       ],
     });
-    expect(isProvisionBalanceValid(all)).toBe(true);
+    expect(isProvisionBalanceValid(legacy)).toBe(false);
+  });
+
+  it('ratifySignatories returns a ProofSignatory per timestamped ratification', () => {
+    const TS = '2026-06-13T10:00:00.000Z';
+    const sigs = ratifySignatories({
+      ratifyMembers: [
+        JSON.stringify({ id: 'a', name: 'Sarah Mitchell', status: 'confirmed', signedAt: TS, note: '' }),
+        JSON.stringify({ id: 'b', name: 'Marcus', status: 'offplatform', signedAt: TS, note: 'minuted' }),
+        JSON.stringify({ id: 'c', name: 'Pending Pat', status: 'pending', note: '' }),
+        JSON.stringify({ id: 'd', name: 'Untimed Uma', status: 'confirmed', note: '' }),
+      ],
+    });
+    // pending (c) and timestamp-less (d) are excluded; off-platform notes its provenance.
+    expect(sigs).toHaveLength(2);
+    expect(sigs[0]).toMatchObject({
+      signerName: 'Sarah Mitchell',
+      signerRole: 'founding member',
+      signedAt: TS,
+    });
+    expect(sigs[1]!.signerName).toBe('Marcus');
+    expect(sigs[1]!.attestation).toContain('off-platform');
   });
 
   it('summarise reports confirmed/total', () => {
@@ -489,6 +523,8 @@ describe('ratify -- decode / validity / summarise / render', () => {
     const added = JSON.parse((afterAdd.ratifyMembers as string[])[0]!);
     expect(added.name).toBe('Sarah');
     expect(added.status).toBe('pending');
+    // A freshly added member has no signed instant yet.
+    expect(added.signedAt).toBe('');
 
     // Re-render with the added member, confirm it
     const confirmOnChange = vi.fn();
@@ -503,6 +539,8 @@ describe('ratify -- decode / validity / summarise / render', () => {
     const afterConfirm = confirmOnChange.mock.calls.at(-1)![0] as FormValue;
     const confirmed = JSON.parse((afterConfirm.ratifyMembers as string[])[0]!);
     expect(confirmed.status).toBe('confirmed');
+    // Confirming stamps a verifiable ISO instant (F1: toggle -> signature).
+    expect(confirmed.signedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 });
 
@@ -646,8 +684,8 @@ describe('ratifySeedFrom and the ratify seed', () => {
 
   it('seeds pending rows from named non-contractor invites with stable ids', () => {
     expect(ratifySeedFrom(steward)).toEqual([
-      { id: 'seed-0', name: 'Aroha Ngai', status: 'pending', note: '' },
-      { id: 'seed-3', name: 'Marcus Delacroix', status: 'pending', note: '' },
+      { id: 'seed-0', name: 'Aroha Ngai', status: 'pending', note: '', signedAt: '' },
+      { id: 'seed-3', name: 'Marcus Delacroix', status: 'pending', note: '', signedAt: '' },
     ]);
     expect(ratifySeedFrom({ invites: [] })).toEqual([]);
   });

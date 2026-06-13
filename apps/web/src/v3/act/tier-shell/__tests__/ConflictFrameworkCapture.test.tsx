@@ -62,6 +62,7 @@ import {
   encodeConflictFramework,
   isConflictFrameworkValid,
   summariseConflictFramework,
+  signOffSignatories,
   FOUNDING_HOUSEHOLDS,
   type ConflictFrameworkMode,
   type SignOffModel,
@@ -397,9 +398,17 @@ describe('reviewCadence -- validity / summarise / render', () => {
 // ---------------------------------------------------------------------------
 
 describe('signOff -- decode / validity / summarise / render / gate', () => {
+  const TS = '2026-06-13T10:00:00.000Z';
   function sigValue(pairs: string[]): FormValue {
     return { cfSignatures: pairs };
   }
+  /** All four households signed at TS (a complete, timestamped sign-off). */
+  const allSignedAt: string[] = [
+    `mc1::signed::${TS}`,
+    `mc2::signed::${TS}`,
+    `mc3::signed::${TS}`,
+    `mc4::signed::${TS}`,
+  ];
 
   it('decode drops malformed + unknown-household entries, never fabricates', () => {
     const m = decodeConflictFramework(
@@ -413,17 +422,30 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
       ]),
     ) as SignOffModel;
     expect(m.signatures).toEqual({ mc1: 'signed', mc3: 'reservations' });
+    // No third segment -> no attestation timestamps recorded.
+    expect(m.signedAt).toEqual({});
+  });
+
+  it('decode parses the optional signedAt timestamp segment', () => {
+    const m = decodeConflictFramework(
+      'signOff',
+      sigValue([`mc1::signed::${TS}`, 'mc2::signed']),
+    ) as SignOffModel;
+    expect(m.signatures).toEqual({ mc1: 'signed', mc2: 'signed' });
+    // Only mc1 carried a timestamp; mc2 is an un-timestamped (legacy) toggle.
+    expect(m.signedAt).toEqual({ mc1: TS });
   });
 
   it('decode of empty leaves every household pending', () => {
     const m = decodeConflictFramework('signOff', {}) as SignOffModel;
     expect(m.signatures).toEqual({});
+    expect(m.signedAt).toEqual({});
   });
 
-  it('encode round-trips (pending households omitted)', () => {
+  it('encode round-trips (pending households omitted; timestamps preserved)', () => {
     const model = decodeConflictFramework(
       'signOff',
-      sigValue(['mc1::signed', 'mc2::reservations']),
+      sigValue([`mc1::signed::${TS}`, 'mc2::reservations']),
     );
     expect(
       decodeConflictFramework('signOff', encodeConflictFramework(model)),
@@ -435,7 +457,7 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
     expect(
       isConflictFrameworkValid(
         'signOff',
-        sigValue(['mc1::signed', 'mc2::signed', 'mc3::signed']),
+        sigValue([`mc1::signed::${TS}`, `mc2::signed::${TS}`, `mc3::signed::${TS}`]),
       ),
     ).toBe(false);
     // All 4: a mix of signed + reservations unlocks (reservations non-blocking).
@@ -443,10 +465,10 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
       isConflictFrameworkValid(
         'signOff',
         sigValue([
-          'mc1::signed',
-          'mc2::reservations',
-          'mc3::signed',
-          'mc4::reservations',
+          `mc1::signed::${TS}`,
+          `mc2::reservations::${TS}`,
+          `mc3::signed::${TS}`,
+          `mc4::reservations::${TS}`,
         ]),
       ),
     ).toBe(true);
@@ -455,13 +477,43 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
       isConflictFrameworkValid(
         'signOff',
         sigValue([
-          'mc1::signed',
-          'mc2::signed',
-          'mc3::signed',
+          `mc1::signed::${TS}`,
+          `mc2::signed::${TS}`,
+          `mc3::signed::${TS}`,
           'mc4::pending',
         ]),
       ),
     ).toBe(false);
+  });
+
+  it('F1 GATE: all 4 toggled "signed" WITHOUT timestamps stays locked', () => {
+    // A bare toggle (no signedAt) is not a signature -- legacy data must not
+    // satisfy the pre-land-work gate.
+    expect(
+      isConflictFrameworkValid(
+        'signOff',
+        sigValue(['mc1::signed', 'mc2::signed', 'mc3::signed', 'mc4::signed']),
+      ),
+    ).toBe(false);
+    // The same four, timestamped, unlock.
+    expect(isConflictFrameworkValid('signOff', sigValue(allSignedAt))).toBe(true);
+  });
+
+  it('signOffSignatories returns a ProofSignatory per timestamped signature', () => {
+    const sigs = signOffSignatories(
+      sigValue([`mc1::signed::${TS}`, `mc2::reservations::${TS}`, 'mc3::signed']),
+    );
+    // mc3 has no timestamp -> not a signature proof; mc4 pending -> absent.
+    expect(sigs).toHaveLength(2);
+    expect(sigs[0]).toMatchObject({
+      signerName: 'Sarah Mitchell',
+      signerRole: 'founding member',
+      signedAt: TS,
+    });
+    expect(sigs[0]!.attestation).toContain('agree to be bound');
+    // reservations are recorded faithfully in the attestation text.
+    expect(sigs[1]!.signerName).toBe('Marcus Delacroix');
+    expect(sigs[1]!.attestation).toContain('reservations noted');
   });
 
   it('summarise reports signed/total and reservation count', () => {
@@ -484,19 +536,23 @@ describe('signOff -- decode / validity / summarise / render / gate', () => {
     expect(screen.getByText('Framework being signed off')).toBeTruthy();
   });
 
-  it('signing a household emits the encoded signature pair', () => {
+  it('signing a household emits a timestamped signature entry', () => {
     const { onChange } = renderMode('signOff', {});
     fireEvent.click(screen.getAllByText('Signed -- I agree')[0]!);
     const emitted = onChange.mock.calls[0]![0] as FormValue;
-    expect(emitted.cfSignatures).toContain('mc1::signed');
+    const entries = emitted.cfSignatures as string[];
+    const mc1 = entries.find((e) => e.startsWith('mc1::signed::'));
+    expect(mc1).toBeTruthy();
+    // the third segment is an ISO timestamp stamped at sign time.
+    expect(mc1!.split('::')[2]).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
   it('gate flips to unlocked once the 4th household signs', () => {
-    // 3 of 4 already signed -> still locked.
+    // 3 of 4 already signed (timestamped) -> still locked.
     const threeSigned = sigValue([
-      'mc1::signed',
-      'mc2::signed',
-      'mc3::signed',
+      `mc1::signed::${TS}`,
+      `mc2::signed::${TS}`,
+      `mc3::signed::${TS}`,
     ]);
     expect(isConflictFrameworkValid('signOff', threeSigned)).toBe(false);
 

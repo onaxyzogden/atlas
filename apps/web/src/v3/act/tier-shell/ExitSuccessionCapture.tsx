@@ -30,6 +30,7 @@
 
 import * as React from 'react';
 import { ArrowRight, AlertTriangle, Coins, FileText } from 'lucide-react';
+import type { ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import css from './ExitSuccessionCapture.module.css';
 
@@ -574,9 +575,42 @@ function rowDefaults(mode: ExitSuccessionMode): Record<string, string> {
     case 'legalReview':
       for (const t of LEGAL_TOGGLES) out[t.key] = t.defaultOn ? 'on' : 'off';
       for (const row of LEGAL_SELECTS) out[row.key] = row.options[0] ?? '';
+      // F1 sign-off fields: the protocol must be legally reviewed AND signed.
+      // Empty until the adviser is named and the opinion is marked signed.
+      out.advName = '';
+      out.advSignedAt = '';
       break;
   }
   return out;
+}
+
+// The legal adviser's signed attestation that the exit/succession protocol is
+// sound and binding. Recorded verbatim; this is a legal sign-off, not a
+// financial instrument (the asset-transfer copy stays co-owner cost-sharing).
+const LEGAL_REVIEW_ACK =
+  'I have legally reviewed the exit and succession protocol -- notice and ' +
+  'settlement, CLT resale formula, land reversion, and dissolution provisions ' +
+  '-- and attest it is legally sound and binding on the community.';
+
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+/** Current instant as an ISO-8601 string. Stamped when the adviser signs so the
+ *  legal review carries a verifiable time -- upgrading the toggle to a signature. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Format an ISO timestamp's calendar date as "13 Jun 2026" WITHOUT building a
+ *  Date (avoids timezone day-shift): reads the YYYY-MM-DD head directly. */
+function formatSignedDate(iso: string): string {
+  const head = iso.slice(0, 10);
+  const [y, m, d] = head.split('-');
+  const mi = Number(m) - 1;
+  if (!y || !d || Number.isNaN(mi) || mi < 0 || mi > 11) return head;
+  return `${Number(d)} ${MONTHS[mi]} ${y}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -619,6 +653,15 @@ export function encodeExitSuccession(model: ExitSuccessionModel): FormValue {
  */
 export function isExitSuccessionValid(mode: ExitSuccessionMode, value: FormValue): boolean {
   const model = decodeExitSuccession(mode, value);
+  if (mode === 'legalReview') {
+    // F1: the catalogue scopeNote requires the protocol be "legally reviewed
+    // and signed". The scope toggles are advisory; the gate is the adviser's
+    // signature -- a named adviser with a verifiable signed instant.
+    return (
+      (model.choices.advName ?? '').trim() !== '' &&
+      (model.choices.advSignedAt ?? '') !== ''
+    );
+  }
   // A faithful, non-fabricating gate: at least the recommended defaults are
   // present for every row (decode guarantees this), so the protocol can always
   // be recorded once the operator has reviewed it.
@@ -646,6 +689,23 @@ export function summariseExitSuccession(mode: ExitSuccessionMode, value: FormVal
       return `${on} / ${LEGAL_TOGGLES.length} review items confirmed`;
     }
   }
+}
+
+/** The signature proof captured by the c5 legal review: the legal adviser's
+ *  signed attestation, present only once the adviser is named AND the opinion
+ *  is marked signed. The System-2 (decision-capture) analogue of a
+ *  ProofRecord{kind:'signature'}; null until legally reviewed and signed. */
+export function legalReviewSignatory(value: FormValue): ProofSignatory | null {
+  const { choices } = decodeExitSuccession('legalReview', value);
+  const name = (choices.advName ?? '').trim();
+  const signedAt = choices.advSignedAt ?? '';
+  if (name === '' || signedAt === '') return null;
+  return {
+    signerName: name,
+    signerRole: 'legal adviser',
+    attestation: LEGAL_REVIEW_ACK,
+    signedAt,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -840,6 +900,43 @@ export function ExitSuccessionCapture({
         </div>
       </div>
       <div>{LEGAL_SELECTS.map(renderSelect)}</div>
+      <div className={css.signBlock}>
+        <div className={css.secLbl}>Legal adviser sign-off</div>
+        <input
+          type="text"
+          className={css.signInput}
+          data-testid="es-adv-name"
+          aria-label="Legal adviser name and call to the bar"
+          value={choices.advName ?? ''}
+          placeholder="Adviser name and call to the bar..."
+          onChange={(e) =>
+            onChange(
+              encodeExitSuccession({
+                mode,
+                // Editing the signer clears any prior signature: the signed
+                // instant must belong to the named adviser, never a stale one.
+                choices: { ...choices, advName: e.target.value, advSignedAt: '' },
+              }),
+            )
+          }
+        />
+        {(choices.advSignedAt ?? '') === '' ? (
+          <button
+            type="button"
+            className={css.signBtn}
+            data-testid="es-sign"
+            disabled={(choices.advName ?? '').trim() === ''}
+            onClick={() => set('advSignedAt', nowIso())}
+          >
+            Mark legally reviewed &amp; signed
+          </button>
+        ) : (
+          <div className={css.signMeta} data-testid="es-signed">
+            Legally reviewed &amp; signed{' '}
+            {formatSignedDate(choices.advSignedAt ?? '')}
+          </div>
+        )}
+      </div>
       {feeds}
     </div>
   );

@@ -35,6 +35,7 @@
 import * as React from 'react';
 import { ArrowRight, Check, Info, Lock, ShieldCheck, TriangleAlert } from 'lucide-react';
 
+import type { ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import {
   Dropdown,
@@ -661,6 +662,10 @@ export interface SignOffModel {
   kind: 'signOff';
   /** household id -> status; households absent from the map are "pending" */
   signatures: Record<string, SignatureStatus>;
+  /** household id -> ISO timestamp the attestation was made. Present only for
+   *  signed/reservations entries; absent until the household signs. A signature
+   *  without a timestamp is a bare toggle (legacy data), not an attestation. */
+  signedAt: Record<string, string>;
 }
 export type ConflictFrameworkModel =
   | SelectModeModel
@@ -697,6 +702,27 @@ function isSelectMode(
   );
 }
 
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+/** Current instant as an ISO-8601 string. Stamped when a household signs so the
+ *  attestation carries a verifiable time -- upgrading the toggle to a signature. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Format an ISO timestamp's calendar date as "13 Jun 2026" WITHOUT building a
+ *  Date (avoids timezone day-shift): reads the YYYY-MM-DD head directly. */
+function formatSignedDate(iso: string): string {
+  const head = iso.slice(0, 10);
+  const [y, m, d] = head.split('-');
+  const mi = Number(m) - 1;
+  if (!y || !d || Number.isNaN(mi) || mi < 0 || mi > 11) return head;
+  return `${Number(d)} ${MONTHS[mi]} ${y}`;
+}
+
 // ---------------------------------------------------------------------------
 // decode: FormValue -> ConflictFrameworkModel (TOTAL / defensive)
 // ---------------------------------------------------------------------------
@@ -718,19 +744,22 @@ export function decodeConflictFramework(
       sel: selFrom(AGREEMENT_SELECT_KEYS, value),
     };
   }
-  // signOff
+  // signOff -- entries are "id::status" (legacy) or "id::status::signedAt".
   const signatures: Record<string, SignatureStatus> = {};
+  const signedAt: Record<string, string> = {};
   for (const entry of asArr(value.cfSignatures)) {
-    const idx = entry.indexOf('::');
-    if (idx < 0) continue;
-    const id = entry.slice(0, idx);
-    const raw = entry.slice(idx + 2);
+    const parts = entry.split('::');
+    const id = parts[0] ?? '';
+    const raw = parts[1] ?? '';
+    const ts = parts[2] ?? '';
     if (!FOUNDING_HOUSEHOLDS.some((h) => h.id === id)) continue;
     if (raw === 'signed' || raw === 'reservations' || raw === 'pending') {
       signatures[id] = raw;
+      // Keep a timestamp only for an actual attestation (signed/reservations).
+      if (ts && (raw === 'signed' || raw === 'reservations')) signedAt[id] = ts;
     }
   }
-  return { kind: 'signOff', signatures };
+  return { kind: 'signOff', signatures, signedAt };
 }
 
 // ---------------------------------------------------------------------------
@@ -748,7 +777,11 @@ export function encodeConflictFramework(
   if (model.kind === 'signOff') {
     const cfSignatures = FOUNDING_HOUSEHOLDS.filter(
       (h) => (model.signatures[h.id] ?? 'pending') !== 'pending',
-    ).map((h) => `${h.id}::${model.signatures[h.id]}`);
+    ).map((h) => {
+      const status = model.signatures[h.id];
+      const ts = model.signedAt[h.id];
+      return ts ? `${h.id}::${status}::${ts}` : `${h.id}::${status}`;
+    });
     return { cfSignatures };
   }
   const out: FormValue = {};
@@ -780,7 +813,11 @@ export function isConflictFrameworkValid(
     const model = decodeConflictFramework('signOff', value) as SignOffModel;
     return FOUNDING_HOUSEHOLDS.every((h) => {
       const s = statusFor(model.signatures, h.id);
-      return s === 'signed' || s === 'reservations';
+      const attested = s === 'signed' || s === 'reservations';
+      // F1 gate: a real attestation carries a timestamp, not just a toggled
+      // status. The pre-land-work gate stays locked on un-timestamped (legacy)
+      // signatures until the household actually signs in-app.
+      return attested && (model.signedAt[h.id] ?? '') !== '';
     });
   }
   const required = REQUIRED_KEYS_BY_MODE[mode] ?? [];
@@ -853,6 +890,32 @@ export function summariseConflictFramework(
       throw new Error(`Unknown ConflictFrameworkMode: ${String(_exhaustive)}`);
     }
   }
+}
+
+/** The signature proofs captured by the c7 sign-off: one per household that has
+ *  attested (signed / signed-with-reservations) WITH a timestamp. This is the
+ *  System-2 (decision-capture) analogue of a ProofRecord{kind:'signature'} --
+ *  a typed, timestamped, named attestation rather than a bare toggle. Households
+ *  with no timestamp (legacy toggles) are NOT signature proofs and are omitted. */
+export function signOffSignatories(value: FormValue): ProofSignatory[] {
+  const model = decodeConflictFramework('signOff', value) as SignOffModel;
+  const out: ProofSignatory[] = [];
+  for (const h of FOUNDING_HOUSEHOLDS) {
+    const s = statusFor(model.signatures, h.id);
+    if (s !== 'signed' && s !== 'reservations') continue;
+    const signedAt = model.signedAt[h.id];
+    if (!signedAt) continue;
+    out.push({
+      signerName: h.name,
+      signerRole: 'founding member',
+      attestation:
+        s === 'reservations'
+          ? SIGNATURE_ACK + ' (signed with reservations noted)'
+          : SIGNATURE_ACK,
+      signedAt,
+    });
+  }
+  return out;
 }
 
 // ===========================================================================
@@ -1154,10 +1217,24 @@ export function ConflictFrameworkCapture({
   const model = decodeConflictFramework('signOff', value) as SignOffModel;
   const setStatus = (id: string, status: SignatureStatus): void => {
     const current = statusFor(model.signatures, id);
-    const next: Record<string, SignatureStatus> = { ...model.signatures };
-    // Clicking the active state again clears it back to pending.
-    next[id] = current === status ? 'pending' : status;
-    onChange(encodeConflictFramework({ kind: 'signOff', signatures: next }));
+    const nextSig: Record<string, SignatureStatus> = { ...model.signatures };
+    const nextAt: Record<string, string> = { ...model.signedAt };
+    // Clicking the active state again clears it back to pending (and drops the
+    // attestation timestamp); otherwise stamp the moment the household signs.
+    if (current === status) {
+      nextSig[id] = 'pending';
+      delete nextAt[id];
+    } else {
+      nextSig[id] = status;
+      nextAt[id] = nowIso();
+    }
+    onChange(
+      encodeConflictFramework({
+        kind: 'signOff',
+        signatures: nextSig,
+        signedAt: nextAt,
+      }),
+    );
   };
 
   let signedCount = 0;
@@ -1224,6 +1301,12 @@ export function ConflictFrameworkCapture({
               {pillFor(s)}
             </div>
             <div className={css.signAck}>{SIGNATURE_ACK}</div>
+            {(s === 'signed' || s === 'reservations') && model.signedAt[h.id] ? (
+              <div className={css.signMeta}>
+                <Check size={12} aria-hidden="true" />
+                Signed {formatSignedDate(model.signedAt[h.id]!)}
+              </div>
+            ) : null}
             <div className={css.signBtns}>
               <button
                 type="button"

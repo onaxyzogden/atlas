@@ -43,6 +43,7 @@
 
 import * as React from 'react';
 import { ArrowRight, CircleCheck, Info, Plus, X } from 'lucide-react';
+import type { ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import type { StewardModel } from './StewardCapture.js';
 import css from './ProvisionBalanceCapture.module.css';
@@ -130,10 +131,43 @@ export interface RatifyMember {
   name: string;
   status: MemberStatus;
   note: string;
+  /** ISO-8601 instant the member ratified. Empty until confirmed/off-platform.
+   *  A ratification without a timestamp is a bare toggle, not a signature, and
+   *  does not satisfy the gate (F1: ratify must bind to a signed instant). */
+  signedAt: string;
 }
 export interface RatifyModel {
   kind: 'ratify';
   members: RatifyMember[];
+}
+
+// The attestation a founding member ratifies. Cost-share framed, NOT a financial
+// instrument: it records member agreement to the communal provisioning balance,
+// never an advance sale of yield (no salam / CSRA). Recorded verbatim.
+const RATIFY_ACK =
+  'I ratify the provisioning balance as the founding agreement for our ' +
+  'communal infrastructure and shared-cost arrangement, and agree to be ' +
+  'bound by it.';
+
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+/** Current instant as an ISO-8601 string. Stamped when a member ratifies so the
+ *  attestation carries a verifiable time -- upgrading the toggle to a signature. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Format an ISO timestamp's calendar date as "13 Jun 2026" WITHOUT building a
+ *  Date (avoids timezone day-shift): reads the YYYY-MM-DD head directly. */
+function formatSignedDate(iso: string): string {
+  const head = iso.slice(0, 10);
+  const [y, m, d] = head.split('-');
+  const mi = Number(m) - 1;
+  if (!y || !d || Number.isNaN(mi) || mi < 0 || mi > 11) return head;
+  return `${Number(d)} ${MONTHS[mi]} ${y}`;
 }
 
 export type ProvisionBalanceModel =
@@ -405,7 +439,13 @@ export function ratifySeedFrom(steward: StewardModel): RatifyMember[] {
     if (invite.role === 'contractor') return;
     const name = invite.name.trim();
     if (name === '') return;
-    members.push({ id: `seed-${index}`, name, status: 'pending', note: '' });
+    members.push({
+      id: `seed-${index}`,
+      name,
+      status: 'pending',
+      note: '',
+      signedAt: '',
+    });
   });
   return members;
 }
@@ -494,6 +534,7 @@ export function decodeProvisionBalance(
             name: string;
             status?: unknown;
             note?: unknown;
+            signedAt?: unknown;
           };
           const id: string =
             typeof p.id === 'string' && p.id !== '' ? p.id : 'legacy-' + index;
@@ -504,7 +545,12 @@ export function decodeProvisionBalance(
                 ? 'offplatform'
                 : 'pending';
           const note: string = typeof p.note === 'string' ? p.note : '';
-          members.push({ id, name: p.name, status, note });
+          // signedAt is optional on read: legacy members persisted before the
+          // attestation upgrade decode with '' (and so fail the gate until
+          // re-ratified). Never fabricate a timestamp.
+          const signedAt: string =
+            typeof p.signedAt === 'string' ? p.signedAt : '';
+          members.push({ id, name: p.name, status, note, signedAt });
         } catch {
           // drop malformed entry
         }
@@ -586,9 +632,11 @@ export function isProvisionBalanceValid(
         (t) => (model.resolutions[t.id] ?? '').trim() !== '',
       );
     case 'ratify':
+      // F1: each ratifying member must carry a signed instant -- a bare
+      // pending->confirmed toggle is not a binding ratification.
       return (
         model.members.length >= 1 &&
-        model.members.every((m) => m.status !== 'pending')
+        model.members.every((m) => m.status !== 'pending' && m.signedAt !== '')
       );
   }
 }
@@ -636,6 +684,29 @@ export function summariseProvisionBalance(
       return `${confirmed}/${total} founding members confirmed`;
     }
   }
+}
+
+/** The signature proofs captured by the c6 ratify step: one per founding member
+ *  who has ratified (confirmed / off-platform) WITH a timestamp. The System-2
+ *  (decision-capture) analogue of a ProofRecord{kind:'signature'} -- a typed,
+ *  timestamped, named attestation of agreement to the communal cost-share, never
+ *  a financial instrument. Members without a timestamp are omitted. */
+export function ratifySignatories(value: FormValue): ProofSignatory[] {
+  const model = decodeProvisionBalance('ratify', value) as RatifyModel;
+  const out: ProofSignatory[] = [];
+  for (const m of model.members) {
+    if (m.status === 'pending' || m.signedAt === '') continue;
+    out.push({
+      signerName: m.name,
+      signerRole: 'founding member',
+      attestation:
+        m.status === 'offplatform'
+          ? RATIFY_ACK + ' (agreement recorded off-platform)'
+          : RATIFY_ACK,
+      signedAt: m.signedAt,
+    });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -1030,7 +1101,7 @@ function RatifyBody({
       kind: 'ratify',
       members: [
         ...model.members,
-        { id: makeMemberId(), name, status: 'pending', note: '' },
+        { id: makeMemberId(), name, status: 'pending', note: '', signedAt: '' },
       ],
     });
     setNameInput('');
@@ -1100,6 +1171,14 @@ function RatifyBody({
                       ) : null}{' '}
                       {statusLabel(m)}
                     </div>
+                    {m.status !== 'pending' && m.signedAt !== '' ? (
+                      <div
+                        className={css.signMeta}
+                        data-testid={`ratify-signed-${m.id}`}
+                      >
+                        Ratified {formatSignedDate(m.signedAt)}
+                      </div>
+                    ) : null}
                   </div>
                   <div className={css.memberActions}>
                     {m.status === 'pending' ? (
@@ -1108,7 +1187,12 @@ function RatifyBody({
                           type="button"
                           className={css.memberBtn}
                           data-testid={`ratify-confirm-${m.id}`}
-                          onClick={() => updateMember(m.id, { status: 'confirmed' })}
+                          onClick={() =>
+                            updateMember(m.id, {
+                              status: 'confirmed',
+                              signedAt: nowIso(),
+                            })
+                          }
                         >
                           Confirm
                         </button>
@@ -1152,7 +1236,10 @@ function RatifyBody({
                         className={css.offdocBtn}
                         data-testid={`ratify-offconfirm-${m.id}`}
                         onClick={() => {
-                          updateMember(m.id, { status: 'offplatform' });
+                          updateMember(m.id, {
+                            status: 'offplatform',
+                            signedAt: nowIso(),
+                          });
                           toggleNote(m.id);
                         }}
                       >

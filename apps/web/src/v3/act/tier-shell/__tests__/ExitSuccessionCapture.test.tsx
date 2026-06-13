@@ -59,6 +59,7 @@ import {
   encodeExitSuccession,
   isExitSuccessionValid,
   summariseExitSuccession,
+  legalReviewSignatory,
   type ExitSuccessionMode,
 } from '../ExitSuccessionCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
@@ -153,17 +154,29 @@ describe('decode / encode', () => {
 // ---------------------------------------------------------------------------
 
 describe('isExitSuccessionValid', () => {
-  it('every mode is record-ready by default', () => {
+  it('every protocol mode is record-ready by default (legalReview excepted)', () => {
     const modes: ExitSuccessionMode[] = [
       'exitProcess',
       'dwellingTransfer',
       'landReversion',
       'dissolution',
-      'legalReview',
     ];
     for (const mode of modes) {
       expect(isExitSuccessionValid(mode, {})).toBe(true);
     }
+  });
+
+  it('F1 GATE: legalReview is NOT record-ready until legally reviewed AND signed', () => {
+    // Bare default (scope toggles seeded, no adviser/signature) -> locked.
+    expect(isExitSuccessionValid('legalReview', {})).toBe(false);
+    // Adviser named but not yet signed -> still locked.
+    const named = decodeExitSuccession('legalReview', {});
+    named.choices.advName = 'Amina Yusuf, called to the Ontario bar 2014';
+    expect(isExitSuccessionValid('legalReview', encodeExitSuccession(named))).toBe(false);
+    // Named AND signed -> recordable.
+    const signed = decodeExitSuccession('legalReview', encodeExitSuccession(named));
+    signed.choices.advSignedAt = '2026-06-13T10:00:00.000Z';
+    expect(isExitSuccessionValid('legalReview', encodeExitSuccession(signed))).toBe(true);
   });
 });
 
@@ -264,5 +277,74 @@ describe('legalReview -- render / interaction', () => {
     fireEvent.click(screen.getByTestId('es-toggle-membersSigned'));
     const emitted = onChange.mock.calls[0]![0] as FormValue;
     expect(emitted.esChoices).toContain('membersSigned::off');
+  });
+
+  it('the sign button is disabled until an adviser is named, then stamps an ISO instant', () => {
+    const { onChange } = renderMode('legalReview', {});
+    const signBtn = screen.getByTestId('es-sign') as HTMLButtonElement;
+    expect(signBtn.disabled).toBe(true);
+
+    fireEvent.change(screen.getByTestId('es-adv-name'), {
+      target: { value: 'Amina Yusuf, called 2014' },
+    });
+    const afterName = onChange.mock.calls.at(-1)![0] as FormValue;
+    expect(afterName.esChoices).toContain('advName::Amina Yusuf, called 2014');
+    // Naming the adviser leaves the signature empty.
+    expect(afterName.esChoices).toContain('advSignedAt::');
+
+    // Re-render with the named value so the button is enabled, then sign.
+    const signOnChange = vi.fn();
+    render(
+      <ExitSuccessionCapture
+        mode="legalReview"
+        value={afterName}
+        onChange={signOnChange}
+      />,
+    );
+    fireEvent.click(screen.getAllByTestId('es-sign').at(-1)!);
+    const afterSign = signOnChange.mock.calls.at(-1)![0] as FormValue;
+    const signedEntry = (afterSign.esChoices as string[]).find((e) =>
+      e.startsWith('advSignedAt::'),
+    );
+    expect(signedEntry).toMatch(/^advSignedAt::\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it('editing the adviser name clears a prior signature (no stale signed instant)', () => {
+    const signed = decodeExitSuccession('legalReview', {});
+    signed.choices.advName = 'Amina Yusuf';
+    signed.choices.advSignedAt = '2026-06-13T10:00:00.000Z';
+    const onChange = vi.fn();
+    render(
+      <ExitSuccessionCapture
+        mode="legalReview"
+        value={encodeExitSuccession(signed)}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('es-adv-name'), {
+      target: { value: 'Different Adviser' },
+    });
+    const emitted = onChange.mock.calls.at(-1)![0] as FormValue;
+    expect(emitted.esChoices).toContain('advSignedAt::');
+    expect(emitted.esChoices).not.toContain('advSignedAt::2026-06-13T10:00:00.000Z');
+  });
+});
+
+describe('legalReviewSignatory', () => {
+  it('is null until named AND signed, then returns the adviser attestation', () => {
+    expect(legalReviewSignatory({})).toBeNull();
+
+    const named = decodeExitSuccession('legalReview', {});
+    named.choices.advName = 'Amina Yusuf, called to the Ontario bar 2014';
+    expect(legalReviewSignatory(encodeExitSuccession(named))).toBeNull();
+
+    named.choices.advSignedAt = '2026-06-13T10:00:00.000Z';
+    const sig = legalReviewSignatory(encodeExitSuccession(named));
+    expect(sig).toMatchObject({
+      signerName: 'Amina Yusuf, called to the Ontario bar 2014',
+      signerRole: 'legal adviser',
+      signedAt: '2026-06-13T10:00:00.000Z',
+    });
+    expect(sig!.attestation).toContain('legally reviewed');
   });
 });
