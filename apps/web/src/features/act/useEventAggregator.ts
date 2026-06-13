@@ -209,7 +209,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
     }
 
     for (const w of projectWorkItems) {
-      if (w.source !== 'livestock-plan') continue;
+      if (w.source !== 'livestock-plan' && w.source !== 'community-plan') continue;
       // Done/cancelled rows leave the calendar — the Act work panel keeps
       // the variance record; this surface only shows what is still due.
       if (w.status === 'done' || w.status === 'cancelled') continue;
@@ -217,7 +217,10 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       const key = toDateKey(due);
       if (!key || !due) continue;
       all.push({
-        id: `livestock-plan:${w.id}`,
+        // id uses w.source so livestock rows remain 'livestock-plan:<id>'
+        // (byte-identical to the pre-Phase-5 construction) and community
+        // rows get 'community-plan:<id>'.
+        id: `${w.source}:${w.id}`,
         source: 'livestock',
         dateKey: key,
         iso: due,

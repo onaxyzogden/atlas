@@ -10,14 +10,26 @@
  * reworded or truncated) before the operator commits the bulk confirm.
  */
 
-import type { LivestockWorkProposal } from '../../../../store/livestockWorkPlanStore.js';
 import { C, F, CA } from '../../../plan/spine/tokens.js';
+
+/**
+ * Minimal proposal shape the overlay needs — covers any domain (livestock,
+ * community, …) without coupling to a concrete store type. Only the fields
+ * actually read by the rendering code are listed here.
+ */
+export interface BulkConfirmProposal {
+  id: string;
+  instance: {
+    title: string;
+    scopeNotes?: string;
+  };
+}
 
 interface Props {
   /** Every proposal the bulk confirm will write to the spine. */
-  eligible: readonly LivestockWorkProposal[];
+  eligible: readonly BulkConfirmProposal[];
   /** Subset of `eligible` carrying an Amanah caution (scopeNotes truthy). */
-  flagged: readonly LivestockWorkProposal[];
+  flagged: readonly BulkConfirmProposal[];
   onConfirm: () => void;
   onCancel: () => void;
 }

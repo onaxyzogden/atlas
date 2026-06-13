@@ -19,7 +19,10 @@ import { useMemo } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import { useProjectObjectives } from '../../../plan/strata/useProjectObjectives.js';
-import { workDisplayStatus } from '../../../../features/work/workSelectors.js';
+import {
+  workDisplayStatus,
+  GENERATED_PLAN_SOURCES,
+} from '../../../../features/work/workSelectors.js';
 import styles from './ActWorkPanel.module.css';
 
 interface Props {
@@ -55,7 +58,10 @@ export default function ActWorkProgressCard({ projectId, onOpen }: Props) {
     const titleById = new Map(objectives.map((o) => [o.id, o.title]));
     const byObjective = new Map<string, ObjectiveBucket>();
     for (const item of items) {
-      if (item.projectId !== projectId || item.source !== 'livestock-plan') {
+      if (
+        item.projectId !== projectId ||
+        !GENERATED_PLAN_SOURCES.includes(item.source)
+      ) {
         continue;
       }
       const status = workDisplayStatus(item, todayISO);

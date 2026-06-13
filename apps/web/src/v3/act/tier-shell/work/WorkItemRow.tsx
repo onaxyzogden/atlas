@@ -39,6 +39,7 @@ const STATUS_LABEL: Record<WorkDisplayStatus, string> = {
 
 const SOURCE_LABEL: Record<string, string> = {
   'livestock-plan': 'Plan-generated',
+  'community-plan': 'Community plan',
   'rotation-sequence': 'Rotation',
   'scheduled-livestock-move': 'Scheduled move',
 };

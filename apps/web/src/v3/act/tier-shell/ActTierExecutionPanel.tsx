@@ -81,7 +81,10 @@ import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatu
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
 import { useWorkItemStore } from '../../../store/workItemStore.js';
-import { workDisplayStatus } from '../../../features/work/workSelectors.js';
+import {
+  workDisplayStatus,
+  GENERATED_PLAN_SOURCES,
+} from '../../../features/work/workSelectors.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -279,10 +282,11 @@ export default function ActTierExecutionPanel({
   );
 
   // -------------------------------------------------------------------------
-  // Generated livestock work rollup (work-management layer, Phase 4).
-  // Spine rows this objective's Plan decisions generated (source
-  // 'livestock-plan', provenance sourceObjectiveId) and the operator has
-  // confirmed. Subscribe to the raw items array and derive in useMemo
+  // Generated work rollup (work-management layer, Phase 4+5).
+  // Spine rows this objective's Plan decisions generated (source in
+  // GENERATED_PLAN_SOURCES, provenance sourceObjectiveId) and the operator
+  // has confirmed. Covers both livestock-plan and community-plan rows.
+  // Subscribe to the raw items array and derive in useMemo
   // (zustand-selector-stability ADR). Cancelled rows are excluded — the
   // operator retired them.
   // -------------------------------------------------------------------------
@@ -293,7 +297,10 @@ export default function ActTierExecutionPanel({
     let workDone = 0;
     let workOverdue = 0;
     for (const item of workItems) {
-      if (item.projectId !== projectId || item.source !== 'livestock-plan') {
+      if (
+        item.projectId !== projectId ||
+        !GENERATED_PLAN_SOURCES.includes(item.source)
+      ) {
         continue;
       }
       if (item.sourceObjectiveId !== objective.id) continue;

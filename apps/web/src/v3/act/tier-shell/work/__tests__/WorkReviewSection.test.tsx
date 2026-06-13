@@ -15,8 +15,9 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import type { LivestockWorkInstance } from '@ogden/shared';
+import type { CommunityWorkInstance, LivestockWorkInstance } from '@ogden/shared';
 import { useLivestockWorkPlanStore } from '../../../../../store/livestockWorkPlanStore.js';
+import { useCommunityWorkPlanStore } from '../../../../../store/communityWorkPlanStore.js';
 import { useWorkItemStore } from '../../../../../store/workItemStore.js';
 import WorkReviewSection from '../WorkReviewSection.js';
 
@@ -43,11 +44,31 @@ function inst(
 const K1 = 'lvp__husbandry__welfare-weekly__2026-06-15';
 const K2 = 'lvp__husbandry__welfare-weekly__2026-06-22';
 
+function communityInst(
+  key: string,
+  over: Partial<CommunityWorkInstance> = {},
+): CommunityWorkInstance {
+  return {
+    key,
+    ruleKey: key.slice(0, key.lastIndexOf('__')),
+    dueDate: key.slice(key.lastIndexOf('__') + 2),
+    kind: 'governance-meeting',
+    title: 'Quarterly governance meeting',
+    inputsHash: 'chash0001',
+    ...over,
+  };
+}
+
+const CK1 = 'cwp__governance__meeting-q1__2026-07-01';
+const CK2 = 'cwp__governance__meeting-q2__2026-10-01';
+
 const plan = () => useLivestockWorkPlanStore.getState();
+const community = () => useCommunityWorkPlanStore.getState();
 const spine = () => useWorkItemStore.getState();
 
 beforeEach(() => {
   useLivestockWorkPlanStore.setState({ rules: [], proposals: [] });
+  useCommunityWorkPlanStore.setState({ rules: [], proposals: [] });
   useWorkItemStore.setState({ items: [], migratedSources: [] });
 });
 
@@ -167,5 +188,110 @@ describe('WorkReviewSection', () => {
     fireEvent.click(screen.getByRole('button', { name: /1 dismissed/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
     expect(plan().proposals[0]!.status).toBe('proposed');
+  });
+});
+
+describe('WorkReviewSection — dual-store (Phase 5)', () => {
+  it('both domains populated → two headed lists, each showing its own proposals', () => {
+    plan().applyGeneration(P, { rules: [], instances: [inst(K1)] });
+    community().applyGeneration(P, {
+      rules: [],
+      instances: [communityInst(CK1)],
+    });
+    render(<WorkReviewSection projectId={P} />);
+
+    const headings = screen.getAllByTestId('work-review-domain-heading');
+    expect(headings).toHaveLength(2);
+    expect(headings[0]!.textContent).toBe('Livestock plan');
+    expect(headings[1]!.textContent).toBe('Community plan');
+
+    // Each list shows its own proposal row.
+    const rows = screen.getAllByTestId('work-proposal-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.textContent).toContain('Weekly welfare & condition check');
+    expect(rows[1]!.textContent).toContain('Quarterly governance meeting');
+  });
+
+  it('community-only → no domain headings, identical structure to livestock-only', () => {
+    community().applyGeneration(P, {
+      rules: [],
+      instances: [communityInst(CK1)],
+    });
+    render(<WorkReviewSection projectId={P} />);
+
+    // No domain headings when only one domain has content.
+    expect(screen.queryAllByTestId('work-review-domain-heading')).toHaveLength(0);
+
+    // Standard proposal row and section still render.
+    expect(screen.getByTestId('work-review-section')).toBeTruthy();
+    const rows = screen.getAllByTestId('work-proposal-row');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.textContent).toContain('Quarterly governance meeting');
+  });
+
+  it('community Confirm mutates community store only, not livestock store', () => {
+    community().applyGeneration(P, {
+      rules: [],
+      instances: [communityInst(CK1)],
+    });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    // Community spine row created with community-plan source.
+    expect(spine().items).toHaveLength(1);
+    expect(spine().items[0]).toMatchObject({
+      id: `cmw__${CK1}`,
+      projectId: P,
+      source: 'community-plan',
+      status: 'todo',
+    });
+
+    // Livestock store untouched.
+    expect(plan().proposals).toHaveLength(0);
+    // Community proposal is confirmed.
+    expect(community().proposals[0]!.status).toBe('confirmed');
+  });
+
+  it('community Dismiss mutates community store; Restore re-proposes via community store', () => {
+    community().applyGeneration(P, {
+      rules: [],
+      instances: [communityInst(CK1)],
+    });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(spine().items).toEqual([]);
+    expect(community().proposals[0]!.status).toBe('dismissed');
+    fireEvent.click(screen.getByRole('button', { name: /1 dismissed/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+    expect(community().proposals[0]!.status).toBe('proposed');
+    expect(plan().proposals).toHaveLength(0);
+  });
+
+  it('community proposal with scopeNotes shows verbatim text in Confirm-all overlay', () => {
+    community().applyGeneration(P, {
+      rules: [],
+      instances: [
+        communityInst(CK1, { scopeNotes: SCOPE }),
+        communityInst(CK2),
+      ],
+    });
+    render(<WorkReviewSection projectId={P} />);
+    fireEvent.click(screen.getByTestId('work-confirm-all'));
+
+    // Overlay opens — nothing written yet.
+    expect(screen.getByTestId('work-bulk-confirm-overlay')).toBeTruthy();
+    expect(spine().items).toEqual([]);
+
+    const amanahRows = screen.getAllByTestId('work-bulk-amanah-row');
+    expect(amanahRows).toHaveLength(1);
+    expect(amanahRows[0]!.textContent).toContain(SCOPE);
+
+    fireEvent.click(screen.getByTestId('work-bulk-confirm'));
+    expect(spine().items).toHaveLength(2);
+    expect(
+      community().proposals.every((p) => p.status === 'confirmed'),
+    ).toBe(true);
+    // Livestock store still untouched.
+    expect(plan().proposals).toHaveLength(0);
   });
 });

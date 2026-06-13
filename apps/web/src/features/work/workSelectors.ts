@@ -7,7 +7,7 @@
  * selector (wiki/decisions/2026-04-26-zustand-selector-stability.md).
  */
 
-import type { WorkItem } from '@ogden/shared';
+import type { WorkItem, WorkItemSource } from '@ogden/shared';
 
 /**
  * The spine sources the livestock work surface aggregates. Confirmed plan
@@ -24,6 +24,19 @@ export const LIVESTOCK_WORK_SOURCES: readonly string[] = [
 export function isLivestockWork(item: WorkItem): boolean {
   return LIVESTOCK_WORK_SOURCES.includes(item.source);
 }
+
+/**
+ * Sources that are produced by a work-plan generator (livestock or community).
+ * Used to widen "generated work" gates that should cover both domains —
+ * e.g. the progress rollup in ActWorkProgressCard and the execution-panel
+ * generated-work section. The fulfillment sync (useLivestockFulfillmentSync)
+ * deliberately stays on LIVESTOCK_WORK_SOURCES so community rows are no-ops
+ * there (the check-proof pool is empty for community work).
+ */
+export const GENERATED_PLAN_SOURCES: readonly WorkItemSource[] = [
+  'livestock-plan',
+  'community-plan',
+] as const;
 
 /**
  * Display status collapses the spine lifecycle + the schedule into the pill
