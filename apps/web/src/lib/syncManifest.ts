@@ -1032,4 +1032,10 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   // DEV-ONLY override that lifts Plan prerequisite locks for local testing.
   // Call-sites are guarded by import.meta.env.DEV; the flag must never sync.
   'ogden-dev-unlock-all-strata',
+  // Steward's communal-meeting-place designation (placesByProject). This is
+  // project-scoped data, but client-first by design: the store deliberately
+  // defers server sync of the designation as a documented out-of-scope
+  // follow-on. Parked here as device-local until that sync is wired; promote
+  // to SYNCED_STORES (with a transport) when it is.
+  'ogden-community-meeting-place',
 ]);
