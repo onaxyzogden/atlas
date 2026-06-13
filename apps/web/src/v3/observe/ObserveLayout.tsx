@@ -92,6 +92,20 @@ import type { SourceFilter } from './dashboard/domain/observationSource.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
+// Legacy measure/draw tools carry bare (un-prefixed) ids, so they don't match
+// the `observe.` prefix the `armedDrawKind` derivation keys on. Each of these
+// is an active draw session (they set the canvas crosshair directly), so they
+// must flip `drawArmed` for the single-writer `useMapCursor` to hold the
+// crosshair against its own MutationObserver re-assertion. `overlays`/`basemap`
+// are panel toggles, not draws — deliberately excluded.
+const MEASURE_DRAW_TOOL_IDS = new Set<string>([
+  'distance',
+  'elevation-point',
+  'elevation-path',
+  'area',
+  'boundary',
+]);
+
 /**
  * ObserveLayout — route component for all project-scoped `observe*` routes.
  *
@@ -220,6 +234,11 @@ function ObserveDualShellLayoutLegacy() {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedDrawKind =
     activeTool && activeTool.startsWith('observe.') ? activeTool : null;
+  // Measure tools don't drive the DesignToolRail (`activeKind`), but they ARE
+  // active draw sessions, so they must arm the crosshair. Kept separate from
+  // `armedDrawKind` so the rail never sees a measure id as a design kind.
+  const measureToolArmed =
+    activeTool != null && MEASURE_DRAW_TOOL_IDS.has(activeTool);
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   // Which specific rail section the steward picked. The BE categories all
@@ -416,7 +435,7 @@ function ObserveDualShellLayoutLegacy() {
               />
               <MapCursorHost
                 map={map}
-                drawArmed={armedDrawKind !== null}
+                drawArmed={armedDrawKind !== null || measureToolArmed}
                 mode={mode}
                 hovering={hovering}
               />
