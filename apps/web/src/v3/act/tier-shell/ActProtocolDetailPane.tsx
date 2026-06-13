@@ -18,29 +18,13 @@ import { C, F } from '../../plan/spine/tokens.js';
 import '../../plan/spine/spine-theme.css';
 import ProtocolLibraryCard from '../../plan/strata/ProtocolLibraryCard.js';
 import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import ProtocolActivationControls from '../../plan/strata/ProtocolActivationControls.js';
 
 interface Props {
   projectId: string;
   primaryTypeId: ProjectTypeId | null;
   secondaryTypeIds: readonly ProjectTypeId[];
   templateId: string;
-}
-
-/** Shared control-button style — colour passed per action. */
-function ctrlStyle(color: string): React.CSSProperties {
-  return {
-    flex: 1,
-    background: 'transparent',
-    border: `1px solid ${color}`,
-    borderRadius: 8,
-    color,
-    fontSize: 12,
-    fontWeight: 600,
-    fontFamily: F.sans,
-    padding: '8px 12px',
-    cursor: 'pointer',
-  };
 }
 
 export default function ActProtocolDetailPane({
@@ -54,9 +38,6 @@ export default function ActProtocolDetailPane({
     primaryTypeId,
     secondaryTypeIds,
   );
-  const activateProtocol = useProtocolStore((s) => s.activateProtocol);
-  const deactivateProtocol = useProtocolStore((s) => s.deactivateProtocol);
-  const suspendProtocol = useProtocolStore((s) => s.suspendProtocol);
 
   const template = useMemo(
     () => templates.find((t) => t.id === templateId),
@@ -80,10 +61,6 @@ export default function ActProtocolDetailPane({
       </div>
     );
   }
-
-  // active / triggered → live: offer Deactivate (+ Suspend). suspended → offer
-  // Activate (resume) + Deactivate (remove). none → Activate.
-  const isLive = status === 'active' || status === 'triggered';
 
   return (
     <div
@@ -132,60 +109,13 @@ export default function ActProtocolDetailPane({
         />
 
         {/* Activation controls — wired straight to protocolStore (mirrors the
-            §10.1 ProtocolApprovalOverlay handlers). */}
-        <div
-          data-testid="act-protocol-activation-controls"
-          style={{ display: 'flex', gap: 8, marginTop: 4 }}
-        >
-          {isLive ? (
-            <>
-              <button
-                type="button"
-                data-testid="act-protocol-deactivate"
-                style={ctrlStyle(C.red)}
-                onClick={() => deactivateProtocol(projectId, template.id)}
-              >
-                Deactivate
-              </button>
-              <button
-                type="button"
-                data-testid="act-protocol-suspend"
-                style={ctrlStyle(C.amber)}
-                onClick={() => suspendProtocol(projectId, template.id)}
-              >
-                Suspend
-              </button>
-            </>
-          ) : status === 'suspended' ? (
-            <>
-              <button
-                type="button"
-                data-testid="act-protocol-activate"
-                style={ctrlStyle(C.green)}
-                onClick={() => activateProtocol(projectId, template.id)}
-              >
-                Resume
-              </button>
-              <button
-                type="button"
-                data-testid="act-protocol-deactivate"
-                style={ctrlStyle(C.red)}
-                onClick={() => deactivateProtocol(projectId, template.id)}
-              >
-                Deactivate
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              data-testid="act-protocol-activate"
-              style={ctrlStyle(C.green)}
-              onClick={() => activateProtocol(projectId, template.id)}
-            >
-              Activate
-            </button>
-          )}
-        </div>
+            §10.1 ProtocolApprovalOverlay handlers). Extracted to
+            ProtocolActivationControls so the Plan detail pane reuses them. */}
+        <ProtocolActivationControls
+          projectId={projectId}
+          templateId={template.id}
+          status={status}
+        />
       </div>
     </div>
   );
