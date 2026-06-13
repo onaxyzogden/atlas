@@ -507,7 +507,10 @@ const OBLIGATIONS = [
 ] as const;
 
 // 6 gate item ids -- ALL must be present in adviceScope for isLegalGovernanceValid.
-const GATE_ITEMS = [
+// Exported so the community work-plan adapter (communityWorkInputs) can feed
+// `allGateIds` + `labels` to the generator's legal-advice-gate source without
+// replicating the roster (single source of truth). Additive export only.
+export const GATE_ITEMS = [
   {
     id: 'gc1',
     label:

@@ -117,6 +117,10 @@ import {
   generateAndApplyLivestockWork,
   isLivestockCaptureForm,
 } from '../../../features/livestock/livestockWorkInputs.js';
+import {
+  generateAndApplyCommunityWork,
+  isCommunityCaptureForm,
+} from '../../../features/community/communityWorkInputs.js';
 import { useLivestockWorkPlanStore } from '../../../store/livestockWorkPlanStore.js';
 import {
   ACT_TOOL_CATEGORIES,
@@ -501,6 +505,28 @@ export default function PlanTierShell() {
           .proposals.filter(
             (p) => p.projectId === id && p.status === 'proposed',
           ).length;
+        if (proposedCount > 0) {
+          toast.action(
+            'info',
+            `${proposedCount} work item${proposedCount === 1 ? '' : 's'} proposed — review in Act`,
+            {
+              label: 'Review in Act',
+              onClick: () =>
+                navigate({
+                  to: '/v3/project/$projectId/act/tier-shell',
+                  params: { projectId: id },
+                  search: { panel: 'work', workFilter: 'proposed' },
+                } as never),
+            },
+          );
+        }
+      } else if (isCommunityCaptureForm(formId)) {
+        // Community work-management layer: a governance / membership /
+        // legal / settlement / onboarding decision save regenerates the
+        // PROPOSAL layer (never the spine — sovereign steward) and surfaces
+        // the same "Review in Act" toast. The count is the proposed-proposal
+        // total returned by the community generation seam.
+        const proposedCount = generateAndApplyCommunityWork(id);
         if (proposedCount > 0) {
           toast.action(
             'info',

@@ -28,6 +28,7 @@ import { ChevronLeft, Maximize2, RefreshCw } from 'lucide-react';
 import type { WorkItem } from '@ogden/shared';
 import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import { generateAndApplyLivestockWork } from '../../../../features/livestock/livestockWorkInputs.js';
+import { generateAndApplyCommunityWork } from '../../../../features/community/communityWorkInputs.js';
 import { useLivestockFulfillmentSync } from '../../../../features/livestock/useLivestockFulfillmentSync.js';
 import {
   addDaysISO,
@@ -73,6 +74,7 @@ export default function ActWorkPanel({
   // Rolling-horizon regeneration on open; explicit button re-runs it.
   useEffect(() => {
     generateAndApplyLivestockWork(projectId);
+    generateAndApplyCommunityWork(projectId);
   }, [projectId]);
 
   // ±7d auto-fulfilment: link already-logged moves to due livestock work
@@ -133,7 +135,10 @@ export default function ActWorkPanel({
         <button
           type="button"
           className={styles.refreshBtn}
-          onClick={() => generateAndApplyLivestockWork(projectId)}
+          onClick={() => {
+            generateAndApplyLivestockWork(projectId);
+            generateAndApplyCommunityWork(projectId);
+          }}
           title="Re-derive proposals from current Plan decisions"
         >
           <RefreshCw size={12} />

@@ -43,6 +43,7 @@ export const WorkItemSource = z.enum([
   'tree-planting',
   'agroforestry',
   'livestock-plan',
+  'community-plan',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -198,6 +199,16 @@ export const WorkItemSchema = z
      * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
      */
     generatedFromLivestockPlan: z.string().optional(),
+    /**
+     * CommunityWorkInstance key (`cwp__…__<dueDate>`) of the community
+     * work-plan proposal this row was confirmed from. Set ONLY by the
+     * operator's `confirmProposal` (communityWorkPlanStore) — the
+     * generation layer is advisory and never writes the spine. Lets the
+     * diff layer recognise its confirmed rows across regenerations
+     * without ever mutating them. `.optional()` + the top-level
+     * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
+     */
+    generatedFromCommunityPlan: z.string().optional(),
     /**
      * Standing-protocol id (protocol catalogues) that authored the
      * livestock work-plan rule behind this row — provenance for the

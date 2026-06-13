@@ -94,7 +94,10 @@ interface DissolutionItem {
   rows: SelectRow[];
 }
 
-interface LegalToggle {
+// Exported so the community work-plan adapter (communityWorkInputs) can feed
+// the legalReview toggles (key + name as label) to the generator's
+// exit-succession source without replicating the roster. Additive export only.
+export interface LegalToggle {
   key: string;
   name: string;
   desc: string;
@@ -426,7 +429,7 @@ const DISSOLUTION_ITEMS: DissolutionItem[] = [
   },
 ];
 
-const LEGAL_TOGGLES: LegalToggle[] = [
+export const LEGAL_TOGGLES: LegalToggle[] = [
   {
     key: 'exitEnforceable',
     name: 'Exit process -- notice period and settlement calculation are legally enforceable',
