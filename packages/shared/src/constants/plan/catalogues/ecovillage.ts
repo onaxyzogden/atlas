@@ -10,7 +10,7 @@
 // content.
 //
 // Count note: the source header table reads "Primary: 29", but the per-tier
-// sub-headers (3+4+4+5+5+4+6) and the "50 across 7 tiers / 19 universal" totals
+// sub-headers (4+3+4+5+5+4+6) and the "50 across 7 tiers / 19 universal" totals
 // both yield 31 primary objectives. The 31-count is authoritative; "29" is a
 // stale pre-v1.2 summary (v1.2 added the Stratum 7 adaptive-management objective).
 //
@@ -236,6 +236,56 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Conflict resolution framework complete. Community agreements signed by all founding members before any land work begins.',
     actHandoff: 'Conflict Resolution & Community Agreement Framework',
   }),
+  obj({
+    id: 'ev-s2-social-fabric',
+    stratumId: 's1-project-foundation',
+    ref: 'EV-S1.7',
+    source: 'primary',
+    sourceTypeId: PRIMARY,
+    title: 'A clear read of community relationships & social fabric',
+    shortTitle: 'Community relationships & social fabric',
+    focusedQuestion:
+      'What existing relationships, trust networks, and community history does the founding group bring - and how does this shape what is possible?',
+    checklist: [
+      ck(
+        'ev-s2-social-fabric-c1',
+        'Map existing relationships between founding members - duration, depth, shared history',
+        { mode: 'Relationship map' },
+      ),
+      ck(
+        'ev-s2-social-fabric-c2',
+        'Identify prior community or cooperative living experience in the founding group',
+        { mode: 'Experience register' },
+      ),
+      ck(
+        'ev-s2-social-fabric-c3',
+        'Record any prior attempts at intentional community on this land or by this group',
+        { mode: 'Prior attempts' },
+      ),
+      ck(
+        'ev-s2-social-fabric-c4',
+        'Assess founding group cohesion - areas of strong alignment and known tension',
+        { mode: 'Cohesion map' },
+      ),
+      ck(
+        'ev-s2-social-fabric-c5',
+        'Identify skills gaps in the founding group - facilitation, building, farming, legal, financial',
+        { mode: 'Skills matrix' },
+      ),
+      ck(
+        'ev-s2-social-fabric-c6',
+        'Record external community relationships that could support establishment - networks, mentors, advisors',
+        { mode: 'External networks' },
+      ),
+    ],
+    decisionGroups: [
+      dg('ev-s2-social-fabric-dg1', 'Founding relationships & experience', ['ev-s2-social-fabric-c1', 'ev-s2-social-fabric-c2', 'ev-s2-social-fabric-c3'], []),
+      dg('ev-s2-social-fabric-dg2', 'Cohesion, skills & external support', ['ev-s2-social-fabric-c4', 'ev-s2-social-fabric-c5', 'ev-s2-social-fabric-c6'], []),
+    ],
+    completionGate:
+      'Social fabric survey complete. Founding group cohesion, skills, and relationship depth assessed.',
+    actHandoff: 'Community Relationships & Social Fabric Survey',
+  }),
   // ---------------------------------------------------------------- Stratum 2
   obj({
     id: 'ev-s2-carrying-capacity',
@@ -366,56 +416,6 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Landscape context and vector survey complete. Planning environment and contamination risks identified.',
     actHandoff: 'Landscape Context & Vector Survey Package',
-  }),
-  obj({
-    id: 'ev-s2-social-fabric',
-    stratumId: 's2-land-reading',
-    ref: 'EV-S2.8',
-    source: 'primary',
-    sourceTypeId: PRIMARY,
-    title: 'A clear read of community relationships & social fabric',
-    shortTitle: 'Community relationships & social fabric',
-    focusedQuestion:
-      'What existing relationships, trust networks, and community history does the founding group bring - and how does this shape what is possible?',
-    checklist: [
-      ck(
-        'ev-s2-social-fabric-c1',
-        'Map existing relationships between founding members - duration, depth, shared history',
-        { mode: 'Relationship map' },
-      ),
-      ck(
-        'ev-s2-social-fabric-c2',
-        'Identify prior community or cooperative living experience in the founding group',
-        { mode: 'Experience register' },
-      ),
-      ck(
-        'ev-s2-social-fabric-c3',
-        'Record any prior attempts at intentional community on this land or by this group',
-        { mode: 'Prior attempts' },
-      ),
-      ck(
-        'ev-s2-social-fabric-c4',
-        'Assess founding group cohesion - areas of strong alignment and known tension',
-        { mode: 'Cohesion map' },
-      ),
-      ck(
-        'ev-s2-social-fabric-c5',
-        'Identify skills gaps in the founding group - facilitation, building, farming, legal, financial',
-        { mode: 'Skills matrix' },
-      ),
-      ck(
-        'ev-s2-social-fabric-c6',
-        'Record external community relationships that could support establishment - networks, mentors, advisors',
-        { mode: 'External networks' },
-      ),
-    ],
-    decisionGroups: [
-      dg('ev-s2-social-fabric-dg1', 'Founding relationships & experience', ['ev-s2-social-fabric-c1', 'ev-s2-social-fabric-c2', 'ev-s2-social-fabric-c3'], []),
-      dg('ev-s2-social-fabric-dg2', 'Cohesion, skills & external support', ['ev-s2-social-fabric-c4', 'ev-s2-social-fabric-c5', 'ev-s2-social-fabric-c6'], []),
-    ],
-    completionGate:
-      'Social fabric survey complete. Founding group cohesion, skills, and relationship depth assessed.',
-    actHandoff: 'Community Relationships & Social Fabric Survey',
   }),
   // ---------------------------------------------------------------- Stratum 3
   obj({
@@ -1076,7 +1076,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'ev-s6-social-monitoring-c7',
-        'Baseline social health indicators against the Stratum 2 founding group cohesion and relationship findings',
+        'Baseline social health indicators against the Stratum 1 founding group cohesion and relationship findings',
       ),
       ck(
         'ev-s6-social-monitoring-c3',
