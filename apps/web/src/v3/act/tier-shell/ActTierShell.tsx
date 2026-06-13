@@ -97,6 +97,9 @@ import SlopeSurveyPanel from '../terrain/SlopeSurveyPanel.js';
 import SlopeSurveyLayer from '../terrain/SlopeSurveyLayer.js';
 import SlopeSurveyDrawHost from '../terrain/SlopeSurveyDrawHost.js';
 import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
+import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
+import OpenMapToolsButton from '../../_shared/map-takeover/OpenMapToolsButton.js';
+import ObjectiveToolsPanel from '../../_shared/map-takeover/ObjectiveToolsPanel.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
 import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
@@ -465,6 +468,16 @@ export default function ActTierShell() {
     (s) => s.active && s.activeProjectId === id,
   );
   const slopeActive = slopeOpen && objectiveId === 's2-terrain';
+  // Generic objective-tools takeover (the shell-agnostic generalization of the
+  // two bespoke surveys above; mirror of PlanTierShell): any draw/place
+  // objective whose catalog resolves to >= 1 map tool can flip into a focused
+  // map+tools mode via OpenMapToolsButton. Active only when the store is open
+  // for THIS project AND the route's objective matches, so it stays latent on
+  // other objectives exactly like the survey takeovers.
+  const toolsTakeoverActive = useObjectiveToolsTakeoverStore(
+    (s) =>
+      s.active && s.activeProjectId === id && s.activeObjectiveId === objectiveId,
+  );
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
   // Form-arm state: which category's tabbed form popup is open (local UI state,
@@ -963,7 +976,11 @@ export default function ActTierShell() {
     !surveyActive &&
     // Likewise the slope-survey takeover forces the map branch for s2-terrain
     // (its c2 slope decision is drawn on the map).
-    !slopeActive;
+    !slopeActive &&
+    // A generic map-tools takeover also yields the workbench to the map (so a
+    // Tier-0 draw/place objective can reach its draw hosts), exactly like the
+    // bespoke survey takeovers above.
+    !toolsTakeoverActive;
 
   return (
     <div className={styles.tierShell}>
@@ -1240,7 +1257,17 @@ export default function ActTierShell() {
               </div>
             ) : (
               <div className={styles.rightRail}>
-                {surveyActive ? (
+                {toolsTakeoverActive && selectedObjective ? (
+                  // Generic objective-tools takeover: while armed for THIS
+                  // objective, the focused map-tools panel replaces the rail
+                  // (parity with the survey takeovers below). Placed first; the
+                  // store's open() already closed the surveys, and the active
+                  // flag is route-gated, so it never collides with them. Done in
+                  // the panel clears the store.
+                  <div className={styles.rightBody}>
+                    <ObjectiveToolsPanel projectId={id} objective={selectedObjective} />
+                  </div>
+                ) : surveyActive ? (
                   // Highest-precedence rail takeover: the vegetation-survey panel
                   // (7 community rows + live auto-%). Opened from the s2-ecology-c1
                   // decision's "Open map survey" button; Done clears `active`.
@@ -1335,16 +1362,26 @@ export default function ActTierShell() {
                           templateId={selectedProtocolId}
                         />
                       ) : rightMode === 'detail' && selectedObjective ? (
-                        <ActTierExecutionPanel
-                          projectId={id}
-                          tier={selectedObjectiveTier}
-                          objective={selectedObjective}
-                          status={selectedObjectiveStatus}
-                          serverId={serverId}
-                          members={members}
-                          currentUserId={currentUserId}
-                          myRole={myRole}
-                        />
+                        <>
+                          {/* Generic "Open map with tools" CTA — self-gates to
+                              objectives that resolve to >= 1 map draw/place tool,
+                              so it appears only for spatial objectives (the two
+                              bespoke surveys keep their own richer buttons). */}
+                          <OpenMapToolsButton
+                            projectId={id}
+                            objective={selectedObjective}
+                          />
+                          <ActTierExecutionPanel
+                            projectId={id}
+                            tier={selectedObjectiveTier}
+                            objective={selectedObjective}
+                            status={selectedObjectiveStatus}
+                            serverId={serverId}
+                            members={members}
+                            currentUserId={currentUserId}
+                            myRole={myRole}
+                          />
+                        </>
                       ) : workOpen ? (
                         <ActWorkPanel
                           projectId={id}
