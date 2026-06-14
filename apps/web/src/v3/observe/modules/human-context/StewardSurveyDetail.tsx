@@ -152,6 +152,7 @@ function StewardEditor({ projectId, entry }: StewardEditorProps) {
 
   const skills = profile.skills ?? [];
   const personalGoals = profile.personalExperienceGoals ?? [];
+  const needs = profile.needs ?? [];
 
   const initial = profile.maintenanceHrsInitial ?? 0;
   const ongoing = profile.maintenanceHrsOngoing ?? 0;
@@ -285,6 +286,26 @@ function StewardEditor({ projectId, entry }: StewardEditorProps) {
               )
             }
             placeholder="New skill"
+          />
+        </Field>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Field label="Needs">
+          <ChipEditor
+            items={needs}
+            onAdd={(value) =>
+              setStewardProfileList(projectId, userId, 'needs', [...needs, value])
+            }
+            onRemove={(idx) =>
+              setStewardProfileList(
+                projectId,
+                userId,
+                'needs',
+                needs.filter((_, i) => i !== idx),
+              )
+            }
+            placeholder="New need"
           />
         </Field>
       </div>

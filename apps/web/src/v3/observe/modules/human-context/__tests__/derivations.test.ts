@@ -17,7 +17,7 @@ import {
 describe('stewardCompleteness', () => {
   it('returns 0% for undefined steward', () => {
     const c = stewardCompleteness(undefined);
-    expect(c).toEqual({ filled: 0, total: 8, pct: 0 });
+    expect(c).toEqual({ filled: 0, total: 9, pct: 0 });
   });
 
   it('counts only non-empty fields', () => {
@@ -31,11 +31,17 @@ describe('stewardCompleteness', () => {
     });
     // relationship, age, lifestyle, maintenanceHrsInitial=0 (0 is filled per isFilled)
     expect(c.filled).toBe(4);
-    expect(c.total).toBe(8);
-    expect(c.pct).toBe(50);
+    expect(c.total).toBe(9);
+    expect(c.pct).toBe(44); // round(4/9 * 100)
   });
 
-  it('reaches 100% with all 8 fields', () => {
+  it('counts needs toward completeness (Option 3)', () => {
+    const c = stewardCompleteness({ needs: ['wheelchair-accessible paths'] });
+    expect(c.filled).toBe(1);
+    expect(c.total).toBe(9);
+  });
+
+  it('reaches 100% with all 9 fields', () => {
     const c = stewardCompleteness({
       relationship: 'lead',
       age: 30,
@@ -45,6 +51,7 @@ describe('stewardCompleteness', () => {
       maintenanceHrsOngoing: 8,
       budget: '$10k',
       skills: ['carpentry'],
+      needs: ['wheelchair-accessible paths'],
     });
     expect(c.pct).toBe(100);
   });
@@ -103,7 +110,7 @@ describe('roster rollups', () => {
   });
 
   it('rosterCompleteness averages per-steward completeness', () => {
-    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 8, pct: 0 });
+    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 9, pct: 0 });
     const c = rosterCompleteness([
       {
         relationship: 'lead',
@@ -114,12 +121,13 @@ describe('roster rollups', () => {
         maintenanceHrsOngoing: 8,
         budget: '$10k',
         skills: ['carpentry'],
+        needs: ['wheelchair-accessible paths'],
       }, // 100%
       {}, // 0%
     ]);
     expect(c.pct).toBe(50);
-    expect(c.total).toBe(16);
-    expect(c.filled).toBe(8);
+    expect(c.total).toBe(18);
+    expect(c.filled).toBe(9);
   });
 });
 

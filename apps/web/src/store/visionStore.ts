@@ -69,6 +69,12 @@ export interface StewardProfile {
   personalVision?: string;
   /** Hybrid model: this steward's own experience goals (personal). */
   personalExperienceGoals?: string[];
+  /**
+   * What this steward needs from the project/land to participate well --
+   * support, accommodations, resources, learning. The one explicit steward
+   * variable that previously had no home (steward data audit, 2026-06-14).
+   */
+  needs?: string[];
 }
 
 /**
@@ -99,7 +105,7 @@ export interface MoodboardImage {
 }
 
 /** Per-steward string-list fields editable via setStewardProfileList. */
-export type StewardProfileListField = 'skills' | 'personalExperienceGoals';
+export type StewardProfileListField = 'skills' | 'personalExperienceGoals' | 'needs';
 
 /** Shared-vision string-list fields editable via setSharedVisionList. */
 export type SharedVisionListField =

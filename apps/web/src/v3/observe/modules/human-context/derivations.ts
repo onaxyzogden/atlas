@@ -16,9 +16,9 @@ import type {
 /* --------------------------- steward ---------------------------------- */
 
 /**
- * The eight profile-overlay fields counted toward per-steward completeness.
+ * The nine profile-overlay fields counted toward per-steward completeness.
  * Identity (name) lives on the member record, not the profile, so it is not
- * counted here.
+ * counted here. `needs` joined the set 2026-06-14 (steward data audit Option 3).
  */
 const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'relationship',
@@ -29,6 +29,7 @@ const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'maintenanceHrsOngoing',
   'budget',
   'skills',
+  'needs',
 ];
 
 export interface Completeness {
