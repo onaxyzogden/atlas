@@ -3,6 +3,7 @@ import { UNIVERSAL_SEEDED_PROTOCOLS } from './universal.js';
 import { HOMESTEAD_SEEDED_PROTOCOLS } from './homestead.js';
 import { ECOVILLAGE_SEEDED_PROTOCOLS } from './ecovillage.js';
 import { SILVOPASTURE_SEEDED_PROTOCOLS } from './silvopasture.js';
+import { ORCHARD_SEEDED_PROTOCOLS } from './orchard.js';
 import type { SeededProtocolMap } from './types.js';
 
 export type { SeededProtocolMap };
@@ -16,6 +17,7 @@ export const PRIMARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
   homestead: HOMESTEAD_SEEDED_PROTOCOLS,
   ecovillage: ECOVILLAGE_SEEDED_PROTOCOLS,
   silvopasture: SILVOPASTURE_SEEDED_PROTOCOLS,
+  orchard_food_forest: ORCHARD_SEEDED_PROTOCOLS,
 };
 
 /**
