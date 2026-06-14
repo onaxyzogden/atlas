@@ -140,7 +140,7 @@ import {
 import { QUICK_LOGS } from '../../act/quickLogs.js';
 import { computeChecklistProgress } from '../../act/tier-shell/objectiveProgress.js';
 import { resolveActStratumId } from '../../act/tier-shell/resolveActStratumId.js';
-import PlanTierCategorizedToolsRail from './PlanTierCategorizedToolsRail.js';
+import PlanToolDock from './PlanToolDock.js';
 import type { PlanTool } from './planToolCatalog.js';
 import type { PlanModule, PlanView } from '../types.js';
 import styles from '../../act/tier-shell/ActTierShell.module.css';
@@ -1023,7 +1023,7 @@ export default function PlanTierShell() {
             }
             bottomTray={
               showTierZeroWorkbench ? undefined : (
-                <PlanTierCategorizedToolsRail
+                <PlanToolDock
                   objective={selectedObjective}
                   disabled={!params.projectId}
                   onActivate={handleActivateTool}
