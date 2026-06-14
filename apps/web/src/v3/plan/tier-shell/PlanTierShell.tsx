@@ -90,6 +90,8 @@ import PlanModuleSlideUp from '../PlanModuleSlideUp.js';
 import ObjectiveDetailPanel from '../strata/ObjectiveDetailPanel.js';
 import PlanProtocolWorkspace from '../strata/PlanProtocolWorkspace.js';
 import ProtocolWiringPane from '../strata/ProtocolWiringPane.js';
+import ProtocolsEmptyCue from '../strata/ProtocolsEmptyCue.js';
+import { useProtocolLibrary } from '../strata/useProtocolLibrary.js';
 import StratumLockedPopover from '../strata/StratumLockedPopover.js';
 import { pushHabitatFeaturesToSpine } from '../../../features/biodiversity/habitatFeatureSpineSync.js';
 import {
@@ -285,6 +287,19 @@ export default function PlanTierShell() {
     primaryTypeId,
     secondaryTypeIds,
   );
+
+  // Resolved standing-protocol library for this project's types — the same hook
+  // the left rail's ProtocolLayerPanel calls internally (memoised on type
+  // identity, so no extra recompute). Order is S1→S7 and the Plan rail spans the
+  // whole library (protocolScopeStratumId={null}), so templates[0] is exactly the
+  // first card the steward sees. A type-less project (e.g. mtc) resolves zero.
+  const { templates: protocolTemplates } = useProtocolLibrary(
+    id,
+    primaryTypeId,
+    secondaryTypeIds,
+  );
+  const firstProtocolId = protocolTemplates[0]?.id ?? null;
+  const protocolsAvailable = protocolTemplates.length > 0;
 
   // URL is the single source of truth for the rendered stratum: explicit
   // $stratumId param → the selected objective's owning stratum → S1.
@@ -643,11 +658,11 @@ export default function PlanTierShell() {
     [navigate],
   );
 
-  // Protocol card click → open its full-edit detail in the right rail.
-  // Re-clicking the active protocol deselects it (back to the dashboard),
-  // mirroring objectives. Writes ?planMode=protocol&protocol=<id> on the current
-  // path; toggle-off clears protocol. `replace` keeps selection churn out of
-  // history.
+  // Protocol card click → open it in the center workspace. Under the workspace
+  // model there is no "dashboard" to deselect back to, so selecting a protocol
+  // always opens it (no toggle-off) — and auto-select would immediately re-fill a
+  // cleared selection anyway. Writes ?planMode=protocol&protocol=<id> on the
+  // current path; `replace` keeps selection churn out of history.
   const handleSelectProtocol = useCallback(
     (templateId: string) => {
       navigate({
@@ -655,13 +670,24 @@ export default function PlanTierShell() {
         search: (prev: Record<string, unknown>) => ({
           ...prev,
           planMode: 'protocol',
-          protocol: prev?.protocol === templateId ? undefined : templateId,
+          protocol: templateId,
         }),
         replace: true,
       } as never);
     },
     [navigate],
   );
+
+  // Protocols mode auto-selects the first protocol so the center mounts the
+  // workspace immediately instead of a bare cue. Fires only when the library has
+  // entries — a type-less project (e.g. mtc) resolves none, so the empty cue
+  // shows instead. Single fire: once ?protocol is set, selectedProtocolId is
+  // truthy and the guard stops it.
+  useEffect(() => {
+    if (railMode === 'protocols' && !selectedProtocolId && firstProtocolId) {
+      handleSelectProtocol(firstProtocolId);
+    }
+  }, [railMode, selectedProtocolId, firstProtocolId, handleSelectProtocol]);
 
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
@@ -865,7 +891,7 @@ export default function PlanTierShell() {
                     templateId={selectedProtocolId}
                   />
                 ) : (
-                  <PlanReadyCue projectId={params.projectId ?? null} />
+                  <ProtocolsEmptyCue hasProtocols={protocolsAvailable} />
                 )
               ) : showTierZeroWorkbench && selectedObjective ? (
                 // Interactive decision workbench (moved here from Act): replaces
@@ -948,7 +974,10 @@ export default function PlanTierShell() {
                         templateId={selectedProtocolId}
                       />
                     ) : (
-                      <PlanReadyCue projectId={params.projectId ?? null} />
+                      <ProtocolsEmptyCue
+                        hasProtocols={protocolsAvailable}
+                        compact
+                      />
                     )}
                   </div>
                 </div>
