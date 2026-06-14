@@ -74,4 +74,17 @@ Verified: `npm run typecheck` (web, `--max-old-space-size=8192`) EXIT 0 — only
 
 Amanah: pure layout/IA work — no capital, sale, advance-purchase, or financing surface; no riba/gharar/`bayʿ mā laysa ʿindak`/CSRA/salam framing ([[fiqh-csra-erased-2026-05-04]], [[feedback-csa-in-catalogues]]).
 
+## Seeded protocol pills + Protocol mode pinned group (2026-06-14)
+
+A **separate mapping layer** (`packages/shared/src/relationships/seededProtocols/`) binds objectives to their standing protocols without touching either schema (Approach 3 — clean interface, auditable in one place).
+
+- **Data layer:** `SeededProtocolMap = Partial<Record<string, readonly string[]>>` (objectiveId → protocolId[]). Two files: `universal.ts` (17 of 19 universal objectives mapped) and `homestead.ts` (12 homestead-specific mappings). `resolveSeededProtocols(objectiveId, primaryTypeId, secondaryTypeIds)` merges universal + primary-type map with dedup, matching the `resolveProjectProtocols` pattern.
+- **Surface B — pill strip:** `SeededProtocolPills.tsx` renders coloured pills under the objective title in `ObjectiveDetailPanel` (judgment=blue, cyclical=teal, threshold=amber, freeform=gray). Reads `typeRecord` from `useProjectStore` internally (avoids the `Project` vs. store-model shape mismatch). Returns `null` when no seedings — graceful degradation. Clicking a pill navigates via `?planMode=protocol&fromObjective=<id>&selectProtocol=<id>`.
+- **Surface C — pinned group in Protocol mode:** `PlanStratumShell` reads the new `fromObjective` + `selectProtocol` URL params; when present, builds a `ProtocolTierGroup` of the objective's seeded protocols. `ProtocolColumn` accepts an optional `pinnedGroup?: ProtocolTierGroup` and renders it with a teal accent header *"For this objective"* before the regular tier groups. Auto-selects the `selectProtocol` protocol on entry (one-shot, guarded by `useRef`).
+- **No state change on pill click** — strictly navigate-only; Protocol mode stays opt-in.
+
+Commit `4fc1744b` on `main` (9 files, 454 insertions; **not pushed**). tsc clean (4 pre-existing baseline only); web lint EXIT 0. Log [[log/2026-06-14-atlas-seeded-protocol-pills]].
+
+Amanah: pure IA/navigation — no capital, sale, advance-purchase, or financing surface; no riba/gharar/CSRA/salam ([[fiqh-csra-erased-2026-05-04]]).
+
 Mirrors [[entities/act-tier-shell]]. ADR: [[decisions/2026-06-11-atlas-plan-tier-shell-adoption]]. Log: [[log/2026-06-11-atlas-plan-tier-shell]].
