@@ -88,7 +88,8 @@ import PlanPhaseTabs from '../canvas/PlanPhaseTabs.js';
 import PlanReadyCue from '../components/PlanReadyCue.js';
 import PlanModuleSlideUp from '../PlanModuleSlideUp.js';
 import ObjectiveDetailPanel from '../strata/ObjectiveDetailPanel.js';
-import PlanProtocolDetailPane from '../strata/PlanProtocolDetailPane.js';
+import PlanProtocolWorkspace from '../strata/PlanProtocolWorkspace.js';
+import ProtocolWiringPane from '../strata/ProtocolWiringPane.js';
 import StratumLockedPopover from '../strata/StratumLockedPopover.js';
 import { pushHabitatFeaturesToSpine } from '../../../features/biodiversity/habitatFeatureSpineSync.js';
 import {
@@ -807,10 +808,12 @@ export default function PlanTierShell() {
           ariaLabel="Plan strata"
         />
         <div className={styles.shellWrap}>
-          {showTierZeroWorkbench && !selectedObjective ? (
+          {showTierZeroWorkbench && !selectedObjective && railMode !== 'protocols' ? (
             // Tier-0 route resolved before its objective set hydrated: hold a
             // lightweight non-map placeholder rather than mounting the WebGL
             // VisionLayoutCanvas (which would wedge the headless preview).
+            // Protocols mode never needs an objective, so it always falls through
+            // to StageShell even on a stale tier-zero deep-link.
             <div
               className={styles.tierZeroLoading}
               role="status"
@@ -849,7 +852,22 @@ export default function PlanTierShell() {
               />
             }
             canvas={
-              showTierZeroWorkbench && selectedObjective ? (
+              railMode === 'protocols' ? (
+                // Protocols mode takes over the center: a two-pane workspace
+                // (mechanics editor + meaning context) where the steward designs
+                // the standing protocol. Placing this branch first guarantees the
+                // WebGL VisionLayoutCanvas never mounts in Protocols mode.
+                selectedProtocolId ? (
+                  <PlanProtocolWorkspace
+                    projectId={id}
+                    primaryTypeId={primaryTypeId}
+                    secondaryTypeIds={secondaryTypeIds}
+                    templateId={selectedProtocolId}
+                  />
+                ) : (
+                  <PlanReadyCue projectId={params.projectId ?? null} />
+                )
+              ) : showTierZeroWorkbench && selectedObjective ? (
                 // Interactive decision workbench (moved here from Act): replaces
                 // the editable map for non-spatial Tier-0 objectives. Writes flow
                 // to the shared actEvidence + planStratumProgress stores via the
@@ -914,14 +932,16 @@ export default function PlanTierShell() {
                   </div>
                 </div>
               ) : railMode === 'protocols' ? (
-                // Protocols mode: the right rail is the full-edit protocol detail
-                // (card + editable thresholds + lifecycle), or the dashboard cue
-                // until a protocol is picked. No Objective tab — protocols mode
-                // has no objective selection.
+                // Protocols mode: the editor now lives in the center workspace, so
+                // the right rail carries the WIRING & STATE summary (stratum,
+                // objective anchor, feeds-into, lifecycle status, expected rate) —
+                // the complement of the center MEANING pane. Dashboard cue until a
+                // protocol is picked. No Objective tab — protocols mode has no
+                // objective selection.
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
                     {selectedProtocolId ? (
-                      <PlanProtocolDetailPane
+                      <ProtocolWiringPane
                         projectId={id}
                         primaryTypeId={primaryTypeId}
                         secondaryTypeIds={secondaryTypeIds}

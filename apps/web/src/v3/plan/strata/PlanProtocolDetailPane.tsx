@@ -26,6 +26,13 @@ interface Props {
   primaryTypeId: ProjectTypeId | null;
   secondaryTypeIds: readonly ProjectTypeId[];
   templateId: string;
+  /**
+   * Card treatment forwarded to ProtocolLibraryCard. Defaults to `full` (the
+   * standalone detail pane). The Plan Protocols-workspace passes `mechanics` so
+   * the editor pane shows only header + live IF/THEN, with rationale/Amanah in
+   * the adjacent MEANING pane and feeds/status in the right-rail WIRING pane.
+   */
+  cardVariant?: 'full' | 'mechanics';
 }
 
 export default function PlanProtocolDetailPane({
@@ -33,6 +40,7 @@ export default function PlanProtocolDetailPane({
   primaryTypeId,
   secondaryTypeIds,
   templateId,
+  cardVariant = 'full',
 }: Props) {
   const { templates, statusByTemplate, outputsFor } = useProtocolLibrary(
     projectId,
@@ -106,6 +114,7 @@ export default function PlanProtocolDetailPane({
           status={status}
           outputs={outputsFor(template.id)}
           emphasis="normal"
+          variant={cardVariant}
         />
 
         {/* Editable thresholds — the Plan-stage affordance. Renders nothing when

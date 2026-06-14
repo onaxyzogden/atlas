@@ -83,6 +83,7 @@ export default function ProtocolLibraryCard({
   outputs,
   emphasis = 'normal',
   collapsed = false,
+  variant = 'full',
   onSelect,
   selected = false,
 }: {
@@ -94,6 +95,15 @@ export default function ProtocolLibraryCard({
   emphasis?: 'normal' | 'triggered' | 'dimmed';
   /** Act collapses non-triggered cards to header + footer (omits IF/THEN + rationale). */
   collapsed?: boolean;
+  /**
+   * `mechanics` strips the card to its editable essentials — header + live
+   * IF/THEN box only — omitting the rationale + Amanah block AND the
+   * feeds/status footer. The Plan Protocols-workspace editor pane uses it so
+   * those move to the adjacent MEANING pane and the right-rail WIRING pane with
+   * no duplication. `full` (default) is byte-identical to the prior card, so
+   * Act + the library are unchanged.
+   */
+  variant?: 'full' | 'mechanics';
   /** When set, the card becomes a button (click + Enter/Space) firing this — used by
    *  the Act rail to drive the right-rail detail pane. Omitted = inert (Plan/library). */
   onSelect?: () => void;
@@ -295,24 +305,29 @@ export default function ProtocolLibraryCard({
               </div>
             </div>
 
-            {/* Rationale */}
-            <div
-              style={{
-                fontSize: 12,
-                color: C.textSecondary,
-                fontFamily: F.sans,
-                fontStyle: 'italic',
-                lineHeight: 1.5,
-                marginTop: 10,
-              }}
-            >
-              {template.rationale}
-            </div>
+            {/* Rationale — omitted in the `mechanics` variant (moves to the
+                Plan Protocols-workspace MEANING pane). */}
+            {variant !== 'mechanics' && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: C.textSecondary,
+                  fontFamily: F.sans,
+                  fontStyle: 'italic',
+                  lineHeight: 1.5,
+                  marginTop: 10,
+                }}
+              >
+                {template.rationale}
+              </div>
+            )}
 
             {/* Amanah caution — verbatim scopeNotes (e.g. the bayʿ mā laysa
                 ʿindak warning on sales-channel/advance-commitment protocols).
-                Rendered exactly as authored; never truncated or reworded. */}
-            {template.scopeNotes && (
+                Rendered exactly as authored; never truncated or reworded.
+                Omitted in the `mechanics` variant (moves verbatim to the
+                MEANING pane). */}
+            {variant !== 'mechanics' && template.scopeNotes && (
               <div
                 data-testid="protocol-amanah-caution"
                 style={{
@@ -355,7 +370,9 @@ export default function ProtocolLibraryCard({
         )}
       </div>
 
-      {/* Feeds + lifecycle-status footer */}
+      {/* Feeds + lifecycle-status footer — omitted in the `mechanics` variant
+          (feeds + status move to the right-rail WIRING pane). */}
+      {variant !== 'mechanics' && (
       <div
         style={{
           background: C.bg3,
@@ -417,6 +434,7 @@ export default function ProtocolLibraryCard({
           </span>
         )}
       </div>
+      )}
     </div>
   );
 }

@@ -210,6 +210,49 @@ describe('ProtocolLibraryCard source attribution', () => {
   });
 });
 
+describe('ProtocolLibraryCard mechanics variant', () => {
+  // The Plan Protocols-workspace renders the editor card as `mechanics`: header +
+  // live IF/THEN only. Rationale/Amanah move to the center MEANING pane; the
+  // feeds/status footer moves to the right-rail WIRING pane. Default (`full`) is
+  // unchanged (covered above), so here we only prove the mechanics strip.
+
+  it('keeps the header + IF/THEN but omits rationale, Amanah, and the feeds/status footer', () => {
+    render(
+      <ProtocolLibraryCard
+        template={SCOPED_TEMPLATE}
+        status="active"
+        outputs={{}}
+        variant="mechanics"
+      />,
+    );
+
+    const card = screen.getByTestId('protocol-template-card');
+    // Header survives: name + severity badge.
+    expect(within(card).getByText(SCOPED_TEMPLATE.name)).toBeTruthy();
+    expect(within(card).getByTestId('protocol-severity-badge')).toBeTruthy();
+    // Live IF/THEN box survives (so threshold substitution still shows).
+    expect(screen.getByText('IF')).toBeTruthy();
+    expect(screen.getByText('THEN')).toBeTruthy();
+
+    // Rationale omitted.
+    expect(screen.queryByText(SCOPED_TEMPLATE.rationale)).toBeNull();
+    // Amanah caution omitted (it moves verbatim to the MEANING pane).
+    expect(screen.queryByTestId('protocol-amanah-caution')).toBeNull();
+    // Feeds/status footer omitted — the `active` status label is the footer's,
+    // so its absence proves the footer is gone.
+    expect(screen.queryByText('Active')).toBeNull();
+  });
+
+  it('full variant (default) keeps the Amanah caution + status footer for the same scoped template', () => {
+    render(
+      <ProtocolLibraryCard template={SCOPED_TEMPLATE} status="active" outputs={{}} />,
+    );
+    // Baseline so the mechanics omissions above are meaningful, not vacuous.
+    expect(screen.getByTestId('protocol-amanah-caution')).toBeTruthy();
+    expect(screen.getByText('Active')).toBeTruthy();
+  });
+});
+
 describe('ProtocolLibraryCard onSelect (Act clickable cards)', () => {
   it('is inert (no button role / data-selected) when onSelect is omitted', () => {
     render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
