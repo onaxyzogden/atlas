@@ -19,8 +19,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { UNIVERSAL_SEEDED_PROTOCOLS } from '../universal.js';
-import { PRIMARY_MAPS } from '../index.js';
+import { PRIMARY_MAPS, SECONDARY_MAPS } from '../index.js';
 import { UNIVERSAL_PROTOCOL_TEMPLATES } from '../../../constants/protocol/catalogues/universal.js';
+import { getSecondaryProtocolCatalogue } from '../../../constants/protocol/catalogues/index.js';
 import { resolveProjectProtocols } from '../../resolveProjectProtocols.js';
 import type { ProjectTypeId } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
 import type { SeededProtocolMap } from '../types.js';
@@ -55,6 +56,29 @@ describe('seeded protocol ID conformance', () => {
         expect(
           valid.has(protocolId),
           `"${typeId}" seeded protocol "${protocolId}" (objective "${objectiveId}") does not resolve in resolveProjectProtocols`,
+        ).toBe(true);
+      }
+    });
+  }
+
+  // A SECONDARY-keyed map (e.g. nursery's nur-sec-* objectives) is host-agnostic:
+  // its objectives appear whenever the type is layered onto ANY compatible host.
+  // The protocols guaranteed present for every such host are the universal pool
+  // plus that secondary's own additive catalogue (its primary protocols load only
+  // when the type is the PRIMARY). So the valid set here is universal ∪ additive —
+  // a strict subset of any concrete host's resolved set (universal ∪ hostPrimary ∪
+  // additive), so passing guarantees the pill resolves on every compatible host.
+  const universalIds = UNIVERSAL_PROTOCOL_TEMPLATES.map((p) => p.id);
+  for (const [typeId, map] of Object.entries(SECONDARY_MAPS) as Array<
+    [ProjectTypeId, SeededProtocolMap]
+  >) {
+    it(`every seeded id for secondary "${typeId}" resolves when layered`, () => {
+      const additive = getSecondaryProtocolCatalogue(typeId)?.additive ?? [];
+      const valid = new Set([...universalIds, ...additive.map((p) => p.id)]);
+      for (const [objectiveId, protocolId] of pairs(map)) {
+        expect(
+          valid.has(protocolId),
+          `secondary "${typeId}" seeded protocol "${protocolId}" (objective "${objectiveId}") resolves in neither the universal pool nor the "${typeId}" additive catalogue`,
         ).toBe(true);
       }
     });
