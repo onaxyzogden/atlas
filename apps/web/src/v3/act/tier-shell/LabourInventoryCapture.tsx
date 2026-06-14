@@ -64,6 +64,13 @@ import {
 import { LABOUR_SKILL_CATEGORIES } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import type { StewardModel } from './StewardCapture.js';
+import { StewardPicker } from './captures/controls/index.js';
+import {
+  encodeStewardRef,
+  decodeStewardRef,
+  type StewardRef,
+  type StewardOption,
+} from './captures/stewardRef.js';
 import css from './LabourInventoryCapture.module.css';
 
 const SKILL_TO_CATEGORY = new Map<string, string>(
@@ -110,6 +117,12 @@ export type PersonRole =
 export interface PersonAvailability {
   name: string;
   role?: PersonRole;
+  /**
+   * Optional link back to the canonical roster (Option 1). Set when the row was
+   * picked from / seeded against a known member or invite; absent for free-text
+   * (off-platform) people. Serialised in the parallel `rosterRefs` cell.
+   */
+  ref?: StewardRef;
   /** Absolute hours worked in each season. Baseline weekly hours is derived as average(spring, summer, autumn, winter). */
   seasonal: { spring: number; summer: number; autumn: number; winter: number };
   skills: { name: string; level: SkillLevel }[];
@@ -271,7 +284,7 @@ export function encode(model: LabourModel): FormValue {
   // so the flat { hours, spring..winter, skills } any downstream consumer reads
   // is always the live derived sum -- never a stale guessed aggregate.
   const team = deriveTeam(model.roster);
-  return {
+  const out: FormValue = {
     who: model.who,
     hours: String(team.hours),
     spring: String(team.seasonal.spring),
@@ -288,6 +301,11 @@ export function encode(model: LabourModel): FormValue {
     rosterWinter: model.roster.map((p) => String(p.seasonal.winter)),
     rosterSkills: model.roster.map((p) => packSkills(p.skills)),
   };
+  // Steward links (Option 1) are emitted ONLY when at least one person is linked,
+  // so a roster with no links re-encodes byte-identically to the pre-Option-1 shape.
+  const refs = model.roster.map((p) => encodeStewardRef(p.ref ?? null));
+  if (refs.some((r) => r !== '')) out.rosterRefs = refs;
+  return out;
 }
 
 /**
@@ -379,17 +397,25 @@ export function decode(value: FormValue): LabourModel {
     const autumnArr = asArray(value.rosterAutumn);
     const winterArr = asArray(value.rosterWinter);
     const skillsArr = asArray(value.rosterSkills);
-    roster = names.map((name, i) => ({
-      name,
-      role: toRole(roles[i] ?? ''),
-      seasonal: {
-        spring: toNonNegInt(springArr[i]),
-        summer: toNonNegInt(summerArr[i]),
-        autumn: toNonNegInt(autumnArr[i]),
-        winter: toNonNegInt(winterArr[i]),
-      },
-      skills: unpackSkills(skillsArr[i] ?? ''),
-    }));
+    const refsArr = asArray(value.rosterRefs);
+    roster = names.map((name, i) => {
+      // ref is OMITTED (not null) when there is no link, so a roster with no
+      // steward links decodes to exactly the pre-Option-1 shape and round-trips
+      // byte-identically.
+      const ref = decodeStewardRef(refsArr[i]);
+      return {
+        name,
+        role: toRole(roles[i] ?? ''),
+        ...(ref !== null ? { ref } : {}),
+        seasonal: {
+          spring: toNonNegInt(springArr[i]),
+          summer: toNonNegInt(summerArr[i]),
+          autumn: toNonNegInt(autumnArr[i]),
+          winter: toNonNegInt(winterArr[i]),
+        },
+        skills: unpackSkills(skillsArr[i] ?? ''),
+      };
+    });
   } else {
     // Legacy back-compat: an old saved decision has no `rosterNames`. Collapse
     // its combined seasonal/skills into ONE synthetic `primary` person. The old
@@ -445,10 +471,16 @@ function roleLabel(role: PersonRole | undefined): string {
  * specifies DEFAULT_SEASONAL hours per season, so per-person baselines start low
  * and don't balloon the derived team total before the steward enters real numbers.
  */
-export function rosterSeedFrom(steward: StewardModel): PersonAvailability[] {
+export function rosterSeedFrom(
+  steward: StewardModel,
+  selfRef?: StewardRef,
+): PersonAvailability[] {
   const primary: PersonAvailability = {
     name: 'You',
     role: 'primary',
+    // Link the primary row to the current user (Option 1) when the caller can
+    // resolve it; absent otherwise (the row is still linkable via the picker).
+    ref: selfRef ?? null,
     seasonal: { ...DEFAULT_SEASONAL },
     skills: [],
   };
@@ -457,6 +489,8 @@ export function rosterSeedFrom(steward: StewardModel): PersonAvailability[] {
     .map((inv) => ({
       name: inv.name,
       role: inv.role as PersonRole,
+      // Pending invites carry only an email at founding time -- the email ref.
+      ref: inv.email.trim() !== '' ? { email: inv.email.trim() } : null,
       seasonal: { ...DEFAULT_SEASONAL },
       skills: [] as { name: string; level: SkillLevel }[],
     }));
@@ -494,6 +528,12 @@ export interface LabourInventoryCaptureProps {
    * Shown when no roster is persisted yet; bakes into persistence on first edit.
    */
   rosterSeed?: PersonAvailability[];
+  /**
+   * Canonical steward options (Option 1) -- joined members + pending invites.
+   * When non-empty, each roster row shows a picker that links the person to a
+   * stable {userId|email} ref and fills the name. Absent/empty => free-text only.
+   */
+  stewardOptions?: readonly StewardOption[];
 }
 
 const clampSeason = (n: number): number => Math.max(0, Math.min(80, n));
@@ -511,7 +551,9 @@ export default function LabourInventoryCapture({
   onChange,
   skillSuggestions,
   rosterSeed,
+  stewardOptions,
 }: LabourInventoryCaptureProps): JSX.Element {
+  const linkOptions = stewardOptions ?? [];
   // UI-only transient state: which rows are expanded + the per-row skill composer.
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set([0]));
   const [composerRow, setComposerRow] = useState<number | null>(null);
@@ -685,6 +727,20 @@ export default function LabourInventoryCapture({
                   >
                     {roleLabel(p.role)}
                   </span>
+                  {linkOptions.length > 0 ? (
+                    <span className={css.personLink}>
+                      <StewardPicker
+                        options={linkOptions}
+                        value={p.ref ?? null}
+                        ariaLabel={`Link ${p.name || 'person'} to a steward`}
+                        onChange={(ref, label) =>
+                          label !== ''
+                            ? updatePerson(i, { ref, name: label })
+                            : updatePerson(i, { ref })
+                        }
+                      />
+                    </span>
+                  ) : null}
                   <input
                     className={css.personName}
                     placeholder={p.role === 'primary' ? 'You' : 'Name'}

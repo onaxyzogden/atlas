@@ -73,6 +73,7 @@ import {
   CARRYING_CAPACITY_PREFIX,
 } from '../CarryingCapacityCapture.js';
 import type { FormValue } from '../actToolCatalog.js';
+import type { StewardOption } from '../captures/stewardRef.js';
 
 // An "assessed" ev-s2-carrying-capacity sibling map (real operator inputs across
 // c1..c5). carryingCapacityAssessed -> true, so settlement-plan c6 derives its
@@ -116,7 +117,10 @@ const SIGNED_ENFORCEMENT: FormValue = {
 function renderMode(
   mode: SettlementPlanMode,
   value: FormValue,
-  extra: { siblingValues?: Record<string, FormValue> } = {},
+  extra: {
+    siblingValues?: Record<string, FormValue>;
+    stewardOptions?: readonly StewardOption[];
+  } = {},
 ) {
   const onChange = vi.fn();
   render(
@@ -126,6 +130,7 @@ function renderMode(
       onChange={onChange}
       itemId={`${SETTLEMENT_PLAN_PREFIX}-${mode === 'cohort' ? 'c1' : mode === 'thresholds' ? 'c2' : mode === 'criteria' ? 'c3' : mode === 'schedule' ? 'c4' : mode === 'capacityFit' ? 'c6' : 'c5'}`}
       siblingValues={extra.siblingValues}
+      stewardOptions={extra.stewardOptions}
     />,
   );
   return { onChange };
@@ -217,11 +222,13 @@ describe('decodeSettlementPlan -- empty / undefined value never seeds', () => {
 // ---------------------------------------------------------------------------
 
 describe('encode round-trips', () => {
-  it('cohort round-trips', () => {
+  it('cohort round-trips (new spCohortRows shape, incl. a steward link)', () => {
     const value: FormValue = {
-      spComposition: 'Ali and Sara families',
+      spCohortRows: [
+        JSON.stringify({ id: 'h1', name: 'Ali family', size: 4 }),
+        JSON.stringify({ id: 'h2', name: 'Sara family', size: 3, ref: { email: 's@x.nz' } }),
+      ],
       spArrivalISO: '2026-09-01',
-      spHouseholds: '2',
     };
     const model = decodeSettlementPlan('cohort', value);
     expect(decodeSettlementPlan('cohort', encodeSettlementPlan(model))).toEqual(model);
@@ -631,14 +638,129 @@ describe('settlementPhasesFrom', () => {
 // ---------------------------------------------------------------------------
 
 describe('cohort -- render / interaction', () => {
-  it('renders composition textarea and fires onChange with spComposition key', () => {
+  it('adds a founding household row and emits spCohortRows (+ derived legacy fields)', () => {
     const { onChange } = renderMode('cohort', {});
-    const ta = screen.getByLabelText('Founding cohort composition');
-    expect(ta).toBeTruthy();
-    fireEvent.change(ta, { target: { value: 'Ali and Sara families, 2 adults each' } });
+    // The free-text composition textarea is gone -- it is now a row register.
+    expect(screen.queryByLabelText('Founding cohort composition')).toBeNull();
+    fireEvent.click(screen.getByText(/Add founding household/i));
     expect(onChange).toHaveBeenCalledTimes(1);
     const emitted = onChange.mock.calls[0]![0] as FormValue;
-    expect(emitted.spComposition).toBe('Ali and Sara families, 2 adults each');
+    expect(Array.isArray(emitted.spCohortRows)).toBe(true);
+    expect((emitted.spCohortRows as string[]).length).toBe(1);
+    // Derived legacy fields still emitted for downstream consumers.
+    expect(emitted.spHouseholds).toBe('1');
+    expect(typeof emitted.spComposition).toBe('string');
+  });
+
+  it('typing a household name derives spComposition and keeps spHouseholds = row count', () => {
+    const value: FormValue = {
+      spCohortRows: [JSON.stringify({ id: 'h1', name: '', size: 0 })],
+    };
+    const { onChange } = renderMode('cohort', value);
+    fireEvent.change(screen.getByLabelText('Founding household name'), {
+      target: { value: 'Ali family' },
+    });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    expect(emitted.spComposition).toBe('Ali family');
+    expect(emitted.spHouseholds).toBe('1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Steward link (Option 1) -- c1 cohort rows + c5 verifier ref
+// ---------------------------------------------------------------------------
+
+const STEWARD_OPTIONS: readonly StewardOption[] = [
+  { ref: { userId: 'u-1' }, label: 'Ali Rahman', sub: 'ali@x.nz', kind: 'member' },
+  { ref: { email: 'sara@x.nz' }, label: 'Sara Yusuf', sub: 'sara@x.nz', kind: 'invite' },
+];
+
+describe('cohort -- steward link (Option 1)', () => {
+  it('legacy-collapse: a pre-Option-1 cohort decodes to one row, preserving composition + count', () => {
+    const model = decodeSettlementPlan('cohort', {
+      spComposition: 'Ali and Sara families',
+      spArrivalISO: '2026-09-01',
+      spHouseholds: '3',
+    }) as { rows: { name: string }[]; composition: string; households: number };
+    expect(model.rows).toHaveLength(1);
+    expect(model.rows[0]!.name).toBe('Ali and Sara families');
+    // The legacy count + composition are preserved on the model (summary unchanged)
+    // until the operator first edits and bakes the new shape.
+    expect(model.composition).toBe('Ali and Sara families');
+    expect(model.households).toBe(3);
+  });
+
+  it('new shape coerces a valid nested ref and drops a junk ref', () => {
+    const model = decodeSettlementPlan('cohort', {
+      spCohortRows: [
+        JSON.stringify({ id: 'h1', name: 'Ali', size: 2, ref: { userId: 'u-1' } }),
+        JSON.stringify({ id: 'h2', name: 'Sara', size: 1, ref: { userId: '   ' } }),
+      ],
+    }) as { rows: { ref?: unknown }[] };
+    expect(model.rows[0]!.ref).toEqual({ userId: 'u-1' });
+    // A blank-id ref coerces to undefined -> the row carries no link.
+    expect(model.rows[1]!.ref).toBeUndefined();
+  });
+
+  it('picking a steward fills the household name and records the ref', () => {
+    const value: FormValue = {
+      spCohortRows: [JSON.stringify({ id: 'h1', name: '', size: 0 })],
+    };
+    const { onChange } = renderMode('cohort', value, {
+      stewardOptions: STEWARD_OPTIONS,
+    });
+    const picker = screen.getByLabelText('Link founding household to a steward');
+    fireEvent.change(picker, { target: { value: 'u:u-1' } });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    const row = JSON.parse((emitted.spCohortRows as string[])[0]!) as {
+      name: string;
+      ref?: unknown;
+    };
+    expect(row.name).toBe('Ali Rahman');
+    expect(row.ref).toEqual({ userId: 'u-1' });
+    // Derived composition reflects the linked name.
+    expect(emitted.spComposition).toBe('Ali Rahman');
+  });
+
+  it('with no stewardOptions the picker is absent (free-text name still works)', () => {
+    renderMode('cohort', { spCohortRows: [JSON.stringify({ id: 'h1', name: '', size: 0 })] });
+    expect(screen.queryByLabelText('Link founding household to a steward')).toBeNull();
+    expect(screen.getByLabelText('Founding household name')).toBeTruthy();
+  });
+});
+
+describe('enforcement c5 -- verifier steward link (Option 1)', () => {
+  it('verifierRef round-trips via the spVerifierRef token', () => {
+    const value: FormValue = { ...SIGNED_ENFORCEMENT, spVerifierRef: 'u:u-1' };
+    const model = decodeSettlementPlan('enforcement', value);
+    expect((model as { verifierRef?: unknown }).verifierRef).toEqual({ userId: 'u-1' });
+    const re = encodeSettlementPlan(model);
+    expect(re.spVerifierRef).toBe('u:u-1');
+    expect(decodeSettlementPlan('enforcement', re)).toEqual(model);
+  });
+
+  it('back-compat: a legacy enforcement value (no spVerifierRef) re-encodes byte-identically', () => {
+    const model = decodeSettlementPlan('enforcement', SIGNED_ENFORCEMENT);
+    const re = encodeSettlementPlan(model);
+    // No ref -> the spVerifierRef key is never introduced.
+    expect('spVerifierRef' in re).toBe(false);
+    expect(re).toEqual(SIGNED_ENFORCEMENT);
+  });
+
+  it('picking a verifier fills the name + ref and clears any prior signature', () => {
+    const { onChange } = renderMode('enforcement', SIGNED_ENFORCEMENT, {
+      stewardOptions: STEWARD_OPTIONS,
+    });
+    const picker = screen.getByLabelText('Link the verifier to a steward');
+    fireEvent.change(picker, { target: { value: 'e:sara@x.nz' } });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const emitted = onChange.mock.calls[0]![0] as FormValue;
+    expect(emitted.spVerifierName).toBe('Sara Yusuf');
+    expect(emitted.spVerifierRef).toBe('e:sara@x.nz');
+    // Identity changed -> the prior in-app signature is cleared (F1 rule).
+    expect(emitted.spVerifiedAt).toBe('');
   });
 });
 

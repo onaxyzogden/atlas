@@ -25,6 +25,9 @@ import {
   workDueDate,
   type WorkDisplayStatus,
 } from '../../../../features/work/workSelectors.js';
+import { useStewardRoster } from '../../../observe/modules/human-context/roster.js';
+import { memberStewardOptions } from '../captures/stewardRef.js';
+import { StewardPicker } from '../captures/controls/index.js';
 import styles from './ActWorkPanel.module.css';
 
 const STATUS_LABEL: Record<WorkDisplayStatus, string> = {
@@ -54,11 +57,17 @@ interface Props {
 export default function WorkItemRow({ item, todayISO }: Props) {
   const [expanded, setExpanded] = useState<ExpandedForm>(null);
   const [who, setWho] = useState(item.who ?? '');
+  // Option 1: roster userId behind `who`, stamped when the actor is picked from
+  // the steward roster. Work can only be assigned to a joined member (a userId
+  // to attribute to), so this is members-only -- pending invites are excluded.
+  const [assigneeId, setAssigneeId] = useState(item.assigneeId ?? '');
   const [date, setDate] = useState(todayISO);
   const [notes, setNotes] = useState('');
   const [rescheduleTo, setRescheduleTo] = useState(
     workDueDate(item)?.slice(0, 10) ?? todayISO,
   );
+
+  const memberOptions = memberStewardOptions(useStewardRoster(item.projectId));
 
   const status = workDisplayStatus(item, todayISO);
   const due = workDueDate(item)?.slice(0, 10) ?? null;
@@ -71,6 +80,7 @@ export default function WorkItemRow({ item, todayISO }: Props) {
   const handleMarkDone = () => {
     fulfilWithGenericProof(item.id, item.projectId, {
       ...(who.trim() !== '' ? { who: who.trim() } : {}),
+      ...(assigneeId !== '' ? { assigneeId } : {}),
       actualEnd: date,
       ...(notes.trim() !== '' ? { notes: notes.trim() } : {}),
     });
@@ -182,13 +192,37 @@ export default function WorkItemRow({ item, todayISO }: Props) {
 
       {expanded === 'done' && (
         <div className={styles.inlineForm}>
+          {memberOptions.length > 0 && (
+            <div className={styles.inlineField}>
+              <label htmlFor={`work-done-assignee-${item.id}`}>Assign to</label>
+              <StewardPicker
+                options={memberOptions}
+                value={assigneeId !== '' ? { userId: assigneeId } : null}
+                ariaLabel="Assign this work to a steward"
+                sentinelLabel="Someone not listed (type name below)"
+                onChange={(ref, label) => {
+                  if (ref !== null && 'userId' in ref) {
+                    setAssigneeId(ref.userId);
+                    setWho(label);
+                  } else {
+                    setAssigneeId('');
+                  }
+                }}
+              />
+            </div>
+          )}
           <div className={styles.inlineField}>
             <label htmlFor={`work-done-who-${item.id}`}>Who</label>
             <input
               id={`work-done-who-${item.id}`}
               className={styles.input}
               value={who}
-              onChange={(e) => setWho(e.target.value)}
+              onChange={(e) => {
+                setWho(e.target.value);
+                // Free-text edit breaks the roster link -- the name no longer
+                // necessarily matches the picked member.
+                setAssigneeId('');
+              }}
               placeholder="optional"
             />
           </div>

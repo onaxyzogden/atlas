@@ -683,9 +683,25 @@ describe('ratifySeedFrom and the ratify seed', () => {
   };
 
   it('seeds pending rows from named non-contractor invites with stable ids', () => {
+    // Each seeded row carries the invite's email ref (Option 1 link) so the
+    // founding member is attributable to one identity, not re-typed by name.
     expect(ratifySeedFrom(steward)).toEqual([
-      { id: 'seed-0', name: 'Aroha Ngai', status: 'pending', note: '', signedAt: '' },
-      { id: 'seed-3', name: 'Marcus Delacroix', status: 'pending', note: '', signedAt: '' },
+      {
+        id: 'seed-0',
+        name: 'Aroha Ngai',
+        status: 'pending',
+        note: '',
+        signedAt: '',
+        ref: { email: 'a@x.nz' },
+      },
+      {
+        id: 'seed-3',
+        name: 'Marcus Delacroix',
+        status: 'pending',
+        note: '',
+        signedAt: '',
+        ref: { email: 'm@x.nz' },
+      },
     ]);
     expect(ratifySeedFrom({ invites: [] })).toEqual([]);
   });
@@ -726,5 +742,78 @@ describe('ratifySeedFrom and the ratify seed', () => {
     );
     expect(screen.getByText('Elif Yildiz')).toBeTruthy();
     expect(screen.queryByText('Aroha Ngai')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ratify steward link (Option 1)
+// ---------------------------------------------------------------------------
+
+describe('ratify steward link (Option 1)', () => {
+  it('a legacy ratify value with no refs decodes to ref-less members and re-encodes byte-identically', () => {
+    const value: FormValue = {
+      ratifyMembers: [
+        JSON.stringify({
+          id: 'm-1',
+          name: 'Aroha Ngai',
+          status: 'confirmed',
+          note: '',
+          signedAt: '2026-01-01T00:00:00.000Z',
+        }),
+      ],
+    };
+    const decoded = decodeProvisionBalance('ratify', value);
+    expect(decoded.kind).toBe('ratify');
+    if (decoded.kind === 'ratify') {
+      expect(decoded.members[0]!.ref).toBeUndefined();
+    }
+    expect(encodeProvisionBalance(decoded)).toEqual(value);
+  });
+
+  it('reads + writes a {userId} and an {email} member ref losslessly', () => {
+    const model = decodeProvisionBalance('ratify', {});
+    const next = {
+      kind: 'ratify' as const,
+      members: [
+        {
+          id: 'm-1',
+          name: 'Aroha Ngai',
+          status: 'pending' as const,
+          note: '',
+          signedAt: '',
+          ref: { email: 'a@x.nz' },
+        },
+        {
+          id: 'm-2',
+          name: 'Marcus Delacroix',
+          status: 'confirmed' as const,
+          note: '',
+          signedAt: '2026-02-02T00:00:00.000Z',
+          ref: { userId: 'u-9' },
+        },
+      ],
+    };
+    void model;
+    const fv = encodeProvisionBalance(next);
+    expect(decodeProvisionBalance('ratify', fv)).toEqual(next);
+  });
+
+  it('coerces a junk persisted ref to no link (TOTAL decode)', () => {
+    const value: FormValue = {
+      ratifyMembers: [
+        JSON.stringify({
+          id: 'm-1',
+          name: 'Aroha Ngai',
+          status: 'pending',
+          note: '',
+          signedAt: '',
+          ref: { userId: '   ' },
+        }),
+      ],
+    };
+    const decoded = decodeProvisionBalance('ratify', value);
+    if (decoded.kind === 'ratify') {
+      expect(decoded.members[0]!.ref).toBeUndefined();
+    }
   });
 });

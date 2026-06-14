@@ -22,6 +22,9 @@ import { useNurseryStore } from '../../store/nurseryStore.js';
 
 export interface ProofCapture {
   who?: string;
+  /** Option 1: roster userId behind `who`, stamped on the spine when the actor
+   *  was picked from the steward roster (free-text actors carry no assigneeId). */
+  assigneeId?: string;
   actualStart?: string | null;
   actualEnd?: string | null;
   notes?: string;

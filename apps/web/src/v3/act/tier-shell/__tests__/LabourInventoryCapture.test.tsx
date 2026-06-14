@@ -225,6 +225,39 @@ describe('LabourInventoryCapture -- encode/decode', () => {
 });
 
 // --------------------------------------------------------------------------
+// steward link (Option 1)
+// --------------------------------------------------------------------------
+
+describe('LabourInventoryCapture -- steward link (Option 1)', () => {
+  it('a roster with no links emits no rosterRefs and round-trips byte-identically', () => {
+    const m = modelOf(
+      [
+        person({ name: 'You', role: 'primary' }),
+        person({ name: 'Amal', role: 'team_member' }),
+      ],
+      'who-nolink',
+    );
+    const fv = encode(m);
+    expect('rosterRefs' in fv).toBe(false);
+    expect(decode(fv)).toEqual(m);
+  });
+
+  it('encodes + decodes a {userId} and an {email} ref per person; unlinked stays absent', () => {
+    const m = modelOf(
+      [
+        person({ name: 'You', role: 'primary', ref: { userId: 'u-1' } }),
+        person({ name: 'Amal', role: 'team_member', ref: { email: 'A@x.io' } }),
+        person({ name: 'Off', role: 'contractor' }),
+      ],
+      'who-linked',
+    );
+    const fv = encode(m);
+    expect(fv.rosterRefs).toEqual(['u:u-1', 'e:A@x.io', '']);
+    expect(decode(fv)).toEqual(m);
+  });
+});
+
+// --------------------------------------------------------------------------
 // deriveTeam
 // --------------------------------------------------------------------------
 

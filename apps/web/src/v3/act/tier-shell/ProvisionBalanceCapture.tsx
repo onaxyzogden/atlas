@@ -46,6 +46,9 @@ import { ArrowRight, CircleCheck, Info, Plus, X } from 'lucide-react';
 import type { ProofSignatory } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import type { StewardModel } from './StewardCapture.js';
+import { StewardPicker } from './captures/controls/index.js';
+import { sameStewardRef, coerceStewardRef } from './captures/stewardRef.js';
+import type { StewardRef, StewardOption } from './captures/stewardRef.js';
 import css from './ProvisionBalanceCapture.module.css';
 
 // ---------------------------------------------------------------------------
@@ -135,6 +138,11 @@ export interface RatifyMember {
    *  A ratification without a timestamp is a bare toggle, not a signature, and
    *  does not satisfy the gate (F1: ratify must bind to a signed instant). */
   signedAt: string;
+  /** Optional link to the canonical steward roster (Option 1). A picked joined
+   *  member stores `{userId}`; a picked pending invite stores `{email}`;
+   *  free-text / off-platform members carry no ref. TOTAL-decoded, so legacy
+   *  rows without a ref round-trip unchanged. */
+  ref?: StewardRef;
 }
 export interface RatifyModel {
   kind: 'ratify';
@@ -439,12 +447,14 @@ export function ratifySeedFrom(steward: StewardModel): RatifyMember[] {
     if (invite.role === 'contractor') return;
     const name = invite.name.trim();
     if (name === '') return;
+    const email = invite.email.trim();
     members.push({
       id: `seed-${index}`,
       name,
       status: 'pending',
       note: '',
       signedAt: '',
+      ...(email !== '' ? { ref: { email } } : {}),
     });
   });
   return members;
@@ -535,6 +545,7 @@ export function decodeProvisionBalance(
             status?: unknown;
             note?: unknown;
             signedAt?: unknown;
+            ref?: unknown;
           };
           const id: string =
             typeof p.id === 'string' && p.id !== '' ? p.id : 'legacy-' + index;
@@ -550,7 +561,15 @@ export function decodeProvisionBalance(
           // re-ratified). Never fabricate a timestamp.
           const signedAt: string =
             typeof p.signedAt === 'string' ? p.signedAt : '';
-          members.push({ id, name: p.name, status, note, signedAt });
+          const ref = coerceStewardRef(p.ref);
+          members.push({
+            id,
+            name: p.name,
+            status,
+            note,
+            signedAt,
+            ...(ref !== undefined ? { ref } : {}),
+          });
         } catch {
           // drop malformed entry
         }
@@ -730,6 +749,13 @@ export interface ProvisionBalanceCaptureProps {
    * emptied one -- always wins, so removed seed rows never reappear.
    */
   ratifySeed?: RatifyMember[];
+  /**
+   * OPTIONAL canonical steward roster + pending invites (Option 1), built by
+   * the parent via `buildStewardOptions`. Read only by the ratify mode to let
+   * the steward add a founding member by picking a known person (records a
+   * `{userId|email}` ref alongside the name). Absent => add-by-name only.
+   */
+  stewardOptions?: readonly StewardOption[];
 }
 
 export function ProvisionBalanceCapture({
@@ -738,6 +764,7 @@ export function ProvisionBalanceCapture({
   onChange,
   siblingValues = {},
   ratifySeed,
+  stewardOptions,
 }: ProvisionBalanceCaptureProps): React.JSX.Element {
   const model = decodeProvisionBalance(mode, value);
   const emit = (next: ProvisionBalanceModel): void =>
@@ -1063,6 +1090,7 @@ export function ProvisionBalanceCapture({
     <RatifyBody
       model={displayModel}
       onChange={(next) => emit(next)}
+      stewardOptions={stewardOptions}
     />
   );
 }
@@ -1082,9 +1110,11 @@ function initials(name: string): string {
 function RatifyBody({
   model,
   onChange,
+  stewardOptions,
 }: {
   model: RatifyModel;
   onChange: (next: RatifyModel) => void;
+  stewardOptions?: readonly StewardOption[];
 }): React.JSX.Element {
   const [nameInput, setNameInput] = React.useState('');
   const [openNotes, setOpenNotes] = React.useState<Set<string>>(
@@ -1093,6 +1123,7 @@ function RatifyBody({
 
   const total = model.members.length;
   const confirmed = model.members.filter((m) => m.status !== 'pending').length;
+  const pickOptions = stewardOptions ?? [];
 
   const addMember = (): void => {
     const name = nameInput.trim();
@@ -1105,6 +1136,24 @@ function RatifyBody({
       ],
     });
     setNameInput('');
+  };
+
+  // Add a founding member by picking a known steward (canonical roster /
+  // pending invite). Records the {userId|email} ref alongside the name. A
+  // person already on the list (same ref) is skipped, never duplicated.
+  const addMemberFromRef = (ref: StewardRef, label: string): void => {
+    const name = label.trim();
+    if (ref === null || name === '') return;
+    if (model.members.some((m) => m.ref != null && sameStewardRef(m.ref, ref))) {
+      return;
+    }
+    onChange({
+      kind: 'ratify',
+      members: [
+        ...model.members,
+        { id: makeMemberId(), name, status: 'pending', note: '', signedAt: '', ref },
+      ],
+    });
   };
 
   const updateMember = (id: string, patch: Partial<RatifyMember>): void =>
@@ -1255,6 +1304,17 @@ function RatifyBody({
       )}
 
       <div className={css.addMemberRow}>
+        {pickOptions.length > 0 ? (
+          <StewardPicker
+            options={pickOptions}
+            value={null}
+            ariaLabel="Add a founding member from the roster"
+            sentinelLabel="Add by name below..."
+            onChange={(ref, label) => {
+              if (ref !== null) addMemberFromRef(ref, label);
+            }}
+          />
+        ) : null}
         <input
           type="text"
           className={css.addMemberInput}

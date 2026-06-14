@@ -82,6 +82,13 @@ import StewardCapture, {
   summariseSteward,
   type StewardModel,
 } from './StewardCapture.js';
+import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
+import {
+  buildStewardOptions,
+  type StewardOption,
+  type StewardRef,
+} from './captures/stewardRef.js';
+import { useAuthStore } from '../../../store/authStore.js';
 import PurposeCapture, {
   decodePurpose,
   isPurposeValid,
@@ -521,6 +528,29 @@ export default function DecisionWorkingPanel({
     [stakeholderRowsById],
   );
 
+  // Canonical steward option list (Option 1 -- link capture surfaces back to the
+  // roster). Joined members + pending StewardCapture invites, deduped by email.
+  // Threaded into the captures that name a steward (labour roster, provision
+  // ratify, settlement c1/c5) so a picked person records a stable {userId|email}
+  // ref alongside the free-text name. The hook is called unconditionally (before
+  // any early return); the option list is cheap and memoised on roster+siblings.
+  const stewardRoster = useStewardRoster(projectId);
+  const stewardOptions = useMemo<StewardOption[]>(
+    () =>
+      buildStewardOptions(
+        stewardRoster,
+        decodeSteward(siblingValues['s1-vision-steward'] ?? {}),
+      ),
+    [stewardRoster, siblingValues],
+  );
+  // The current user's identity ref -- stamped onto the primary "You" roster row
+  // so the steward who is filling this in is attributable without re-picking.
+  const selfUserId = useAuthStore((s) => s.user?.id ?? '');
+  const selfRef = useMemo<StewardRef>(
+    () => (selfUserId !== '' ? { userId: selfUserId } : null),
+    [selfUserId],
+  );
+
   // ---------- Empty state ----------
   if (!decision) {
     return (
@@ -549,7 +579,7 @@ export default function DecisionWorkingPanel({
   // Pre-fill the labour roster from the sibling StewardCapture decision's invited
   // people (names + roles); shown until the roster is persisted (first edit).
   const labourRosterSeed = decision.isLabourInventory
-    ? rosterSeedFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}))
+    ? rosterSeedFrom(decodeSteward(siblingValues['s1-vision-steward'] ?? {}), selfRef)
     : undefined;
 
   // Decode the draft into the classify model once -- reused by validity, the
@@ -1322,6 +1352,7 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             skillSuggestions={labourSkillSuggestions ?? []}
             rosterSeed={labourRosterSeed}
+            stewardOptions={stewardOptions}
           />
         ) : decision.isBoundary ? (
           <BoundaryCapture
@@ -1384,6 +1415,7 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             siblingValues={siblingValues}
             ratifySeed={provisionRatifySeed}
+            stewardOptions={stewardOptions}
           />
         ) : terrainMode === 'slope' ? (
           // s2-terrain-c2 slope distribution is drawn on the map (per-class
@@ -1592,6 +1624,7 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             siblingValues={siblingValues}
+            stewardOptions={stewardOptions}
           />
         ) : onboardingMode ? (
           <OnboardingCapture

@@ -63,7 +63,15 @@ import {
   SectionEyebrow,
   StatusPill,
   Stepper,
+  StewardPicker,
 } from './captures/controls/index.js';
+import {
+  coerceStewardRef,
+  decodeStewardRef,
+  encodeStewardRef,
+  type StewardRef,
+  type StewardOption,
+} from './captures/stewardRef.js';
 import {
   CARRYING_CAPACITY_PREFIX,
   carryingCapacityAssessed,
@@ -219,13 +227,37 @@ export interface ScheduleRow {
 // Mode models
 // ---------------------------------------------------------------------------
 
+/**
+ * One founding-cohort household row (Option 1 restructure: the free-text
+ * composition becomes a linkable register). Each row is one household, optionally
+ * linked back to the canonical roster via `ref`.
+ */
+export interface CohortRow {
+  id: string;
+  /** OPTIONAL link to the canonical roster (member userId or invite email). */
+  ref?: StewardRef;
+  /** household / member name (free text fallback when off-platform). */
+  name: string;
+  /** household size in persons (informational). */
+  size: number;
+}
+
 export interface CohortModel {
   kind: 'cohort';
-  /** founding cohort composition (free text / household summary) */
-  composition: string;
+  /** founding cohort household rows (linkable register). */
+  rows: CohortRow[];
   /** founding arrival date YYYY-MM-DD */
   arrivalISO: string;
-  /** founding household count */
+  /**
+   * DERIVED composition text (join of row names). Kept on the model so the
+   * downstream summary / settlementPhasesFrom founding label read unchanged.
+   * On the legacy-collapse path this is the original spComposition verbatim.
+   */
+  composition: string;
+  /**
+   * DERIVED founding household count. New shape: rows.length. Legacy-collapse
+   * path: the original spHouseholds (preserved for the summary until first edit).
+   */
   households: number;
 }
 
@@ -266,6 +298,8 @@ export interface EnforcementModel {
   verifierRole: string;
   /** F1: ISO timestamp stamped in-app when the verifier signs. */
   verifiedAt: string;
+  /** OPTIONAL link from the verifier name back to the canonical roster (Option 1). */
+  verifierRef?: StewardRef;
 }
 
 export type SettlementPlanModel =
@@ -378,6 +412,39 @@ function decodeScheduleRows(v: FormValue[string] | undefined): ScheduleRow[] {
   return out;
 }
 
+function decodeCohortRows(v: FormValue[string] | undefined): CohortRow[] {
+  const out: CohortRow[] = [];
+  asJsonArr(v).forEach((entry, i) => {
+    try {
+      const parsed = JSON.parse(entry) as {
+        id?: unknown;
+        name?: unknown;
+        size?: unknown;
+        ref?: unknown;
+      };
+      const size = Number(parsed.size);
+      const ref = coerceStewardRef(parsed.ref);
+      out.push({
+        id: typeof parsed.id === 'string' && parsed.id ? parsed.id : `legacy-${i}`,
+        ...(ref !== undefined ? { ref } : {}),
+        name: typeof parsed.name === 'string' ? parsed.name : '',
+        size: Number.isFinite(size) && size >= 0 ? size : 0,
+      });
+    } catch {
+      out.push({ id: `legacy-${i}`, name: entry, size: 0 });
+    }
+  });
+  return out;
+}
+
+/** Derived founding-cohort composition text: comma-joined non-empty row names. */
+function deriveCohortComposition(rows: readonly CohortRow[]): string {
+  return rows
+    .map((r) => r.name.trim())
+    .filter((n) => n !== '')
+    .join(', ');
+}
+
 // ---------------------------------------------------------------------------
 // Seed builders (display-only; consumed only until the operator first edits)
 // ---------------------------------------------------------------------------
@@ -440,13 +507,37 @@ export function decodeSettlementPlan(
   siblingValues: Record<string, FormValue> = {},
 ): SettlementPlanModel {
   switch (mode) {
-    case 'cohort':
+    case 'cohort': {
+      // New shape: a persisted spCohortRows array always wins. Derive the legacy
+      // fields (composition / households) from the rows so downstream is unchanged.
+      if (Array.isArray(value.spCohortRows)) {
+        const rows = decodeCohortRows(value.spCohortRows);
+        return {
+          kind: 'cohort',
+          rows,
+          arrivalISO: asStr(value.spArrivalISO),
+          composition: deriveCohortComposition(rows),
+          households: rows.length,
+        };
+      }
+      // Legacy-collapse: synthesise one free-text row from the old composition
+      // text, but PRESERVE the original composition / household count on the model
+      // (so the summary does not regress) until the operator first edits and bakes
+      // the new shape. Mirrors LabourInventory's synthetic-primary collapse.
+      const legacyComposition = asStr(value.spComposition);
+      const legacyHouseholds = asNum(value.spHouseholds);
+      const rows: CohortRow[] =
+        legacyComposition.trim() !== ''
+          ? [{ id: 'legacy-cohort', name: legacyComposition, size: 0 }]
+          : [];
       return {
         kind: 'cohort',
-        composition: asStr(value.spComposition),
+        rows,
         arrivalISO: asStr(value.spArrivalISO),
-        households: asNum(value.spHouseholds),
+        composition: legacyComposition,
+        households: legacyHouseholds,
       };
+    }
     case 'thresholds':
       return { kind: 'thresholds', rows: decodeThresholdRows(value.spThresholds) };
     case 'criteria': {
@@ -475,7 +566,10 @@ export function decodeSettlementPlan(
         maxPopulation: asNum(value.spMaxPopulation),
         confirmed: asBool(value.spCapacityConfirmed),
       };
-    case 'enforcement':
+    case 'enforcement': {
+      // OPTIONAL roster link (Option 1); omitted (not null) when absent so legacy
+      // enforcement values re-encode byte-identically.
+      const verifierRef = decodeStewardRef(asStr(value.spVerifierRef));
       return {
         kind: 'enforcement',
         enforcer: constrain(asStr(value.spEnforcer), ENFORCER_OPTION_LIST),
@@ -484,7 +578,9 @@ export function decodeSettlementPlan(
         // constrain drops any unknown / legacy / 'self' value to '' (gate fails).
         verifierRole: constrain(asStr(value.spVerifierRole), VERIFIER_ROLE_LIST),
         verifiedAt: asStr(value.spVerifiedAt),
+        ...(verifierRef !== null ? { verifierRef } : {}),
       };
+    }
     default: {
       const _exhaustive: never = mode;
       throw new Error(`Unknown SettlementPlanMode: ${String(_exhaustive)}`);
@@ -499,10 +595,14 @@ export function decodeSettlementPlan(
 export function encodeSettlementPlan(model: SettlementPlanModel): FormValue {
   switch (model.kind) {
     case 'cohort':
+      // Always bake the new shape. Derive the legacy fields FROM the rows so the
+      // downstream consumers (summary, settlementPhasesFrom, c6 strip) read the
+      // canonical values -- spComposition = join of row names, spHouseholds = count.
       return {
-        spComposition: model.composition,
+        spCohortRows: model.rows.map((r) => JSON.stringify(r)),
         spArrivalISO: model.arrivalISO,
-        spHouseholds: String(model.households),
+        spComposition: deriveCohortComposition(model.rows),
+        spHouseholds: String(model.rows.length),
       };
     case 'thresholds':
       return { spThresholds: model.rows.map((r) => JSON.stringify(r)) };
@@ -516,14 +616,19 @@ export function encodeSettlementPlan(model: SettlementPlanModel): FormValue {
         spMaxPopulation: String(model.maxPopulation),
         spCapacityConfirmed: model.confirmed ? 'on' : 'off',
       };
-    case 'enforcement':
-      return {
+    case 'enforcement': {
+      const out: FormValue = {
         spEnforcer: model.enforcer,
         spNotSelfReportedAck: model.notSelfReportedAck ? 'on' : 'off',
         spVerifierName: model.verifierName,
         spVerifierRole: model.verifierRole,
         spVerifiedAt: model.verifiedAt,
       };
+      // Emit the roster link only when present -> legacy values stay byte-identical.
+      const refToken = encodeStewardRef(model.verifierRef ?? null);
+      if (refToken !== '') out.spVerifierRef = refToken;
+      return out;
+    }
     default: {
       const _exhaustive: never = model;
       throw new Error(`Unknown SettlementPlanModel kind: ${String(_exhaustive)}`);
@@ -746,6 +851,8 @@ export interface SettlementPlanCaptureProps {
   itemId: string;
   /** full per-item FormValue map; criteria (c3) + capacityFit (c6) read it. */
   siblingValues?: Record<string, FormValue>;
+  /** canonical roster + pending invites for the c1 / c5 steward pickers (Option 1). */
+  stewardOptions?: readonly StewardOption[];
 }
 
 export function SettlementPlanCapture({
@@ -754,6 +861,7 @@ export function SettlementPlanCapture({
   onChange,
   itemId,
   siblingValues = {},
+  stewardOptions = [],
 }: SettlementPlanCaptureProps): React.JSX.Element {
   void itemId;
 
@@ -762,16 +870,53 @@ export function SettlementPlanCapture({
     const model = decodeSettlementPlan('cohort', value) as CohortModel;
     const set = (patch: Partial<CohortModel>): void =>
       onChange(encodeSettlementPlan({ ...model, ...patch }));
+    const updateRows = (rows: CohortRow[]): void =>
+      onChange(encodeSettlementPlan({ ...model, rows }));
     return (
       <div className={css.root} data-sp-mode="cohort">
         <SectionEyebrow>Founding cohort composition</SectionEyebrow>
-        <textarea
-          className={css.textarea}
-          value={model.composition}
-          placeholder="Which households form the founding cohort? Names, sizes, roles."
-          aria-label="Founding cohort composition"
-          rows={3}
-          onChange={(e) => set({ composition: e.target.value })}
+        <p className={css.modeHint}>
+          List each founding household. Link a steward from the roster, or type an
+          off-platform name. One row per household.
+        </p>
+        <RegisterList<CohortRow>
+          items={model.rows}
+          ariaLabel="Founding cohort households"
+          addLabel="Add founding household"
+          emptyHint="No founding households yet. Add each household -- link a steward from the roster, or type an off-platform name."
+          makeEmpty={() => ({ id: makeRowId(), name: '', size: 0 })}
+          onChange={updateRows}
+          renderRow={(row, _i, patch) => (
+            <div className={css.regRow}>
+              {stewardOptions.length > 0 ? (
+                <StewardPicker
+                  options={stewardOptions}
+                  value={row.ref ?? null}
+                  ariaLabel="Link founding household to a steward"
+                  sentinelLabel="Off-platform (type name)"
+                  onChange={(ref, label) =>
+                    ref !== null
+                      ? patch({ ref, name: label })
+                      : patch({ ref: undefined })
+                  }
+                />
+              ) : null}
+              <input
+                type="text"
+                className={css.regInput}
+                value={row.name}
+                placeholder="Household / member name"
+                aria-label="Founding household name"
+                onChange={(e) => patch({ name: e.target.value })}
+              />
+              <Stepper
+                value={row.size}
+                min={0}
+                ariaLabel="Household size in persons"
+                onChange={(n) => patch({ size: n })}
+              />
+            </div>
+          )}
         />
         <div className={css.rowGroup}>
           <div className={css.row}>
@@ -782,15 +927,6 @@ export function SettlementPlanCapture({
               value={model.arrivalISO}
               aria-label="Founding arrival date"
               onChange={(e) => set({ arrivalISO: e.target.value })}
-            />
-          </div>
-          <div className={css.row}>
-            <span className={css.rowLbl}>Founding households</span>
-            <Stepper
-              value={model.households}
-              min={0}
-              ariaLabel="Founding household count"
-              onChange={(n) => set({ households: n })}
             />
           </div>
         </div>
@@ -1145,6 +1281,30 @@ export function SettlementPlanCapture({
       </button>
 
       <SectionEyebrow>Who signed the verification</SectionEyebrow>
+      {stewardOptions.length > 0 ? (
+        <div className={css.row}>
+          <span className={css.rowLbl}>
+            <Users size={13} aria-hidden="true" /> Link verifier
+          </span>
+          <StewardPicker
+            options={stewardOptions}
+            value={model.verifierRef ?? null}
+            ariaLabel="Link the verifier to a steward"
+            sentinelLabel="Off-platform (type name below)"
+            onChange={(ref, label) =>
+              ref !== null
+                ? // Picking a steward fills the name + ref; identity changed so the
+                  // prior signature is cleared (same rule as a manual name edit).
+                  set({
+                    verifierRef: ref,
+                    verifierName: label,
+                    verifiedAt: '',
+                  })
+                : set({ verifierRef: undefined, verifiedAt: '' })
+            }
+          />
+        </div>
+      ) : null}
       <div className={css.row}>
         <span className={css.rowLbl}>
           <Users size={13} aria-hidden="true" /> Verifier
@@ -1156,7 +1316,9 @@ export function SettlementPlanCapture({
           aria-label="Name of the verifier (not the arriving household)"
           value={model.verifierName}
           placeholder="Verifier name..."
-          onChange={(e) => set({ verifierName: e.target.value, verifiedAt: '' })}
+          onChange={(e) =>
+            set({ verifierName: e.target.value, verifierRef: undefined, verifiedAt: '' })
+          }
         />
       </div>
       <div className={css.row}>

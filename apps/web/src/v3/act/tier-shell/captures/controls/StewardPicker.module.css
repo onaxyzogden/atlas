@@ -1,0 +1,54 @@
+/* StewardPicker -- themed native single-select for linking a named steward to
+ * the canonical roster. Shares Dropdown's closed-control styling (dark workbench
+ * surface, stripped OS arrow, custom lucide chevron). */
+
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.06));
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-size: 13px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  line-height: 1.5;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.select:hover {
+  border-color: var(--color-border-strong, rgba(242, 237, 227, 0.24));
+}
+
+.select:focus {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select option {
+  background: var(--color-surface-raised, #232019);
+  color: var(--color-text, #f2ede3);
+}
+
+.chevron {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+  pointer-events: none;
+}

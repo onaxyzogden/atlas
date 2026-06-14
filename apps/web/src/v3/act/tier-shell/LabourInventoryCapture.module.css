@@ -737,6 +737,13 @@
   background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
 }
 
+/* Steward link picker (Option 1) -- constrained so the name input keeps the row. */
+.personLink {
+  flex: 0 1 150px;
+  min-width: 0;
+  display: block;
+}
+
 .personName {
   flex: 1 1 auto;
   min-width: 0;

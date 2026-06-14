@@ -53,6 +53,29 @@ describe('workItemStore.fulfilWorkItem / unfulfilWorkItem', () => {
     expect(it.who).toBe('Yousef');
   });
 
+  it('stamps assigneeId (Option 1 roster link) when the actor was picked from the roster', () => {
+    useWorkItemStore.setState({ items: [wi({ id: 'w1' })], migratedSources: [] });
+    useWorkItemStore.getState().fulfilWorkItem('w1', {
+      who: 'Ali Rahman',
+      assigneeId: 'u-1',
+      actualEnd: '2026-05-11',
+    });
+    const it = useWorkItemStore.getState().items[0]!;
+    expect(it.who).toBe('Ali Rahman');
+    expect(it.assigneeId).toBe('u-1');
+  });
+
+  it('omits assigneeId for a free-text actor (no roster link)', () => {
+    useWorkItemStore.setState({ items: [wi({ id: 'w1' })], migratedSources: [] });
+    useWorkItemStore.getState().fulfilWorkItem('w1', {
+      who: 'Off-platform helper',
+      actualEnd: '2026-05-11',
+    });
+    const it = useWorkItemStore.getState().items[0]!;
+    expect(it.who).toBe('Off-platform helper');
+    expect('assigneeId' in it).toBe(false);
+  });
+
   it('is idempotent: re-fulfilling an already-done item is a no-op (same reference)', () => {
     useWorkItemStore.setState({
       items: [wi({ id: 'w1', status: 'done', doneAt: '2026-05-10T00:00:00.000Z' })],

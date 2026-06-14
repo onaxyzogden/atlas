@@ -45,3 +45,6 @@ export type { RegisterListProps } from './RegisterList.js';
 
 export { EscalationLadder } from './EscalationLadder.js';
 export type { EscalationLadderProps, EscalationTier } from './EscalationLadder.js';
+
+export { StewardPicker } from './StewardPicker.js';
+export type { StewardPickerProps } from './StewardPicker.js';

@@ -50,6 +50,9 @@ interface WorkItemState {
     id: string,
     capture: {
       who?: string;
+      /** Option 1: roster userId behind `who`, stamped when the actor was
+       *  picked from the steward roster (free-text actors carry none). */
+      assigneeId?: string;
       actualStart?: string | null;
       actualEnd?: string | null;
       notes?: string;
@@ -280,6 +283,9 @@ export const useWorkItemStore = create<WorkItemState>()(
                     status: 'done',
                     doneAt: now(),
                     ...(capture.who !== undefined ? { who: capture.who } : {}),
+                    ...(capture.assigneeId !== undefined
+                      ? { assigneeId: capture.assigneeId }
+                      : {}),
                     ...(capture.actualStart !== undefined
                       ? { actualStart: capture.actualStart }
                       : {}),
