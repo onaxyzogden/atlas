@@ -72,6 +72,53 @@ export function feedsFallback(names: readonly string[]): string {
 }
 
 /**
+ * Act-only OUTCOME title transform. The Plan checklist shows the imperative
+ * `label` (an ACTION: "Articulate the land vision in one paragraph."); the Act
+ * "Your decisions" list shows the OUTCOME ("Land vision in one paragraph").
+ *
+ * Conservative and DISPLAY-ONLY (never a gate): it strips ONLY a curated set of
+ * safe leading imperatives (plus an optional article), drops a trailing
+ * period/ellipsis, and capitalizes. Anything it does not positively recognize is
+ * returned unchanged -- so unknown verbs and decision-framing / fiqh-sensitive
+ * labels ("Decide whether to offer a season pass...", "X vs Y") degrade safely
+ * to the exact original label. Callers may hand-override per item via the
+ * optional `outcomeTitle` field (PlanDecisionChecklistItemSchema); this is the
+ * derive-when-unset fallback.
+ */
+const OUTCOME_SAFE_VERBS = new Set([
+  "articulate", "list", "set", "define", "inventory", "record", "identify",
+  "document", "map", "describe", "outline", "specify", "capture", "draft",
+  "establish", "confirm", "select", "classify", "assess", "calculate",
+  "estimate", "catalogue", "catalog", "compile", "note", "summarize",
+  "summarise", "plan", "design", "build",
+  // NOTE: do NOT add "state" -- existing fixtures use "State the primary
+  // purpose" and must render verbatim. Curate against the test fixtures.
+]);
+const OUTCOME_LEAD_ARTICLES = new Set(["the", "a", "an", "your"]);
+// Decision-framing leads stay verbatim -- the steward records a CHOICE, not an
+// outcome, so mangling these would misrepresent guardrail items.
+const OUTCOME_PROTECTED_LEAD = new Set([
+  "decide", "choose", "determine", "evaluate", "weigh", "consider",
+]);
+const OUTCOME_PROTECTED_MARKERS = [/\bwhether\b/i, /\bvs\.?\b/i];
+
+export function toOutcomeTitle(label: string): string {
+  const trimmed = label.trim();
+  const words = trimmed.split(/\s+/);
+  const first = (words[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  if (OUTCOME_PROTECTED_LEAD.has(first)) return label; // decision-framing -> verbatim
+  if (OUTCOME_PROTECTED_MARKERS.some((re) => re.test(trimmed))) return label; // whether / vs -> verbatim
+  if (!OUTCOME_SAFE_VERBS.has(first)) return label; // unknown verb -> verbatim
+  let rest = words.slice(1);
+  if (rest.length && OUTCOME_LEAD_ARTICLES.has(rest[0]!.toLowerCase())) {
+    rest = rest.slice(1);
+  }
+  if (!rest.length) return label;
+  const out = rest.join(" ").replace(/\s*[.…]+\s*$/, "");
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
+/**
  * Suggestion 4 — confirmation shown after the first verified Act task,
  * closing the Plan -> Act -> Observe loop visibly. `domainLabel` is the
  * Observe domain the proof routed to (read from the existing feed key); it

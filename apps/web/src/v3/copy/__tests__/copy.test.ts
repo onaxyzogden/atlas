@@ -11,6 +11,7 @@ import {
   lockReason,
   observeSignalConfirmation,
   joinReadable,
+  toOutcomeTitle,
 } from "../index.js";
 
 describe("observe copy", () => {
@@ -75,6 +76,50 @@ describe("act copy", () => {
   it("observeSignalConfirmation names the domain when known", () => {
     expect(observeSignalConfirmation(null)).not.toContain("under");
     expect(observeSignalConfirmation("Hydrology & Water")).toContain("Hydrology & Water");
+  });
+});
+
+describe("toOutcomeTitle", () => {
+  it("strips a safe leading verb + article and trailing period", () => {
+    expect(
+      toOutcomeTitle("Articulate the land vision in one paragraph."),
+    ).toBe("Land vision in one paragraph");
+    expect(toOutcomeTitle("List the primary land-use goals (max 3).")).toBe(
+      "Primary land-use goals (max 3)",
+    );
+    expect(toOutcomeTitle("Set stewardship time + budget capacity bands.")).toBe(
+      "Stewardship time + budget capacity bands",
+    );
+  });
+
+  it("derives an outcome form for define / inventory labels", () => {
+    expect(
+      toOutcomeTitle(
+        "Define the primary purpose and land use type for this project",
+      ),
+    ).toBe("Primary purpose and land use type for this project");
+    expect(toOutcomeTitle("Inventory available capital")).toBe(
+      "Available capital",
+    );
+  });
+
+  it("leaves decision-framing (fiqh) labels verbatim", () => {
+    const label = "Decide whether to offer a season pass (default: none)";
+    expect(toOutcomeTitle(label)).toBe(label);
+  });
+
+  it("leaves an unknown leading verb verbatim", () => {
+    const walk = "Walk the boundary with the steward";
+    expect(toOutcomeTitle(walk)).toBe(walk);
+    // The agritourism c11 Scholar-Council guardrail starts with "Route" (not a
+    // safe verb), so it renders verbatim -- the structural fiqh safety net.
+    const route =
+      "Route any membership / season-pass instrument to Scholar Council review before adoption";
+    expect(toOutcomeTitle(route)).toBe(route);
+  });
+
+  it("returns the label unchanged when only the verb remains", () => {
+    expect(toOutcomeTitle("Confirm")).toBe("Confirm");
   });
 });
 

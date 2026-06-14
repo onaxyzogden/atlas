@@ -82,6 +82,11 @@ export function ck(
     feedNote?: string;
     mode?: string;
     feeds?: string[];
+    /**
+     * Optional Act-only OUTCOME title override. When set, the Act DecisionList
+     * renders it verbatim in place of the derived outcome form. Display-only.
+     */
+    outcome?: string;
   } = {},
 ): PlanDecisionChecklistItem {
   return {
@@ -92,6 +97,7 @@ export function ck(
     ...(opts.feedHint ? { feedHint: opts.feedHint } : {}),
     ...(opts.feedNote ? { feedNote: opts.feedNote } : {}),
     ...(opts.mode ? { mode: opts.mode } : {}),
+    ...(opts.outcome ? { outcomeTitle: opts.outcome } : {}),
   };
 }
 
@@ -107,8 +113,16 @@ export function ckA(
   id: string,
   label: string,
   answerSpec: AnswerSpec,
+  outcome?: string,
 ): PlanDecisionChecklistItem {
-  return { id, label, feedsInto: [], optional: false, answerSpec };
+  return {
+    id,
+    label,
+    feedsInto: [],
+    optional: false,
+    answerSpec,
+    ...(outcome ? { outcomeTitle: outcome } : {}),
+  };
 }
 
 /**
@@ -122,8 +136,16 @@ export function ckF(
   id: string,
   label: string,
   formulaBinding: ObjectiveFormulaBinding,
+  outcome?: string,
 ): PlanDecisionChecklistItem {
-  return { id, label, feedsInto: [], optional: false, formulaBinding };
+  return {
+    id,
+    label,
+    feedsInto: [],
+    optional: false,
+    formulaBinding,
+    ...(outcome ? { outcomeTitle: outcome } : {}),
+  };
 }
 
 /**

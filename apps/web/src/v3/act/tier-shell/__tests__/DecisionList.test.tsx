@@ -614,3 +614,51 @@ describe('DecisionList -- selection', () => {
     expect(onSelectItem).toHaveBeenCalledWith('item-purpose');
   });
 });
+
+describe('DecisionList -- outcome titles (Act-only)', () => {
+  it('renders a safe-verb label as its derived OUTCOME form, not the imperative', () => {
+    renderList();
+    const rows = screen.getAllByTestId('decision-item');
+    const criteria = rows.find(
+      (r) => r.getAttribute('data-item-id') === 'item-criteria',
+    )!;
+    // Fixture label "Define 3-5 measurable success criteria" -> outcome form.
+    expect(
+      within(criteria).getByText('3-5 measurable success criteria'),
+    ).toBeTruthy();
+    // The imperative form is NOT rendered in the row.
+    expect(
+      within(criteria).queryByText('Define 3-5 measurable success criteria'),
+    ).toBeNull();
+  });
+
+  it('renders an explicit outcomeTitle override verbatim (transform bypassed)', () => {
+    const obj = makeObjective({
+      checklist: [
+        {
+          id: 'i-override',
+          label: 'Define the success criteria',
+          outcomeTitle: 'Success scorecard',
+          feedsInto: [],
+          optional: false,
+        },
+      ],
+    } as Partial<PlanStratumObjective>);
+    renderList({ objective: obj });
+    const row = screen.getAllByTestId('decision-item')[0]!;
+    expect(within(row).getByText('Success scorecard')).toBeTruthy();
+    // Neither the imperative label nor its derived form leaks through.
+    expect(within(row).queryByText('Define the success criteria')).toBeNull();
+    expect(within(row).queryByText('Success criteria')).toBeNull();
+  });
+
+  it('renders a decision-framing ("whether") label verbatim', () => {
+    const label = 'Decide whether to offer a season pass (default: none)';
+    const obj = makeObjective({
+      checklist: [{ id: 'i-fiqh', label, feedsInto: [], optional: false }],
+    } as Partial<PlanStratumObjective>);
+    renderList({ objective: obj });
+    const row = screen.getAllByTestId('decision-item')[0]!;
+    expect(within(row).getByText(label)).toBeTruthy();
+  });
+});

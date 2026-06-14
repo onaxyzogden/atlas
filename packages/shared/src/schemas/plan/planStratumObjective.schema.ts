@@ -253,6 +253,15 @@ export const PlanDecisionChecklistItemSchema = z.object({
    * every existing item, so the static seed + catalogues validate unchanged.
    */
   mode: z.string().min(1).optional(),
+  /**
+   * Optional Act-ONLY outcome title. When set, the Act DecisionList (and, when
+   * wired, the Act working-panel header) render this verbatim in place of the
+   * imperative `label`; when unset, the Act layer derives an outcome form via
+   * `toOutcomeTitle(label)` (apps/web copy/act.ts). The Plan checklist ALWAYS
+   * uses `label`. DISPLAY-ONLY, never a gate. Absent on every existing item, so
+   * the static seed + catalogues validate unchanged.
+   */
+  outcomeTitle: z.string().min(1).optional(),
 });
 export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema

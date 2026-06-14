@@ -41,7 +41,12 @@ import {
 } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
-import { ACT_COPY, decisionCount, feedsFallback } from '../../copy/index.js';
+import {
+  ACT_COPY,
+  decisionCount,
+  feedsFallback,
+  toOutcomeTitle,
+} from '../../copy/index.js';
 import css from './DecisionList.module.css';
 
 export interface DecisionListProps {
@@ -450,7 +455,7 @@ export default function DecisionList({
                   </span>
                   <div className={css.dBody}>
                     <div className={css.dTxt}>
-                      {item.label}
+                      {item.outcomeTitle ?? toOutcomeTitle(item.label)}
                       {item.optional ? (
                         <span className={css.dOptBadge}>{ACT_COPY.decisionList.optional}</span>
                       ) : null}
