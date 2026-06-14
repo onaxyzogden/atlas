@@ -36,6 +36,7 @@ import {
   X,
 } from 'lucide-react';
 import type { FormValue } from './actToolCatalog.js';
+import { useMapStore } from '../../../store/mapStore.js';
 import css from './BoundaryCaptureLegacy.module.css';
 
 export type BoundaryMode = 'doc' | 'map' | 'mapEntry' | 'decision';
@@ -486,6 +487,7 @@ function MapBody({
   onChange: (next: FormValue) => void;
 }): JSX.Element {
   const emit = (next: MapModel) => onChange(encodeBoundary(next));
+  const setDrawMode = useMapStore((s) => s.setDrawMode);
 
   return (
     <div className={css.root}>
@@ -495,10 +497,10 @@ function MapBody({
         type="button"
         className={css.openMapBtn}
         data-testid="open-map"
-        disabled
+        onClick={() => setDrawMode('none')}
       >
         <MapIcon size={15} />
-        <span>Open map -- coming soon</span>
+        <span>Open map</span>
       </button>
 
       <button
@@ -538,6 +540,7 @@ function EasementBody({
   onChange: (next: FormValue) => void;
 }): JSX.Element {
   const emit = (next: EasementModel) => onChange(encodeBoundary(next));
+  const setDrawMode = useMapStore((s) => s.setDrawMode);
 
   const editEasement = (index: number, text: string) => {
     const easements = model.easements.map((e, i) => (i === index ? text : e));
@@ -570,16 +573,16 @@ function EasementBody({
           type="button"
           className={css.openMapBtn}
           data-testid="open-map"
-          disabled
+          onClick={() => setDrawMode('none')}
         >
           <MapIcon size={15} />
-          <span>Open map -- coming soon</span>
+          <span>Open map</span>
         </button>
         <button
           type="button"
           className={css.openMapBtn}
           data-testid="pin-easement"
-          disabled
+          onClick={() => setDrawMode('point')}
         >
           <MapPin size={15} />
           <span>Pin easement</span>
@@ -588,7 +591,7 @@ function EasementBody({
           type="button"
           className={css.openMapBtn}
           data-testid="draw-row"
-          disabled
+          onClick={() => setDrawMode('line')}
         >
           <MapIcon size={15} />
           <span>Draw ROW line</span>
