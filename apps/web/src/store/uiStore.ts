@@ -46,6 +46,13 @@ interface UIState {
   toggleRightPanelCollapsed: () => void;
   setRightPanelCollapsed: (v: boolean) => void;
 
+  // Plan tier-shell bottom tools dock — collapsed shows a slim handle with an
+  // expand affordance; the heavy tools rail is unmounted so the canvas reclaims
+  // the height. Global across Plan modes, persisted across sessions.
+  planToolDockCollapsed: boolean;
+  togglePlanToolDockCollapsed: () => void;
+  setPlanToolDockCollapsed: (v: boolean) => void;
+
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
   // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
   // 'stage'  = 5-step workflow lens (Understand → Constraints → Design → Feasibility → Report)
@@ -141,6 +148,12 @@ export const useUIStore = create<UIState>()(
       toggleRightPanelCollapsed: () => set((s) => ({ rightPanelCollapsed: !s.rightPanelCollapsed })),
       setRightPanelCollapsed: (v) => set({ rightPanelCollapsed: v }),
 
+      // Plan tools dock collapse — default expanded.
+      planToolDockCollapsed: false,
+      togglePlanToolDockCollapsed: () =>
+        set((s) => ({ planToolDockCollapsed: !s.planToolDockCollapsed })),
+      setPlanToolDockCollapsed: (v) => set({ planToolDockCollapsed: v }),
+
       // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
       // per 2026-04-29 IA restructure). Existing users keep their persisted
       // choice via the persist middleware.
@@ -204,6 +217,7 @@ export const useUIStore = create<UIState>()(
         sidebarOpen: state.sidebarOpen,
         sidebarGrouping: state.sidebarGrouping,
         rightPanelCollapsed: state.rightPanelCollapsed,
+        planToolDockCollapsed: state.planToolDockCollapsed,
       }),
       migrate: migrateUIPersistedState,
     },
