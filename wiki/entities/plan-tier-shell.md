@@ -87,4 +87,8 @@ Commit `4fc1744b` on `main` (9 files, 454 insertions; **not pushed**). tsc clean
 
 Amanah: pure IA/navigation — no capital, sale, advance-purchase, or financing surface; no riba/gharar/CSRA/salam ([[fiqh-csra-erased-2026-05-04]]).
 
+### Ecovillage seedings + conformance guard (2026-06-14)
+
+Extended the seeded-protocol coverage to the **ecovillage** type: all 31 `ev-` objectives now map to 1–3 protocols drawn from the 4 `eco-` type-specific + 22 universal templates (new `relationships/seededProtocols/ecovillage.ts`, registered in `PRIMARY_MAPS`, which is now exported). Added the first seeded-ID **conformance test** (`seededProtocols.conformance.test.ts`) — every seeded id must resolve in the protocol set its projects see (`resolveProjectProtocols`), closing the silent-typo gap; it iterates `PRIMARY_MAPS` so future types are auto-covered (caveat: catches a wrong protocol id, not a wrong objective key). Amanah: monitoring/review triggers only; the two financial objectives carry budget-review + contribution-fairness triggers, advisory and never a gate. Commit `c1f6a636` on `main` (3 files; **not pushed**). Log [[log/2026-06-14-atlas-ecovillage-seeded-protocols]].
+
 Mirrors [[entities/act-tier-shell]]. ADR: [[decisions/2026-06-11-atlas-plan-tier-shell-adoption]]. Log: [[log/2026-06-11-atlas-plan-tier-shell]].
