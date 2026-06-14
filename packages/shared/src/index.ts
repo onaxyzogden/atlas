@@ -166,6 +166,10 @@ export {
   type SecondaryProtocolFlag,
 } from './relationships/resolveProjectProtocols.js';
 export {
+  resolveSeededProtocols,
+  type SeededProtocolMap,
+} from './relationships/seededProtocols/index.js';
+export {
   computeObjectivesDelta,
   type ObjectivesDelta,
   type InjectedItemDelta,

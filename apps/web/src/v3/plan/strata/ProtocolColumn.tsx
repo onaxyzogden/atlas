@@ -44,6 +44,14 @@ interface Props {
   tensions?: readonly DesignTension[];
   /** Tension ids reconciled at the currently-open stratum (ring-highlighted). */
   highlightTensionIds?: readonly string[];
+  /**
+   * When set, renders a pinned "For this objective" group at the top of the
+   * list before the regular tier groups. Populated by PlanStratumShell from
+   * the `fromObjective` URL param when navigating from a SeededProtocolPill.
+   */
+  pinnedGroup?: ProtocolTierGroup;
+  /** Display label for the pinned group header (e.g. "Suggested for Vision"). */
+  pinnedGroupLabel?: string;
 }
 
 export default function ProtocolColumn({
@@ -54,6 +62,8 @@ export default function ProtocolColumn({
   onToggleAll,
   tensions,
   highlightTensionIds,
+  pinnedGroup,
+  pinnedGroupLabel,
 }: Props) {
   const templateCount = groups.reduce((n, g) => n + g.items.length, 0);
   const selected = new Set(selectedIds);
@@ -148,6 +158,93 @@ export default function ProtocolColumn({
           </button>
         )}
       </div>
+
+      {/* Pinned "For this objective" group — rendered when navigated from a pill */}
+      {pinnedGroup && pinnedGroup.items.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              data-testid="protocol-column-pinned-heading"
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: C.teal,
+                fontFamily: F.sans,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pinnedGroupLabel ?? 'For this objective'}
+            </span>
+            <div style={{ flex: 1, height: 1, background: C.tealDim }} />
+            <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
+              {pinnedGroup.items.length}
+            </span>
+          </div>
+          {pinnedGroup.items.map((t) => {
+            const isSelected = selected.has(t.id);
+            const meta = statusMeta(statusByTemplate[t.id]);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="checkbox"
+                aria-checked={isSelected}
+                data-testid="protocol-list-row"
+                data-template-id={t.id}
+                data-selected={isSelected}
+                onClick={() => onToggle(t.id)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  gap: 8,
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: `1px solid ${isSelected ? C.gold : C.tealDim}`,
+                  background: isSelected ? CA('gold', 0.1) : CA('teal', 0.04),
+                  color: C.textPrimary,
+                  fontFamily: F.sans,
+                  cursor: 'pointer',
+                  transition: 'background 120ms ease, border-color 120ms ease',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.3, color: C.textPrimary }}>
+                    {t.name}
+                  </span>
+                  <TypeBadge type={t.type} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: meta.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>
+                    {meta.label}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
+        </div>
+      )}
 
       {templateCount === 0 ? (
         <div

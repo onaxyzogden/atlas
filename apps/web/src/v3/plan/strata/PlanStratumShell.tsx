@@ -19,6 +19,7 @@ import {
   getTensionConcernObjectiveIds,
   getTensionConcernsByStratum,
   resolveSoftGates,
+  resolveSeededProtocols,
 } from '@ogden/shared';
 import type {
   DesignTension,
@@ -108,6 +109,8 @@ export default function PlanStratumShell() {
   const search = useSearch({ strict: false }) as {
     highlightIncomplete?: string;
     planMode?: string;
+    fromObjective?: string;
+    selectProtocol?: string;
   };
   // Plan Spine re-skin Phase 2 — Design ⇄ Protocol mode is route-driven via
   // `?planMode=protocol` (consistent with the existing $stratumId/$objectiveId/
@@ -551,6 +554,43 @@ export default function PlanStratumShell() {
         ? []
         : visibleProtocolIds,
     );
+  // SeededProtocols — pinned group when navigated from a pill.
+  // `fromObjective` is only meaningful in protocol mode; ignore it otherwise.
+  const fromObjectiveId =
+    planMode === 'protocol' ? (search.fromObjective ?? null) : null;
+  const pinnedProtocolGroup = useMemo((): import('./useProtocolLibrary.js').ProtocolTierGroup | undefined => {
+    if (!fromObjectiveId || !primaryTypeId) return undefined;
+    const ids = resolveSeededProtocols(fromObjectiveId, primaryTypeId, currentSecondaryIds);
+    if (ids.length === 0) return undefined;
+    const byId = new Map(protocolLib.templates.map((t) => [t.id, t]));
+    const items = ids.flatMap((id) => { const t = byId.get(id); return t ? [t] : []; });
+    return items.length > 0
+      ? { tier: 'For this objective', stratumId: undefined, items }
+      : undefined;
+  }, [fromObjectiveId, primaryTypeId, currentSecondaryIds, protocolLib.templates]);
+  const fromObjectiveTitle = fromObjectiveId
+    ? (findPlanStratumObjectiveIn(objectives, fromObjectiveId)?.shortTitle ?? null)
+    : null;
+  const pinnedProtocolGroupLabel = fromObjectiveTitle
+    ? `Suggested for "${fromObjectiveTitle}"`
+    : 'For this objective';
+
+  // Auto-select the pill's protocol when navigating from a SeededProtocolPill.
+  // Replaces (not extends) the current selection so the detail column opens
+  // immediately on the correct protocol. Uses a ref guard so the effect fires
+  // only once per (planMode, selectProtocol) combination.
+  const lastAutoSelect = useRef<string | null>(null);
+  useEffect(() => {
+    const target = search.selectProtocol ?? null;
+    if (planMode === 'protocol' && target && target !== lastAutoSelect.current) {
+      lastAutoSelect.current = target;
+      setSelectedProtocolIds([target]);
+    }
+    if (planMode !== 'protocol') {
+      lastAutoSelect.current = null;
+    }
+  }, [planMode, search.selectProtocol]);
+
   // Tensions reconciled AT the open stratum get highlighted in the banner
   // ("this stratum reconciles these"); the rest are still listed for context.
   const protocolHighlightTensionIds = useMemo(
@@ -1058,6 +1098,8 @@ export default function PlanStratumShell() {
           onToggleAll={toggleAllProtocols}
           tensions={activeTensions}
           highlightTensionIds={protocolHighlightTensionIds}
+          pinnedGroup={pinnedProtocolGroup}
+          pinnedGroupLabel={pinnedProtocolGroupLabel}
         />
       ) : searchActive ? (
         <PlanSearchColumn

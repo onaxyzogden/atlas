@@ -42,6 +42,7 @@ import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js'
 import { findUpstreamSourceObjectives } from '../objectiveCatalog.js';
 import ParameterGroup from './ParameterGroup.js';
 import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
+import SeededProtocolPills from './SeededProtocolPills.js';
 // Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
 // 3-column spine shell (no longer a bordered BentoBox card). Its inner sections
 // (map body, reference placeholders) keep their existing CSS module, which
@@ -347,6 +348,7 @@ export default function ObjectiveDetailPanel({
         status={status}
         onBackToStratum={onBackToStratum}
       />
+      <SeededProtocolPills objective={objective} projectId={projectId} />
 
       <DecisionProgressBar
         objective={objective}
