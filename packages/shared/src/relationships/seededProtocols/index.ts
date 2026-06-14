@@ -1,12 +1,19 @@
 import type { ProjectTypeId } from '../../schemas/plan/projectTypeTaxonomy.schema.js';
 import { UNIVERSAL_SEEDED_PROTOCOLS } from './universal.js';
 import { HOMESTEAD_SEEDED_PROTOCOLS } from './homestead.js';
+import { ECOVILLAGE_SEEDED_PROTOCOLS } from './ecovillage.js';
 import type { SeededProtocolMap } from './types.js';
 
 export type { SeededProtocolMap };
 
-const PRIMARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
+/**
+ * Per-primary-type seeded maps. Exported so the conformance test can iterate
+ * every registered type without enumerating them — any type added here is
+ * automatically covered by the seeded-ID validity guard.
+ */
+export const PRIMARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
   homestead: HOMESTEAD_SEEDED_PROTOCOLS,
+  ecovillage: ECOVILLAGE_SEEDED_PROTOCOLS,
 };
 
 /**
