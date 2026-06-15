@@ -24,6 +24,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /** The 7 vegetation community keys -- single source of truth shared with the
  *  EcologyCapture VEG_COMMUNITIES list (same string keys). */
@@ -189,6 +190,12 @@ export const useVegetationSurveyStore = create<VegetationSurveyState>()(
     {
       name: PERSIST_KEY,
       version: 1,
+      // Synced project data lives in IndexedDB, same backend as every other
+      // byProject store (zoneStore / cropStore / livestockStore / slopeSurveyStore).
+      // Node-safe (degrades to localStorage/null), so importing this store into a
+      // node-env test no longer trips the persist API. The idb storage's lazy
+      // getItem migration carries any pre-existing localStorage value.
+      storage: idbPersistStorage,
       // Persist project data only -- the takeover flag + armed community are
       // session-ephemeral (mirror actSectorsEditorStore: never persisted).
       partialize: (state) => ({ byProject: state.byProject }),
