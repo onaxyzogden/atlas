@@ -482,6 +482,9 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     // con
     ['conservationIntervention', 4],
     ['adviceStatus', 3],
+    // edu
+    ['educationAudience', 5],
+    ['educationProgramType', 5],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -516,6 +519,26 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Obtained',
       'Scheduled',
       'Not yet sought',
+    ]);
+  });
+
+  it('educationAudience is the exact 5-item list in order', () => {
+    expect(resolveFieldOptions('educationAudience', undefined)).toEqual([
+      'School groups',
+      'Farmers',
+      'General public',
+      'Practitioners',
+      'Children',
+    ]);
+  });
+
+  it('educationProgramType is the exact 5-item list in order', () => {
+    expect(resolveFieldOptions('educationProgramType', undefined)).toEqual([
+      'Day workshops',
+      'Half-day tours',
+      'School excursions',
+      'Multi-day residencies',
+      'Online / hybrid',
     ]);
   });
 });

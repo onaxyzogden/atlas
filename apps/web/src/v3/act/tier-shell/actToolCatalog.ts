@@ -2339,71 +2339,322 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- education --
   'edu-s1-mission-audience-c1': {
     id: 'edu-s1-mission-audience-c1', label: 'Mission', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c1', prompt: 'Define primary educational mission in plain language' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-mission-audience-c1',
+      prompt: 'Define primary educational mission in plain language',
+      fields: [
+        {
+          kind: 'text',
+          key: 'mission',
+          label: 'Primary educational mission',
+          multiline: true,
+          placeholder: 'In plain language, what this site exists to teach.',
+        },
+      ],
+    },
   },
   'edu-s1-mission-audience-c2': {
     id: 'edu-s1-mission-audience-c2', label: 'Audience', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c2', prompt: 'Identify primary audience - school groups, farmers, general public, practitioners, children' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-mission-audience-c2',
+      prompt: 'Identify primary audience - school groups, farmers, general public, practitioners, children',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'audience',
+          label: 'Primary audience',
+          min: 1,
+          max: 8,
+          addLabel: 'Add audience',
+          itemLabel: 'Audience',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'educationAudience',
+            placeholder: 'Pick or describe',
+          },
+        },
+      ],
+    },
   },
   'edu-s1-mission-audience-c3': {
     id: 'edu-s1-mission-audience-c3', label: 'Learning outcomes', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c3', prompt: 'Define learning outcomes per program type' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-mission-audience-c3',
+      prompt: 'Define learning outcomes per program type',
+      fields: [
+        {
+          kind: 'text',
+          key: 'learningOutcomes',
+          label: 'Learning outcomes per program type',
+          multiline: true,
+          placeholder: 'What a participant should know or be able to do after each program type.',
+        },
+      ],
+    },
   },
   'edu-s1-mission-audience-c4': {
     id: 'edu-s1-mission-audience-c4', label: 'Unique value', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c4', prompt: 'Define what this site teaches that cannot be taught in a classroom' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-mission-audience-c4',
+      prompt: 'Define what this site teaches that cannot be taught in a classroom',
+      fields: [
+        {
+          kind: 'text',
+          key: 'distinctiveTeaching',
+          label: 'What this site teaches that a classroom cannot',
+          multiline: true,
+          placeholder: 'The hands-on or place-based learning unique to this site.',
+        },
+      ],
+    },
   },
   'edu-s1-mission-audience-c5': {
     id: 'edu-s1-mission-audience-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c5', prompt: 'Confirm mission is achievable within steward knowledge and site capacity' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-mission-audience-c5',
+      prompt: 'Confirm mission is achievable within steward knowledge and site capacity',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Mission achievable within steward knowledge and site capacity',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where steward knowledge or site capacity limits the mission, note it here.',
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c1': {
     id: 'edu-s1-curriculum-programs-c1', label: 'Program types', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c1', prompt: 'Define program types - day workshops, half-day tours, school excursions, multi-day residencies, online hybrid' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c1',
+      prompt: 'Define program types - day workshops, half-day tours, school excursions, multi-day residencies, online hybrid',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'programTypes',
+          label: 'Program types',
+          min: 1,
+          max: 10,
+          addLabel: 'Add program type',
+          itemLabel: 'Program type',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'educationProgramType',
+            placeholder: 'Pick or describe',
+          },
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c2': {
     id: 'edu-s1-curriculum-programs-c2', label: 'Curriculum themes', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c2', prompt: 'Define curriculum themes per program type - soil, food systems, ecology, permaculture design' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c2',
+      prompt: 'Define curriculum themes per program type - soil, food systems, ecology, permaculture design',
+      fields: [
+        {
+          kind: 'text',
+          key: 'themes',
+          label: 'Curriculum themes per program type',
+          multiline: true,
+          placeholder: 'Soil, food systems, ecology, permaculture design - the themes each program covers.',
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c3': {
     id: 'edu-s1-curriculum-programs-c3', label: 'Group size', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c3', prompt: 'Define maximum group size per program type' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c3',
+      prompt: 'Define maximum group size per program type',
+      fields: [
+        {
+          kind: 'text',
+          key: 'maxGroupSize',
+          label: 'Maximum group size per program type',
+          multiline: true,
+          placeholder: 'The largest group each program type can safely and effectively host.',
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c4': {
     id: 'edu-s1-curriculum-programs-c4', label: 'Program calendar', icon: Sun, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c4', prompt: 'Define annual program calendar - frequency, seasonality' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c4',
+      prompt: 'Define annual program calendar - frequency, seasonality',
+      fields: [
+        {
+          kind: 'text',
+          key: 'calendar',
+          label: 'Annual program calendar',
+          multiline: true,
+          placeholder: 'How often each program runs and how it tracks the seasons.',
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c5': {
     id: 'edu-s1-curriculum-programs-c5', label: 'Mission fit', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c5', prompt: 'Confirm curriculum framework is consistent with educational mission' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c5',
+      prompt: 'Confirm curriculum framework is consistent with educational mission',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'consistent',
+          label: 'Curriculum framework consistent with educational mission',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any gap between the curriculum and the stated mission, noted here.',
+        },
+      ],
+    },
   },
   'edu-s1-curriculum-programs-c6': {
     id: 'edu-s1-curriculum-programs-c6', label: 'Review process', icon: Recycle, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c6', prompt: 'Define curriculum development and review process' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-curriculum-programs-c6',
+      prompt: 'Define curriculum development and review process',
+      fields: [
+        {
+          kind: 'text',
+          key: 'reviewProcess',
+          label: 'Curriculum development and review process',
+          multiline: true,
+          placeholder: 'How the curriculum is developed, reviewed, and kept current.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c1': {
     id: 'edu-s1-regulatory-framework-c1', label: 'Liability insurance', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c1', prompt: 'Identify public access and liability insurance requirements' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c1',
+      prompt: 'Identify public access and liability insurance requirements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'insurance',
+          label: 'Public access and liability insurance requirements',
+          multiline: true,
+          placeholder: 'The cover required for public access, and any conditions attached.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c2': {
     id: 'edu-s1-regulatory-framework-c2', label: 'Child safety', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c2', prompt: 'Identify working with children or vulnerable persons requirements if applicable' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c2',
+      prompt: 'Identify working with children or vulnerable persons requirements if applicable',
+      fields: [
+        {
+          kind: 'text',
+          key: 'childrenChecks',
+          label: 'Working with children or vulnerable persons requirements',
+          multiline: true,
+          placeholder: 'Checks, clearances, or supervision required for programs involving children or vulnerable persons.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c3': {
     id: 'edu-s1-regulatory-framework-c3', label: 'Food permits', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c3', prompt: 'Identify food handling permits if meals or food tasting is offered' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c3',
+      prompt: 'Identify food handling permits if meals or food tasting is offered',
+      fields: [
+        {
+          kind: 'text',
+          key: 'foodPermits',
+          label: 'Food handling permits',
+          multiline: true,
+          placeholder: 'Permits needed where meals or food tasting are part of a program.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c4': {
     id: 'edu-s1-regulatory-framework-c4', label: 'Building permits', icon: Building2, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c4', prompt: 'Identify building permits for teaching structures' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c4',
+      prompt: 'Identify building permits for teaching structures',
+      fields: [
+        {
+          kind: 'text',
+          key: 'buildingPermits',
+          label: 'Building permits for teaching structures',
+          multiline: true,
+          placeholder: 'Approvals required for any classroom, shelter, or teaching structure.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c5': {
     id: 'edu-s1-regulatory-framework-c5', label: 'Accreditation', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c5', prompt: 'Define any accreditation intent - RTO, CPD provider, curriculum alignment' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c5',
+      prompt: 'Define any accreditation intent - RTO, CPD provider, curriculum alignment',
+      fields: [
+        {
+          kind: 'text',
+          key: 'accreditation',
+          label: 'Accreditation intent',
+          multiline: true,
+          placeholder: 'RTO, CPD provider, curriculum alignment - any formal accreditation being pursued.',
+        },
+      ],
+    },
   },
   'edu-s1-regulatory-framework-c6': {
     id: 'edu-s1-regulatory-framework-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c6', prompt: 'Define compliance calendar - renewal dates and ongoing obligations' },
+    arm: {
+      kind: 'form',
+      formId: 'edu-s1-regulatory-framework-c6',
+      prompt: 'Define compliance calendar - renewal dates and ongoing obligations',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceCalendar',
+          label: 'Compliance calendar',
+          multiline: true,
+          placeholder: 'Renewal dates and ongoing obligations to track across the year.',
+        },
+      ],
+    },
   },
 
   // -- wellness --

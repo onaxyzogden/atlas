@@ -724,6 +724,27 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
   adviceStatus: {
     _base: ['Obtained', 'Scheduled', 'Not yet sought'],
   },
+
+  // Education primary audience (edu-s1-mission-audience-c2), repeatable rows.
+  educationAudience: {
+    _base: [
+      'School groups',
+      'Farmers',
+      'General public',
+      'Practitioners',
+      'Children',
+    ],
+  },
+  // Education program types (edu-s1-curriculum-programs-c1), repeatable rows.
+  educationProgramType: {
+    _base: [
+      'Day workshops',
+      'Half-day tours',
+      'School excursions',
+      'Multi-day residencies',
+      'Online / hybrid',
+    ],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
