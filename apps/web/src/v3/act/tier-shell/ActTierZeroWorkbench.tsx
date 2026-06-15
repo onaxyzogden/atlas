@@ -489,6 +489,13 @@ export default function ActTierZeroWorkbench({
 
   const completedForActive = progressByObjective[activeObjective.id] ?? [];
 
+  // Defer ("on hold") ids for THIS objective. deferredItems is project-scoped and
+  // itemId-keyed, so restrict to the active checklist before handing it to the
+  // list -- mirrors completedForActive.
+  const deferredForActive = activeObjective.checklist
+    .filter((i) => deferredItems[i.id])
+    .map((i) => i.id);
+
   // Per-objective affordances (map strips, live register strip, decision-group
   // headers, center-list mode mapper) are resolved from a data-driven descriptor
   // keyed by objective id. Any objective without an entry routes to the EMPTY
@@ -554,6 +561,7 @@ export default function ActTierZeroWorkbench({
         <DecisionList
           objective={activeObjective}
           completedItemIds={completedForActive}
+          deferredItemIds={deferredForActive}
           selectedItemId={selectedItemId}
           onSelectItem={setSelectedItemId}
           showGroups={showGroups}

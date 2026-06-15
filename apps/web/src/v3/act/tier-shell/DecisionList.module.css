@@ -177,6 +177,18 @@
   color: var(--color-text-muted, #565c63);
 }
 
+/* On hold: clock-marked circle + muted (not struck-through) italic title +
+   slate left bar. No opacity dim -- that stays unique to the recorded state so
+   the two never read the same. Scoped so a selected row keeps its amber bar. */
+.ditem[data-deferred='true']:not([data-selected='true'])::before {
+  background: var(--color-text-subtle, #7a808a);
+}
+
+.ditem[data-deferred='true'] .dTxt {
+  color: var(--color-text-muted, #565c63);
+  font-style: italic;
+}
+
 .dCirc {
   display: inline-flex;
   align-items: center;
@@ -195,6 +207,11 @@
   border-color: var(--color-success, #6b8f6b);
   background: var(--color-success, #6b8f6b);
   color: var(--color-surface, #ffffff);
+}
+
+.dCirc[data-deferred='true'] {
+  border-color: var(--color-text-subtle, #7a808a);
+  color: var(--color-text-subtle, #7a808a);
 }
 
 .dBody {

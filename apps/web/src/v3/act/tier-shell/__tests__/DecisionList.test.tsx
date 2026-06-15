@@ -111,6 +111,7 @@ function renderList(
   opts: {
     objective?: PlanStratumObjective;
     completedItemIds?: readonly string[];
+    deferredItemIds?: readonly string[];
     selectedItemId?: string | null;
   } = {},
 ) {
@@ -119,6 +120,7 @@ function renderList(
     <DecisionList
       objective={opts.objective ?? makeObjective()}
       completedItemIds={opts.completedItemIds ?? []}
+      deferredItemIds={opts.deferredItemIds ?? []}
       selectedItemId={opts.selectedItemId ?? null}
       onSelectItem={onSelectItem}
     />,
@@ -202,6 +204,42 @@ describe('DecisionList -- per-item state', () => {
     )!;
     expect(steward.getAttribute('data-selected')).toBe('true');
     expect(purpose.getAttribute('data-selected')).not.toBe('true');
+  });
+});
+
+describe('DecisionList -- deferred (on hold) state', () => {
+  it('marks a deferred item row data-deferred="true" and others not', () => {
+    renderList({ deferredItemIds: ['item-purpose'] });
+    const rows = screen.getAllByTestId('decision-item');
+    const purpose = rows.find(
+      (r) => r.getAttribute('data-item-id') === 'item-purpose',
+    )!;
+    const steward = rows.find(
+      (r) => r.getAttribute('data-item-id') === 'item-steward',
+    )!;
+    expect(purpose.getAttribute('data-deferred')).toBe('true');
+    expect(steward.getAttribute('data-deferred')).toBe('false');
+  });
+
+  it('lets "complete" win over "deferred" when an item is in both sets', () => {
+    renderList({
+      completedItemIds: ['item-purpose'],
+      deferredItemIds: ['item-purpose'],
+    });
+    const rows = screen.getAllByTestId('decision-item');
+    const purpose = rows.find(
+      (r) => r.getAttribute('data-item-id') === 'item-purpose',
+    )!;
+    expect(purpose.getAttribute('data-complete')).toBe('true');
+    expect(purpose.getAttribute('data-deferred')).toBe('false');
+  });
+
+  it('defaults every row to data-deferred="false" when the prop is omitted', () => {
+    renderList();
+    const rows = screen.getAllByTestId('decision-item');
+    for (const row of rows) {
+      expect(row.getAttribute('data-deferred')).toBe('false');
+    }
   });
 });
 

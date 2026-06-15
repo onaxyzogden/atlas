@@ -27,6 +27,7 @@ import { Fragment } from 'react';
 import {
   ArrowRight,
   Check,
+  Clock,
   FileText,
   Map as MapIcon,
   MapPin,
@@ -54,6 +55,13 @@ export interface DecisionListProps {
   objective: PlanStratumObjective;
   /** Effective per-item progress for THIS objective (already unioned upstream). */
   completedItemIds: readonly string[];
+  /**
+   * OPTIONAL per-item defer ("on hold -- needs observation") annotation for THIS
+   * objective. Display-only: a deferred row reads as paused (clock-marked circle +
+   * muted italic title). "Complete" wins over "deferred" so a recorded item is
+   * never shown on-hold. Default empty -> every row renders as not-deferred.
+   */
+  deferredItemIds?: readonly string[];
   /** Currently selected checklist item id, or null when nothing is selected. */
   selectedItemId: string | null;
   /** Lift selection to the parent (which owns the right working panel). */
@@ -367,12 +375,14 @@ const MODE_BADGE_KIND: Record<string, string> = {
 export default function DecisionList({
   objective,
   completedItemIds,
+  deferredItemIds = [],
   selectedItemId,
   onSelectItem,
   modeFor,
   showGroups = false,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
+  const deferred = new Set(deferredItemIds);
   const items = objective.checklist;
   const total = items.length;
   const doneCount = items.filter((i) => completed.has(i.id)).length;
@@ -410,6 +420,9 @@ export default function DecisionList({
           let lastGroup: string | null = null;
           return items.map((item) => {
             const complete = completed.has(item.id);
+            // "Complete" wins over "deferred" visually -- a recorded item is
+            // never shown on-hold even if a stale defer flag lingers.
+            const onHold = !complete && deferred.has(item.id);
             const selected = item.id === selectedItemId;
             const feedNames = item.feedsInto.map(
               (targetId) => findObjectiveGlobally(targetId)?.title ?? targetId,
@@ -434,6 +447,7 @@ export default function DecisionList({
                   data-testid="decision-item"
                   data-item-id={item.id}
                   data-complete={complete ? 'true' : 'false'}
+                  data-deferred={onHold ? 'true' : 'false'}
                   data-selected={selected ? 'true' : 'false'}
                   role="button"
                   tabIndex={0}
@@ -449,9 +463,14 @@ export default function DecisionList({
                   <span
                     className={css.dCirc}
                     data-complete={complete ? 'true' : 'false'}
+                    data-deferred={onHold ? 'true' : 'false'}
                     aria-hidden="true"
                   >
-                    {complete ? <Check size={11} /> : null}
+                    {complete ? (
+                      <Check size={11} />
+                    ) : onHold ? (
+                      <Clock size={11} />
+                    ) : null}
                   </span>
                   <div className={css.dBody}>
                     <div className={css.dTxt}>
