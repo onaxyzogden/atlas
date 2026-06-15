@@ -16,6 +16,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { ProtocolStatus, ProtocolActivation, ExpectedRate } from '@ogden/shared';
 
 /**
@@ -443,6 +444,12 @@ export const useProtocolStore = create<ProtocolState>()(
     {
       name: 'ogden-protocols',
       version: 4,
+      // Synced project data lives in IndexedDB, same backend as every other
+      // byProject store (slopeSurveyStore / vegetationSurveyStore). Node-safe
+      // (degrades to localStorage/null); the idb storage's lazy getItem
+      // migration carries any pre-existing localStorage value. The schema
+      // `migrate` below is orthogonal and still runs.
+      storage: idbPersistStorage,
       // v1 -> v2: gain the empty `activations` slice while preserving `records`.
       // v2 -> v3: gain the empty `expectationsByProject` slice while preserving
       // both `records` and `activations`.

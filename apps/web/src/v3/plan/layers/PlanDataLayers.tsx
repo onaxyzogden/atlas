@@ -1916,6 +1916,11 @@ export default function PlanDataLayers({
     const onStyle = () => apply();
     map.on('style.load', onStyle);
     map.on('load', onStyle);
+    // styledata fires on initial paint AND every basemap swap, where style.load
+    // is unreliable in some F5/setStyle interleavings -- without it a
+    // setStyle(diff:false) basemap swap can wipe these layers and never re-add
+    // them (mirrors DesignElementLayers / the survey layers).
+    map.on('styledata', onStyle);
     // If style isn't loaded yet at mount, wait for next idle to retry once.
     let pendingIdle = false;
     if (!map.isStyleLoaded()) {
@@ -1927,6 +1932,7 @@ export default function PlanDataLayers({
       try {
         map.off('style.load', onStyle);
         map.off('load', onStyle);
+        map.off('styledata', onStyle);
         if (pendingIdle) map.off('idle', onStyle);
       } catch {
         /* map already disposed */

@@ -31,6 +31,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { CoOccurrenceCluster, ObjectiveReviewFlag } from '@ogden/shared';
 import { buildObservationLogRecord, detectCoOccurrenceClusters } from '@ogden/shared';
 import { useObservationLogStore } from './observationLogStore.js';
@@ -443,6 +444,11 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
     {
       name: 'ogden-review-flags',
       version: 1,
+      // Synced project data lives in IndexedDB, same backend as every other
+      // byProject store (slopeSurveyStore / vegetationSurveyStore). Node-safe
+      // (degrades to localStorage/null); the idb storage's lazy getItem
+      // migration carries any pre-existing localStorage value.
+      storage: idbPersistStorage,
       partialize: (state) => ({ byProject: state.byProject }),
     },
   ),

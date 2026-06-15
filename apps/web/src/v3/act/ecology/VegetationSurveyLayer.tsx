@@ -92,6 +92,16 @@ export default function VegetationSurveyLayer({ map, projectId }: Props) {
     const colorMatch = buildColorMatch();
 
     const apply = () => {
+      // Don't gate on isStyleLoaded() -- it flips back to false *during* a
+      // setStyle(diff:false) basemap swap, which would skip the re-add. Gate on
+      // getStyle() (null only before the first style loads / after dispose) and
+      // retry on the next idle if the style isn't ready yet (mirrors
+      // DesignElementLayers). Without this the source/layers are silently lost
+      // after every basemap swap and never come back.
+      if (!map.getStyle()) {
+        map.once('idle', apply);
+        return;
+      }
       try {
         const existing = map.getSource(SOURCE_ID) as
           | maplibregl.GeoJSONSource
@@ -159,11 +169,19 @@ export default function VegetationSurveyLayer({ map, projectId }: Props) {
 
     apply();
     const onStyle = () => apply();
+    // Cover all three re-add triggers (mirrors DesignElementLayers). style.load
+    // alone is unreliable across F5 / setStyle interleavings, and a
+    // setStyle(diff:false) basemap swap wipes our source+layers: styledata fires
+    // on initial paint AND every basemap swap; load covers the first ready paint.
     map.on('style.load', onStyle);
+    map.on('load', onStyle);
+    map.on('styledata', onStyle);
 
     return () => {
       try {
         map.off('style.load', onStyle);
+        map.off('load', onStyle);
+        map.off('styledata', onStyle);
         for (const id of [LABEL_LAYER, LINE_LAYER, FILL_LAYER]) {
           if (map.getLayer(id)) map.removeLayer(id);
         }

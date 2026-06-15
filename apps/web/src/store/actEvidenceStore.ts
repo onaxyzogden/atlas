@@ -26,6 +26,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { FormValue } from '../v3/act/tier-shell/actToolCatalog.js';
 
 // ---------------------------------------------------------------------------
@@ -306,6 +307,12 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
     {
       name: 'ogden-act-evidence',
       version: 3,
+      // Synced project data lives in IndexedDB, same backend as every other
+      // byProject store (slopeSurveyStore / vegetationSurveyStore). Node-safe
+      // (degrades to localStorage/null); the idb storage's lazy getItem
+      // migration carries any pre-existing localStorage value. The schema
+      // `migrate` below is orthogonal and still runs.
+      storage: idbPersistStorage,
       // Passthrough migrate: a v1 blob has no visionFormData and a v2 blob has
       // no decisionRationale/deferredDecisions; zustand merges the persisted
       // object over the store creator's defaults, so missing fields backfill to
