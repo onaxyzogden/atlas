@@ -4205,143 +4205,697 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- wellness --
   'well-s1-healing-philosophy-c1': {
     id: 'well-s1-healing-philosophy-c1', label: 'Healing ethos', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c1', prompt: 'Define the healing philosophy in plain language - what this sanctuary believes about healing' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c1',
+      prompt: 'Define the healing philosophy in plain language - what this sanctuary believes about healing',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healingPhilosophy',
+          label: 'Healing philosophy',
+          multiline: true,
+          placeholder: 'In plain language, what this sanctuary believes about healing.',
+        },
+      ],
+    },
   },
   'well-s1-healing-philosophy-c2': {
     id: 'well-s1-healing-philosophy-c2', label: 'Modalities', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c2', prompt: 'Identify primary therapeutic modalities offered - somatic, contemplative, nature-based, integrative' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c2',
+      prompt: 'Identify primary therapeutic modalities offered - somatic, contemplative, nature-based, integrative',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'modalities',
+          label: 'Primary therapeutic modalities offered',
+          min: 1,
+          max: 10,
+          addLabel: 'Add modality',
+          itemLabel: 'Modality',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'therapeuticModality',
+            placeholder: 'Pick or describe',
+          },
+        },
+      ],
+    },
   },
   'well-s1-healing-philosophy-c3': {
     id: 'well-s1-healing-philosophy-c3', label: 'Therapeutic intent', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c3', prompt: 'Define the therapeutic intent - restoration, recovery, deepening, retreat' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c3',
+      prompt: 'Define the therapeutic intent - restoration, recovery, deepening, retreat',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'therapeuticIntent',
+          label: 'Therapeutic intent',
+          optionSetId: 'therapeuticIntent',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What the sanctuary is intended to help guests move toward.',
+        },
+      ],
+    },
   },
   'well-s1-healing-philosophy-c4': {
     id: 'well-s1-healing-philosophy-c4', label: 'Environment musts', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c4', prompt: 'Establish which environmental conditions are non-negotiable for this philosophy - silence thresholds, light quality, privacy levels' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c4',
+      prompt: 'Establish which environmental conditions are non-negotiable for this philosophy - silence thresholds, light quality, privacy levels',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'environmentMusts',
+          label: 'Non-negotiable environmental conditions',
+          min: 1,
+          max: 12,
+          addLabel: 'Add condition',
+          itemLabel: 'Condition',
+          item: {
+            kind: 'text',
+            placeholder: 'A non-negotiable condition - e.g. silence threshold, light quality, privacy level.',
+          },
+        },
+      ],
+    },
   },
   'well-s1-healing-philosophy-c5': {
     id: 'well-s1-healing-philosophy-c5', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c5', prompt: 'Confirm healing philosophy is agreed by all founding practitioners' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c5',
+      prompt: 'Confirm healing philosophy is agreed by all founding practitioners',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'agreed',
+          label: 'Healing philosophy agreed by all founding practitioners',
+          optionSetId: 'confirmAgreement',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who has agreed, and any conditions attached.',
+        },
+      ],
+    },
   },
   'well-s1-healing-philosophy-c6': {
     id: 'well-s1-healing-philosophy-c6', label: 'Design constraint', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c6', prompt: 'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-healing-philosophy-c6',
+      prompt: 'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it',
+      fields: [
+        {
+          kind: 'text',
+          key: 'designConstraint',
+          label: 'Philosophy as a design constraint',
+          multiline: true,
+          placeholder: 'The documented philosophy that all Tier 3-4 decisions are evaluated against.',
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c1': {
     id: 'well-s1-guest-intake-c1', label: 'Guest profile', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c1', prompt: 'Define target guest profile - who this sanctuary serves' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c1',
+      prompt: 'Define target guest profile - who this sanctuary serves',
+      fields: [
+        {
+          kind: 'text',
+          key: 'guestProfile',
+          label: 'Target guest profile',
+          multiline: true,
+          placeholder: 'Who this sanctuary serves.',
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c2': {
     id: 'well-s1-guest-intake-c2', label: 'Welcomed', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c2', prompt: 'Define conditions actively welcomed - burnout, grief, stress, life transition' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c2',
+      prompt: 'Define conditions actively welcomed - burnout, grief, stress, life transition',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'welcomed',
+          label: 'Conditions actively welcomed',
+          min: 1,
+          max: 15,
+          addLabel: 'Add condition',
+          itemLabel: 'Condition',
+          item: {
+            kind: 'text',
+            placeholder: 'A condition actively welcomed - e.g. burnout, grief, stress, life transition.',
+          },
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c3': {
     id: 'well-s1-guest-intake-c3', label: 'Assess first', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c3', prompt: 'Define conditions requiring practitioner assessment before admission' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c3',
+      prompt: 'Define conditions requiring practitioner assessment before admission',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'assessFirst',
+          label: 'Conditions requiring practitioner assessment first',
+          min: 1,
+          max: 15,
+          addLabel: 'Add condition',
+          itemLabel: 'Condition',
+          item: {
+            kind: 'text',
+            placeholder: 'A condition requiring practitioner assessment before admission.',
+          },
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c4': {
     id: 'well-s1-guest-intake-c4', label: 'Out of scope', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c4', prompt: 'Define conditions outside scope - those requiring clinical referral only' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c4',
+      prompt: 'Define conditions outside scope - those requiring clinical referral only',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'outOfScope',
+          label: 'Conditions outside scope - clinical referral only',
+          min: 1,
+          max: 15,
+          addLabel: 'Add condition',
+          itemLabel: 'Condition',
+          item: {
+            kind: 'text',
+            placeholder: 'A condition outside scope, requiring clinical referral only.',
+          },
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c5': {
     id: 'well-s1-guest-intake-c5', label: 'Intake process', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c5', prompt: 'Define intake process - how guest suitability is assessed' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c5',
+      prompt: 'Define intake process - how guest suitability is assessed',
+      fields: [
+        {
+          kind: 'text',
+          key: 'intakeProcess',
+          label: 'Intake process',
+          multiline: true,
+          placeholder: 'How guest suitability is assessed.',
+        },
+      ],
+    },
   },
   'well-s1-guest-intake-c6': {
     id: 'well-s1-guest-intake-c6', label: 'Scope fit', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-guest-intake-c6', prompt: 'Confirm intake framework is consistent with practitioner scope of practice' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-guest-intake-c6',
+      prompt: 'Confirm intake framework is consistent with practitioner scope of practice',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'scopeFit',
+          label: 'Intake framework consistent with practitioner scope of practice',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the intake framework sits within practitioner scope of practice.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c1': {
     id: 'well-s1-regulatory-standards-c1', label: 'Qualifications', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c1', prompt: 'Define required practitioner qualifications for each modality offered' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c1',
+      prompt: 'Define required practitioner qualifications for each modality offered',
+      fields: [
+        {
+          kind: 'text',
+          key: 'qualifications',
+          label: 'Required practitioner qualifications',
+          multiline: true,
+          placeholder: 'Required practitioner qualifications for each modality offered.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c2': {
     id: 'well-s1-regulatory-standards-c2', label: 'Registration', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c2', prompt: 'Define professional registration and insurance requirements' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c2',
+      prompt: 'Define professional registration and insurance requirements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'registrationInsurance',
+          label: 'Professional registration and insurance requirements',
+          multiline: true,
+          placeholder: 'Professional registration and insurance requirements.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c3': {
     id: 'well-s1-regulatory-standards-c3', label: 'Scope bounds', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c3', prompt: 'Define scope of practice boundaries for each modality - what is and is not offered' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c3',
+      prompt: 'Define scope of practice boundaries for each modality - what is and is not offered',
+      fields: [
+        {
+          kind: 'text',
+          key: 'scopeBounds',
+          label: 'Scope of practice boundaries',
+          multiline: true,
+          placeholder: 'For each modality, what is and is not offered.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c4': {
     id: 'well-s1-regulatory-standards-c4', label: 'Health & safety', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c4', prompt: 'Identify health and safety compliance requirements for therapeutic services' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c4',
+      prompt: 'Identify health and safety compliance requirements for therapeutic services',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healthSafety',
+          label: 'Health and safety compliance requirements',
+          multiline: true,
+          placeholder: 'Health and safety compliance requirements for therapeutic services.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c5': {
     id: 'well-s1-regulatory-standards-c5', label: 'Licensing', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c5', prompt: 'Identify food service and accommodation licensing requirements' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c5',
+      prompt: 'Identify food service and accommodation licensing requirements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'licensing',
+          label: 'Food service and accommodation licensing requirements',
+          multiline: true,
+          placeholder: 'Food service and accommodation licensing requirements.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c6': {
     id: 'well-s1-regulatory-standards-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c6', prompt: 'Define compliance calendar - renewal dates, CPD requirements, audit obligations' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c6',
+      prompt: 'Define compliance calendar - renewal dates, CPD requirements, audit obligations',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceCalendar',
+          label: 'Compliance calendar',
+          multiline: true,
+          placeholder: 'Renewal dates, CPD requirements, and audit obligations.',
+        },
+      ],
+    },
   },
   'well-s1-regulatory-standards-c7': {
     id: 'well-s1-regulatory-standards-c7', label: 'Legal advice', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c7', prompt: 'Obtain legal or professional advice before any therapeutic service is offered' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-regulatory-standards-c7',
+      prompt: 'Obtain legal or professional advice before any therapeutic service is offered',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'adviceStatus',
+          label: 'Legal or professional advice obtained',
+          optionSetId: 'adviceStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is advising, and what they have confirmed so far.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c1': {
     id: 'well-s1-privacy-policy-c1', label: 'Data collected', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c1', prompt: 'Define what guest information is collected and why' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c1',
+      prompt: 'Define what guest information is collected and why',
+      fields: [
+        {
+          kind: 'text',
+          key: 'dataCollected',
+          label: 'Guest information collected and why',
+          multiline: true,
+          placeholder: 'What guest information is collected, and why.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c2': {
     id: 'well-s1-privacy-policy-c2', label: 'Data handling', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c2', prompt: 'Define data storage, access, and retention policy' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c2',
+      prompt: 'Define data storage, access, and retention policy',
+      fields: [
+        {
+          kind: 'text',
+          key: 'dataHandling',
+          label: 'Data storage, access, and retention policy',
+          multiline: true,
+          placeholder: 'How guest data is stored, who can access it, and how long it is retained.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c3': {
     id: 'well-s1-privacy-policy-c3', label: 'Confidentiality', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c3', prompt: 'Define confidentiality obligations for all practitioners and staff' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c3',
+      prompt: 'Define confidentiality obligations for all practitioners and staff',
+      fields: [
+        {
+          kind: 'text',
+          key: 'confidentiality',
+          label: 'Confidentiality obligations',
+          multiline: true,
+          placeholder: 'Confidentiality obligations for all practitioners and staff.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c4': {
     id: 'well-s1-privacy-policy-c4', label: 'Disclosure', icon: AlertTriangle, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c4', prompt: 'Define disclosure protocol - what triggers a mandatory disclosure and to whom' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c4',
+      prompt: 'Define disclosure protocol - what triggers a mandatory disclosure and to whom',
+      fields: [
+        {
+          kind: 'text',
+          key: 'disclosure',
+          label: 'Disclosure protocol',
+          multiline: true,
+          placeholder: 'What triggers a mandatory disclosure, and to whom.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c5': {
     id: 'well-s1-privacy-policy-c5', label: 'Consent', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c5', prompt: 'Define guest consent process for any information sharing' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c5',
+      prompt: 'Define guest consent process for any information sharing',
+      fields: [
+        {
+          kind: 'text',
+          key: 'consent',
+          label: 'Guest consent process',
+          multiline: true,
+          placeholder: 'How guest consent is obtained for any information sharing.',
+        },
+      ],
+    },
   },
   'well-s1-privacy-policy-c6': {
     id: 'well-s1-privacy-policy-c6', label: 'Legal advice', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c6', prompt: 'Obtain legal advice on privacy obligations for therapeutic services in this jurisdiction' },
+    arm: {
+      kind: 'form',
+      formId: 'well-s1-privacy-policy-c6',
+      prompt: 'Obtain legal advice on privacy obligations for therapeutic services in this jurisdiction',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'adviceStatus',
+          label: 'Legal advice on privacy obligations obtained',
+          optionSetId: 'adviceStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is advising on privacy obligations in this jurisdiction, and what is confirmed.',
+        },
+      ],
+    },
   },
   'well-sec-s1-healing-philosophy-c1': {
     id: 'well-sec-s1-healing-philosophy-c1', label: 'Healing ethos', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c1', prompt: 'Define the healing philosophy this wellness layer brings to the host project - what it believes about healing' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-healing-philosophy-c1',
+      prompt: 'Define the healing philosophy this wellness layer brings to the host project - what it believes about healing',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healingPhilosophy',
+          label: 'Healing philosophy the layer brings',
+          multiline: true,
+          placeholder: 'What this wellness layer believes about healing, in the host project context.',
+        },
+      ],
+    },
   },
   'well-sec-s1-healing-philosophy-c2': {
     id: 'well-sec-s1-healing-philosophy-c2', label: 'Modalities', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c2', prompt: 'Identify the therapeutic modalities the layer offers alongside the primary land use' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-healing-philosophy-c2',
+      prompt: 'Identify the therapeutic modalities the layer offers alongside the primary land use',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'modalities',
+          label: 'Therapeutic modalities offered alongside the primary land use',
+          min: 1,
+          max: 10,
+          addLabel: 'Add modality',
+          itemLabel: 'Modality',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'therapeuticModality',
+            placeholder: 'Pick or describe',
+          },
+        },
+      ],
+    },
   },
   'well-sec-s1-healing-philosophy-c3': {
     id: 'well-sec-s1-healing-philosophy-c3', label: 'Host compatibility', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c3', prompt: 'Define which host activities and conditions are compatible with therapeutic guest presence' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-healing-philosophy-c3',
+      prompt: 'Define which host activities and conditions are compatible with therapeutic guest presence',
+      fields: [
+        {
+          kind: 'text',
+          key: 'hostCompatibility',
+          label: 'Host activities and conditions compatible with guest presence',
+          multiline: true,
+          placeholder: 'Which host activities and conditions are compatible with therapeutic guest presence.',
+        },
+      ],
+    },
   },
   'well-sec-s1-healing-philosophy-c4': {
     id: 'well-sec-s1-healing-philosophy-c4', label: 'Environment musts', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c4', prompt: 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-healing-philosophy-c4',
+      prompt: 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'environmentMusts',
+          label: 'Non-negotiable environmental conditions the layer requires',
+          min: 1,
+          max: 12,
+          addLabel: 'Add condition',
+          itemLabel: 'Condition',
+          item: {
+            kind: 'text',
+            placeholder: 'A non-negotiable condition the healing layer requires - e.g. silence, light, privacy.',
+          },
+        },
+      ],
+    },
   },
   'well-sec-s1-healing-philosophy-c5': {
     id: 'well-sec-s1-healing-philosophy-c5', label: 'Supports primary', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c5', prompt: 'Confirm the healing overlay supports rather than competes with the primary land purpose' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-healing-philosophy-c5',
+      prompt: 'Confirm the healing overlay supports rather than competes with the primary land purpose',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'supportsPrimary',
+          label: 'Healing overlay supports rather than competes with the primary land purpose',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the overlay supports or strains the primary land purpose.',
+        },
+      ],
+    },
   },
   'well-sec-s1-regulatory-standards-c1': {
     id: 'well-sec-s1-regulatory-standards-c1', label: 'Qualifications', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c1', prompt: 'Identify required practitioner qualifications and registrations for each modality offered' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-regulatory-standards-c1',
+      prompt: 'Identify required practitioner qualifications and registrations for each modality offered',
+      fields: [
+        {
+          kind: 'text',
+          key: 'qualifications',
+          label: 'Required practitioner qualifications and registrations per modality',
+          multiline: true,
+          placeholder: 'For each modality offered, the qualifications and registrations the practitioner must hold.',
+        },
+      ],
+    },
   },
   'well-sec-s1-regulatory-standards-c2': {
     id: 'well-sec-s1-regulatory-standards-c2', label: 'Insurance & scope', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c2', prompt: 'Define professional insurance and scope-of-practice requirements for the therapeutic layer' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-regulatory-standards-c2',
+      prompt: 'Define professional insurance and scope-of-practice requirements for the therapeutic layer',
+      fields: [
+        {
+          kind: 'text',
+          key: 'insuranceScope',
+          label: 'Professional insurance and scope-of-practice requirements',
+          multiline: true,
+          placeholder: 'Insurance cover and scope-of-practice limits the therapeutic layer must operate within.',
+        },
+      ],
+    },
   },
   'well-sec-s1-regulatory-standards-c3': {
     id: 'well-sec-s1-regulatory-standards-c3', label: 'Compliance obligations', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c3', prompt: 'Identify therapeutic-service health, safety, and licensing obligations beyond the primary use' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-regulatory-standards-c3',
+      prompt: 'Identify therapeutic-service health, safety, and licensing obligations beyond the primary use',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceObligations',
+          label: 'Health, safety, and licensing obligations beyond the primary use',
+          multiline: true,
+          placeholder: 'Therapeutic-service obligations that go beyond what the primary land use already carries.',
+        },
+      ],
+    },
   },
   'well-sec-s1-regulatory-standards-c4': {
     id: 'well-sec-s1-regulatory-standards-c4', label: 'Compliance cal', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c4', prompt: 'Define the compliance calendar for the therapeutic layer - renewals, CPD, audits' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-regulatory-standards-c4',
+      prompt: 'Define the compliance calendar for the therapeutic layer - renewals, CPD, audits',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceCalendar',
+          label: 'Compliance calendar - renewals, CPD, audits',
+          multiline: true,
+          placeholder: 'When renewals, continuing development, and audits fall due across the year.',
+        },
+      ],
+    },
   },
   'well-sec-s1-regulatory-standards-c5': {
     id: 'well-sec-s1-regulatory-standards-c5', label: 'Gate before service', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c5', prompt: 'Confirm no therapeutic service is offered until all qualifications and insurance are in place' },
+    arm: {
+      kind: 'form',
+      formId: 'well-sec-s1-regulatory-standards-c5',
+      prompt: 'Confirm no therapeutic service is offered until all qualifications and insurance are in place',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'gateBeforeService',
+          label: 'No therapeutic service is offered until all qualifications and insurance are in place',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What is still outstanding before any therapeutic service can begin.',
+        },
+      ],
+    },
   },
 };
 

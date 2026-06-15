@@ -502,6 +502,9 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     // lvs
     ['lvsEnterpriseType', 6],
     ['enterpriseRelation', 3],
+    // well
+    ['therapeuticModality', 4],
+    ['therapeuticIntent', 4],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -670,6 +673,24 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Complementary',
       'Supplementary',
       'Competing for land and labour',
+    ]);
+  });
+
+  it('therapeuticModality is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('therapeuticModality', undefined)).toEqual([
+      'Somatic',
+      'Contemplative',
+      'Nature-based',
+      'Integrative',
+    ]);
+  });
+
+  it('therapeuticIntent is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('therapeuticIntent', undefined)).toEqual([
+      'Restoration',
+      'Recovery',
+      'Deepening',
+      'Retreat',
     ]);
   });
 });

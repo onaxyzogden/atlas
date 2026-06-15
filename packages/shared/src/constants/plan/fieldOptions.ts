@@ -837,6 +837,15 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
   enterpriseRelation: {
     _base: ['Complementary', 'Supplementary', 'Competing for land and labour'],
   },
+  // --- well (wellness / healing sanctuary) ---
+  // Primary therapeutic modalities offered (well-s1-healing-philosophy-c2).
+  therapeuticModality: {
+    _base: ['Somatic', 'Contemplative', 'Nature-based', 'Integrative'],
+  },
+  // Therapeutic intent of the sanctuary (well-s1-healing-philosophy-c3).
+  therapeuticIntent: {
+    _base: ['Restoration', 'Recovery', 'Deepening', 'Retreat'],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
