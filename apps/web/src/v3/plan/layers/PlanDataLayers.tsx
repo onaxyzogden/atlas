@@ -1374,8 +1374,29 @@ export default function PlanDataLayers({
   useEffect(() => {
     if (!map) return;
 
+    let disposed = false;
+    let idleRetryArmed = false;
+    const armIdleRetry = () => {
+      if (disposed || idleRetryArmed) return;
+      idleRetryArmed = true;
+      map.once('idle', () => {
+        idleRetryArmed = false;
+        if (!disposed) apply();
+      });
+    };
+
     const apply = () => {
-      if (!map.isStyleLoaded()) return;
+      if (disposed) return;
+      // Don't gate on isStyleLoaded() — it flips back to false during tile loads
+      // and basemap swaps (topographic, the heaviest vector style, is the worst
+      // case), permanently suppressing the re-add on a remounted map. Gate on
+      // getStyle() (null only before the first style loads / after dispose) and
+      // retry on the next idle if the style isn't paintable yet. Mirrors
+      // DesignElementLayers / the survey layers.
+      if (!map.getStyle()) {
+        armIdleRetry();
+        return;
+      }
 
       const ensureSource = (id: string, data: GeoJSON.FeatureCollection) => {
         const sid = `${SOURCE_PREFIX}${id}`;
@@ -1387,25 +1408,48 @@ export default function PlanDataLayers({
         return sid;
       };
 
-      const polySid = ensureSource('poly', polyFC);
-      const lineSid = ensureSource('line', lineFC);
-      const pointSid = ensureSource('point', pointFC);
-      const labelSid = ensureSource('label', labelFC);
-      const setbackSid = ensureSource('setback', setbackFC);
-      const flowSid = ensureSource('flow', flowFC);
-      const transectSid = ensureSource('transect', transectFC);
-      const conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
-      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
-      const memberPointSid = ensureSource('guild-member-point', memberPointFC);
-      const memberCanopySid = ensureSource('guild-member-canopy', memberCanopyFC);
-      const hostCanopyUnionSid = ensureSource(
-        'guild-host-canopy-union',
-        hostCanopyUnionFC,
-      );
-      const hostCanopyUnionLabelSid = ensureSource(
-        'guild-host-canopy-union-label',
-        hostCanopyUnionLabelFC,
-      );
+      // Source adds run inside a try: getStyle() can return a value while the
+      // style is still mid-setStyle, where addSource throws. On a throw, re-arm
+      // the idle retry instead of letting the effect die (mirrors
+      // DesignElementLayers). Hoisted so the layer specs below — added after the
+      // try — can reference the source ids.
+      let polySid: string;
+      let lineSid: string;
+      let pointSid: string;
+      let labelSid: string;
+      let setbackSid: string;
+      let flowSid: string;
+      let transectSid: string;
+      let conflictPointSid: string;
+      let conflictLineSid: string;
+      let memberPointSid: string;
+      let memberCanopySid: string;
+      let hostCanopyUnionSid: string;
+      let hostCanopyUnionLabelSid: string;
+      try {
+        polySid = ensureSource('poly', polyFC);
+        lineSid = ensureSource('line', lineFC);
+        pointSid = ensureSource('point', pointFC);
+        labelSid = ensureSource('label', labelFC);
+        setbackSid = ensureSource('setback', setbackFC);
+        flowSid = ensureSource('flow', flowFC);
+        transectSid = ensureSource('transect', transectFC);
+        conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
+        conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+        memberPointSid = ensureSource('guild-member-point', memberPointFC);
+        memberCanopySid = ensureSource('guild-member-canopy', memberCanopyFC);
+        hostCanopyUnionSid = ensureSource(
+          'guild-host-canopy-union',
+          hostCanopyUnionFC,
+        );
+        hostCanopyUnionLabelSid = ensureSource(
+          'guild-host-canopy-union-label',
+          hostCanopyUnionLabelFC,
+        );
+      } catch {
+        armIdleRetry();
+        return;
+      }
 
       // Orientation indicator — a single facing chevron on the SELECTED
       // structure only (zero clutter; live while the steward edits its
@@ -1921,19 +1965,13 @@ export default function PlanDataLayers({
     // setStyle(diff:false) basemap swap can wipe these layers and never re-add
     // them (mirrors DesignElementLayers / the survey layers).
     map.on('styledata', onStyle);
-    // If style isn't loaded yet at mount, wait for next idle to retry once.
-    let pendingIdle = false;
-    if (!map.isStyleLoaded()) {
-      pendingIdle = true;
-      map.once('idle', onStyle);
-    }
 
     return () => {
+      disposed = true;
       try {
         map.off('style.load', onStyle);
         map.off('load', onStyle);
         map.off('styledata', onStyle);
-        if (pendingIdle) map.off('idle', onStyle);
       } catch {
         /* map already disposed */
       }
