@@ -1707,43 +1707,195 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- off-grid --
   'ofg-s1-resilience-philosophy-c1': {
     id: 'ofg-s1-resilience-philosophy-c1', label: 'Independence target', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c1', prompt: 'Define independence target per critical system - water, energy, food, communications, shelter' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-resilience-philosophy-c1',
+      prompt: 'Define independence target per critical system - water, energy, food, communications, shelter',
+      fields: [
+        {
+          kind: 'text',
+          key: 'independenceTargets',
+          label: 'Independence target per system',
+          multiline: true,
+          placeholder: 'For water, energy, food, communications, and shelter - the level of independence each must reach.',
+        },
+      ],
+    },
   },
   'ofg-s1-resilience-philosophy-c2': {
     id: 'ofg-s1-resilience-philosophy-c2', label: 'Backup & grid', icon: Zap, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c2', prompt: 'Define acceptable backup or grid connection where full independence is not the target' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-resilience-philosophy-c2',
+      prompt: 'Define acceptable backup or grid connection where full independence is not the target',
+      fields: [
+        {
+          kind: 'text',
+          key: 'backupPlan',
+          label: 'Acceptable backup or grid connection',
+          multiline: true,
+          placeholder: 'Where full independence is not the target, what backup or grid connection is acceptable.',
+        },
+      ],
+    },
   },
   'ofg-s1-resilience-philosophy-c3': {
     id: 'ofg-s1-resilience-philosophy-c3', label: 'Worst-case span', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c3', prompt: 'Define worst-case scenario resilience requirement - how long must all systems operate without resupply' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-resilience-philosophy-c3',
+      prompt: 'Define worst-case scenario resilience requirement - how long must all systems operate without resupply',
+      fields: [
+        {
+          kind: 'text',
+          key: 'worstCase',
+          label: 'Worst-case resilience requirement',
+          multiline: true,
+          placeholder: 'How long all systems must operate without resupply in a worst-case scenario.',
+        },
+      ],
+    },
   },
   'ofg-s1-resilience-philosophy-c4': {
     id: 'ofg-s1-resilience-philosophy-c4', label: 'Feasibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c4', prompt: 'Confirm independence targets are achievable against site potential' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-resilience-philosophy-c4',
+      prompt: 'Confirm independence targets are achievable against site potential',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Targets achievable against site potential',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where site potential limits a target, note it here.',
+        },
+      ],
+    },
   },
   'ofg-s1-resilience-philosophy-c5': {
     id: 'ofg-s1-resilience-philosophy-c5', label: 'Design constraint', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c5', prompt: 'Document targets as design constraints - all Tier 3-4 systems sized against them' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-resilience-philosophy-c5',
+      prompt: 'Document targets as design constraints - all Tier 3-4 systems sized against them',
+      fields: [
+        {
+          kind: 'text',
+          key: 'designConstraints',
+          label: 'Targets as design constraints',
+          multiline: true,
+          placeholder: 'How these targets bind Tier 3-4 system sizing.',
+        },
+      ],
+    },
   },
   'ofg-s1-critical-systems-redundancy-c1': {
     id: 'ofg-s1-critical-systems-redundancy-c1', label: 'Criticality tiers', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c1', prompt: 'Classify all systems by criticality - life-safety, essential, convenience' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-critical-systems-redundancy-c1',
+      prompt: 'Classify all systems by criticality - life-safety, essential, convenience',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'systems',
+          label: 'Systems by criticality',
+          min: 1,
+          max: 16,
+          addLabel: 'Add system',
+          itemLabel: 'System',
+          item: {
+            kind: 'text',
+            placeholder: 'e.g. Water supply - life-safety',
+          },
+        },
+      ],
+    },
   },
   'ofg-s1-critical-systems-redundancy-c2': {
     id: 'ofg-s1-critical-systems-redundancy-c2', label: 'Redundancy spec', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c2', prompt: 'Define redundancy requirement for each life-safety system - dual source, backup storage, manual fallback' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-critical-systems-redundancy-c2',
+      prompt: 'Define redundancy requirement for each life-safety system - dual source, backup storage, manual fallback',
+      fields: [
+        {
+          kind: 'text',
+          key: 'redundancy',
+          label: 'Redundancy per life-safety system',
+          multiline: true,
+          placeholder: 'Dual source, backup storage, or manual fallback for each life-safety system.',
+        },
+      ],
+    },
   },
   'ofg-s1-critical-systems-redundancy-c3': {
     id: 'ofg-s1-critical-systems-redundancy-c3', label: 'Min viable op', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c3', prompt: 'Define minimum viable operation standard for each critical system during failure' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-critical-systems-redundancy-c3',
+      prompt: 'Define minimum viable operation standard for each critical system during failure',
+      fields: [
+        {
+          kind: 'text',
+          key: 'minViable',
+          label: 'Minimum viable operation standard',
+          multiline: true,
+          placeholder: 'The minimum acceptable operation of each critical system during failure.',
+        },
+      ],
+    },
   },
   'ofg-s1-critical-systems-redundancy-c4': {
     id: 'ofg-s1-critical-systems-redundancy-c4', label: 'Max downtime', icon: AlertTriangle, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c4', prompt: 'Define maximum acceptable downtime per system before life-safety threshold is breached' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-critical-systems-redundancy-c4',
+      prompt: 'Define maximum acceptable downtime per system before life-safety threshold is breached',
+      fields: [
+        {
+          kind: 'text',
+          key: 'maxDowntime',
+          label: 'Maximum acceptable downtime',
+          multiline: true,
+          placeholder: 'Per system, the downtime before the life-safety threshold is breached.',
+        },
+      ],
+    },
   },
   'ofg-s1-critical-systems-redundancy-c5': {
     id: 'ofg-s1-critical-systems-redundancy-c5', label: 'Feasibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c5', prompt: 'Confirm redundancy requirements are achievable on this site' },
+    arm: {
+      kind: 'form',
+      formId: 'ofg-s1-critical-systems-redundancy-c5',
+      prompt: 'Confirm redundancy requirements are achievable on this site',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Redundancy achievable on this site',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the site limits redundancy, note it here.',
+        },
+      ],
+    },
   },
 
   // -- agritourism --
