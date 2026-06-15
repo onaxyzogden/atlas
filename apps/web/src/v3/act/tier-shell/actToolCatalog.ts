@@ -2452,75 +2452,347 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- agritourism --
   'ag-s1-experience-vision-c1': {
     id: 'ag-s1-experience-vision-c1', label: 'Experience core', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c1', prompt: 'Define the core guest experience in plain language - what makes this farm distinct' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c1',
+      prompt: 'Define the core guest experience in plain language - what makes this farm distinct',
+      fields: [
+        {
+          kind: 'text',
+          key: 'experience',
+          label: 'Core guest experience',
+          multiline: true,
+          placeholder: 'In plain language, what a guest comes here for and what makes this farm distinct.',
+        },
+      ],
+    },
   },
   'ag-s1-experience-vision-c2': {
     id: 'ag-s1-experience-vision-c2', label: 'Visitor types', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c2', prompt: 'Identify visitor types - day visitors, overnight guests, retreat participants, school groups' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c2',
+      prompt: 'Identify visitor types - day visitors, overnight guests, retreat participants, school groups',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'visitorTypes',
+          label: 'Visitor types',
+          min: 1,
+          max: 8,
+          addLabel: 'Add visitor type',
+          itemLabel: 'Visitor type',
+          item: {
+            kind: 'hybrid',
+            optionSetId: 'agVisitorType',
+            placeholder: 'Pick or describe',
+          },
+        },
+      ],
+    },
   },
   'ag-s1-experience-vision-c3': {
     id: 'ag-s1-experience-vision-c3', label: 'Commercial offer', icon: Wallet, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c3', prompt: 'Define the commercial proposition - what is offered and at what price point' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c3',
+      prompt: 'Define the commercial proposition - what is offered and at what price point',
+      fields: [
+        {
+          kind: 'text',
+          key: 'proposition',
+          label: 'Commercial proposition',
+          multiline: true,
+          placeholder: 'What is offered to guests and at what price point.',
+        },
+      ],
+    },
   },
   'ag-s1-experience-vision-c4': {
     id: 'ag-s1-experience-vision-c4', label: 'Hospitality identity', icon: Home, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c4', prompt: "Define the farm's hospitality identity - authentic farm stay, luxury retreat, educational experience" },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c4',
+      prompt: "Define the farm's hospitality identity - authentic farm stay, luxury retreat, educational experience",
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'identity',
+          label: 'Hospitality identity',
+          optionSetId: 'agHospitalityIdentity',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What this hospitality identity means for how guests are received.',
+        },
+      ],
+    },
   },
   'ag-s1-experience-vision-c5': {
     id: 'ag-s1-experience-vision-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c5', prompt: 'Confirm the commercial model is achievable within steward capacity' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c5',
+      prompt: 'Confirm the commercial model is achievable within steward capacity',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Commercial model achievable within steward capacity',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where steward capacity limits the commercial model, note it here.',
+        },
+      ],
+    },
   },
   'ag-s1-experience-vision-c6': {
     id: 'ag-s1-experience-vision-c6', label: 'Non-negotiables', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c6', prompt: 'Record what will never be compromised for commercial gain' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-experience-vision-c6',
+      prompt: 'Record what will never be compromised for commercial gain',
+      fields: [
+        {
+          kind: 'text',
+          key: 'nonNegotiables',
+          label: 'What will never be compromised for commercial gain',
+          multiline: true,
+          placeholder: 'The lines that stay fixed no matter the commercial pressure.',
+        },
+      ],
+    },
   },
   'ag-s1-visitor-capacity-c1': {
     id: 'ag-s1-visitor-capacity-c1', label: 'Max capacity', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c1', prompt: 'Define maximum simultaneous guest capacity - accommodation, dining, programming' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-visitor-capacity-c1',
+      prompt: 'Define maximum simultaneous guest capacity - accommodation, dining, programming',
+      fields: [
+        {
+          kind: 'text',
+          key: 'maxCapacity',
+          label: 'Maximum simultaneous guest capacity',
+          multiline: true,
+          placeholder: 'Accommodation, dining, and programming - the most guests the site can host at once.',
+        },
+      ],
+    },
   },
   'ag-s1-visitor-capacity-c2': {
     id: 'ag-s1-visitor-capacity-c2', label: 'Visit limits', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c2', prompt: 'Define visit type limits - maximum day visitors, overnight guests, event attendees' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-visitor-capacity-c2',
+      prompt: 'Define visit type limits - maximum day visitors, overnight guests, event attendees',
+      fields: [
+        {
+          kind: 'text',
+          key: 'visitLimits',
+          label: 'Visit type limits',
+          multiline: true,
+          placeholder: 'Maximum day visitors, overnight guests, and event attendees.',
+        },
+      ],
+    },
   },
   'ag-s1-visitor-capacity-c3': {
     id: 'ag-s1-visitor-capacity-c3', label: 'Op boundaries', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c3', prompt: 'Define operational boundaries - what farm activities are incompatible with guest presence' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-visitor-capacity-c3',
+      prompt: 'Define operational boundaries - what farm activities are incompatible with guest presence',
+      fields: [
+        {
+          kind: 'text',
+          key: 'opBoundaries',
+          label: 'Operational boundaries',
+          multiline: true,
+          placeholder: 'Which farm activities are incompatible with guests being present.',
+        },
+      ],
+    },
   },
   'ag-s1-visitor-capacity-c4': {
     id: 'ag-s1-visitor-capacity-c4', label: 'Seasonal variation', icon: Sun, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c4', prompt: 'Define seasonal capacity variation - peak and off-peak limits' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-visitor-capacity-c4',
+      prompt: 'Define seasonal capacity variation - peak and off-peak limits',
+      fields: [
+        {
+          kind: 'text',
+          key: 'seasonalVariation',
+          label: 'Seasonal capacity variation',
+          multiline: true,
+          placeholder: 'Peak and off-peak limits across the year.',
+        },
+      ],
+    },
   },
   'ag-s1-visitor-capacity-c5': {
     id: 'ag-s1-visitor-capacity-c5', label: 'Consistency check', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c5', prompt: 'Confirm capacity is consistent with regulatory requirements and infrastructure potential' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-visitor-capacity-c5',
+      prompt: 'Confirm capacity is consistent with regulatory requirements and infrastructure potential',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'consistent',
+          label: 'Capacity consistent with regulatory requirements and infrastructure potential',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any gap between intended capacity and what regulation or infrastructure allows.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c1': {
     id: 'ag-s1-regulatory-framework-c1', label: 'Food permits', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c1', prompt: 'Identify food service permit requirements - preparation, service, storage' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c1',
+      prompt: 'Identify food service permit requirements - preparation, service, storage',
+      fields: [
+        {
+          kind: 'text',
+          key: 'foodPermits',
+          label: 'Food service permit requirements',
+          multiline: true,
+          placeholder: 'Preparation, service, and storage permits the food offering will need.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c2': {
     id: 'ag-s1-regulatory-framework-c2', label: 'Accom licensing', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c2', prompt: 'Identify accommodation licensing requirements for intended accommodation type' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c2',
+      prompt: 'Identify accommodation licensing requirements for intended accommodation type',
+      fields: [
+        {
+          kind: 'text',
+          key: 'accomLicensing',
+          label: 'Accommodation licensing requirements',
+          multiline: true,
+          placeholder: 'Licensing the intended accommodation type will require.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c3': {
     id: 'ag-s1-regulatory-framework-c3', label: 'Liability insurance', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c3', prompt: 'Define public liability insurance requirements and coverage' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c3',
+      prompt: 'Define public liability insurance requirements and coverage',
+      fields: [
+        {
+          kind: 'text',
+          key: 'liabilityInsurance',
+          label: 'Public liability insurance requirements and coverage',
+          multiline: true,
+          placeholder: 'The cover required for public access, and the level of coverage.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c4': {
     id: 'ag-s1-regulatory-framework-c4', label: 'Health & safety', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c4', prompt: 'Identify health and safety compliance requirements for public access' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c4',
+      prompt: 'Identify health and safety compliance requirements for public access',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healthSafety',
+          label: 'Health and safety compliance requirements for public access',
+          multiline: true,
+          placeholder: 'What public access requires for health and safety compliance.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c5': {
     id: 'ag-s1-regulatory-framework-c5', label: 'Resource consent', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c5', prompt: 'Identify any resource consent requirements for visitor infrastructure' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c5',
+      prompt: 'Identify any resource consent requirements for visitor infrastructure',
+      fields: [
+        {
+          kind: 'text',
+          key: 'resourceConsent',
+          label: 'Resource consent requirements for visitor infrastructure',
+          multiline: true,
+          placeholder: 'Any consent needed for visitor infrastructure.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c6': {
     id: 'ag-s1-regulatory-framework-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c6', prompt: 'Define compliance calendar - renewal dates and ongoing obligations' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c6',
+      prompt: 'Define compliance calendar - renewal dates and ongoing obligations',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceCalendar',
+          label: 'Compliance calendar',
+          multiline: true,
+          placeholder: 'Renewal dates and ongoing obligations to track across the year.',
+        },
+      ],
+    },
   },
   'ag-s1-regulatory-framework-c7': {
     id: 'ag-s1-regulatory-framework-c7', label: 'Legal advice', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c7', prompt: 'Obtain legal or compliance advice before any guest-facing infrastructure is built' },
+    arm: {
+      kind: 'form',
+      formId: 'ag-s1-regulatory-framework-c7',
+      prompt: 'Obtain legal or compliance advice before any guest-facing infrastructure is built',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'adviceStatus',
+          label: 'Legal or compliance advice status',
+          optionSetId: 'adviceStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is advising, and what remains before any guest-facing infrastructure is built.',
+        },
+      ],
+    },
   },
 
   // -- ecovillage --

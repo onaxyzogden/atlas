@@ -487,6 +487,9 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     ['educationProgramType', 5],
     // mgd
     ['growingPhilosophy', 5],
+    // ag
+    ['agVisitorType', 4],
+    ['agHospitalityIdentity', 3],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -551,6 +554,23 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Integrated pest management (IPM)',
       'Biodynamic',
       'Hybrid',
+    ]);
+  });
+
+  it('agVisitorType is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('agVisitorType', undefined)).toEqual([
+      'Day visitors',
+      'Overnight guests',
+      'Retreat participants',
+      'School groups',
+    ]);
+  });
+
+  it('agHospitalityIdentity is the exact 3-item list in order', () => {
+    expect(resolveFieldOptions('agHospitalityIdentity', undefined)).toEqual([
+      'Authentic farm stay',
+      'Luxury retreat',
+      'Educational experience',
     ]);
   });
 });

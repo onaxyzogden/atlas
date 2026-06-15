@@ -757,6 +757,26 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Hybrid',
     ],
   },
+
+  // Agritourism visitor types (ag-s1-experience-vision-c2), repeatable rows.
+  agVisitorType: {
+    _base: [
+      'Day visitors',
+      'Overnight guests',
+      'Retreat participants',
+      'School groups',
+    ],
+  },
+  // Agritourism hospitality identity (ag-s1-experience-vision-c4). The form's
+  // central positioning decision; the commercial proposition and price point
+  // stay free-text (no offering is priced or sold here).
+  agHospitalityIdentity: {
+    _base: [
+      'Authentic farm stay',
+      'Luxury retreat',
+      'Educational experience',
+    ],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
