@@ -112,6 +112,15 @@ interface Props {
    * When omitted, deferred cards render without a restore affordance.
    */
   onRestoreObjective?: (objective: PlanStratumObjective) => void;
+  /**
+   * Tier-0 hold mirror — per-objective count of decisions parked ("on hold")
+   * in the Tier-0 workbench and not yet recorded. Computed by the shell (it
+   * owns completion data). Forwarded to the matching ObjectiveCard in the
+   * active list; deliberately NOT forwarded to cards in the whole-objective
+   * "Deferred" group (those already read as shelved). Keyed by objective id;
+   * absent ids render no chip. Display-only.
+   */
+  onHoldByObjective?: Readonly<Record<string, number>>;
 }
 
 const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
@@ -152,6 +161,7 @@ export default function ObjectiveColumn({
   onSelectObjective,
   onObjectiveDivergenceClick,
   onRestoreObjective,
+  onHoldByObjective = {},
 }: Props) {
   const highlightSet = useMemo(
     () => new Set(highlightObjectiveIds ?? []),
@@ -442,6 +452,7 @@ export default function ObjectiveColumn({
                 reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                 reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
                 reviewCheckpoint={softReviewObjectiveIds?.has(obj.id) ?? false}
+                onHoldDecisionCount={onHoldByObjective[obj.id] ?? 0}
                 onSelect={onSelectObjective}
                 onDivergenceClick={onObjectiveDivergenceClick}
               />

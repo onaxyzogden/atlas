@@ -11,7 +11,7 @@
 // preserves the prior accessibility contract.
 
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { RefreshCcw, RotateCcw } from 'lucide-react';
+import { Clock, RefreshCcw, RotateCcw } from 'lucide-react';
 import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
@@ -73,6 +73,15 @@ interface Props {
    * engine. Only rendered when status is `deferred` and this is provided.
    */
   onRestore?: (objective: PlanStratumObjective) => void;
+  /**
+   * Tier-0 hold mirror — count of THIS objective's decisions that are
+   * parked ("on hold") in the Tier-0 workbench and not yet recorded
+   * (`actEvidenceStore.deferredDecisions`, with completed items excluded so
+   * "complete wins" as in DecisionList). Rendered as a slate clock chip when
+   * > 0. Display-only; the status engine is never touched. The shell omits
+   * it on whole-objective `deferred` cards, so it never appears there.
+   */
+  onHoldDecisionCount?: number;
 }
 
 const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
@@ -95,8 +104,10 @@ export default function ObjectiveCard({
   onSelect,
   onDivergenceClick,
   onRestore,
+  onHoldDecisionCount = 0,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
+  const decisionsOnHold = onHoldDecisionCount > 0;
   const isDeferred = status === 'deferred';
   const sourceTag = getSourceTag(objective);
   const baseLabel = `${objective.title}: ${STATUS_LABEL[status]}`;
@@ -137,6 +148,7 @@ export default function ObjectiveCard({
       data-highlighting={isHighlighting ? 'true' : undefined}
       data-has-divergence={hasDivergence ? 'true' : undefined}
       data-soft-review={isReviewCheckpoint ? 'true' : undefined}
+      data-decisions-on-hold={decisionsOnHold ? 'true' : undefined}
       onClick={handleClick}
       onKeyDown={handleKey}
       aria-label={ariaLabel}
@@ -195,6 +207,16 @@ export default function ObjectiveCard({
           >
             <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
             Review
+          </span>
+        )}
+        {decisionsOnHold && (
+          <span
+            className={css.onHoldChip}
+            data-testid={`objective-on-hold-${objective.id}`}
+            title={`${onHoldDecisionCount} decision${onHoldDecisionCount === 1 ? '' : 's'} on hold — parked for more observation`}
+          >
+            <Clock size={10} strokeWidth={2.5} aria-hidden="true" />
+            {onHoldDecisionCount} on hold
           </span>
         )}
         {isDeferred && onRestore && (

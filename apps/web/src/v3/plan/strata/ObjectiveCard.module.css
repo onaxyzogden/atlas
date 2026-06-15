@@ -270,6 +270,27 @@
   white-space: nowrap;
 }
 
+/* Tier-0 "on hold" mirror — slate, deliberately NOT amber (review/divergence)
+   or sage (whole-objective Deferred), so a parked-decision count reads as
+   "paused" and is never confused with a status change. Chip only: no card
+   opacity/border rule (opacity stays unique to the Deferred/locked states). */
+.onHoldChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(122, 128, 138, 0.18);
+  color: var(--color-text-subtle, #7a808a);
+  border: 1px solid rgba(122, 128, 138, 0.45);
+}
+
 .card[data-has-divergence='true'] {
   border-color: rgba(232, 169, 88, 0.55);
 }

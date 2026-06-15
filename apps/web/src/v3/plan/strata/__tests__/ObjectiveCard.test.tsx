@@ -18,6 +18,7 @@ import ObjectiveCard from '../ObjectiveCard.js';
 // lucide-react ships CJS in this environment; stub the icons so the tests
 // do not crash on the "Objects are not valid as a React child" error.
 vi.mock('lucide-react', () => ({
+  Clock: () => null,
   RefreshCcw: () => null,
   RotateCcw: () => null,
 }));
@@ -108,5 +109,52 @@ describe('ObjectiveCard -- soft review checkpoint (ADR 11)', () => {
     expect(screen.queryByTestId(checkpointTestId)).toBeNull();
     const card = screen.getByRole('button');
     expect(card.getAttribute('data-soft-review')).toBeNull();
+  });
+});
+
+describe('ObjectiveCard -- on-hold decision chip (Tier-0 hold mirror)', () => {
+  const onHoldTestId = `objective-on-hold-${objective.id}`;
+
+  it('renders the slate "N on hold" chip + data attr when count > 1', () => {
+    render(<ObjectiveCard {...BASE_PROPS} onHoldDecisionCount={2} />);
+
+    const chip = screen.queryByTestId(onHoldTestId);
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toContain('2 on hold');
+    expect(chip?.getAttribute('title')).toBe(
+      '2 decisions on hold — parked for more observation',
+    );
+    expect(
+      screen.getByRole('button').getAttribute('data-decisions-on-hold'),
+    ).toBe('true');
+  });
+
+  it('uses singular copy when the count is 1', () => {
+    render(<ObjectiveCard {...BASE_PROPS} onHoldDecisionCount={1} />);
+
+    const chip = screen.queryByTestId(onHoldTestId);
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toContain('1 on hold');
+    expect(chip?.getAttribute('title')).toBe(
+      '1 decision on hold — parked for more observation',
+    );
+  });
+
+  it('does NOT render the chip when the count is 0', () => {
+    render(<ObjectiveCard {...BASE_PROPS} onHoldDecisionCount={0} />);
+
+    expect(screen.queryByTestId(onHoldTestId)).toBeNull();
+    expect(
+      screen.getByRole('button').getAttribute('data-decisions-on-hold'),
+    ).toBeNull();
+  });
+
+  it('does NOT render the chip when the prop is omitted (back-compat)', () => {
+    render(<ObjectiveCard {...BASE_PROPS} />);
+
+    expect(screen.queryByTestId(onHoldTestId)).toBeNull();
+    expect(
+      screen.getByRole('button').getAttribute('data-decisions-on-hold'),
+    ).toBeNull();
   });
 });

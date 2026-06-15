@@ -34,6 +34,7 @@ import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
+import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import {
   useDevUnlockStore,
   liftLockedStatuses,
@@ -90,6 +91,10 @@ const S1_STRATUM_ID = 's1-project-foundation';
 // Stable empty array for the ObjectiveDetailPanel `completedItemIds` default, so
 // an objective with no effective progress does not feed a fresh array each render.
 const EMPTY_COMPLETED: readonly string[] = [];
+
+// Stable empty record for the per-project decision-hold selector, so a project
+// with no deferred decisions never feeds a fresh object into the selector.
+const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 
 export default function PlanStratumShell() {
   const navigate = useNavigate();
@@ -151,6 +156,31 @@ export default function PlanStratumShell() {
   // status engine below; the local derivedMap (further down) is kept only for
   // the evidence chips rendered in ObjectiveDetailPanel.
   const effectiveProgress = useEffectiveChecklistProgress(projectId, objectives);
+
+  // Tier-0 hold mirror — per-decision "on hold" overrides (set in the Tier-0
+  // workbench, persisted in actEvidenceStore). One level up from the
+  // DecisionList row treatment: surface a per-objective count of decisions
+  // that are parked AND not yet recorded ("complete wins", matching the list's
+  // `onHold = !complete && deferred.has(id)` rule). Display-only — never feeds
+  // the status engine. Distinct from the whole-objective `deferred` status
+  // (planStratumStore, below); ObjectiveColumn suppresses the chip on
+  // whole-objective-deferred cards.
+  const deferredDecisions = useActEvidenceStore((s) =>
+    projectId ? (s.deferredDecisions[projectId] ?? EMPTY_DEFERRED) : EMPTY_DEFERRED,
+  );
+  const onHoldByObjective = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const obj of objectives) {
+      let n = 0;
+      for (const item of obj.checklist) {
+        if (deferredDecisions[item.id] && !effectiveProgress.flatMap[item.id]) {
+          n += 1;
+        }
+      }
+      if (n > 0) map[obj.id] = n;
+    }
+    return map;
+  }, [objectives, deferredDecisions, effectiveProgress]);
 
   // Plan Nav v1.1 §8.3 — the steward's explicit Deferred overrides for this
   // project. Threaded into the status engine so deferred objectives resolve to
@@ -1121,6 +1151,7 @@ export default function PlanStratumShell() {
           activeStratumId={activeStratumId}
           tensionStrataHints={tensionStrataHints}
           softReviewObjectiveIds={softGates.softObjectiveIds}
+          onHoldByObjective={onHoldByObjective}
           onSelectTension={handleSelectTension}
           onSelectTensionStratum={handleSelectTensionStratum}
           onSelectObjective={handleSelectObjective}
