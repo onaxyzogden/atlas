@@ -74,6 +74,10 @@ import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js'
 import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
+import PlanZoneRingsOverlay from '../../plan/layers/PlanZoneRingsOverlay.js';
+import PlanSunPathOverlay from '../../plan/layers/PlanSunPathOverlay.js';
+import PlanScheduledMovesOverlay from '../../plan/layers/PlanScheduledMovesOverlay.js';
+import PlanWaterRouterOverlay from '../../plan/layers/PlanWaterRouterOverlay.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
 import MapSheetExportControl from '../../plan/MapSheetExportControl.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
@@ -1079,7 +1083,7 @@ export default function ActTierShell() {
                 <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary} projectId={id}>
                   {({ map }) => (
                     <>
-                      <BaseMapCard stage="act" />
+                      <BaseMapCard stage="act" projectId={id} />
                       <MapToolbar
                         map={map}
                         projectId={params.projectId ?? null}
@@ -1114,6 +1118,22 @@ export default function ActTierShell() {
                         projectId={id}
                         activeModule={activeModule}
                       />
+                      {/* Plan overlays mounted on Act for legend parity: the
+                          BaseMapCard "Overlays" legend now offers the same rows
+                          on Plan and Act (presence-gated per project), so the
+                          rows must actually render here too. Read-only surfacing
+                          — editing still happens on the matching Plan/Act card.
+                          seededZones needs nothing new (PlanDataLayers above
+                          already renders ring-seeded zones). */}
+                      <PlanZoneRingsOverlay map={map} projectId={id} />
+                      <PlanSunPathOverlay
+                        map={map}
+                        projectId={id}
+                        fallbackCentroid={baseCentroid}
+                        boundary={safeBoundary ?? undefined}
+                      />
+                      <PlanScheduledMovesOverlay map={map} projectId={id} />
+                      <PlanWaterRouterOverlay map={map} projectId={id} />
                       <SectorCompassOverlay
                         projectId={id}
                         map={map}

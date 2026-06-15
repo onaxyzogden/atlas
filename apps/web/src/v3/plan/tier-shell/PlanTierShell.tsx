@@ -119,6 +119,11 @@ import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.j
 import SlopeSurveyPanel from '../../act/terrain/SlopeSurveyPanel.js';
 import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
 import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
+// Sectors editor reused unchanged from Act (stage-neutral UI flag + panel):
+// clicking the Plan SectorCompass HUD takes the right rail over with the editor,
+// mirroring ActTierShell.
+import { useActSectorsEditorStore } from '../../act/sectors/actSectorsEditorStore.js';
+import SectorsEditorPanel from '../../act/sectors/SectorsEditorPanel.js';
 import OpenMapToolsButton from '../../_shared/map-takeover/OpenMapToolsButton.js';
 import ObjectiveToolsPanel from '../../_shared/map-takeover/ObjectiveToolsPanel.js';
 import ActFlowConnectorPopover from '../../act/asBuilt/ActFlowConnectorPopover.js';
@@ -365,6 +370,11 @@ export default function PlanTierShell() {
       s.activeObjectiveId === objectiveId,
   );
 
+  // Sectors-editor rail takeover (mirrors the survey/slope takeovers above, but
+  // stage-neutral — the store carries no project/objective key, so the flag is a
+  // plain boolean). Armed by clicking the SectorCompass HUD on the map canvas.
+  const sectorsEditorActive = useActSectorsEditorStore((s) => s.active);
+
   // Tier-0 swap flag: render the interactive decision workbench in place of the
   // editable map canvas when the selected objective is a non-spatial Tier-0 one
   // ("Plan decides" — the workbench moved here from Act). Keyed off the
@@ -380,7 +390,11 @@ export default function PlanTierShell() {
     // A generic map-tools takeover also yields the workbench to the map (so a
     // Tier-0 draw/place objective can reach its draw hosts), exactly like the
     // bespoke survey takeovers above.
-    !toolsTakeoverActive;
+    !toolsTakeoverActive &&
+    // An open sectors editor keeps the compass-bearing map canvas mounted in
+    // the center, even on a Tier-0 objective, so the rail editor has a live
+    // compass to edit against (same precedent as the survey takeovers).
+    !sectorsEditorActive;
 
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
@@ -933,6 +947,16 @@ export default function PlanTierShell() {
                     surveyActive={surveyActive}
                     slopeActive={slopeActive}
                     sourceObjectiveId={objectiveId}
+                    onOpenSectorsEditor={() => {
+                      // Mutually-exclusive rail takeovers (mirror
+                      // ActTierShell:1176-1185): clear any survey / slope /
+                      // objective-tools session before arming the sectors
+                      // editor so the rail never has two claimants.
+                      useVegetationSurveyStore.getState().close();
+                      useSlopeSurveyStore.getState().close();
+                      useObjectiveToolsTakeoverStore.getState().close();
+                      useActSectorsEditorStore.getState().open();
+                    }}
                   />
                   <PlanPhaseTabs active={activeView} onChange={setActiveView} />
                 </div>
@@ -964,6 +988,18 @@ export default function PlanTierShell() {
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
                     <SlopeSurveyPanel projectId={id} />
+                  </div>
+                </div>
+              ) : sectorsEditorActive ? (
+                // Sectors-editor takeover (mirrors ActTierShell:1348-1355):
+                // clicking the floating SectorCompass HUD swaps the rail to the
+                // editor. Done in the panel clears the store. Reciprocity is
+                // structural — while this is active the rail hides the
+                // OpenMapToolsButton / survey triggers, so no other takeover can
+                // be armed without first closing this one.
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <SectorsEditorPanel projectId={id} />
                   </div>
                 </div>
               ) : railMode === 'protocols' ? (

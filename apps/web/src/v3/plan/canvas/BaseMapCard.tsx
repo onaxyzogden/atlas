@@ -17,6 +17,7 @@ import {
   useMatrixTogglesStore,
   type MatrixToggleKey,
 } from '../../../store/matrixTogglesStore.js';
+import { useOverlayPresence } from './useOverlayPresence.js';
 import css from './BaseMapCard.module.css';
 
 interface MapOverlayDef {
@@ -36,13 +37,13 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
   { key: 'builtEnvironment', label: 'Built environment (buildings · utilities · fences)', swatch: '#8a8e94' },
-  { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
+  { key: 'observeAnnotations', label: 'Other observations (notes · soil · ecology · SWOT · verification)', swatch: '#7c5a8a' },
   { key: 'sunPath', label: 'Sun path (hourly trajectory traces)', swatch: '#d68a4a' },
   { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
   { key: 'seededZones', label: 'Home centre / Daily touch / Weekly touch / Main crops / Forage / Wilderness', swatch: '#7a9a4a' },
   { key: 'placedZones', label: 'Placed zones', swatch: '#7a8c62' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
-  { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
+  { key: 'waterRouter', label: 'Water router audit (design flow · placement hints)', swatch: '#a3401d' },
   { key: 'slopeSurvey', label: 'Slope survey (drawn slope-class extents)', swatch: '#b5722e' },
   { key: 'vegetationSurvey', label: 'Vegetation survey (drawn community extents)', swatch: '#4f7a3a' },
 ];
@@ -54,9 +55,16 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // steward-placed annotation group in ObserveAnnotationLayers (they are NOT
 // ANDed with the `observeAnnotations` master — that master governs only the
 // untoggled steward-annotation specs such as points/notes). All are mounted
-// on Observe + Plan + Act — those rows stay everywhere. Only the Plan-stage
-// computed overlays (PlanSunPathOverlay, PlanZoneRingsOverlay,
-// PlanScheduledMovesOverlay) are stage-bound; hide them on Observe + Act.
+// on Observe + Plan + Act — those rows stay everywhere.
+//
+// Plan and Act now mount the same overlay set (the four Plan overlays —
+// PlanSunPathOverlay, PlanZoneRingsOverlay, PlanScheduledMovesOverlay,
+// PlanWaterRouterOverlay — are mounted on the Act canvas too), so STAGE_HIDDEN
+// is identical for both: `[]`. Only Observe omits the Plan-stage computed
+// overlays. Beyond this stage filter, the legend is further pruned per project
+// by useOverlayPresence (a data-backed row only appears when the project has a
+// feature for it) — that presence gate is what keeps Plan and Act showing the
+// SAME rows for the same data, automatically.
 //
 // STAGE_HIDDEN is stage-granular only. The Plan stage has two structurally
 // different canvases (Current Land mounts every Plan overlay; Vision Layout
@@ -65,17 +73,19 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // overlay passes its dead keys via the `hiddenOverlays` prop — suppression
 // is the union of STAGE_HIDDEN[stage] and hiddenOverlays.
 //
-// The drawn-survey overlays (slopeSurvey / vegetationSurvey) are mounted by
-// SlopeSurveyLayer / VegetationSurveyLayer only while a survey takeover is open
-// on Plan or Act — never on Observe — so they are hidden on Observe here. On
-// Plan + Act the row stays (the toggle pre-arms visibility for the next open
-// survey even when no layer is currently mounted).
+// The drawn-survey overlays (slopeSurvey / vegetationSurvey) are rendered by
+// SlopeSurveyLayer / VegetationSurveyLayer, which mount UNCONDITIONALLY on both
+// Plan (VisionLayoutCanvas) and Act (ActTierShell) — so the drawn polygons stay
+// visible outside a survey takeover and this toggle actually shows/hides them.
+// Those layers never mount on Observe, so the rows are hidden there. On Plan +
+// Act the row is then further presence-gated by useOverlayPresence (shown only
+// when the project has ≥1 survey feature).
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
   observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter', 'slopeSurvey', 'vegetationSurvey'],
   plan: [],
-  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
+  act: [],
 };
 
 export interface BaseMapCardProps {
@@ -88,15 +98,25 @@ export interface BaseMapCardProps {
    * Layout Plan canvas, which does not mount sun-path / zone-rings overlays.
    */
   hiddenOverlays?: ReadonlyArray<MatrixToggleKey>;
+  /**
+   * Current project id. When provided, the legend is presence-gated: a
+   * data-backed overlay row only appears when this project has ≥1 feature for
+   * it (see useOverlayPresence). The two computed overlays (topography,
+   * sunPath) always appear. When omitted, no presence-gating occurs (every
+   * stage-applicable row shows) — back-compat for callers that don't pass it.
+   */
+  projectId?: string;
 }
 
 export default function BaseMapCard({
   stage,
   hiddenOverlays,
+  projectId,
 }: BaseMapCardProps = {}) {
   const basemap = useBasemapStore((s) => s.basemap);
   const setBasemap = useBasemapStore((s) => s.setBasemap);
   const toggles = useMatrixTogglesStore();
+  const present = useOverlayPresence(projectId);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -148,7 +168,10 @@ export default function BaseMapCard({
                 ...(stage ? STAGE_HIDDEN[stage] : []),
                 ...(hiddenOverlays ?? []),
               ]);
-              return !hidden.has(o.key);
+              if (hidden.has(o.key)) return false;
+              // Presence-gate: when a projectId is supplied, only offer rows
+              // that have content for it (computed keys are always present).
+              return !projectId || present[o.key];
             }).map((o) => (
               <li key={o.key} className={css.row}>
                 <label className={css.rowLabel}>

@@ -92,6 +92,12 @@ interface Props {
   slopeActive?: boolean;
   /** Active objective id, stamped onto survey polygons as their source. */
   sourceObjectiveId?: string | null;
+  /**
+   * Plan-shell only: clicking the SectorCompass HUD arms the right-rail sectors
+   * editor. Omitted by the legacy PlanLayout render so the compass stays
+   * read-only there (parity with Act, where only ActTierShell wires edit).
+   */
+  onOpenSectorsEditor?: () => void;
 }
 
 interface DrawHostProps {
@@ -127,6 +133,7 @@ export default function VisionLayoutCanvas({
   surveyActive = false,
   slopeActive = false,
   sourceObjectiveId = null,
+  onOpenSectorsEditor,
 }: Props) {
   // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
   // Vision draw lifecycle mounts only when the mapped kind is non-null.
@@ -199,7 +206,7 @@ export default function VisionLayoutCanvas({
             mode={mode}
             setMode={setMode}
           />
-          <BaseMapCard stage="plan" hiddenOverlays={VISION_DEAD_OVERLAYS} />
+          <BaseMapCard stage="plan" hiddenOverlays={VISION_DEAD_OVERLAYS} projectId={projectId} />
           {/* Captured-map PDF export (Master Plan / Base Map / Zone Map /
               Planting Plan) now lives in the DesignToolRail (right edge) as the
               "Export sheet" button — see useMapSheetExport + DesignToolRail.
@@ -222,7 +229,11 @@ export default function VisionLayoutCanvas({
           <ObserveAnnotationLayers map={map} projectId={projectId} />
           <PlanObserveSelectionHandler map={map} />
           <InlineFeaturePopover map={map} />
-          <SectorCompassOverlay projectId={projectId} map={map} />
+          <SectorCompassOverlay
+            projectId={projectId}
+            map={map}
+            onOpenEditor={onOpenSectorsEditor}
+          />
           <UtilityConflictDialog map={map} />
           <PlacementConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
