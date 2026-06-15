@@ -745,6 +745,18 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Online / hybrid',
     ],
   },
+
+  // Market-garden growing-system philosophy (mgd-s1-growing-system-philosophy-c1).
+  // The form's central agronomic stance; everything else in that form is prose.
+  growingPhilosophy: {
+    _base: [
+      'Organic',
+      'Regenerative',
+      'Integrated pest management (IPM)',
+      'Biodynamic',
+      'Hybrid',
+    ],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.

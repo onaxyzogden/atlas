@@ -485,6 +485,8 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     // edu
     ['educationAudience', 5],
     ['educationProgramType', 5],
+    // mgd
+    ['growingPhilosophy', 5],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -539,6 +541,16 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'School excursions',
       'Multi-day residencies',
       'Online / hybrid',
+    ]);
+  });
+
+  it('growingPhilosophy is the exact 5-item list in order', () => {
+    expect(resolveFieldOptions('growingPhilosophy', undefined)).toEqual([
+      'Organic',
+      'Regenerative',
+      'Integrated pest management (IPM)',
+      'Biodynamic',
+      'Hybrid',
     ]);
   });
 });

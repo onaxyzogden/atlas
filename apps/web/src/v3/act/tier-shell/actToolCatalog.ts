@@ -1395,75 +1395,348 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- market garden --
   'mgd-s1-production-targets-sales-c1': {
     id: 'mgd-s1-production-targets-sales-c1', label: 'Harvest value', icon: Wallet, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c1', prompt: 'Define target total annual harvest value in dollars or kg' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c1',
+      prompt: 'Define target total annual harvest value in dollars or kg',
+      fields: [
+        {
+          kind: 'text',
+          key: 'harvestValue',
+          label: 'Target total annual harvest value',
+          multiline: true,
+          placeholder: 'In dollars or kg, the total annual harvest this garden aims to produce.',
+        },
+      ],
+    },
   },
   'mgd-s1-production-targets-sales-c2': {
     id: 'mgd-s1-production-targets-sales-c2', label: 'Market channel', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c2', prompt: 'Define primary market channel - farmers market, wholesale, CSA, online, restaurant supply, or hybrid' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c2',
+      prompt: 'Define primary market channel - farmers market, wholesale, CSA, online, restaurant supply, or hybrid',
+      fields: [
+        {
+          kind: 'text',
+          key: 'marketChannel',
+          label: 'Primary market channel',
+          multiline: true,
+          placeholder: 'Farmers market, wholesale, CSA, online, restaurant supply, or hybrid - and why.',
+        },
+      ],
+    },
   },
   'mgd-s1-production-targets-sales-c3': {
     id: 'mgd-s1-production-targets-sales-c3', label: 'Customer base', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c3', prompt: 'Define customer base for each channel - volume and growth trajectory' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c3',
+      prompt: 'Define customer base for each channel - volume and growth trajectory',
+      fields: [
+        {
+          kind: 'text',
+          key: 'customerBase',
+          label: 'Customer base per channel',
+          multiline: true,
+          placeholder: 'For each channel, the expected volume and how it is likely to grow.',
+        },
+      ],
+    },
   },
   'mgd-s1-production-targets-sales-c4': {
     id: 'mgd-s1-production-targets-sales-c4', label: 'Capacity check', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c4', prompt: 'Confirm targets are achievable within site soil, water, and labour capacity' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c4',
+      prompt: 'Confirm targets are achievable within site soil, water, and labour capacity',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Targets achievable within soil, water, and labour capacity',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where soil, water, or labour limits a target, note it here.',
+        },
+      ],
+    },
   },
   'mgd-s1-production-targets-sales-c5': {
     id: 'mgd-s1-production-targets-sales-c5', label: 'Pricing & margin', icon: Wallet, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c5', prompt: 'Define pricing strategy and profit margin targets' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c5',
+      prompt: 'Define pricing strategy and profit margin targets',
+      fields: [
+        {
+          kind: 'text',
+          key: 'pricingStrategy',
+          label: 'Pricing strategy and profit margin targets',
+          multiline: true,
+          placeholder: 'How prices are set and the margin each channel aims for.',
+        },
+      ],
+    },
   },
   'mgd-s1-production-targets-sales-c6': {
     id: 'mgd-s1-production-targets-sales-c6', label: 'Ramp realism', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c6', prompt: 'Confirm targets are realistic for Year 1 ramp-up and Years 2-3 stabilisation' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-production-targets-sales-c6',
+      prompt: 'Confirm targets are realistic for Year 1 ramp-up and Years 2-3 stabilisation',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'realistic',
+          label: 'Targets realistic for Year 1 ramp-up and Years 2-3 stabilisation',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any assumption behind the ramp-up or stabilisation targets, noted here.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c1': {
     id: 'mgd-s1-growing-system-philosophy-c1', label: 'Growing ethos', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c1', prompt: 'Define the core growing philosophy - organic, regenerative, integrated pest management, biodynamic, or hybrid' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c1',
+      prompt: 'Define the core growing philosophy - organic, regenerative, integrated pest management, biodynamic, or hybrid',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'philosophy',
+          label: 'Core growing philosophy',
+          optionSetId: 'growingPhilosophy',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What this philosophy means in practice for this garden.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c2': {
     id: 'mgd-s1-growing-system-philosophy-c2', label: 'Soil targets', icon: FlaskConical, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c2', prompt: 'Define soil health targets - fertility building, microbial life, water retention' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c2',
+      prompt: 'Define soil health targets - fertility building, microbial life, water retention',
+      fields: [
+        {
+          kind: 'text',
+          key: 'soilHealth',
+          label: 'Soil health targets',
+          multiline: true,
+          placeholder: 'Fertility building, microbial life, water retention - the soil outcomes to reach.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c3': {
     id: 'mgd-s1-growing-system-philosophy-c3', label: 'Pest approach', icon: Bird, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c3', prompt: 'Define pest and disease management approach - companion planting, mechanical, biological, acceptable chemical inputs' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c3',
+      prompt: 'Define pest and disease management approach - companion planting, mechanical, biological, acceptable chemical inputs',
+      fields: [
+        {
+          kind: 'text',
+          key: 'pestManagement',
+          label: 'Pest and disease management approach',
+          multiline: true,
+          placeholder: 'Companion planting, mechanical, biological, and any acceptable chemical inputs.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c4': {
     id: 'mgd-s1-growing-system-philosophy-c4', label: 'Rotation', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c4', prompt: 'Define crop rotation and succession strategy' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c4',
+      prompt: 'Define crop rotation and succession strategy',
+      fields: [
+        {
+          kind: 'text',
+          key: 'rotation',
+          label: 'Crop rotation and succession strategy',
+          multiline: true,
+          placeholder: 'How beds are rotated and successions are sequenced through the year.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c5': {
     id: 'mgd-s1-growing-system-philosophy-c5', label: 'Variety policy', icon: Sprout, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c5', prompt: 'Define variety selection and saving philosophy - hybrid, heirloom, productivity vs. resilience' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c5',
+      prompt: 'Define variety selection and saving philosophy - hybrid, heirloom, productivity vs. resilience',
+      fields: [
+        {
+          kind: 'text',
+          key: 'varietySelection',
+          label: 'Variety selection and saving philosophy',
+          multiline: true,
+          placeholder: 'Hybrid or heirloom, and how productivity is weighed against resilience.',
+        },
+      ],
+    },
   },
   'mgd-s1-growing-system-philosophy-c6': {
     id: 'mgd-s1-growing-system-philosophy-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c6', prompt: 'Confirm philosophy is achievable within operator knowledge and site conditions' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-growing-system-philosophy-c6',
+      prompt: 'Confirm philosophy is achievable within operator knowledge and site conditions',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Philosophy achievable within operator knowledge and site conditions',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where operator knowledge or site conditions limit the philosophy, note it here.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c1': {
     id: 'mgd-s1-market-channels-c1', label: 'Food safety', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c1', prompt: 'Identify food safety compliance requirements for each channel - farmers market, wholesale, direct-to-consumer, processing' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c1',
+      prompt: 'Identify food safety compliance requirements for each channel - farmers market, wholesale, direct-to-consumer, processing',
+      fields: [
+        {
+          kind: 'text',
+          key: 'foodSafety',
+          label: 'Food safety compliance requirements per channel',
+          multiline: true,
+          placeholder: 'For farmers market, wholesale, direct-to-consumer, and processing - what each requires.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c2': {
     id: 'mgd-s1-market-channels-c2', label: 'Labelling & cert', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c2', prompt: 'Identify labelling, certification, and traceability requirements' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c2',
+      prompt: 'Identify labelling, certification, and traceability requirements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'labelling',
+          label: 'Labelling, certification, and traceability requirements',
+          multiline: true,
+          placeholder: 'What must appear on labels, which certifications apply, and how produce is traced.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c3': {
     id: 'mgd-s1-market-channels-c3', label: 'Packaging & cold', icon: Container, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c3', prompt: 'Define packaging and cold-chain requirements by product type' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c3',
+      prompt: 'Define packaging and cold-chain requirements by product type',
+      fields: [
+        {
+          kind: 'text',
+          key: 'packaging',
+          label: 'Packaging and cold-chain requirements by product type',
+          multiline: true,
+          placeholder: 'How each product type is packed and what cold-chain it needs.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c4': {
     id: 'mgd-s1-market-channels-c4', label: 'Regulatory risk', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c4', prompt: 'Assess regulatory risk per channel - highest to lowest compliance burden' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c4',
+      prompt: 'Assess regulatory risk per channel - highest to lowest compliance burden',
+      fields: [
+        {
+          kind: 'text',
+          key: 'regulatoryRisk',
+          label: 'Regulatory risk per channel',
+          multiline: true,
+          placeholder: 'Rank the channels from highest to lowest compliance burden, with reasons.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c5': {
     id: 'mgd-s1-market-channels-c5', label: 'Compliance cal', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c5', prompt: 'Define compliance calendar - inspection schedules, certification renewals' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c5',
+      prompt: 'Define compliance calendar - inspection schedules, certification renewals',
+      fields: [
+        {
+          kind: 'text',
+          key: 'complianceCalendar',
+          label: 'Compliance calendar',
+          multiline: true,
+          placeholder: 'Inspection schedules and certification renewals to track across the year.',
+        },
+      ],
+    },
   },
   'mgd-s1-market-channels-c6': {
     id: 'mgd-s1-market-channels-c6', label: 'Reg advice', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c6', prompt: 'Obtain regulatory advice on chosen channels before first sale' },
+    arm: {
+      kind: 'form',
+      formId: 'mgd-s1-market-channels-c6',
+      prompt: 'Obtain regulatory advice on chosen channels before first sale',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'adviceStatus',
+          label: 'Regulatory advice status',
+          optionSetId: 'adviceStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is advising on the chosen channels, and what remains before first sale.',
+        },
+      ],
+    },
   },
 
   // -- orchard --
