@@ -255,6 +255,93 @@ const successCriteriaByTypeStrings: FieldOptionSet = Object.fromEntries(
 // representative types (homestead, regenerative_farm, market_garden,
 // silvopasture, livestock_operation); all other types resolve to `_base` only.
 export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
+  // -- Shared semantic core ---------------------------------------------------
+  // Reusable, type-agnostic vocabularies so the ~215 objective-capture forms
+  // compose from a small shared core instead of inventing hundreds of bespoke
+  // sets. AUTHORING RULE: prefer a shared set; add a bespoke set only for a
+  // genuinely type-specific vocabulary; and when a prompt is sale-, capital-, or
+  // revenue-adjacent, prefer a single free-text leaf (or a deliberately
+  // conservative enumerated set with no advance-sale framing) over an open
+  // dropdown -- never encode a priced/advance-purchase instrument here (Amanah:
+  // no riba, no gharar, no bay` ma laysa `indak / CSRA / season-pass framing).
+  // All shared-core sets are `_base`-only (no per-type lists) by design.
+
+  // Agreement / sign-off confirmation (e.g. "Confirm ... is agreed by all").
+  confirmAgreement: {
+    _base: [
+      'Yes - agreed by all occupants',
+      'Mostly - minor points to resolve',
+      'Not yet - further discussion needed',
+    ],
+  },
+  // Plain binary answer.
+  yesNo: { _base: ['Yes', 'No'] },
+  // Household food-production ambition. Amanah-conservative wording: the
+  // "Commercial" band names an intent to sell but creates/prices no instrument;
+  // any actual sales channel routes to its own guardrailed capture. EXACT-LIST
+  // locked by fieldOptions.test.ts.
+  foodProductionTarget: {
+    _base: [
+      'Subsistence (household only)',
+      'Supplementary (household + some surplus)',
+      'Commercial (primarily for sale)',
+    ],
+  },
+  // Domestic enterprise scope. Amanah-conservative: ascends from own-use to a
+  // bare "intended for sale" with NO advance-purchase / CSRA / season-pass
+  // surface. EXACT-LIST locked by fieldOptions.test.ts.
+  enterpriseScope: {
+    _base: [
+      'Own use only',
+      'Own use with occasional surplus shared',
+      'Some produce intended for sale',
+    ],
+  },
+  // Age band for a household member.
+  householdAgeBand: {
+    _base: [
+      'Infant (under 5)',
+      'Child (5-12)',
+      'Teenager (13-17)',
+      'Adult (18-64)',
+      'Senior (65+)',
+    ],
+  },
+  // Role of a household member.
+  householdRole: {
+    _base: [
+      'Primary steward',
+      'Partner or spouse',
+      'Child or dependent',
+      'Extended family member',
+      'Regular helper or guest',
+    ],
+  },
+  // Accessibility / support requirement (mobility, health, age).
+  accessibilityNeed: {
+    _base: [
+      'Step-free access required',
+      'Mobility aid or wheelchair use',
+      'Limited lifting or carrying capacity',
+      'Visual impairment',
+      'Hearing impairment',
+      'Chronic health condition',
+      'Age-related limitation',
+    ],
+  },
+  // Generic proficiency band for a skill or capability.
+  skillLevel: {
+    _base: ['No experience', 'Some experience', 'Confident', 'Highly experienced'],
+  },
+  // Generic small/medium/large sizing band.
+  scaleBand: { _base: ['Small', 'Medium', 'Large'] },
+  // Generic condition assessment.
+  conditionStatus: {
+    _base: ['Good', 'Fair', 'Poor', 'Needs attention', 'Not yet assessed'],
+  },
+  // Generic priority band.
+  priorityBand: { _base: ['High', 'Medium', 'Low'] },
+
   successCriteriaByType: successCriteriaByTypeStrings,
 
   constraintsByType: {

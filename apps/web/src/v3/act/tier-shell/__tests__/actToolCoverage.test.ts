@@ -40,6 +40,7 @@ import {
   WELLNESS_SECONDARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
+  FIELD_OPTION_SETS,
 } from '@ogden/shared';
 import { ACT_TOOL_CATALOG, ACT_TOOL_CATEGORIES } from '../actToolCatalog.js';
 
@@ -397,5 +398,35 @@ describe('Act tier-shell objective->tool coverage', () => {
       expect(tool.id).toBe(key);
       expect(categoryIds.has(tool.category)).toBe(true);
     }
+  });
+
+  it('every hybrid field in a form arm references a registered option set', () => {
+    // Structured-input authoring guard (2026-06-15): a hybrid leaf whose
+    // optionSetId is NOT a key in FIELD_OPTION_SETS resolves to [] and degrades
+    // silently to free-text-only -- the "empty dropdown" failure mode. tsc does
+    // not catch it (optionSetId is a plain string), so this invariant does:
+    // every hybrid optionSetId emitted by the catalog (top-level leaf or a
+    // repeatable's item) must be a registered set. Trips the moment a future
+    // `fields` edit references an unregistered/typo'd set.
+    const unregistered: string[] = [];
+    for (const tool of Object.values(ACT_TOOL_CATALOG)) {
+      if (tool.arm.kind !== 'form' || !tool.arm.fields) continue;
+      for (const field of tool.arm.fields) {
+        const leaves = field.kind === 'repeatable' ? [field.item] : [field];
+        for (const leaf of leaves) {
+          if (
+            leaf.kind === 'hybrid' &&
+            leaf.optionSetId &&
+            !Object.prototype.hasOwnProperty.call(
+              FIELD_OPTION_SETS,
+              leaf.optionSetId,
+            )
+          ) {
+            unregistered.push(`${tool.id} -> ${leaf.optionSetId}`);
+          }
+        }
+      }
+    }
+    expect(unregistered).toEqual([]);
   });
 });

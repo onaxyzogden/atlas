@@ -412,3 +412,63 @@ describe('boundary re-decompose option sets (BR1)', () => {
     ]);
   });
 });
+
+describe('shared semantic core option sets (A0)', () => {
+  // The reusable, type-agnostic vocabularies that the system-wide objective-
+  // capture forms compose from. Each is `_base`-only by design.
+  const CORE_SETS: ReadonlyArray<[string, number]> = [
+    ['confirmAgreement', 3],
+    ['yesNo', 2],
+    ['foodProductionTarget', 3],
+    ['enterpriseScope', 3],
+    ['householdAgeBand', 5],
+    ['householdRole', 5],
+    ['accessibilityNeed', 7],
+    ['skillLevel', 4],
+    ['scaleBand', 3],
+    ['conditionStatus', 5],
+    ['priorityBand', 3],
+  ];
+
+  it.each(CORE_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
+    const set = FIELD_OPTION_SETS[id];
+    expect(set, id).toBeDefined();
+    expect(set!._base, id).toBeDefined();
+    expect(set!._base!.length, id).toBe(n);
+  });
+
+  it.each(CORE_SETS)('%s resolves _base verbatim for an undefined project type', (id) => {
+    const set = FIELD_OPTION_SETS[id]!;
+    expect(resolveFieldOptions(id, undefined)).toEqual([...set._base!]);
+  });
+
+  it.each(CORE_SETS)('%s is base-only: a primaryTypeId does not change resolution', (id) => {
+    expect(resolveFieldOptions(id, 'homestead')).toEqual(
+      resolveFieldOptions(id, undefined),
+    );
+  });
+
+  // Amanah-sensitive sets: lock their EXACT wording so no advance-sale / CSRA /
+  // season-pass framing can drift in unnoticed.
+  it('foodProductionTarget is the exact Amanah-conservative 3-item list in order', () => {
+    expect(resolveFieldOptions('foodProductionTarget', undefined)).toEqual([
+      'Subsistence (household only)',
+      'Supplementary (household + some surplus)',
+      'Commercial (primarily for sale)',
+    ]);
+  });
+
+  it('enterpriseScope is the exact Amanah-conservative 3-item list in order', () => {
+    expect(resolveFieldOptions('enterpriseScope', undefined)).toEqual([
+      'Own use only',
+      'Own use with occasional surplus shared',
+      'Some produce intended for sale',
+    ]);
+  });
+
+  it('confirmAgreement leads with an affirmative agreed option', () => {
+    expect(resolveFieldOptions('confirmAgreement', undefined)[0]).toBe(
+      'Yes - agreed by all occupants',
+    );
+  });
+});
