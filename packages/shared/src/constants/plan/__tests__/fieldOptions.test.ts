@@ -495,6 +495,10 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     ['orchardProcessing', 5],
     ['orchardProvenance', 5],
     ['treeStockSize', 3],
+    // silv
+    ['livestockSpecies', 6],
+    ['livestockProductIntent', 6],
+    ['landImprovementGoal', 4],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -613,6 +617,37 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Bare-root',
       'Small pot',
       'Large specimen',
+    ]);
+  });
+
+  it('livestockSpecies is the exact 6-item list in order', () => {
+    expect(resolveFieldOptions('livestockSpecies', undefined)).toEqual([
+      'Cattle',
+      'Sheep',
+      'Goats',
+      'Pigs',
+      'Poultry',
+      'Combination / mixed',
+    ]);
+  });
+
+  it('livestockProductIntent is the exact 6-item list in order', () => {
+    expect(resolveFieldOptions('livestockProductIntent', undefined)).toEqual([
+      'Meat',
+      'Milk',
+      'Eggs',
+      'Fibre',
+      'Breeding stock',
+      'Land improvement',
+    ]);
+  });
+
+  it('landImprovementGoal is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('landImprovementGoal', undefined)).toEqual([
+      'Soil improvement',
+      'Pasture productivity',
+      'Ecological condition',
+      'Combination',
     ]);
   });
 });

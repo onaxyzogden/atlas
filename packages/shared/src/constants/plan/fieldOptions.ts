@@ -806,6 +806,20 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
   treeStockSize: {
     _base: ['Bare-root', 'Small pot', 'Large specimen'],
   },
+  // --- silv (silvopasture) ---
+  // Silvopasture livestock species kept (silv-s1-enterprise-mix-c1).
+  livestockSpecies: {
+    _base: ['Cattle', 'Sheep', 'Goats', 'Pigs', 'Poultry', 'Combination / mixed'],
+  },
+  // What the livestock are kept to produce (silv-s1-enterprise-mix-c2).
+  // Enumerates the production intent only -- no product is priced or sold here.
+  livestockProductIntent: {
+    _base: ['Meat', 'Milk', 'Eggs', 'Fibre', 'Breeding stock', 'Land improvement'],
+  },
+  // Primary land-improvement goal of grazing (silv-s1-land-improvement-philosophy-c1).
+  landImprovementGoal: {
+    _base: ['Soil improvement', 'Pasture productivity', 'Ecological condition', 'Combination'],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.

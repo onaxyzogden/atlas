@@ -1131,75 +1131,382 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- silvopasture --
   'silv-s1-enterprise-mix-c1': {
     id: 'silv-s1-enterprise-mix-c1', label: 'Species & breeds', icon: Beef, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c1', prompt: 'Define species and breeds selected - cattle, sheep, goats, pigs, poultry, or combination' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c1',
+      prompt: 'Define species and breeds selected - cattle, sheep, goats, pigs, poultry, or combination',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'species',
+          label: 'Species selected',
+          optionSetId: 'livestockSpecies',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Breeds and notes',
+          multiline: true,
+          placeholder: 'Specific breeds chosen, and why they suit this site.',
+        },
+      ],
+    },
   },
   'silv-s1-enterprise-mix-c2': {
     id: 'silv-s1-enterprise-mix-c2', label: 'Production intent', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c2', prompt: 'Define production intent per species - meat, milk, fibre, eggs, land improvement' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c2',
+      prompt: 'Define production intent per species - meat, milk, fibre, eggs, land improvement',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'productionIntent',
+          label: 'Production intent',
+          optionSetId: 'livestockProductIntent',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Intent per species',
+          multiline: true,
+          placeholder: 'What each species is kept to produce.',
+        },
+      ],
+    },
   },
   'silv-s1-enterprise-mix-c3': {
     id: 'silv-s1-enterprise-mix-c3', label: 'Herd-mix rationale', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c3', prompt: 'Define herd mix rationale - why these species, why these numbers' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c3',
+      prompt: 'Define herd mix rationale - why these species, why these numbers',
+      fields: [
+        {
+          kind: 'text',
+          key: 'herdMixRationale',
+          label: 'Herd mix rationale',
+          multiline: true,
+          placeholder: 'Why these species, and why these numbers.',
+        },
+      ],
+    },
   },
   'silv-s1-enterprise-mix-c4': {
     id: 'silv-s1-enterprise-mix-c4', label: 'Stocking density', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c4', prompt: 'Define stocking density - animals per hectare, carrying capacity assessment' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c4',
+      prompt: 'Define stocking density - animals per hectare, carrying capacity assessment',
+      fields: [
+        {
+          kind: 'text',
+          key: 'stockingDensity',
+          label: 'Stocking density',
+          multiline: true,
+          placeholder: 'Animals per hectare, and the carrying-capacity assessment behind it.',
+        },
+      ],
+    },
   },
   'silv-s1-enterprise-mix-c5': {
     id: 'silv-s1-enterprise-mix-c5', label: 'Mix compatibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c5', prompt: 'Confirm mix is compatible with land type, labour availability, and market' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c5',
+      prompt: 'Confirm mix is compatible with land type, labour availability, and market',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'compatible',
+          label: 'Mix compatible with land type, labour availability, and market',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the mix is or is not yet compatible, note it here.',
+        },
+      ],
+    },
   },
   'silv-s1-enterprise-mix-c6': {
     id: 'silv-s1-enterprise-mix-c6', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c6', prompt: 'Confirm herd mix is agreed by all decision-makers' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-enterprise-mix-c6',
+      prompt: 'Confirm herd mix is agreed by all decision-makers',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'agreed',
+          label: 'Herd mix agreed by all decision-makers',
+          optionSetId: 'confirmAgreement',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who has agreed, and any conditions attached.',
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c1': {
     id: 'silv-s1-land-improvement-philosophy-c1', label: 'Improvement ethos', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c1', prompt: 'Define the land-improvement philosophy - is grazing designed to improve soil, pasture productivity, ecological condition, or a combination' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c1',
+      prompt: 'Define the land-improvement philosophy - is grazing designed to improve soil, pasture productivity, ecological condition, or a combination',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'improvementGoal',
+          label: 'Primary land-improvement goal',
+          optionSetId: 'landImprovementGoal',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Philosophy notes',
+          multiline: true,
+          placeholder: 'What land improvement through grazing means here.',
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c2': {
     id: 'silv-s1-land-improvement-philosophy-c2', label: 'Ecological outcomes', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c2', prompt: 'Identify ecological outcomes desired - plant species diversity, soil biology, water infiltration' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c2',
+      prompt: 'Identify ecological outcomes desired - plant species diversity, soil biology, water infiltration',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'ecologicalOutcomes',
+          label: 'Ecological outcomes desired',
+          min: 1,
+          max: 12,
+          addLabel: 'Add outcome',
+          itemLabel: 'Outcome',
+          item: {
+            kind: 'text',
+            placeholder: 'A desired outcome - e.g. plant diversity, soil biology, water infiltration.',
+          },
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c3': {
     id: 'silv-s1-land-improvement-philosophy-c3', label: 'Grazing windows', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c3', prompt: 'Define grazing windows per zone - when animals are present, when land is rested' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c3',
+      prompt: 'Define grazing windows per zone - when animals are present, when land is rested',
+      fields: [
+        {
+          kind: 'text',
+          key: 'grazingWindows',
+          label: 'Grazing windows per zone',
+          multiline: true,
+          placeholder: 'When animals are present, and when each zone is rested.',
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c4': {
     id: 'silv-s1-land-improvement-philosophy-c4', label: 'Confirm rest', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c4', prompt: 'Confirm grazing windows support land-improvement goals and rest periods' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c4',
+      prompt: 'Confirm grazing windows support land-improvement goals and rest periods',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'supportsGoals',
+          label: 'Grazing windows support land-improvement goals and rest periods',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the windows do or do not yet support the goals.',
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c5': {
     id: 'silv-s1-land-improvement-philosophy-c5', label: 'Align with intent', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c5', prompt: 'Align grazing philosophy with the primary silvopasture production intent' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c5',
+      prompt: 'Align grazing philosophy with the primary silvopasture production intent',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'aligned',
+          label: 'Grazing philosophy aligned with the primary production intent',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'How the grazing philosophy serves the production intent.',
+        },
+      ],
+    },
   },
   'silv-s1-land-improvement-philosophy-c6': {
     id: 'silv-s1-land-improvement-philosophy-c6', label: 'Document gate', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c6', prompt: 'Document grazing philosophy as a gate on livestock management design' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-land-improvement-philosophy-c6',
+      prompt: 'Document grazing philosophy as a gate on livestock management design',
+      fields: [
+        {
+          kind: 'text',
+          key: 'philosophyGate',
+          label: 'Grazing philosophy gate',
+          multiline: true,
+          placeholder: 'The documented philosophy that gates livestock management design.',
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c1': {
     id: 'silv-s1-animal-welfare-c1', label: 'Welfare ethos', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c1', prompt: 'Define the livestock welfare philosophy - what excellent care means for each species' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c1',
+      prompt: 'Define the livestock welfare philosophy - what excellent care means for each species',
+      fields: [
+        {
+          kind: 'text',
+          key: 'welfarePhilosophy',
+          label: 'Welfare philosophy',
+          multiline: true,
+          placeholder: 'What excellent care means for each species kept here.',
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c2': {
     id: 'silv-s1-animal-welfare-c2', label: 'Non-negotiables', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c2', prompt: 'Identify welfare non-negotiables - breed selection, stocking density, access to feed/water/shelter' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c2',
+      prompt: 'Identify welfare non-negotiables - breed selection, stocking density, access to feed/water/shelter',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'nonNegotiables',
+          label: 'Welfare non-negotiables',
+          min: 1,
+          max: 12,
+          addLabel: 'Add non-negotiable',
+          itemLabel: 'Non-negotiable',
+          item: {
+            kind: 'text',
+            placeholder: 'A welfare line that will not be crossed - e.g. access to shade and water.',
+          },
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c3': {
     id: 'silv-s1-animal-welfare-c3', label: 'Health protocols', icon: FlaskConical, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c3', prompt: 'Define health and vaccination protocols per species' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c3',
+      prompt: 'Define health and vaccination protocols per species',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healthProtocols',
+          label: 'Health and vaccination protocols',
+          multiline: true,
+          placeholder: 'Health and vaccination protocols per species.',
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c4': {
     id: 'silv-s1-animal-welfare-c4', label: 'Handling & slaughter', icon: Beef, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c4', prompt: 'Define humane handling and slaughter intent - on-farm or licensed facility' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c4',
+      prompt: 'Define humane handling and slaughter intent - on-farm or licensed facility',
+      fields: [
+        {
+          kind: 'text',
+          key: 'handlingSlaughter',
+          label: 'Humane handling and slaughter intent',
+          multiline: true,
+          placeholder: 'Humane handling approach, and whether slaughter is on-farm or at a licensed facility.',
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c5': {
     id: 'silv-s1-animal-welfare-c5', label: 'Welfare vs goals', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c5', prompt: 'Confirm welfare commitment is compatible with production goals' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c5',
+      prompt: 'Confirm welfare commitment is compatible with production goals',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'compatible',
+          label: 'Welfare commitment compatible with production goals',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where welfare and production goals reinforce or tension each other.',
+        },
+      ],
+    },
   },
   'silv-s1-animal-welfare-c6': {
     id: 'silv-s1-animal-welfare-c6', label: 'Document gate', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c6', prompt: 'Document welfare philosophy as a gate on all livestock management design' },
+    arm: {
+      kind: 'form',
+      formId: 'silv-s1-animal-welfare-c6',
+      prompt: 'Document welfare philosophy as a gate on all livestock management design',
+      fields: [
+        {
+          kind: 'text',
+          key: 'welfareGate',
+          label: 'Welfare philosophy gate',
+          multiline: true,
+          placeholder: 'The documented welfare philosophy that gates all livestock management design.',
+        },
+      ],
+    },
   },
   'silv-sec-s1-livestock-intent-c1': {
     id: 'silv-sec-s1-livestock-intent-c1', label: 'Integration rationale', icon: Layers, category: 'vision',
