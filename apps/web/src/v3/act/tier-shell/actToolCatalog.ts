@@ -1742,75 +1742,387 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- orchard --
   'orch-s1-species-philosophy-c1': {
     id: 'orch-s1-species-philosophy-c1', label: 'Species ethos', icon: TreeDeciduous, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c1', prompt: 'Define the core species philosophy - heritage, climate-adapted, productivity focus, or conservation focus' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c1',
+      prompt: 'Define the core species philosophy - heritage, climate-adapted, productivity focus, or conservation focus',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'speciesFocus',
+          label: 'Core species philosophy',
+          optionSetId: 'orchardSpeciesFocus',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What this species philosophy means for the orchard.',
+        },
+      ],
+    },
   },
   'orch-s1-species-philosophy-c2': {
     id: 'orch-s1-species-philosophy-c2', label: 'Candidate species', icon: TreeDeciduous, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c2', prompt: 'Identify candidate species suited to site climate, soil, water - prioritise local provenance where possible' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c2',
+      prompt: 'Identify candidate species suited to site climate, soil, water - prioritise local provenance where possible',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'candidateSpecies',
+          label: 'Candidate species',
+          min: 1,
+          max: 20,
+          addLabel: 'Add species',
+          itemLabel: 'Species',
+          item: {
+            kind: 'text',
+            placeholder: 'A species suited to site climate, soil, and water.',
+          },
+        },
+      ],
+    },
   },
   'orch-s1-species-philosophy-c3': {
     id: 'orch-s1-species-philosophy-c3', label: 'Disease pressure', icon: Bird, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c3', prompt: 'Define disease and pest pressure per species - resistance requirements' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c3',
+      prompt: 'Define disease and pest pressure per species - resistance requirements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'diseasePestPressure',
+          label: 'Disease and pest pressure per species',
+          multiline: true,
+          placeholder: 'Resistance requirements and known pressures per species.',
+        },
+      ],
+    },
   },
   'orch-s1-species-philosophy-c4': {
     id: 'orch-s1-species-philosophy-c4', label: 'Portfolio', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c4', prompt: 'Define the productive portfolio - monoculture, polyculture, or agroforestry integration' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c4',
+      prompt: 'Define the productive portfolio - monoculture, polyculture, or agroforestry integration',
+      fields: [
+        {
+          kind: 'text',
+          key: 'portfolio',
+          label: 'Productive portfolio',
+          multiline: true,
+          placeholder: 'Monoculture, polyculture, or agroforestry integration.',
+        },
+      ],
+    },
   },
   'orch-s1-species-philosophy-c5': {
     id: 'orch-s1-species-philosophy-c5', label: 'Climate fit', icon: Sun, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c5', prompt: 'Confirm species choice is compatible with climate projections for the orchard lifespan - 50+ years' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c5',
+      prompt: 'Confirm species choice is compatible with climate projections for the orchard lifespan - 50+ years',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'climateCompatible',
+          label: 'Species choice compatible with climate projections for the orchard lifespan',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'How the species choice holds up against 50-plus-year climate projections.',
+        },
+      ],
+    },
   },
   'orch-s1-species-philosophy-c6': {
     id: 'orch-s1-species-philosophy-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c6', prompt: 'Confirm choices are achievable within operator knowledge and site scale' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-species-philosophy-c6',
+      prompt: 'Confirm choices are achievable within operator knowledge and site scale',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Choices achievable within operator knowledge and site scale',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where operator knowledge or site scale limits the choices, note it here.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c1': {
     id: 'orch-s1-production-intent-c1', label: 'Production intent', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c1', prompt: 'Define primary production intent - subsistence, local market, wholesale, or on-farm value-added processing' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c1',
+      prompt: 'Define primary production intent - subsistence, local market, wholesale, or on-farm value-added processing',
+      fields: [
+        {
+          kind: 'text',
+          key: 'productionIntent',
+          label: 'Primary production intent',
+          multiline: true,
+          placeholder: 'Subsistence, local market, wholesale, or on-farm value-added processing.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c2': {
     id: 'orch-s1-production-intent-c2', label: 'Target yield', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c2', prompt: 'Define target annual yield per hectare for primary species' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c2',
+      prompt: 'Define target annual yield per hectare for primary species',
+      fields: [
+        {
+          kind: 'text',
+          key: 'targetYield',
+          label: 'Target annual yield per hectare for primary species',
+          multiline: true,
+          placeholder: 'The yield per hectare aimed for, for the primary species.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c3': {
     id: 'orch-s1-production-intent-c3', label: 'Harvest timing', icon: Wheat, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c3', prompt: 'Define harvest timing and season - early, main, or extended season species' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c3',
+      prompt: 'Define harvest timing and season - early, main, or extended season species',
+      fields: [
+        {
+          kind: 'text',
+          key: 'harvestTiming',
+          label: 'Harvest timing and season',
+          multiline: true,
+          placeholder: 'Early, main, or extended season species and their windows.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c4': {
     id: 'orch-s1-production-intent-c4', label: 'Processing', icon: Container, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c4', prompt: 'Define processing and preservation approach - fresh, dried, fermented, pressed, frozen' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c4',
+      prompt: 'Define processing and preservation approach - fresh, dried, fermented, pressed, frozen',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'processing',
+          label: 'Processing and preservation approach',
+          optionSetId: 'orchardProcessing',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'How the harvest is handled - fresh, dried, fermented, pressed, frozen.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c5': {
     id: 'orch-s1-production-intent-c5', label: 'Storage needs', icon: Container, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c5', prompt: 'Identify storage requirements - cool storage, temperature and humidity control' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c5',
+      prompt: 'Identify storage requirements - cool storage, temperature and humidity control',
+      fields: [
+        {
+          kind: 'text',
+          key: 'storage',
+          label: 'Storage requirements',
+          multiline: true,
+          placeholder: 'Cool storage, temperature and humidity control.',
+        },
+      ],
+    },
   },
   'orch-s1-production-intent-c6': {
     id: 'orch-s1-production-intent-c6', label: 'Labour match', icon: HardHat, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-production-intent-c6', prompt: 'Confirm production intent and processing plan are matched to labour availability' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-production-intent-c6',
+      prompt: 'Confirm production intent and processing plan are matched to labour availability',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'labourMatched',
+          label: 'Production intent and processing plan matched to labour availability',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the plan outruns available labour, note it here.',
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c1': {
     id: 'orch-s1-provenance-sourcing-c1', label: 'Provenance', icon: MapPin, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c1', prompt: 'Define provenance preference - local, regional, certified, heirloom, conservation priority' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c1',
+      prompt: 'Define provenance preference - local, regional, certified, heirloom, conservation priority',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'provenance',
+          label: 'Provenance preference',
+          optionSetId: 'orchardProvenance',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What this provenance preference means for sourcing.',
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c2': {
     id: 'orch-s1-provenance-sourcing-c2', label: 'Nursery suppliers', icon: Building2, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c2', prompt: 'Identify potential nursery suppliers - local, mail-order, specialty conservation' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c2',
+      prompt: 'Identify potential nursery suppliers - local, mail-order, specialty conservation',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'suppliers',
+          label: 'Potential nursery suppliers',
+          min: 1,
+          max: 12,
+          addLabel: 'Add supplier',
+          itemLabel: 'Supplier',
+          item: {
+            kind: 'text',
+            placeholder: 'Local, mail-order, or specialty conservation nursery.',
+          },
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c3': {
     id: 'orch-s1-provenance-sourcing-c3', label: 'Tree size', icon: TreeDeciduous, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c3', prompt: 'Define tree size at planting - bare-root, small pot, large specimen' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c3',
+      prompt: 'Define tree size at planting - bare-root, small pot, large specimen',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'stockSize',
+          label: 'Tree size at planting',
+          optionSetId: 'treeStockSize',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Why this stock size suits the planting plan.',
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c4': {
     id: 'orch-s1-provenance-sourcing-c4', label: 'Establishment', icon: Fence, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c4', prompt: 'Define establishment support requirements - guards, mulch, staking, irrigation' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c4',
+      prompt: 'Define establishment support requirements - guards, mulch, staking, irrigation',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'establishmentSupport',
+          label: 'Establishment support requirements',
+          min: 1,
+          max: 10,
+          addLabel: 'Add requirement',
+          itemLabel: 'Requirement',
+          item: {
+            kind: 'text',
+            placeholder: 'Guards, mulch, staking, irrigation, and the like.',
+          },
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c5': {
     id: 'orch-s1-provenance-sourcing-c5', label: 'Availability', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c5', prompt: 'Confirm tree availability aligns with planting timeline and budget' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c5',
+      prompt: 'Confirm tree availability aligns with planting timeline and budget',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'availabilityAligned',
+          label: 'Tree availability aligns with planting timeline and budget',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any mismatch between stock availability, the planting timeline, and budget.',
+        },
+      ],
+    },
   },
   'orch-s1-provenance-sourcing-c6': {
     id: 'orch-s1-provenance-sourcing-c6', label: 'Quality standards', icon: FlaskConical, category: 'vision',
-    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c6', prompt: 'Define quality standards for received stock - health assessment, rejection criteria' },
+    arm: {
+      kind: 'form',
+      formId: 'orch-s1-provenance-sourcing-c6',
+      prompt: 'Define quality standards for received stock - health assessment, rejection criteria',
+      fields: [
+        {
+          kind: 'text',
+          key: 'qualityStandards',
+          label: 'Quality standards for received stock',
+          multiline: true,
+          placeholder: 'Health assessment and rejection criteria for incoming stock.',
+        },
+      ],
+    },
   },
 
   // -- livestock --

@@ -490,6 +490,11 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     // ag
     ['agVisitorType', 4],
     ['agHospitalityIdentity', 3],
+    // orch
+    ['orchardSpeciesFocus', 4],
+    ['orchardProcessing', 5],
+    ['orchardProvenance', 5],
+    ['treeStockSize', 3],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -571,6 +576,43 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Authentic farm stay',
       'Luxury retreat',
       'Educational experience',
+    ]);
+  });
+
+  it('orchardSpeciesFocus is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('orchardSpeciesFocus', undefined)).toEqual([
+      'Heritage',
+      'Climate-adapted',
+      'Productivity focus',
+      'Conservation focus',
+    ]);
+  });
+
+  it('orchardProcessing is the exact 5-item list in order', () => {
+    expect(resolveFieldOptions('orchardProcessing', undefined)).toEqual([
+      'Fresh',
+      'Dried',
+      'Fermented',
+      'Pressed',
+      'Frozen',
+    ]);
+  });
+
+  it('orchardProvenance is the exact 5-item list in order', () => {
+    expect(resolveFieldOptions('orchardProvenance', undefined)).toEqual([
+      'Local',
+      'Regional',
+      'Certified',
+      'Heirloom',
+      'Conservation priority',
+    ]);
+  });
+
+  it('treeStockSize is the exact 3-item list in order', () => {
+    expect(resolveFieldOptions('treeStockSize', undefined)).toEqual([
+      'Bare-root',
+      'Small pot',
+      'Large specimen',
     ]);
   });
 });

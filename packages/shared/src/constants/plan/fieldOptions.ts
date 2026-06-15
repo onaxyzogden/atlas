@@ -777,6 +777,35 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Educational experience',
     ],
   },
+
+  // Orchard / food-forest core species philosophy (orch-s1-species-philosophy-c1).
+  orchardSpeciesFocus: {
+    _base: [
+      'Heritage',
+      'Climate-adapted',
+      'Productivity focus',
+      'Conservation focus',
+    ],
+  },
+  // Orchard processing and preservation approach (orch-s1-production-intent-c4).
+  // Agronomic handling of the harvest -- no offering is priced or sold here.
+  orchardProcessing: {
+    _base: ['Fresh', 'Dried', 'Fermented', 'Pressed', 'Frozen'],
+  },
+  // Orchard provenance preference (orch-s1-provenance-sourcing-c1).
+  orchardProvenance: {
+    _base: [
+      'Local',
+      'Regional',
+      'Certified',
+      'Heirloom',
+      'Conservation priority',
+    ],
+  },
+  // Orchard tree size at planting (orch-s1-provenance-sourcing-c3).
+  treeStockSize: {
+    _base: ['Bare-root', 'Small pot', 'Large specimen'],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
