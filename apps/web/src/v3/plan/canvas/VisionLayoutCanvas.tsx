@@ -268,36 +268,38 @@ export default function VisionLayoutCanvas({
               (see the ObserveAnnotationLayers note above). */}
           <ObserveDrawHost map={map} projectId={projectId} />
           {/*
-            s2-ecology-c1 vegetation survey takeover (Plan): the layer renders
-            every drawn community polygon; the draw host arms only when the
-            `act.ecology.veg-survey` tool is active (prefix-guarded), writing to
-            the shared vegetationSurveyStore. Both reuse the Act components
-            unchanged. Mounted here because they need this canvas's `map`.
+            s2-ecology-c1 vegetation survey + s2-terrain-c2 slope survey (Plan).
+            The passive *SurveyLayer renderers mount UNCONDITIONALLY — parity with
+            ActTierShell, which mounts them always (ActTierShell.tsx:1231/1243).
+            This keeps every drawn community/slope polygon visible on the Plan map
+            outside the takeover, and lets the BaseMapCard overlay toggles
+            (matrixTogglesStore.vegetationSurvey / slopeSurvey, read inside each
+            layer) actually show/hide them. With no features they build an empty
+            FeatureCollection (harmless), and they re-add on style reload.
+            Click-select (Delete/Reshape/Reclassify) already works via the
+            unconditional slope-survey-fill listener in PlanDataLayers.
+
+            The DRAW HOSTS stay gated on the takeover flag — drawing is a
+            takeover-only activity. The hosts are prefix-guarded internally
+            (act.ecology.veg-survey / act.terrain.slope-*) and write to the shared
+            vegetationSurveyStore / slopeSurveyStore. All four reuse the Act
+            components unchanged; mounted here because they need this canvas's `map`.
           */}
+          <VegetationSurveyLayer map={map} projectId={projectId} />
           {surveyActive && (
-            <>
-              <VegetationSurveyLayer map={map} projectId={projectId} />
-              <VegetationSurveyDrawHost
-                map={map}
-                projectId={projectId}
-                sourceObjectiveId={sourceObjectiveId}
-              />
-            </>
+            <VegetationSurveyDrawHost
+              map={map}
+              projectId={projectId}
+              sourceObjectiveId={sourceObjectiveId}
+            />
           )}
-          {/*
-            s2-terrain-c2 slope survey takeover (Plan): same shape as the
-            vegetation survey; the draw host arms on the `act.terrain.slope-*`
-            tools (the armed tool encodes the class), writing to slopeSurveyStore.
-          */}
+          <SlopeSurveyLayer map={map} projectId={projectId} />
           {slopeActive && (
-            <>
-              <SlopeSurveyLayer map={map} projectId={projectId} />
-              <SlopeSurveyDrawHost
-                map={map}
-                projectId={projectId}
-                sourceObjectiveId={sourceObjectiveId}
-              />
-            </>
+            <SlopeSurveyDrawHost
+              map={map}
+              projectId={projectId}
+              sourceObjectiveId={sourceObjectiveId}
+            />
           )}
           {activeKind && (
             <DesignElementDrawHost
