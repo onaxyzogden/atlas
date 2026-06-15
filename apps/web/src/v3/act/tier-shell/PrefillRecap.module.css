@@ -1,0 +1,86 @@
+/* PrefillRecap.module.css
+ *
+ * Styling for the non-destructive pre-fill recap rendered above a vision-form's
+ * fields/textarea. Reuses the BentoBox token vocabulary from
+ * VisionFormsTabsModal.module.css. Visually quiet (a soft inset card) so it
+ * reads as a suggestion, not a filled value -- it must never look "saved".
+ */
+
+.recap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-surface-raised, rgba(242, 237, 227, 0.04));
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.caption {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupHeading {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.value {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.useBtn {
+  flex: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-gold-brand, #c4a265);
+  background: transparent;
+  color: var(--color-gold-brand, #c4a265);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.useBtn:hover {
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1611;
+}

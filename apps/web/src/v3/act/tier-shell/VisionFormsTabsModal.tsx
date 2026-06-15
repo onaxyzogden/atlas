@@ -37,6 +37,7 @@ import { resolveAnswerSpec } from '../../strata/resolveAnswerSpec.js';
 import { labelForOption } from '../../strata/answerOptionLabels.js';
 import AnswerValue from './AnswerValue.js';
 import EditInPlanButton from './EditInPlanButton.js';
+import PrefillRecap from './PrefillRecap.js';
 import VisionFormFields, {
   initialFormValue,
   isFormValueValid,
@@ -48,6 +49,10 @@ import type {
   FormFieldSpec,
   FormValue,
 } from './actToolCatalog.js';
+import type {
+  FormPrefillResult,
+  PrefillSuggestion,
+} from '../../strata/resolveFormPrefill.js';
 import styles from './VisionFormsTabsModal.module.css';
 
 type FormArm = Extract<ActToolArm, { kind: 'form' }>;
@@ -69,6 +74,14 @@ interface VisionFormsTabsModalProps {
    * the next task wires it. Defaults to {} (no structured prefill).
    */
   initialData?: Record<string, FormValue>;
+  /**
+   * Non-destructive pre-fill suggestions keyed by formId (see resolveFormPrefill
+   * / PrefillRecap). Each form's recap lists candidate values drawn from the
+   * steward roster and prior objectives; a candidate applies to the LOCAL draft
+   * only on an explicit "Use this" click and never overwrites a filled slot.
+   * Optional -- absent at existing call sites (no recap rendered). Defaults {}.
+   */
+  prefillByFormId?: Record<string, FormPrefillResult>;
   /** Project id -- threads the Edit-in-Plan deep-link. */
   projectId: string;
   /** Project metadata -- resolves prefilled answerSpec values. */
@@ -157,6 +170,7 @@ export default function VisionFormsTabsModal({
   activeFormId,
   initialValues,
   initialData = {},
+  prefillByFormId = {},
   projectId,
   metadata,
   checklistItems,
@@ -254,6 +268,33 @@ export default function VisionFormsTabsModal({
     setDataDrafts((d) => ({ ...d, [formId]: value }));
   }
 
+  // Apply ONE pre-fill suggestion to the local draft (never saves, never marks
+  // complete). Routes by target shape: a null fieldKey fills the textarea draft;
+  // a keyed suggestion merges a single field into the structured draft. Both use
+  // a functional update so concurrent "Use this" clicks compose, and both refuse
+  // to overwrite an already-filled slot (the recap's clobber guard, defended
+  // again here so a stale render can never clobber an entered value).
+  function applyPrefill(formId: string, s: PrefillSuggestion) {
+    if (s.fieldKey === null) {
+      const text = Array.isArray(s.value) ? s.value.join(', ') : s.value;
+      setDrafts((d) => {
+        if ((d[formId] ?? '').trim() !== '') return d;
+        return { ...d, [formId]: text };
+      });
+      return;
+    }
+    const key = s.fieldKey;
+    setDataDrafts((d) => {
+      const current = d[formId] ?? {};
+      const slot = current[key];
+      const filled = Array.isArray(slot)
+        ? slot.some((e) => typeof e === 'string' && e.trim() !== '')
+        : typeof slot === 'string' && slot.trim() !== '';
+      if (filled) return d;
+      return { ...d, [formId]: { ...current, [key]: s.value } };
+    });
+  }
+
   // The active tool drives the save / validity branch (structured vs. textarea).
   const activeTool = formTools.find((t) => t.arm.formId === activeFormId);
   const activeFields = activeTool ? armFields(activeTool) : null;
@@ -344,6 +385,17 @@ export default function VisionFormsTabsModal({
                 <label id={hintId} className={styles.prompt}>
                   {tool.arm.prompt}
                 </label>
+                {/* Show the pre-fill recap above the structured engine, or above
+                    a plain textarea -- but never above the read-only answerSpec
+                    recap (that case is `!fields && isRecap`). */}
+                {fields || !isRecap ? (
+                  <PrefillRecap
+                    result={prefillByFormId[formId]}
+                    draft={dataDrafts[formId] ?? {}}
+                    textDraft={drafts[formId] ?? ''}
+                    onUse={(s) => applyPrefill(formId, s)}
+                  />
+                ) : null}
                 {fields ? (
                   // Structured form supersedes both the recap and the textarea
                   // on this surface (recap precedence).

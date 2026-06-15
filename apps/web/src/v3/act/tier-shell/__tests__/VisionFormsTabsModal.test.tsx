@@ -19,9 +19,10 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import VisionFormsTabsModal from '../VisionFormsTabsModal.js';
 import type { ActTool, FormFieldSpec, FormValue } from '../actToolCatalog.js';
+import type { FormPrefillResult } from '../../../strata/resolveFormPrefill.js';
 import type { ProjectMetadata } from '@ogden/shared';
 
 const StubIcon = () => null;
@@ -402,5 +403,139 @@ describe('VisionFormsTabsModal -- structured fields', () => {
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
     expect(inputs.length).toBe(3);
     expect(inputs.every((i) => i.value === '')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase B -- non-destructive pre-fill recap (PrefillRecap inside the modal).
+// ---------------------------------------------------------------------------
+
+const HOURS_FIELDS: readonly FormFieldSpec[] = [
+  { kind: 'text', key: 'hoursPerWeek', label: 'Hours per week' },
+];
+
+const PURPOSE_LEAF_FIELDS: readonly FormFieldSpec[] = [
+  { kind: 'text', key: 'purpose', label: 'Primary purpose', multiline: true },
+];
+
+function renderPrefillModal(
+  overrides: Partial<React.ComponentProps<typeof VisionFormsTabsModal>> = {},
+) {
+  const labourTool = mkFieldsTool(
+    'hms-s1-c4',
+    'Labour available',
+    'How much labour is available',
+    HOURS_FIELDS,
+  );
+  const props = {
+    open: true,
+    title: 'Vision & Setup',
+    tools: [labourTool] as ActTool[],
+    activeFormId: 'hms-s1-c4',
+    initialValues: {} as Record<string, string>,
+    initialData: {} as Record<string, FormValue>,
+    projectId: 'test-project',
+    metadata: {
+      projectTypeRecord: { primaryTypeId: 'homestead', secondaryTypeIds: [] },
+    } as unknown as ProjectMetadata,
+    checklistItems: [] as React.ComponentProps<
+      typeof VisionFormsTabsModal
+    >['checklistItems'],
+    onTabChange: vi.fn(),
+    onSave: vi.fn(),
+    onSaveData: vi.fn(),
+    onClose: vi.fn(),
+    ...overrides,
+  };
+  render(<VisionFormsTabsModal {...props} />);
+  return props;
+}
+
+const HOURS_PREFILL: Record<string, FormPrefillResult> = {
+  'hms-s1-c4': {
+    fromSteward: [
+      {
+        fieldKey: 'hoursPerWeek',
+        fieldLabel: 'Hours per week',
+        value: '25',
+        sourceLabel: 'Steward roster',
+        origin: 'steward',
+      },
+    ],
+    fromPriorObjectives: [],
+  },
+};
+
+describe('VisionFormsTabsModal -- pre-fill recap', () => {
+  it('renders nothing extra when no prefillByFormId prop is supplied', () => {
+    renderPrefillModal();
+    expect(screen.queryByText('Based on your steward profile')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Use this' })).toBeNull();
+  });
+
+  it('renders a steward suggestion row above an empty field', () => {
+    renderPrefillModal({ prefillByFormId: HOURS_PREFILL });
+    // Scope to the recap region: the field engine renders its own "Hours per
+    // week" <label>, so the bare text collides outside this section.
+    const recap = within(screen.getByRole('region', { name: 'Pre-fill suggestions' }));
+    expect(recap.getByText('Based on your steward profile')).toBeTruthy();
+    expect(recap.getByText('Hours per week')).toBeTruthy();
+    expect(recap.getByText('25')).toBeTruthy();
+    expect(recap.getByRole('button', { name: 'Use this' })).toBeTruthy();
+  });
+
+  it('"Use this" merges the suggestion into the draft and the row clears', () => {
+    renderPrefillModal({ prefillByFormId: HOURS_PREFILL });
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    expect(input.value).toBe('');
+    fireEvent.click(screen.getByRole('button', { name: 'Use this' }));
+    // The structured draft now holds the suggested value...
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('25');
+    // ...and the now-filled slot suppresses its own suggestion (clobber guard).
+    expect(screen.queryByRole('button', { name: 'Use this' })).toBeNull();
+  });
+
+  it('clobber guard: a suggestion for an already-filled slot is not offered', () => {
+    renderPrefillModal({
+      prefillByFormId: HOURS_PREFILL,
+      initialData: { 'hms-s1-c4': { hoursPerWeek: '40' } },
+    });
+    // The field already holds 40, so the steward suggestion is suppressed.
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('40');
+    expect(screen.queryByRole('button', { name: 'Use this' })).toBeNull();
+    expect(screen.queryByText('Based on your steward profile')).toBeNull();
+  });
+
+  it('groups prior-objective suggestions under their own heading', () => {
+    const purposeTool = mkFieldsTool(
+      'hms-s1-c1',
+      'Primary purpose',
+      'State the primary purpose',
+      PURPOSE_LEAF_FIELDS,
+    );
+    renderPrefillModal({
+      tools: [purposeTool],
+      activeFormId: 'hms-s1-c1',
+      prefillByFormId: {
+        'hms-s1-c1': {
+          fromSteward: [],
+          fromPriorObjectives: [
+            {
+              fieldKey: 'purpose',
+              fieldLabel: 'Primary purpose',
+              value: 'Grow food for the village',
+              sourceLabel: 'Vision & direction',
+              origin: 'prior-objective',
+            },
+          ],
+        },
+      },
+    });
+    expect(screen.getByText('Based on earlier objectives')).toBeTruthy();
+    expect(screen.getByText('Grow food for the village')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Use this' }));
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe(
+      'Grow food for the village',
+    );
   });
 });
