@@ -123,3 +123,49 @@ export const ORCHARD_SEEDED_PROTOCOLS: SeededProtocolMap = {
     'u-s7-budget-variance',
   ],
 };
+
+/**
+ * Secondary-role map (orchard / food-forest layered onto a host). Pool =
+ * universal + the orchard additive secondary protocols
+ * (orch2-canopy-shade-encroachment, orch2-perennial-water-share). The orch-
+ * PRIMARY protocols above do NOT resolve in a secondary context, so none of
+ * them appear here.
+ *
+ * When an orchard is a secondary, the dominant standing concerns are the canopy
+ * shade it casts over the host's other plantings and the share of water the
+ * perennials draw — so the orch2- protocols land on the guild-layout and
+ * perennial-care objectives. The harvest-pathway objective routes
+ * already-harvested possessed surplus (abundance / shortfall), which is clean;
+ * it carries NO advance-sale framing.
+ *
+ * Objectives absent from this map have no seeded protocols — no error, no pill.
+ */
+export const ORCHARD_SECONDARY_SEEDED_PROTOCOLS: SeededProtocolMap = {
+  // S2 — Land Reading
+  'orch-sec-s2-climate-chill-fit': [
+    'u-s4-sector-event-zone-review',
+    'u-s2-baseline-staleness-resurvey',
+  ],
+
+  // S4 — Foundation Decisions
+  'orch-sec-s4-species-pollination': [
+    'u-s6-yield-shortfall',
+  ],
+
+  // S5 — System Design
+  'orch-sec-s5-guild-layout': [
+    'orch2-canopy-shade-encroachment',
+    'u-s4-zone-pressure-review',
+  ],
+
+  // S6 — Monitoring & Adaptation
+  'orch-sec-s6-perennial-care': [
+    'orch2-perennial-water-share',
+    'u-s6-ecology-indicator-decline',
+  ],
+  // Possessed-surplus routing — clean, no advance-sale.
+  'orch-sec-s6-harvest-pathway': [
+    'u-s6-abundance-surplus',
+    'u-s6-yield-shortfall',
+  ],
+};

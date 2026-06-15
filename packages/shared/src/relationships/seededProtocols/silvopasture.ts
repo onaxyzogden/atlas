@@ -133,3 +133,60 @@ export const SILVOPASTURE_SEEDED_PROTOCOLS: SeededProtocolMap = {
     'silv-forage-shade-balance',
   ],
 };
+
+/**
+ * Secondary-role map (silvopasture layered onto a host — e.g. an orchard or
+ * homestead that adds grazing under trees). Pool = universal + the silvopasture
+ * additive secondary protocols (silv2-integrated-browse-window,
+ * silv2-nutrient-distribution). The silv- PRIMARY protocols above do NOT resolve
+ * in a secondary context, so none of them appear here.
+ *
+ * When silvopasture is a secondary, the dominant standing concerns are the
+ * browse window for newly-integrated trees and the distribution of livestock
+ * nutrient load across the host system — so the silv2- protocols land on the
+ * grazing-design, tree-establishment, and pasture/tree-monitoring objectives.
+ *
+ * Objectives absent from this map have no seeded protocols — no error, no pill.
+ */
+export const SILVOPASTURE_SECONDARY_SEEDED_PROTOCOLS: SeededProtocolMap = {
+  // S1 — Foundation
+  'silv-sec-s1-livestock-intent': [
+    'u-s1-vision-drift-check',
+  ],
+
+  // S3 — Systems Reading
+  'silv-sec-s3-forage-survey': [
+    'u-s6-yield-shortfall',
+    'u-s2-baseline-staleness-resurvey',
+  ],
+
+  // S4 — Foundation Decisions
+  'silv-sec-s4-grazing-design': [
+    'silv2-integrated-browse-window',
+    'silv2-nutrient-distribution',
+  ],
+  'silv-sec-s4-stock-infrastructure': [
+    'u-s5-infrastructure-failure',
+  ],
+  'silv-sec-s4-husbandry-framework': [
+    'u-s1-stewardship-capacity-recheck',
+  ],
+
+  // S5 — System Design
+  'silv-sec-s5-tree-establishment': [
+    'silv2-integrated-browse-window',
+    'u-s6-ecology-indicator-decline',
+  ],
+
+  // S6 — Monitoring & Adaptation
+  'silv-sec-s6-pasture-tree-monitoring': [
+    'silv2-integrated-browse-window',
+    'silv2-nutrient-distribution',
+    'u-s6-ecology-indicator-decline',
+  ],
+
+  // S7 — Phasing & Resourcing
+  'silv-sec-s7-stocking-phasing': [
+    'u-s7-phase-gate-review',
+  ],
+};

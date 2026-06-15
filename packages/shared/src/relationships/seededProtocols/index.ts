@@ -2,9 +2,30 @@ import type { ProjectTypeId } from '../../schemas/plan/projectTypeTaxonomy.schem
 import { UNIVERSAL_SEEDED_PROTOCOLS } from './universal.js';
 import { HOMESTEAD_SEEDED_PROTOCOLS } from './homestead.js';
 import { ECOVILLAGE_SEEDED_PROTOCOLS } from './ecovillage.js';
-import { SILVOPASTURE_SEEDED_PROTOCOLS } from './silvopasture.js';
-import { ORCHARD_SEEDED_PROTOCOLS } from './orchard.js';
+import {
+  SILVOPASTURE_SEEDED_PROTOCOLS,
+  SILVOPASTURE_SECONDARY_SEEDED_PROTOCOLS,
+} from './silvopasture.js';
+import {
+  ORCHARD_SEEDED_PROTOCOLS,
+  ORCHARD_SECONDARY_SEEDED_PROTOCOLS,
+} from './orchard.js';
 import { NURSERY_SEEDED_PROTOCOLS } from './nursery.js';
+import { REGEN_FARM_SEEDED_PROTOCOLS } from './regenFarm.js';
+import { MARKET_GARDEN_SEEDED_PROTOCOLS } from './marketGarden.js';
+import { AGRITOURISM_SEEDED_PROTOCOLS } from './agritourism.js';
+import { EDUCATION_SEEDED_PROTOCOLS } from './education.js';
+import { CONSERVATION_SEEDED_PROTOCOLS } from './conservation.js';
+import { OFF_GRID_SEEDED_PROTOCOLS } from './offGrid.js';
+import {
+  WELLNESS_SEEDED_PROTOCOLS,
+  WELLNESS_SECONDARY_SEEDED_PROTOCOLS,
+} from './wellness.js';
+import {
+  LIVESTOCK_SEEDED_PROTOCOLS,
+  LIVESTOCK_SECONDARY_SEEDED_PROTOCOLS,
+} from './livestockOperation.js';
+import { RESIDENTIAL_SEEDED_PROTOCOLS } from './residential.js';
 import type { SeededProtocolMap } from './types.js';
 
 export type { SeededProtocolMap };
@@ -19,6 +40,14 @@ export const PRIMARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
   ecovillage: ECOVILLAGE_SEEDED_PROTOCOLS,
   silvopasture: SILVOPASTURE_SEEDED_PROTOCOLS,
   orchard_food_forest: ORCHARD_SEEDED_PROTOCOLS,
+  regenerative_farm: REGEN_FARM_SEEDED_PROTOCOLS,
+  market_garden: MARKET_GARDEN_SEEDED_PROTOCOLS,
+  agritourism: AGRITOURISM_SEEDED_PROTOCOLS,
+  education: EDUCATION_SEEDED_PROTOCOLS,
+  conservation: CONSERVATION_SEEDED_PROTOCOLS,
+  off_grid: OFF_GRID_SEEDED_PROTOCOLS,
+  wellness: WELLNESS_SEEDED_PROTOCOLS,
+  livestock_operation: LIVESTOCK_SEEDED_PROTOCOLS,
 };
 
 /**
@@ -32,6 +61,11 @@ export const PRIMARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
  */
 export const SECONDARY_MAPS: Partial<Record<ProjectTypeId, SeededProtocolMap>> = {
   nursery: NURSERY_SEEDED_PROTOCOLS,
+  silvopasture: SILVOPASTURE_SECONDARY_SEEDED_PROTOCOLS,
+  orchard_food_forest: ORCHARD_SECONDARY_SEEDED_PROTOCOLS,
+  wellness: WELLNESS_SECONDARY_SEEDED_PROTOCOLS,
+  residential: RESIDENTIAL_SEEDED_PROTOCOLS,
+  livestock_operation: LIVESTOCK_SECONDARY_SEEDED_PROTOCOLS,
 };
 
 /**
