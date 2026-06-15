@@ -473,3 +473,49 @@ describe('shared semantic core option sets (A0)', () => {
     );
   });
 });
+
+describe('A2+ catalogue-specific structured-input sets', () => {
+  // Closed, non-sale vocabularies registered one batch per type alongside the
+  // catalogue form arms that reference them. Each must exist with a non-empty
+  // _base and resolve verbatim regardless of project type (base-only sets).
+  const A2_SETS: ReadonlyArray<[string, number]> = [
+    // con
+    ['conservationIntervention', 4],
+    ['adviceStatus', 3],
+  ];
+
+  it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
+    const set = FIELD_OPTION_SETS[id];
+    expect(set, id).toBeDefined();
+    expect(set!._base, id).toBeDefined();
+    expect(set!._base!.length, id).toBe(n);
+  });
+
+  it.each(A2_SETS)('%s resolves _base verbatim for an undefined project type', (id) => {
+    const set = FIELD_OPTION_SETS[id]!;
+    expect(resolveFieldOptions(id, undefined)).toEqual([...set._base!]);
+  });
+
+  it.each(A2_SETS)('%s is base-only: a primaryTypeId does not change resolution', (id) => {
+    expect(resolveFieldOptions(id, 'homestead')).toEqual(
+      resolveFieldOptions(id, undefined),
+    );
+  });
+
+  it('conservationIntervention is the exact 4-item list in order', () => {
+    expect(resolveFieldOptions('conservationIntervention', undefined)).toEqual([
+      'Passive rewilding',
+      'Assisted natural regeneration',
+      'Active restoration',
+      'Hybrid',
+    ]);
+  });
+
+  it('adviceStatus is Obtained/Scheduled/Not yet sought in order', () => {
+    expect(resolveFieldOptions('adviceStatus', undefined)).toEqual([
+      'Obtained',
+      'Scheduled',
+      'Not yet sought',
+    ]);
+  });
+});

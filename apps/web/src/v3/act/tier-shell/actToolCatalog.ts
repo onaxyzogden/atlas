@@ -1637,71 +1637,349 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- conservation --
   'con-s1-conservation-intent-c1': {
     id: 'con-s1-conservation-intent-c1', label: 'Reference state', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c1', prompt: 'Define reference ecological state - historical condition this site is being restored toward' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c1',
+      prompt: 'Define reference ecological state - historical condition this site is being restored toward',
+      fields: [
+        {
+          kind: 'text',
+          key: 'referenceState',
+          label: 'Reference ecological state',
+          multiline: true,
+          placeholder: 'The historical condition this site is being restored toward.',
+        },
+      ],
+    },
   },
   'con-s1-conservation-intent-c2': {
     id: 'con-s1-conservation-intent-c2', label: 'Target species', icon: Bird, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c2', prompt: 'Identify target species - flora and fauna that define ecological success' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c2',
+      prompt: 'Identify target species - flora and fauna that define ecological success',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'targetSpecies',
+          label: 'Target species',
+          min: 1,
+          max: 30,
+          addLabel: 'Add species',
+          itemLabel: 'Species',
+          item: {
+            kind: 'text',
+            placeholder: 'A flora or fauna species that defines ecological success',
+          },
+        },
+      ],
+    },
   },
   'con-s1-conservation-intent-c3': {
     id: 'con-s1-conservation-intent-c3', label: 'Habitat types', icon: TreeDeciduous, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c3', prompt: 'Define target habitat types and their spatial extent' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c3',
+      prompt: 'Define target habitat types and their spatial extent',
+      fields: [
+        {
+          kind: 'text',
+          key: 'habitatTypes',
+          label: 'Target habitat types and spatial extent',
+          multiline: true,
+          placeholder: 'The habitat types to establish and the area each should cover.',
+        },
+      ],
+    },
   },
   'con-s1-conservation-intent-c4': {
     id: 'con-s1-conservation-intent-c4', label: 'Outcome targets', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c4', prompt: 'Set measurable ecological outcome targets with timeframes - 5, 10, 25 years' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c4',
+      prompt: 'Set measurable ecological outcome targets with timeframes - 5, 10, 25 years',
+      fields: [
+        {
+          kind: 'text',
+          key: 'outcomeTargets',
+          label: 'Measurable outcome targets with timeframes',
+          multiline: true,
+          placeholder: 'Measurable ecological outcomes at 5, 10, and 25 years.',
+        },
+      ],
+    },
   },
   'con-s1-conservation-intent-c5': {
     id: 'con-s1-conservation-intent-c5', label: 'Min viable state', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c5', prompt: 'Define minimum acceptable ecological state for Phase 1' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c5',
+      prompt: 'Define minimum acceptable ecological state for Phase 1',
+      fields: [
+        {
+          kind: 'text',
+          key: 'minViableState',
+          label: 'Minimum acceptable ecological state for Phase 1',
+          multiline: true,
+          placeholder: 'The minimum ecological state that counts as Phase 1 success.',
+        },
+      ],
+    },
   },
   'con-s1-conservation-intent-c6': {
     id: 'con-s1-conservation-intent-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c6', prompt: 'Confirm targets are achievable given site conditions and landscape context' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-conservation-intent-c6',
+      prompt: 'Confirm targets are achievable given site conditions and landscape context',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'achievable',
+          label: 'Targets achievable given site and landscape context',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where site conditions or landscape context limit a target, note it here.',
+        },
+      ],
+    },
   },
   'con-s1-intervention-philosophy-c1': {
     id: 'con-s1-intervention-philosophy-c1', label: 'Intervention ethos', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c1', prompt: 'Define intervention philosophy - passive rewilding, assisted natural regeneration, active restoration, or hybrid' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-intervention-philosophy-c1',
+      prompt: 'Define intervention philosophy - passive rewilding, assisted natural regeneration, active restoration, or hybrid',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'philosophy',
+          label: 'Intervention philosophy',
+          optionSetId: 'conservationIntervention',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'What this philosophy means for how the site is managed.',
+        },
+      ],
+    },
   },
   'con-s1-intervention-philosophy-c2': {
     id: 'con-s1-intervention-philosophy-c2', label: 'Acceptable methods', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c2', prompt: 'List acceptable intervention methods - planting, earthworks, pest control, fire' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-intervention-philosophy-c2',
+      prompt: 'List acceptable intervention methods - planting, earthworks, pest control, fire',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'acceptableMethods',
+          label: 'Acceptable intervention methods',
+          min: 1,
+          max: 20,
+          addLabel: 'Add method',
+          itemLabel: 'Method',
+          item: {
+            kind: 'text',
+            placeholder: 'e.g. planting, earthworks, pest control, fire',
+          },
+        },
+      ],
+    },
   },
   'con-s1-intervention-philosophy-c3': {
     id: 'con-s1-intervention-philosophy-c3', label: 'Prohibited methods', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c3', prompt: 'List prohibited methods that conflict with the philosophy' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-intervention-philosophy-c3',
+      prompt: 'List prohibited methods that conflict with the philosophy',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'prohibitedMethods',
+          label: 'Prohibited methods',
+          min: 0,
+          max: 20,
+          addLabel: 'Add prohibited method',
+          itemLabel: 'Prohibited method',
+          item: {
+            kind: 'text',
+            placeholder: 'A method that conflicts with the philosophy',
+          },
+        },
+      ],
+    },
   },
   'con-s1-intervention-philosophy-c4': {
     id: 'con-s1-intervention-philosophy-c4', label: 'Decision threshold', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c4', prompt: 'Define decision-making threshold - what evidence triggers active intervention vs. allowing natural recovery' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-intervention-philosophy-c4',
+      prompt: 'Define decision-making threshold - what evidence triggers active intervention vs. allowing natural recovery',
+      fields: [
+        {
+          kind: 'text',
+          key: 'decisionThreshold',
+          label: 'Decision-making threshold',
+          multiline: true,
+          placeholder: 'What evidence triggers active intervention rather than allowing natural recovery.',
+        },
+      ],
+    },
   },
   'con-s1-intervention-philosophy-c5': {
     id: 'con-s1-intervention-philosophy-c5', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c5', prompt: 'Confirm intervention philosophy is agreed by all parties with decision-making authority' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-intervention-philosophy-c5',
+      prompt: 'Confirm intervention philosophy is agreed by all parties with decision-making authority',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'agreed',
+          label: 'Agreed by all parties with decision-making authority',
+          optionSetId: 'confirmAgreement',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who agreed, and any conditions noted.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c1': {
     id: 'con-s1-tenure-covenant-c1', label: 'Instruments', icon: FileText, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c1', prompt: 'Evaluate applicable conservation instruments - covenants, reserve declarations, easements, carbon credits' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c1',
+      prompt: 'Evaluate applicable conservation instruments - covenants, reserve declarations, easements, carbon credits',
+      fields: [
+        {
+          kind: 'text',
+          key: 'instruments',
+          label: 'Applicable conservation instruments',
+          multiline: true,
+          placeholder: 'Covenants, reserve declarations, easements, carbon credits - which could apply here and why.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c2': {
     id: 'con-s1-tenure-covenant-c2', label: 'Implications', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c2', prompt: 'Assess implications of each instrument for management flexibility' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c2',
+      prompt: 'Assess implications of each instrument for management flexibility',
+      fields: [
+        {
+          kind: 'text',
+          key: 'implications',
+          label: 'Implications for management flexibility',
+          multiline: true,
+          placeholder: 'How each instrument would constrain or enable future management.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c3': {
     id: 'con-s1-tenure-covenant-c3', label: 'Covenant strategy', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c3', prompt: 'Define covenant strategy - which instrument best matches conservation intent' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c3',
+      prompt: 'Define covenant strategy - which instrument best matches conservation intent',
+      fields: [
+        {
+          kind: 'text',
+          key: 'covenantStrategy',
+          label: 'Covenant strategy',
+          multiline: true,
+          placeholder: 'Which instrument best matches the conservation intent, and why.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c4': {
     id: 'con-s1-tenure-covenant-c4', label: 'Provider', icon: Building2, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c4', prompt: 'Identify covenant provider or registering body' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c4',
+      prompt: 'Identify covenant provider or registering body',
+      fields: [
+        {
+          kind: 'text',
+          key: 'provider',
+          label: 'Covenant provider or registering body',
+          multiline: true,
+          placeholder: 'The organisation or authority that would hold or register the covenant.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c5': {
     id: 'con-s1-tenure-covenant-c5', label: 'Legal advice', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c5', prompt: 'Obtain legal advice before executing any covenant or carbon agreement' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c5',
+      prompt: 'Obtain legal advice before executing any covenant or carbon agreement',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'adviceStatus',
+          label: 'Legal advice status',
+          optionSetId: 'adviceStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who is advising, and what remains before any covenant or agreement is executed.',
+        },
+      ],
+    },
   },
   'con-s1-tenure-covenant-c6': {
     id: 'con-s1-tenure-covenant-c6', label: 'Conflict check', icon: ShieldAlert, category: 'vision',
-    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c6', prompt: 'Confirm covenant terms do not conflict with planned interventions' },
+    arm: {
+      kind: 'form',
+      formId: 'con-s1-tenure-covenant-c6',
+      prompt: 'Confirm covenant terms do not conflict with planned interventions',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'noConflict',
+          label: 'Covenant terms do not conflict with planned interventions',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any covenant term that constrains a planned intervention, noted here.',
+        },
+      ],
+    },
   },
 
   // -- off-grid --

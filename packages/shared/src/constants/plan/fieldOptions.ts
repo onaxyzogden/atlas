@@ -701,6 +701,29 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
   stakeholderCommsChannel: {
     _base: ['Email', 'Phone', 'SMS', 'Post', 'In-person', 'Community mtg'],
   },
+
+  // -- A2+ catalogue-specific structured-input sets ---------------------------
+  // Added one batch per type alongside the form arms that reference them. Each
+  // is a closed, non-sale vocabulary for a form's CENTRAL decision; sale-,
+  // pricing-, and capital-adjacent prompts deliberately use a free-text leaf
+  // instead of an enumerated dropdown (no instrument is created or priced),
+  // per the authoring rule in this file's header.
+
+  // Conservation intervention philosophy (con-s1-intervention-philosophy-c1).
+  conservationIntervention: {
+    _base: [
+      'Passive rewilding',
+      'Assisted natural regeneration',
+      'Active restoration',
+      'Hybrid',
+    ],
+  },
+  // Status of professional advice sought before an irreversible step. Shared
+  // across the regulatory / legal-advice prompts of several catalogues
+  // (con, mgd, ag, ev, well). Display-only -- never a gate, never fabricated.
+  adviceStatus: {
+    _base: ['Obtained', 'Scheduled', 'Not yet sought'],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
