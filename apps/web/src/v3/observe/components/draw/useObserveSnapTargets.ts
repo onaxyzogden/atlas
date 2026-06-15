@@ -27,6 +27,8 @@
  *     (LineString), wells / gates (Point `position`)
  *   - built environment v2 (builtEnvironmentStoreV2) — structured BE entities
  *     placed via the generic V2 tool (footprints / runs)
+ *   - slope survey        (slopeSurveyStore)      — drawn terrain-class polygons
+ *   - vegetation survey   (vegetationSurveyStore) — drawn community polygons
  *   - the parcel boundary ring (from `projectStore`)
  *
  * Bare `[lng, lat]` placements (pins, soil samples, wells, gates) carry no
@@ -52,6 +54,8 @@ import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import { useSlopeSurveyStore } from '../../../../store/slopeSurveyStore.js';
+import { useVegetationSurveyStore } from '../../../../store/vegetationSurveyStore.js';
 import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { buildSnapTargets } from '../../../plan/draw/tools/usePlanSnapTargets.js';
 
@@ -98,6 +102,10 @@ export function useObserveSnapTargets(projectId: string): () => SnapTargets {
   const gates = useBuiltEnvironmentStore((s) => s.gates);
   const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
   const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  // Drawn surveys (own layers, project-keyed `byProject`) — folded in so an
+  // Observe draw can snap onto drawn slope-class / vegetation-community polygons.
+  const slopeByProject = useSlopeSurveyStore((s) => s.byProject);
+  const vegByProject = useVegetationSurveyStore((s) => s.byProject);
 
   return useCallback((): SnapTargets => {
     const here = (pid: string): boolean => pid === projectId;
@@ -145,6 +153,13 @@ export function useObserveSnapTargets(projectId: string): () => SnapTargets {
     for (const e of entities)
       if (here(e.projectId)) geoms.push(e.geometry as GeoJSON.Geometry | undefined);
 
+    // Drawn surveys — slope-class + vegetation-community polygons (keyed by
+    // projectId; iterate the project's feature map).
+    for (const f of Object.values(slopeByProject[projectId] ?? {}))
+      geoms.push(f.geometry);
+    for (const f of Object.values(vegByProject[projectId] ?? {}))
+      geoms.push(f.geometry);
+
     // Parcel boundary — stored as a FeatureCollection (the Plan side instead
     // receives an already-extracted Polygon prop); fold each feature geometry
     // in so its ring edges + corners become snap targets.
@@ -180,5 +195,7 @@ export function useObserveSnapTargets(projectId: string): () => SnapTargets {
     gates,
     existingDriveways,
     entities,
+    slopeByProject,
+    vegByProject,
   ]);
 }

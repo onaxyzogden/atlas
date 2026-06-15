@@ -23,6 +23,10 @@
  *   - water systems                  (waterSystemsStore) — earthworks (line),
  *     storage (point `center`), watercourses (line), waterbodies (polygon), and
  *     the directed-graph water nodes (catchment polygon + swale line + center)
+ *   - slope-survey class polygons    (slopeSurveyStore) — drawn terrain-class
+ *     extents (Polygon); highest-value survey snap is class-to-adjacent-class
+ *   - vegetation-survey polygons     (vegetationSurveyStore) — drawn community
+ *     extents (Polygon)
  *   - the parcel boundary ring
  *
  * Point placements (fertility infra, storage infra, water-node anchors) have no
@@ -51,6 +55,8 @@ import { useSetbackStore } from '../../../../store/setbackStore.js';
 import { useMonitoringTransectStore } from '../../../../store/monitoringTransectStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useSlopeSurveyStore } from '../../../../store/slopeSurveyStore.js';
+import { useVegetationSurveyStore } from '../../../../store/vegetationSurveyStore.js';
 import type { SnapTargets } from '../../../lib/snapPoint.js';
 
 type LngLat = [number, number];
@@ -140,6 +146,11 @@ export function usePlanSnapTargets(
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const waterbodies = useWaterSystemsStore((s) => s.waterbodies);
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
+  // Drawn surveys (own layers, project-keyed `byProject`) — fold their polygons
+  // in so a survey draw can snap to adjacent survey classes/communities and to
+  // every other plan feature.
+  const slopeByProject = useSlopeSurveyStore((s) => s.byProject);
+  const vegByProject = useVegetationSurveyStore((s) => s.byProject);
 
   return useCallback((): SnapTargets => {
     const here = (pid: string): boolean => pid === projectId;
@@ -185,6 +196,13 @@ export function usePlanSnapTargets(
       geoms.push(pointGeom(wn.center));
     }
 
+    // Drawn surveys — slope-class + vegetation-community polygons (keyed by
+    // projectId; iterate the project's feature map).
+    for (const f of Object.values(slopeByProject[projectId] ?? {}))
+      geoms.push(f.geometry);
+    for (const f of Object.values(vegByProject[projectId] ?? {}))
+      geoms.push(f.geometry);
+
     // Parcel boundary ring.
     if (parcelBoundary) geoms.push(parcelBoundary);
 
@@ -207,6 +225,8 @@ export function usePlanSnapTargets(
     watercourses,
     waterbodies,
     waterNodes,
+    slopeByProject,
+    vegByProject,
     parcelBoundary,
     projectId,
   ]);
