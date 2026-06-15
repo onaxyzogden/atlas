@@ -1,18 +1,12 @@
 /* PlanToolDock — collapse chrome for the Plan bottom tools dock.
-   Expanded: a thin bar with the collapse control above the tools rail.
-   Collapsed: just the slim handle, so the canvas reclaims the height. */
+   Expanded: the collapse control sits in the rail's MODULES header row (no
+   separate strip). Collapsed: just the slim handle, so the canvas reclaims the
+   height. */
 
 .dock {
   display: flex;
   flex-direction: column;
-  gap: 6px;
   min-height: 0;
-}
-
-.bar {
-  display: flex;
-  justify-content: flex-end;
-  flex: 0 0 auto;
 }
 
 .handle {

@@ -2,8 +2,9 @@
  * PlanToolDock — collapse-aware wrapper around PlanTierCategorizedToolsRail for
  * the Plan tier-shell bottom tray.
  *
- * Expanded (default): a slim bar with a "Collapse tools" control above the full
- * categorized tools rail. Collapsed: ONLY a "Show tools" handle is rendered --
+ * Expanded (default): the full categorized tools rail, with the "Collapse tools"
+ * control tucked into the right end of the rail's MODULES header row (no separate
+ * strip, so no wasted vertical space). Collapsed: ONLY a "Show tools" handle is rendered --
  * the rail is unmounted, so StageShell's center canvas (flex: 1 1 auto) reclaims
  * the vertical space (e.g. so the IF/THEN threshold editor is unobstructed in
  * Protocols mode). The collapsed/expanded choice is a global, persisted uiStore
@@ -53,23 +54,23 @@ export default function PlanToolDock({
 
   return (
     <div className={css.dock} data-testid="plan-tool-dock" data-collapsed="false">
-      <div className={css.bar}>
-        <button
-          type="button"
-          className={css.handle}
-          onClick={toggle}
-          aria-expanded={true}
-          aria-label="Collapse tools"
-        >
-          <ChevronDown size={16} strokeWidth={1.8} aria-hidden="true" />
-          <span className={css.handleLabel}>Tools</span>
-        </button>
-      </div>
       <PlanTierCategorizedToolsRail
         objective={objective}
         disabled={disabled}
         onActivate={onActivate}
         activeFormId={activeFormId}
+        headerAccessory={
+          <button
+            type="button"
+            className={css.handle}
+            onClick={toggle}
+            aria-expanded={true}
+            aria-label="Collapse tools"
+          >
+            <ChevronDown size={16} strokeWidth={1.8} aria-hidden="true" />
+            <span className={css.handleLabel}>Tools</span>
+          </button>
+        }
       />
     </div>
   );

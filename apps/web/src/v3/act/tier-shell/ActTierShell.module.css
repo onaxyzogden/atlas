@@ -623,10 +623,17 @@
 
 .toolsHeader {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   padding: 2px 2px 8px;
   flex: 0 0 auto;
+}
+
+/* Optional control parked at the right end of the header row (e.g. the Plan
+   dock's collapse handle), so it shares this row instead of a separate strip. */
+.toolsHeaderAccessory {
+  margin-left: auto;
+  display: inline-flex;
 }
 
 .toolsLabel {
@@ -645,7 +652,7 @@
 .toolsBody {
   /* Row wrapper: the scrolling category column on the left, the dots navigator
      on the right. --act-cat-h is declared here so both children can read it. */
-  --act-cat-h: 116px;
+  --act-cat-h: 128px;
   display: flex;
   flex-direction: row;
   gap: 8px;
@@ -845,7 +852,8 @@
   align-items: center;
   gap: 5px;
   width: 62px;
-  height: 64px;
+  height: auto;
+  min-height: 64px;
   padding: 8px 4px;
   background: var(--color-surface);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));

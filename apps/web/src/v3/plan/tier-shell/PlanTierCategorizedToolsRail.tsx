@@ -18,7 +18,7 @@
 // 'module' arm has no persistent armed state (it opens a slide-up), so it never
 // reports active. The shell's onActivate dispatcher handles each arm kind.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { getObjectiveActTools } from '@ogden/shared';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
@@ -38,6 +38,10 @@ interface Props {
   /** formId of the currently-open VisionFormsTabsModal, or null. Highlights the
    *  tile whose form is open, matching the armed-tool gold-border pattern. */
   activeFormId?: string | null;
+  /** Optional control rendered at the right end of the header row (e.g. the
+   *  dock collapse handle), so it shares the MODULES header instead of needing
+   *  its own strip above the rail. */
+  headerAccessory?: ReactNode;
 }
 
 /** Return true if the tool should show as "armed" / active. */
@@ -69,6 +73,7 @@ export default function PlanTierCategorizedToolsRail({
   disabled,
   onActivate,
   activeFormId,
+  headerAccessory,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
 
@@ -133,6 +138,9 @@ export default function PlanTierCategorizedToolsRail({
       <div className={styles.toolsHeader}>
         <span className={styles.toolsLabel}>{headerLabel}</span>
         <span className={styles.toolsHint}>{headerHint}</span>
+        {headerAccessory ? (
+          <span className={styles.toolsHeaderAccessory}>{headerAccessory}</span>
+        ) : null}
       </div>
       <div className={styles.toolsBody}>
         <div className={styles.toolsRow} ref={rowRef}>
