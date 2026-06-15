@@ -369,22 +369,9 @@ export default function ProtocolLayerPanel({
             fontWeight: 400,
             color: C.textPrimary,
             lineHeight: 1.3,
-            marginBottom: 8,
           }}
         >
           Standing operational logic
-        </div>
-        <div
-          style={{
-            fontSize: 12,
-            color: C.textSecondary,
-            fontFamily: F.sans,
-            lineHeight: 1.5,
-            fontStyle: 'italic',
-          }}
-        >
-          Conditional rules the land responds to — derived from design decisions,
-          executed as Act tasks. Read-only preview.
         </div>
       </div>
 
