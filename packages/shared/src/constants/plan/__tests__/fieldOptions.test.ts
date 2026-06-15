@@ -418,6 +418,7 @@ describe('shared semantic core option sets (A0)', () => {
   // capture forms compose from. Each is `_base`-only by design.
   const CORE_SETS: ReadonlyArray<[string, number]> = [
     ['confirmAgreement', 3],
+    ['confirmStatus', 3],
     ['yesNo', 2],
     ['foodProductionTarget', 3],
     ['enterpriseScope', 3],

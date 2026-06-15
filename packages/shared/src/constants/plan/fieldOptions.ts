@@ -274,6 +274,16 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
       'Not yet - further discussion needed',
     ],
   },
+  // Feasibility / alignment confirmation (e.g. "Confirm ... is achievable" or
+  // "... aligns with our vision"). Role-neutral sibling of confirmAgreement:
+  // confirms a STATE of a plan, not that PEOPLE have agreed.
+  confirmStatus: {
+    _base: [
+      'Yes - confirmed',
+      'Partially - caveats noted',
+      'Not yet - needs further work',
+    ],
+  },
   // Plain binary answer.
   yesNo: { _base: ['Yes', 'No'] },
   // Household food-production ambition. Amanah-conservative wording: the

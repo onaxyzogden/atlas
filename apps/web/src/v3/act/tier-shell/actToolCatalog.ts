@@ -1225,35 +1225,171 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- regenerative farm --
   'rf-s1-enterprise-mix-c1': {
     id: 'rf-s1-enterprise-mix-c1', label: 'Market channel', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c1', prompt: 'Define primary market channel - wholesale, direct-to-consumer, mixed' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c1',
+      prompt: 'Define primary market channel - wholesale, direct-to-consumer, mixed',
+      // Sale-adjacent: free-text leaf, not an enumerated channel set (Amanah).
+      fields: [
+        {
+          kind: 'text',
+          key: 'marketChannel',
+          label: 'Primary market channel',
+          multiline: true,
+          placeholder: 'e.g. wholesale, direct-to-consumer, mixed',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c2': {
     id: 'rf-s1-enterprise-mix-c2', label: 'Enterprise mix', icon: Layers, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c2', prompt: 'Define crop and livestock enterprise mix - vegetables, grains, animals, value-added products' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c2',
+      prompt: 'Define crop and livestock enterprise mix - vegetables, grains, animals, value-added products',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'enterprises',
+          label: 'Enterprises',
+          min: 1,
+          max: 10,
+          addLabel: 'Add enterprise',
+          itemLabel: 'Enterprise',
+          item: {
+            kind: 'text',
+            placeholder: 'e.g. market vegetables, laying hens, value-added preserves',
+          },
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c3': {
     id: 'rf-s1-enterprise-mix-c3', label: 'Targets & calendar', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c3', prompt: 'Define production targets and seasonal calendar for each enterprise' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c3',
+      prompt: 'Define production targets and seasonal calendar for each enterprise',
+      fields: [
+        {
+          kind: 'text',
+          key: 'targetsCalendar',
+          label: 'Production targets & seasonal calendar',
+          multiline: true,
+          placeholder: 'Per enterprise: target volume/yield and the months it runs.',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c4': {
     id: 'rf-s1-enterprise-mix-c4', label: 'Customer demand', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c4', prompt: 'Identify customer base and demand level for each product' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c4',
+      prompt: 'Identify customer base and demand level for each product',
+      // Sale-adjacent: free-text leaf, no enumerated demand/sales set (Amanah).
+      fields: [
+        {
+          kind: 'text',
+          key: 'customerDemand',
+          label: 'Customer base & demand level',
+          multiline: true,
+          placeholder: 'Who buys each product, and how strong is demand?',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c5': {
     id: 'rf-s1-enterprise-mix-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c5', prompt: 'Confirm mix is achievable within site soil, water, and labour capacity' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c5',
+      prompt: 'Confirm mix is achievable within site soil, water, and labour capacity',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'feasible',
+          label: 'Achievable within capacity',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any soil, water, or labour limits that shape the mix.',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c6': {
     id: 'rf-s1-enterprise-mix-c6', label: 'Regen alignment', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c6', prompt: 'Confirm mix aligns with regenerative principles and ecological vision' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c6',
+      prompt: 'Confirm mix aligns with regenerative principles and ecological vision',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'aligns',
+          label: 'Aligns with regenerative vision',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the mix advances - or strains - the regenerative vision.',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c7': {
     id: 'rf-s1-enterprise-mix-c7', label: 'Change process', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c7', prompt: 'Define decision-making process for adding or removing enterprises' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c7',
+      prompt: 'Define decision-making process for adding or removing enterprises',
+      fields: [
+        {
+          kind: 'text',
+          key: 'decisionProcess',
+          label: 'Decision-making process',
+          multiline: true,
+          placeholder: 'Who decides, on what review cadence, and against which criteria?',
+        },
+      ],
+    },
   },
   'rf-s1-enterprise-mix-c8': {
     id: 'rf-s1-enterprise-mix-c8', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c8', prompt: 'Confirm enterprise mix is agreed by all operators' },
+    arm: {
+      kind: 'form',
+      formId: 'rf-s1-enterprise-mix-c8',
+      prompt: 'Confirm enterprise mix is agreed by all operators',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'confirmAgreement',
+          label: 'Agreed by all operators',
+          optionSetId: 'confirmAgreement',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Any conditions or dissent to record.',
+        },
+      ],
+    },
   },
 
   // -- market garden --
