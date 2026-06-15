@@ -2435,95 +2435,476 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // -- livestock --
   'lvs-s1-enterprise-vision-c1': {
     id: 'lvs-s1-enterprise-vision-c1', label: 'Enterprise type', icon: Beef, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c1', prompt: 'Define the enterprise type(s) - breeding herd/flock, grow-out/finishing, dairy, fibre, dual-purpose, or mixed' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c1',
+      prompt: 'Define the enterprise type(s) - breeding herd/flock, grow-out/finishing, dairy, fibre, dual-purpose, or mixed',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'enterpriseType',
+          label: 'Enterprise type',
+          optionSetId: 'lvsEnterpriseType',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'If more than one type, note how they combine.',
+        },
+      ],
+    },
   },
   'lvs-s1-enterprise-vision-c2': {
     id: 'lvs-s1-enterprise-vision-c2', label: 'Species & breeds', icon: Beef, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c2', prompt: 'Define species and candidate breeds - cattle, sheep, goats, pigs, poultry, or combination' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c2',
+      prompt: 'Define species and candidate breeds - cattle, sheep, goats, pigs, poultry, or combination',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'species',
+          label: 'Species',
+          optionSetId: 'livestockSpecies',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Candidate breeds and notes',
+          multiline: true,
+          placeholder: 'Specific candidate breeds, and why they suit this site.',
+        },
+      ],
+    },
   },
   'lvs-s1-enterprise-vision-c3': {
     id: 'lvs-s1-enterprise-vision-c3', label: 'Production intent', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c3', prompt: 'Define production intent per species - meat, milk, eggs, fibre, breeding stock, land improvement' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c3',
+      prompt: 'Define production intent per species - meat, milk, eggs, fibre, breeding stock, land improvement',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'productionIntent',
+          label: 'Production intent',
+          optionSetId: 'livestockProductIntent',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Intent per species',
+          multiline: true,
+          placeholder: 'What each species is kept to produce.',
+        },
+      ],
+    },
   },
   'lvs-s1-enterprise-vision-c4': {
     id: 'lvs-s1-enterprise-vision-c4', label: 'Integration logic', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c4', prompt: 'Define the integration logic between species if multi-species - leader-follower grazing, niche separation' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c4',
+      prompt: 'Define the integration logic between species if multi-species - leader-follower grazing, niche separation',
+      fields: [
+        {
+          kind: 'text',
+          key: 'integrationLogic',
+          label: 'Integration logic between species',
+          multiline: true,
+          placeholder: 'Leader-follower grazing, niche separation, or how the species share the land.',
+        },
+      ],
+    },
   },
   'lvs-s1-enterprise-vision-c5': {
     id: 'lvs-s1-enterprise-vision-c5', label: 'Steward fit', icon: HardHat, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c5', prompt: 'Confirm the enterprise vision fits the steward experience and available labour' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c5',
+      prompt: 'Confirm the enterprise vision fits the steward experience and available labour',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'fitsSteward',
+          label: 'Enterprise vision fits steward experience and available labour',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where experience or labour limits the vision, note it here.',
+        },
+      ],
+    },
   },
   'lvs-s1-enterprise-vision-c6': {
     id: 'lvs-s1-enterprise-vision-c6', label: 'Climate & feed', icon: Leaf, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c6', prompt: 'Confirm the vision is consistent with the site climate and feed base' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-enterprise-vision-c6',
+      prompt: 'Confirm the vision is consistent with the site climate and feed base',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'climateFeedFit',
+          label: 'Vision consistent with site climate and feed base',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'How the vision holds up against the site climate and feed base.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c1': {
     id: 'lvs-s1-production-goals-c1', label: 'Production targets', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c1', prompt: 'Define measurable production targets - head sold/yr, kg liveweight, litres, dozen eggs, breeding replacements' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c1',
+      prompt: 'Define measurable production targets - head sold/yr, kg liveweight, litres, dozen eggs, breeding replacements',
+      fields: [
+        {
+          kind: 'text',
+          key: 'productionTargets',
+          label: 'Measurable production targets',
+          multiline: true,
+          placeholder: 'Head per year, kg liveweight, litres, dozen eggs, breeding replacements.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c2': {
     id: 'lvs-s1-production-goals-c2', label: 'Herd size', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c2', prompt: 'Define the target full-establishment herd/flock size' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c2',
+      prompt: 'Define the target full-establishment herd/flock size',
+      fields: [
+        {
+          kind: 'text',
+          key: 'herdSize',
+          label: 'Target full-establishment herd or flock size',
+          multiline: true,
+          placeholder: 'The herd or flock size aimed for at full establishment.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c3': {
     id: 'lvs-s1-production-goals-c3', label: 'Establishment horizon', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c3', prompt: 'Define the establishment horizon - how many seasons to reach full scale' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c3',
+      prompt: 'Define the establishment horizon - how many seasons to reach full scale',
+      fields: [
+        {
+          kind: 'text',
+          key: 'establishmentHorizon',
+          label: 'Establishment horizon',
+          multiline: true,
+          placeholder: 'How many seasons to reach full scale.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c4': {
     id: 'lvs-s1-production-goals-c4', label: 'Stockmanship', icon: HardHat, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c4', prompt: 'Assess steward stockmanship capacity - daily check, handling, calving/lambing, health intervention skill' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c4',
+      prompt: 'Assess steward stockmanship capacity - daily check, handling, calving/lambing, health intervention skill',
+      fields: [
+        {
+          kind: 'text',
+          key: 'stockmanship',
+          label: 'Steward stockmanship capacity',
+          multiline: true,
+          placeholder: 'Daily check, handling, calving or lambing, and health-intervention skill.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c5': {
     id: 'lvs-s1-production-goals-c5', label: 'Budget envelope', icon: Wallet, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c5', prompt: 'Confirm capital and operating budget envelope is realistic for the scale' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c5',
+      prompt: 'Confirm capital and operating budget envelope is realistic for the scale',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'budgetRealistic',
+          label: 'Capital and operating budget envelope realistic for the scale',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the budget envelope is or is not yet realistic for the scale.',
+        },
+      ],
+    },
   },
   'lvs-s1-production-goals-c6': {
     id: 'lvs-s1-production-goals-c6', label: 'Continuity cover', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c6', prompt: 'Confirm a continuity / absence-cover plan exists - animals need daily care' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-production-goals-c6',
+      prompt: 'Confirm a continuity / absence-cover plan exists - animals need daily care',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'continuityCover',
+          label: 'Continuity / absence-cover plan exists',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Who covers daily care during an absence.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c1': {
     id: 'lvs-s1-welfare-ethic-c1', label: 'Space & density', icon: Ruler, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c1', prompt: 'Define minimum space and stocking-density standards per species' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c1',
+      prompt: 'Define minimum space and stocking-density standards per species',
+      fields: [
+        {
+          kind: 'text',
+          key: 'spaceDensity',
+          label: 'Minimum space and stocking-density standards',
+          multiline: true,
+          placeholder: 'Minimum space and stocking-density standards per species.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c2': {
     id: 'lvs-s1-welfare-ethic-c2', label: 'Shelter standards', icon: Home, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c2', prompt: 'Define shelter standards per species - shade, wind protection, wet-weather and extreme-heat/cold refuge' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c2',
+      prompt: 'Define shelter standards per species - shade, wind protection, wet-weather and extreme-heat/cold refuge',
+      fields: [
+        {
+          kind: 'text',
+          key: 'shelterStandards',
+          label: 'Shelter standards per species',
+          multiline: true,
+          placeholder: 'Shade, wind protection, wet-weather and extreme heat or cold refuge.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c3': {
     id: 'lvs-s1-welfare-ethic-c3', label: 'Feed & water', icon: Droplet, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c3', prompt: 'Define constant access to feed and clean water as a standing requirement' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c3',
+      prompt: 'Define constant access to feed and clean water as a standing requirement',
+      fields: [
+        {
+          kind: 'text',
+          key: 'feedWater',
+          label: 'Feed and clean-water access requirement',
+          multiline: true,
+          placeholder: 'How constant access to feed and clean water is assured.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c4': {
     id: 'lvs-s1-welfare-ethic-c4', label: 'Handling norms', icon: UserCheck, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c4', prompt: 'Define a low-stress handling commitment and handling-frequency norms' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c4',
+      prompt: 'Define a low-stress handling commitment and handling-frequency norms',
+      fields: [
+        {
+          kind: 'text',
+          key: 'handlingNorms',
+          label: 'Low-stress handling commitment and frequency norms',
+          multiline: true,
+          placeholder: 'The low-stress handling commitment and how often animals are handled.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c5': {
     id: 'lvs-s1-welfare-ethic-c5', label: 'Health & EOL', icon: FlaskConical, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c5', prompt: 'Define a humane health-intervention and end-of-life / emergency-euthanasia protocol' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c5',
+      prompt: 'Define a humane health-intervention and end-of-life / emergency-euthanasia protocol',
+      fields: [
+        {
+          kind: 'text',
+          key: 'healthEolProtocol',
+          label: 'Humane health-intervention and end-of-life protocol',
+          multiline: true,
+          placeholder: 'The humane health-intervention and end-of-life or emergency-euthanasia protocol.',
+        },
+      ],
+    },
   },
   'lvs-s1-welfare-ethic-c6': {
     id: 'lvs-s1-welfare-ethic-c6', label: 'Welfare compliance', icon: Lock, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c6', prompt: 'Confirm standards meet or exceed applicable animal-welfare legislation' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-s1-welfare-ethic-c6',
+      prompt: 'Confirm standards meet or exceed applicable animal-welfare legislation',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'meetsLegislation',
+          label: 'Standards meet or exceed applicable animal-welfare legislation',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Which legislation applies, and how the standards meet or exceed it.',
+        },
+      ],
+    },
   },
   'lvs-sec-s1-enterprise-intent-c1': {
     id: 'lvs-sec-s1-enterprise-intent-c1', label: 'Enterprise intent', icon: Target, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c1', prompt: 'Define the enterprise intent - product (meat, milk, fibre, eggs), land-management service, or both' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-sec-s1-enterprise-intent-c1',
+      prompt: 'Define the enterprise intent - product (meat, milk, fibre, eggs), land-management service, or both',
+      fields: [
+        {
+          kind: 'text',
+          key: 'enterpriseIntent',
+          label: 'Enterprise intent',
+          multiline: true,
+          placeholder: 'Product (meat, milk, fibre, eggs), land-management service, or both.',
+        },
+      ],
+    },
   },
   'lvs-sec-s1-enterprise-intent-c2': {
     id: 'lvs-sec-s1-enterprise-intent-c2', label: 'Candidate species', icon: Beef, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c2', prompt: 'Identify candidate species and classes of stock - ruminants, poultry, pigs, mixed' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-sec-s1-enterprise-intent-c2',
+      prompt: 'Identify candidate species and classes of stock - ruminants, poultry, pigs, mixed',
+      fields: [
+        {
+          kind: 'repeatable',
+          key: 'candidateStock',
+          label: 'Candidate species and classes of stock',
+          min: 1,
+          max: 12,
+          addLabel: 'Add candidate',
+          itemLabel: 'Candidate',
+          item: {
+            kind: 'text',
+            placeholder: 'A candidate species or class of stock - e.g. ruminants, poultry, pigs.',
+          },
+        },
+      ],
+    },
   },
   'lvs-sec-s1-enterprise-intent-c3': {
     id: 'lvs-sec-s1-enterprise-intent-c3', label: 'Host relationship', icon: Shuffle, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c3', prompt: 'Define how the herd relates to the host enterprise - complementary, supplementary, or competing for land and labour' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-sec-s1-enterprise-intent-c3',
+      prompt: 'Define how the herd relates to the host enterprise - complementary, supplementary, or competing for land and labour',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'hostRelation',
+          label: 'How the herd relates to the host enterprise',
+          optionSetId: 'enterpriseRelation',
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'How the herd and the host enterprise share or contend for land and labour.',
+        },
+      ],
+    },
   },
   'lvs-sec-s1-enterprise-intent-c4': {
     id: 'lvs-sec-s1-enterprise-intent-c4', label: 'Experience & labour', icon: HardHat, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c4', prompt: 'Identify operator livestock experience and the daily labour available for stock care' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-sec-s1-enterprise-intent-c4',
+      prompt: 'Identify operator livestock experience and the daily labour available for stock care',
+      fields: [
+        {
+          kind: 'text',
+          key: 'experienceLabour',
+          label: 'Operator experience and daily labour for stock care',
+          multiline: true,
+          placeholder: 'Operator livestock experience and the daily labour available for stock care.',
+        },
+      ],
+    },
   },
   'lvs-sec-s1-enterprise-intent-c5': {
     id: 'lvs-sec-s1-enterprise-intent-c5', label: 'Compatibility', icon: HelpCircle, category: 'vision',
-    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c5', prompt: 'Confirm enterprise intent is compatible with the host vision, scale, and stewardship capacity' },
+    arm: {
+      kind: 'form',
+      formId: 'lvs-sec-s1-enterprise-intent-c5',
+      prompt: 'Confirm enterprise intent is compatible with the host vision, scale, and stewardship capacity',
+      fields: [
+        {
+          kind: 'hybrid',
+          key: 'hostCompatible',
+          label: 'Enterprise intent compatible with host vision, scale, and stewardship capacity',
+          optionSetId: 'confirmStatus',
+          required: true,
+          placeholder: 'Pick or describe',
+        },
+        {
+          kind: 'text',
+          key: 'notes',
+          label: 'Notes',
+          multiline: true,
+          placeholder: 'Where the herd and the host vision reinforce or strain each other.',
+        },
+      ],
+    },
   },
 
   // -- conservation --

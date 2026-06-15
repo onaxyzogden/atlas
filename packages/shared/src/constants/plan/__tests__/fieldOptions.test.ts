@@ -499,6 +499,9 @@ describe('A2+ catalogue-specific structured-input sets', () => {
     ['livestockSpecies', 6],
     ['livestockProductIntent', 6],
     ['landImprovementGoal', 4],
+    // lvs
+    ['lvsEnterpriseType', 6],
+    ['enterpriseRelation', 3],
   ];
 
   it.each(A2_SETS)('%s exists with a non-empty _base of %i entries', (id, n) => {
@@ -648,6 +651,25 @@ describe('A2+ catalogue-specific structured-input sets', () => {
       'Pasture productivity',
       'Ecological condition',
       'Combination',
+    ]);
+  });
+
+  it('lvsEnterpriseType is the exact 6-item list in order', () => {
+    expect(resolveFieldOptions('lvsEnterpriseType', undefined)).toEqual([
+      'Breeding herd / flock',
+      'Grow-out / finishing',
+      'Dairy',
+      'Fibre',
+      'Dual-purpose',
+      'Mixed',
+    ]);
+  });
+
+  it('enterpriseRelation is the exact 3-item list in order', () => {
+    expect(resolveFieldOptions('enterpriseRelation', undefined)).toEqual([
+      'Complementary',
+      'Supplementary',
+      'Competing for land and labour',
     ]);
   });
 });

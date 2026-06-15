@@ -820,6 +820,23 @@ export const FIELD_OPTION_SETS: Record<string, FieldOptionSet> = {
   landImprovementGoal: {
     _base: ['Soil improvement', 'Pasture productivity', 'Ecological condition', 'Combination'],
   },
+  // --- lvs (livestock) ---
+  // Livestock enterprise type (lvs-s1-enterprise-vision-c1).
+  lvsEnterpriseType: {
+    _base: [
+      'Breeding herd / flock',
+      'Grow-out / finishing',
+      'Dairy',
+      'Fibre',
+      'Dual-purpose',
+      'Mixed',
+    ],
+  },
+  // How a secondary livestock layer relates to the host enterprise
+  // (lvs-sec-s1-enterprise-intent-c3).
+  enterpriseRelation: {
+    _base: ['Complementary', 'Supplementary', 'Competing for land and labour'],
+  },
 };
 
 // REVIEW: starter vision-element suggestions, operator to confirm/extend.
