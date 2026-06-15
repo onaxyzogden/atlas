@@ -89,4 +89,52 @@ export const NURSERY_SECONDARY_PROTOCOLS: readonly StandardProtocolTemplate[] = 
       'A nursery serving its own site fails quietly when stock is not ready for the host’s planting season; syncing the two keeps the loop closed.',
     feeds: ['Plants', 'Economics'],
   },
+
+  // Operational overlays for a LAYERED (secondary) nursery — the secondary
+  // analogues of the rich nursery primary protocols, so a nursery layered onto a
+  // host gets propagation monitoring, not just supply-sync. The primary `nur-*`
+  // ids stay primary-only; the bayʿ mā laysa ʿindak presale guard is deliberately
+  // NOT mirrored here (the secondary set has no advance-sale surface). 2026-06-14.
+  {
+    id: 'nur2-propagation-health',
+    name: 'Propagation Health',
+    type: 'threshold',
+    source: 'secondary',
+    sourceTypeId: 'nursery',
+    stratumId: 's6-integration-design',
+    severityTier: 'respond',
+    condition: 'IF damping-off, pest, or disease in propagation exceeds [action threshold]',
+    response: 'Isolate affected stock and apply the propagation-hygiene response before it spreads through the layer.',
+    rationale:
+      'A nursery layered onto a host still propagates in batches; disease caught at threshold saves the cohort the host system is counting on, not just a tray.',
+    feeds: ['Plants', 'Risk & Compliance'],
+  },
+  {
+    id: 'nur2-stock-readiness',
+    name: 'Stock Readiness Window',
+    type: 'cyclical',
+    source: 'secondary',
+    sourceTypeId: 'nursery',
+    stratumId: 's7-phasing-resourcing',
+    severityTier: 'respond',
+    condition: 'IF stock approaches its [saleable / plantable readiness window]',
+    response: 'Pot on, harden off, or route the stock before it becomes root-bound or overgrown.',
+    rationale:
+      'Whether routed to the host plantings or sold on, nursery value lives in a narrow readiness window; stock held past it becomes unusable in one slide.',
+    feeds: ['Plants', 'Economics'],
+  },
+  {
+    id: 'nur2-environmental-control',
+    name: 'Propagation Environment Control',
+    type: 'threshold',
+    source: 'secondary',
+    sourceTypeId: 'nursery',
+    stratumId: 's5-system-design',
+    severityTier: 'respond',
+    condition: 'IF propagation temperature, humidity, or moisture leaves the [tolerance band]',
+    response: 'Restore the controlled environment before the stock is set back.',
+    rationale:
+      'Young propagation is unforgiving of swings; a brief excursion outside the band can lose weeks of growth the host system was relying on.',
+    feeds: ['Built Infrastructure', 'Plants'],
+  },
 ];
