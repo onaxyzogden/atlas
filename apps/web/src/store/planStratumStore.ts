@@ -118,6 +118,20 @@ interface PlanStratumProgressState {
     objectiveId: string,
     itemId: string,
   ) => void;
+  /**
+   * Un-record one checklist item: remove it from the completed list so its
+   * "completed" appearance and progress credit are undone. Idempotent — a no-op
+   * when the item was never recorded (or the project/objective key is absent).
+   * The exact inverse of `setItemComplete`: remove-only, so it is safe to call
+   * unconditionally from the defer ("Not ready") path without the re-add footgun
+   * `toggleItem` carries. Touches nothing else (no values, deferral, or
+   * celebration log) and keeps captured form data (held in actEvidenceStore).
+   */
+  clearItemComplete: (
+    projectId: string,
+    objectiveId: string,
+    itemId: string,
+  ) => void;
   /** Clear progress for one objective (used by cyclical-review revisions). */
   clearForObjective: (projectId: string, objectiveId: string) => void;
   /**
@@ -306,6 +320,22 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
               [projectId]: {
                 ...project,
                 [objectiveId]: [...current, itemId],
+              },
+            },
+          };
+        }),
+
+      clearItemComplete: (projectId, objectiveId, itemId) =>
+        set((s) => {
+          const project = s.byProject[projectId];
+          const current = project?.[objectiveId];
+          if (!current || !current.includes(itemId)) return s; // not recorded -- no-op
+          return {
+            byProject: {
+              ...s.byProject,
+              [projectId]: {
+                ...project,
+                [objectiveId]: current.filter((id) => id !== itemId),
               },
             },
           };

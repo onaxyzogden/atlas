@@ -603,8 +603,17 @@ export default function PlanTierShell() {
   const handleToggleDefer = useCallback(
     (itemId: string, deferred: boolean) => {
       useActEvidenceStore.getState().setDecisionDeferred(id, itemId, deferred);
+      // Marking a recorded decision "Not ready" un-records it so the completed
+      // appearance + progress credit are undone (the captured form data is kept,
+      // so re-recording is one click). Remove-only + idempotent: a no-op when the
+      // item was never recorded, and we never re-record on un-defer.
+      if (deferred && objectiveId) {
+        usePlanStratumProgressStore
+          .getState()
+          .clearItemComplete(id, objectiveId, itemId);
+      }
     },
-    [id],
+    [id, objectiveId],
   );
 
   // ── Navigation (bound to the existing Plan routes) ────────────────────────
