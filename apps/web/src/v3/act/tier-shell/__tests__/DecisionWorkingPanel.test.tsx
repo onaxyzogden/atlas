@@ -151,6 +151,41 @@ describe('DecisionWorkingPanel -- empty state', () => {
   });
 });
 
+describe('DecisionWorkingPanel -- header outcome title', () => {
+  // Coherence with the Act decision list: the working-panel header shows the
+  // OUTCOME form (toOutcomeTitle) for safe-verb labels, an explicit
+  // `outcomeTitle` override verbatim, and decision-framing labels verbatim.
+  // The body's textarea fallback keeps the raw imperative as its aria-label
+  // (an accessible name, not text content), so getByText only sees the header.
+  it('renders a safe-verb label as its outcome form in the header', () => {
+    renderPanel({
+      decision: makeDecision({ itemId: 's7-capital', label: 'Inventory available capital' }),
+    });
+    expect(screen.getByText('Available capital')).toBeTruthy();
+    expect(screen.queryByText('Inventory available capital')).toBeNull();
+  });
+
+  it('renders an explicit outcomeTitle override verbatim (transform bypassed)', () => {
+    renderPanel({
+      decision: makeDecision({
+        itemId: 's1-vision-c2',
+        label: 'Define 3-5 measurable success criteria',
+        outcomeTitle: 'Success scorecard',
+      }),
+    });
+    expect(screen.getByText('Success scorecard')).toBeTruthy();
+    expect(screen.queryByText('3-5 measurable success criteria')).toBeNull();
+  });
+
+  it('renders a decision-framing label verbatim in the header (fiqh-safe)', () => {
+    const framing = 'Decide whether to offer a season pass (default: none)';
+    renderPanel({
+      decision: makeDecision({ itemId: 'ag-s4-revenue', label: framing }),
+    });
+    expect(screen.getByText(framing)).toBeTruthy();
+  });
+});
+
 describe('DecisionWorkingPanel -- body router', () => {
   it('renders SuccessCriteriaCapture for an isSuccessCriteria decision', () => {
     renderPanel({

@@ -380,6 +380,7 @@ export function buildDecisionTarget(
   return {
     itemId: item.id,
     label: item.label,
+    outcomeTitle: item.outcomeTitle,
     optional: item.optional,
     prompt,
     fields,

@@ -301,7 +301,7 @@ import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
-import { ACT_COPY } from '../../copy/index.js';
+import { ACT_COPY, toOutcomeTitle } from '../../copy/index.js';
 import css from './DecisionWorkingPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -313,6 +313,8 @@ export interface DecisionPanelTarget {
   itemId: string;
   /** decision label -> panel header title. */
   label: string;
+  /** Optional Act-only outcome title override; header falls back to toOutcomeTitle(label). Display-only. */
+  outcomeTitle?: string;
   optional?: boolean;
   /** tool prompt -> header hint line. */
   prompt?: string;
@@ -1312,7 +1314,7 @@ export default function DecisionWorkingPanel({
           ) : null}
         </div>
         <div className={css.title}>
-          {decision.label}
+          {decision.outcomeTitle ?? toOutcomeTitle(decision.label)}
           {decision.optional ? (
             <span className={css.optBadge}>{ACT_COPY.decisionList.optional}</span>
           ) : null}

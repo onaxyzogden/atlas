@@ -66,6 +66,7 @@ import ActTierZeroWorkbench, {
   type ActTierZeroWorkbenchProps,
 } from '../ActTierZeroWorkbench.js';
 import { useStakeholderRegisterStore } from '../../../../store/stakeholderRegisterStore.js';
+import { toOutcomeTitle } from '../../../copy/index.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures: the active objective uses REAL catalog ids so buildDecisionTarget
@@ -235,6 +236,29 @@ describe('ActTierZeroWorkbench -- recorded badge', () => {
     });
     // Default selection is the first item (s1-vision-c1), which is complete.
     expect(screen.getByText(/^recorded$/i)).toBeTruthy();
+  });
+});
+
+describe('buildDecisionTarget -- outcomeTitle passthrough', () => {
+  it('threads an explicit outcomeTitle onto the panel target', () => {
+    const item: PlanDecisionChecklistItem = {
+      id: 's1-vision-c1',
+      label: 'State the primary purpose',
+      outcomeTitle: 'Primary purpose statement',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    expect(buildDecisionTarget(item).outcomeTitle).toBe('Primary purpose statement');
+  });
+
+  it('leaves outcomeTitle undefined when the item omits it', () => {
+    const item: PlanDecisionChecklistItem = {
+      id: 's1-vision-c1',
+      label: 'State the primary purpose',
+      feedsInto: [],
+      optional: false,
+    } as PlanDecisionChecklistItem;
+    expect(buildDecisionTarget(item).outcomeTitle).toBeUndefined();
   });
 });
 
@@ -895,9 +919,11 @@ describe('ActTierZeroWorkbench -- universal gap-closure objectives (2026-06-12)'
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
     expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its label heads the panel.
+    // Default selection = first checklist item; its OUTCOME-phrased title heads
+    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
+    // is a no-op for non-safe-verb labels, so this holds for every objective.
     expect(
-      screen.getAllByText(objective!.checklist[0]!.label).length,
+      screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
   });
 
@@ -949,9 +975,11 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
     expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its label heads the panel.
+    // Default selection = first checklist item; its OUTCOME-phrased title heads
+    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
+    // is a no-op for non-safe-verb labels, so this holds for every objective.
     expect(
-      screen.getAllByText(objective!.checklist[0]!.label).length,
+      screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
   });
 
@@ -1028,9 +1056,11 @@ describe('ActTierZeroWorkbench -- orchard (orch-) gap-closure objectives (2026-0
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
     expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its label heads the panel.
+    // Default selection = first checklist item; its OUTCOME-phrased title heads
+    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
+    // is a no-op for non-safe-verb labels, so this holds for every objective.
     expect(
-      screen.getAllByText(objective!.checklist[0]!.label).length,
+      screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
   });
 
@@ -1092,9 +1122,11 @@ describe('ActTierZeroWorkbench -- silvopasture/nursery/homestead (silv-/nur-sec-
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
     expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its label heads the panel.
+    // Default selection = first checklist item; its OUTCOME-phrased title heads
+    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
+    // is a no-op for non-safe-verb labels, so this holds for every objective.
     expect(
-      screen.getAllByText(objective!.checklist[0]!.label).length,
+      screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
   });
 
@@ -1177,9 +1209,11 @@ describe('ActTierZeroWorkbench -- un-prioritized tail (ag-/ofg-/well-/edu-/con-/
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
     expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its label heads the panel.
+    // Default selection = first checklist item; its OUTCOME-phrased title heads
+    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
+    // is a no-op for non-safe-verb labels, so this holds for every objective.
     expect(
-      screen.getAllByText(objective!.checklist[0]!.label).length,
+      screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
   });
 
