@@ -10,6 +10,11 @@
  * active tool maps to (SLOPE_CLASS_BY_TOOL). The draw hook auto-clears after
  * each create, so the steward can draw several polygons of the same class in a
  * row without re-arming.
+ *
+ * Snapping: like every other draw surface, the polygon snaps to existing
+ * features (most usefully adjacent slope-class polygons sharing an edge) via
+ * `usePlanSnapTargets`, and renders the magnet `<SnapToggle/>` chip in the
+ * shared bottom-left dock while a slope tool is armed.
  */
 
 import { useCallback } from 'react';
@@ -22,6 +27,9 @@ import {
   SLOPE_CLASS_COLORS,
 } from '../../../store/slopeSurveyStore.js';
 import { useMapboxDrawTool } from '../../observe/components/draw/useMapboxDrawTool.js';
+import { usePlanSnapTargets } from '../../plan/draw/tools/usePlanSnapTargets.js';
+import SnapToggle from '../../observe/components/draw/SnapToggle.js';
+import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
@@ -42,6 +50,10 @@ function polygonAcres(geom: GeoJSON.Polygon): number {
 export default function SlopeSurveyDrawHost({ map, projectId, sourceObjectiveId }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const addFeature = useSlopeSurveyStore((s) => s.addFeature);
+  // Snap targets (existing plan features + drawn survey polygons). Called
+  // unconditionally before the enabled gate to respect the rules of hooks;
+  // `projectId ?? ''` yields empty targets when no project is loaded.
+  const getSnapTargets = usePlanSnapTargets(projectId ?? '');
 
   const armedClass = activeTool ? SLOPE_CLASS_BY_TOOL[activeTool] : undefined;
   const enabled = armedClass != null && projectId != null;
@@ -73,7 +85,14 @@ export default function SlopeSurveyDrawHost({ map, projectId, sourceObjectiveId 
     onComplete,
     enabled,
     previewColor,
+    snap: true,
+    getSnapTargets,
   });
 
-  return null;
+  if (!enabled) return null;
+  return (
+    <div className={css.dock}>
+      <SnapToggle />
+    </div>
+  );
 }

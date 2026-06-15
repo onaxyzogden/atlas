@@ -9,6 +9,11 @@
  * create, so the steward can draw several polygons of the same community in a
  * row without re-arming. If no community is selected yet, the draw is dropped
  * (the panel is the primary arming surface).
+ *
+ * Snapping: like every other draw surface, the polygon snaps to existing
+ * features (most usefully adjacent community polygons sharing an edge) via
+ * `usePlanSnapTargets`, and renders the magnet `<SnapToggle/>` chip in the
+ * shared bottom-left dock while the survey tool is armed.
  */
 
 import { useCallback } from 'react';
@@ -20,6 +25,9 @@ import {
   VEG_COMMUNITY_COLORS,
 } from '../../../store/vegetationSurveyStore.js';
 import { useMapboxDrawTool } from '../../observe/components/draw/useMapboxDrawTool.js';
+import { usePlanSnapTargets } from '../../plan/draw/tools/usePlanSnapTargets.js';
+import SnapToggle from '../../observe/components/draw/SnapToggle.js';
+import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
@@ -41,6 +49,10 @@ export default function VegetationSurveyDrawHost({ map, projectId, sourceObjecti
   const activeTool = useMapToolStore((s) => s.activeTool);
   const activeCommunity = useVegetationSurveyStore((s) => s.activeCommunity);
   const addFeature = useVegetationSurveyStore((s) => s.addFeature);
+  // Snap targets (existing plan features + drawn survey polygons). Called
+  // unconditionally before the enabled gate to respect the rules of hooks;
+  // `projectId ?? ''` yields empty targets when no project is loaded.
+  const getSnapTargets = usePlanSnapTargets(projectId ?? '');
 
   const enabled = activeTool === 'act.ecology.veg-survey' && projectId != null;
 
@@ -71,7 +83,14 @@ export default function VegetationSurveyDrawHost({ map, projectId, sourceObjecti
     onComplete,
     enabled,
     previewColor,
+    snap: true,
+    getSnapTargets,
   });
 
-  return null;
+  if (!enabled) return null;
+  return (
+    <div className={css.dock}>
+      <SnapToggle />
+    </div>
+  );
 }

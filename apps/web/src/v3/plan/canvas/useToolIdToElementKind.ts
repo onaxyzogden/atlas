@@ -70,3 +70,39 @@ export function useActiveElementKind(): string | null {
   const activeTool = useMapToolStore((s) => s.activeTool);
   return toolIdToElementKind(activeTool);
 }
+
+/**
+ * computeVisionDrawArmed — is *any* draw family armed on the Vision canvas?
+ *
+ * `MapCursorHost` (`useMapCursor`) is the single cursor writer: it paints the
+ * crosshair `!important` only while `drawArmed` is true and re-asserts it via a
+ * MutationObserver. `useMapboxDrawTool` sets a non-`!important` crosshair, so if
+ * `drawArmed` is false while a draw tool is armed, the observer immediately
+ * stomps the crosshair back to grab/pointer.
+ *
+ * `activeKind`/`beKind` alone (the old predicate) only covered elementCatalog +
+ * BE tools — they are `null` for the ~16 dedicated-store `plan.*` tools
+ * (zone/water/fence/note/transect…), every `observe.*` tool, and the survey
+ * tools. This folds in all of them, mirroring the conventions already in
+ * `PlanLayout` (`activeTool.startsWith('plan.')`) and `ObserveLayout`
+ * (`armedDrawKind !== null || measureToolArmed`). The two survey flags are the
+ * takeover signals PlanTierShell drives from the survey stores.
+ *
+ * Pure (no hook / store read) so it is unit-testable in isolation; `activeTool`
+ * is typed `string | null` and cast for the catalog lookup so tests can pass any
+ * id without depending on the `MapToolId` union.
+ */
+export function computeVisionDrawArmed(args: {
+  activeTool: string | null;
+  surveyActive: boolean;
+  slopeActive: boolean;
+}): boolean {
+  const { activeTool, surveyActive, slopeActive } = args;
+  return (
+    toolIdToElementKind(activeTool as MapToolId | null) !== null || // elementCatalog kinds
+    (activeTool?.startsWith('plan.') ?? false) ||                   // plan.* (incl. BE + dedicated-store)
+    (activeTool?.startsWith('observe.') ?? false) ||                // observe.* draw tools
+    surveyActive ||                                                 // veg-survey takeover
+    slopeActive                                                     // slope-survey takeover
+  );
+}

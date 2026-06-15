@@ -39,7 +39,7 @@ import { MapCursorHost } from './useMapCursor.js';
 import BaseMapCard from './BaseMapCard.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
-import { useActiveElementKind } from './useToolIdToElementKind.js';
+import { useActiveElementKind, computeVisionDrawArmed } from './useToolIdToElementKind.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
@@ -151,7 +151,12 @@ export default function VisionLayoutCanvas({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<ToolMode>('pan');
   const [hovering, setHovering] = useState(false);
-  const drawArmed = activeKind !== null || beKind !== null;
+  // Crosshair holds for EVERY draw family armed on this canvas — elementCatalog
+  // + BE (activeKind/beKind below), the dedicated-store `plan.*` tools, the
+  // `observe.*` tools, and the slope/veg survey takeovers. `activeKind`/`beKind`
+  // are still computed (they gate the conditional host mounts further down); the
+  // cursor predicate just needs the broader signal. See computeVisionDrawArmed.
+  const drawArmed = computeVisionDrawArmed({ activeTool, surveyActive, slopeActive });
 
   return (
     <DiagnoseMap centroid={centroid} boundary={boundary}>
