@@ -41,6 +41,7 @@ const EXPECTED_KINDS: PlanSelectionKind[] = [
   'slaughter-point',
   'cold-chain',
   'market-node',
+  'slope-gradient',
 ];
 
 /** Kinds whose floating bar must carry a Rename quick action (the formerly
@@ -109,6 +110,28 @@ describe('PLAN_FEATURE_ACTIONS registry (Phase 5)', () => {
     expect(handler).not.toBeNull();
     expect(typeof handler!.run).toBe('function');
     expect(() => handler!.run()).not.toThrow();
+  });
+
+  it('slope-gradient is a reshape+reclassify polygon kind (Delete via store)', () => {
+    const cfg = PLAN_FEATURE_ACTIONS['slope-gradient'];
+    expect(cfg.supportsVertexEdit).toBe('polygon');
+    expect(typeof cfg.getEditHandler).toBe('function');
+    // Reclassify handler resolves (stale id → safe no-op, never null/throw).
+    const handler = cfg.getEditHandler!({
+      kind: 'slope-gradient',
+      id: '__nope__',
+      projectId: '__nope__',
+    });
+    expect(handler).not.toBeNull();
+    expect(() => handler!.run()).not.toThrow();
+    // Delete with a projectId-bearing item is a no-op for an absent feature.
+    expect(() =>
+      cfg.remove({ kind: 'slope-gradient', id: '__nope__', projectId: 'p' }),
+    ).not.toThrow();
+    // Slope polygons are always polygons → vertex editing applies.
+    expect(
+      supportsVertexEditing({ kind: 'slope-gradient', id: 'x', projectId: 'p' }),
+    ).toBe(true);
   });
 
   it('supportsVertexEditing matches the prior polygon-only rule', () => {

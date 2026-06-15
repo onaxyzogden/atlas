@@ -58,10 +58,12 @@ export default function SlopeSurveyLayer({ map, projectId }: Props) {
     const features: GeoJSON.Feature[] = [];
     const rows = byProject[projectId] ?? {};
     for (const f of Object.values(rows)) {
-      // Polygon fill/line feature.
+      // Polygon fill/line feature. `id` + `projectId` are published so the
+      // Plan canvas can click-select the polygon (Delete / Reshape / Reclassify
+      // via planFeatureActions); `kind:'poly'` stays the render discriminator.
       features.push({
         type: 'Feature',
-        properties: { slopeClass: f.slopeClass, kind: 'poly' },
+        properties: { slopeClass: f.slopeClass, kind: 'poly', id: f.id, projectId },
         geometry: f.geometry,
       });
       // Centroid label feature (carries the class label text).

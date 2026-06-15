@@ -31,15 +31,16 @@ export type PlanSelectionKind =
   | 'note'
   | 'slaughter-point'
   | 'cold-chain'
-  | 'market-node';
+  | 'market-node'
+  | 'slope-gradient';
 
 export interface PlanSelectionItem {
   kind: PlanSelectionKind;
   /** For `guild-member`, this is the parent `guildId`; pair with `memberIndex`. */
   id: string;
   /** Only required for kinds whose backing store is `byProject` (currently
-   *  `design-element`). Plan-data stores are flat across projects so they
-   *  ignore this field. */
+   *  `design-element` and `slope-gradient`). Plan-data stores are flat across
+   *  projects so they ignore this field. */
   projectId?: string;
   /** Index into `Guild.members[]` for `kind === 'guild-member'`. */
   memberIndex?: number;

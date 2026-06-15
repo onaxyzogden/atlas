@@ -25,6 +25,7 @@ import {
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
 import {
   getAllStructures,
   updateStructure,
@@ -41,6 +42,7 @@ const PLAN_KINDS = new Set<PlanVertexEditKind>([
   'paddock',
   'structure',
   'design-element',
+  'slope-gradient',
 ]);
 
 function isPlanKind(kind: string): kind is PlanVertexEditKind {
@@ -73,6 +75,10 @@ function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
       ? hit.element.geometry
       : null;
   }
+  if (kind === 'slope-gradient') {
+    return useSlopeSurveyStore.getState().findFeatureGlobal(id)?.feature
+      .geometry ?? null;
+  }
   // structure
   const r = getAllStructures().find((x) => x.id === id);
   return r?.geometry ?? null;
@@ -104,6 +110,23 @@ function writePolygon(kind: string, id: string, geom: GeoJSON.Polygon): void {
       acreage = undefined;
     }
     updateDesignElement(hit.projectId, id, { geometry: geom, acreage });
+    return;
+  }
+  if (kind === 'slope-gradient') {
+    const hit = useSlopeSurveyStore.getState().findFeatureGlobal(id);
+    if (!hit) return;
+    // Recompute acreage so the per-class % summary stays accurate after a
+    // reshape (same constant the store documents); fall back to the prior
+    // value if turf throws on a degenerate ring.
+    let acreage: number;
+    try {
+      acreage = turf.area(geom) * 0.000247105;
+    } catch {
+      acreage = hit.feature.acreage;
+    }
+    useSlopeSurveyStore
+      .getState()
+      .updateGeometry(hit.projectId, id, geom, acreage);
     return;
   }
   // structure: persist new geometry AND recompute the canonical centre.

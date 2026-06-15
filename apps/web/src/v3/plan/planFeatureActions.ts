@@ -33,6 +33,7 @@ import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import { useEcologicalNoteStore } from '../../store/ecologicalNoteStore.js';
 import { useAgribusinessStore } from '../../store/agribusinessStore.js';
+import { useSlopeSurveyStore } from '../../store/slopeSurveyStore.js';
 import {
   getDesignElementsForProject,
   removeDesignElement,
@@ -44,6 +45,7 @@ import {
   buildPaddockEditSchema,
   buildHabitatFeatureEditSchema,
   buildLineFeatureEditSchema,
+  buildSlopeReclassifySchema,
 } from './layers/inlineEditSchemas.js';
 import {
   resolveSilvopastureHosts,
@@ -219,6 +221,31 @@ function designElementEditHandler(
   return null;
 }
 
+/** Slope-gradient reclassify editor — resolves the polygon via the store's
+ *  global id scan (ids are globally unique), anchors at its centroid, and
+ *  opens the single-select class picker. A stale id is a safe no-op. */
+function slopeReclassifyHandler(
+  item: PlanSelectionItem,
+): FeatureEditHandler | null {
+  return {
+    title: 'Reclassify slope',
+    run: () => {
+      const hit = useSlopeSurveyStore.getState().findFeatureGlobal(item.id);
+      if (!hit) return;
+      const centroid = turf.centroid(turf.feature(hit.feature.geometry));
+      const [lng, lat] = centroid.geometry.coordinates as [number, number];
+      useInlineFormStore.getState().open({
+        ...buildSlopeReclassifySchema(hit.feature, (slopeClass) =>
+          useSlopeSurveyStore
+            .getState()
+            .updateClass(hit.projectId, item.id, slopeClass),
+        ),
+        anchor: [lng, lat],
+      });
+    },
+  };
+}
+
 export const PLAN_FEATURE_ACTIONS: Record<PlanSelectionKind, FeatureActionConfig> = {
   guild: {
     label: 'Guild',
@@ -305,6 +332,15 @@ export const PLAN_FEATURE_ACTIONS: Record<PlanSelectionKind, FeatureActionConfig
       removeDesignElement(item.projectId, item.id);
     },
     getEditHandler: (item) => designElementEditHandler(item),
+  },
+  'slope-gradient': {
+    label: 'Slope gradient',
+    supportsVertexEdit: 'polygon',
+    remove: (item) => {
+      if (!item.projectId) return;
+      useSlopeSurveyStore.getState().removeFeature(item.projectId, item.id);
+    },
+    getEditHandler: (item) => slopeReclassifyHandler(item),
   },
 
   // ── Phase 5: previously-unselectable simple kinds ──────────────────────

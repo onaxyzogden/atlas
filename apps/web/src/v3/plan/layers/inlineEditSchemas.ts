@@ -98,6 +98,11 @@ import {
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { TREE_PLANTING_KINDS } from '../../../features/vegetation/treePlantingSpineSync.js';
 import { findElementSpec } from '../canvas/elementCatalog.js';
+import {
+  SLOPE_CLASS_LABELS,
+  type SlopeClassKey,
+  type SlopeSurveyFeature,
+} from '../../../store/slopeSurveyStore.js';
 
 // ---------- Silvopasture re-pin (shared) ----------
 //
@@ -1023,6 +1028,47 @@ export function buildSetbackRingEditSchema(
     },
     onCancel: () => {
       /* no-op */
+    },
+  };
+}
+
+// ---------- Slope gradient (reclassify) ----------
+//
+// A drawn slope-survey polygon (Act tier, `slopeSurveyStore`) made
+// selectable on the Plan canvas. The only metadata axis is its slope class,
+// so the popover is a single `select` of the 6 canonical classes. Geometry
+// and acreage are untouched — reshape goes through the vertex-edit handler.
+// `updateClass` is bound at the call site (it closes over the resolved
+// projectId + featureId) so this builder stays pure / store-free.
+
+const SLOPE_CLASS_OPTIONS: { value: SlopeClassKey; label: string }[] = (
+  Object.keys(SLOPE_CLASS_LABELS) as SlopeClassKey[]
+).map((k) => ({ value: k, label: SLOPE_CLASS_LABELS[k] }));
+
+export function buildSlopeReclassifySchema(
+  f: SlopeSurveyFeature,
+  updateClass: (slopeClass: SlopeClassKey) => void,
+): Omit<InlineFormPayload, 'anchor'> {
+  return {
+    title: 'Reclassify slope',
+    fields: [
+      {
+        key: 'slopeClass',
+        label: 'Slope class',
+        kind: 'select',
+        required: true,
+        options: SLOPE_CLASS_OPTIONS,
+      },
+    ],
+    initial: { slopeClass: f.slopeClass },
+    onSave: (values) => {
+      const next = String(values.slopeClass ?? f.slopeClass);
+      if (next in SLOPE_CLASS_LABELS) {
+        updateClass(next as SlopeClassKey);
+      }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
     },
   };
 }

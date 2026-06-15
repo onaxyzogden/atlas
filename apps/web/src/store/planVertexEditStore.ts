@@ -14,7 +14,8 @@ export type PlanVertexEditKind =
   | 'crop'
   | 'paddock'
   | 'structure'
-  | 'design-element';
+  | 'design-element'
+  | 'slope-gradient';
 
 export interface PlanVertexEditTarget {
   kind: PlanVertexEditKind;

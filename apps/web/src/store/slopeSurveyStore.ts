@@ -27,6 +27,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /** The 6 slope class keys -- single source of truth shared with the
  *  TerrainCapture SLOPE_CLASSES list (same string keys, same order). */
@@ -49,6 +50,19 @@ export const SLOPE_CLASS_COLORS: Record<SlopeClassKey, string> = {
   steep: '#f3a14b',
   vsteep: '#e25b3a',
   extreme: '#d7191c',
+};
+
+/** Human-readable per-class display label (with the slope % range), used by the
+ *  reclassify picker. Mirrors the SLOPE_CLASSES labels in TerrainCapture but
+ *  kept here so the picker needn't import the heavy capture module. Keyed by the
+ *  SlopeClassKey union so a missing/renamed key fails the compiler. */
+export const SLOPE_CLASS_LABELS: Record<SlopeClassKey, string> = {
+  flat: 'Flat (0-2%)',
+  gentle: 'Gentle (2-5%)',
+  moderate: 'Moderate (5-10%)',
+  steep: 'Steep (10-20%)',
+  vsteep: 'Very steep (20-30%)',
+  extreme: 'Extreme (>30%)',
 };
 
 /** Map tool id armed by each per-class bottom-rail draw tool. The active map
@@ -121,6 +135,18 @@ interface SlopeSurveyState {
     geometry: GeoJSON.Polygon,
     acreage: number,
   ) => void;
+  /** Change a polygon's slope class (reclassify). Geometry/acreage untouched. */
+  updateClass: (
+    projectId: string,
+    featureId: string,
+    slopeClass: SlopeClassKey,
+  ) => void;
+  /** Locate a feature by id across every project (ids are globally unique).
+   *  Lets handlers that only have the feature id resolve its projectId without
+   *  threading it (mirrors the design-element global-find pattern). */
+  findFeatureGlobal: (
+    featureId: string,
+  ) => { projectId: string; feature: SlopeSurveyFeature } | null;
 
   // ---- ephemeral session UI (NOT persisted) ----
   /** Is the survey rail-takeover open. */
@@ -195,6 +221,20 @@ export const useSlopeSurveyStore = create<SlopeSurveyState>()(
             acreage,
           })),
 
+        updateClass: (projectId, featureId, slopeClass) =>
+          mutate(projectId, featureId, (existing) => ({
+            ...existing,
+            slopeClass,
+          })),
+
+        findFeatureGlobal: (featureId) => {
+          for (const [projectId, rows] of Object.entries(get().byProject)) {
+            const feature = rows[featureId];
+            if (feature) return { projectId, feature };
+          }
+          return null;
+        },
+
         // ---- ephemeral session UI ----
         active: false,
         activeProjectId: null,
@@ -206,6 +246,12 @@ export const useSlopeSurveyStore = create<SlopeSurveyState>()(
     {
       name: PERSIST_KEY,
       version: 1,
+      // Synced project data lives in IndexedDB, same backend as every other
+      // byProject store (zoneStore / cropStore / livestockStore). Node-safe
+      // (degrades to localStorage/null), so importing this store into a
+      // node-env test no longer trips the persist API. The idb storage's
+      // lazy getItem migration carries any pre-existing localStorage value.
+      storage: idbPersistStorage,
       // Persist project data only -- the takeover flag is session-ephemeral
       // (mirror vegetationSurveyStore: never persisted).
       partialize: (state) => ({ byProject: state.byProject }),

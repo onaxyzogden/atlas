@@ -4031,6 +4031,47 @@ export default function PlanDataLayers({
     editable,
   ]);
 
+  // Click-to-SELECT for drawn slope-gradient polygons. These live in their
+  // own store/layer (`slopeSurveyStore` → `SlopeSurveyLayer`, source
+  // `slope-survey-src`, UNPREFIXED layer id `slope-survey-fill`), drawn in
+  // the Act tier but rendered here whenever the slope-survey matrix toggle is
+  // on. Unlike the setback/flow listeners this only sets the selection — the
+  // floating bar (Delete / Reshape / Reclassify) is driven by the per-kind
+  // registry. `properties.id` + `properties.projectId` are published by the
+  // layer's polygon feature builder. Dedicated (not the shared `KIND_MAP`
+  // handler) because the polygons are on their own source and their
+  // `properties.kind` is the `'poly'` render discriminator, not a selection
+  // kind. MapLibre tolerates binding a click handler before the layer exists.
+  useEffect(() => {
+    if (!map) return;
+    if (activeTool !== null) return;
+    const layerId = 'slope-survey-fill';
+
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'poly') return;
+      const id = f.properties.id ? String(f.properties.id) : '';
+      const pid = f.properties.projectId ? String(f.properties.projectId) : '';
+      if (!id || !pid) return;
+      const selItem = { kind: 'slope-gradient' as const, id, projectId: pid };
+      if (e.originalEvent.shiftKey) {
+        usePlanSelectionStore.getState().toggle(selItem);
+      } else {
+        setSelection([selItem]);
+      }
+    };
+
+    map.on('click', layerId, onClick);
+
+    return () => {
+      try {
+        map.off('click', layerId, onClick);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, setSelection]);
+
   // Click-to-edit for flow connectors. Connectors are not drag-translatable
   // in v1 — translating would scramble the source→sink semantics that the
   // ▶ arrows along the line are advertising. Edits go through the inline
