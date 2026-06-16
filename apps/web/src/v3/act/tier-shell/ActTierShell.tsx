@@ -72,6 +72,11 @@ import {
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js';
+import {
+  buildPrefillMap,
+  type FormPrefillResult,
+} from '../../strata/resolveFormPrefill.js';
+import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
 import PlanZoneRingsOverlay from '../../plan/layers/PlanZoneRingsOverlay.js';
@@ -172,6 +177,9 @@ const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
 // Stable empty fallback for the visionFormData selector so it never returns a
 // fresh object (which would re-render every store update).
 const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
+// Stable empty pre-fill map (same Zustand-v5 referential-stability discipline).
+const EMPTY_PREFILL: Readonly<Record<string, FormPrefillResult>> =
+  Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 const NOOP_RAIL_MODE = (_: RailMode) => {};
 const NOOP_PROTOCOL = (_: string) => {};
@@ -504,6 +512,25 @@ export default function ActTierShell() {
   // project. Falls back to a stable empty record when nothing is saved yet.
   const visionFormData = useActEvidenceStore(
     (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
+  );
+
+  // Non-destructive pre-fill suggestions for the open form group, drawn from the
+  // steward roster + prior objectives (resolveFormPrefill). Memoised on its
+  // inputs; passed to the modal as prefillByFormId. Never writes / auto-completes
+  // -- a suggestion applies to the local draft only on an explicit "Use this".
+  const roster = useStewardRoster(id);
+  const prefillByFormId = useMemo(
+    () =>
+      openFormGroup
+        ? buildPrefillMap(openFormGroup.tools, {
+            profiles: roster.map((r) => r.profile),
+            objectives,
+            activeObjectiveId: selectedObjective?.id ?? null,
+            savedFormData: visionFormData,
+            savedFormText: visionForms,
+          })
+        : EMPTY_PREFILL,
+    [openFormGroup, roster, objectives, selectedObjective, visionFormData, visionForms],
   );
 
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
@@ -963,6 +990,40 @@ export default function ActTierShell() {
     [revealObjective, handleActivateTool, clearSearch],
   );
 
+  // A matched tool has a home on the Plan stage iff it survives resolvePlanTools,
+  // which drops only `log`-arm field logs (an Act-execution concern). Computed
+  // inline from the arm kind rather than importing the Plan catalog, so Act stays
+  // independent of Plan. Gates which rows show the "Open in Plan" control.
+  const planCapableToolIds = useMemo(
+    () =>
+      new Set(
+        actSearch.tools
+          .filter((m) => m.tool.arm.kind !== 'log')
+          .map((m) => m.tool.id),
+      ),
+    [actSearch.tools],
+  );
+
+  // "Open in Plan": hand the matched tool off to the Plan stage. Mirrors the
+  // ActTierExecutionPanel "Open in Plan" deep-link precedent, but carries
+  // ?armTool=<id> so the Plan tier shell arms the tool on arrival (and strips the
+  // param). The route's beforeLoad guard redirects a locked target to /plan.
+  const handleOpenToolInPlan = useCallback(
+    (match: ActToolMatch) => {
+      clearSearch();
+      navigate({
+        to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
+        params: {
+          projectId: id,
+          stratumId: match.objective.stratumId,
+          objectiveId: match.objective.id,
+        },
+        search: { armTool: match.tool.id },
+      } as never);
+    },
+    [clearSearch, navigate, id],
+  );
+
   // Tier-0 swap flag: render the execution-only surface (ActTierExecutionPanel)
   // in place of the map shell when the selected objective is a non-spatial
   // Tier-0 one. The interactive decision workbench now lives in the Plan tier
@@ -1031,6 +1092,8 @@ export default function ActTierShell() {
                 activeObjectiveId={objectiveId}
                 onSelectTool={handleSelectSearchTool}
                 onSelectObjective={handleSelectSearchObjective}
+                planToolIds={planCapableToolIds}
+                onOpenToolInPlan={handleOpenToolInPlan}
               />
             ) : (
               <ActTierObjectiveRail
@@ -1448,6 +1511,7 @@ export default function ActTierShell() {
         activeFormId={openFormGroup?.activeFormId ?? ''}
         initialValues={visionForms}
         initialData={visionFormData}
+        prefillByFormId={prefillByFormId}
         projectId={id}
         metadata={project.metadata ?? null}
         checklistItems={selectedObjective?.checklist ?? []}

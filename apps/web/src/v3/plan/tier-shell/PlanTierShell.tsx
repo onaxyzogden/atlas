@@ -74,6 +74,11 @@ import {
 import { toast } from '../../../components/Toast.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../strata/useProjectObjectives.js';
+import {
+  buildPrefillMap,
+  type FormPrefillResult,
+} from '../../strata/resolveFormPrefill.js';
+import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { planHeaderProjectTypeLabel } from '../strata/planHeaderLabel.js';
 import {
@@ -148,6 +153,10 @@ import { QUICK_LOGS } from '../../act/quickLogs.js';
 import { computeChecklistProgress } from '../../act/tier-shell/objectiveProgress.js';
 import { resolveActStratumId } from '../../act/tier-shell/resolveActStratumId.js';
 import PlanToolDock from './PlanToolDock.js';
+import PlanTierSearchRail from './PlanTierSearchRail.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { resolvePlanSearchMatches } from '../../search/useStageSearchResults.js';
+import { resolvePlanTools } from './planToolCatalog.js';
 import type { PlanTool } from './planToolCatalog.js';
 import type { PlanModule, PlanView } from '../types.js';
 import styles from '../../act/tier-shell/ActTierShell.module.css';
@@ -164,6 +173,9 @@ const EMPTY_FORM_DATA: Readonly<Record<string, FormValue>> = Object.freeze({});
 const EMPTY_RATIONALES: Readonly<Record<string, string>> = Object.freeze({});
 const EMPTY_DEFERRED: Readonly<Record<string, true>> = Object.freeze({});
 const EMPTY_COMPLETED: readonly string[] = [];
+// Stable empty pre-fill map (same Zustand-v5 referential-stability discipline).
+const EMPTY_PREFILL: Readonly<Record<string, FormPrefillResult>> =
+  Object.freeze({});
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 // S1 is the canonical cold-entry fallback (see ActTierShell). PLAN_STRATA is
 // non-empty, but noUncheckedIndexedAccess types [0] as possibly-undefined.
@@ -187,10 +199,21 @@ export default function PlanTierShell() {
   const search = useSearch({ strict: false }) as {
     planMode?: 'protocol';
     protocol?: string;
+    // One-shot deep-link flag: "arm this tool on arrival" — set by the Act
+    // search rail's "Open in Plan" control, consumed + stripped on mount below.
+    armTool?: string;
   };
   const railMode: RailMode =
     search.planMode === 'protocol' ? 'protocols' : 'objectives';
   const selectedProtocolId = search.protocol ?? null;
+
+  // Header Stage Search (objectives + domains) — mirrors the Act tier shell. The
+  // ephemeral stageSearchStore is written by HeaderStageSearch; when a query is
+  // active the left rail swaps to a cross-stratum match list (PlanTierSearchRail)
+  // in place of the normal per-stratum objective rail.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim().length > 0;
 
   // LocalProject (projectStore) — drives the spine identity tile + the
   // PlanModuleSlideUp panels (which take a LocalProject).
@@ -282,6 +305,14 @@ export default function PlanTierShell() {
   const checklistProgressByObjective = useMemo(
     () => computeChecklistProgress(objectives, effectiveProgress.byObjective),
     [objectives, effectiveProgress],
+  );
+
+  // Cross-stratum search matches (objectives widened by their mapped Observe
+  // domains). Only computed while a query is active; [] otherwise so the rail
+  // swap below gates cheaply on searchActive.
+  const planSearchMatches = useMemo(
+    () => (searchActive ? resolvePlanSearchMatches(objectives, searchQuery) : []),
+    [searchActive, objectives, searchQuery],
   );
 
   // Project-type label for the spine identity tile (same source Plan reads).
@@ -406,10 +437,10 @@ export default function PlanTierShell() {
     setRightMode(objectiveId ? 'detail' : 'dashboard');
   }, [objectiveId]);
 
-  // Center canvas view (vision design surface by default). PlanPhaseTabs lets
-  // the steward swap vision ⇄ terrain3d ⇄ current over the same canvas, exactly
-  // as the legacy module-bar PlanLayout does.
-  const [activeView, setActiveView] = useState<PlanView>('vision');
+  // Center canvas view. Opens on Current Land (the existing-state surface) by
+  // default; PlanPhaseTabs lets the steward swap current ⇄ vision over the same
+  // canvas, exactly as the legacy module-bar PlanLayout does.
+  const [activeView, setActiveView] = useState<PlanView>('current');
 
   // The Modules-category tools open this slide-up. Local state (the tier-shell
   // route carries no $module param, so the panel renders purely from its
@@ -489,6 +520,24 @@ export default function PlanTierShell() {
   );
   const visionFormData = useActEvidenceStore(
     (s) => s.visionFormData[id] ?? EMPTY_FORM_DATA,
+  );
+  // Non-destructive pre-fill suggestions for the open form group, drawn from the
+  // steward roster + prior objectives (resolveFormPrefill). Memoised on its
+  // inputs; passed to the modal as prefillByFormId. Never writes / auto-completes
+  // -- a suggestion applies to the local draft only on an explicit "Use this".
+  const roster = useStewardRoster(id);
+  const prefillByFormId = useMemo(
+    () =>
+      openFormGroup
+        ? buildPrefillMap(openFormGroup.tools, {
+            profiles: roster.map((r) => r.profile),
+            objectives,
+            activeObjectiveId: selectedObjective?.id ?? null,
+            savedFormData: visionFormData,
+            savedFormText: visionForms,
+          })
+        : EMPTY_PREFILL,
+    [openFormGroup, roster, objectives, selectedObjective, visionFormData, visionForms],
   );
   // Decision rationale + deferral state for the Tier-0 workbench (now hosted in
   // Plan), keyed by itemId under this project. Stable empty fallbacks above.
@@ -746,6 +795,23 @@ export default function PlanTierShell() {
     [goToObjective, objectiveId, objectiveStatuses, objectives, selectedStratumId],
   );
 
+  // Search-result selection: clear the query (so the rail swaps back) then reveal
+  // the objective. Honours the SAME Plan prerequisite lock as handleSelectObjective
+  // — a locked match warns instead of navigating (the route guard would redirect
+  // anyway, but warning here is the kinder affordance).
+  const handleSelectSearchObjective = useCallback(
+    (objective: PlanStratumObjective) => {
+      clearSearch();
+      if ((objectiveStatuses[objective.id] ?? 'locked') === 'locked') {
+        toast.warning('Locked until its prerequisites are complete.');
+        return;
+      }
+      setRightMode('detail');
+      goToObjective(objective.id, objective.stratumId);
+    },
+    [clearSearch, objectiveStatuses, goToObjective],
+  );
+
   // ── Tool dispatch (Act arms 1:1 + the Plan-only `module` arm) ─────────────
   const handleActivateTool = useCallback(
     (tool: PlanTool, formObjective?: PlanStratumObjective | null) => {
@@ -842,6 +908,40 @@ export default function PlanTierShell() {
     [setActiveTool, selectedObjective, id],
   );
 
+  // ── Arm-on-arrival (Act → Plan "Open in Plan" handoff) ────────────────────
+  // When the route carries ?armTool=<id> and the matching objective has resolved
+  // on the Plan canvas (not the Tier-0 decision workbench, which suppresses the
+  // tools rail), arm that tool then strip the param. Stripping makes the effect
+  // re-run as a no-op, so it fires exactly once. A locked target never reaches
+  // here — the route's beforeLoad guard redirects it to /plan first.
+  const armToolId = search.armTool ?? null;
+  useEffect(() => {
+    if (!armToolId) return;
+    if (!selectedObjective || selectedObjective.id !== objectiveId) return;
+    if (showTierZeroWorkbench) return;
+    const tool = resolvePlanTools(getObjectiveActTools(selectedObjective)).find(
+      (t) => t.id === armToolId,
+    );
+    if (tool) handleActivateTool(tool, selectedObjective);
+    // Strip ?armTool regardless of whether it resolved, so a stale/unknown id
+    // can't re-fire the effect on every render.
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => {
+        const { armTool: _drop, ...rest } = prev;
+        return rest;
+      },
+      replace: true,
+    } as never);
+  }, [
+    armToolId,
+    selectedObjective,
+    objectiveId,
+    showTierZeroWorkbench,
+    handleActivateTool,
+    navigate,
+  ]);
+
   return (
     <PlanViewProvider view={activeView}>
       <div className={styles.tierShell}>
@@ -878,6 +978,15 @@ export default function PlanTierShell() {
             leftRailLabel="Stratum objectives"
             rightRailLabel="Dashboard and objective detail"
             leftRail={
+              searchActive ? (
+                <PlanTierSearchRail
+                  query={searchQuery}
+                  matches={planSearchMatches}
+                  progressByObjective={checklistProgressByObjective}
+                  activeObjectiveId={objectiveId}
+                  onSelectObjective={handleSelectSearchObjective}
+                />
+              ) : (
               <ActTierObjectiveRail
                 stratum={selectedStratum}
                 objectives={stratumObjectives}
@@ -899,6 +1008,7 @@ export default function PlanTierShell() {
                 selectedProtocolId={selectedProtocolId}
                 onSelectProtocol={handleSelectProtocol}
               />
+              )
             }
             canvas={
               railMode === 'protocols' ? (
@@ -1116,6 +1226,7 @@ export default function PlanTierShell() {
             activeFormId={openFormGroup?.activeFormId ?? ''}
             initialValues={visionForms}
             initialData={visionFormData}
+            prefillByFormId={prefillByFormId}
             projectId={id}
             metadata={project.metadata ?? null}
             checklistItems={selectedObjective?.checklist ?? []}
