@@ -35,6 +35,10 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'RF-S1.4',
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
+    // Tier-0 restructure 2026-06-16: the enterprise mix depends on the declared
+    // intent (s1-vision) and the legal/boundary context (s1-boundaries), so it
+    // gates on both. Both are UNIVERSAL ids -> invariant-safe for every combo.
+    prerequisiteObjectiveIds: ['s1-vision', 's1-boundaries'],
     title: 'A clear enterprise mix & priorities',
     shortTitle: 'Enterprise mix & priorities',
     focusedQuestion:
@@ -72,7 +76,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'rf-s1-enterprise-mix-c7',
-        'Confirm enterprise mix is achievable within Stratum 1 capacity constraints',
+        'Confirm enterprise mix is achievable within the steward-team capacity constituted in Stratum 1',
       ),
       ck(
         'rf-s1-enterprise-mix-c8',
@@ -95,7 +99,8 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'rf-s1-enterprise-mix-c8',
       ]),
     ],
-    completionGate: 'Enterprise mix confirmed, prioritised, and integrated.',
+    completionGate:
+      'Enterprise mix confirmed, prioritised, and integrated. Confirmed achievable within the steward-team capacity constituted in Stratum 1.',
     actHandoff: 'Enterprise Mix & Priority Brief',
   }),
   // ---------------------------------------------------------------- Stratum 2

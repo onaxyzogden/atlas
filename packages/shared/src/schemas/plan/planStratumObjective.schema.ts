@@ -138,7 +138,7 @@ export const AnswerSpecSchema = z.object({
    * `projectTypeRecord.primaryTypeId`, `visionProfile.primaryOutcomes`. An
    * array names multiple axes — used by `band` (e.g. budget + timeline), where
    * ALL named axes must be present for the item to count as answered (mirrors
-   * the legacy `s1-vision-c3` both-axes rule).
+   * the `s1-steward-c6` capital both-axes rule).
    */
   sourceField: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
   editRoute: AnswerSpecEditRoute,

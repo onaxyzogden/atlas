@@ -99,9 +99,10 @@ export function buildDecisionTarget(
 
   // Labour inventory is detected via the matched form tool's formId. Since the
   // tool is joined by `formId === item.id`, this is true exactly for the labour
-  // decision (mirrors the existing form-tool join above).
+  // decision (mirrors the existing form-tool join above). Re-homed to the
+  // steward objective by the 2026-06-16 Tier-0 restructure (was s1-vision-labour).
   const isLabourInventory = Boolean(
-    tool && tool.arm.kind === 'form' && tool.arm.formId === 's1-vision-labour',
+    tool && tool.arm.kind === 'form' && tool.arm.formId === 's1-steward-c5',
   );
 
   // Vision-classify is detected directly by item id. Its value shape

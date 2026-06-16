@@ -357,7 +357,7 @@ export default function ComponentsDebugPage() {
           <DecisionWorkingPanel
             projectId="gallery"
             decision={{
-              itemId: "s1-vision-labour",
+              itemId: "s1-steward-c5",
               label: "Labour inventory",
               isLabourInventory: true,
             } satisfies DecisionPanelTarget}

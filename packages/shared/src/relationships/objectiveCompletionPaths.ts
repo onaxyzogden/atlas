@@ -118,7 +118,7 @@ export interface ItemCompletionPath extends ItemClassification {
 /**
  * A resolved form arm whose `formId` matches NO checklist item on the
  * objective it is wired to — formId/item-id drift (the form saves but ticks
- * nothing). Known intentional legacy: `s1-vision-labour`.
+ * nothing). Known intentional legacy: `s1-steward-c5` (the labour roster).
  */
 export interface UnmatchedFormArm {
   objectiveId: string;

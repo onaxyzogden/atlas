@@ -20,7 +20,7 @@
  * derives objective completion from that same store. Act and Plan share one
  * source of truth for checklist progress.
  *
- * Persist key: 'ogden-act-evidence', version 3.
+ * Persist key: 'ogden-act-evidence', version 4.
  */
 
 import { create } from 'zustand';
@@ -174,6 +174,45 @@ function patchCapture(
   };
 }
 
+/**
+ * v3 -> v4 form-id re-homing map (the 2026-06-16 Tier-0 restructure).
+ * The labour roster and capital band moved off the vision objective onto the
+ * new steward objective. Every map here is keyed by formId/itemId, so the same
+ * remap applies to all of them.
+ */
+const FORM_ID_REMAP: Readonly<Record<string, string>> = Object.freeze({
+  's1-vision-labour': 's1-steward-c5', // labour roster
+  's1-vision-c3': 's1-steward-c6', // capital band
+});
+
+/**
+ * Copy any value stored under an old formId/itemId forward to its new key,
+ * for every project in a `projectId -> key -> V` map. Non-destructive: the old
+ * key is left untouched and an existing new-key value is never overwritten.
+ * Returns the input unchanged when nothing matched (stable identity).
+ */
+function copyForwardFormIds<V>(
+  byProject: Record<string, Record<string, V>> | undefined,
+): Record<string, Record<string, V>> | undefined {
+  if (!byProject) return byProject;
+  let changed = false;
+  const next: Record<string, Record<string, V>> = {};
+  for (const [pid, inner] of Object.entries(byProject)) {
+    let innerNext = inner;
+    for (const [oldKey, newKey] of Object.entries(FORM_ID_REMAP)) {
+      // Capture into a local so the value narrows to V (not V | undefined under
+      // noUncheckedIndexedAccess); an absent old key reads as undefined, so this
+      // single guard also subsumes the old `oldKey in innerNext` presence check.
+      const carried = innerNext[oldKey];
+      if (carried === undefined || newKey in innerNext) continue;
+      innerNext = { ...innerNext, [newKey]: carried };
+      changed = true;
+    }
+    next[pid] = innerNext;
+  }
+  return changed ? next : byProject;
+}
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -306,18 +345,40 @@ export const useActEvidenceStore = create<ActEvidenceState>()(
     }),
     {
       name: 'ogden-act-evidence',
-      version: 3,
+      version: 4,
       // Synced project data lives in IndexedDB, same backend as every other
       // byProject store (slopeSurveyStore / vegetationSurveyStore). Node-safe
       // (degrades to localStorage/null); the idb storage's lazy getItem
       // migration carries any pre-existing localStorage value. The schema
       // `migrate` below is orthogonal and still runs.
       storage: idbPersistStorage,
-      // Passthrough migrate: a v1 blob has no visionFormData and a v2 blob has
-      // no decisionRationale/deferredDecisions; zustand merges the persisted
-      // object over the store creator's defaults, so missing fields backfill to
-      // {} via the initializer (v1->v2 and v2->v3) when absent.
-      migrate: (persisted) => persisted as never,
+      // v1->v3 backfill is implicit: a v1 blob has no visionFormData and a v2
+      // blob has no decisionRationale/deferredDecisions; zustand merges the
+      // persisted object over the store creator's defaults, so missing fields
+      // backfill to {} via the initializer when absent.
+      // v3->v4 re-homes the labour roster / capital band form-ids onto the new
+      // steward objective (FORM_ID_REMAP). Copy-forward is non-destructive:
+      // old keys stay so a downgrade still reads them. Runs for any version < 4.
+      migrate: (persisted, version) => {
+        if (!persisted || typeof persisted !== 'object') {
+          return persisted as never;
+        }
+        if (version >= 4) return persisted as never;
+        const p = persisted as Partial<ActEvidenceState>;
+        // Only remap maps that are PRESENT. An absent map must stay absent so
+        // the store initializer backfills it to {} (writing `undefined`
+        // explicitly would override that default during the merge — this is
+        // why the v1/v2 blobs, which lack the later maps, must pass through).
+        const out: Partial<ActEvidenceState> = { ...p };
+        if (p.visionForms) out.visionForms = copyForwardFormIds(p.visionForms);
+        if (p.visionFormData)
+          out.visionFormData = copyForwardFormIds(p.visionFormData);
+        if (p.decisionRationale)
+          out.decisionRationale = copyForwardFormIds(p.decisionRationale);
+        if (p.deferredDecisions)
+          out.deferredDecisions = copyForwardFormIds(p.deferredDecisions);
+        return out as never;
+      },
       partialize: (state) => ({
         byProject: state.byProject,
         visionForms: state.visionForms,

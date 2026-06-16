@@ -18,6 +18,7 @@ import type { PlanStratumObjective } from '@ogden/shared';
 
 const EXPECTED_IDS = [
   's1-vision',
+  's1-steward',
   's1-boundaries',
   's1-stakeholders',
   'ev-s1-legal-governance',

@@ -112,10 +112,12 @@ export function livestockIntentModeFor(itemId: string): LivestockIntentMode | nu
 
 /**
  * The labour-inventory formId whose saved roster documents per-person skills.
- * It lives on a DIFFERENT objective (s1-vision-labour) but its FormValue is
- * globally readable via actEvidenceStore.visionFormData[projectId][formId].
+ * It lives on a DIFFERENT objective (the steward team, s1-steward-c5 - re-homed
+ * from s1-vision-labour by the 2026-06-16 Tier-0 restructure) but its FormValue
+ * is globally readable via actEvidenceStore.visionFormData[projectId][formId].
+ * The actEvidenceStore migration copies any pre-restructure data forward.
  */
-const LABOUR_FORM_ID = 's1-vision-labour';
+const LABOUR_FORM_ID = 's1-steward-c5';
 
 /**
  * Skills that count as "documented capable of daily stock care". Copied

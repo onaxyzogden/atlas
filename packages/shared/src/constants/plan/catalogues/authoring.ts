@@ -46,7 +46,21 @@ import type {
  */
 export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
   's1-project-foundation': [],
-  's2-land-reading': ['s1-vision', 's1-boundaries', 's1-stakeholders'],
+  // 2026-06-16 Tier-0 restructure: 's1-steward' (the new canonical Steward
+  // Team object, U-S1.4) joins the S2 gate so all of Tier 1 (S2) waits on the
+  // team being constituted, alongside the existing vision / boundaries /
+  // stakeholders gate. Only UNIVERSAL ids may live here (the invariant above);
+  // the type-specific Tier-0 objectives 0.5 'rf-s1-enterprise-mix' and 0.6
+  // 'res-s1-household-needs' therefore CANNOT gate S2 universally (they would
+  // dangle for any combo that drops them) — they gate only their own
+  // downstream via per-objective prerequisiteObjectiveIds, a documented
+  // limitation of the universal-only-gate invariant.
+  's2-land-reading': [
+    's1-vision',
+    's1-steward',
+    's1-boundaries',
+    's1-stakeholders',
+  ],
   's3-systems-reading': [
     's2-terrain',
     's2-climate',
@@ -214,6 +228,14 @@ export interface ObjectiveInput {
    * zones objective surfaces the Z0-Z5 overview + validation card.
    */
   legacyCardSectionId?: string;
+  /**
+   * Objectives sharing the same `parallelGroupId` are simultaneously available
+   * once their prerequisites clear, with no ordering between them - surfaced as
+   * the ParallelCallout banner. The schema field already exists; this plumbs it
+   * through the authoring helper. Optional; omit for strictly-sequenced
+   * objectives.
+   */
+  parallelGroupId?: string;
 }
 
 /**
@@ -243,6 +265,9 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     ...(input.scopeNotes ? { scopeNotes: input.scopeNotes } : {}),
     ...(input.legacyCardSectionId
       ? { legacyCardSectionId: input.legacyCardSectionId }
+      : {}),
+    ...(input.parallelGroupId
+      ? { parallelGroupId: input.parallelGroupId }
       : {}),
   };
 }

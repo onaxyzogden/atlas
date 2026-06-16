@@ -52,6 +52,15 @@ const SECONDARY = 'residential' as const;
 
 /** New standalone objectives Residential adds to a project. */
 export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = [
+  // 0.6 - Residential intent & household scope (Tier-0 restructure 2026-06-16).
+  // Revised in place (id/ref unchanged): the household becomes a first-class
+  // SCOPING object alongside the farm-enterprise layer. The kitchen garden and
+  // resident-livestock allocation are scoped here at intent level (NOT designed
+  // - that happens in Tiers 3-4 using this scope as input). prereqs ['s1-vision',
+  // 's1-steward'] (doc: 0.6 requires 0.1 + 0.2 - residential scope is a
+  // household decision against a declared intent and a constituted team); both
+  // are UNIVERSAL ids -> invariant-safe. Feeds preserved verbatim (the residential
+  // layer's downstream wiring is unchanged); only labels/scope copy were revised.
   obj({
     id: 'res-s1-household-needs',
     stratumId: 's1-project-foundation',
@@ -59,57 +68,58 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Clear residential household needs & provision priorities',
-    shortTitle: 'Residential household needs & provision priorities',
+    prerequisiteObjectiveIds: ['s1-vision', 's1-steward'],
+    title: 'A defined residential intent & household scope',
+    shortTitle: 'Residential intent & scope',
     focusedQuestion:
-      'What does the household living on this land need for daily domestic life - food, shelter, warmth, water, connectivity - and how will those needs be met?',
+      'Who is living on this land, what does domestic life require, and how does the household relate to the farm enterprises?',
     checklist: [
       ck(
         'res-s1-household-needs-c1',
-        'Define who will be living on the land - household members, dependents, seasonal residents',
+        'Identify all residents and their relationship to the project - family, colleagues, long-term, short-term',
         { feeds: ['res-s4-living-zone', 's7-resource-plan'] },
       ),
       ck(
         'res-s1-household-needs-c2',
-        'List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications',
+        'Define the private living zone - what areas are reserved for residential use and off-limits to farm operations',
         { feeds: ['s4-water-strategy', 'res-s5-living-infrastructure', 'res-s6-self-sufficiency'] },
       ),
       ck(
         'res-s1-household-needs-c3',
-        'Define food provision intent - what proportion of household food will come from the land',
+        'Define household food provision goals - what the kitchen garden and resident livestock allocation must reliably supply',
         { feeds: ['res-s6-self-sufficiency', 's7-phase1'] },
       ),
       ck(
         'res-s1-household-needs-c4',
-        'Identify domestic infrastructure required before the land is habitable - dwelling condition, utilities',
+        'Establish domestic infrastructure requirements - water, energy, waste management, shelter, domestic storage',
         { feeds: ['res-s5-living-infrastructure', 'res-s7-phasing'] },
       ),
       ck(
         'res-s1-household-needs-c5',
-        'Define minimum habitability threshold - what must be in place before the household moves on-site',
+        'Define the operational boundary between residential life and farm enterprise - where they overlap and where they are separated',
         { feeds: ['res-s7-phasing', 's7-phase1'] },
       ),
       ck(
         'res-s1-household-needs-c6',
-        'Record domestic needs that will always be sourced externally',
+        'Establish household decision-making scope - what decisions belong to the household vs. the farm enterprise governance structure',
         { feeds: ['res-s6-self-sufficiency'] },
       ),
     ],
     decisionGroups: [
-      dg('res-s1-household-needs-dg1', 'Household & daily needs', [
+      dg('res-s1-household-needs-dg1', 'Residents & living scope', [
         'res-s1-household-needs-c1',
         'res-s1-household-needs-c2',
         'res-s1-household-needs-c3',
       ]),
-      dg('res-s1-household-needs-dg2', 'Habitability requirements', [
+      dg('res-s1-household-needs-dg2', 'Infrastructure & boundaries', [
         'res-s1-household-needs-c4',
         'res-s1-household-needs-c5',
         'res-s1-household-needs-c6',
       ]),
     ],
     completionGate:
-      'Residential household needs defined. Minimum habitability threshold confirmed before Act begins.',
-    actHandoff: 'Residential Household Needs Brief',
+      'Residential intent defined. Household scope, domestic provision goals, private living zone, and domestic infrastructure requirements documented. Household decision scope distinguished from farm enterprise scope.',
+    actHandoff: 'Residential Intent & Household Scope Brief',
   }),
   obj({
     id: 'res-s3-water-quality',

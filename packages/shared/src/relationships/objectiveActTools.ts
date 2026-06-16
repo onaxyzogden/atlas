@@ -94,17 +94,22 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // wiki/decisions/2026-06-04-atlas-act-adopt-and-draw-snapping.
 
   // ---------- S1 — Project Foundation ----------
-  // Vision/goals/capacity: all 7 items are text/decision capture, served by
-  // form-arm tools that open a popup on click. No map-draw tool involved.
+  // Vision/intent: all 5 items are text/decision capture, served by form-arm
+  // tools that open a popup on click. No map-draw tool involved. (Labour +
+  // capital moved to 's1-steward' by the 2026-06-16 Tier-0 restructure.)
   's1-vision': [
     'purpose-statement',
     'success-criteria',
-    'labour-inventory',
-    'capital-budget',
     'constraints',
     'vision-classify',
     'assumptions',
   ],
+  // Steward team & capability register (Tier-0 restructure 2026-06-16). The
+  // labour + capital inventories are the two armable form tools; the roster /
+  // roles / decision-rights / capability / skill-gaps / governance items are
+  // workbench text-capture (no draw tool). labour-inventory arms s1-steward-c5,
+  // capital-budget arms s1-steward-c6.
+  's1-steward': ['labour-inventory', 'capital-budget'],
   // Map property boundaries on a base layer is the only spatial item, but the
   // legacy 'boundary' measure tool is not mounted on the Act canvas, so there
   // is no draw tool to arm. gap: all items (title/boundary/easements/zoning/

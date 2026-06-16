@@ -1819,6 +1819,52 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
 // injected item with expandedBySecondaryId at apply time.
 // ---------------------------------------------------------------------------
 export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
+  // Tier-0 restructure 2026-06-16: the silvopasture delta to the RegenFarm
+  // enterprise-mix objective (0.5). Targets the PRIMARY 'rf-s1-enterprise-mix'
+  // (RF-S1.4) - lands only when regenerative_farm is the primary; the resolver
+  // skips + records the skip on any other primary (never throws). Establishes
+  // ONE integrated livestock operation (not a separate domestic enterprise),
+  // including the resident-vs-commercial allocation of POSSESSED production.
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 'rf-s1-enterprise-mix',
+    ref: 'SILV>RF-S1.4',
+    injectedItems: [
+      ck(
+        'rf-s1-enterprise-mix-silv-1',
+        'Select livestock species and target stocking numbers for the integrated operation',
+      ),
+      ck(
+        'rf-s1-enterprise-mix-silv-2',
+        'Define the allocation logic between commercial output and resident provision - what proportion of livestock production serves the household vs. the farm enterprise',
+      ),
+      ck(
+        'rf-s1-enterprise-mix-silv-3',
+        'Map integration logic between the livestock enterprise and the crop and fertility systems',
+      ),
+      ck(
+        'rf-s1-enterprise-mix-silv-4',
+        'Define the sequencing of pasture and tree establishment relative to livestock introduction',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        'rf-s1-enterprise-mix-dgsilv1',
+        'Integrated livestock operation',
+        [
+          'rf-s1-enterprise-mix-silv-1',
+          'rf-s1-enterprise-mix-silv-2',
+          'rf-s1-enterprise-mix-silv-3',
+          'rf-s1-enterprise-mix-silv-4',
+        ],
+        ['Direction & Strategy'],
+      ),
+    ],
+    completionGateAmendment:
+      'Livestock integration strategy defined, including the single-operation resident allocation logic.',
+    scopeNote:
+      'Silvopasture secondary, RegenFarm primary only: establishes ONE integrated livestock operation rather than a separate domestic enterprise. The resident-vs-commercial allocation splits ALREADY-POSSESSED livestock production between household provision and the farm enterprise. It does not sell, commit, or take payment against unproduced future output, and creates no membership entitlement to future production - any such instrument remains Scholar-Council-gated.',
+  }),
   patch({
     secondaryTypeId: SECONDARY,
     targetObjectiveId: 's4-water-strategy',

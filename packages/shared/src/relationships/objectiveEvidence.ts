@@ -122,6 +122,9 @@ export const OBJECTIVE_EVIDENCE_OVERRIDE: Readonly<
 > = {
   // ---------- S1 -- Project Foundation ----------
   's1-vision': ['summary-note'],
+  // Steward team & capability register (Tier-0 restructure 2026-06-16): a
+  // non-spatial declaration object -- a written register, no field photo.
+  's1-steward': ['summary-note'],
   's1-boundaries': ['site-photo', 'summary-note'],
   's1-stakeholders': ['summary-note'],
 

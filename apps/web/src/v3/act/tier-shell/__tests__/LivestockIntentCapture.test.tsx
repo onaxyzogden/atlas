@@ -567,10 +567,13 @@ function labourForm(
 }
 
 function seedLabour(value: FormValue): void {
+  // The labour roster re-homed from s1-vision-labour to the steward team's
+  // s1-steward-c5 in the 2026-06-16 Tier-0 restructure; LABOUR_FORM_ID in the
+  // component now reads from there.
   useActEvidenceStore.setState((s) => ({
     visionFormData: {
       ...s.visionFormData,
-      [PID]: { ...(s.visionFormData[PID] ?? {}), 's1-vision-labour': value },
+      [PID]: { ...(s.visionFormData[PID] ?? {}), 's1-steward-c5': value },
     },
   }));
 }

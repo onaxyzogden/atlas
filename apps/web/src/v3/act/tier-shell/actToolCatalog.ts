@@ -228,7 +228,7 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'vision',
     arm: {
       kind: 'form',
-      formId: 's1-vision-labour',
+      formId: 's1-steward-c5',
       prompt: 'Inventory available labour -- hours per week, seasonal variation, skill level',
       placeholder:
         'Who is available? How many hours per week? Does availability change by season? Note relevant skills (earthworks, fencing, irrigation, etc.).',
@@ -278,7 +278,7 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'vision',
     arm: {
       kind: 'form',
-      formId: 's1-vision-c3',
+      formId: 's1-steward-c6',
       prompt: 'Inventory available capital -- initial budget and estimated annual operating budget',
       placeholder:
         'State the initial capital available and an estimated annual operating budget. Note any restrictions on how funds can be used.',

@@ -18,9 +18,13 @@
 //      primary+secondary combo that drops the referenced objective
 //      (`computeObjectiveStatus` treats an absent prereq as not-complete,
 //      with no diagnostic).
-//   3. Strictly-earlier-stratum — every prereq lives in a lower stratum than
-//      the objective it gates, so the prereq graph is acyclic by construction
-//      and the gate can never deadlock.
+//   3. No-later-stratum + acyclic — every prereq lives in an earlier-OR-EQUAL
+//      stratum (relaxed 2026-06-16 for the Tier-0 restructure, which introduces
+//      intra-Stratum-1 prerequisites: 0.2 steward gates on 0.1 vision; 0.5
+//      enterprise-mix on 0.1 + 0.3; 0.6 residential on 0.1 + 0.2). A prereq
+//      from a strictly LATER stratum is still always a bug. Because same-stratum
+//      edges mean stratum order alone no longer guarantees acyclicity, an
+//      explicit DFS cycle check now proves the gate can never deadlock.
 //   4. Transitive S1–S3 traceability — every S4+ objective reaches Stratum 1,
 //      2, AND 3 through the prereq chain, and every non-S1 objective reaches
 //      S1. This codifies the audit's structural-PASS verdict: no design or
@@ -146,7 +150,12 @@ describe('spine traceability — global catalogue sweep', () => {
     expect(violations).toEqual([]);
   });
 
-  it('strictly-earlier-stratum: every prereq gates from a lower stratum (acyclic)', () => {
+  it('no-later-stratum: every prereq gates from an earlier-or-equal stratum', () => {
+    // Relaxed 2026-06-16 from strictly-earlier to earlier-or-equal: the Tier-0
+    // restructure introduces intra-Stratum-1 prerequisites (0.2 steward on 0.1
+    // vision; 0.5 enterprise-mix on 0.1 + 0.3; 0.6 residential on 0.1 + 0.2).
+    // A prereq from a strictly LATER stratum remains a bug; acyclicity is proven
+    // separately below now that stratum order alone no longer implies it.
     const violations: Array<{
       objectiveId: string;
       prereqId: string;
@@ -157,7 +166,7 @@ describe('spine traceability — global catalogue sweep', () => {
       for (const prereqId of o.prerequisiteObjectiveIds) {
         const prereq = UNIVERSAL_BY_ID.get(prereqId);
         if (!prereq) continue; // reported by the universal-ids-only assertion
-        if (STRATUM_ORDER[prereq.stratumId] >= STRATUM_ORDER[o.stratumId]) {
+        if (STRATUM_ORDER[prereq.stratumId] > STRATUM_ORDER[o.stratumId]) {
           violations.push({
             objectiveId: o.id,
             prereqId,
@@ -168,6 +177,43 @@ describe('spine traceability — global catalogue sweep', () => {
       }
     }
     expect(violations).toEqual([]);
+  });
+
+  it('acyclic: the prerequisite graph has no cycles (intra-stratum edges included)', () => {
+    // Every prereq is a universal id (the universal-ids-only assertion) and no
+    // non-universal objective is ever a prereq target, so any cycle must lie
+    // wholly within UNIVERSAL_PLAN_OBJECTIVES. Three-colour DFS over the
+    // universal prereq graph: a back-edge to a node still on the recursion
+    // stack (GREY) is a cycle. Checking the universal sub-graph is therefore
+    // sufficient and exhaustive.
+    const WHITE = 0;
+    const GREY = 1;
+    const BLACK = 2;
+    const colour = new Map<string, number>();
+    for (const o of UNIVERSAL_PLAN_OBJECTIVES) colour.set(o.id, WHITE);
+    const cycles: string[] = [];
+
+    const visit = (id: string, path: string[]): void => {
+      colour.set(id, GREY);
+      const o = UNIVERSAL_BY_ID.get(id);
+      if (o) {
+        for (const prereqId of o.prerequisiteObjectiveIds) {
+          if (!UNIVERSAL_BY_ID.has(prereqId)) continue;
+          const c = colour.get(prereqId);
+          if (c === GREY) {
+            cycles.push([...path, id, prereqId].join(' -> '));
+          } else if (c === WHITE) {
+            visit(prereqId, [...path, id]);
+          }
+        }
+      }
+      colour.set(id, BLACK);
+    };
+
+    for (const o of UNIVERSAL_PLAN_OBJECTIVES) {
+      if (colour.get(o.id) === WHITE) visit(o.id, []);
+    }
+    expect(cycles).toEqual([]);
   });
 
   it('every non-S1 objective reaches Stratum 1 transitively', () => {

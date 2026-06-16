@@ -77,23 +77,33 @@ const EMPTY_AFFORDANCES: WorkbenchObjectiveAffordances = Object.freeze({
   modeFor: null,
 });
 
-// S1 vision, goals & stewardship capacity (universal U-S1.1): 8 checklist items
-// (one optional steward) across the catalogue's 2 existing decision groups
-// (Purpose & intent / Capacity & constraints). showGroups true; no map/register
-// strips. Unlike the other objectives, the items have no "capture mode" -- they
-// have artifact TYPES -- so the resolver is a STATIC itemId -> namespaced "vs-"
-// key map (matching the li-/hb-/si- namespacing convention used to avoid label
+// S1 vision & intent (universal U-S1.1): 6 checklist items (one optional
+// steward) across the catalogue's 2 decision groups (Purpose & intent /
+// Constraints & assumptions). showGroups true; no map/register strips. Unlike
+// the other objectives, the items have no "capture mode" -- they have artifact
+// TYPES -- so the resolver is a STATIC itemId -> namespaced "vs-" key map
+// (matching the li-/hb-/si- namespacing convention used to avoid label
 // collisions). DecisionList carries matching vs-* labels, icons, and a per-kind
-// badge color via MODE_BADGE_KIND.
+// badge color via MODE_BADGE_KIND. (Labour + capital moved to s1-steward by the
+// 2026-06-16 Tier-0 restructure; they keep their vs-labour / vs-capital badges.)
 const VISION_ARTIFACT_BADGE: Record<string, string> = {
   's1-vision-c1': 'vs-purpose',
   's1-vision-c2': 'vs-criteria',
   's1-vision-steward': 'vs-steward',
-  's1-vision-labour': 'vs-labour',
-  's1-vision-c3': 'vs-capital',
   's1-vision-constraints': 'vs-constraints',
   's1-vision-classify': 'vs-classify',
   's1-vision-assumptions': 'vs-assumptions',
+};
+
+// S1 steward team & capability register (universal U-S1.4; Tier-0 restructure
+// 2026-06-16). The two armable form items (labour s1-steward-c5, capital
+// s1-steward-c6) keep the vs-labour / vs-capital badges DecisionList already
+// renders. The remaining roster/roles/rights/capability/skill-gaps/governance
+// items have no artifact badge yet (Stage 2/3 adds the full Team Object capture
+// + matching st-* badges); modeFor returns null for them.
+const STEWARD_ARTIFACT_BADGE: Record<string, string> = {
+  's1-steward-c5': 'vs-labour',
+  's1-steward-c6': 'vs-capital',
 };
 
 const MAP: Record<string, WorkbenchObjectiveAffordances> = {
@@ -102,6 +112,12 @@ const MAP: Record<string, WorkbenchObjectiveAffordances> = {
     registerStrip: null,
     showGroups: true,
     modeFor: (itemId) => VISION_ARTIFACT_BADGE[itemId] ?? null,
+  },
+  's1-steward': {
+    mapStrips: [],
+    registerStrip: null,
+    showGroups: true,
+    modeFor: (itemId) => STEWARD_ARTIFACT_BADGE[itemId] ?? null,
   },
   's1-boundaries': {
     mapStrips: [

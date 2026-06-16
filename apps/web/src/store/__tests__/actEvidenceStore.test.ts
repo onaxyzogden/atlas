@@ -257,3 +257,84 @@ describe('actEvidenceStore persist lifecycle: v2 blob -> rehydrate', () => {
     });
   });
 });
+
+describe('actEvidenceStore persist lifecycle: v3 blob -> rehydrate (Tier-0 form-id re-home)', () => {
+  // 2026-06-16 Tier-0 restructure: the labour roster (s1-vision-labour) and
+  // capital band (s1-vision-c3) form-ids moved onto the new s1-steward objective
+  // (s1-steward-c5 / s1-steward-c6). The v3->v4 migrate copy-forwards any value
+  // stored under an old form-id to its new key, non-destructively, across all
+  // four projectId->formId maps.
+  beforeEach(() => reset());
+
+  it('copies labour + capital captures forward onto the steward form-ids', async () => {
+    const labourValue: FormValue = { hoursPerWeek: '20', skills: ['fencing'] };
+    const capitalValue: FormValue = { budgetRange: 'mid', timelineProgress: '2' };
+    window.localStorage.setItem(
+      PERSIST_KEY,
+      JSON.stringify({
+        state: {
+          byProject: {},
+          visionForms: {
+            'proj-A': {
+              's1-vision-labour': 'Labour summary',
+              's1-vision-c3': 'Capital summary',
+            },
+          },
+          visionFormData: {
+            'proj-A': {
+              's1-vision-labour': labourValue,
+              's1-vision-c3': capitalValue,
+            },
+          },
+          decisionRationale: {
+            'proj-A': { 's1-vision-labour': 'why this labour split' },
+          },
+          deferredDecisions: { 'proj-A': { 's1-vision-c3': true } },
+        },
+        version: 3,
+      }),
+    );
+
+    await useActEvidenceStore.persist.rehydrate();
+
+    const s = useActEvidenceStore.getState();
+    // Structured + summary captures land on the new steward form-ids.
+    expect(s.visionFormData['proj-A']!['s1-steward-c5']).toEqual(labourValue);
+    expect(s.visionFormData['proj-A']!['s1-steward-c6']).toEqual(capitalValue);
+    expect(s.visionForms['proj-A']!['s1-steward-c5']).toBe('Labour summary');
+    expect(s.visionForms['proj-A']!['s1-steward-c6']).toBe('Capital summary');
+    expect(s.decisionRationale['proj-A']!['s1-steward-c5']).toBe(
+      'why this labour split',
+    );
+    expect(s.deferredDecisions['proj-A']!['s1-steward-c6']).toBe(true);
+
+    // Non-destructive: the old form-ids survive so a downgrade still reads them.
+    expect(s.visionFormData['proj-A']!['s1-vision-labour']).toEqual(labourValue);
+    expect(s.visionFormData['proj-A']!['s1-vision-c3']).toEqual(capitalValue);
+  });
+
+  it('does not overwrite an already-migrated steward form value', async () => {
+    const oldLabour: FormValue = { hoursPerWeek: '5' };
+    const newLabour: FormValue = { hoursPerWeek: '40' };
+    window.localStorage.setItem(
+      PERSIST_KEY,
+      JSON.stringify({
+        state: {
+          byProject: {},
+          visionFormData: {
+            'proj-A': {
+              's1-vision-labour': oldLabour,
+              's1-steward-c5': newLabour, // already migrated, must win
+            },
+          },
+        },
+        version: 3,
+      }),
+    );
+
+    await useActEvidenceStore.persist.rehydrate();
+
+    const s = useActEvidenceStore.getState();
+    expect(s.visionFormData['proj-A']!['s1-steward-c5']).toEqual(newLabour);
+  });
+});

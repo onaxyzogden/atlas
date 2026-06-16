@@ -285,17 +285,24 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
     }
   });
 
-  it('preserves the 3 visionProfileToChecklist bridge ids on s1-vision', () => {
-    // s1-vision-c1/c2/c3 are written by the bridge; they MUST exist or seeded
-    // Tier-0 progress is orphaned. (s1-stewardship-c1/c2 are intentionally NOT
-    // in the per-type model - RegenFarm v1.3 has external stakeholders, not an
-    // internal-team T0 objective; those two bridge mappings are inert for
-    // per-type projects and only resolve against the legacy fallback skeleton.)
+  it('preserves the 3 visionProfileToChecklist bridge ids (c1/c2 on s1-vision, capital band on s1-steward)', () => {
+    // s1-vision-c1/c2 are written by the bridge; they MUST exist or seeded
+    // Tier-0 progress is orphaned. The capital band (formerly s1-vision-c3)
+    // moved to s1-steward-c6 in the 2026-06-16 Tier-0 restructure that split
+    // people/labour/capital off the vision objective onto a dedicated steward
+    // objective; it MUST still resolve on the new objective. (s1-stewardship-c1/c2
+    // are intentionally NOT in the per-type model - RegenFarm v1.3 has external
+    // stakeholders, not an internal-team T0 objective; those two bridge mappings
+    // are inert for per-type projects and only resolve against the legacy
+    // fallback skeleton. They are distinct from the new universal s1-steward.)
     const vision = findPlanStratumObjectiveIn(objectives, 's1-vision');
-    const itemIds = new Set(vision?.checklist.map((i) => i.id));
-    expect(itemIds.has('s1-vision-c1')).toBe(true);
-    expect(itemIds.has('s1-vision-c2')).toBe(true);
-    expect(itemIds.has('s1-vision-c3')).toBe(true);
+    const visionItemIds = new Set(vision?.checklist.map((i) => i.id));
+    expect(visionItemIds.has('s1-vision-c1')).toBe(true);
+    expect(visionItemIds.has('s1-vision-c2')).toBe(true);
+
+    const steward = findPlanStratumObjectiveIn(objectives, 's1-steward');
+    const stewardItemIds = new Set(steward?.checklist.map((i) => i.id));
+    expect(stewardItemIds.has('s1-steward-c6')).toBe(true);
   });
 
   it('s1-vision-c4 is removed (covered by c1 primary-purpose definition)', () => {
@@ -323,17 +330,151 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
   });
 });
 
+describe('catalogue conformance - Tier-0 restructure (s1-steward + Amanah)', () => {
+  // The 2026-06-16 restructure split the old single "vision" objective into an
+  // Intent Object (s1-vision) and a Steward/Team Object (s1-steward), and added
+  // the silvopasture SILV>RF-S1.4 patch onto the regen enterprise-mix (0.5).
+  // The operator's project config is the canonical resolution target here:
+  // Regenerative Farm (primary) + Residential + Silvopasture (secondaries).
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'regenerative_farm',
+    secondaryTypeIds: ['residential', 'silvopasture'],
+  });
+
+  it('exposes exactly 20 universal objectives, including the new s1-steward', () => {
+    expect(UNIVERSAL_PLAN_OBJECTIVES.length).toBe(20);
+    const ids = new Set(UNIVERSAL_PLAN_OBJECTIVES.map((o) => o.id));
+    expect(ids.has('s1-steward')).toBe(true);
+  });
+
+  it('resolves s1-steward as a universal S1 objective gated on s1-vision', () => {
+    const steward = findPlanStratumObjectiveIn(objectives, 's1-steward');
+    expect(steward).toBeDefined();
+    expect(steward!.source).toBe('universal');
+    expect(steward!.sourceTypeId).toBeUndefined();
+    expect(steward!.stratumId).toBe('s1-project-foundation');
+    // CRITICAL INVARIANT: prereqs reference ONLY universal ids (an absent prereq
+    // silently locks an objective forever); s1-vision is universal -> safe.
+    expect(steward!.prerequisiteObjectiveIds).toEqual(['s1-vision']);
+  });
+
+  it('s1-steward carries the canonical 8-item / 3-group Team Object surface', () => {
+    const steward = findPlanStratumObjectiveIn(objectives, 's1-steward');
+    expect(steward!.checklist.map((i) => i.id)).toEqual([
+      's1-steward-c1',
+      's1-steward-c2',
+      's1-steward-c3',
+      's1-steward-c4',
+      's1-steward-c5',
+      's1-steward-c6',
+      's1-steward-c7',
+      's1-steward-c8',
+    ]);
+    expect(steward!.decisionGroups.map((g) => g.id)).toEqual([
+      's1-steward-dg1',
+      's1-steward-dg2',
+      's1-steward-dg3',
+    ]);
+    expect(steward!.actHandoff).toBe('Steward Team & Capability Register');
+  });
+
+  it('s1-steward c1 roster is the auto-satisfying steward answerSpec; c6 is the capital band', () => {
+    // c1 roster reuses the wizard team answerSpec (optional, auto-satisfies via
+    // computeEffectiveProgress); c6 is the budget+timeline band re-homed from the
+    // retired s1-vision-c3 (both axes required to count as answered).
+    const steward = findPlanStratumObjectiveIn(objectives, 's1-steward');
+    const c1 = steward!.checklist.find((i) => i.id === 's1-steward-c1');
+    expect(c1?.optional).toBe(true);
+    expect(c1?.answerSpec?.fieldType).toBe('steward');
+    const c6 = steward!.checklist.find((i) => i.id === 's1-steward-c6');
+    expect(c6?.answerSpec?.fieldType).toBe('band');
+    expect(c6?.answerSpec?.sourceField).toEqual([
+      'visionProfile.budgetRange',
+      'visionProfile.timelineProgress',
+    ]);
+  });
+
+  it('s1-vision no longer carries the labour roster or capital band items', () => {
+    // Both were re-homed onto s1-steward (c5 labour, c6 capital). The Intent
+    // Object must be free of people/resource items after the split.
+    const vision = findPlanStratumObjectiveIn(objectives, 's1-vision');
+    const visionItemIds = new Set(vision!.checklist.map((i) => i.id));
+    expect(visionItemIds.has('s1-vision-labour')).toBe(false);
+    expect(visionItemIds.has('s1-vision-c3')).toBe(false);
+  });
+
+  it('Amanah wording-pin: no advance-sale / subscription / yield-share framing in 0.5, 0.6, or the silvopasture patch', () => {
+    // Covenant guard (CSRA erased 2026-05-04, bay` ma laysa `indak): the
+    // resident-vs-commercial allocation is a possessed-production split ONLY -
+    // never an advance sale, membership yield-share, or CSA/CSRA pre-sale.
+    // Scans every authored string the operator's config surfaces in declaration.
+    const BANNED =
+      /\b(subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share)\b/i;
+
+    const objectiveStrings = (o: PlanStratumObjective): string[] => [
+      o.title,
+      o.shortTitle ?? '',
+      o.focusedQuestion,
+      o.completionGate ?? '',
+      o.actHandoff ?? '',
+      o.scopeNotes ?? '',
+      ...o.checklist.flatMap((i) => [
+        i.label,
+        i.feedHint ?? '',
+        i.feedNote ?? '',
+        i.mode ?? '',
+      ]),
+      ...o.decisionGroups.map((g) => g.label),
+    ];
+
+    // 0.5 (resolved, includes the injected silvopasture items) + 0.6.
+    const enterpriseMix = findPlanStratumObjectiveIn(
+      objectives,
+      'rf-s1-enterprise-mix',
+    );
+    const household = findPlanStratumObjectiveIn(
+      objectives,
+      'res-s1-household-needs',
+    );
+    expect(enterpriseMix).toBeDefined();
+    expect(household).toBeDefined();
+
+    // The raw SILV>RF-S1.4 patch record (scopeNote / gate amendment / injected
+    // copy) - not all of these surface as objective fields after resolution.
+    const silvPatch = SILVOPASTURE_SECONDARY_PATCHES.find(
+      (p) => p.ref === 'SILV>RF-S1.4',
+    );
+    expect(silvPatch).toBeDefined();
+    const patchStrings = [
+      silvPatch!.scopeNote ?? '',
+      silvPatch!.completionGateAmendment ?? '',
+      ...silvPatch!.injectedItems.map((i) => i.label),
+      ...silvPatch!.injectedGroups.map((g) => g.label),
+    ];
+
+    const haystack = [
+      ...objectiveStrings(enterpriseMix!),
+      ...objectiveStrings(household!),
+      ...patchStrings,
+    ];
+    for (const s of haystack) {
+      expect(BANNED.test(s), s).toBe(false);
+    }
+  });
+});
+
 describe('catalogue conformance - ecovillage primary resolution', () => {
   const { objectives } = resolveProjectObjectives({
     primaryTypeId: 'ecovillage',
     secondaryTypeIds: [],
   });
 
-  it('resolves to 50 objectives (19 universal + 31 primary)', () => {
+  it('resolves to 51 objectives (20 universal + 31 primary)', () => {
     // The source header table reads "Primary: 29", but the per-tier sub-headers
-    // and the 50-total both confirm 31. This locks the corrected count.
+    // and the (now 51) total both confirm 31. This locks the corrected count.
+    // Universal went 19 -> 20 with the 2026-06-16 s1-steward objective.
     expect(ECOVILLAGE_PRIMARY_OBJECTIVES.length).toBe(31);
-    expect(objectives.length).toBe(50);
+    expect(objectives.length).toBe(51);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -357,9 +498,9 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 53 objectives (19 universal + 34 primary)', () => {
+  it('resolves to 54 objectives (20 universal + 34 primary)', () => {
     expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(34);
-    expect(objectives.length).toBe(53);
+    expect(objectives.length).toBe(54);
   });
 
   it('carries the 5 eco-resort / glamping extension objectives, each conditionally scoped', () => {
@@ -418,9 +559,9 @@ describe('catalogue conformance - wellness primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 46 objectives (19 universal + 27 primary)', () => {
+  it('resolves to 47 objectives (20 universal + 27 primary)', () => {
     expect(WELLNESS_PRIMARY_OBJECTIVES.length).toBe(27);
-    expect(objectives.length).toBe(46);
+    expect(objectives.length).toBe(47);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -487,9 +628,9 @@ describe('catalogue conformance - silvopasture primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 45 objectives (19 universal + 26 primary)', () => {
+  it('resolves to 46 objectives (20 universal + 26 primary)', () => {
     expect(SILVOPASTURE_PRIMARY_OBJECTIVES.length).toBe(26);
-    expect(objectives.length).toBe(45);
+    expect(objectives.length).toBe(46);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -511,9 +652,9 @@ describe('catalogue conformance - livestock primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 42 objectives (19 universal + 23 primary)', () => {
+  it('resolves to 43 objectives (20 universal + 23 primary)', () => {
     expect(LIVESTOCK_PRIMARY_OBJECTIVES.length).toBe(23);
-    expect(objectives.length).toBe(42);
+    expect(objectives.length).toBe(43);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -569,9 +710,9 @@ describe('catalogue conformance - orchard primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 44 objectives (19 universal + 25 primary)', () => {
+  it('resolves to 45 objectives (20 universal + 25 primary)', () => {
     expect(ORCHARD_PRIMARY_OBJECTIVES.length).toBe(25);
-    expect(objectives.length).toBe(44);
+    expect(objectives.length).toBe(45);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -636,9 +777,12 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes exactly 8 additive objectives and 3 patches', () => {
+  it('contributes exactly 8 additive objectives and 4 patches', () => {
+    // The 4th patch (SILV>RF-S1.4) targets the regen primary's enterprise-mix
+    // objective (rf-s1-enterprise-mix), added by the 2026-06-16 Tier-0
+    // restructure so livestock integration is captured at declaration time.
     expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(8);
-    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(3);
+    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(4);
   });
 
   it('every silvopasture secondary patch ref matches the patch format', () => {
@@ -665,7 +809,10 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
-  it('applies all 3 patches to universal targets, none skipped', () => {
+  it('applies all 4 patches (3 universal + the regen enterprise-mix target), none skipped', () => {
+    // 3 patches land on universal S4-S6 objectives; the 4th (SILV>RF-S1.4)
+    // lands on the regen primary rf-s1-enterprise-mix, present here because the
+    // primary type is regenerative_farm.
     const result = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
@@ -673,7 +820,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     const patched = result.objectives.filter((o) =>
       o.checklist.some((c) => c.expandedBySecondaryId === 'silvopasture'),
     );
-    expect(patched.length).toBe(3);
+    expect(patched.length).toBe(4);
     expect(result.provenance.skippedPatches).toEqual([]);
   });
 
@@ -792,7 +939,7 @@ describe('catalogue conformance - decision group partition invariant', () => {
 });
 
 describe('catalogue conformance - decision group Phase 3a coverage', () => {
-  it('all 19 universal objectives carry decision groups', () => {
+  it('all 20 universal objectives carry decision groups', () => {
     for (const o of UNIVERSAL_PLAN_OBJECTIVES) {
       expect(o.decisionGroups.length, o.id).toBeGreaterThan(0);
     }

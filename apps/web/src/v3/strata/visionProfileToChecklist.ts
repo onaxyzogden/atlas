@@ -26,9 +26,11 @@
  * already finished Stage Zero would show every checklist item empty —
  * a regression in perceived progress.
  *
- * The bridge maps a small set of VisionProfile fields to the three
- * `s1-vision-*` checklist items (the `s1-stewardship-*` items have no
- * VisionProfile equivalent — Phase 2 Step 3 "Team" supplies those).
+ * The bridge maps a small set of VisionProfile fields to three Tier-0
+ * declaration items: `s1-vision-c1`, `s1-vision-c2`, and `s1-steward-c6`
+ * (the capital band, re-homed from the former `s1-vision-c3` by the 2026-06-16
+ * Tier-0 restructure). The other `s1-steward-*` items have no VisionProfile
+ * equivalent — Phase 2 Step 3 "Team" supplies those.
  * When Phase 2 lands, the wizard's Step 2 output is the SAME
  * VisionProfile shape, so this bridge keeps working without change.
  *
@@ -74,9 +76,10 @@ function formatList(ids: readonly string[]): string {
  *  - `s1-vision-c2` (Primary land-use goals)
  *      satisfied when `systemsInScope` has any group with entries OR
  *      `primaryOutcomes` has entries.
- *  - `s1-vision-c3` (Stewardship time + budget capacity bands)
- *      satisfied only when BOTH `budgetRange` AND `timelineProgress`
- *      are set — both axes of the band are required to call it done.
+ *  - `s1-steward-c6` (Capital inventory: budget + timeline bands; was
+ *      `s1-vision-c3` before the 2026-06-16 Tier-0 restructure moved capital
+ *      to the steward objective) satisfied only when BOTH `budgetRange` AND
+ *      `timelineProgress` are set — both axes of the band are required.
  */
 export function deriveStratum1EvidenceMap(
   profile: VisionProfile | null | undefined,
@@ -122,7 +125,7 @@ export function deriveStratum1EvidenceMap(
     };
   }
 
-  // --- s1-vision-c3 -------------------------------------------------------
+  // --- s1-steward-c6 (capital band; was s1-vision-c3 pre-2026-06-16) -------
   const budgetRange = profile.budgetRange;
   const timelineProgress = profile.timelineProgress;
   if (budgetRange || timelineProgress) {
@@ -135,7 +138,7 @@ export function deriveStratum1EvidenceMap(
     if (constraints.length > 0) {
       fragments.push(`Constraints: ${formatList(constraints)}`);
     }
-    map['s1-vision-c3'] = {
+    map['s1-steward-c6'] = {
       // Both axes are required to call the capacity band "set".
       isComplete: !!budgetRange && !!timelineProgress,
       evidence: fragments.join('. '),

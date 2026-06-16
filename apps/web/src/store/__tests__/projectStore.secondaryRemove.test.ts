@@ -156,17 +156,30 @@ describe('removeSecondaryType - removal round-trip (regenerative_farm + resident
   it('blocks removal when a delta objective has any started progress (no silent work loss)', () => {
     const projectId = seedProjectWithSecondary();
     const { removed } = removalDelta();
-    // Tick a single required item on one removed additive objective -> 'active'.
-    const target = removed[0]!;
-    const objective = resolveProjectObjectives({
+    const objectives = resolveProjectObjectives({
       primaryTypeId: PRIMARY,
       secondaryTypeIds: [SECONDARY],
-    }).objectives.find((o) => o.id === target);
+    }).objectives;
+    const toggle = usePlanStratumProgressStore.getState().toggleItem;
+    const target = removed[0]!;
+    const objective = objectives.find((o) => o.id === target);
+    // The removed S1 root res-s1-household-needs (removed[0]) is gated on
+    // s1-vision + s1-steward since the 2026-06-16 Tier-0 restructure; without
+    // its prerequisites complete it resolves to 'locked', and a tick on a locked
+    // objective does not register as 'active'. (The other removed objectives sit
+    // in later strata that are themselves stratum-locked in this fresh fixture.)
+    // Complete the universal prerequisites first, then tick a SINGLE required
+    // item so the objective is 'active' -- started, not complete -- which is the
+    // silent-work-loss case this guards.
+    for (const prereqId of objective?.prerequisiteObjectiveIds ?? []) {
+      const prereq = objectives.find((o) => o.id === prereqId);
+      for (const item of prereq?.checklist ?? []) {
+        if (!item.optional) toggle(projectId, prereqId, item.id);
+      }
+    }
     const firstRequired = objective?.checklist.find((i) => !i.optional);
     expect(firstRequired).toBeDefined();
-    usePlanStratumProgressStore
-      .getState()
-      .toggleItem(projectId, target, firstRequired!.id);
+    toggle(projectId, target, firstRequired!.id);
 
     const result = useProjectStore
       .getState()

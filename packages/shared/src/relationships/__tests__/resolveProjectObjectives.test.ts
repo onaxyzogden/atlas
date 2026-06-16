@@ -12,8 +12,8 @@ import { ck, obj, patch } from '../../constants/plan/catalogues/authoring.js';
 describe('resolveProjectObjectives - regenerative_farm (primary only)', () => {
   const r = resolveProjectObjectives({ primaryTypeId: 'regenerative_farm' });
 
-  it('resolves 19 universal + 13 primary = 32 objectives', () => {
-    expect(r.objectives).toHaveLength(32);
+  it('resolves 20 universal + 13 primary = 33 objectives', () => {
+    expect(r.objectives).toHaveLength(33);
   });
 
   it('emits only universal + primary sources, no secondary', () => {
@@ -47,8 +47,8 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 19 + 13 + 6 additive = 38 objectives', () => {
-    expect(r.objectives).toHaveLength(38);
+  it('resolves 20 + 13 + 6 additive = 39 objectives', () => {
+    expect(r.objectives).toHaveLength(39);
   });
 
   it('applies all 5 residential patches (every target present)', () => {
@@ -105,6 +105,86 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
   });
 });
 
+describe('resolveProjectObjectives - canonical declaration config (regen + residential + silvopasture)', () => {
+  // The load-bearing configuration for the 2026-06-16 Tier-0 / Declaration
+  // restructure: Regenerative Farm (primary) + Residential + Silvopasture
+  // (secondaries). Pins the restructured Stratum-1 set, the gating DAG
+  // (0.1 -> [0.2 || 0.3 || 0.4] -> [0.5 || 0.6]) via universal-only
+  // prerequisites, and the silvopasture enterprise-mix patch (0.5a, 8 -> 12).
+  const r = resolveProjectObjectives({
+    primaryTypeId: 'regenerative_farm',
+    secondaryTypeIds: ['residential', 'silvopasture'],
+  });
+
+  const s1Ids = (): string[] =>
+    r.objectives
+      .filter((o) => o.stratumId === 's1-project-foundation')
+      .map((o) => o.id);
+
+  it('surfaces the six canonical declaration objectives in Stratum 1', () => {
+    const ids = s1Ids();
+    for (const id of [
+      's1-vision', // 0.1
+      's1-steward', // 0.2
+      's1-boundaries', // 0.3
+      's1-stakeholders', // 0.4
+      'rf-s1-enterprise-mix', // 0.5
+      'res-s1-household-needs', // 0.6
+    ]) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it('also lands silvopasture livestock-intent in S1 -- 7 total, NOT part of the declaration set', () => {
+    // The doc-level "6 declaration objectives" is the restructure SCOPE; the
+    // silvopasture secondary independently contributes its own pre-existing S1
+    // additive (silv-sec-s1-livestock-intent), so the resolved S1 stratum
+    // carries SEVEN objectives for the full triad. (For regen + residential
+    // alone it is six -- see the block above.)
+    const ids = s1Ids();
+    expect(ids).toContain('silv-sec-s1-livestock-intent');
+    expect(ids).toHaveLength(7);
+  });
+
+  it('wires the declaration gating DAG via universal-only prerequisites', () => {
+    const prereq = (id: string): readonly string[] =>
+      findPlanStratumObjectiveIn(r.objectives, id)?.prerequisiteObjectiveIds ??
+      [];
+    // Roots: 0.1, 0.3, 0.4 are ungated entry points.
+    expect(prereq('s1-vision')).toEqual([]);
+    expect(prereq('s1-boundaries')).toEqual([]);
+    expect(prereq('s1-stakeholders')).toEqual([]);
+    // Gated objectives -- every prereq is a universal id (invariant-safe).
+    expect(prereq('s1-steward')).toEqual(['s1-vision']);
+    expect(prereq('rf-s1-enterprise-mix')).toEqual([
+      's1-vision',
+      's1-boundaries',
+    ]);
+    expect(prereq('res-s1-household-needs')).toEqual([
+      's1-vision',
+      's1-steward',
+    ]);
+  });
+
+  it('patches rf-s1-enterprise-mix from 8 to 12 items (4 silvopasture-injected, stamped)', () => {
+    const em = findPlanStratumObjectiveIn(r.objectives, 'rf-s1-enterprise-mix');
+    expect(em?.checklist).toHaveLength(12);
+    const injected =
+      em?.checklist.filter(
+        (i) => i.expandedBySecondaryId === 'silvopasture',
+      ) ?? [];
+    expect(injected).toHaveLength(4);
+    expect(em?.completionGate).toContain(
+      'Livestock integration strategy defined',
+    );
+  });
+
+  it('applies every patch from both secondaries with no skips (5 residential + 4 silvopasture)', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(9);
+    expect(r.provenance.skippedPatches).toEqual([]);
+  });
+});
+
 describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
   // agritourism now has an encoded primary catalogue (34 objectives), so it
   // resolves universal + agritourism-primary. residential is compatible (X) on
@@ -118,8 +198,8 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 19 universal + 34 agritourism primary + 6 residential additive = 59 objectives', () => {
-    expect(r.objectives).toHaveLength(59);
+  it('resolves 20 universal + 34 agritourism primary + 6 residential additive = 60 objectives', () => {
+    expect(r.objectives).toHaveLength(60);
   });
 
   it('applies 4 patches and skips P0 without throwing', () => {
@@ -159,8 +239,8 @@ describe('resolveProjectObjectives - N/A pair (homestead + residential)', () => 
     secondaryTypeIds: ['residential'],
   });
 
-  it('loads homestead primary but not the incompatible secondary (19 universal + 15 homestead primary = 34)', () => {
-    expect(r.objectives).toHaveLength(34);
+  it('loads homestead primary but not the incompatible secondary (20 universal + 15 homestead primary = 35)', () => {
+    expect(r.objectives).toHaveLength(35);
     expect(
       r.objectives.every(
         (o) => o.source === 'universal' || o.source === 'primary',
@@ -210,9 +290,9 @@ describe('resolveProjectObjectives - dedup by objective id (synthetic)', () => {
     },
   );
 
-  it('drops the duplicate, records it, and keeps the count at 32', () => {
+  it('drops the duplicate, records it, and keeps the count at 33', () => {
     expect(r.provenance.dedupedObjectiveIds).toContain('s3-soil');
-    expect(r.objectives).toHaveLength(32);
+    expect(r.objectives).toHaveLength(33);
     const flag = r.provenance.secondaryFlags.find(
       (f) => f.secondaryTypeId === 'residential',
     );

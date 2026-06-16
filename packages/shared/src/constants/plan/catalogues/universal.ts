@@ -1,7 +1,9 @@
 // catalogues/universal.ts
 //
-// The 19 Universal objectives - present in every project regardless of type
-// (OLOS Project-Type + Secondary-Layer Spec v1.2, section 4). Content is
+// The 20 Universal objectives - present in every project regardless of type
+// (OLOS Project-Type + Secondary-Layer Spec v1.2, section 4; 's1-steward' added
+// 2026-06-16 by the Tier-0 Declaration restructure, splitting the team/capacity
+// concerns out of 's1-vision'). Content is
 // transcribed verbatim from the RegenFarm Objective Catalogue v1.3, which is
 // the designated ANCHOR catalogue: its universal-slot objectives are the
 // validated canonical baseline shared across all primary types.
@@ -27,10 +29,13 @@
 // literally; feeds are display-only chips (NOT wired to divergence routing).
 //
 // Id scheme: t<tier>-<slug> for the objective; <objId>-c<n> for items, except
-// the three Tier-0 vision items the visionProfileToChecklist bridge targets
-// (s1-vision-c1 / s1-vision-c2 / s1-vision-c3) and two semantic slugs
-// (s1-vision-labour, s1-vision-constraints, s1-vision-classify,
-// s1-vision-assumptions) which keep stable ids. All ids are globally unique
+// the three Tier-0 declaration items the visionProfileToChecklist bridge targets
+// (s1-vision-c1 / s1-vision-c2 / s1-steward-c6) and the semantic slugs
+// (s1-vision-constraints, s1-vision-classify, s1-vision-assumptions,
+// s1-steward-c5 [labour]) which keep stable ids. The 2026-06-16 restructure
+// moved labour (was s1-vision-labour) -> s1-steward-c5 and capital (was
+// s1-vision-c3) -> s1-steward-c6; persisted form/tick data is copy-forwarded by
+// the actEvidenceStore + planStratumStore migrations. All ids are globally unique
 // across catalogues (planTierStore.toProgressMap invariant) and verified by a
 // catalogue conformance test. Decision-group ids follow <objId>-dg<n>.
 //
@@ -47,10 +52,10 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's1-project-foundation',
     ref: 'U-S1.1',
     source: 'universal',
-    title: 'A clear vision, goals & stewardship capacity',
-    shortTitle: 'Vision, goals & stewardship capacity',
+    title: 'A clear, bounded vision & declared intent',
+    shortTitle: 'Vision & intent',
     focusedQuestion:
-      'What is this project for, what does success look like, and what resources does the steward have to work with?',
+      'What is this project for, what does success look like, and what is non-negotiable?',
     checklist: [
       // Primary purpose was chosen as the project's primary TYPE in the
       // creation wizard (single-select from the prescribed taxonomy), so the
@@ -94,22 +99,9 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         ),
         optional: true,
       },
-      ck(
-        's1-vision-labour',
-        'Inventory available labour - hours per week, seasonal variation, skill level',
-        { feeds: ['s4-direction', 's7-resource-plan'] },
-      ),
-      // Capital band = the Vision Builder budget + timeline bands (both axes
-      // required to count as answered, matching the legacy s1-vision-c3 rule).
-      ckA(
-        's1-vision-c3',
-        'Inventory available capital - initial budget and estimated annual operating budget',
-        {
-          fieldType: 'band',
-          sourceField: ['visionProfile.budgetRange', 'visionProfile.timelineProgress'],
-          editRoute: { kind: 'wizard-step', step: 'vision' },
-        },
-      ),
+      // Labour + capital inventory moved to the new 's1-steward' objective
+      // (Tier-0 restructure 2026-06-16) - they belong to the team, not the
+      // vision. See s1-steward-c5 (labour) and s1-steward-c6 (capital).
       ck('s1-vision-constraints', 'Identify non-negotiables and hard constraints', {
         feeds: ['s4-direction', 's7-risk-register'],
       }),
@@ -127,16 +119,113 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-vision-steward',
         's1-vision-classify',
       ]),
-      dg('s1-vision-dg2', 'Capacity & constraints', [
-        's1-vision-labour',
-        's1-vision-c3',
+      dg('s1-vision-dg2', 'Constraints & assumptions', [
         's1-vision-constraints',
         's1-vision-assumptions',
       ]),
     ],
     completionGate:
-      'A bounded, evidence-grounded vision is approved with clear success criteria and capacity constraints documented.',
-    actHandoff: 'Vision & Capacity Brief',
+      'A bounded, evidence-grounded vision is approved with clear success criteria and constraints documented. This declaration becomes the lens for all land reading in Tiers 1-2.',
+    actHandoff: 'Vision & Intent Brief',
+  }),
+  // 0.2 - The canonical Steward/Team Object (Tier-0 restructure 2026-06-16).
+  // Split out of s1-vision so the system asks about PEOPLE and RESOURCES
+  // separately from PURPOSE. Every downstream objective that asks "who will do
+  // this?" or "do we have capacity?" references this register - it is never
+  // re-elicited (the Tier-6 capacity match compares plan-derived demand against
+  // this supply baseline). prerequisiteObjectiveIds:['s1-vision'] - the intent
+  // declaration is the lens, so the team is constituted against a declared
+  // intent. s1-steward also joins STRATUM_PREREQS['s2-land-reading'] (universal
+  // gate). c1 roster + c6 capital reuse the wizard answerSpecs and auto-satisfy;
+  // c5 (labour) re-homes the old s1-vision-labour feeds.
+  obj({
+    id: 's1-steward',
+    stratumId: 's1-project-foundation',
+    ref: 'U-S1.4',
+    source: 'universal',
+    prerequisiteObjectiveIds: ['s1-vision'],
+    title: 'A constituted steward team & capability register',
+    shortTitle: 'Steward team & capability',
+    focusedQuestion:
+      'Who is doing this work, in what roles, with what decision rights and what capabilities?',
+    checklist: [
+      // Roster reuses the wizard team answerSpec (same as s1-vision-steward).
+      // Optional - an unset team falls through to a plain checkbox without
+      // dragging required progress; auto-satisfies via computeEffectiveProgress.
+      {
+        ...ckA(
+          's1-steward-c1',
+          'List all people contributing to this project - resident and non-resident, primary and supporting',
+          {
+            fieldType: 'steward',
+            sourceField: ['team.primarySteward', 'team.coStewards'],
+            editRoute: { kind: 'wizard-step', step: 'team' },
+          },
+        ),
+        optional: true,
+      },
+      ck(
+        's1-steward-c2',
+        'Define the role of each person - what they are responsible for on this land',
+        { feeds: ['s4-direction'] },
+      ),
+      ck(
+        's1-steward-c3',
+        'Assign decision rights by domain - who has authority over what',
+        { feeds: ['s4-direction'] },
+      ),
+      ck(
+        's1-steward-c4',
+        'Inventory capabilities by domain for each contributor - what skills each person brings',
+        { feeds: ['s4-direction', 's7-resource-plan'] },
+      ),
+      // Labour re-homes the old s1-vision-labour feeds verbatim.
+      ck(
+        's1-steward-c5',
+        'Record available labour by person - hours per week and seasonal variation across the year',
+        { feeds: ['s4-direction', 's7-resource-plan'] },
+      ),
+      // Capital band = the Vision Builder budget + timeline bands (both axes
+      // required to count as answered - the rule the legacy s1-vision-c3 held).
+      ckA(
+        's1-steward-c6',
+        'Record available capital - initial budget, annual operating budget, and funding sources',
+        {
+          fieldType: 'band',
+          sourceField: ['visionProfile.budgetRange', 'visionProfile.timelineProgress'],
+          editRoute: { kind: 'wizard-step', step: 'vision' },
+        },
+      ),
+      ck(
+        's1-steward-c7',
+        'Identify skill gaps and resolution priorities - training, hire, or contract',
+        { feeds: ['s7-resource-plan', 's7-risk-register'] },
+      ),
+      ck(
+        's1-steward-c8',
+        'Note the governance principles and decision-making framework that will govern the team',
+        { feeds: ['s4-direction'] },
+      ),
+    ],
+    decisionGroups: [
+      dg('s1-steward-dg1', 'People & roles', [
+        's1-steward-c1',
+        's1-steward-c2',
+        's1-steward-c3',
+      ]),
+      dg('s1-steward-dg2', 'Capability & resources', [
+        's1-steward-c4',
+        's1-steward-c5',
+        's1-steward-c6',
+      ]),
+      dg('s1-steward-dg3', 'Gaps & governance', [
+        's1-steward-c7',
+        's1-steward-c8',
+      ]),
+    ],
+    completionGate:
+      'Steward team fully constituted. Roles, decision rights, capabilities, labour availability, and capital inventory documented. This record is the canonical people reference for all downstream objectives - it is never re-asked.',
+    actHandoff: 'Steward Team & Capability Register',
   }),
   obj({
     id: 's1-boundaries',
@@ -228,7 +317,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A mapped picture of stakeholders & community',
     shortTitle: 'Stakeholders & community',
     focusedQuestion:
-      'Who has an interest in, connection to, or jurisdiction over this land and project?',
+      'Who has an interest in, connection to, or jurisdiction over this land and project - outside of the steward team itself?',
     checklist: [
       ck('s1-stakeholders-c1', 'Map immediate neighbours and shared boundary relationships', {
         feeds: ['s5-access'],
@@ -264,7 +353,8 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-stakeholders-c6',
       ]),
     ],
-    completionGate: 'Stakeholder map is complete. No known relationships unrecorded.',
+    completionGate:
+      'Stakeholder map is complete. No known external relationships unrecorded.',
     actHandoff: 'Stakeholder Register',
   }),
   // ---------------------------------------------------------------- Stratum 2

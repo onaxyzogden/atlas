@@ -207,6 +207,56 @@ interface PlanStratumProgressState {
 }
 
 /**
+ * v6 -> v7 item-id re-homing map (the 2026-06-16 Tier-0 restructure). The
+ * labour roster and capital band moved off `s1-vision` onto `s1-steward`.
+ */
+const STEWARD_TICK_REMAP: Readonly<Record<string, string>> = Object.freeze({
+  's1-vision-labour': 's1-steward-c5', // labour roster
+  's1-vision-c3': 's1-steward-c6', // capital band
+});
+
+/**
+ * For every project, copy any completed old labour/capital item-id forward to
+ * its new id under the `s1-steward` objective. Item ids are globally unique, so
+ * the host-objective key under which the old tick was stored is irrelevant — we
+ * scan the project's full completed set. Non-destructive (old ticks untouched)
+ * and identity-stable when nothing matched.
+ */
+function copyForwardStewardTicks(
+  byProject: Record<string, ByObjective>,
+): Record<string, ByObjective> {
+  let changed = false;
+  const next: Record<string, ByObjective> = {};
+  for (const [projectId, byObjective] of Object.entries(byProject)) {
+    const completed = new Set<string>();
+    for (const itemIds of Object.values(byObjective ?? {})) {
+      for (const id of itemIds ?? []) completed.add(id);
+    }
+    const stewardExisting = byObjective['s1-steward'] ?? [];
+    const toAdd: string[] = [];
+    for (const [oldId, newId] of Object.entries(STEWARD_TICK_REMAP)) {
+      if (
+        completed.has(oldId) &&
+        !stewardExisting.includes(newId) &&
+        !toAdd.includes(newId)
+      ) {
+        toAdd.push(newId);
+      }
+    }
+    if (toAdd.length === 0) {
+      next[projectId] = byObjective;
+      continue;
+    }
+    next[projectId] = {
+      ...byObjective,
+      's1-steward': [...stewardExisting, ...toAdd],
+    };
+    changed = true;
+  }
+  return changed ? next : byProject;
+}
+
+/**
  * persist `migrate`. Two historical steps compose so any older persisted
  * version lands on the current shape:
  *  - v1 -> v2: `celebratedByProject` was added (Slice 1.10); backfill `{}`.
@@ -224,6 +274,14 @@ interface PlanStratumProgressState {
  *  - v5 -> v6: `protocolTokenOverridesByProject` was added (Act-stage per-protocol
  *    threshold token overrides); backfill `{}`. Purely additive — never touches
  *    any earlier slice.
+ *  - v6 -> v7: the 2026-06-16 Tier-0 restructure re-homed the labour roster and
+ *    capital band off `s1-vision` onto the new `s1-steward` objective
+ *    (`s1-vision-labour` -> `s1-steward-c5`, `s1-vision-c3` -> `s1-steward-c6`).
+ *    Any project that had ticked an old item gets the new item id added under
+ *    `s1-steward` (`copyForwardStewardTicks`). Non-destructive: old ticks stay
+ *    (they collapse to dead ids in `toProgressMap` once the catalogue no longer
+ *    defines them, harmless). Runs after the v<3 slug remap so an ancient blob's
+ *    labour id is already renumbered to `s1-vision-labour` before this arm sees it.
  * Exported for the round-trip migration test.
  */
 export function migratePlanStratumProgress(
@@ -264,6 +322,10 @@ export function migratePlanStratumProgress(
       );
     }
     celebratedByProject = remappedCelebrated;
+  }
+
+  if (version < 7) {
+    byProject = copyForwardStewardTicks(byProject);
   }
 
   return {
@@ -543,7 +605,7 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
       name: PERSIST_KEY,
       // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
       storage: idbPersistStorage,
-      version: 6,
+      version: 7,
       partialize: (state) => ({
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,

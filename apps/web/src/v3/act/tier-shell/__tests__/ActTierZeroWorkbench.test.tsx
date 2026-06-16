@@ -73,6 +73,12 @@ import { toOutcomeTitle } from '../../../copy/index.js';
 // resolves tools (purpose -> single text; success-criteria -> repeatable
 // hybrid w/ successCriteriaByType; labour -> multi-field). A second objective
 // gives the rail something to switch to and count.
+//
+// The labour inventory re-homed from s1-vision-labour to the steward team's
+// s1-steward-c5 in the 2026-06-16 Tier-0 restructure; the labour form tool now
+// joins on that id. buildDecisionTarget is objective-agnostic (it keys off the
+// item id, not its parent), so the labour item carries the real steward id here
+// while the fixture objective stays s1-vision for tool-resolution coverage.
 // ---------------------------------------------------------------------------
 
 const ACTIVE_OBJECTIVE: PlanStratumObjective = {
@@ -85,7 +91,7 @@ const ACTIVE_OBJECTIVE: PlanStratumObjective = {
   checklist: [
     { id: 's1-vision-c1', label: 'State the primary purpose', feedsInto: [], optional: false },
     { id: 's1-vision-c2', label: 'Define measurable success criteria', feedsInto: [], optional: false },
-    { id: 's1-vision-labour', label: 'Inventory available labour', feedsInto: [], optional: true },
+    { id: 's1-steward-c5', label: 'Inventory available labour', feedsInto: [], optional: true },
   ],
   outputKind: 'plan-decision-record',
   decisionGroups: [],
@@ -263,9 +269,9 @@ describe('buildDecisionTarget -- outcomeTitle passthrough', () => {
 });
 
 describe('buildDecisionTarget -- labour detection', () => {
-  it('flags isLabourInventory for the s1-vision-labour decision (and not SC)', () => {
+  it('flags isLabourInventory for the s1-steward-c5 decision (and not SC)', () => {
     const labourItem: PlanDecisionChecklistItem = {
-      id: 's1-vision-labour',
+      id: 's1-steward-c5',
       label: 'Inventory available labour',
       feedsInto: [],
       optional: true,
@@ -304,7 +310,7 @@ describe('ActTierZeroWorkbench -- labour skill threading', () => {
     // Select the labour decision in the center list.
     const rows = screen.getAllByTestId('decision-item');
     const labour = rows.find(
-      (r) => r.getAttribute('data-item-id') === 's1-vision-labour',
+      (r) => r.getAttribute('data-item-id') === 's1-steward-c5',
     )!;
     fireEvent.click(labour);
     // The skills the panel should offer == resolveLabourSkills(primary, secs).
@@ -333,7 +339,7 @@ describe('buildDecisionTarget -- vision-classify detection', () => {
 
   it('does NOT flag isVisionClassify for the labour decision', () => {
     const labourItem: PlanDecisionChecklistItem = {
-      id: 's1-vision-labour',
+      id: 's1-steward-c5',
       label: 'Inventory available labour',
       feedsInto: [],
       optional: true,
@@ -669,9 +675,10 @@ describe('ActTierZeroWorkbench -- boundary map-activation strip', () => {
     // s1-vision is not a boundary objective -- no map-activation strip leaks in.
     expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
     // ...but main's 91f52d3f gives s1-vision rows their own "vs-*" artifact badges.
+    // (Labour moved to s1-steward in the 2026-06-16 Tier-0 restructure, so the
+    // vision objective no longer surfaces a labour-inventory badge.)
     expect(screen.getByTestId('mode-badge-s1-vision-c1').textContent).toMatch(/purpose statement/i);
     expect(screen.getByTestId('mode-badge-s1-vision-c2').textContent).toMatch(/success criteria/i);
-    expect(screen.getByTestId('mode-badge-s1-vision-labour').textContent).toMatch(/labour inventory/i);
     // No boundary-style mode badge sneaks in.
     expect(screen.queryByTestId('mode-badge-s1-boundaries-c3')).toBeNull();
   });

@@ -173,15 +173,39 @@ describe('workbenchAffordancesFor -- s1-vision', () => {
     expect(aff.modeFor!('s1-vision-c1')).toBe('vs-purpose');
     expect(aff.modeFor!('s1-vision-c2')).toBe('vs-criteria');
     expect(aff.modeFor!('s1-vision-steward')).toBe('vs-steward');
-    expect(aff.modeFor!('s1-vision-labour')).toBe('vs-labour');
-    expect(aff.modeFor!('s1-vision-c3')).toBe('vs-capital');
     expect(aff.modeFor!('s1-vision-constraints')).toBe('vs-constraints');
     expect(aff.modeFor!('s1-vision-classify')).toBe('vs-classify');
     expect(aff.modeFor!('s1-vision-assumptions')).toBe('vs-assumptions');
   });
 
+  it('no longer maps labour/capital -- they moved to s1-steward (2026-06-16 Tier-0 restructure)', () => {
+    expect(aff.modeFor!('s1-vision-labour')).toBeNull();
+    expect(aff.modeFor!('s1-vision-c3')).toBeNull();
+  });
+
   it('returns null for an unmapped vision id (no stray badge)', () => {
     expect(aff.modeFor!('s1-vision-unknown')).toBeNull();
+  });
+});
+
+describe('workbenchAffordancesFor -- s1-steward (Tier-0 restructure 2026-06-16)', () => {
+  const aff = workbenchAffordancesFor('s1-steward');
+
+  it('carries no strips and shows the catalogue decision groups', () => {
+    expect(aff.mapStrips).toHaveLength(0);
+    expect(aff.registerStrip).toBeNull();
+    expect(aff.showGroups).toBe(true);
+  });
+
+  it('maps the re-homed labour/capital items to the vs-labour/vs-capital badges', () => {
+    expect(typeof aff.modeFor).toBe('function');
+    expect(aff.modeFor!('s1-steward-c5')).toBe('vs-labour');
+    expect(aff.modeFor!('s1-steward-c6')).toBe('vs-capital');
+  });
+
+  it('returns null for the not-yet-badged roster/roles/governance items', () => {
+    expect(aff.modeFor!('s1-steward-c1')).toBeNull();
+    expect(aff.modeFor!('s1-steward-c8')).toBeNull();
   });
 });
 
