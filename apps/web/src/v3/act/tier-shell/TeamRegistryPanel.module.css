@@ -1,0 +1,309 @@
+/* TeamRegistryPanel.module.css
+ *
+ * The Declaration right-pane reference block for the Steward/Team Object. Converts
+ * the mockup's right-column (.rp) reference sections into project design tokens,
+ * keeping the mockup LAYOUT/STRUCTURE/spacing intact. ASCII-only: every glyph is a
+ * lucide icon rendered by the component (no glyphs here).
+ *
+ * Token substitution (mockup dark var -> project token), shared with the sibling
+ * DeclarationCenter / DecisionList so the reference panel reads as one surface:
+ *   --green        -> --color-success         (member "constituted" check)
+ *   --amber        -> --color-gold-active,  borders -> --color-gold-brand
+ *   --amber-dim    -> gold-brand @ ~14% fill (avatar bg, labour-bar fill)
+ *   --text / -2 / -3 -> --color-text / --color-text-muted / --color-text-subtle
+ *   --surface      -> --color-surface,        --border -> --color-border
+ *   --border-2     -> --color-border-subtle,  faint fill -> --color-surface-alt
+ *   'Lora' serif   -> --font-serif,           'DM Mono' -> --font-mono
+ *   --mauve        -> literal #9b7ec8 (no global token; matches AdaptiveManagement)
+ */
+
+.panel {
+  display: block;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+/* ---------- Header ---------- */
+
+.hd {
+  margin-bottom: 14px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.eyebrowNum {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--color-gold-active, #9a771f);
+  background: color-mix(in srgb, var(--color-gold-brand, #b08a3a) 14%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 40%, transparent);
+}
+
+.eyebrowLbl {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.title {
+  font-family: var(--font-serif, 'Cormorant Garamond', serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 5px;
+}
+
+.sub {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Mauve callout ---------- */
+
+.callout {
+  margin-bottom: 16px;
+  padding: 9px 11px;
+  border-radius: 5px;
+  background: color-mix(in srgb, #9b7ec8 12%, transparent);
+  border: 1px solid color-mix(in srgb, #9b7ec8 38%, transparent);
+}
+
+.calloutTitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f5598;
+  margin-bottom: 5px;
+}
+
+.calloutIcon {
+  flex: none;
+  color: #6f5598;
+}
+
+.calloutBody {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Sections ---------- */
+
+.sec {
+  margin-bottom: 16px;
+}
+
+.secLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 9px;
+}
+
+.secIcon {
+  flex: none;
+}
+
+.secCount {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted, #565c63);
+}
+
+.empty {
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- Member rows ---------- */
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.10));
+}
+
+.memberRow:last-child {
+  border-bottom: none;
+}
+
+.av {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-gold-active, #9a771f);
+  background: color-mix(in srgb, var(--color-gold-brand, #b08a3a) 14%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 40%, transparent);
+}
+
+.mBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mName {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mRole {
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mDone {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  flex: none;
+  color: var(--color-success, #6b8f6b);
+}
+
+/* ---------- Labour availability bars ---------- */
+
+.capRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+}
+
+.capRow:last-child {
+  margin-bottom: 0;
+}
+
+.capName {
+  flex: none;
+  width: 70px;
+  font-size: 10px;
+  color: var(--color-text-muted, #565c63);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capBg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-text-subtle, #7a808a) 18%, transparent);
+  overflow: hidden;
+}
+
+.capFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-gold-brand, #b08a3a);
+}
+
+.capVal {
+  flex: none;
+  width: 56px;
+  text-align: right;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+/* ---------- Intent reference rows ---------- */
+
+.intentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 7px 9px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: var(--color-surface-alt, #f3efe6);
+}
+
+.intentRow:last-child {
+  margin-bottom: 0;
+}
+
+.intentIcon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.intentTxt {
+  font-size: 10px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}
+
+.intentLabel {
+  font-weight: 500;
+  color: var(--color-text, #1b1e22);
+}
+
+/* ---------- Downstream references (mauve note) ---------- */
+
+.dsNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 9px 11px;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #565c63);
+  background: color-mix(in srgb, #9b7ec8 12%, transparent);
+  border: 1px solid color-mix(in srgb, #9b7ec8 38%, transparent);
+}
+
+.dsIcon {
+  flex: none;
+  margin-top: 1px;
+  color: #6f5598;
+}

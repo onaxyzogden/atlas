@@ -144,6 +144,69 @@
   opacity: 0.7;
 }
 
+/* Project-type chip stack (Plan Declaration only; rendered in place of the
+   joined types label when `typeChips` is provided). Primary = gold/amber,
+   secondary = teal, matching the declaration mockup palette. */
+.projectTileChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.typeChip {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.typeChip[data-kind='primary'] {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 18%,
+    transparent
+  );
+  color: var(--color-gold-brand, #c4a265);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 35%,
+    transparent
+  );
+}
+
+.typeChip[data-kind='secondary'] {
+  background: rgba(58, 155, 138, 0.14);
+  color: #3a9b8a;
+  border-color: rgba(58, 155, 138, 0.32);
+}
+
+/* Threshold checkpoint divider (Plan Declaration only) -- a slim vertical rule
+   carrying the checkpoint name, rendered between strata tabs. Default-absent so
+   the Act spine never shows one. */
+.spineThreshold {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1px;
+}
+
+.spineThresholdName {
+  writing-mode: vertical-rl;
+  font-size: 9px;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
+  border-left: 1px solid var(--color-border, rgba(242, 237, 227, 0.16));
+  padding-left: 5px;
+}
+
 .tier {
   flex: 1 1 0;
   min-width: 124px;

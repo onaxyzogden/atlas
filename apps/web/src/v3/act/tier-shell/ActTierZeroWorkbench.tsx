@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Layers, Users } from 'lucide-react';
 import type {
   PlanStratumObjective,
+  PlanStratumObjectiveStatus,
   PlanDecisionChecklistItem,
   ProjectTypeId,
 } from '@ogden/shared';
@@ -32,6 +33,8 @@ import {
 } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 import DecisionList from './DecisionList.js';
+import DeclarationCenter from './DeclarationCenter.js';
+import TeamRegistryPanel, { TEAM_OBJECTIVE_ID } from './TeamRegistryPanel.js';
 import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
@@ -67,6 +70,25 @@ export interface ActTierZeroWorkbenchProps {
   onRecord: (itemId: string, value: FormValue, summary: string) => void;
   onSaveRationale: (itemId: string, text: string) => void;
   onToggleDefer: (itemId: string, deferred: boolean) => void;
+  /**
+   * Declaration mode (Plan-only). When 'declaration', the Tier-0 / Stratum-1
+   * Declaration header (DeclarationCenter) is mounted above the 2-pane grid and
+   * the per-objective Act-handoff chip is surfaced in the decision list. Absent
+   * (the Act stage) -> byte-identical legacy 2-pane workbench.
+   */
+  mode?: 'declaration';
+  /**
+   * Live per-objective status, keyed by objective id. Consumed by
+   * DeclarationCenter to drive the canonical-object cards + sequencing diagram.
+   * Only read in declaration mode.
+   */
+  objectiveStatuses?: Readonly<Record<string, PlanStratumObjectiveStatus>>;
+  /**
+   * Optional: select an objective from a sequencing-diagram node (declaration
+   * mode). Absent -> sequencing nodes render static. Objective selection is the
+   * parent's concern (the left rail owns it), so this is threaded through.
+   */
+  onSelectObjective?: (objectiveId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -454,7 +476,12 @@ export default function ActTierZeroWorkbench({
   onRecord,
   onSaveRationale,
   onToggleDefer,
+  mode,
+  objectiveStatuses,
+  onSelectObjective,
 }: ActTierZeroWorkbenchProps): JSX.Element {
+  const isDeclaration = mode === 'declaration';
+
   const activeObjective =
     objectives.find((o) => o.id === activeObjectiveId) ?? objectives[0];
 
@@ -537,8 +564,14 @@ export default function ActTierZeroWorkbench({
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
   const target = selectedItem ? buildDecisionTarget(selectedItem) : null;
 
-  return (
-    <div className={css.root}>
+  // In declaration mode the grid lives inside a flex-column shell beneath the
+  // DeclarationCenter, so it flexes instead of claiming the full height.
+  const gridClassName = isDeclaration
+    ? `${css.root} ${css.rootInShell}`
+    : css.root;
+
+  const grid = (
+    <div className={gridClassName}>
       {/* ---------- LEFT pane: decision list ---------- */}
       <section className={css.left}>
         {affordances.mapStrips.map((strip) => (
@@ -579,11 +612,18 @@ export default function ActTierZeroWorkbench({
           onSelectItem={setSelectedItemId}
           showGroups={showGroups}
           modeFor={affordances.modeFor ?? undefined}
+          showActHandoff={isDeclaration}
         />
       </section>
 
       {/* ---------- RIGHT pane: capture form ---------- */}
       <section className={css.right}>
+        {/* Declaration-only reference block: the canonical Team Object registry
+            sits ABOVE the working panel and only for the team objective (0.2).
+            Read-only -- the actual capture is the working panel below. */}
+        {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
+          <TeamRegistryPanel projectId={projectId} />
+        ) : null}
         <DecisionWorkingPanel
           decision={target}
           projectId={projectId}
@@ -611,6 +651,24 @@ export default function ActTierZeroWorkbench({
           }}
         />
       </section>
+    </div>
+  );
+
+  // Act stage (mode omitted): byte-identical legacy 2-pane grid.
+  if (!isDeclaration) return grid;
+
+  // Plan Declaration: the Tier-0 / Stratum-1 header stacks above the grid.
+  return (
+    <div className={css.shell} data-mode="declaration">
+      <div className={css.declTop}>
+        <DeclarationCenter
+          objectives={objectives}
+          objectiveStatuses={objectiveStatuses ?? {}}
+          activeObjectiveId={activeObjectiveId}
+          onSelectObjective={onSelectObjective}
+        />
+      </div>
+      {grid}
     </div>
   );
 }

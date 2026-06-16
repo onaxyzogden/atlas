@@ -83,6 +83,12 @@ export interface DecisionListProps {
    * UNCHANGED (flat list).
    */
   showGroups?: boolean;
+  /**
+   * OPTIONAL. When true AND the objective carries an `actHandoff` descriptor, a
+   * handoff chip renders below the completion gate (mockup `.handoff`). Default
+   * false, so every existing surface -- including Act -- is UNCHANGED.
+   */
+  showActHandoff?: boolean;
 }
 
 // Raw mode key -> human label. The keys cover three families: the LEGACY
@@ -408,6 +414,7 @@ export default function DecisionList({
   onSelectItem,
   modeFor,
   showGroups = false,
+  showActHandoff = false,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
   const deferred = new Set(deferredItemIds);
@@ -550,6 +557,17 @@ export default function DecisionList({
         <div className={css.cgate}>
           <div className={css.cgateLbl}>{ACT_COPY.decisionList.completionGate}</div>
           <div className={css.cgateTxt}>{objective.completionGate}</div>
+        </div>
+      ) : null}
+
+      {/* ---------- Act handoff (Plan Declaration only) ---------- */}
+      {showActHandoff && objective.actHandoff ? (
+        <div className={css.handoff} data-testid="act-handoff">
+          <div className={css.handoffLbl}>
+            <ArrowRight size={11} className={css.handoffIcon} aria-hidden="true" />
+            <span>{ACT_COPY.decisionList.actHandoff}</span>
+          </div>
+          <div className={css.handoffName}>{objective.actHandoff}</div>
         </div>
       ) : null}
     </div>

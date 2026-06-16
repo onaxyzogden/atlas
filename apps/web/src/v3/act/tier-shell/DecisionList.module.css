@@ -364,3 +364,44 @@
   color: var(--color-text-muted, #565c63);
   font-family: var(--font-sans, 'Inter', sans-serif);
 }
+
+/* Act-handoff chip (Plan Declaration only). Amber-tinted, mirrors mockup
+   `.handoff`: a mono uppercase "Act handoff" label + the handoff artifact name. */
+.handoff {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid
+    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 22%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #b08a3a) 7%,
+    transparent
+  );
+}
+
+.handoffLbl {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-gold-active, #9a771f);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.handoffIcon {
+  color: var(--color-gold-active, #9a771f);
+}
+
+.handoffName {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}

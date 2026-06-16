@@ -13,6 +13,8 @@ export const ACT_COPY = {
     yourDecisions: "Your decisions",
     completionGate: "Completion gate",
     optional: "optional",
+    // Plan Declaration only: label above the Act-stage handoff artifact name.
+    actHandoff: "Act handoff",
   },
 
   workingPanel: {

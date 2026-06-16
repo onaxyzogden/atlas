@@ -43,6 +43,7 @@ import {
   PLAN_STRATA,
   computeAllObjectiveStatuses,
   computeAllStratumStates,
+  findProjectType,
   getObjectiveActTools,
   type PlanStratum,
   type PlanStratumObjective,
@@ -107,7 +108,10 @@ import {
   AGROFORESTRY_KINDS,
   pushAgroforestryToSpine,
 } from '../../../features/vegetation/agroforestrySpineSync.js';
-import ActTierSpine from '../../act/tier-shell/ActTierSpine.js';
+import ActTierSpine, {
+  type SpineTypeChip,
+} from '../../act/tier-shell/ActTierSpine.js';
+import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -323,6 +327,24 @@ export default function PlanTierShell() {
     primaryTypeId,
     secondaryTypeIds,
   );
+  // Per-type chips for the spine identity tile (Plan Declaration chrome): one
+  // primary chip + one chip per secondary, each resolved to its human label.
+  // Passed unconditionally to the PLAN spine instance (a sibling of Act's own
+  // ActTierSpine, so this never touches the Act stage). Empty when no primary
+  // type is set -> the spine falls back to the joined projectTypeLabel text.
+  const spineTypeChips = useMemo<SpineTypeChip[]>(() => {
+    if (!primaryTypeId) return [];
+    const chips: SpineTypeChip[] = [
+      {
+        label: findProjectType(primaryTypeId)?.label ?? primaryTypeId,
+        kind: 'primary',
+      },
+    ];
+    for (const sid of secondaryTypeIds) {
+      chips.push({ label: findProjectType(sid)?.label ?? sid, kind: 'secondary' });
+    }
+    return chips;
+  }, [primaryTypeId, secondaryTypeIds]);
 
   // Resolved standing-protocol library for this project's types — the same hook
   // the left rail's ProtocolLayerPanel calls internally (memoised on type
@@ -955,6 +977,12 @@ export default function PlanTierShell() {
           projectTitle={project.name}
           projectTypeLabel={projectTypeLabel}
           ariaLabel="Plan strata"
+          // Plan Declaration chrome: per-type chips replace the joined label in
+          // the identity tile, and the three OLOS gate checkpoints render as
+          // dividers between strata. Both are Plan-only (this is the Plan spine
+          // instance); the Act stage's own ActTierSpine passes neither.
+          typeChips={spineTypeChips}
+          thresholds={THRESHOLDS}
         />
         <div className={styles.shellWrap}>
           {showTierZeroWorkbench && !selectedObjective && railMode !== 'protocols' ? (
@@ -1044,6 +1072,16 @@ export default function PlanTierShell() {
                   onRecord={handleFormDataSave}
                   onSaveRationale={handleSaveRationale}
                   onToggleDefer={handleToggleDefer}
+                  // Plan Declaration mode: mounts the DeclarationCenter header
+                  // (mode banner + canonical-object cards + sequencing diagram)
+                  // above the 2-pane grid and the TeamRegistryPanel reference
+                  // for the team objective. Drives both off the live LOCKING
+                  // objective statuses; sequencing nodes select via the same
+                  // prerequisite-gated handler the left rail uses. The Act stage
+                  // omits all three -> byte-identical legacy workbench.
+                  mode="declaration"
+                  objectiveStatuses={objectiveStatuses}
+                  onSelectObjective={handleSelectObjective}
                 />
               ) : (
                 <div
