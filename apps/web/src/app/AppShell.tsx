@@ -16,6 +16,7 @@ import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
+import OfflineBanner from '../components/OfflineBanner.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -37,6 +38,11 @@ export default function AppShell({ children }: AppShellProps) {
       <a href="#main-content" className={styles.skipLink}>
         Skip to main content
       </a>
+
+      {/* Global offline / sync banner — visible only when there's something to
+          report (dropped > conflict > offline > syncing > pending). */}
+      <OfflineBanner />
+
       {!isProjectPage && <header className={styles.header}>
         <Link to="/v3/portfolio" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>

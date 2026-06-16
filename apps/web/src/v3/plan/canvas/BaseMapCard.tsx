@@ -18,6 +18,8 @@ import {
   type MatrixToggleKey,
 } from '../../../store/matrixTogglesStore.js';
 import { useOverlayPresence } from './useOverlayPresence.js';
+import { useMapCacheStore } from '../../../store/mapCacheStore.js';
+import { useOfflineBasemapFallback } from '../../_shared/map/useOfflineBasemapFallback.js';
 import css from './BaseMapCard.module.css';
 
 interface MapOverlayDef {
@@ -118,6 +120,23 @@ export default function BaseMapCard({
   const toggles = useMatrixTogglesStore();
   const present = useOverlayPresence(projectId);
 
+  // Offline cache: subscribe to the ledger so the chip + fallback re-evaluate
+  // as basemaps warm. getProjectStatus reads fresh once byProject changes.
+  const byProject = useMapCacheStore((s) => s.byProject);
+  const getProjectStatus = useMapCacheStore((s) => s.getProjectStatus);
+  useOfflineBasemapFallback(projectId);
+
+  const cache = projectId ? getProjectStatus(projectId) : null;
+  // byProject is referenced so the selector re-runs the rollup on every change.
+  void byProject;
+  const cacheChip = cache
+    ? cache.anyCaching
+      ? { cls: css.cacheCaching, label: 'Saving maps for offline…' }
+      : cache.anyReady
+        ? { cls: css.cacheReady, label: 'Maps saved for offline use' }
+        : { cls: css.cacheNone, label: 'Maps not saved offline yet' }
+    : null;
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem(MAP_OVERLAYS_COLLAPSE_KEY) === '1';
@@ -143,6 +162,12 @@ export default function BaseMapCard({
             </option>
           ))}
         </select>
+        {cacheChip && (
+          <span className={`${css.cacheChip} ${cacheChip.cls}`}>
+            <span className={css.cacheDot} aria-hidden="true" />
+            {cacheChip.label}
+          </span>
+        )}
       </div>
 
       <div className={css.section}>

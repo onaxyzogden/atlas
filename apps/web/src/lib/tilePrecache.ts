@@ -132,3 +132,199 @@ export async function precacheProjectTiles(
 
   return result;
 }
+
+// ─── MapTiler basemap precache ───────────────────────────────────────────────
+
+/**
+ * Basemap keys handled by the offline precache. `satellite` is the Esri raster
+ * basemap (handled by precacheProjectTiles); the other four are MapTiler styles
+ * whose tile URLs live INSIDE the style JSON, so they need the two-step fetch
+ * below. Keys + slugs mirror MAP_STYLES in lib/maplibre.ts.
+ */
+export type PrecacheBasemapKey =
+  | 'satellite'
+  | 'terrain'
+  | 'topographic'
+  | 'street'
+  | 'hybrid';
+
+/** MapTiler style slug per basemap key (matches MAP_STYLES in maplibre.ts). */
+const MAPTILER_STYLE_SLUGS: Record<Exclude<PrecacheBasemapKey, 'satellite'>, string> = {
+  terrain: 'topo',
+  topographic: 'topo-v2',
+  street: 'streets',
+  hybrid: 'hybrid',
+};
+
+/** Vector tiles carry all zooms in one pyramid; z14 is plenty for field use. */
+const VECTOR_MAX_ZOOM = 14;
+/** Raster (satellite-in-hybrid, terrain-RGB) needs deeper zoom for detail. */
+const RASTER_MAX_ZOOM = 16;
+
+interface MapLibreSourceLike {
+  type?: string;
+  tiles?: string[];
+  url?: string;
+}
+
+interface MapLibreStyleLike {
+  sources?: Record<string, MapLibreSourceLike>;
+}
+
+interface TileJsonLike {
+  tiles?: string[];
+}
+
+/** Expand a `{z}/{x}/{y}` template into concrete tile URLs covering a bbox. */
+function tileUrlsFromTemplate(
+  template: string,
+  bbox: [number, number, number, number],
+  minZoom: number,
+  maxZoom: number,
+  remainingBudget: number,
+): string[] {
+  const [west, south, east, north] = bbox;
+  const urls: string[] = [];
+
+  for (let z = minZoom; z <= maxZoom; z++) {
+    const xMin = lng2tile(west, z);
+    const xMax = lng2tile(east, z);
+    const yMin = lat2tile(north, z); // north = smaller y
+    const yMax = lat2tile(south, z);
+
+    for (let x = xMin; x <= xMax; x++) {
+      for (let y = yMin; y <= yMax; y++) {
+        if (urls.length >= remainingBudget) return urls;
+        urls.push(
+          template
+            .replace('{z}', String(z))
+            .replace('{x}', String(x))
+            .replace('{y}', String(y)),
+        );
+      }
+    }
+  }
+
+  return urls;
+}
+
+/**
+ * Resolve a style source down to its concrete tile-URL templates. A MapTiler
+ * source either inlines `tiles: [...]` or points at a TileJSON via `url`; the
+ * latter needs one extra fetch to read its `tiles[]`.
+ */
+async function resolveSourceTemplates(src: MapLibreSourceLike): Promise<string[]> {
+  if (Array.isArray(src.tiles) && src.tiles.length > 0) return src.tiles;
+  if (src.url) {
+    try {
+      const res = await fetch(src.url, { mode: 'cors', credentials: 'omit' });
+      const json = (await res.json()) as TileJsonLike;
+      if (Array.isArray(json.tiles) && json.tiles.length > 0) return json.tiles;
+    } catch {
+      /* TileJSON unreachable — skip this source */
+    }
+  }
+  return [];
+}
+
+/**
+ * Pre-fetch a MapTiler basemap's tiles for a bounding box so the style works
+ * offline. Fetches the style JSON, walks its raster/vector sources (resolving
+ * TileJSON `url` sources), and warms every tile URL via the shared concurrency
+ * limiter. The service worker caches the responses automatically.
+ *
+ * @param basemap MapTiler basemap key (NOT 'satellite' — that's Esri)
+ * @param bbox [west, south, east, north] in decimal degrees
+ * @param maptilerKey MapTiler API key (embedded in the style/tile URLs)
+ * @param onProgress Optional progress callback
+ * @returns Count of cached and skipped tiles
+ */
+export async function precacheMapTilerBasemap(
+  basemap: Exclude<PrecacheBasemapKey, 'satellite'>,
+  bbox: [number, number, number, number],
+  maptilerKey: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<{ cached: number; skipped: number }> {
+  const slug = MAPTILER_STYLE_SLUGS[basemap];
+  const styleUrl = `https://api.maptiler.com/maps/${slug}/style.json?key=${maptilerKey}`;
+
+  let style: MapLibreStyleLike;
+  try {
+    const res = await fetch(styleUrl, { mode: 'cors', credentials: 'omit' });
+    style = (await res.json()) as MapLibreStyleLike;
+  } catch {
+    return { cached: 0, skipped: 0 };
+  }
+
+  const sources = style.sources ?? {};
+  const urls: string[] = [];
+
+  for (const src of Object.values(sources)) {
+    if (urls.length >= MAX_TILES) break;
+    if (src.type !== 'raster' && src.type !== 'vector') continue;
+    const maxZoom = src.type === 'vector' ? VECTOR_MAX_ZOOM : RASTER_MAX_ZOOM;
+    const templates = await resolveSourceTemplates(src);
+    for (const template of templates) {
+      const remaining = MAX_TILES - urls.length;
+      if (remaining <= 0) break;
+      urls.push(
+        ...tileUrlsFromTemplate(template, bbox, DEFAULT_MIN_ZOOM, maxZoom, remaining),
+      );
+    }
+  }
+
+  if (urls.length === 0) return { cached: 0, skipped: 0 };
+
+  return fetchWithConcurrency(urls, CONCURRENCY, onProgress);
+}
+
+/** Per-basemap precache outcome from the orchestrator. */
+export interface BasemapPrecacheResult {
+  basemap: PrecacheBasemapKey;
+  cached: number;
+  skipped: number;
+}
+
+/** All basemaps the orchestrator warms, in cache order (satellite first). */
+export const PRECACHE_BASEMAPS: PrecacheBasemapKey[] = [
+  'satellite',
+  'topographic',
+  'terrain',
+  'street',
+  'hybrid',
+];
+
+/**
+ * Warm every basemap (Esri satellite + all four MapTiler styles) for a project's
+ * bounding box, in sequence. Each basemap reports its own progress through
+ * `onProgress(basemap, done, total)` so callers can drive per-basemap UI.
+ *
+ * @param bbox [west, south, east, north] in decimal degrees
+ * @param maptilerKey MapTiler API key; if falsy, only satellite (Esri) is warmed
+ * @param onProgress Optional per-basemap progress callback
+ * @returns One result per basemap attempted
+ */
+export async function precacheAllBasemaps(
+  bbox: [number, number, number, number],
+  maptilerKey: string | undefined,
+  onProgress?: (basemap: PrecacheBasemapKey, done: number, total: number) => void,
+): Promise<BasemapPrecacheResult[]> {
+  const results: BasemapPrecacheResult[] = [];
+
+  for (const basemap of PRECACHE_BASEMAPS) {
+    if (basemap === 'satellite') {
+      const r = await precacheProjectTiles(bbox, {
+        onProgress: (d, t) => onProgress?.('satellite', d, t),
+      });
+      results.push({ basemap, cached: r.cached, skipped: r.skipped });
+      continue;
+    }
+    if (!maptilerKey) continue; // no key → MapTiler basemaps unreachable
+    const r = await precacheMapTilerBasemap(basemap, bbox, maptilerKey, (d, t) =>
+      onProgress?.(basemap, d, t),
+    );
+    results.push({ basemap, cached: r.cached, skipped: r.skipped });
+  }
+
+  return results;
+}

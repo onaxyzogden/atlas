@@ -51,7 +51,9 @@ import {
 import { projectToStructures } from '@ogden/shared';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { toast } from '../components/Toast';
-import { precacheProjectTiles } from './tilePrecache.js';
+import { precacheAllBasemaps } from './tilePrecache.js';
+import { maptilerKey } from './maplibre.js';
+import { useMapCacheStore } from '../store/mapCacheStore.js';
 import { FLAGS, type CreateDesignFeatureInput, type DesignFeatureSummary } from '@ogden/shared';
 import * as turf from '@turf/turf';
 import {
@@ -68,7 +70,7 @@ import {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Extract [west, south, east, north] bounding box from a GeoJSON object. */
-function getBboxFromGeojson(geojson: unknown): [number, number, number, number] | null {
+export function getBboxFromGeojson(geojson: unknown): [number, number, number, number] | null {
   try {
     const parsed = typeof geojson === 'string' ? JSON.parse(geojson) : geojson;
     if (!parsed || typeof parsed !== 'object') return null;
@@ -2951,19 +2953,41 @@ export const syncService = {
     // full (rev-idempotent) epoch re-pull — safe, and skew-immune.
     const conn = useConnectivityStore.getState();
 
-    // Pre-cache map tiles for the active project's bounding box (fire-and-forget)
+    // Pre-cache map tiles for the active project's bounding box across ALL
+    // basemaps (Esri satellite + the four MapTiler styles), fire-and-forget.
+    // Stewards lose signal unpredictably, so every basemap is warmed up front;
+    // mapCacheStore records per-basemap status for the offline-maps UI.
     if (FLAGS.OFFLINE_MODE) {
       try {
         const activeId = useProjectStore.getState().activeProjectId;
         const project = activeId
           ? useProjectStore.getState().projects.find((p) => p.id === activeId)
           : null;
-        if (project?.parcelBoundaryGeojson) {
+        if (activeId && project?.parcelBoundaryGeojson) {
           const bbox = getBboxFromGeojson(project.parcelBoundaryGeojson);
           if (bbox) {
-            precacheProjectTiles(bbox).catch((err) =>
-              console.warn('[SYNC] Tile precache failed:', err),
-            );
+            const cache = useMapCacheStore.getState();
+            void precacheAllBasemaps(bbox, maptilerKey ?? undefined, (basemap) => {
+              cache.setBasemapStatus(activeId, basemap, 'caching');
+            })
+              .then((results) => {
+                const finished = useMapCacheStore.getState();
+                for (const r of results) {
+                  if (r.cached > 0) {
+                    finished.recordCacheResult(
+                      activeId,
+                      r.basemap,
+                      r.cached,
+                      new Date().toISOString(),
+                    );
+                  } else {
+                    finished.setBasemapStatus(activeId, r.basemap, 'error');
+                  }
+                }
+              })
+              .catch((err) =>
+                console.warn('[SYNC] Tile precache failed:', err),
+              );
           }
         }
       } catch (err) {

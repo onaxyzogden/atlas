@@ -14,6 +14,9 @@ import MapCoordinateReadout from './MapCoordinateReadout.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
+import { useConnectivityStore } from '../../store/connectivityStore.js';
+import { useMapCacheStore } from '../../store/mapCacheStore.js';
+import { toast } from '../../components/Toast.js';
 import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
 import {
   useAllStructures,
@@ -302,6 +305,31 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       { diff: false },
     );
   }, [map, isLoaded, activeStyle]);
+
+  // ── Graceful offline fallback — if the device is offline and the active
+  // basemap was never warmed for this project, switch to satellite (the most
+  // reliably cached bucket) so the map doesn't render blank. Fires once per
+  // offline episode; resets on reconnect. Mirrors the v3 useOfflineBasemapFallback.
+  const isOnline = useConnectivityStore((s) => s.isOnline);
+  const cacheByProject = useMapCacheStore((s) => s.byProject);
+  const setStyle = useMapStore((s) => s.setStyle);
+  const offlineSwitchedRef = useRef(false);
+  useEffect(() => {
+    if (isOnline) {
+      offlineSwitchedRef.current = false;
+      return;
+    }
+    if (!projectId || activeStyle === 'satellite' || offlineSwitchedRef.current) return;
+    const entry = cacheByProject[projectId]?.[activeStyle];
+    if (entry?.status === 'ready') return;
+    const satEntry = cacheByProject[projectId]?.['satellite'];
+    if (satEntry?.status !== 'ready') return;
+    offlineSwitchedRef.current = true;
+    setStyle('satellite');
+    toast.warning(
+      "Switched to Satellite — the selected map isn't saved for offline use.",
+    );
+  }, [isOnline, projectId, activeStyle, cacheByProject, setStyle]);
 
   // ── Phase filter — toggle layer visibility ──
   const activePhaseFilter = useMapStore((s) => s.activePhaseFilter);
