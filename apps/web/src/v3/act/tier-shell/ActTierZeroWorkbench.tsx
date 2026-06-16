@@ -35,6 +35,7 @@ import DecisionList from './DecisionList.js';
 import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
+import { stewardTeamModeFor } from './StewardTeamCapture.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import {
   workbenchAffordancesFor,
@@ -130,6 +131,15 @@ export function buildDecisionTarget(
   // panel's isSteward body-router arm (StewardCapture) takes precedence over any
   // matched generic form. False for every other id.
   const isSteward = item.id === 's1-vision-steward';
+
+  // Steward/Team Object items (s1-steward-c1..c8) detected by id prefix, gated on
+  // a non-null capture mode so the labour item (s1-steward-c5 -> null) routes to
+  // LabourInventoryCapture via isLabourInventory instead. The panel's
+  // isStewardTeam body-router arm (StewardTeamCapture, store-direct) takes
+  // precedence over the textarea fallback. Distinct from isSteward above
+  // (s1-vision-steward legacy single item) -- different id, no collision.
+  const isStewardTeam =
+    item.id.startsWith('s1-steward-') && stewardTeamModeFor(item.id) !== null;
 
   // Purpose (read-only project-type grid + optional elaboration) is a single
   // item detected by exact id; the panel's isPurpose body-router arm
@@ -393,6 +403,7 @@ export function buildDecisionTarget(
     isStakeholder,
     isLegalGovernance,
     isSteward,
+    isStewardTeam,
     isPurpose,
     isConstraints,
     isAssumptions,

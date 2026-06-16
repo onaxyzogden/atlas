@@ -96,14 +96,20 @@ const VISION_ARTIFACT_BADGE: Record<string, string> = {
 };
 
 // S1 steward team & capability register (universal U-S1.4; Tier-0 restructure
-// 2026-06-16). The two armable form items (labour s1-steward-c5, capital
-// s1-steward-c6) keep the vs-labour / vs-capital badges DecisionList already
-// renders. The remaining roster/roles/rights/capability/skill-gaps/governance
-// items have no artifact badge yet (Stage 2/3 adds the full Team Object capture
-// + matching st-* badges); modeFor returns null for them.
+// 2026-06-16). The armable form items keep the badges DecisionList already
+// renders: labour s1-steward-c5 -> vs-labour, capital s1-steward-c6 ->
+// vs-capital. The store-direct StewardTeamCapture items (roster/roles/rights/
+// capability/skill-gaps/governance) carry the sw-* badge family. (Note: the
+// st-* prefix is taken by ev-s4-settlement-strategy, hence sw-* here.)
 const STEWARD_ARTIFACT_BADGE: Record<string, string> = {
+  's1-steward-c1': 'sw-roster',
+  's1-steward-c2': 'sw-roles',
+  's1-steward-c3': 'sw-rights',
+  's1-steward-c4': 'sw-capability',
   's1-steward-c5': 'vs-labour',
   's1-steward-c6': 'vs-capital',
+  's1-steward-c7': 'sw-gaps',
+  's1-steward-c8': 'sw-governance',
 };
 
 const MAP: Record<string, WorkbenchObjectiveAffordances> = {

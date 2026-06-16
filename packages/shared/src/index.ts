@@ -138,6 +138,7 @@ export * from './schemas/plan/planStratumObjective.schema.js';
 export * from './constants/plan/stratumObjectives.js';
 export * from './constants/plan/remapSlug.js';
 export * from './constants/plan/fieldOptions.js';
+export * from './constants/plan/stewardDomains.js';
 // Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
 export * from './constants/plan/projectTypes.js';

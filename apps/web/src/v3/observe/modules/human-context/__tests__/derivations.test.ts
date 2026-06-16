@@ -9,6 +9,7 @@ import {
   rosterCapacityHours,
   rosterCompleteness,
   stewardCompleteness,
+  stewardSupplyBaseline,
   totalHoursPerWeek,
   visionCompleteness,
   visionCounts,
@@ -17,7 +18,7 @@ import {
 describe('stewardCompleteness', () => {
   it('returns 0% for undefined steward', () => {
     const c = stewardCompleteness(undefined);
-    expect(c).toEqual({ filled: 0, total: 9, pct: 0 });
+    expect(c).toEqual({ filled: 0, total: 12, pct: 0 });
   });
 
   it('counts only non-empty fields', () => {
@@ -31,17 +32,27 @@ describe('stewardCompleteness', () => {
     });
     // relationship, age, lifestyle, maintenanceHrsInitial=0 (0 is filled per isFilled)
     expect(c.filled).toBe(4);
-    expect(c.total).toBe(9);
-    expect(c.pct).toBe(44); // round(4/9 * 100)
+    expect(c.total).toBe(12);
+    expect(c.pct).toBe(33); // round(4/12 * 100)
   });
 
   it('counts needs toward completeness (Option 3)', () => {
     const c = stewardCompleteness({ needs: ['wheelchair-accessible paths'] });
     expect(c.filled).toBe(1);
-    expect(c.total).toBe(9);
+    expect(c.total).toBe(12);
   });
 
-  it('reaches 100% with all 9 fields', () => {
+  it('counts team-role fields toward completeness (Tier-0 restructure)', () => {
+    const c = stewardCompleteness({
+      teamRole: 'Land manager',
+      residentStatus: 'live-in',
+      roleAllocation: 'full-time',
+    });
+    expect(c.filled).toBe(3);
+    expect(c.total).toBe(12);
+  });
+
+  it('reaches 100% with all 12 fields', () => {
     const c = stewardCompleteness({
       relationship: 'lead',
       age: 30,
@@ -52,6 +63,9 @@ describe('stewardCompleteness', () => {
       budget: '$10k',
       skills: ['carpentry'],
       needs: ['wheelchair-accessible paths'],
+      teamRole: 'Land manager',
+      residentStatus: 'live-in',
+      roleAllocation: 'full-time',
     });
     expect(c.pct).toBe(100);
   });
@@ -110,7 +124,7 @@ describe('roster rollups', () => {
   });
 
   it('rosterCompleteness averages per-steward completeness', () => {
-    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 9, pct: 0 });
+    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 12, pct: 0 });
     const c = rosterCompleteness([
       {
         relationship: 'lead',
@@ -122,12 +136,59 @@ describe('roster rollups', () => {
         budget: '$10k',
         skills: ['carpentry'],
         needs: ['wheelchair-accessible paths'],
+        teamRole: 'Land manager',
+        residentStatus: 'live-in',
+        roleAllocation: 'full-time',
       }, // 100%
       {}, // 0%
     ]);
     expect(c.pct).toBe(50);
-    expect(c.total).toBe(18);
-    expect(c.filled).toBe(9);
+    expect(c.total).toBe(24);
+    expect(c.filled).toBe(12);
+  });
+});
+
+describe('stewardSupplyBaseline', () => {
+  it('returns an all-zero baseline for an empty roster + team', () => {
+    const b = stewardSupplyBaseline([], {});
+    expect(b).toEqual({
+      rosterSize: 0,
+      liveInCount: 0,
+      weeklyHours: 0,
+      domainsCovered: [],
+      domainCoverageCount: 0,
+      rightsHolders: 0,
+      skillGaps: 0,
+      fundingSources: 0,
+    });
+  });
+
+  it('rolls up roster capacity and team-level fields', () => {
+    const b = stewardSupplyBaseline(
+      [
+        {
+          residentStatus: 'live-in',
+          maintenanceHrsInitial: 20,
+          maintenanceHrsOngoing: 8,
+          capabilityByDomain: { water: [], food: [] },
+          decisionRights: { water: 'lead' },
+        },
+        {
+          residentStatus: 'off-site',
+          maintenanceHrsInitial: 10,
+          capabilityByDomain: { food: [], energy: [] },
+        },
+      ],
+      { skillGaps: ['bookkeeping'], fundingSources: ['Charitable donation'] },
+    );
+    expect(b.rosterSize).toBe(2);
+    expect(b.liveInCount).toBe(1);
+    expect(b.weeklyHours).toBe(38);
+    expect(b.domainsCovered.sort()).toEqual(['energy', 'food', 'water']);
+    expect(b.domainCoverageCount).toBe(3);
+    expect(b.rightsHolders).toBe(1);
+    expect(b.skillGaps).toBe(1);
+    expect(b.fundingSources).toBe(1);
   });
 });
 
@@ -191,6 +252,7 @@ describe('visionCounts + visionCompleteness', () => {
         conceptOverlayVisible: false,
         milestones: [],
         stewardProfiles: {},
+        stewardTeam: {},
         sharedVision: { statement: 'a', coreFunctions: ['x'] },
       }).pct,
     ).toBeGreaterThan(0);
@@ -223,6 +285,7 @@ describe('moduleCompleteness + healthLabel + phaseNotesCaptured', () => {
         conceptOverlayVisible: false,
         milestones: [],
         stewardProfiles: {},
+        stewardTeam: {},
         sharedVision: {},
       }),
     ).toEqual({ filled: 2, total: 3 });

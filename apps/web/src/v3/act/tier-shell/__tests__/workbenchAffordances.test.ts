@@ -203,9 +203,20 @@ describe('workbenchAffordancesFor -- s1-steward (Tier-0 restructure 2026-06-16)'
     expect(aff.modeFor!('s1-steward-c6')).toBe('vs-capital');
   });
 
-  it('returns null for the not-yet-badged roster/roles/governance items', () => {
-    expect(aff.modeFor!('s1-steward-c1')).toBeNull();
-    expect(aff.modeFor!('s1-steward-c8')).toBeNull();
+  it('badges the structured Team Object items with the sw-* namespace', () => {
+    // Stage 2C completed the StewardTeamCapture wiring -- every steward item now
+    // carries a badge (c5/c6 stay on the re-homed vs-* labels above).
+    expect(aff.modeFor!('s1-steward-c1')).toBe('sw-roster');
+    expect(aff.modeFor!('s1-steward-c2')).toBe('sw-roles');
+    expect(aff.modeFor!('s1-steward-c3')).toBe('sw-rights');
+    expect(aff.modeFor!('s1-steward-c4')).toBe('sw-capability');
+    expect(aff.modeFor!('s1-steward-c7')).toBe('sw-gaps');
+    expect(aff.modeFor!('s1-steward-c8')).toBe('sw-governance');
+  });
+
+  it('returns null for an unmapped steward id (no stray badge)', () => {
+    expect(aff.modeFor!('s1-steward')).toBeNull();
+    expect(aff.modeFor!('s1-steward-cX')).toBeNull();
   });
 });
 

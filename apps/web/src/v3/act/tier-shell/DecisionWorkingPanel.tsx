@@ -82,6 +82,13 @@ import StewardCapture, {
   summariseSteward,
   type StewardModel,
 } from './StewardCapture.js';
+import StewardTeamCapture, {
+  stewardTeamModeFor,
+  isStewardTeamValid,
+  summariseStewardTeam,
+  EMPTY_STEWARD_TEAM,
+} from './StewardTeamCapture.js';
+import { useVisionStore } from '../../../store/visionStore.js';
 import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import {
   buildStewardOptions,
@@ -334,6 +341,8 @@ export interface DecisionPanelTarget {
   isStakeholder?: boolean;
   /** true => render StewardCapture (primary steward + queued invites). */
   isSteward?: boolean;
+  /** true => render StewardTeamCapture (s1-steward team object, store-direct). */
+  isStewardTeam?: boolean;
   /** true => render EvLegalGovernanceCapture (self-routing on itemId) over the draft. */
   isLegalGovernance?: boolean;
   /** true => render PurposeCapture (read-only project-type grid + optional elaboration). */
@@ -551,6 +560,15 @@ export default function DecisionWorkingPanel({
   const selfRef = useMemo<StewardRef>(
     () => (selfUserId !== '' ? { userId: selfUserId } : null),
     [selfUserId],
+  );
+
+  // Reactive read of THIS project's Steward/Team Object, used only by the
+  // steward-team arm (s1-steward-*) for validity / summary / gate-note. Selector
+  // returns a stable ref (getVisionData is a .find) or the frozen empty constant,
+  // so it never trips the Zustand v5 fresh-ref re-render trap. The capture itself
+  // also subscribes internally; this read is only for panel-level derivations.
+  const stewardTeam = useVisionStore(
+    (s) => s.getVisionData(projectId)?.stewardTeam ?? EMPTY_STEWARD_TEAM,
   );
 
   // ---------- Empty state ----------
@@ -902,6 +920,13 @@ export default function DecisionWorkingPanel({
     valid = isStakeholderValid(decision.itemId, stakeholderRows, draft);
   } else if (decision.isSteward) {
     valid = isStewardValid(stewardModel!);
+  } else if (decision.isStewardTeam) {
+    valid = isStewardTeamValid(
+      decision.itemId,
+      stewardRoster,
+      stewardTeam,
+      draft,
+    );
   } else if (decision.isPurpose) {
     valid = isPurposeValid(purposeModel!);
   } else if (decision.isConstraints) {
@@ -1024,6 +1049,14 @@ export default function DecisionWorkingPanel({
           ? 'Add at least one neighbour to record.'
           : 'Add at least one authority contact to record.';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isStewardTeam) {
+      // Only c1 (roster, needs >=1 steward) can be invalid; every other
+      // steward-team item is always recordable, so their modes never reach here.
+      gateNote = (
+        <div className={css.gateNote}>
+          Add at least one steward to the team to record.
+        </div>
+      );
     } else if (decision.isLabourInventory && labourModel) {
       // Ready once at least one roster person carries seasonal hours + a skill.
       const missing: string[] = [];
@@ -1210,6 +1243,13 @@ export default function DecisionWorkingPanel({
       summary = summariseStakeholder(decision.itemId, stakeholderRows, draft);
     } else if (decision.isSteward) {
       summary = summariseSteward(stewardModel!);
+    } else if (decision.isStewardTeam) {
+      summary = summariseStewardTeam(
+        decision.itemId,
+        stewardRoster,
+        stewardTeam,
+        draft,
+      );
     } else if (decision.isPurpose) {
       summary = summarisePurpose(purposeModel!);
     } else if (decision.isConstraints) {
@@ -1380,6 +1420,12 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             resolveOptions={resolveOptions}
+          />
+        ) : decision.isStewardTeam ? (
+          <StewardTeamCapture
+            key={decision.itemId}
+            itemId={decision.itemId}
+            projectId={projectId}
           />
         ) : decision.isLegalGovernance ? (
           <EvLegalGovernanceCapture

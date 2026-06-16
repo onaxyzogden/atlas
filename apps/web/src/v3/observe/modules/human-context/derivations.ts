@@ -10,15 +10,22 @@ import type {
   RegionalContext,
   SharedVision,
   StewardProfile,
+  StewardTeam,
   VisionData,
 } from '../../../../store/visionStore.js';
 
 /* --------------------------- steward ---------------------------------- */
 
 /**
- * The nine profile-overlay fields counted toward per-steward completeness.
+ * The twelve profile-overlay fields counted toward per-steward completeness.
  * Identity (name) lives on the member record, not the profile, so it is not
  * counted here. `needs` joined the set 2026-06-14 (steward data audit Option 3).
+ * The three team-role fields (`teamRole`, `residentStatus`, `roleAllocation`)
+ * joined 2026-06-16 with the Tier-0 Steward/Team Object restructure -- they are
+ * captured on the Plan Declaration surface (StewardTeamCapture), not the Observe
+ * survey, so the completeness ring now spans both surfaces by design (one
+ * canonical StewardProfile referenced everywhere). All three are string-valued,
+ * so `isFilled` treats them correctly without change.
  */
 const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'relationship',
@@ -30,6 +37,9 @@ const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'budget',
   'skills',
   'needs',
+  'teamRole',
+  'residentStatus',
+  'roleAllocation',
 ];
 
 export interface Completeness {
@@ -118,6 +128,60 @@ export function rosterCompleteness(profiles: StewardProfile[]): Completeness {
   const total = each.reduce((acc, c) => acc + c.total, 0);
   const pct = Math.round(each.reduce((acc, c) => acc + c.pct, 0) / each.length);
   return { filled, total, pct };
+}
+
+/* --------------------------- supply baseline -------------------------- */
+
+/**
+ * Read-only Steward/Team Object supply baseline (Tier-0 restructure 2026-06-16).
+ * Rolls the structured Team Object up into the team-capacity numbers a future
+ * Tier-6 demand-vs-supply read compares plan-derived demand against. This is a
+ * pure read seam only -- no consumer is rewired here (settlement-plan capacityFit
+ * and the work-plan generators are intentionally left untouched).
+ *
+ * NOTE: per-person seasonal labour (s1-steward-c5) lives in the LabourInventory
+ * capture's FormValue, not on StewardProfile, so it is NOT summed here; a Tier-6
+ * consumer that wants the seasonal curve reads the labour record separately.
+ * `weeklyHours` reflects the legacy maintenance-hours pledge (reused as-is).
+ */
+export interface StewardSupplyBaseline {
+  rosterSize: number;
+  liveInCount: number;
+  weeklyHours: number;
+  /** Distinct domains with at least one capable steward across the roster. */
+  domainsCovered: string[];
+  domainCoverageCount: number;
+  /** Stewards carrying at least one explicit decision-right assignment. */
+  rightsHolders: number;
+  skillGaps: number;
+  fundingSources: number;
+}
+
+export function stewardSupplyBaseline(
+  profiles: StewardProfile[],
+  team: StewardTeam,
+): StewardSupplyBaseline {
+  const covered = new Set<string>();
+  let rightsHolders = 0;
+  let liveInCount = 0;
+  for (const p of profiles) {
+    for (const key of Object.keys(p.capabilityByDomain ?? {})) {
+      covered.add(key);
+    }
+    if (Object.keys(p.decisionRights ?? {}).length > 0) rightsHolders += 1;
+    if (p.residentStatus === 'live-in') liveInCount += 1;
+  }
+  const domainsCovered = [...covered];
+  return {
+    rosterSize: profiles.length,
+    liveInCount,
+    weeklyHours: rosterCapacityHours(profiles),
+    domainsCovered,
+    domainCoverageCount: domainsCovered.length,
+    rightsHolders,
+    skillGaps: team.skillGaps?.length ?? 0,
+    fundingSources: team.fundingSources?.length ?? 0,
+  };
 }
 
 /* --------------------------- regional --------------------------------- */

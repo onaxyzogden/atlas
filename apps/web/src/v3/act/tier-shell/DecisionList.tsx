@@ -39,6 +39,9 @@ import {
   Lock,
   Columns,
   HelpCircle,
+  Wrench,
+  AlertTriangle,
+  Landmark,
 } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
@@ -335,6 +338,17 @@ const MODE_LABELS: Record<string, string> = {
   'vs-constraints': 'Non-negotiables',
   'vs-classify': 'Committed / aspirational',
   'vs-assumptions': 'Assumptions register',
+
+  // Steward / Team Object artifact badges (universal U-S1.4; Tier-0 restructure
+  // 2026-06-16). The "sw-" namespace keeps them clear of the vs-* vision badges
+  // and the st-* settlement-strategy badges. 6 store-direct items (the other two
+  // steward items keep vs-labour / vs-capital).
+  'sw-roster': 'Team roster',
+  'sw-roles': 'Roles',
+  'sw-rights': 'Decision rights',
+  'sw-capability': 'Capabilities',
+  'sw-gaps': 'Skill gaps',
+  'sw-governance': 'Governance',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
@@ -354,6 +368,13 @@ const MODE_ICONS: Record<string, typeof Check> = {
   'vs-constraints': Lock,
   'vs-classify': Columns,
   'vs-assumptions': HelpCircle,
+  // Steward / Team Object badges (U-S1.4).
+  'sw-roster': Users,
+  'sw-roles': UserCheck,
+  'sw-rights': Scale,
+  'sw-capability': Wrench,
+  'sw-gaps': AlertTriangle,
+  'sw-governance': Landmark,
 };
 
 // Raw mode key -> badge color "kind", surfaced as a data-kind attribute on the
@@ -370,6 +391,13 @@ const MODE_BADGE_KIND: Record<string, string> = {
   'vs-capital': 'capital',
   'vs-constraints': 'decision',
   'vs-classify': 'decision',
+  // Steward / Team Object badges (U-S1.4).
+  'sw-roster': 'neutral',
+  'sw-roles': 'neutral',
+  'sw-rights': 'decision',
+  'sw-capability': 'assess',
+  'sw-gaps': 'assess',
+  'sw-governance': 'decision',
 };
 
 export default function DecisionList({

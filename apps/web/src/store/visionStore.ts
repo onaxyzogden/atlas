@@ -75,6 +75,28 @@ export interface StewardProfile {
    * variable that previously had no home (steward data audit, 2026-06-14).
    */
   needs?: string[];
+  /* ---- Structured Team Object fields (Tier-0 / Stratum-1 restructure, ----
+   * 2026-06-16). All optional and additive, so existing persisted profiles
+   * read them as undefined with NO migration (the `needs?` precedent). The
+   * canonical supply baseline (observe/human-context) reads these. */
+  /** Residential relationship to the site (drives 0.6 household scope). */
+  residentStatus?: 'live-in' | 'off-site' | 'visiting';
+  /** Functional team role (s1-steward-c2), distinct from domain `relationship`. */
+  teamRole?: string;
+  /** Free-form allocated share of the team workload (e.g. "full-time", "40%"). */
+  roleAllocation?: string;
+  /** Decision-rights level per steward domain (s1-steward-c3). Domain key -> level token. */
+  decisionRights?: Record<string, string>;
+  /** Capabilities per steward domain (s1-steward-c4). Domain key -> skill labels. */
+  capabilityByDomain?: Record<string, string[]>;
+  /*
+   * NOTE: seasonal labour (s1-steward-c5) lives in the c5 FormValue captured by
+   * LabourInventoryCapture -- the canonical labour record -- so it is NOT
+   * duplicated here. Capital (s1-steward-c6) lives in the c6 band answerSpec
+   * (budget axes) plus the team-level `StewardTeam.fundingSources` (permitted
+   * channels), so there is no per-person capital field. Keeping a single source
+   * of truth for each avoids drift in the Tier-6 supply baseline.
+   */
 }
 
 /**
@@ -102,6 +124,24 @@ export interface MoodboardImage {
   id: string;
   dataUrl: string;
   caption?: string;
+}
+
+/**
+ * Project-level Steward/Team Object container (Tier-0 / Stratum-1 restructure,
+ * 2026-06-16). Holds team-level declarations that are NOT per-person: the
+ * governance framework, the team's identified skill gaps, and the permitted
+ * capital funding sources. Per-person capacity/rights/capability live on each
+ * `StewardProfile`. Always present ({}-init like `sharedVision`); its fields are
+ * optional. The supply baseline reads `stewardProfiles`; this container carries
+ * the collective team declarations surfaced alongside it.
+ */
+export interface StewardTeam {
+  /** Team decision-making / governance framework (s1-steward-c8). */
+  governance?: string;
+  /** Capability gaps the team has identified to resource later (s1-steward-c7). */
+  skillGaps?: string[];
+  /** Permitted capital funding sources at the team level (s1-steward-c6). */
+  fundingSources?: string[];
 }
 
 /** Per-steward string-list fields editable via setStewardProfileList. */
@@ -144,6 +184,8 @@ export interface VisionData {
   stewardProfiles: Record<string, StewardProfile>;
   /** Project-level shared vision package (hybrid model). */
   sharedVision: SharedVision;
+  /** Project-level Steward/Team Object container (governance, skill gaps, funding). */
+  stewardTeam: StewardTeam;
 }
 
 const DEFAULT_PHASE_NOTES: Omit<VisionPhaseNote, 'notes'>[] = [
@@ -200,6 +242,9 @@ interface VisionState {
   addMoodboardImage: (projectId: string, image: MoodboardImage) => void;
   removeMoodboardImage: (projectId: string, imageId: string) => void;
   setConceptImage: (projectId: string, dataUrl: string | undefined) => void;
+
+  // Steward/Team Object container (project-level)
+  updateStewardTeam: (projectId: string, patch: Partial<StewardTeam>) => void;
 }
 
 export const useVisionStore = create<VisionState>()(
@@ -224,6 +269,7 @@ export const useVisionStore = create<VisionState>()(
               milestones: [],
               stewardProfiles: {},
               sharedVision: {},
+              stewardTeam: {},
             },
           ],
         }));
@@ -433,12 +479,21 @@ export const useVisionStore = create<VisionState>()(
               : v,
           ),
         })),
+
+      updateStewardTeam: (projectId, patch) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, stewardTeam: { ...v.stewardTeam, ...patch } }
+              : v,
+          ),
+        })),
     }),
     {
       name: 'ogden-vision',
       // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
       storage: idbPersistStorage,
-      version: 4,
+      version: 5,
       partialize: (state) => ({ visions: state.visions }),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as { visions: Array<Record<string, unknown>> };
@@ -463,6 +518,16 @@ export const useVisionStore = create<VisionState>()(
               sharedVision: (v.sharedVision as SharedVision) ?? {},
             };
           });
+        }
+        if (version < 5) {
+          // Shell-seed the project-level Steward/Team Object container on
+          // existing records. The per-person StewardProfile fields added in the
+          // same restructure are all-optional and need no migration (they
+          // default to undefined); only this always-present container does.
+          state.visions = state.visions.map((v) => ({
+            ...v,
+            stewardTeam: (v.stewardTeam as StewardTeam) ?? {},
+          }));
         }
         return state as unknown as { visions: VisionData[] };
       },
