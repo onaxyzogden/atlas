@@ -374,6 +374,18 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Forage base & grazing capacity: map forage + baseline sampling. gap: c2
   // seasonality, c3 capacity (formula), c4 constraints, c5 weed/toxic.
   'silv-sec-s3-forage-survey': ['pasture', 'vegetation', 'transect'],
+  // Livestock water availability & seasonal supply (2.5 reception survey): map
+  // existing water points + watercourses/springs, plan tanks/wells/storage.
+  // Mirrors the primary silv-s3-stock-water-availability. gap: c1 demand
+  // (formula), seasonal-shortfall judgement (decisions).
+  'silv-sec-s3-stock-water': [
+    'adopt-water',
+    'watercourse',
+    'spring',
+    'tanks',
+    'wells',
+    'storage',
+  ],
   // Grazing system & rotation framework: paddock/cell layout. gap: c1 method,
   // c3 graze/rest, c4 tree protection, c5 contingency, c6 capacity fit.
   'silv-sec-s4-grazing-design': ['paddocks', 'fencing', 'gates'],

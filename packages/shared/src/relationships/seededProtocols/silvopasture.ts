@@ -159,6 +159,10 @@ export const SILVOPASTURE_SECONDARY_SEEDED_PROTOCOLS: SeededProtocolMap = {
     'u-s6-yield-shortfall',
     'u-s2-baseline-staleness-resurvey',
   ],
+  'silv-sec-s3-stock-water': [
+    'u-s5-water-store-low',
+    'u-s3-flow-anomaly-reassess',
+  ],
 
   // S4 — Foundation Decisions
   'silv-sec-s4-grazing-design': [
