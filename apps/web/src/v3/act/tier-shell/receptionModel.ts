@@ -80,14 +80,57 @@ export function tierTwoDisplayFor(
 }
 
 // ---------------------------------------------------------------------------
-// Reception membership -- a parallel set to TIER_ZERO_OBJECTIVE_IDS, derived from
-// the display map so the two never drift. Used by the routing layer to decide
-// when the workbench runs in `mode="reception"`.
+// Display mapping: real S2 objective id -> "1.x" presentation + short sequencing
+// label (doc "Tier 1 -- Land Reading", the six resolved surveys for the regen +
+// residential + silvopasture config). Parallel to TIER_TWO_DISPLAY; together the
+// two maps define the full Reception set across both tiers. No isNew flags -- the
+// 2026-06-16 restructure reframes these surveys, it does not add new ones.
 // ---------------------------------------------------------------------------
 
-export const RECEPTION_OBJECTIVE_IDS: ReadonlySet<string> = new Set(
-  Object.keys(TIER_TWO_DISPLAY),
-);
+export const TIER_ONE_DISPLAY: Readonly<Record<string, TierTwoDisplayEntry>> = {
+  's2-terrain': { display: '1.1', shortLabel: 'Terrain' },
+  's2-climate': { display: '1.2', shortLabel: 'Climate' },
+  's2-ecology': { display: '1.3', shortLabel: 'Ecology' },
+  's2-infrastructure': { display: '1.4', shortLabel: 'Infrastructure' },
+  'rf-s2-land-health': { display: '1.5', shortLabel: 'Land Health' },
+  'rf-s2-landscape-context': { display: '1.6', shortLabel: 'Landscape' },
+};
+
+/**
+ * Which reception tier an objective belongs to (doc "Tier 1" = Stratum 2 Land
+ * Reading; doc "Tier 2" = Stratum 3 Systems Reading), or null when the id is not
+ * a reception survey. Drives the tier-keyed chrome -- the routing layer reads it
+ * to pick the Tier-1 vs Tier-2 header/rule/gate copy and sequencing terminal.
+ */
+export type ReceptionTier = 'tier1' | 'tier2';
+
+export function receptionTierOf(
+  objectiveId: string | null | undefined,
+): ReceptionTier | null {
+  if (objectiveId == null) return null;
+  if (objectiveId in TIER_ONE_DISPLAY) return 'tier1';
+  if (objectiveId in TIER_TWO_DISPLAY) return 'tier2';
+  return null;
+}
+
+/** The display entry for a reception objective in EITHER tier, or undefined. */
+export function receptionDisplayFor(
+  objectiveId: string,
+): TierTwoDisplayEntry | undefined {
+  return TIER_ONE_DISPLAY[objectiveId] ?? TIER_TWO_DISPLAY[objectiveId];
+}
+
+// ---------------------------------------------------------------------------
+// Reception membership -- a parallel set to TIER_ZERO_OBJECTIVE_IDS, derived from
+// BOTH display maps so the routing layer flips the workbench into
+// `mode="reception"` for all eleven surveys (six Tier-1 + five Tier-2) and the
+// set never drifts from the display maps.
+// ---------------------------------------------------------------------------
+
+export const RECEPTION_OBJECTIVE_IDS: ReadonlySet<string> = new Set([
+  ...Object.keys(TIER_ONE_DISPLAY),
+  ...Object.keys(TIER_TWO_DISPLAY),
+]);
 
 export function isReceptionObjectiveId(
   objectiveId: string | null | undefined,
@@ -121,6 +164,31 @@ export const RECEPTION_MODE = {
   sequencingLabel: 'Tier 2 -- Sequencing',
 } as const;
 
+/**
+ * Tier-1 (Land Reading) mode-header copy -- the parallel of RECEPTION_MODE for
+ * the six S2 surveys. Transcribed from olos_tier1_reception.html. Selected by
+ * receptionModeCopy('tier1'); the Tier-2 default keeps the five S3 consumers
+ * byte-identical.
+ */
+export const RECEPTION_MODE_TIER_ONE = {
+  pill: 'Mode 2 -- Reception',
+  tier: 'Tier 1',
+  titleLead: 'Read what is ',
+  titleEm: 'actually here',
+  titleTail: ' before deciding what to do',
+  desc:
+    'The Intent and Team objects are established. Now the land speaks. Every ' +
+    'survey in Tier 1 is conducted through the lens of declared intent -- but ' +
+    'nothing is decided here. Observations that challenge the intent are ' +
+    'recorded, not resolved. Resolution happens at Threshold 1.',
+  sequencingLabel: 'Tier 1 -- All objectives available in parallel',
+} as const;
+
+/** Tier-keyed mode-header copy (default Tier 2 keeps the S3 consumers unchanged). */
+export function receptionModeCopy(tier: ReceptionTier = 'tier2') {
+  return tier === 'tier1' ? RECEPTION_MODE_TIER_ONE : RECEPTION_MODE;
+}
+
 /** The "reception rule continues" callout (Ear icon) above the sequencing strip. */
 export const RECEPTION_RULE = {
   lead: 'Reception rule continues:',
@@ -130,6 +198,21 @@ export const RECEPTION_RULE = {
     'take longer than planned, record it. Threshold 1 is where these findings ' +
     'meet intent. Not here.',
 } as const;
+
+/** The Tier-1 "reception rule" callout (Ear icon) above the sequencing strip. */
+export const RECEPTION_RULE_TIER_ONE = {
+  lead: 'Reception rule:',
+  body:
+    'No decisions are made in Tier 1. When you find something that challenges ' +
+    'your declared intent, record it accurately. Do not adjust the intent ' +
+    'here. Do not problem-solve. The Reality Check at Threshold 1 is where ' +
+    'evidence meets intent -- not here.',
+} as const;
+
+/** Tier-keyed reception-rule callout copy. */
+export function receptionRuleCopy(tier: ReceptionTier = 'tier2') {
+  return tier === 'tier1' ? RECEPTION_RULE_TIER_ONE : RECEPTION_RULE;
+}
 
 /**
  * The reference-panel "Still listening" callout (Ear icon). Generalized from the
@@ -146,6 +229,27 @@ export const RECEPTION_STILL_LISTENING = {
     'Mode 4 Design. Evidence belongs here.',
 } as const;
 
+/**
+ * The Tier-1 reference-panel "Listening, not deciding" callout. Generalized from
+ * the mockup's terrain-specific wording so it reads for any of the six Land-
+ * Reading surveys -- record what challenges the intent, defer resolution to the
+ * Reality Check.
+ */
+export const RECEPTION_STILL_LISTENING_TIER_ONE = {
+  title: 'Listening, not deciding',
+  body:
+    'Record what you find accurately. If a survey challenges your declared ' +
+    'intent -- a slope too steep, a habitation zone with poor aspect -- note ' +
+    'it and continue. The Reality Check is where intent meets evidence. Not here.',
+} as const;
+
+/** Tier-keyed "still listening" / "listening, not deciding" callout copy. */
+export function receptionStillListeningCopy(tier: ReceptionTier = 'tier2') {
+  return tier === 'tier1'
+    ? RECEPTION_STILL_LISTENING_TIER_ONE
+    : RECEPTION_STILL_LISTENING;
+}
+
 /** Static section labels for the reception reference panel (right pane). */
 export const RECEPTION_REFERENCE = {
   modeSubtitle: 'Mode 2 -- Reception - Tier 2',
@@ -158,6 +262,15 @@ export const RECEPTION_REFERENCE = {
   observeFeed: 'Observe output -- Threshold 1',
   actFeed: 'Act handoff',
 } as const;
+
+/** The reference-panel mode subtitle, tier-keyed (only the tier suffix differs). */
+export function receptionReferenceSubtitle(
+  tier: ReceptionTier = 'tier2',
+): string {
+  return tier === 'tier1'
+    ? 'Mode 2 -- Reception - Tier 1'
+    : RECEPTION_REFERENCE.modeSubtitle;
+}
 
 /**
  * Caption beneath the two-tier progress bars. Mirrors the mockup's "11 survey
@@ -203,6 +316,27 @@ export const RECEPTION_GATES = {
     openLabel: 'Open',
   },
 } as const;
+
+/**
+ * Tier-1 gate copy: the first gate card reframes as the "Tier 2 unlocks" gate
+ * (gated on all six Tier-1 surveys; its fraction is Tier-1 progress, selected in
+ * ReceptionCenter). The Threshold-1 card is identical to Tier 2 -- the covenant
+ * Reality Check still opens only after BOTH tiers complete.
+ */
+export const RECEPTION_GATES_TIER_ONE = {
+  tierTwo: {
+    title: 'Tier 2 -- Systems Reading',
+    desc:
+      'Unlocks when all six Tier 1 objectives are complete. Tier 1 reads the ' +
+      'surface. Tier 2 reads what flows beneath it.',
+  },
+  thresholdOne: RECEPTION_GATES.thresholdOne,
+} as const;
+
+/** Tier-keyed gate-card copy. */
+export function receptionGatesCopy(tier: ReceptionTier = 'tier2') {
+  return tier === 'tier1' ? RECEPTION_GATES_TIER_ONE : RECEPTION_GATES;
+}
 
 /**
  * The Threshold-1 gate description. The mockup hard-codes "(6/6)", "(5/5)" and
@@ -260,19 +394,28 @@ const STOCK_WATER_NOTE =
   '-- stock water viability depends on water movement data';
 
 /**
- * Build the survey-sequencing model: the resolved reception surveys laid out
- * flat in 2.1..2.5 order with live status overlaid, then a terminal Threshold-1
- * node. Surveys absent from the resolved `objectives` set drop out gracefully.
- * The terminal node unlocks only once every present survey is complete.
+ * Build the survey-sequencing model for a tier: the resolved reception surveys
+ * laid out flat (1.1..1.6 for Tier 1, 2.1..2.5 for Tier 2) with live status
+ * overlaid, then a terminal node. Surveys absent from the resolved `objectives`
+ * set drop out gracefully; the terminal unlocks only once every present survey
+ * in the tier is complete.
+ *
+ *   - Tier 2 (default): terminal = the covenant Threshold-1 Reality Check node;
+ *     the stock-water soft-sequencing note may surface beneath the strip.
+ *   - Tier 1: terminal = the "Tier 2" unlock node (Tier 2 -- Systems Reading
+ *     opens once all six Land-Reading surveys complete; NOT a covenant
+ *     threshold). The stock-water note is Tier-2-only.
  */
 export function deriveReceptionSequencing(
   objectives: readonly PlanStratumObjective[],
   statuses: StatusMap,
+  tier: ReceptionTier = 'tier2',
 ): ReceptionSequencingModel {
+  const displayMap = tier === 'tier1' ? TIER_ONE_DISPLAY : TIER_TWO_DISPLAY;
   const present = new Set(objectives.map((o) => o.id));
   const nodes: ReceptionSeqNode[] = [];
 
-  for (const [id, entry] of Object.entries(TIER_TWO_DISPLAY)) {
+  for (const [id, entry] of Object.entries(displayMap)) {
     if (!present.has(id)) continue;
     nodes.push({
       id,
@@ -285,14 +428,26 @@ export function deriveReceptionSequencing(
   const allComplete =
     nodes.length > 0 && nodes.every((n) => n.status === 'complete');
 
+  const threshold: ReceptionSeqThreshold =
+    tier === 'tier1'
+      ? {
+          label: 'Tier 2',
+          name: 'Tier 2 -- Systems Reading',
+          status: allComplete ? 'available' : 'locked',
+        }
+      : {
+          label: 'Threshold 1',
+          name: THRESHOLDS[0]?.name ?? 'Threshold 1 -- Reality Check',
+          status: allComplete ? 'available' : 'locked',
+        };
+
   return {
     nodes,
-    threshold: {
-      label: 'Threshold 1',
-      name: THRESHOLDS[0]?.name ?? 'Threshold 1 -- Reality Check',
-      status: allComplete ? 'available' : 'locked',
-    },
-    note: present.has('silv-sec-s3-stock-water') ? STOCK_WATER_NOTE : undefined,
+    threshold,
+    note:
+      tier === 'tier2' && present.has('silv-sec-s3-stock-water')
+        ? STOCK_WATER_NOTE
+        : undefined,
   };
 }
 

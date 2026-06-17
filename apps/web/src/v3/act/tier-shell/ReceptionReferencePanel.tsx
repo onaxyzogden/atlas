@@ -32,12 +32,14 @@ import {
   readBuildsOn,
   readIntentLens,
   readObserveOutput,
+  receptionDisplayFor,
   receptionRecordsCaption,
+  receptionReferenceSubtitle,
   receptionStatusLabel,
-  tierTwoDisplayFor,
+  receptionStillListeningCopy,
   RECEPTION_REFERENCE,
-  RECEPTION_STILL_LISTENING,
   type ReceptionProgressModel,
+  type ReceptionTier,
   type TierProgress,
 } from './receptionModel.js';
 import css from './ReceptionReferencePanel.module.css';
@@ -49,6 +51,11 @@ export interface ReceptionReferencePanelProps {
   status: PlanStratumObjectiveStatus;
   /** Cross-tier progress, derived by the parent from the FULL objective list. */
   progress: ReceptionProgressModel;
+  /**
+   * Which reception tier the selected survey is in (Tier 1 Land Reading vs Tier 2
+   * Systems Reading). Defaults to 'tier2' so the existing S3 mount is unchanged.
+   */
+  tier?: ReceptionTier;
 }
 
 /** Percent-complete (0..100) for a tier, guarded against a zero total. */
@@ -60,11 +67,13 @@ export default function ReceptionReferencePanel({
   objective,
   status,
   progress,
+  tier = 'tier2',
 }: ReceptionReferencePanelProps): JSX.Element {
-  const display = tierTwoDisplayFor(objective.id)?.display ?? '';
+  const display = receptionDisplayFor(objective.id)?.display ?? '';
   const lens = readIntentLens(objective);
   const observe = readObserveOutput(objective);
   const buildsOn = readBuildsOn(objective);
+  const stillListening = receptionStillListeningCopy(tier);
   const title = objective.shortTitle || objective.title;
 
   return (
@@ -77,7 +86,7 @@ export default function ReceptionReferencePanel({
           {receptionStatusLabel(status)}
         </div>
         <div className={css.title}>{title}</div>
-        <div className={css.subtitle}>{RECEPTION_REFERENCE.modeSubtitle}</div>
+        <div className={css.subtitle}>{receptionReferenceSubtitle(tier)}</div>
       </div>
 
       {/* ---------- Reception mode callout ---------- */}
@@ -88,9 +97,9 @@ export default function ReceptionReferencePanel({
         <div className={css.callout} data-testid="reception-still-listening">
           <div className={css.calloutTitle}>
             <Ear size={13} className={css.calloutIcon} aria-hidden="true" />
-            {RECEPTION_STILL_LISTENING.title}
+            {stillListening.title}
           </div>
-          <div className={css.calloutBody}>{RECEPTION_STILL_LISTENING.body}</div>
+          <div className={css.calloutBody}>{stillListening.body}</div>
         </div>
       </section>
 

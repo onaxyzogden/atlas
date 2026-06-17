@@ -277,6 +277,74 @@ describe('ReceptionCenter -- interactivity', () => {
   });
 });
 
+describe('ReceptionCenter -- tier1 (Land Reading) parameterization', () => {
+  const SIX = [
+    obj('s2-terrain'),
+    obj('s2-climate'),
+    obj('s2-ecology'),
+    obj('s2-infrastructure'),
+    obj('rf-s2-land-health'),
+    obj('rf-s2-landscape-context'),
+  ];
+  const SIX_STATUSES: Record<string, PlanStratumObjectiveStatus> = {
+    's2-terrain': 'complete',
+    's2-climate': 'complete',
+    's2-ecology': 'active',
+    's2-infrastructure': 'available',
+    'rf-s2-land-health': 'locked',
+    'rf-s2-landscape-context': 'locked',
+  };
+
+  it('renders the Tier-1 framing, the six 1.x surveys, and a "Tier 2" terminal', () => {
+    render(
+      <ReceptionCenter
+        objectives={SIX}
+        objectiveStatuses={SIX_STATUSES}
+        progress={PROGRESS_PARTIAL}
+        tier="tier1"
+      />,
+    );
+    const center = screen.getByTestId('reception-center');
+    expect(center.textContent).toMatch(/Mode 2 -- Reception/);
+    expect(center.textContent).toMatch(/Tier 1/);
+    expect(center.textContent).toMatch(/actually here/);
+    // Tier-1 rule lead ("Reception rule:"), NOT the Tier-2 "continues" variant.
+    expect(screen.getByTestId('reception-rule').textContent).toMatch(
+      /Reception rule:/,
+    );
+    expect(screen.getByTestId('reception-rule').textContent).not.toMatch(
+      /Reception rule continues/,
+    );
+
+    // Six Land-Reading surveys 1.1..1.6; no 2.x nodes on a Tier-1 strip.
+    expect(screen.getByTestId('seq-node-1.1')).toBeTruthy();
+    expect(screen.getByTestId('seq-node-1.6')).toBeTruthy();
+    expect(screen.queryByTestId('seq-node-2.1')).toBeNull();
+
+    // Terminal node is the Tier-2 unlock, not the covenant Threshold-1.
+    expect(screen.getByTestId('seq-node-threshold').textContent).toBe('Tier 2');
+
+    // First gate tracks Tier-1 completion (4 / 6 from PROGRESS_PARTIAL.tierOne).
+    expect(screen.getByTestId('reception-tier-gate').textContent).toMatch(
+      /4\s*\/\s*6/,
+    );
+  });
+
+  it('never surfaces the Tier-2-only stock-water note on a Tier-1 strip', () => {
+    render(
+      <ReceptionCenter
+        objectives={SIX}
+        objectiveStatuses={SIX_STATUSES}
+        progress={PROGRESS_PARTIAL}
+        tier="tier1"
+      />,
+    );
+    expect(screen.getByTestId('reception-center').textContent).not.toMatch(
+      /benefits from 2\.1/,
+    );
+  });
+});
+
 describe('ReceptionCenter -- Amanah wording-pin (rendered DOM)', () => {
   it('carries no advance-sale / subscription / CSA framing', () => {
     render(

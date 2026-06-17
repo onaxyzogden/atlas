@@ -39,6 +39,7 @@ import {
   readBuildsOn,
   readIntentLens,
   type ReceptionProgressModel,
+  type ReceptionTier,
 } from './receptionModel.js';
 import TeamRegistryPanel, { TEAM_OBJECTIVE_ID } from './TeamRegistryPanel.js';
 import DecisionWorkingPanel, {
@@ -100,6 +101,12 @@ export interface ActTierZeroWorkbenchProps {
    * mode -- feeds the ReceptionCenter gate cards.
    */
   receptionProgress?: ReceptionProgressModel;
+  /**
+   * Which reception tier the active survey is in (Tier 1 Land Reading vs Tier 2
+   * Systems Reading). Only read in reception mode; defaults to 'tier2' so the
+   * existing S3 mount and the Act surface are unchanged.
+   */
+  receptionTier?: ReceptionTier;
   /**
    * Optional: select an objective from a sequencing-diagram node (declaration
    * mode). Absent -> sequencing nodes render static. Objective selection is the
@@ -496,6 +503,7 @@ export default function ActTierZeroWorkbench({
   mode,
   objectiveStatuses,
   receptionProgress,
+  receptionTier = 'tier2',
   onSelectObjective,
 }: ActTierZeroWorkbenchProps): JSX.Element {
   const isDeclaration = mode === 'declaration';
@@ -707,6 +715,7 @@ export default function ActTierZeroWorkbench({
               }
             }
             activeObjectiveId={activeObjectiveId}
+            tier={receptionTier}
             onSelectObjective={onSelectObjective}
           />
         </div>

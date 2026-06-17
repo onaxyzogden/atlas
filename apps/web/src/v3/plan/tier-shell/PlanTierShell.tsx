@@ -128,6 +128,7 @@ import {
   deriveReceptionProgress,
   isReceptionObjective,
   isReceptionObjectiveId,
+  receptionTierOf,
 } from '../../act/tier-shell/receptionModel.js';
 import ReceptionReferencePanel from '../../act/tier-shell/ReceptionReferencePanel.js';
 // s2-ecology / s2-terrain survey map takeover (mirrors ActTierShell). Stores are
@@ -499,6 +500,13 @@ export default function PlanTierShell() {
   const workbenchMode: 'declaration' | 'reception' = isReceptionWorkbenchObjective
     ? 'reception'
     : 'declaration';
+  // Which reception tier the active survey is in (doc Tier 1 Land Reading = the
+  // six S2 surveys; doc Tier 2 Systems Reading = the five S3 surveys). Keyed off
+  // the URL-synchronous objectiveId first (cold-deep-link safe, like the
+  // membership checks above), then the resolved objective. Defaults to 'tier2'
+  // so a non-reception objective and the existing S3 mounts are unchanged.
+  const receptionTier =
+    receptionTierOf(objectiveId ?? selectedObjective?.id) ?? 'tier2';
   // Cross-tier reception progress (Tier 1 Land-Reading + Tier 2 Systems-Reading
   // completion + the assembled survey-record total). Derived from the FULL
   // resolved objective list (not the current stratum slice) so both tier totals
@@ -1145,6 +1153,7 @@ export default function PlanTierShell() {
                   mode={workbenchMode}
                   objectiveStatuses={objectiveStatuses}
                   receptionProgress={receptionProgress}
+                  receptionTier={receptionTier}
                   onSelectObjective={handleSelectObjective}
                 />
               ) : (
@@ -1278,6 +1287,7 @@ export default function PlanTierShell() {
                       objective={selectedObjective}
                       status={selectedObjectiveStatus}
                       progress={receptionProgress}
+                      tier={receptionTier}
                     />
                   </div>
                 </div>

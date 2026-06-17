@@ -173,6 +173,61 @@ describe('ReceptionReferencePanel -- sections', () => {
   });
 });
 
+describe('ReceptionReferencePanel -- tier1 (Land Reading) parameterization', () => {
+  function makeTierOneObjective(): PlanStratumObjective {
+    return makeObjective({
+      id: 's2-terrain',
+      stratumId: 's2-land-reading',
+      title: 'Survey terrain & topography',
+      shortTitle: 'Terrain & topography',
+      intentLens: [
+        { typeId: 'regenerative_farm', text: 'Slope, aspect, water flow paths' },
+        { typeId: 'residential', text: 'Candidate habitation zones' },
+      ],
+      observeOutput: 'Terrain & Topography Survey Record',
+      actHandoff: 'Earthworks & Access Brief',
+      // Tier 1 has no prior reception tier -- buildsOnDisplay is omitted.
+      buildsOnDisplay: undefined,
+    });
+  }
+
+  it('renders the 1.x eyebrow, the Tier-1 subtitle, and the Tier-1 callout', () => {
+    render(
+      <ReceptionReferencePanel
+        objective={makeTierOneObjective()}
+        status="active"
+        progress={PROGRESS}
+        tier="tier1"
+      />,
+    );
+    const ref = screen.getByTestId('reception-reference');
+    expect(ref.textContent).toMatch(/Objective 1\.1/);
+    expect(ref.textContent).toMatch(/Mode 2 -- Reception - Tier 1/);
+
+    const callout = screen.getByTestId('reception-still-listening');
+    expect(callout.textContent).toMatch(/Listening, not deciding/);
+    expect(callout.textContent).toMatch(/Reality Check/);
+    // The Tier-2 "Mode 4 Design" deferral wording is NOT used on Tier 1.
+    expect(callout.textContent).not.toMatch(/Mode 4 Design/);
+  });
+
+  it('omits the builds-on line for Tier-1 surveys', () => {
+    render(
+      <ReceptionReferencePanel
+        objective={makeTierOneObjective()}
+        status="active"
+        progress={PROGRESS}
+        tier="tier1"
+      />,
+    );
+    expect(screen.queryByTestId('reference-builds-on')).toBeNull();
+    // The residential intent-lens row still renders.
+    expect(
+      screen.getByTestId('reference-lens-residential').textContent,
+    ).toMatch(/habitation zones/);
+  });
+});
+
 describe('ReceptionReferencePanel -- graceful omission', () => {
   it('omits the optional sections when their data is absent', () => {
     render(

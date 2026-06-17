@@ -31,12 +31,13 @@ import type {
 } from '@ogden/shared';
 import {
   deriveReceptionSequencing,
+  receptionGatesCopy,
+  receptionModeCopy,
+  receptionRuleCopy,
   receptionThresholdDesc,
-  RECEPTION_GATES,
-  RECEPTION_MODE,
-  RECEPTION_RULE,
   type ReceptionProgressModel,
   type ReceptionSeqNode,
+  type ReceptionTier,
 } from './receptionModel.js';
 import css from './ReceptionCenter.module.css';
 
@@ -47,6 +48,11 @@ export interface ReceptionCenterProps {
   progress: ReceptionProgressModel;
   /** Currently active objective id (marks the matching sequencing node). */
   activeObjectiveId?: string;
+  /**
+   * Which reception tier this header renders (Tier 1 Land Reading vs Tier 2
+   * Systems Reading). Defaults to 'tier2' so the existing S3 mount is unchanged.
+   */
+  tier?: ReceptionTier;
   /**
    * OPTIONAL. When provided, a non-locked sequencing node becomes a button that
    * selects its survey. Absent -> nodes render as static (no interaction).
@@ -73,9 +79,16 @@ export default function ReceptionCenter({
   objectiveStatuses,
   progress,
   activeObjectiveId,
+  tier = 'tier2',
   onSelectObjective,
 }: ReceptionCenterProps): JSX.Element {
-  const seq = deriveReceptionSequencing(objectives, objectiveStatuses);
+  const mode = receptionModeCopy(tier);
+  const rule = receptionRuleCopy(tier);
+  const gates = receptionGatesCopy(tier);
+  const seq = deriveReceptionSequencing(objectives, objectiveStatuses, tier);
+  // The first gate card tracks the CURRENT tier's completion (Tier 1 reads "N / 6"
+  // toward the Tier-2 unlock; Tier 2 reads "N / 5" toward closing Reception).
+  const tierGateProgress = tier === 'tier1' ? progress.tierOne : progress.tierTwo;
 
   const renderNode = (node: ReceptionSeqNode) => {
     const locked = node.status === 'locked' || node.status === 'deferred';
@@ -116,29 +129,29 @@ export default function ReceptionCenter({
       {/* ---------- Mode header ---------- */}
       <div className={css.modeHd}>
         <div className={css.modeEyebrow}>
-          <span className={css.modePill}>{RECEPTION_MODE.pill}</span>
-          <span className={css.modeTier}>{RECEPTION_MODE.tier}</span>
+          <span className={css.modePill}>{mode.pill}</span>
+          <span className={css.modeTier}>{mode.tier}</span>
         </div>
         <div className={css.modeTitle}>
-          {RECEPTION_MODE.titleLead}
-          <em className={css.modeTitleEm}>{RECEPTION_MODE.titleEm}</em>
-          {RECEPTION_MODE.titleTail}
+          {mode.titleLead}
+          <em className={css.modeTitleEm}>{mode.titleEm}</em>
+          {mode.titleTail}
         </div>
-        <div className={css.modeDesc}>{RECEPTION_MODE.desc}</div>
+        <div className={css.modeDesc}>{mode.desc}</div>
       </div>
 
       {/* ---------- Reception rule ---------- */}
       <div className={css.rule} data-testid="reception-rule">
         <Ear size={14} className={css.ruleIcon} aria-hidden="true" />
         <div className={css.ruleText}>
-          <strong className={css.ruleLead}>{RECEPTION_RULE.lead}</strong>{' '}
-          {RECEPTION_RULE.body}
+          <strong className={css.ruleLead}>{rule.lead}</strong>{' '}
+          {rule.body}
         </div>
       </div>
 
       {/* ---------- Survey sequencing ---------- */}
       <div className={css.seqBlock}>
-        <div className={css.seqLabel}>{RECEPTION_MODE.sequencingLabel}</div>
+        <div className={css.seqLabel}>{mode.sequencingLabel}</div>
         <div className={css.seqRow}>
           {seq.nodes.map(renderNode)}
           {seq.nodes.length > 0 ? (
@@ -158,19 +171,19 @@ export default function ReceptionCenter({
         {seq.note ? <div className={css.seqNote}>{seq.note}</div> : null}
       </div>
 
-      {/* ---------- Tier-2 progress gate ---------- */}
+      {/* ---------- Tier progress gate (Tier-2 unlock) ---------- */}
       <div className={css.tierGate} data-testid="reception-tier-gate">
         <div className={css.tierGateIcon}>
           <Waves size={16} aria-hidden="true" />
         </div>
         <div className={css.tierGateBody}>
-          <div className={css.tierGateTitle}>{RECEPTION_GATES.tierTwo.title}</div>
-          <div className={css.tierGateDesc}>{RECEPTION_GATES.tierTwo.desc}</div>
+          <div className={css.tierGateTitle}>{gates.tierTwo.title}</div>
+          <div className={css.tierGateDesc}>{gates.tierTwo.desc}</div>
         </div>
         <div className={css.tierGateFrac}>
-          <span className={css.tierGateFracDone}>{progress.tierTwo.complete}</span>
+          <span className={css.tierGateFracDone}>{tierGateProgress.complete}</span>
           {' / '}
-          {progress.tierTwo.total}
+          {tierGateProgress.total}
         </div>
       </div>
 
@@ -185,9 +198,9 @@ export default function ReceptionCenter({
         </div>
         <div className={css.thGateBody}>
           <div className={css.thGateEyebrow}>
-            {RECEPTION_GATES.thresholdOne.eyebrow}
+            {gates.thresholdOne.eyebrow}
           </div>
-          <div className={css.thGateTitle}>{RECEPTION_GATES.thresholdOne.title}</div>
+          <div className={css.thGateTitle}>{gates.thresholdOne.title}</div>
           <div className={css.thGateDesc}>
             {receptionThresholdDesc(
               progress.tierOne.total,
@@ -200,8 +213,8 @@ export default function ReceptionCenter({
           data-open={progress.thresholdOpen || undefined}
         >
           {progress.thresholdOpen
-            ? RECEPTION_GATES.thresholdOne.openLabel
-            : RECEPTION_GATES.thresholdOne.lockedLabel}
+            ? gates.thresholdOne.openLabel
+            : gates.thresholdOne.lockedLabel}
         </div>
       </div>
     </div>

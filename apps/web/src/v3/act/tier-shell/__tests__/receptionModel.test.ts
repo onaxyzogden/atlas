@@ -1,17 +1,20 @@
 /**
- * receptionModel -- pure derivations for the Tier-2 / Stratum-3 Reception
- * (Systems Reading) workbench chrome. No DOM; this pins the model contract the
- * ReceptionCenter / ReceptionReferencePanel render:
- *   1. the "2.x" presentation numbering + membership set (the five resolved S3
- *      surveys; 2.5 flagged new).
- *   2. survey-sequencing strip -- order, live status overlay, terminal
- *      Threshold-1 node that unlocks only when every present survey is complete,
- *      and the 2.5-benefits-from-2.1 note gated on 2.5's presence.
+ * receptionModel -- pure derivations for BOTH reception tiers' workbench chrome
+ * (Tier 1 / Stratum-2 Land Reading + Tier 2 / Stratum-3 Systems Reading). No DOM;
+ * this pins the model contract the ReceptionCenter / ReceptionReferencePanel
+ * render:
+ *   1. the "1.x" + "2.x" presentation numbering + the union membership set (six
+ *      resolved S2 surveys + five resolved S3 surveys; 2.5 flagged new).
+ *   2. survey-sequencing strip -- order, live status overlay, and the terminal
+ *      node per tier (Tier 1 -> "Tier 2" unlock; Tier 2 -> covenant Threshold-1
+ *      Reality Check), unlocking only when every present survey is complete, plus
+ *      the 2.5-benefits-from-2.1 note gated on 2.5's presence (Tier-2-only).
  *   3. cross-tier progress -- Tier 1 (Land Reading) + Tier 2 (Systems Reading)
  *      fractions, the record total, and the threshold-open flag.
- *   4. the new-field adapters (set + omitted).
- *   5. Amanah wording-pin -- none of the centralized reception copy drifts to
- *      advance-sale / subscription / CSA / yield-share framing.
+ *   4. the tier-keyed copy accessors (default 'tier2' keeps the S3 consumers
+ *      byte-identical) + the new-field adapters (set + omitted).
+ *   5. Amanah wording-pin -- none of the centralized reception copy (either tier)
+ *      drifts to advance-sale / subscription / CSA / yield-share framing.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -21,7 +24,10 @@ import type {
 } from '@ogden/shared';
 import {
   TIER_TWO_DISPLAY,
+  TIER_ONE_DISPLAY,
   tierTwoDisplayFor,
+  receptionDisplayFor,
+  receptionTierOf,
   RECEPTION_OBJECTIVE_IDS,
   isReceptionObjectiveId,
   isReceptionObjective,
@@ -30,14 +36,23 @@ import {
   receptionStatusLabel,
   receptionRecordsCaption,
   receptionThresholdDesc,
+  receptionModeCopy,
+  receptionRuleCopy,
+  receptionGatesCopy,
+  receptionStillListeningCopy,
+  receptionReferenceSubtitle,
   readIntentLens,
   readObserveOutput,
   readBuildsOn,
   RECEPTION_MODE,
+  RECEPTION_MODE_TIER_ONE,
   RECEPTION_RULE,
+  RECEPTION_RULE_TIER_ONE,
   RECEPTION_STILL_LISTENING,
+  RECEPTION_STILL_LISTENING_TIER_ONE,
   RECEPTION_REFERENCE,
   RECEPTION_GATES,
+  RECEPTION_GATES_TIER_ONE,
 } from '../receptionModel.js';
 import { THRESHOLDS } from '../declarationModel.js';
 
@@ -63,6 +78,26 @@ const ALL_COMPLETE: Record<string, PlanStratumObjectiveStatus> = {
   'silv-sec-s3-stock-water': 'complete',
 };
 
+// The six Tier-1 (Stratum-2, Land Reading) surveys for the regen + residential
+// + silvopasture config -- the parallel of FIVE for the Tier-1 chrome.
+const SIX = [
+  obj('s2-terrain', 's2-land-reading'),
+  obj('s2-climate', 's2-land-reading'),
+  obj('s2-ecology', 's2-land-reading'),
+  obj('s2-infrastructure', 's2-land-reading'),
+  obj('rf-s2-land-health', 's2-land-reading'),
+  obj('rf-s2-landscape-context', 's2-land-reading'),
+];
+
+const SIX_ALL_COMPLETE: Record<string, PlanStratumObjectiveStatus> = {
+  's2-terrain': 'complete',
+  's2-climate': 'complete',
+  's2-ecology': 'complete',
+  's2-infrastructure': 'complete',
+  'rf-s2-land-health': 'complete',
+  'rf-s2-landscape-context': 'complete',
+};
+
 describe('receptionModel -- TIER_TWO_DISPLAY numbering', () => {
   it('numbers the five surveys 2.1..2.5 in resolution order', () => {
     expect(TIER_TWO_DISPLAY['s3-hydrology']?.display).toBe('2.1');
@@ -84,9 +119,17 @@ describe('receptionModel -- TIER_TWO_DISPLAY numbering', () => {
 });
 
 describe('receptionModel -- membership', () => {
-  it('RECEPTION_OBJECTIVE_IDS is exactly the five survey ids', () => {
+  it('RECEPTION_OBJECTIVE_IDS is the union of both tier display maps (11 ids)', () => {
     expect([...RECEPTION_OBJECTIVE_IDS].sort()).toEqual(
       [
+        // Tier 1 -- Land Reading (the six s2 surveys)
+        's2-terrain',
+        's2-climate',
+        's2-ecology',
+        's2-infrastructure',
+        'rf-s2-land-health',
+        'rf-s2-landscape-context',
+        // Tier 2 -- Systems Reading (the five s3 surveys)
         's3-hydrology',
         's3-soil',
         'rf-s3-nutrient-cycling',
@@ -96,18 +139,158 @@ describe('receptionModel -- membership', () => {
     );
   });
 
-  it('isReceptionObjectiveId / isReceptionObjective discriminate the set', () => {
+  it('isReceptionObjectiveId / isReceptionObjective discriminate the set (both tiers)', () => {
     expect(isReceptionObjectiveId('s3-hydrology')).toBe(true);
+    // The widened set now flips the six Tier-1 surveys into reception mode.
+    expect(isReceptionObjectiveId('s2-terrain')).toBe(true);
+    expect(isReceptionObjectiveId('rf-s2-landscape-context')).toBe(true);
     expect(isReceptionObjectiveId('s1-vision')).toBe(false);
     expect(isReceptionObjectiveId(null)).toBe(false);
     expect(isReceptionObjectiveId(undefined)).toBe(false);
     expect(isReceptionObjective({ id: 'silv-sec-s3-stock-water' })).toBe(true);
-    expect(isReceptionObjective({ id: 's2-terrain' })).toBe(false);
+    expect(isReceptionObjective({ id: 's2-terrain' })).toBe(true);
+    expect(isReceptionObjective({ id: 's1-vision' })).toBe(false);
     expect(isReceptionObjective(null)).toBe(false);
   });
 
-  it('does NOT include the excluded forage survey', () => {
+  it('does NOT include the excluded forage survey or non-reception ids', () => {
     expect(isReceptionObjectiveId('silv-sec-s3-forage-survey')).toBe(false);
+    expect(isReceptionObjectiveId('s1-vision')).toBe(false);
+  });
+});
+
+describe('receptionModel -- TIER_ONE_DISPLAY numbering', () => {
+  it('numbers the six Land-Reading surveys 1.1..1.6 in spec order', () => {
+    expect(TIER_ONE_DISPLAY['s2-terrain']?.display).toBe('1.1');
+    expect(TIER_ONE_DISPLAY['s2-climate']?.display).toBe('1.2');
+    expect(TIER_ONE_DISPLAY['s2-ecology']?.display).toBe('1.3');
+    expect(TIER_ONE_DISPLAY['s2-infrastructure']?.display).toBe('1.4');
+    expect(TIER_ONE_DISPLAY['rf-s2-land-health']?.display).toBe('1.5');
+    expect(TIER_ONE_DISPLAY['rf-s2-landscape-context']?.display).toBe('1.6');
+  });
+
+  it('flags no Tier-1 survey isNew (the restructure reframes, never adds)', () => {
+    for (const entry of Object.values(TIER_ONE_DISPLAY)) {
+      expect(entry.isNew).toBeUndefined();
+    }
+  });
+
+  it('receptionTierOf classifies each id by tier (else null)', () => {
+    expect(receptionTierOf('s2-terrain')).toBe('tier1');
+    expect(receptionTierOf('rf-s2-landscape-context')).toBe('tier1');
+    expect(receptionTierOf('s3-hydrology')).toBe('tier2');
+    expect(receptionTierOf('silv-sec-s3-stock-water')).toBe('tier2');
+    expect(receptionTierOf('s1-vision')).toBeNull();
+    expect(receptionTierOf('silv-sec-s3-forage-survey')).toBeNull();
+    expect(receptionTierOf(null)).toBeNull();
+    expect(receptionTierOf(undefined)).toBeNull();
+  });
+
+  it('receptionDisplayFor resolves an entry in EITHER tier map', () => {
+    expect(receptionDisplayFor('s2-ecology')?.display).toBe('1.3');
+    expect(receptionDisplayFor('s3-soil')?.display).toBe('2.2');
+    expect(receptionDisplayFor('s1-vision')).toBeUndefined();
+  });
+});
+
+describe('receptionModel -- tier-1 sequencing strip', () => {
+  it('lays out the six surveys 1.1..1.6 with live status', () => {
+    const seq = deriveReceptionSequencing(
+      SIX,
+      {
+        's2-terrain': 'complete',
+        's2-climate': 'active',
+        's2-ecology': 'available',
+        's2-infrastructure': 'available',
+        'rf-s2-land-health': 'locked',
+        'rf-s2-landscape-context': 'locked',
+      },
+      'tier1',
+    );
+    expect(seq.nodes.map((n) => n.display)).toEqual([
+      '1.1',
+      '1.2',
+      '1.3',
+      '1.4',
+      '1.5',
+      '1.6',
+    ]);
+    expect(seq.nodes[0]?.status).toBe('complete');
+    expect(seq.nodes[1]?.status).toBe('active');
+  });
+
+  it('terminal node is the Tier-2 unlock, available iff all six complete', () => {
+    const partial = deriveReceptionSequencing(
+      SIX,
+      { ...SIX_ALL_COMPLETE, 'rf-s2-landscape-context': 'active' },
+      'tier1',
+    );
+    expect(partial.threshold.label).toBe('Tier 2');
+    expect(partial.threshold.name).toBe('Tier 2 -- Systems Reading');
+    expect(partial.threshold.status).toBe('locked');
+
+    const all = deriveReceptionSequencing(SIX, SIX_ALL_COMPLETE, 'tier1');
+    expect(all.threshold.status).toBe('available');
+    expect(all.threshold.label).toBe('Tier 2');
+  });
+
+  it('never surfaces the Tier-2-only stock-water note on a Tier-1 strip', () => {
+    // Even if the stock-water survey somehow co-resolves, the note is tier-2-gated.
+    const seq = deriveReceptionSequencing(
+      [...SIX, obj('silv-sec-s3-stock-water')],
+      { ...SIX_ALL_COMPLETE, 'silv-sec-s3-stock-water': 'complete' },
+      'tier1',
+    );
+    expect(seq.note).toBeUndefined();
+  });
+
+  it('default tier === explicit tier2 (the five S3 consumers stay byte-identical)', () => {
+    const def = deriveReceptionSequencing(FIVE, ALL_COMPLETE);
+    const two = deriveReceptionSequencing(FIVE, ALL_COMPLETE, 'tier2');
+    expect(def).toEqual(two);
+    expect(def.threshold.label).toBe('Threshold 1');
+  });
+});
+
+describe('receptionModel -- tier-keyed copy accessors', () => {
+  it('mode/rule/gates/still-listening default to Tier-2, switch on tier1', () => {
+    expect(receptionModeCopy()).toBe(RECEPTION_MODE);
+    expect(receptionModeCopy('tier2')).toBe(RECEPTION_MODE);
+    expect(receptionModeCopy('tier1')).toBe(RECEPTION_MODE_TIER_ONE);
+
+    expect(receptionRuleCopy()).toBe(RECEPTION_RULE);
+    expect(receptionRuleCopy('tier1')).toBe(RECEPTION_RULE_TIER_ONE);
+
+    expect(receptionGatesCopy()).toBe(RECEPTION_GATES);
+    expect(receptionGatesCopy('tier1')).toBe(RECEPTION_GATES_TIER_ONE);
+
+    expect(receptionStillListeningCopy()).toBe(RECEPTION_STILL_LISTENING);
+    expect(receptionStillListeningCopy('tier1')).toBe(
+      RECEPTION_STILL_LISTENING_TIER_ONE,
+    );
+  });
+
+  it('tier-1 mode header carries the Land-Reading framing', () => {
+    const mode = receptionModeCopy('tier1');
+    expect(mode.tier).toBe('Tier 1');
+    expect(mode.pill).toBe('Mode 2 -- Reception');
+    expect(mode.titleEm).toBe('actually here');
+    expect(mode.sequencingLabel).toMatch(/Tier 1/);
+  });
+
+  it('reference subtitle is tier-suffixed', () => {
+    expect(receptionReferenceSubtitle()).toBe('Mode 2 -- Reception - Tier 2');
+    expect(receptionReferenceSubtitle('tier1')).toBe(
+      'Mode 2 -- Reception - Tier 1',
+    );
+  });
+
+  it('tier-1 second gate reframes as the Tier-2 unlock (six surveys)', () => {
+    const gates = receptionGatesCopy('tier1');
+    expect(gates.tierTwo.title).toBe('Tier 2 -- Systems Reading');
+    expect(gates.tierTwo.desc).toMatch(/all six Tier 1 objectives/);
+    // The covenant Threshold-1 copy is shared, unchanged across tiers.
+    expect(gates.thresholdOne).toBe(RECEPTION_GATES.thresholdOne);
   });
 });
 
@@ -246,7 +429,10 @@ describe('receptionModel -- new-field adapters', () => {
 });
 
 describe('receptionModel -- Amanah wording-pin', () => {
-  it('carries no advance-sale / subscription / CSA / yield-share framing', () => {
+  const BANNED =
+    /subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share/;
+
+  it('carries no advance-sale / subscription / CSA / yield-share framing (Tier 2)', () => {
     const corpus = [
       ...Object.values(RECEPTION_MODE),
       ...Object.values(RECEPTION_RULE),
@@ -262,8 +448,21 @@ describe('receptionModel -- Amanah wording-pin', () => {
     ]
       .join(' ')
       .toLowerCase();
-    expect(corpus).not.toMatch(
-      /subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share/,
-    );
+    expect(corpus).not.toMatch(BANNED);
+  });
+
+  it('the new Tier-1 (Land Reading) copy carries no banned framing', () => {
+    const corpus = [
+      ...Object.values(RECEPTION_MODE_TIER_ONE),
+      ...Object.values(RECEPTION_RULE_TIER_ONE),
+      ...Object.values(RECEPTION_STILL_LISTENING_TIER_ONE),
+      RECEPTION_GATES_TIER_ONE.tierTwo.title,
+      RECEPTION_GATES_TIER_ONE.tierTwo.desc,
+      receptionReferenceSubtitle('tier1'),
+      deriveReceptionSequencing(SIX, SIX_ALL_COMPLETE, 'tier1').threshold.name,
+    ]
+      .join(' ')
+      .toLowerCase();
+    expect(corpus).not.toMatch(BANNED);
   });
 });
