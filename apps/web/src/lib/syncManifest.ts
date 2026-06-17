@@ -120,6 +120,7 @@ import { useObservationRecordStore } from '../store/olos/observationRecordStore.
 import { useProofRecordStore } from '../store/olos/proofRecordStore.js';
 import { useVerificationRecordStore } from '../store/olos/verificationRecordStore.js';
 import { useActEvidenceStore } from '../store/actEvidenceStore.js';
+import { useRealityCheckStore } from '../store/realityCheckStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
@@ -1000,6 +1001,11 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // dedicated typed-record transport (no server table/endpoint), so the
   // generic byProject blob is the correct path. v1 matches the persist version.
   blob('ogden-review-flags', useReviewFlagStore, 'byProject', 1, byKey('byProject', null, [])),
+  // Threshold 1 (The Reality Check) steward state: one ProjectRealityCheck per
+  // project (phase1Ready + strandFindings + classifications + planningDirection
+  // text + approvedAt). Client-only IndexedDB, no server table -> opaque
+  // byProject versioned-blob. v1 matches the persist version.
+  blob('ogden-reality-check', useRealityCheckStore, 'byProject', 1, byKey('byProject', null, {})),
   // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
   // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
   // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4
