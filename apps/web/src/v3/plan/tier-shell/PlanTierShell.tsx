@@ -137,6 +137,15 @@ import VegetationSurveyPanel from '../../act/ecology/VegetationSurveyPanel.js';
 import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.js';
 import SlopeSurveyPanel from '../../act/terrain/SlopeSurveyPanel.js';
 import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
+// Reception (Tier-2 Systems Reading) survey map takeover — the generic
+// SurveyPanel renders the rail editor for whichever of the five Stratum-3
+// surveys is open (driven by the receptionSurveys registry). Plan-only.
+import SurveyPanel from '../reception/SurveyPanel.js';
+import {
+  useActiveReceptionSurveyEntry,
+  useReceptionSurveyRecordCount,
+  closeAllReceptionSurveys,
+} from '../../../store/receptionSurveys.js';
 import { useObjectiveToolsTakeoverStore } from '../../../store/objectiveToolsTakeoverStore.js';
 // Sectors editor reused unchanged from Act (stage-neutral UI flag + panel):
 // clicking the Plan SectorCompass HUD takes the right rail over with the editor,
@@ -420,6 +429,18 @@ export default function PlanTierShell() {
   );
   const slopeActive = slopeOpen && objectiveId === 's2-terrain';
 
+  // Reception (Tier-2 Systems Reading) draw-on-map survey takeover. One of the
+  // five Stratum-3 survey stores can be open for THIS project; the active entry
+  // (or null) folds all five into one reactive read so the shell stays
+  // survey-count-blind. Active only when that survey's objective is also the
+  // active route (parity with slope/veg above) — so it stays latent elsewhere.
+  // The drawn-feature total across all five stores feeds the reception progress.
+  const activeReceptionSurvey = useActiveReceptionSurveyEntry(id);
+  const receptionSurveyActive =
+    activeReceptionSurvey != null &&
+    activeReceptionSurvey.objectiveId === objectiveId;
+  const receptionRecordCount = useReceptionSurveyRecordCount(id);
+
   // Generic objective-tools takeover (the shell-agnostic generalization of the
   // two bespoke surveys above): any draw/place objective whose catalog resolves
   // to >= 1 map tool can flip into a focused map+tools mode via
@@ -460,6 +481,10 @@ export default function PlanTierShell() {
     (isTierZeroWorkbenchObjective || isReceptionWorkbenchObjective) &&
     !surveyActive &&
     !slopeActive &&
+    // A reception (Tier-2) survey takeover yields the workbench to the editable
+    // map canvas so the steward can draw that survey's systems-reading extents,
+    // exactly like the bespoke s2-ecology/s2-terrain surveys above.
+    !receptionSurveyActive &&
     // A generic map-tools takeover also yields the workbench to the map (so a
     // Tier-0 draw/place objective can reach its draw hosts), exactly like the
     // bespoke survey takeovers above.
@@ -480,8 +505,9 @@ export default function PlanTierShell() {
   // are visible; fed to both the ReceptionCenter gate cards and the right-rail
   // reference panel. Cheap + pure, so computed unconditionally.
   const receptionProgress = useMemo(
-    () => deriveReceptionProgress(objectives, objectiveStatuses),
-    [objectives, objectiveStatuses],
+    () =>
+      deriveReceptionProgress(objectives, objectiveStatuses, receptionRecordCount),
+    [objectives, objectiveStatuses, receptionRecordCount],
   );
 
   const [rightMode, setRightMode] = useState<RightMode>(
@@ -1132,14 +1158,16 @@ export default function PlanTierShell() {
                     view={activeView}
                     surveyActive={surveyActive}
                     slopeActive={slopeActive}
+                    receptionActive={receptionSurveyActive}
                     sourceObjectiveId={objectiveId}
                     onOpenSectorsEditor={() => {
                       // Mutually-exclusive rail takeovers (mirror
                       // ActTierShell:1176-1185): clear any survey / slope /
-                      // objective-tools session before arming the sectors
-                      // editor so the rail never has two claimants.
+                      // reception / objective-tools session before arming the
+                      // sectors editor so the rail never has two claimants.
                       useVegetationSurveyStore.getState().close();
                       useSlopeSurveyStore.getState().close();
+                      closeAllReceptionSurveys();
                       useObjectiveToolsTakeoverStore.getState().close();
                       useActSectorsEditorStore.getState().open();
                     }}
@@ -1174,6 +1202,29 @@ export default function PlanTierShell() {
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
                     <SlopeSurveyPanel projectId={id} />
+                  </div>
+                </div>
+              ) : receptionSurveyActive && activeReceptionSurvey ? (
+                // Reception (Tier-2 Systems Reading) survey takeover: while one
+                // of the five Stratum-3 surveys is armed on its objective, the
+                // generic SurveyPanel replaces the rail (parity with the
+                // veg/slope panels above). The bundle drives every class row +
+                // tool id; the 2.5 stock-water panel surfaces the
+                // stock-water-demand formula reference via `footnote`. Done in
+                // the panel clears the active tool + closes the store.
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <SurveyPanel
+                      bundle={activeReceptionSurvey.bundle}
+                      projectId={id}
+                      title={selectedObjective?.title ?? 'Reception survey'}
+                      footnote={
+                        activeReceptionSurvey.objectiveId ===
+                        'silv-sec-s3-stock-water'
+                          ? 'Stock-water demand = herd size x species daily intake x climate factor (peak-season). Draw the served reach and any seasonal-shortfall zones to read supply against that demand; this records the observed picture, not an allocation.'
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>
               ) : sectorsEditorActive ? (

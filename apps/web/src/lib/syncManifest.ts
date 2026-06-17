@@ -126,6 +126,13 @@ import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
 import { useStakeholderRegisterStore } from '../store/stakeholderRegisterStore.js';
 import { useVegetationSurveyStore } from '../store/vegetationSurveyStore.js';
 import { useSlopeSurveyStore } from '../store/slopeSurveyStore.js';
+import {
+  hydrologySurvey,
+  soilSurvey,
+  nutrientSurvey,
+  pestSurvey,
+  stockWaterSurvey,
+} from '../store/receptionSurveys.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -1010,6 +1017,16 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // byProject[projectId][featureId]. Persist v1. Ephemeral takeover flag
   // (active/activeProjectId) is partialized out, so only byProject syncs.
   blob('ogden-slope-survey', useSlopeSurveyStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Plan Tier-2 (Stratum-3) Systems-Reading map surveys (2026-06-16): five
+  // byProject[projectId][featureId] draw stores built from createSurveyStore,
+  // one per resolved S3 objective. Persist v1; ephemeral takeover flag
+  // (active/activeProjectId) is partialized out, so only byProject syncs.
+  // Same byProject blob transport as slope/vegetation survey.
+  blob('ogden-recep-hydrology-survey', hydrologySurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-soil-survey', soilSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-nutrient-survey', nutrientSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-pest-survey', pestSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-stock-water-survey', stockWaterSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
 ];
 
 /**

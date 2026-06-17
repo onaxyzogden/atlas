@@ -51,6 +51,13 @@ import { useScheduledLivestockMoveStore } from '../../../store/scheduledLivestoc
 import { useLandDesignStore } from '../../../store/landDesignStore.js';
 import { useSlopeSurveyStore } from '../../../store/slopeSurveyStore.js';
 import { useVegetationSurveyStore } from '../../../store/vegetationSurveyStore.js';
+import {
+  hydrologySurvey,
+  soilSurvey,
+  nutrientSurvey,
+  pestSurvey,
+  stockWaterSurvey,
+} from '../../../store/receptionSurveys.js';
 import { useFieldVerification } from '../../../lib/fieldVerification/useFieldVerification.js';
 
 export type OverlayPresence = Record<MatrixToggleKey, boolean>;
@@ -70,6 +77,7 @@ const ALL_FALSE_EXCEPT_COMPUTED: OverlayPresence = {
   waterRouter: false,
   slopeSurvey: false,
   vegetationSurvey: false,
+  receptionSurvey: false,
 };
 
 const inProject = <T extends { projectId: string }>(arr: T[], projectId: string): T[] =>
@@ -112,6 +120,13 @@ export function useOverlayPresence(projectId?: string): OverlayPresence {
   const landDesignByProject = useLandDesignStore((s) => s.byProject);
   const slopeByProject = useSlopeSurveyStore((s) => s.byProject);
   const vegSurveyByProject = useVegetationSurveyStore((s) => s.byProject);
+  // Reception (Tier-2 Systems Reading): five stores, one shared overlay row.
+  // Present iff ANY of the five has >=1 drawn feature for this project.
+  const hydrologyByProject = hydrologySurvey.useStore((s) => s.byProject);
+  const soilByProject = soilSurvey.useStore((s) => s.byProject);
+  const nutrientByProject = nutrientSurvey.useStore((s) => s.byProject);
+  const pestByProject = pestSurvey.useStore((s) => s.byProject);
+  const stockWaterByProject = stockWaterSurvey.useStore((s) => s.byProject);
 
   return useMemo<OverlayPresence>(() => {
     if (!projectId) return ALL_FALSE_EXCEPT_COMPUTED;
@@ -170,6 +185,12 @@ export function useOverlayPresence(projectId?: string): OverlayPresence {
       waterRouter: (landDesignByProject[projectId]?.length ?? 0) > 0,
       slopeSurvey: Object.keys(slopeByProject[projectId] ?? {}).length > 0,
       vegetationSurvey: Object.keys(vegSurveyByProject[projectId] ?? {}).length > 0,
+      receptionSurvey:
+        Object.keys(hydrologyByProject[projectId] ?? {}).length > 0 ||
+        Object.keys(soilByProject[projectId] ?? {}).length > 0 ||
+        Object.keys(nutrientByProject[projectId] ?? {}).length > 0 ||
+        Object.keys(pestByProject[projectId] ?? {}).length > 0 ||
+        Object.keys(stockWaterByProject[projectId] ?? {}).length > 0,
     };
   }, [
     projectId,
@@ -199,5 +220,10 @@ export function useOverlayPresence(projectId?: string): OverlayPresence {
     landDesignByProject,
     slopeByProject,
     vegSurveyByProject,
+    hydrologyByProject,
+    soilByProject,
+    nutrientByProject,
+    pestByProject,
+    stockWaterByProject,
   ]);
 }

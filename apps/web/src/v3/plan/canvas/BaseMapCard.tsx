@@ -48,6 +48,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'waterRouter', label: 'Water router audit (design flow · placement hints)', swatch: '#a3401d' },
   { key: 'slopeSurvey', label: 'Slope survey (drawn slope-class extents)', swatch: '#b5722e' },
   { key: 'vegetationSurvey', label: 'Vegetation survey (drawn community extents)', swatch: '#4f7a3a' },
+  { key: 'receptionSurvey', label: 'Reception surveys (drawn systems-reading extents)', swatch: '#3f7a8c' },
 ];
 
 // Per-stage overlay scoping: hide rows whose underlying layer isn't mounted on
@@ -82,12 +83,17 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // Those layers never mount on Observe, so the rows are hidden there. On Plan +
 // Act the row is then further presence-gated by useOverlayPresence (shown only
 // when the project has ≥1 survey feature).
+//
+// The reception-survey overlay (receptionSurvey) is the Tier-2 Systems Reading
+// analogue, rendered by the generic SurveyLayer (ReceptionSurveyHosts) which
+// mounts ONLY on Plan (VisionLayoutCanvas) — so its row is hidden on Observe AND
+// Act, then presence-gated on Plan.
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
-  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter', 'slopeSurvey', 'vegetationSurvey'],
+  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter', 'slopeSurvey', 'vegetationSurvey', 'receptionSurvey'],
   plan: [],
-  act: [],
+  act: ['receptionSurvey'],
 };
 
 export interface BaseMapCardProps {

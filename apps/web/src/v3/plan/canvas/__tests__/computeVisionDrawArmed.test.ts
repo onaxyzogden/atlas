@@ -51,8 +51,29 @@ describe('computeVisionDrawArmed', () => {
     ).toBe(true);
   });
 
-  it('nothing armed → false', () => {
+  it('reception-survey takeover (no tool id) → true', () => {
+    expect(
+      computeVisionDrawArmed({ activeTool: null, ...NO_SURVEY, receptionActive: true }),
+    ).toBe(true);
+  });
+
+  it('plan.reception.* survey tool armed → true (via the plan. prefix)', () => {
+    expect(
+      computeVisionDrawArmed({
+        activeTool: 'plan.reception.hydrology-wet-zone',
+        ...NO_SURVEY,
+      }),
+    ).toBe(true);
+  });
+
+  it('nothing armed (reception flag omitted → defaults false) → false', () => {
     expect(computeVisionDrawArmed({ activeTool: null, ...NO_SURVEY })).toBe(false);
+  });
+
+  it('nothing armed, reception flag explicitly false → false', () => {
+    expect(
+      computeVisionDrawArmed({ activeTool: null, ...NO_SURVEY, receptionActive: false }),
+    ).toBe(false);
   });
 
   it('a non-draw act.* tool with no survey flag → false (the takeover flag is the signal)', () => {

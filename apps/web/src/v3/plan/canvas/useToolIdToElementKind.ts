@@ -96,13 +96,19 @@ export function computeVisionDrawArmed(args: {
   activeTool: string | null;
   surveyActive: boolean;
   slopeActive: boolean;
+  /** Reception (Tier-2 Systems Reading) survey takeover open. Optional so the
+   *  existing 3-arg callers/tests stay valid; the `plan.reception.*` tool ids
+   *  already arm the crosshair via the `plan.` prefix, this covers the
+   *  unarmed-takeover frame (panel open, no class armed yet). */
+  receptionActive?: boolean;
 }): boolean {
-  const { activeTool, surveyActive, slopeActive } = args;
+  const { activeTool, surveyActive, slopeActive, receptionActive = false } = args;
   return (
     toolIdToElementKind(activeTool as MapToolId | null) !== null || // elementCatalog kinds
-    (activeTool?.startsWith('plan.') ?? false) ||                   // plan.* (incl. BE + dedicated-store)
+    (activeTool?.startsWith('plan.') ?? false) ||                   // plan.* (incl. BE + dedicated-store + reception)
     (activeTool?.startsWith('observe.') ?? false) ||                // observe.* draw tools
     surveyActive ||                                                 // veg-survey takeover
-    slopeActive                                                     // slope-survey takeover
+    slopeActive ||                                                  // slope-survey takeover
+    receptionActive                                                 // reception-survey takeover
   );
 }

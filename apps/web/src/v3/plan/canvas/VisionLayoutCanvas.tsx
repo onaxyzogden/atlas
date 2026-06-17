@@ -65,6 +65,9 @@ import VegetationSurveyLayer from '../../act/ecology/VegetationSurveyLayer.js';
 import VegetationSurveyDrawHost from '../../act/ecology/VegetationSurveyDrawHost.js';
 import SlopeSurveyLayer from '../../act/terrain/SlopeSurveyLayer.js';
 import SlopeSurveyDrawHost from '../../act/terrain/SlopeSurveyDrawHost.js';
+// Reception (Tier-2 Systems Reading) survey map capture — the five Stratum-3
+// surveys' layers + draw hosts, driven by ReceptionSurveyHosts (Plan-only).
+import ReceptionSurveyHosts from '../reception/ReceptionSurveyHosts.js';
 import type { PlanView } from '../types.js';
 
 /**
@@ -90,6 +93,13 @@ interface Props {
   surveyActive?: boolean;
   /** s2-terrain slope-survey takeover armed (slopeSurveyStore). */
   slopeActive?: boolean;
+  /**
+   * Reception (Tier-2 Systems Reading) survey takeover armed: one of the five
+   * Stratum-3 surveys is open for this project/objective. Used only for the
+   * crosshair signal — the per-survey draw hosts self-gate inside
+   * ReceptionSurveyHosts. Defaulted off so non-Plan callers are unaffected.
+   */
+  receptionActive?: boolean;
   /** Active objective id, stamped onto survey polygons as their source. */
   sourceObjectiveId?: string | null;
   /**
@@ -132,6 +142,7 @@ export default function VisionLayoutCanvas({
   view,
   surveyActive = false,
   slopeActive = false,
+  receptionActive = false,
   sourceObjectiveId = null,
   onOpenSectorsEditor,
 }: Props) {
@@ -163,7 +174,12 @@ export default function VisionLayoutCanvas({
   // `observe.*` tools, and the slope/veg survey takeovers. `activeKind`/`beKind`
   // are still computed (they gate the conditional host mounts further down); the
   // cursor predicate just needs the broader signal. See computeVisionDrawArmed.
-  const drawArmed = computeVisionDrawArmed({ activeTool, surveyActive, slopeActive });
+  const drawArmed = computeVisionDrawArmed({
+    activeTool,
+    surveyActive,
+    slopeActive,
+    receptionActive,
+  });
 
   return (
     <DiagnoseMap centroid={centroid} boundary={boundary}>
@@ -312,6 +328,14 @@ export default function VisionLayoutCanvas({
               sourceObjectiveId={sourceObjectiveId}
             />
           )}
+          {/* Reception (Tier-2 Systems Reading) surveys: all five layers mount
+              always; each draw host self-arms only when its survey takeover is
+              open for this project + objective (parity with slope/veg above). */}
+          <ReceptionSurveyHosts
+            map={map}
+            projectId={projectId}
+            sourceObjectiveId={sourceObjectiveId}
+          />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}

@@ -156,9 +156,9 @@ interface LayerSpec {
    *  group falls under the `observeAnnotations` master toggle. PLAN-
    *  stage-only keys (`sunPath`, `zoneRings`, `seededZones`, `placedZones`,
    *  `waterRouter`) and the drawn-survey overlays (`slopeSurvey`,
-   *  `vegetationSurvey`, rendered by their own Slope/Vegetation survey layers
-   *  on Plan + Act) are excluded — Observe annotation specs never gate on
-   *  them. */
+   *  `vegetationSurvey`, `receptionSurvey`, rendered by their own
+   *  Slope/Vegetation/Reception survey layers on Plan) are excluded — Observe
+   *  annotation specs never gate on them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
     | 'observeAnnotations'
@@ -169,6 +169,7 @@ interface LayerSpec {
     | 'waterRouter'
     | 'slopeSurvey'
     | 'vegetationSurvey'
+    | 'receptionSurvey'
   >;
 }
 

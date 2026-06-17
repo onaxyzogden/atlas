@@ -1,0 +1,208 @@
+/* SurveyPanel - rail-width takeover for ONE reception (Tier-2 Systems Reading)
+ * survey. Generic over a createSurveyStore bundle; lifted from
+ * SlopeSurveyPanel.module.css (flex column, full width, scrolls if tall) so it
+ * sits cleanly in the Plan right-rail `rightBody` slot. Adds a `.footnote`
+ * caption the 2.5 livestock-water panel uses to surface the stock-water-demand
+ * formula reference. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(242, 237, 227, 0.12);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+.count {
+  color: rgba(var(--color-gold-rgb), 0.95);
+  font-weight: 700;
+}
+
+.doneBtn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.doneBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.hint {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.7;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rowWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.row:hover {
+  border-color: rgba(242, 237, 227, 0.25);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.rowActive {
+  border-color: rgba(var(--color-gold-rgb), 0.85);
+  background: rgba(var(--color-gold-rgb), 0.12);
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.swatchEmpty {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(242, 237, 227, 0.15),
+    rgba(242, 237, 227, 0.15) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-gold-rgb), 0.95);
+  min-width: 34px;
+  text-align: right;
+}
+
+.meta {
+  font-size: 10px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+
+.unclassifiedWrap {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(242, 237, 227, 0.15);
+}
+
+.unclassifiedRow {
+  background: transparent;
+  cursor: default;
+  opacity: 0.7;
+}
+
+.unclassifiedRow .pct {
+  color: rgba(242, 237, 227, 0.7);
+}
+
+.features {
+  list-style: none;
+  margin: 2px 0 2px 22px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.featureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.featureLabel {
+  font-size: 11px;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: rgba(232, 220, 200, 0.55);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.deleteBtn:hover {
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.footnote {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(242, 237, 227, 0.15);
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.45;
+  opacity: 0.65;
+}

@@ -33,7 +33,8 @@ export type MatrixToggleKey =
   | 'scheduledMoves'
   | 'waterRouter'
   | 'slopeSurvey'
-  | 'vegetationSurvey';
+  | 'vegetationSurvey'
+  | 'receptionSurvey';
 
 export interface MatrixTogglesState {
   topography: boolean;
@@ -103,6 +104,15 @@ export interface MatrixTogglesState {
    * matching `slopeSurvey` / `placedZones`. Same mount caveat as above.
    */
   vegetationSurvey: boolean;
+  /**
+   * PLAN — visibility of the DRAWN reception (Tier-2 Systems Reading) survey
+   * features across all five Stratum-3 surveys (hydrology / soil / nutrient /
+   * pest / stock-water), rendered by the generic SurveyLayer. One shared key
+   * for all five (the surveys are read together as one tier). Defaults ON,
+   * matching `slopeSurvey` / `vegetationSurvey`. Same mount caveat: only the
+   * open survey's host mounts, so the toggle pre-arms the next-opened survey.
+   */
+  receptionSurvey: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -124,6 +134,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       waterRouter: false,
       slopeSurvey: true,
       vegetationSurvey: true,
+      receptionSurvey: true,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
         set(() => ({
@@ -141,6 +152,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           waterRouter: value,
           slopeSurvey: value,
           vegetationSurvey: value,
+          receptionSurvey: value,
         })),
     }),
     {
@@ -173,6 +185,11 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
+      // v17 (2026-06-16): added receptionSurvey — one shared visibility toggle
+      //  for the DRAWN reception (Tier-2 Systems Reading) survey features across
+      //  all five Stratum-3 surveys (SurveyLayer; PLAN). Default ON (like
+      //  slopeSurvey / vegetationSurvey) so drawn extents stay visible; migrate
+      //  seeds true for existing snapshots.
       // v16 (2026-06-13): added slopeSurvey + vegetationSurvey — visibility
       //  toggles for the DRAWN slope-class / vegetation-community survey
       //  polygons (SlopeSurveyLayer / VegetationSurveyLayer; PLAN + ACT).
@@ -186,7 +203,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       //  (flow arrows + suggested catchment pins for low-in-watershed water
       //  elements). Defaults off so existing stewards don't inherit an
       //  unfamiliar layer.
-      version: 16,
+      version: 17,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState> & {
           // v13 drop list: retained here so the migrate signature is
@@ -210,6 +227,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           waterRouter: prev.waterRouter ?? false,
           slopeSurvey: prev.slopeSurvey ?? true,
           vegetationSurvey: prev.vegetationSurvey ?? true,
+          receptionSurvey: prev.receptionSurvey ?? true,
         } as MatrixTogglesState;
       },
     },
