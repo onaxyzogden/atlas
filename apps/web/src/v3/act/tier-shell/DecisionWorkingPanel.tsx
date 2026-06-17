@@ -154,6 +154,8 @@ import {
 } from './EcologyCapture.js';
 import VegetationSurveySummary from '../ecology/VegetationSurveySummary.js';
 import SlopeSurveySummary from '../terrain/SlopeSurveySummary.js';
+import ReceptionSurveySummary from './ReceptionSurveySummary.js';
+import { receptionSurveyForLeadItem } from '../../../store/receptionSurveys.js';
 import {
   LandscapeContextCapture,
   landscapeModeFor,
@@ -720,6 +722,14 @@ export default function DecisionWorkingPanel({
   const landscapeModel: LandscapeModel | null = landscapeMode
     ? decodeLandscape(landscapeMode, draft)
     : null;
+
+  // Tier-1 Land-Reading surveys (climate/infrastructure/land-health/landscape-
+  // context) surface their Observe-Output map affordance on the objective's lead
+  // decision (`<objectiveId>-c1`). DISPLAY-ONLY -- it rides above the decision's
+  // own capture body (the drawn features are the record, counted separately into
+  // the tier-scoped survey-record count); the decision keeps its draft untouched.
+  // Self-gates to the four s2-* lead items, so it never appears off a survey.
+  const leadSurvey = receptionSurveyForLeadItem(decision.itemId);
 
   // Carrying capacity is a 7-mode capture (water/food/waste/energy/space/
   // synthesis/gate) routed by carryingCapacityModeFor(itemId). Unlike the other
@@ -1389,6 +1399,13 @@ export default function DecisionWorkingPanel({
       {/* ---------- Body router ---------- */}
       <div className={css.body}>
         <IntentLensAccordion lens={intentLens} />
+        {leadSurvey ? (
+          <ReceptionSurveySummary
+            key={`${decision.itemId}-survey`}
+            bundle={leadSurvey.bundle}
+            projectId={projectId}
+          />
+        ) : null}
         {decision.isVisionClassify ? (
           <VisionClassifyCapture
             key={decision.itemId}

@@ -1,0 +1,126 @@
+/* ReceptionSurveySummary - the generic Tier-1 reception-survey affordance shown
+ * (display-only) on a Land-Reading objective's lead decision: an Observe-Output
+ * per-class feature COUNT + an "Open map survey" action. Theme-matched to
+ * SlopeSurveySummary (the bespoke slope/veg triggers it parallels). */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--color-text);
+  font-size: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px dashed rgba(242, 237, 227, 0.15);
+}
+
+.secLbl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(242, 237, 227, 0.7);
+}
+
+.secIcon {
+  flex: 0 0 auto;
+  color: rgba(var(--color-gold-rgb), 0.85);
+}
+
+.secOptional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.empty {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.65;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border: 1px dashed rgba(242, 237, 227, 0.18);
+  border-radius: 5px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-gold-rgb), 0.95);
+  min-width: 22px;
+  text-align: right;
+}
+
+.openBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+  background: rgba(var(--color-gold-rgb), 0.14);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.55);
+}
+
+.openBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.22);
+  border-color: rgba(var(--color-gold-rgb), 0.8);
+}
+
+.feedsBlock {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.feedsIcon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: rgba(var(--color-gold-rgb), 0.9);
+}
+
+.feedsTxt {
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.85;
+}

@@ -132,6 +132,10 @@ import {
   nutrientSurvey,
   pestSurvey,
   stockWaterSurvey,
+  climateSurvey,
+  infrastructureSurvey,
+  landHealthSurvey,
+  landscapeSurvey,
 } from '../store/receptionSurveys.js';
 
 export type SyncClassification =
@@ -1027,6 +1031,14 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-recep-nutrient-survey', nutrientSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-recep-pest-survey', pestSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-recep-stock-water-survey', stockWaterSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Plan Tier-1 (Stratum-2) Land-Reading map surveys (2026-06-17): four more
+  // byProject draw stores from createSurveyStore -- one per uncovered S2
+  // objective (terrain/ecology keep their bespoke slope/vegetation stores).
+  // Same byProject blob transport; persist v1; takeover flag partialized out.
+  blob('ogden-recep-climate-survey', climateSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-infrastructure-survey', infrastructureSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-land-health-survey', landHealthSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-recep-landscape-survey', landscapeSurvey.useStore, 'byProject', 1, byKey('byProject', null, {})),
 ];
 
 /**

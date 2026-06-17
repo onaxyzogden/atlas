@@ -1,7 +1,9 @@
 /**
- * ReceptionSurveyHosts -- mounts the map plumbing for ALL five reception
- * (Tier-2 Systems Reading) surveys on the Plan canvas, mirroring the way
- * VisionLayoutCanvas mounts the slope + vegetation survey hosts.
+ * ReceptionSurveyHosts -- mounts the map plumbing for ALL nine reception
+ * surveys (five Tier-2 Systems Reading + four Tier-1 Land Reading) on the Plan
+ * canvas, mirroring the way VisionLayoutCanvas mounts the slope + vegetation
+ * survey hosts. It iterates the RECEPTION_SURVEYS registry, so new factory
+ * surveys mount automatically with no edit here.
  *
  * For each registered survey it renders:
  *   - a <SurveyLayer> ALWAYS (drawn features stay visible regardless of which

@@ -440,7 +440,17 @@ export default function PlanTierShell() {
   const receptionSurveyActive =
     activeReceptionSurvey != null &&
     activeReceptionSurvey.objectiveId === objectiveId;
-  const receptionRecordCount = useReceptionSurveyRecordCount(id);
+  // Which reception tier the active survey is in (doc Tier 1 Land Reading = the
+  // six S2 surveys; doc Tier 2 Systems Reading = the five S3 surveys). Keyed off
+  // the URL-synchronous objectiveId first (cold-deep-link safe, like the
+  // membership checks above), then the resolved objective. Defaults to 'tier2'
+  // so a non-reception objective and the existing S3 mounts are unchanged.
+  // Computed here (ahead of the record-count read) so the survey total is
+  // tier-scoped -- the Tier-1 view counts only its four s2-* surveys, the
+  // Tier-2 view only its five s3-* surveys (no cross-tier record leak).
+  const receptionTier =
+    receptionTierOf(objectiveId ?? selectedObjective?.id) ?? 'tier2';
+  const receptionRecordCount = useReceptionSurveyRecordCount(id, receptionTier);
 
   // Generic objective-tools takeover (the shell-agnostic generalization of the
   // two bespoke surveys above): any draw/place objective whose catalog resolves
@@ -500,13 +510,7 @@ export default function PlanTierShell() {
   const workbenchMode: 'declaration' | 'reception' = isReceptionWorkbenchObjective
     ? 'reception'
     : 'declaration';
-  // Which reception tier the active survey is in (doc Tier 1 Land Reading = the
-  // six S2 surveys; doc Tier 2 Systems Reading = the five S3 surveys). Keyed off
-  // the URL-synchronous objectiveId first (cold-deep-link safe, like the
-  // membership checks above), then the resolved objective. Defaults to 'tier2'
-  // so a non-reception objective and the existing S3 mounts are unchanged.
-  const receptionTier =
-    receptionTierOf(objectiveId ?? selectedObjective?.id) ?? 'tier2';
+  // (receptionTier is computed above, ahead of the survey record-count read.)
   // Cross-tier reception progress (Tier 1 Land-Reading + Tier 2 Systems-Reading
   // completion + the assembled survey-record total). Derived from the FULL
   // resolved objective list (not the current stratum slice) so both tier totals
