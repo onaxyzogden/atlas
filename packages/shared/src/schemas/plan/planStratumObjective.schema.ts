@@ -350,6 +350,23 @@ export const PlanStratumSchema = z.object({
 });
 export type PlanStratum = z.infer<typeof PlanStratumSchema>;
 
+/**
+ * A single per-project-type "Intent Lens" row on a Systems-Reading objective
+ * (Stratum 3 / doc Tier-2 Reception): WHAT to look for when reading this system
+ * through one project type's lens (e.g. the Regenerative-Farm vs Silvopasture vs
+ * Residential reading of the same hydrology survey). DISPLAY-ONLY guidance copy,
+ * transcribed VERBATIM from the spec (ASCII). Authored order is preserved.
+ * Absent on every non-reception objective, so the seed + catalogues validate
+ * unchanged.
+ */
+export const IntentLensRowSchema = z.object({
+  /** The project type whose reading lens this row describes. */
+  typeId: ProjectTypeId,
+  /** What to look for through this type's lens (verbatim spec copy). */
+  text: z.string().min(1),
+});
+export type IntentLensRow = z.infer<typeof IntentLensRowSchema>;
+
 export const PlanStratumObjectiveSchema = z.object({
   id: z.string().min(1),
   stratumId: PlanStratumId,
@@ -464,6 +481,36 @@ export const PlanStratumObjectiveSchema = z.object({
    * every existing seed/catalogue objective validates unchanged.
    */
   parameterGroup: ParameterGroupSchema.optional(),
+  /**
+   * Per-project-type "Intent Lens" rows (Stratum 3 / doc Tier-2 Reception
+   * Systems Reading): what to look for when reading this system through each
+   * contributing type's lens. DISPLAY-ONLY; rendered by the reception workbench
+   * (IntentLensAccordion + reference panel). Absent on every non-reception
+   * objective, so seed/catalogue objects validate unchanged.
+   */
+  intentLens: z.array(IntentLensRowSchema).optional(),
+  /**
+   * Optional DISPLAY label for the Observe-stage record this objective's survey
+   * produces -- the reception "Observe Output", sibling to `actHandoff` (the Act
+   * handoff). Reading copy, never a gate. Absent on every existing objective.
+   */
+  observeOutput: z.string().min(1).optional(),
+  /**
+   * Optional DISPLAY-ONLY "builds on" dependency line (e.g. "Tier 2.1 Water
+   * movement & hydrology"). NEVER a prerequisite -- gating prereqs are
+   * `prerequisiteObjectiveIds` (universal-id-only, per the cross-config lock
+   * invariant). Pure reading copy for the reception workbench header. Absent on
+   * every existing objective.
+   */
+  buildsOnDisplay: z.string().min(1).optional(),
+  /**
+   * Resolution metadata: when true, this authored objective is DEFINED but
+   * SKIPPED by `resolveProjectObjectives` (Pass-1) -- kept in the catalogue for a
+   * later tier/pass without resolving into the current config. Distinct from the
+   * runtime status-machine `'deferred'` (a steward shelving action on an
+   * already-resolved objective). Absent/false => resolves normally.
+   */
+  excludedFromResolution: z.boolean().optional(),
 });
 export type PlanStratumObjective = z.infer<typeof PlanStratumObjectiveSchema>;
 

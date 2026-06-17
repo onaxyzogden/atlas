@@ -36,7 +36,7 @@ describe('resolveProjectObjectives - gate history capture (real residential)', (
     expect(hydro?.completionGateAmendments).toEqual([
       {
         secondaryTypeId: 'residential',
-        text: 'Domestic water demand confirmed against available yield.',
+        text: 'Domestic water supply options assessed with seasonal reliability and water-table depth recorded; source potability status and treatment requirements defined for household use.',
       },
     ]);
   });
@@ -44,7 +44,7 @@ describe('resolveProjectObjectives - gate history capture (real residential)', (
   it('still concatenates the flat completionGate (base + amendment), unchanged', () => {
     expect(hydro?.completionGate).toContain('Hydrological survey complete');
     expect(hydro?.completionGate).toContain(
-      'Domestic water demand confirmed against available yield.',
+      'source potability status and treatment requirements defined for household use.',
     );
   });
 

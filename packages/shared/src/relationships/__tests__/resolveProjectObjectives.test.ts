@@ -5,6 +5,8 @@ import {
 } from '../resolveProjectObjectives.js';
 import {
   findUniversalObjective,
+  SILVOPASTURE_SECONDARY_OBJECTIVES,
+  RESIDENTIAL_ADDITIVE_OBJECTIVES,
   type SecondaryCatalogue,
 } from '../../constants/plan/catalogues/index.js';
 import { ck, obj, patch } from '../../constants/plan/catalogues/authoring.js';
@@ -47,12 +49,12 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 20 + 13 + 6 additive = 39 objectives', () => {
-    expect(r.objectives).toHaveLength(39);
+  it('resolves 20 + 13 + 5 additive = 38 objectives (res-s3-water-quality excluded)', () => {
+    expect(r.objectives).toHaveLength(38);
   });
 
-  it('applies all 5 residential patches (every target present)', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(5);
+  it('applies all 6 residential patches (every target present)', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(6);
     expect(r.provenance.skippedPatches).toEqual([]);
   });
 
@@ -65,8 +67,8 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
       relation: 'M',
       loaded: true,
       encoded: true,
-      additiveCount: 6,
-      patchCount: 5,
+      additiveCount: 5,
+      patchCount: 6,
     });
   });
 
@@ -74,16 +76,16 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     expect(r.activeTensions).toEqual([]);
   });
 
-  it('injects 2 items into s3-hydrology (5 + 2 = 7), stamped + gate concatenated', () => {
+  it('injects 6 items into s3-hydrology (5 + 6 = 11), stamped + gate concatenated', () => {
     const hydro = findPlanStratumObjectiveIn(r.objectives, 's3-hydrology');
-    expect(hydro?.checklist).toHaveLength(7);
+    expect(hydro?.checklist).toHaveLength(11);
     const injected = hydro?.checklist.filter(
       (i) => i.expandedBySecondaryId === 'residential',
     );
-    expect(injected).toHaveLength(2);
+    expect(injected).toHaveLength(6);
     expect(hydro?.completionGate).toContain('Hydrological survey complete');
     expect(hydro?.completionGate).toContain(
-      'Domestic water demand confirmed against available yield.',
+      'source potability status and treatment requirements defined for household use.',
     );
   });
 
@@ -179,9 +181,68 @@ describe('resolveProjectObjectives - canonical declaration config (regen + resid
     );
   });
 
-  it('applies every patch from both secondaries with no skips (5 residential + 4 silvopasture)', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(9);
+  it('applies every patch from both secondaries with no skips (6 residential + 8 silvopasture)', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(14);
     expect(r.provenance.skippedPatches).toEqual([]);
+  });
+
+  // ---- Tier-2 (Stratum-3) Reception / Systems-Reading restructure 2026-06-16 ----
+
+  it('resolves EXACTLY the five spec Stratum-3 reception surveys for this config', () => {
+    // The resolved Systems-Reading set must be precisely the five spec surveys:
+    // 2.1 hydrology, 2.2 soil, 2.3 nutrient cycling, 2.4 pest pressure, and the
+    // new 2.5 livestock stock-water (silvopasture-secondary additive). No more.
+    const s3 = r.objectives
+      .filter((o) => o.stratumId === 's3-systems-reading')
+      .map((o) => o.id);
+    expect(new Set(s3)).toEqual(
+      new Set([
+        's3-hydrology',
+        's3-soil',
+        'rf-s3-nutrient-cycling',
+        'rf-s3-pest-pressure',
+        'silv-sec-s3-stock-water',
+      ]),
+    );
+  });
+
+  it('honours excludedFromResolution: forage-survey + water-quality are defined but not resolved', () => {
+    // Both objectives are authored in their catalogues with the flag set...
+    expect(
+      SILVOPASTURE_SECONDARY_OBJECTIVES.some(
+        (o) => o.id === 'silv-sec-s3-forage-survey' && o.excludedFromResolution,
+      ),
+    ).toBe(true);
+    expect(
+      RESIDENTIAL_ADDITIVE_OBJECTIVES.some(
+        (o) => o.id === 'res-s3-water-quality' && o.excludedFromResolution,
+      ),
+    ).toBe(true);
+    // ...but neither reaches the resolved spine (relocated/deferred per plan).
+    const allIds = new Set(r.objectives.map((o) => o.id));
+    expect(allIds.has('silv-sec-s3-forage-survey')).toBe(false);
+    expect(allIds.has('res-s3-water-quality')).toBe(false);
+  });
+
+  it('Amanah: no advance-sale / subscription / yield-share wording in the resolved Stratum-3 set', () => {
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const strings: string[] = [];
+    for (const o of r.objectives.filter(
+      (x) => x.stratumId === 's3-systems-reading',
+    )) {
+      strings.push(o.title, o.focusedQuestion);
+      if (o.completionGate) strings.push(o.completionGate);
+      if (o.actHandoff) strings.push(o.actHandoff);
+      if (o.observeOutput) strings.push(o.observeOutput);
+      if (o.buildsOnDisplay) strings.push(o.buildsOnDisplay);
+      for (const row of o.intentLens ?? []) strings.push(row.text);
+      for (const c of o.checklist) strings.push(c.label);
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
   });
 });
 
@@ -198,12 +259,12 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 20 universal + 34 agritourism primary + 6 residential additive = 60 objectives', () => {
-    expect(r.objectives).toHaveLength(60);
+  it('resolves 20 universal + 34 agritourism primary + 5 residential additive = 59 objectives', () => {
+    expect(r.objectives).toHaveLength(59);
   });
 
-  it('applies 4 patches and skips P0 without throwing', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(4);
+  it('applies 5 patches and skips P0 without throwing', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(5);
     expect(r.provenance.skippedPatches).toHaveLength(1);
     expect(r.provenance.skippedPatches[0]).toMatchObject({
       secondaryTypeId: 'residential',
@@ -227,8 +288,8 @@ describe('resolveProjectObjectives - wellness + residential', () => {
     expect(r.activeTensions.map((t) => t.id)).toContain('tension-10');
   });
 
-  it('skips P0 (wellness not encoded) and applies the 4 universal patches', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(4);
+  it('skips P0 (wellness not encoded) and applies the 5 universal patches', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(5);
     expect(r.provenance.skippedPatches).toHaveLength(1);
   });
 });

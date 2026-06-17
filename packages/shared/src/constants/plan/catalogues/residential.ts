@@ -4,9 +4,13 @@
 // (OLOS Residential Secondary Layer Objective Catalogue v1.0).
 //
 // Residential is secondary-only (cannot be a primary). It contributes BOTH:
-//   - 6 additive objectives (new standalone objectives, one per tier 0/2/3/4/5/6)
-//   - 5 patch records (inject checklist items into existing objectives + amend
-//     their completion gates)
+//   - 6 additive objectives are authored, but one (res-s3-water-quality) carries
+//     excludedFromResolution (2026-06-16 Tier-2 restructure): its definition is
+//     kept while its domestic-water/potability content is relocated into the
+//     s3-hydrology + s3-soil patches below, so only 5 additive objectives resolve
+//   - 6 patch records (inject checklist items into existing objectives + amend
+//     their completion gates) - P0 on the regen primary, P1/P1b/P2/P3/P4 on
+//     universal targets
 // A (secondary, primary) pair can therefore be additive AND modifying at once.
 //
 // Patch targets: P1-P4 target Universal objectives (present in every project,
@@ -128,6 +132,16 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
+    // 2026-06-16 Tier-2 (Stratum-3) Reception restructure: domestic water is no
+    // longer a standalone Systems-Reading survey. Its reception content is
+    // RELOCATED into the residential patches on the shared universal surveys -
+    // supply/reliability/water-table + a condensed potability & treatment group
+    // on s3-hydrology (RES>U-S3.1), and subsurface/drainage on s3-soil
+    // (RES>U-S3.2). This full definition is PRESERVED (not deleted): the seeded
+    // protocol map keys res2-dwelling-water-safety on this id and Act handoffs
+    // stay valid, and the granular per-vector testing here remains the
+    // authoritative source if a later pass re-enables the standalone survey.
+    excludedFromResolution: true,
     title: 'A clear read of domestic water quality & potability',
     shortTitle: 'Domestic water quality & potability',
     focusedQuestion:
@@ -472,7 +486,11 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
     scopeNote:
       'Residential Stratum 2 has no standalone objective - the primary landscape vector survey must explicitly cover drinking-water catchment contamination.',
   }),
-  // P1 - Stratum 3 patch on universal hydrology survey.
+  // P1 - Stratum 3 patch on universal hydrology survey (Residential 2.1).
+  // Carries BOTH the spec 2.1 residential supply/reliability read AND the
+  // condensed potability & treatment group relocated from the retired
+  // res-s3-water-quality standalone (full granular testing preserved on that
+  // definition). Domestic demand quantification now lives at S4 (P2 below).
   patch({
     secondaryTypeId: SECONDARY,
     targetObjectiveId: 's3-hydrology',
@@ -480,22 +498,75 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
     injectedItems: [
       ck(
         's3-hydrology-pres-1',
-        'Assess domestic water demand - daily household consumption including drinking, cooking, bathing, laundry',
+        'Assess domestic water supply options at candidate habitation zones - bore/well yield, creek or dam reliability, mains connection feasibility',
       ),
       ck(
         's3-hydrology-pres-2',
-        'Confirm water source yield is sufficient for combined domestic and productive demand',
+        'Record seasonal variation in water availability - does each supply option hold through the driest months at usable volume and quality?',
+      ),
+      ck(
+        's3-hydrology-pres-3',
+        'Assess water table depth at candidate habitation zones - implications for dwelling subfloor, basement, septic system design, and shallow bore options',
+      ),
+      ck(
+        's3-hydrology-pres-4',
+        'Test domestic water sources against landscape contamination vectors - biological (bacteria, pathogens, parasites), chemical (herbicides, nitrates, heavy metals, petroleum), and naturally-occurring (arsenic, fluoride, iron) contaminants',
+      ),
+      ck(
+        's3-hydrology-pres-5',
+        'Define potability status for each source by intended use - drinking, cooking, bathing, irrigation, or animal use only',
+      ),
+      ck(
+        's3-hydrology-pres-6',
+        'Define treatment requirements for each source to reach its intended-use standard',
       ),
     ],
     injectedGroups: [
       dg(
         's3-hydrology-dgres1',
-        'Domestic water demand',
-        ['s3-hydrology-pres-1', 's3-hydrology-pres-2'],
+        'Domestic water supply & reliability',
+        ['s3-hydrology-pres-1', 's3-hydrology-pres-2', 's3-hydrology-pres-3'],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        's3-hydrology-dgres2',
+        'Domestic water quality & potability',
+        ['s3-hydrology-pres-4', 's3-hydrology-pres-5', 's3-hydrology-pres-6'],
         ['Water & Hydrology'],
       ),
     ],
-    completionGateAmendment: 'Domestic water demand confirmed against available yield.',
+    completionGateAmendment:
+      'Domestic water supply options assessed with seasonal reliability and water-table depth recorded; source potability status and treatment requirements defined for household use.',
+  }),
+  // P1b - Stratum 3 patch on universal soil survey (Residential 2.2).
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's3-soil',
+    ref: 'RES>U-S3.2',
+    injectedItems: [
+      ck(
+        's3-soil-pres-1',
+        'Conduct subsurface assessment at candidate habitation zones - bearing capacity indicators, depth to rock or hardpan, consistency for foundation design',
+      ),
+      ck(
+        's3-soil-pres-2',
+        'Assess drainage capacity at candidate zones - percolation test or estimation for septic/drainage system feasibility',
+      ),
+      ck(
+        's3-soil-pres-3',
+        'Note any contamination risk indicators near existing structures - fuel or chemical storage history, old building materials, fill material origin',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's3-soil-dgres1',
+        'Habitation subsurface & drainage',
+        ['s3-soil-pres-1', 's3-soil-pres-2', 's3-soil-pres-3'],
+        ['Soil'],
+      ),
+    ],
+    completionGateAmendment:
+      'Subsurface bearing, drainage/perc capacity, and structural contamination risk assessed at candidate habitation zones.',
   }),
   // P2 - Stratum 4 patch on universal water strategy.
   patch({

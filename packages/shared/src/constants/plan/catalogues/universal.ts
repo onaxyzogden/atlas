@@ -571,6 +571,23 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Hydrological survey complete. Water movement mapped across all seasons.',
     actHandoff: 'Hydrology Survey Package',
+    observeOutput: 'Hydrology Survey Record',
+    buildsOnDisplay:
+      'Tier 1.1 Terrain & topography (terrain map guides water flow interpretation); Tier 1.5 Land health (degradation zones indicate altered water movement)',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read water movement for harvest potential -- where can water be slowed, spread, and sunk to build soil moisture and recharge groundwater',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Identify where water concentrates seasonally in paddock zones -- natural collection points that could support stock water storage with minimal earthworks',
+      },
+      {
+        typeId: 'residential',
+        text: 'Assess domestic water supply reliability and quality at candidate habitation zones; understand water table depth relative to dwelling footprint and waste systems',
+      },
+    ],
   }),
   obj({
     id: 's3-soil',
@@ -618,6 +635,23 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Soil survey complete. Profile assessments and test results recorded for all representative zones.',
     actHandoff: 'Soil Survey Package',
+    observeOutput: 'Soil Survey Record',
+    buildsOnDisplay:
+      'Tier 1.5 Land health & degradation (degradation zones identify where soil profiling is most critical); Tier 1.1 Terrain (slope and drainage class inform soil type distribution)',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read soil for remediation priorities and timeline -- what condition is each production zone in, and how long before it can support intended enterprises',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read soil for compaction legacy and recovery potential in future paddock zones -- particularly under historically grazed areas',
+      },
+      {
+        typeId: 'residential',
+        text: 'Read subsurface at candidate habitation zones for foundation bearing capacity, drainage capacity for septic, and groundwater depth',
+      },
+    ],
   }),
   // ---------------------------------------------------------------- Stratum 4
   obj({

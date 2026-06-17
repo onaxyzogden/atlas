@@ -14,6 +14,7 @@
 import type {
   AnswerSpec,
   DecisionGroup,
+  IntentLensRow,
   ObjectiveFormulaBinding,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
@@ -236,6 +237,27 @@ export interface ObjectiveInput {
    * objectives.
    */
   parallelGroupId?: string;
+  /**
+   * Per-project-type Intent Lens rows (Stratum 3 / doc Tier-2 Reception).
+   * DISPLAY-ONLY "what to look for through this type's lens" guidance. Omit for
+   * non-reception objectives.
+   */
+  intentLens?: IntentLensRow[];
+  /**
+   * DISPLAY label for the Observe-stage record this objective's survey produces
+   * (the reception "Observe Output", sibling to actHandoff). Omit when absent.
+   */
+  observeOutput?: string;
+  /**
+   * DISPLAY-ONLY "builds on" dependency line (NEVER a prereq). Omit when absent.
+   */
+  buildsOnDisplay?: string;
+  /**
+   * When true, this authored objective is DEFINED but SKIPPED by the resolver
+   * (kept for a later tier/pass). Omit (=> resolves normally) for all but the
+   * deliberately-excluded objectives.
+   */
+  excludedFromResolution?: boolean;
 }
 
 /**
@@ -268,6 +290,16 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
       : {}),
     ...(input.parallelGroupId
       ? { parallelGroupId: input.parallelGroupId }
+      : {}),
+    ...(input.intentLens && input.intentLens.length > 0
+      ? { intentLens: input.intentLens }
+      : {}),
+    ...(input.observeOutput ? { observeOutput: input.observeOutput } : {}),
+    ...(input.buildsOnDisplay
+      ? { buildsOnDisplay: input.buildsOnDisplay }
+      : {}),
+    ...(input.excludedFromResolution
+      ? { excludedFromResolution: true }
       : {}),
   };
 }

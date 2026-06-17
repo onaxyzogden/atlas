@@ -74,6 +74,37 @@ describe('catalogue conformance - schema validity', () => {
       expect(() => PatchRecordSchema.parse(p), p.ref).not.toThrow();
     }
   });
+
+  // Tier-2 (Stratum-3) restructure 2026-06-16: the four new optional objective
+  // fields (intentLens / observeOutput / buildsOnDisplay / excludedFromResolution)
+  // must round-trip through the schema when set AND be absent when omitted, so
+  // every pre-existing catalogue/skeleton object validates unchanged.
+  describe('reception display fields round-trip', () => {
+    const hydro = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's3-hydrology');
+
+    it('preserves intentLens / observeOutput / buildsOnDisplay / excludedFromResolution when set', () => {
+      // s3-hydrology already carries the three display fields (authored in 1B);
+      // add the resolution flag to exercise all four on one object.
+      const withAll = { ...hydro!, excludedFromResolution: true };
+      const parsed = PlanStratumObjectiveSchema.parse(withAll);
+      expect(parsed.intentLens?.length ?? 0).toBeGreaterThan(0);
+      expect(parsed.intentLens?.every((row) => !!row.typeId && !!row.text)).toBe(
+        true,
+      );
+      expect(typeof parsed.observeOutput).toBe('string');
+      expect(typeof parsed.buildsOnDisplay).toBe('string');
+      expect(parsed.excludedFromResolution).toBe(true);
+    });
+
+    it('leaves the four fields undefined when omitted (legacy objectives unchanged)', () => {
+      const vision = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's1-vision');
+      const parsed = PlanStratumObjectiveSchema.parse(vision!);
+      expect(parsed.intentLens).toBeUndefined();
+      expect(parsed.observeOutput).toBeUndefined();
+      expect(parsed.buildsOnDisplay).toBeUndefined();
+      expect(parsed.excludedFromResolution).toBeUndefined();
+    });
+  });
 });
 
 describe('catalogue conformance - authoring rubric (Standards v1.4)', () => {
@@ -777,12 +808,16 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes exactly 8 additive objectives and 4 patches', () => {
-    // The 4th patch (SILV>RF-S1.4) targets the regen primary's enterprise-mix
-    // objective (rf-s1-enterprise-mix), added by the 2026-06-16 Tier-0
-    // restructure so livestock integration is captured at declaration time.
-    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(8);
-    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(4);
+  it('contributes 9 additive objectives (one excluded from resolution) and 8 patches', () => {
+    // SILV>RF-S1.4 targets the regen primary's enterprise-mix objective
+    // (rf-s1-enterprise-mix), added by the 2026-06-16 Tier-0 restructure so
+    // livestock integration is captured at declaration time. The 2026-06-16
+    // Tier-2 (Stratum-3) restructure then added silv-sec-s3-stock-water (2.5, a
+    // new additive) plus four S3 patches (hydrology/soil/nutrient/pest), and
+    // flagged silv-sec-s3-forage-survey excludedFromResolution (definition kept,
+    // deferred to a later pass) - so the array holds 9 but only 8 resolve.
+    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(9);
+    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(8);
   });
 
   it('every silvopasture secondary patch ref matches the patch format', () => {
@@ -797,7 +832,10 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     }
   });
 
-  it('resolves silvopasture onto a regen primary as +8 additive', () => {
+  it('resolves silvopasture onto a regen primary as +8 additive (9 authored - 1 excluded)', () => {
+    // Net resolved additive is unchanged at +8: the new silv-sec-s3-stock-water
+    // (+1) is offset by silv-sec-s3-forage-survey being excludedFromResolution
+    // (-1). The authored array is 9; only 8 reach the resolved spine.
     const base = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: [],
@@ -809,10 +847,11 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
-  it('applies all 4 patches (3 universal + the regen enterprise-mix target), none skipped', () => {
-    // 3 patches land on universal S4-S6 objectives; the 4th (SILV>RF-S1.4)
-    // lands on the regen primary rf-s1-enterprise-mix, present here because the
-    // primary type is regenerative_farm.
+  it('applies all 8 patches (universal + regen primary targets), none skipped', () => {
+    // The 8 patches land on 8 distinct targets, all present under a regen
+    // primary: SILV>RF-S1.4 (rf-s1-enterprise-mix), the three original S4-S6
+    // universal patches, plus the four 2026-06-16 Tier-2 S3 patches on
+    // s3-hydrology, s3-soil, rf-s3-nutrient-cycling, and rf-s3-pest-pressure.
     const result = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
@@ -820,7 +859,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     const patched = result.objectives.filter((o) =>
       o.checklist.some((c) => c.expandedBySecondaryId === 'silvopasture'),
     );
-    expect(patched.length).toBe(4);
+    expect(patched.length).toBe(8);
     expect(result.provenance.skippedPatches).toEqual([]);
   });
 
@@ -999,8 +1038,15 @@ describe('catalogue conformance - decision group resolution (regen+residential)'
     const injected = objectives.flatMap((o) =>
       o.decisionGroups.filter((g) => g.sourceSecondaryId !== null),
     );
-    // The 5 residential patches each inject exactly one group.
-    expect(injected.length).toBe(RESIDENTIAL_PATCHES.length);
+    // Each residential patch injects one or more groups (the s3-hydrology
+    // patch injects two: domestic supply & reliability + quality & potability),
+    // so derive the expected stamped-group count from the patches themselves
+    // rather than assuming one group per patch.
+    const expectedInjectedGroups = RESIDENTIAL_PATCHES.reduce(
+      (n, p) => n + (p.injectedGroups?.length ?? 0),
+      0,
+    );
+    expect(injected.length).toBe(expectedInjectedGroups);
     for (const g of injected) {
       expect(g.sourceSecondaryId, g.id).toBe('residential');
     }

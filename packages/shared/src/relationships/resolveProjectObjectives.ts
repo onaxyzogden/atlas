@@ -207,6 +207,12 @@ export function resolveProjectObjectives(
   let order = 0;
 
   const addObjective = (source: PlanStratumObjective): boolean => {
+    // Tier-2 restructure 2026-06-16: an objective flagged excludedFromResolution
+    // is authored-but-not-resolved - its definition is preserved in the
+    // catalogue (Act handoffs / seeded-protocol maps stay valid) but it is kept
+    // out of every resolved set. Honored uniformly here so it applies whether the
+    // source is universal, primary, or additive. Not a dedupe - no provenance.
+    if (source.excludedFromResolution) return false;
     if (byId.has(source.id)) {
       provenance.dedupedObjectiveIds.push(source.id);
       return false;

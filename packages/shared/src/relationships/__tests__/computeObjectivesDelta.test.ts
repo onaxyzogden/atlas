@@ -5,8 +5,9 @@ import { ck, obj, patch } from '../../constants/plan/catalogues/authoring.js';
 
 describe('computeObjectivesDelta - adding residential to regenerative_farm', () => {
   // regen_farm primary resolves universal+primary (32); adding residential is
-  // an M pairing: 6 additive objectives + 5 patches (one of which amends the
-  // s3-hydrology completion gate).
+  // an M pairing: 5 additive objectives (res-s3-water-quality is excluded from
+  // resolution; its content was relocated into the s3-hydrology/s3-soil patches)
+  // + 6 patches (one of which amends the s3-hydrology completion gate).
   const before = {
     primaryTypeId: 'regenerative_farm',
     secondaryTypeIds: [],
@@ -17,9 +18,9 @@ describe('computeObjectivesDelta - adding residential to regenerative_farm', () 
   } as const;
   const delta = computeObjectivesDelta(before, after);
 
-  it('reports the 6 residential additive objectives as new', () => {
-    expect(delta.newObjectiveIds).toHaveLength(6);
-    expect(delta.newObjectives).toHaveLength(6);
+  it('reports the 5 residential additive objectives as new', () => {
+    expect(delta.newObjectiveIds).toHaveLength(5);
+    expect(delta.newObjectives).toHaveLength(5);
     // every reported new objective is a residential secondary objective
     expect(
       delta.newObjectives.every(
@@ -35,7 +36,7 @@ describe('computeObjectivesDelta - adding residential to regenerative_farm', () 
     const hydroItems = delta.injectedItems.filter(
       (i) => i.objectiveId === 's3-hydrology',
     );
-    expect(hydroItems).toHaveLength(2);
+    expect(hydroItems).toHaveLength(6);
     expect(
       hydroItems.every((i) => i.item.expandedBySecondaryId === 'residential'),
     ).toBe(true);
@@ -44,8 +45,12 @@ describe('computeObjectivesDelta - adding residential to regenerative_farm', () 
   it('reports the s3-hydrology gate amendment (before != after)', () => {
     expect(delta.objectivesWithGateAmendments).toContain('s3-hydrology');
     const gate = delta.gateAmendments.find((g) => g.objectiveId === 's3-hydrology');
-    expect(gate?.after).toContain('Domestic water demand confirmed');
-    expect(gate?.before ?? '').not.toContain('Domestic water demand confirmed');
+    expect(gate?.after).toContain(
+      'source potability status and treatment requirements defined',
+    );
+    expect(gate?.before ?? '').not.toContain(
+      'source potability status and treatment requirements defined',
+    );
   });
 
   it('never lists a new objective as also gaining items (disjoint sets)', () => {

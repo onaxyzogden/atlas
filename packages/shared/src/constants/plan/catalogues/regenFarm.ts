@@ -307,6 +307,19 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Nutrient cycling baseline complete. Organic matter flows mapped and recorded.',
     actHandoff: 'Nutrient Cycling Baseline Report',
+    observeOutput: 'Nutrient Cycling Baseline Report',
+    buildsOnDisplay:
+      'Tier 1.3 Ecology (decomposer community survey informs nutrient cycling capacity); Tier 2.2 Soil (soil biology and organic matter assessments feed directly here)',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read nutrient cycling as the fertility engine that must underpin all production enterprises -- where is the system healthy, where is it broken, and what will it take to close the loops',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Livestock are the primary fertility driver in a silvopasture system -- note what the current system has and lacks relative to animal-derived nutrient cycling (manure, urine, hoof action, grazing pressure on decomposer community)',
+      },
+    ],
   }),
   obj({
     id: 'rf-s3-pest-pressure',
@@ -373,6 +386,19 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Pest, disease, and weed pressure baseline complete. Ecological relationships identified.',
     actHandoff: 'Pest, Disease & Weed Pressure Baseline Report',
+    observeOutput: 'Pest, Disease & Weed Pressure Baseline Report',
+    buildsOnDisplay:
+      'Tier 1.3 Ecology (habitat survey reveals beneficial species and problem species distribution); Tier 1.5 Land health (degradation zones correlate with weed and pest pressure); Tier 1.6 Landscape context (off-farm pressure sources identified)',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read pest and weed pressure as ecological signals -- not as problems to be controlled, but as indicators of the system conditions that produced them',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read for livestock-specific pressure -- internal parasite burden, toxic plant species in future paddock zones, fly and disease vector habitats',
+      },
+    ],
   }),
   // ---------------------------------------------------------------- Stratum 4
   obj({

@@ -1439,6 +1439,14 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
+    // 2026-06-16 Tier-2 (Stratum-3) Reception restructure: this config's
+    // resolved Systems-Reading set is EXACTLY the five spec surveys (2.1-2.5),
+    // and the graduated standalone 2.5 'silv-sec-s3-stock-water' replaces forage
+    // as the silvopasture S3 survey in scope. Forage base / grazing capacity is
+    // DEFERRED to a later reception pass; its definition is preserved here intact
+    // (Act-tool / protocol references stay valid). Re-enable by removing this
+    // flag when the later tier lands.
+    excludedFromResolution: true,
     title: 'A clear read of forage base & grazing capacity',
     shortTitle: 'Forage base & grazing capacity',
     focusedQuestion:
@@ -1482,6 +1490,109 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Forage base mapped. Seasonal availability and feed gaps identified. Baseline carrying capacity estimated per zone.',
     actHandoff: 'Forage Base & Grazing Capacity Survey',
+  }),
+  // 2.5 Survey livestock water availability & seasonal supply (Graduated -
+  // standalone). NEW for the Tier-2 Reception restructure: when silvopasture is
+  // SECONDARY, the primary 'silv-s3-stock-water-availability' never resolves, so
+  // this additive objective carries stock water into the resolved S3 set,
+  // reusing the 'stock-water-demand' formula. Feeds strictly-later UNIVERSAL ids
+  // (in-config in every combo) for OUTBOUND traceability.
+  obj({
+    id: 'silv-sec-s3-stock-water',
+    stratumId: 's3-systems-reading',
+    ref: 'SILV-S3.21',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title:
+      'A confirmed livestock water availability & seasonal supply baseline',
+    shortTitle: 'Livestock water availability & seasonal supply',
+    focusedQuestion:
+      'Is there sufficient water of suitable quality to sustain the intended livestock through all seasons, and what infrastructure makes that supply reliable across all paddock zones?',
+    checklist: [
+      ckF(
+        'silv-sec-s3-stock-water-c1',
+        'Calculate estimated stock water demand by species, intended numbers, and season - peak summer demand is the constraint',
+        {
+          formulaId: 'stock-water-demand',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Stock water demand vs supply',
+        },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c2',
+        'Assess existing water source yield through the dry season - dam storage, bore/well yield, creek/spring flow at seasonal minimum',
+        { feeds: ['s4-water-strategy', 's5-water-infrastructure'] },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c3',
+        'Map distance from water sources to proposed paddock locations - maximum travel distance per paddock',
+        { feeds: ['s5-water-infrastructure'] },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c4',
+        'Identify seasonal gaps between supply and demand - when and by how much supply falls short',
+        { feeds: ['s4-water-strategy', 's7-risk-register'] },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c5',
+        'Assess infrastructure required to deliver water to all paddock locations - pipes, pumps, troughs, header tanks',
+        { feeds: ['s5-water-infrastructure'] },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c6',
+        'Conduct water quality assessment for livestock suitability - pH, blue-green algae risk, contamination sources',
+        { feeds: ['s7-risk-register', 's5-water-infrastructure'] },
+      ),
+      ck(
+        'silv-sec-s3-stock-water-c7',
+        'Assess shared-source combined demand where domestic and stock water draw from the same bore, dam, creek, or rainwater source',
+        {
+          feeds: ['s7-risk-register'],
+          feedNote:
+            'Residential / Live-In: where domestic and stock water share a source, assess whether it can sustain both through the driest season without a prioritisation conflict, and flag any source where household and livestock supply would compete.',
+        },
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'silv-sec-s3-stock-water-dg1',
+        'Demand & source yields',
+        ['silv-sec-s3-stock-water-c1', 'silv-sec-s3-stock-water-c2'],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        'silv-sec-s3-stock-water-dg2',
+        'Distribution & seasonal gaps',
+        [
+          'silv-sec-s3-stock-water-c3',
+          'silv-sec-s3-stock-water-c4',
+          'silv-sec-s3-stock-water-c5',
+        ],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        'silv-sec-s3-stock-water-dg3',
+        'Water quality & shared-source conflict',
+        ['silv-sec-s3-stock-water-c6', 'silv-sec-s3-stock-water-c7'],
+      ),
+    ],
+    completionGate:
+      'Stock water availability confirmed or gap quantified for all seasons. Infrastructure requirement to close any gap identified. Shared-source domestic conflict assessment complete where applicable (Residential/Live-In).',
+    actHandoff: 'Livestock Water Availability Report',
+    observeOutput: 'Livestock Water Availability Record',
+    buildsOnDisplay:
+      'Tier 2.1 Water movement (water source locations, seasonal yields, and distribution infrastructure identified there)',
+    intentLens: [
+      {
+        typeId: 'silvopasture',
+        text: 'Read water availability as a fundamental carrying-capacity constraint -- no stocking plan is valid without a confirmed water supply baseline',
+      },
+      {
+        typeId: 'residential',
+        text: 'Where domestic and stock water draw from shared sources, the combined demand must be assessed -- the household cannot be left without water supply during peak stock water demand periods',
+      },
+    ],
   }),
   // ---------------------------------------------------------------- Stratum 4
   obj({
@@ -1930,5 +2041,128 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
       'Grazing-impact monitoring and graze/rest thresholds protect soil and ground cover from overgrazing.',
     scopeNote:
       'Silvopasture secondary: livestock are both a soil-building tool and a compaction/overgrazing risk; the soil strategy must govern grazing pressure.',
+  }),
+  // ---- Tier-2 (Stratum-3) Reception restructure 2026-06-16 -----------------
+  // Four livestock deltas folded into the shared Systems-Reading surveys so the
+  // whole-site reception read carries the grazing dimension (spec 2.1-2.4 silv
+  // patch blocks). 2.1/2.2 land on UNIVERSAL surveys; 2.3/2.4 land on the
+  // RegenFarm PRIMARY surveys (apply only when regenerative_farm is primary -
+  // the resolver records a skip otherwise, never throws). Observations only;
+  // no allocation/sale surface.
+  // 2.1 Water movement & hydrology
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's3-hydrology',
+    ref: 'SILV>U-S3.1',
+    injectedItems: [
+      ck(
+        's3-hydrology-silv-1',
+        'Identify where water concentrates seasonally in paddock zones - swales, depressions, natural collection points with stock water storage potential',
+      ),
+      ck(
+        's3-hydrology-silv-2',
+        'Map seasonal creek and waterway flow in proposed paddock areas - year-round, seasonal, or absent',
+      ),
+      ck(
+        's3-hydrology-silv-3',
+        'Note wet season drainage issues in paddock zones - waterlogging duration and extent',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's3-hydrology-dgsilv1',
+        'Paddock water concentration',
+        ['s3-hydrology-silv-1', 's3-hydrology-silv-2', 's3-hydrology-silv-3'],
+        ['Water & Hydrology'],
+      ),
+    ],
+    completionGateAmendment:
+      'Seasonal water concentration points in paddock zones identified for stock water storage assessment.',
+    scopeNote:
+      'Silvopasture secondary: where water concentrates seasonally and where paddock zones waterlog governs grazing layout; these readings feed the livestock water availability survey (2.5).',
+  }),
+  // 2.2 Soil conditions & subsurface
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's3-soil',
+    ref: 'SILV>U-S3.2',
+    injectedItems: [
+      ck(
+        's3-soil-silv-1',
+        'Conduct compaction profiling under historically grazed areas - penetrometer readings at multiple depths',
+      ),
+      ck(
+        's3-soil-silv-2',
+        'Record bulk density variation between grazed and ungrazed zones',
+      ),
+      ck(
+        's3-soil-silv-3',
+        'Assess root depth restriction in compacted zones - what will pasture recovery require?',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's3-soil-dgsilv1',
+        'Compaction legacy & recovery',
+        ['s3-soil-silv-1', 's3-soil-silv-2', 's3-soil-silv-3'],
+        ['Soil'],
+      ),
+    ],
+    completionGateAmendment:
+      'Compaction profiling complete in historically grazed areas, with root-depth restriction and pasture recovery requirement recorded.',
+    scopeNote:
+      'Silvopasture secondary: future paddock zones carry a compaction legacy under historically grazed ground; the soil read must quantify it to size pasture recovery.',
+  }),
+  // 2.3 Nutrient cycling & organic-matter flows (RegenFarm primary survey)
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 'rf-s3-nutrient-cycling',
+    ref: 'SILV>RF-S3.3',
+    injectedItems: [
+      ck(
+        'rf-s3-nutrient-cycling-silv-1',
+        'Note the current nutrient cycling contribution (or absence) from livestock: are animals currently on this land contributing to fertility cycling or has the system been decoupled from animal inputs? This sets the baseline for what the silvopasture enterprise will repair or build.',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        'rf-s3-nutrient-cycling-dgsilv1',
+        'Livestock fertility baseline',
+        ['rf-s3-nutrient-cycling-silv-1'],
+        ['Soil'],
+      ),
+    ],
+    completionGateAmendment:
+      'Livestock nutrient cycling baseline noted - the starting point for what the silvopasture enterprise will repair or build.',
+    scopeNote:
+      'Silvopasture secondary: in a silvopasture system livestock are the primary fertility driver, so the nutrient-cycling read records the current animal-derived contribution or its absence as a baseline. This is an observation of the present system, not a production commitment.',
+  }),
+  // 2.4 Pest, disease & weed pressure (RegenFarm primary survey)
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 'rf-s3-pest-pressure',
+    ref: 'SILV>RF-S3.4',
+    injectedItems: [
+      ck(
+        'rf-s3-pest-pressure-silv-1',
+        'Record livestock-relevant disease and parasite pressure: internal parasite indicator species in paddock zones (certain weed species signal parasite burden), fly pressure history, disease vectors associated with wet areas or waterways',
+      ),
+      ck(
+        'rf-s3-pest-pressure-silv-2',
+        'Map plant species in future paddock zones that are toxic to intended livestock - density, distribution, and removal priority',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        'rf-s3-pest-pressure-dgsilv1',
+        'Livestock pressure & toxic plants',
+        ['rf-s3-pest-pressure-silv-1', 'rf-s3-pest-pressure-silv-2'],
+        ['Vegetation & Succession'],
+      ),
+    ],
+    completionGateAmendment:
+      'Livestock-relevant disease, parasite, and fly pressure recorded, and toxic plant distribution in future paddock zones mapped.',
+    scopeNote:
+      'Silvopasture secondary: livestock add pressure vectors - internal parasites, flies, toxic plants in paddock zones - that the base pest read does not cover.',
   }),
 ];
