@@ -797,6 +797,20 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Paddock/cell and yard layout designed and matched to terrain and the grazing system.',
     actHandoff: 'Paddock & Cell Layout Design',
+    buildsOnDisplay:
+      'Builds on the committed grazing / feeding system decision (lvs-s4-grazing-system).',
+    monitoringProtocol: {
+      indicators: [
+        'Per-paddock stocking density vs the design figure as the herd is moved through cells (per rotation)',
+        'Laneway and gate flow to water and yards - move time and any bunching or stress points (per move)',
+        'Sacrifice / stand-off area condition and use in wet conditions (seasonally)',
+      ],
+      triggers: [
+        'A cell carrying more stress or density than designed -> resize or resequence the cell, review the move plan',
+        'Stock bunching or balking on a laneway or gate -> rework the flow path or gate placement',
+      ],
+      feeds: 'Livestock Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s5-fencing-water',
@@ -843,6 +857,20 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Fencing and water-reticulation infrastructure specified and sequenced.',
     actHandoff: 'Fencing & Water Reticulation Design',
+    buildsOnDisplay:
+      'Builds on the committed stock-water strategy (lvs-s4-stock-water-strategy).',
+    monitoringProtocol: {
+      indicators: [
+        'Fence integrity and electric-fence voltage on each run (per check round)',
+        'Trough flow and water level holding through peak demand at every trough (daily in peak season)',
+        'Pump, power, and storage holding the peak-demand reserve (weekly)',
+      ],
+      triggers: [
+        'A fence down or voltage dropping below the holding threshold -> repair the run before the next move',
+        'A trough failing to refill or running dry under peak demand -> service the line and recheck pump and storage sizing',
+      ],
+      feeds: 'Stock Water monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s5-handling-shelter',
@@ -888,6 +916,20 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Handling facilities and shelter designed to welfare and safety standards.',
     actHandoff: 'Handling Facilities & Shelter Design',
+    buildsOnDisplay:
+      'Builds on the committed species & breed selection (lvs-s4-species-breed).',
+    monitoringProtocol: {
+      indicators: [
+        'Handling throughput vs the peak the yards and race were sized for (per handling event)',
+        'Animal stress and injury signs during yarding, treating, and loading (per handling event)',
+        'Shade, wind, and wet-weather shelter use and condition per species (seasonally)',
+      ],
+      triggers: [
+        'Handling stress or injury rising above the welfare standard -> review race and crush layout, slow the throughput',
+        'Shelter falling short in extreme weather -> add or relocate shade and wind protection before the next season',
+      ],
+      feeds: 'Animal Welfare monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s5-feed-budget',
@@ -936,6 +978,20 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Seasonal feed budget complete; deficit-season supply and reserve secured.',
     actHandoff: 'Seasonal Feed Budget & Supplementary-Feed Plan',
+    buildsOnDisplay:
+      'Builds on the committed stocking rate & herd-structure decision (lvs-s4-stocking-rate).',
+    monitoringProtocol: {
+      indicators: [
+        'Monthly forage supply vs herd demand against the feed budget (monthly)',
+        'Conserved-feed and drought-reserve volume on hand vs the safe-reserve target (monthly)',
+        'Herd body-condition score vs the year-round welfare target (monthly)',
+      ],
+      triggers: [
+        'A widening deficit-season gap vs budget -> bring forward conserved feed or trigger the destock policy',
+        'Body condition slipping below the welfare target -> lift the feed plan or reduce demand before condition falls further',
+      ],
+      feeds: 'Feed Supply monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({
@@ -1539,6 +1595,20 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Animal-impact windows, functional stacking, and sequencing designed. Spatial footprint set and confirmed to protect the host primary yield.',
     actHandoff: 'Animal-Impact Integration & Stacking-Timing Design',
+    buildsOnDisplay:
+      'Builds on the species, stocking-rate & grazing-system decision (lvs-sec-s4-species-stocking).',
+    monitoringProtocol: {
+      indicators: [
+        'Animal-impact moves landing inside the planned windows vs the host production calendar (per move)',
+        'Host primary-yield condition in zones stock have passed through - any damage at fruit set, seedling, or pre-harvest intervals (per pass)',
+        'Functional-stacking outcomes per species vs intent - tillage, pest control, cleanup, fertility (seasonally)',
+      ],
+      triggers: [
+        'Stock entering a host exclusion window -> pull animals out, hold until the window reopens',
+        'Host primary yield taking damage from an impact pass -> shorten the pass, adjust timing or footprint to protect the yield',
+      ],
+      feeds: 'Host Integration monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

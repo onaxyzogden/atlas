@@ -641,6 +641,22 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Integrated fertility system design approved. All components specified and sequenced.',
     actHandoff: 'Integrated Fertility System Design Package',
+    buildsOnDisplay:
+      'Builds on 3.3 -- Fertility strategy (approach) and 3.6 -- Paddock layout (livestock movement zones).',
+    monitoringProtocol: {
+      indicators: [
+        'Compost output volume vs. plan (monthly)',
+        'Fertility transfer events completed vs. scheduled (quarterly)',
+        'Crop yield response to fertility applications by zone (seasonal)',
+        'External input spend vs. plan (annual)',
+      ],
+      triggers: [
+        'Compost output below plan for two consecutive months -> investigate feedstock bottleneck',
+        'Fertility transfer delayed -> flag the scheduling conflict',
+        'Crop yield not responding to applications -> soil test, review application method and timing',
+      ],
+      feeds: 'Fertility System monitoring stream',
+    },
   }),
   obj({
     id: 'rf-s5-windbreaks',
@@ -716,6 +732,20 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Windbreak and shelterbelt design approved. Multi-strata structure, wildlife corridor function, and wildfire mitigation confirmed.',
     actHandoff: 'Windbreak & Shelterbelt Design Package',
+    buildsOnDisplay:
+      'Builds on 3.4 -- Biodiversity strategy (corridor intent) and Survey 1.2 -- Climate & wind exposure (prevailing wind direction and severity).',
+    monitoringProtocol: {
+      indicators: [
+        'Planting survival rate at 6 and 12 months (by species and row)',
+        'Wind speed sheltered vs unsheltered (spot measurements in the lee zone)',
+        'Wildlife activity along the established corridor (sightings, nesting, movement)',
+      ],
+      triggers: [
+        'Survival below 70% at 6 months -> review species choice, watering, or browse protection',
+        'Wildlife activity absent after establishment -> review corridor structure and connectivity',
+      ],
+      feeds: 'Vegetation & Microclimate monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

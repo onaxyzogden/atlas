@@ -1075,6 +1075,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Treatment, therapy, and meditation space designs approved. All sensory thresholds confirmed.',
     actHandoff: 'Treatment, Therapy & Meditation Spaces Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+    monitoringProtocol: {
+      indicators: [
+        'Measured noise level in treatment and meditation rooms against the defined decibel threshold',
+        'Recorded natural light, thermal comfort, and privacy complaints per treatment room per month',
+        'Utilisation rate of each treatment room and the meditation hall against scheduled capacity',
+      ],
+      triggers: [
+        'Measured noise in a treatment or meditation space exceeds the sensory threshold -> inspect acoustic isolation and add buffering before reuse',
+        'Recurring guest comfort or privacy complaints for a space -> review layout, light, and thermal performance and remediate',
+      ],
+      feeds: 'Therapeutic Spaces monitoring stream',
+    },
   }),
   obj({
     id: 'well-s5-healing-garden-design',
@@ -1131,6 +1145,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Healing garden and sensory landscape design approved. All elements consistent with sensory standards.',
     actHandoff: 'Healing Garden & Sensory Landscape Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 healing garden and therapeutic landscape strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Condition of therapeutic planting zones - species establishment and seasonal succession against the planting plan',
+        'Function of water features - flow, acoustic quality, and water clarity checked on a regular cycle',
+        'Use of the sensory walk, contemplative seating, and shelters by guests against expected utilisation',
+      ],
+      triggers: [
+        'Planting zone fails to establish or a sensory element degrades below the design standard -> schedule replanting or repair',
+        'A water feature loses flow, clarity, or acoustic quality -> inspect and restore before guest use resumes',
+      ],
+      feeds: 'Healing Garden monitoring stream',
+    },
   }),
   obj({
     id: 'well-s5-guest-accommodation',
@@ -1187,6 +1215,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guest accommodation design approved. Acoustic performance and sensory standards confirmed.',
     actHandoff: 'Guest Accommodation & Private Retreat Spaces Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+    monitoringProtocol: {
+      indicators: [
+        'Measured noise level inside accommodation units against the defined accommodation threshold',
+        'Thermal comfort and natural ventilation complaints per unit per month',
+        'Occupancy and utilisation of accommodation units against available capacity',
+      ],
+      triggers: [
+        'Measured noise inside a unit exceeds the accommodation threshold -> inspect wall, floor, and ceiling construction and remediate before reletting',
+        'Recurring thermal or ventilation complaints for a unit -> review passive ventilation and thermal design and adjust',
+      ],
+      feeds: 'Guest Accommodation monitoring stream',
+    },
   }),
   obj({
     id: 'well-s5-privacy-screening',
@@ -1238,6 +1280,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Privacy screening and acoustic buffering design approved. All zone boundaries meet defined standards.',
     actHandoff: 'Privacy Screening & Acoustic Buffering Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 privacy gradient and zone hierarchy.',
+    monitoringProtocol: {
+      indicators: [
+        'Establishment and density of boundary and internal screening planting against the screening plan',
+        'Measured acoustic separation across zone boundaries against the privacy gradient standard',
+        'Recorded sightline or noise breach reports between zones per month',
+      ],
+      triggers: [
+        'Measured acoustic separation at a zone boundary falls below the standard -> reinforce planting, bunding, or barrier at that boundary',
+        'A sightline or noise breach between zones is reported -> inspect the screening element and remediate the gap',
+      ],
+      feeds: 'Privacy Screening monitoring stream',
+    },
   }),
   obj({
     id: 'well-s5-dining-nourishment',
@@ -1294,6 +1350,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Dining and nourishment infrastructure design approved. Sensory and nourishment standards confirmed.',
     actHandoff: 'Dining & Nourishment Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+    monitoringProtocol: {
+      indicators: [
+        'Measured kitchen and dining noise level during service against the sensory comfort threshold',
+        'Natural light, acoustic comfort, and crowding complaints in the dining space per month',
+        'Utilisation of the dining space at each sitting against its intimate-scale capacity',
+      ],
+      triggers: [
+        'Measured kitchen or dining noise during service exceeds the comfort threshold -> review equipment and acoustic treatment and remediate',
+        'Dining space crowding or acoustic complaints recur -> adjust sitting scheduling or layout to restore the unhurried standard',
+      ],
+      feeds: 'Dining & Nourishment monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

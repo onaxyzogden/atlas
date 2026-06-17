@@ -545,6 +545,20 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Food production zone layout designed and approved. All productive areas specified with dimensions and species plan.',
     actHandoff: 'Food Production Zone Design Package',
+    buildsOnDisplay:
+      'Builds on the household food production strategy set in Tier 3 (hms-s4-food-production-strategy).',
+    monitoringProtocol: {
+      indicators: [
+        'Actual yield per production zone vs. the zone area and targets it was designed to deliver (each season)',
+        'Share of designed beds and growing infrastructure brought into active use (monthly through establishment)',
+        'Protected-growing and nursery throughput vs. designed capacity (per growing cycle)',
+      ],
+      triggers: [
+        'A zone consistently under-yielding for its footprint -> revisit bed layout, rotation, or species mix for that zone',
+        'Designed beds or growing infrastructure sitting unused -> rephase the build or reassign the space to active production',
+      ],
+      feeds: 'Food Production Zone monitoring stream',
+    },
   }),
   obj({
     id: 'hms-s5-energy-shelter-systems',
@@ -588,6 +602,20 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Energy and shelter system design approved. All components specified and sequenced.',
     actHandoff: 'Energy & Shelter Systems Design Package',
+    buildsOnDisplay:
+      'Builds on the energy and shelter resilience strategy set in Tier 3 (hms-s4-energy-shelter-resilience).',
+    monitoringProtocol: {
+      indicators: [
+        'Indoor temperature held by the designed heating system vs. the resilience-threshold standard (through cold and hot seasons)',
+        'Backup power output and run-time vs. the critical-systems load it was sized for (quarterly test)',
+        'On-site fuel stock and woodlot or woodshed reserve vs. seasonal demand (monthly through cold season)',
+      ],
+      triggers: [
+        'Heating system failing to hold the resilience-threshold temperature -> revisit insulation, stove sizing, or passive-solar measures',
+        'Backup power unable to carry the designed critical load -> upgrade capacity or shed non-critical demand',
+      ],
+      feeds: 'Energy & Shelter Systems monitoring stream',
+    },
   }),
   obj({
     id: 'hms-s5-animal-husbandry',
@@ -635,6 +663,20 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Animal husbandry infrastructure design approved. All housing, movement, and management areas specified.',
     actHandoff: 'Animal Husbandry Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the animal integration role defined in the Tier 3 fertility and soil building strategy (hms-s4-fertility-strategy).',
+    monitoringProtocol: {
+      indicators: [
+        'Animal housing and run condition vs. species shelter and space standard (monthly walk-through)',
+        'Predator-exclusion and fencing integrity -- breaches or losses recorded (each incident, reviewed monthly)',
+        'Manure captured and returned to fertility loops vs. designed capture volume (each cycle)',
+      ],
+      triggers: [
+        'Housing or run condition falling below the species shelter standard -> schedule repair or rebuild before stocking levels rise',
+        'Fencing breach or predator loss recorded -> reinforce exclusion at the failure point and recheck the perimeter',
+      ],
+      feeds: 'Animal Husbandry monitoring stream',
+    },
     scopeNotes:
       'Conditional objective - loads only if animals are confirmed in the Tier 0 household needs survey. If no animals are planned, this objective does not appear in the project.',
   }),

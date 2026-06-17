@@ -570,6 +570,20 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Native planting plan approved. Species, densities, zones, and sequence confirmed against provenance strategy.',
     actHandoff: 'Native Planting Plan & Revegetation Sequence',
+    buildsOnDisplay:
+      'Builds on the native species selection & provenance strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Seedling survival and establishment rate by species and planting zone (per season)',
+        'Canopy and ground-cover development vs. the planned succession stage per zone',
+        'Establishment-support condition -- guards, weed suppression, and irrigation where specified',
+      ],
+      triggers: [
+        'Establishment rate below target in a zone -> review species choice, density, and site preparation',
+        'Pioneer or nurse planting failing on degraded ground -> revise the sequence before climax planting proceeds',
+      ],
+      feeds: 'Revegetation Establishment monitoring stream',
+    },
   }),
   obj({
     id: 'con-s5-pest-control-infrastructure',
@@ -595,6 +609,20 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     ],
     completionGate: 'Pest and invasive species control infrastructure design approved.',
     actHandoff: 'Pest & Invasive Species Control Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the pest & invasive species management strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Trap and bait station network coverage and operational status vs. design (per check round)',
+        'Pest animal capture or index trend per priority species at network stations',
+        'Invasive plant density at buffer treatment zones and invasion vectors',
+      ],
+      triggers: [
+        'Pest index crossing the defined control threshold at a station cluster -> intensify control on that vector',
+        'Buffer zone showing reinvasion or new incursion -> treat the entry vector and review buffer placement',
+      ],
+      feeds: 'Pest Control Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'con-s5-water-regime-infrastructure',
@@ -620,6 +648,20 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     ],
     completionGate: 'Water regime restoration infrastructure design approved and consistent with consents.',
     actHandoff: 'Water Regime Restoration Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the water regime restoration strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Water table depth and seasonal variation at fixed points vs. restoration target',
+        'Drain block and bund integrity after high-flow events vs. as-built design',
+        'Reinstated wetland extent and inundation pattern vs. the designed inflow regime',
+      ],
+      triggers: [
+        'Water table not rising toward target after blocking structures are installed -> inspect structures for bypass or failure',
+        'Bund, drain block, or watercourse work failing after a storm -> repair before dependent planting proceeds',
+      ],
+      feeds: 'Water Regime Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'con-s5-wildlife-habitat-infrastructure',
@@ -646,6 +688,18 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Wildlife habitat infrastructure design approved. Placement confirmed against survey findings.',
     actHandoff: 'Wildlife Habitat Infrastructure Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Occupancy rate of nest boxes, perches, and refuge structures by target species (per season)',
+        'Target species presence and abundance near installed habitat structures vs. baseline',
+        'Structural condition and serviceability of installed habitat infrastructure (per check round)',
+      ],
+      triggers: [
+        'Habitat structures showing low occupancy after a full season -> review design, placement, and density against survey findings',
+        'Structure damaged or degraded below serviceable condition -> schedule repair or replacement',
+      ],
+      feeds: 'Wildlife Habitat monitoring stream',
+    },
   }),
   obj({
     id: 'con-s5-fencing-exclusion',
@@ -673,6 +727,18 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Fencing and exclusion infrastructure design approved. Stock exclusion confirmed to precede revegetation.',
     actHandoff: 'Fencing & Exclusion Infrastructure Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Fence line integrity and breach incidents along stock and predator exclusion zones (per check round)',
+        'Stock or pest incursion events inside protected revegetation zones',
+        'Gate, water crossing, and wildlife crossing condition vs. as-built design',
+      ],
+      triggers: [
+        'Breach or incursion detected inside an exclusion zone -> locate and repair the fence line before damage spreads',
+        'Revegetation work scheduled in a zone before its exclusion fencing is verified complete -> hold planting until fencing is confirmed',
+      ],
+      feeds: 'Exclusion Fencing monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

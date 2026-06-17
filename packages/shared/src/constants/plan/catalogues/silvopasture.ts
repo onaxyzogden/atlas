@@ -943,6 +943,20 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Fencing and paddock design approved. All paddocks accessible without cross-paddock movement.',
     actHandoff: 'Fencing & Paddock Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
+    monitoringProtocol: {
+      indicators: [
+        'Share of paddocks reachable from the laneway without crossing another paddock',
+        'Fence integrity check pass rate per inspection round (breakouts, sagging, failed energiser sections)',
+        'Gate and crossing function rate during stock moves (delays or refusals logged)',
+      ],
+      triggers: [
+        'Repeat stock breakout at the same fence section -> upgrade fence type or rebuild that boundary segment',
+        'A paddock becomes reachable only by crossing another -> revise laneway or gate placement for that block',
+      ],
+      feeds: 'Grazing Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s5-stock-water-distribution',
@@ -994,6 +1008,20 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Stock water distribution network design approved. All paddocks confirmed with welfare-standard water access.',
     actHandoff: 'Stock Water Distribution Network Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 stock water infrastructure strategy (silv-s4-stock-water-strategy).',
+    monitoringProtocol: {
+      indicators: [
+        'Share of paddock troughs delivering water within the welfare access standard',
+        'Trough refill and flow rate against target during peak demand periods',
+        'Leak, overflow, or pressure-loss events logged per pipeline section',
+      ],
+      triggers: [
+        'A trough drops below the welfare-standard water access rate -> inspect float valve, pressure, and pipeline section',
+        'Repeat leak or pressure loss on the same line -> review pipe material, burial depth, or pump sizing for that run',
+      ],
+      feeds: 'Stock Water monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s5-shelters-handling',
@@ -1040,6 +1068,20 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Livestock shelters and handling facilities design approved. Welfare standard compliance confirmed.',
     actHandoff: 'Livestock Shelters & Handling Facilities Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
+    monitoringProtocol: {
+      indicators: [
+        'Yard and race throughput against design capacity during handling events (animals per session, hold-ups logged)',
+        'Shade shelter usage and heat-stress signs observed per paddock through hot periods',
+        'Isolation pen readiness check pass rate (water, shelter, treatment access available when needed)',
+      ],
+      triggers: [
+        'Heat-stress signs observed where shade is short -> add or reposition shade shelter for that paddock',
+        'Yard or race flow stalls or handler-safety incident recurs -> revise low-stress layout or race design',
+      ],
+      feeds: 'Grazing Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s5-tree-planting',
@@ -1091,6 +1133,20 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Tree planting and protection plan approved. Establishment sequence aligned with paddock rotation.',
     actHandoff: 'Silvopasture Tree Planting & Protection Plan',
+    buildsOnDisplay:
+      'Builds on the Tier 3 tree integration strategy (silv-s4-tree-integration).',
+    monitoringProtocol: {
+      indicators: [
+        'Tree establishment and survival rate per planting zone at 6 and 12 months',
+        'Browse damage percentage on young trees while guards or exclusion remain in place',
+        'Share of planted zones still within their defined grazing exclusion period',
+      ],
+      triggers: [
+        'Browse damage rises above the set tolerance on young trees -> review guard type, fencing, or timing of stock access',
+        'Establishment failure in a planting zone -> review species choice, protection, or establishment irrigation for that zone',
+      ],
+      feeds: 'Silvopasture Integration monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({
@@ -1912,6 +1968,21 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Species list confirmed, spacing mapped onto site plan, protection method and re-entry threshold set, planting season locked, procurement source identified.',
     actHandoff: 'Tree Planting & Establishment Design Package',
+    buildsOnDisplay:
+      'Builds on 3.6 -- Paddock layout, Survey 1.3 -- Ecology (existing species, browse patterns), and Survey 1.1 -- Terrain (aspect and shelter by paddock).',
+    monitoringProtocol: {
+      indicators: [
+        'Tree establishment rate at 6 and 12 months per paddock',
+        'Browse damage % on young trees, monthly until guards are removed',
+        'Understorey forage production in treed areas vs. open areas (seasonal yield comparison)',
+        'Household-allocated tree yield volumes (harvest records)',
+      ],
+      triggers: [
+        'Browse damage exceeding 15% of young trees -> review protection type or timing of livestock access',
+        'Establishment failure in a paddock zone -> review species choice, soil, competition, guard adequacy',
+      ],
+      feeds: 'Silvopasture Integration monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

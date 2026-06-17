@@ -943,6 +943,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Access and circulation design approved. All movement conflicts resolved.',
     actHandoff: 'Access & Circulation Design Package',
+    buildsOnDisplay:
+      'Builds on 3.2 -- Spatial framework & zones (zone layout determines access route structure).',
+    monitoringProtocol: {
+      indicators: [
+        'Track surface condition after wet events (monthly in wet season)',
+        'Laneway width adequacy for actual livestock operations (after first use)',
+        'Livestock stress points in the laneway network (observed during movement)',
+      ],
+      triggers: [
+        'Track surface failure after 25mm+ rain -> repair priority before the next wet event',
+        'Livestock stress or bottleneck in a laneway -> review width, corner radius, or surface',
+      ],
+      feeds: 'Infrastructure Condition monitoring stream',
+    },
   }),
   obj({
     id: 's5-water-infrastructure',
@@ -993,6 +1007,25 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Water infrastructure design approved. All harvesting, storage, and distribution components specified.',
     actHandoff: 'Water Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on 3.1 -- Water strategy (source, storage approach, and distribution strategy are pre-decided).',
+    planningDirectionMandate:
+      'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 2.5 Livestock Water Availability demand assessment, the conditional requirement raised at Tier 3 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
+    monitoringProtocol: {
+      indicators: [
+        'Dam/tank fill level as % capacity (monthly)',
+        'Days to refill after a 25mm rainfall event',
+        'Trough reliability -- recorded empty events',
+        'Domestic supply pressure and volume (monthly)',
+        'Overflow events (record date and rainfall trigger)',
+      ],
+      triggers: [
+        'Dam not reaching 75% capacity after two 25mm+ events -> investigate inlet, berm, or catchment',
+        'Trough empty during operation -> check float valve, supply line, pump',
+        'Domestic supply below minimum -> investigate bore, augment storage',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 's5-soil-improvement',
@@ -1043,6 +1076,22 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Soil improvement strategy designed and approved for all zones.',
     actHandoff: 'Soil Improvement Design Package',
+    buildsOnDisplay:
+      'Builds on 3.3 -- Fertility strategy (approach pre-decided) and Survey 2.2 -- Soil (baseline conditions by zone).',
+    monitoringProtocol: {
+      indicators: [
+        'Soil organic matter % by zone (annual lab test, same month each year)',
+        'Bulk density at 0-10cm and 10-20cm (biannual)',
+        'Cover crop establishment rate (% ground cover at 6 weeks)',
+        'Earthworm counts per square metre (biannual, same locations)',
+      ],
+      triggers: [
+        'Bulk density not improving after 18 months in a zone -> investigate mechanical compaction-breaking need',
+        'Organic matter not improving in Year 2 -> review input rates and composition',
+        'Cover crop failure -> investigate seeding timing, rate, or competition',
+      ],
+      feeds: 'Soil Health monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

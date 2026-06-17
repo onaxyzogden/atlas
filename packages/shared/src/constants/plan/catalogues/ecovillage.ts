@@ -990,6 +990,20 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Housing cluster layouts approved. Privacy zones, transitional spaces, and dwelling standards confirmed.',
     actHandoff: 'Housing Cluster Layout Design Package',
+    buildsOnDisplay:
+      'Builds on the Stratum 4 housing cluster and private zone framework (ev-s4-housing-cluster).',
+    monitoringProtocol: {
+      indicators: [
+        'Dwelling condition across each built cluster - weathertightness, structural integrity, energy performance',
+        'Private outdoor zone integrity per dwelling - screening, planting, and boundary held',
+        'Shared transitional spaces in working condition and used as designed',
+      ],
+      triggers: [
+        'A cluster showing dwelling deterioration or failing energy performance -> schedule repair and review the dwelling standard',
+        'A private zone eroded by communal encroachment or neglect -> reinstate the boundary and screening',
+      ],
+      feeds: 'Housing Cluster monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s5-communal-systems',
@@ -1038,6 +1052,20 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal infrastructure systems design approved. All shared buildings specified and financially confirmed.',
     actHandoff: 'Communal Infrastructure Systems Design Package',
+    buildsOnDisplay:
+      'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy).',
+    monitoringProtocol: {
+      indicators: [
+        'Communal kitchen and dining facility function against designed capacity',
+        'Meeting hall, workshop, and shared service facilities in working condition and available',
+        'Maintenance currency for each communal building against its protocol',
+      ],
+      triggers: [
+        'A communal facility unable to meet its designed capacity -> review usage load and equipment provision',
+        'A communal building falling behind on maintenance -> assign and fund the maintenance obligation',
+      ],
+      feeds: 'Communal Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s5-sanitation-waste',
@@ -1079,6 +1107,20 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal sanitation and waste systems design approved. All components specified and regulatory compliance confirmed.',
     actHandoff: 'Communal Sanitation & Waste Systems Design Package',
+    buildsOnDisplay:
+      'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy), which lists the communal sanitation system.',
+    monitoringProtocol: {
+      indicators: [
+        'Sewage and grey water treatment throughput against design capacity at current population',
+        'Effluent and grey water quality against treatment and reuse standards',
+        'Organic waste processing and recycling throughput against generated volumes',
+      ],
+      triggers: [
+        'Treatment throughput approaching design capacity at current population -> stage capacity expansion before the ceiling is reached',
+        'Effluent or grey water quality breaching standard -> halt reuse and remediate the treatment train',
+      ],
+      feeds: 'Sanitation & Waste monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s5-energy-system',
@@ -1124,6 +1166,20 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal energy system design approved. Generation, storage, and distribution specified and financially confirmed.',
     actHandoff: 'Communal Energy System Design Package',
+    buildsOnDisplay:
+      'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy), which lists the communal energy grid.',
+    monitoringProtocol: {
+      indicators: [
+        'Generation output against demand across dwellings and communal facilities',
+        'Battery or thermal storage state of charge and reserve margin',
+        'Micro-grid reliability - outage frequency and duration across the network',
+      ],
+      triggers: [
+        'Generation falling short of demand or storage reserve running low -> shed non-essential load and review generation sizing',
+        'Micro-grid outages recurring on a segment -> inspect and repair that distribution segment',
+      ],
+      feeds: 'Communal Energy monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s5-food-zones',
@@ -1172,6 +1228,20 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Community food production zone design approved. All growing areas, plots, and food infrastructure specified.',
     actHandoff: 'Community Food Production Zone Design Package',
+    buildsOnDisplay:
+      'Builds on the Stratum 4 community food system strategy (ev-s4-food-system).',
+    monitoringProtocol: {
+      indicators: [
+        'Communal growing area harvest volumes against the production potential estimate',
+        'Individual plot occupancy and cultivation against allocation',
+        'Food storage and processing infrastructure in working order - cool room, drying shed, preserving kitchen',
+      ],
+      triggers: [
+        'Communal harvest volumes falling below the production estimate -> review bed layout, irrigation, and growing practice',
+        'Storage or processing infrastructure failing -> repair before harvest spoilage occurs',
+      ],
+      feeds: 'Community Food Production monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

@@ -1323,6 +1323,20 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guest accommodation design approved. Compliance and capacity confirmed.',
     actHandoff: 'Guest Accommodation & Retreat Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the AG-S4.5 hospitality service model accommodation types and standards.',
+    monitoringProtocol: {
+      indicators: [
+        'Accommodation occupancy and utilisation across unit types vs. designed capacity',
+        'Guest-reported comfort -- thermal performance, amenity, room condition',
+        'Accommodation fabric condition -- defect, maintenance, and renovation backlog',
+      ],
+      triggers: [
+        'A unit type drawing repeated comfort or thermal complaints -> review insulation, heating, or cooling for that type',
+        'A unit falling below its construction or maintenance standard -> schedule remediation before reletting',
+      ],
+      feeds: 'Guest Accommodation monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s5-dining-infra',
@@ -1381,6 +1395,20 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Dining and food service infrastructure design approved. Food safety compliance confirmed.',
     actHandoff: 'Guest Dining & Food Service Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the AG-S4.6 farm-to-guest food production strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Kitchen and dining throughput vs. designed seating and service capacity at peak',
+        'Food-storage performance -- cool-room and dry-store temperature and capacity adequacy',
+        'Food-safety compliance status of kitchen and dining operations',
+      ],
+      triggers: [
+        'Dining demand exceeding seated capacity at peak -> review service sittings or layout',
+        'A cool-room or storage unit failing to hold temperature or capacity -> repair and revalidate before service resumes',
+      ],
+      feeds: 'Guest Dining monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s5-programming-infra',
@@ -1439,6 +1467,20 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guest programming and activity infrastructure design approved.',
     actHandoff: 'Guest Programming & Activity Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the AG-S4.5 hospitality service model programming offer.',
+    monitoringProtocol: {
+      indicators: [
+        'Utilisation of tour routes, trails, and workshop spaces vs. designed capacity',
+        'Trail and route condition -- surface wear, grade safety, waymarking legibility',
+        'Guest-reported experience quality across the programming offer',
+      ],
+      triggers: [
+        'A trail surface or waymarker degrading to an unsafe or unclear state -> repair or remark that segment',
+        'A workshop or gathering space consistently exceeding its designed capacity -> review session sizing or layout',
+      ],
+      feeds: 'Guest Programming monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s5-sanitation-infra',
@@ -1497,6 +1539,18 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guest bathroom and sanitation infrastructure design approved. Peak capacity confirmed.',
     actHandoff: 'Guest Bathroom & Sanitation Infrastructure Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Fixture and hot-water adequacy vs. observed peak guest demand',
+        'Waste-system performance -- septic, composting, or connected capacity vs. load',
+        'Sanitation compliance status for the accommodation type',
+      ],
+      triggers: [
+        'Hot water or fixtures failing to meet peak demand -> review capacity sizing against observed loads',
+        'A waste system approaching or exceeding its capacity limit -> service it and reassess sizing before peak season',
+      ],
+      feeds: 'Sanitation monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s5-safety-infra',
@@ -1562,6 +1616,20 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Visitor safety and emergency infrastructure design approved. Regulatory compliance confirmed.',
     actHandoff: 'Visitor Safety & Emergency Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the AG-S4.7 safety, emergency and compliance framework.',
+    monitoringProtocol: {
+      indicators: [
+        'Safety-equipment readiness -- extinguishers, hose reels, smoke detectors, first-aid stations serviceable',
+        'Signage and evacuation-route legibility across all guest areas',
+        'Safety-incident and near-miss frequency in guest zones',
+      ],
+      triggers: [
+        'Fire, first-aid, or detection equipment found out of service or expired -> restore it before the next guest arrival',
+        'A rising incident or near-miss trend in a zone -> review hazard signage and controls for that zone',
+      ],
+      feeds: 'Visitor Safety monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s5-dispersed-siting',
@@ -1635,6 +1703,20 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Dispersed siting plan set. Unit locations, spacing, low-impact access, and reversibility defined within ecological limits.',
     actHandoff:
       'Dispersed Low-Impact Accommodation Siting & Landscape-Integration Plan',
+    buildsOnDisplay:
+      'Builds on the AG-S4.9 guest-to-production biosecurity and contamination-buffer strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Per-site ground disturbance and reversibility status vs. the light-footprint design',
+        'Inter-unit spacing holding the designed privacy and ecological breathing room',
+        'Site occupancy and load against the AG-S3.7 carrying-capacity ceiling',
+      ],
+      triggers: [
+        'A site showing creeping ground disturbance or loss of reversibility -> restore the light-footprint condition',
+        'Combined site load approaching the carrying-capacity ceiling -> pause further siting and reassess against AG-S3.7 limits',
+      ],
+      feeds: 'Dispersed Siting monitoring stream',
+    },
     scopeNotes:
       'Applies when accommodation is dispersed light-footprint units scattered across the landscape (glamping / eco-cabin model); omit for a single fixed lodge or day-visit-only agritourism. Owns siting and landscape integration only; per-unit structure design stays with AG-S5.4 and servicing with AG-S5.10.',
   }),
@@ -1713,6 +1795,18 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Decentralised servicing designed. Point-of-use water, waste, power, dark-sky lighting, and quiet zoning specified within capacity and regulatory limits.',
     actHandoff: 'Decentralised Servicing & Dark-Sky / Quiet Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Point-of-use water, power, and refrigeration reliability across dispersed sites',
+        'Greywater / blackwater treatment performance and discharge compliance per site',
+        'Dark-sky lighting and acoustic-quiet baseline held against the designed limits',
+      ],
+      triggers: [
+        'A site losing water, power, or treatment reliability -> service that point-of-use system before reletting the site',
+        'Stray light or plant noise breaching the dark-sky or quiet baseline -> reshield lighting or relocate the noise source',
+      ],
+      feeds: 'Site Servicing monitoring stream',
+    },
     scopeNotes:
       'Applies when servicing dispersed off-grid eco-accommodation (glamping / eco-cabin model); omit for centrally serviced lodges or day-visit agritourism. Turns the AG-S3.3 water / sanitation and AG-S3.4 sensory-environment surveys into design commitments; does not duplicate those reads.',
   }),

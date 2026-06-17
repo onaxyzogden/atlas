@@ -454,6 +454,20 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Teaching spaces design approved. Capacity and acoustic quality confirmed.',
     actHandoff: 'Teaching Spaces & Outdoor Classroom Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Teaching space utilisation against maximum group size per program type (each session)',
+        'Acoustic and sight-line adequacy reported by facilitators during demonstrations (per session)',
+        'Weather-proofing and indoor backup performance when outdoor programs are disrupted (seasonal)',
+      ],
+      triggers: [
+        'Group exceeds the confirmed capacity of a teaching space -> cap enrolment or stage the group across sessions',
+        'Facilitators report learners cannot hear or see a demonstration -> add staging or revise the space layout',
+      ],
+      feeds: 'Teaching Spaces monitoring stream',
+    },
   }),
   obj({
     id: 'edu-s5-demo-plots-signage',
@@ -480,6 +494,20 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Demonstration plots and interpretive infrastructure design approved.',
     actHandoff: 'Demonstration Plots & Interpretive Signage Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Demonstration plot condition and label legibility per curriculum theme (inspected each season)',
+        'Interpretive signage legibility and physical condition along the trail (monthly)',
+        'Observation infrastructure sight lines and group viewing access at each waypoint (per program)',
+      ],
+      triggers: [
+        'Signage becomes illegible or damaged -> replace to the defined legibility standard before next group',
+        'A demonstration plot no longer matches the curriculum calendar -> trigger the seasonal rotation update',
+      ],
+      feeds: 'Demonstration Plots & Signage monitoring stream',
+    },
   }),
   obj({
     id: 'edu-s5-learner-amenity',
@@ -506,6 +534,20 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Learner amenity infrastructure design approved. Emergency assembly confirmed.',
     actHandoff: 'Learner Amenity Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 safety and risk management framework.',
+    monitoringProtocol: {
+      indicators: [
+        'Toilet and handwashing capacity against maximum group size in use (each program day)',
+        'First aid station equipment stock and accessibility (checked weekly)',
+        'Emergency assembly point access and signage clarity from all teaching zones (per program)',
+      ],
+      triggers: [
+        'Toilet or handwashing provision is inadequate for the group on site -> cap the group or add temporary capacity',
+        'Emergency assembly point becomes obstructed or unmarked -> clear and re-mark before the next group arrives',
+      ],
+      feeds: 'Learner Amenity monitoring stream',
+    },
   }),
   obj({
     id: 'edu-s5-food-kitchen',
@@ -532,6 +574,20 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Teaching kitchen and dining design approved. Food safety compliance confirmed.',
     actHandoff: 'Food Preparation & Teaching Kitchen Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier 3 food and hospitality provision strategy.',
+    monitoringProtocol: {
+      indicators: [
+        'Cold-chain and dry-storage conditions in the teaching kitchen (logged each service day)',
+        'Kitchen equipment compliance with food safety standard (inspected per service)',
+        'Dining area utilisation and learner observation positions against group size (per program)',
+      ],
+      triggers: [
+        'Food storage falls out of safe temperature range -> discard affected food and repair or replace the unit',
+        'Kitchen equipment fails a food safety check -> suspend food service until corrected and re-verified',
+      ],
+      feeds: 'Food Kitchen monitoring stream',
+    },
     scopeNotes: 'Omit this objective if no food service is intended.',
   }),
   // ---------------------------------------------------------------- Stratum 6

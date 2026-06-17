@@ -495,6 +495,20 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     ],
     completionGate: 'Bed layout and growing infrastructure design approved.',
     actHandoff: 'Bed Layout & Growing Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the crop rotation and bed layout plan defined in the strategic foundation decisions.',
+    monitoringProtocol: {
+      indicators: [
+        'Marketable yield per bed against the design target (per crop cycle)',
+        'Beds in active production vs. the planned bed count (per season)',
+        'Tunnel and row-cover condition - anchoring, ventilation, tears (monthly in season)',
+      ],
+      triggers: [
+        'Per-bed yield falling below target -> review bed orientation, spacing, and soil condition for that block',
+        'Tunnel or cover damage observed -> repair the structure before the next planting window',
+      ],
+      feeds: 'Production Beds monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s5-irrigation-system',
@@ -522,6 +536,20 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Irrigation system design approved. Pressure and volume confirmed at all points.',
     actHandoff: 'Irrigation System Design Package',
+    buildsOnDisplay:
+      'Builds on the irrigation system strategy defined in the strategic foundation decisions.',
+    monitoringProtocol: {
+      indicators: [
+        'Pressure and volume at the furthest emitter vs. the design figure (weekly in season)',
+        'Zone valve and controller function on the scheduled run (weekly)',
+        'Visible leaks, blockages, or wet spots along mainlines and sublines (per inspection)',
+      ],
+      triggers: [
+        'Pressure or volume short at the furthest point -> inspect the mainline, headers, and pressure regulation for faults',
+        'Emitters clogging or a zone failing to run -> flush or replace the line and recalibrate the schedule',
+      ],
+      feeds: 'Irrigation Systems monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s5-wash-pack-cold-storage',
@@ -549,6 +577,20 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Wash, pack, and cold storage design approved. Food safety compliance confirmed.',
     actHandoff: 'Wash, Pack & Cold Storage Design Package',
+    buildsOnDisplay:
+      'Builds on the post-harvest handling and storage strategy defined in the strategic foundation decisions.',
+    monitoringProtocol: {
+      indicators: [
+        'Cold storage temperature and humidity against the target range (daily in season)',
+        'Throughput from wash to cold storage vs. the designed pack-shed workflow (per harvest day)',
+        'Surface-cleanliness and food-safety checks against the standard (per cleaning cycle)',
+      ],
+      triggers: [
+        'Cold storage drifts outside the target range -> service the unit and relocate affected stock',
+        'Pack-shed throughput falling behind harvest volume -> rebalance the wash-to-pack workflow or staffing',
+      ],
+      feeds: 'Post-Harvest Handling monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s5-fertility-composting-infrastructure',
@@ -574,6 +616,20 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     ],
     completionGate: 'Fertility and composting infrastructure design approved.',
     actHandoff: 'Fertility & Composting Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the fertility system strategy defined in the strategic foundation decisions.',
+    monitoringProtocol: {
+      indicators: [
+        'Compost produced through the bay system vs. demand for the rotation (per cycle)',
+        'Compost maturity and temperature curve across the turning schedule (per batch)',
+        'Application coverage on production beds vs. the fertility plan (per cycle)',
+      ],
+      triggers: [
+        'Compost output short of bed demand -> add bays, adjust feedstock, or increase turning frequency',
+        'Batch failing to reach maturity -> correct the feedstock mix or turning cadence before applying',
+      ],
+      feeds: 'Composting Systems monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s5-propagation-nursery',
@@ -601,6 +657,20 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Seedling propagation and nursery infrastructure design approved. Capacity confirmed against transplanting schedule.',
     actHandoff: 'Seedling Propagation & Nursery Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the crop rotation and bed layout plan, which sets the transplant demand the nursery must meet.',
+    monitoringProtocol: {
+      indicators: [
+        'Healthy transplants produced vs. the transplanting schedule at peak demand (per propagation run)',
+        'Germination rate by crop in the propagation area against expected (per sowing)',
+        'Propagation environment - temperature, light, and humidity within the target band (daily in season)',
+      ],
+      triggers: [
+        'Transplant output short of the schedule -> expand bench or germination capacity or stagger sowings',
+        'Germination rate dropping below expected -> check heat, moisture, and seed lot, then resow as needed',
+      ],
+      feeds: 'Propagation & Nursery monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

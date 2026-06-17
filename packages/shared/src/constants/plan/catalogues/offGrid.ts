@@ -582,6 +582,20 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Water system design approved. Primary and backup confirmed. All components locally repairable.',
     actHandoff: 'Water System Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 water system strategy and redundancy decision.',
+    monitoringProtocol: {
+      indicators: [
+        'Stored water level in days-of-reserve per person across the tank array (weekly, daily in dry season)',
+        'Primary vs. backup source supply split and combined yield vs. demand (monthly)',
+        'Treatment train output quality and filter or disinfection consumable status (monthly)',
+      ],
+      triggers: [
+        'Stored reserve drops below the defined minimum days-per-person -> bring the backup source online and restrict non-essential draw',
+        'Pressurised distribution loses supply to a dwelling or production point -> open the manual fill point and repair the powered line',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s5-energy-system-infrastructure',
@@ -609,6 +623,20 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Energy system design approved. Worst-case month performance confirmed. All components locally serviceable.',
     actHandoff: 'Energy System Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 energy system strategy and redundancy decision.',
+    monitoringProtocol: {
+      indicators: [
+        'Battery bank state of charge and days-of-critical-load remaining (daily)',
+        'Solar generation vs. critical-load demand (weekly, daily in the worst-case month)',
+        'Inverter and charge controller status plus backup generator fuel reserve (monthly)',
+      ],
+      triggers: [
+        'Battery state of charge falls below the protected reserve floor -> shed non-critical loads on the critical circuit and start the backup generator',
+        'Generation falls short of critical load over consecutive days -> hold load management and reassess array or battery sizing',
+      ],
+      feeds: 'Energy Systems monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s5-shelter-thermal-infrastructure',
@@ -636,6 +664,20 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Shelter and thermal performance design approved. Primary and backup heating confirmed. Fuel reserve specified.',
     actHandoff: 'Shelter & Thermal Performance Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 shelter resilience and thermal performance decision.',
+    monitoringProtocol: {
+      indicators: [
+        'Indoor temperature vs. the thermal performance standard through the coldest period (daily in winter)',
+        'Heating fuel reserve in weeks-of-supply at peak demand (weekly through cold season)',
+        'Primary heating output and airtightness or insulation condition (monthly in heating season)',
+      ],
+      triggers: [
+        'Indoor temperature falls below the defined minimum -> bring the backup heating system online and inspect the primary unit',
+        'Fuel reserve drops below the defined weeks-of-supply -> trigger resupply before the next cold spell',
+      ],
+      feeds: 'Shelter Performance monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s5-food-production-infrastructure',
@@ -662,6 +704,20 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Food production and storage infrastructure design approved. Reserve target achievable with designed capacity.',
     actHandoff: 'Food Production & Storage Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 food security and storage strategy decision.',
+    monitoringProtocol: {
+      indicators: [
+        'Food reserve on hand in weeks-of-supply for all residents (monthly)',
+        'Production yield by zone vs. target across garden, orchard, and animals (per harvest cycle)',
+        'Root cellar and cold storage temperature, humidity, and throughput vs. plan (seasonal)',
+      ],
+      triggers: [
+        'Reserve falls below the minimum weeks-of-supply threshold -> activate the resupply protocol and shift surplus into preservation',
+        'Root cellar or cold storage drifts outside its temperature or humidity band -> service ventilation and move at-risk stock to a stable method',
+      ],
+      feeds: 'Food Security monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s5-communications-emergency-infrastructure',
@@ -689,6 +745,20 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communications and emergency infrastructure design approved. All systems tested before habitation.',
     actHandoff: 'Communications & Emergency Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on the Tier-3 emergency communications and response strategy decision.',
+    monitoringProtocol: {
+      indicators: [
+        'Satellite and backup radio check-in success rate plus device power status (weekly)',
+        'Emergency alert beacon and fire safety equipment readiness on inspection (monthly)',
+        'First aid station stock currency and assembly point access (quarterly review)',
+      ],
+      triggers: [
+        'Primary satellite link fails a check-in -> switch to the backup radio method and arrange repair or replacement',
+        'Fire safety equipment or first aid stock is found expired or depleted -> restock before continued habitation',
+      ],
+      feeds: 'Emergency Response monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({

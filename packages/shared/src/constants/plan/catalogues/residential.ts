@@ -365,6 +365,21 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Domestic living infrastructure design approved. All dwelling, utility, and household system components specified.',
     actHandoff: 'Domestic Living Infrastructure Design Package',
+    buildsOnDisplay:
+      'Builds on 3.7 -- Living zone (household zone definition), Survey 1.1 -- Terrain & dwelling siting, and Survey 2.2 -- Soil & water for domestic supply.',
+    monitoringProtocol: {
+      indicators: [
+        'Domestic water supply vs household consumption (storage drawdown, refill interval)',
+        'Kitchen garden yield vs household provision targets (by season)',
+        'Domestic energy output vs household demand (generation vs draw)',
+        'Household-farm boundary adherence (domestic vs operational use staying separated as designed)',
+      ],
+      triggers: [
+        'Domestic water approaching supply limit -> review storage, rationing, or additional catchment',
+        'Kitchen garden yield below provision targets -> review beds, inputs, or revise the provision plan',
+      ],
+      feeds: 'Residential Systems monitoring stream',
+    },
   }),
   obj({
     id: 'res-s6-self-sufficiency',
@@ -813,5 +828,32 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
     ],
     completionGateAmendment:
       'Potable water treatment system specified, domestic distribution confirmed.',
+  }),
+  // P5 - Stratum 5 patch on universal access & circulation design (Tier 4 4.1
+  // residential-access delta): a domestic access route distinct from farm traffic.
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-access',
+    ref: 'RES>U-S5.1',
+    injectedItems: [
+      ck(
+        's5-access-pres-1',
+        'Design residential access route - separate from main farm traffic where practical; suitable for family vehicles including school run, deliveries, and emergency access',
+      ),
+      ck(
+        's5-access-pres-2',
+        'Define the separation between residential entry and farm operational entry where they differ - signage, gates, or distinct approach',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's5-access-dgres1',
+        'Domestic access & entry',
+        ['s5-access-pres-1', 's5-access-pres-2'],
+        ['Infrastructure & Access'],
+      ),
+    ],
+    completionGateAmendment:
+      'Residential access route designed and separated from farm operational traffic where practical.',
   }),
 ];

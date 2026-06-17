@@ -244,6 +244,102 @@ describe('catalogue conformance - Mode-4 design fields (s4 / Tier 3)', () => {
   });
 });
 
+describe('catalogue conformance - Mode-4 design fields (s5 / Tier 4)', () => {
+  // 2026-06-17 Mode-4 restructure (Tier 4 - System Design): every resolving
+  // s5-system-design objective gains a DISPLAY-ONLY monitoringProtocol plus a
+  // buildsOnDisplay lineage line ("Builds on 3.x"). The 7 spec config objectives
+  // carry the verbatim spec copy; s5-water-infrastructure additionally CLOSES the
+  // Silvopasture water conditional via a planningDirectionMandate (display-only,
+  // never a gate). Canonical config: Regen (primary) + Residential + Silvopasture.
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'regenerative_farm',
+    secondaryTypeIds: ['residential', 'silvopasture'],
+  });
+
+  // The spec's 7 Tier-4 config objectives (4.1-4.7).
+  const CONFIG_S5_IDS = [
+    's5-access',
+    's5-water-infrastructure',
+    's5-soil-improvement',
+    'rf-s5-fertility-system',
+    'rf-s5-windbreaks',
+    'silv-sec-s5-tree-establishment',
+    'res-s5-living-infrastructure',
+  ];
+
+  it('every spec config s5 objective carries a non-empty monitoringProtocol + buildsOnDisplay', () => {
+    for (const id of CONFIG_S5_IDS) {
+      const o = findPlanStratumObjectiveIn(objectives, id);
+      expect(o, id).toBeDefined();
+      const mp = o!.monitoringProtocol;
+      expect(mp, `${id} monitoringProtocol`).toBeDefined();
+      expect(mp!.indicators.length, `${id} indicators`).toBeGreaterThan(0);
+      expect(mp!.triggers.length, `${id} triggers`).toBeGreaterThan(0);
+      expect(mp!.feeds.trim().length, `${id} feeds`).toBeGreaterThan(0);
+      expect(o!.buildsOnDisplay?.trim().length, `${id} buildsOnDisplay`).toBeGreaterThan(0);
+    }
+  });
+
+  it('every authored s5-system-design objective carries a monitoringProtocol (all project types)', () => {
+    // Covers all 61 s5 objectives across all 15 catalogues, not just the config
+    // subset -- no s5 objective is excludedFromResolution, so every one resolves.
+    const s5 = ALL_AUTHORED.filter((o) => o.stratumId === 's5-system-design');
+    expect(s5.length).toBeGreaterThan(0);
+    for (const o of s5) {
+      const mp = o.monitoringProtocol;
+      expect(mp, o.id).toBeDefined();
+      expect(mp!.indicators.length, o.id).toBeGreaterThan(0);
+      expect(mp!.triggers.length, o.id).toBeGreaterThan(0);
+      expect(mp!.feeds.trim().length, o.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('s5-water-infrastructure CLOSES the Silvopasture water conditional (display-only mandate)', () => {
+    const water = findPlanStratumObjectiveIn(objectives, 's5-water-infrastructure');
+    expect(water).toBeDefined();
+    const mandate = water!.planningDirectionMandate;
+    expect(typeof mandate).toBe('string');
+    expect(mandate!.trim().length).toBeGreaterThan(0);
+    // The copy narrates closure of the conditional raised at Tier 3.
+    expect(/clos/i.test(mandate!), mandate).toBe(true);
+    // Display-only: the conditional source must NOT have become a hard prereq.
+    expect(water!.prerequisiteObjectiveIds ?? []).not.toContain(
+      'silv-sec-s4-stock-infrastructure',
+    );
+  });
+
+  it('the RES>U-S5.1 residential access patch resolves, matches the ref format, and injects a group', () => {
+    const patch = RESIDENTIAL_PATCHES.find((p) => p.ref === 'RES>U-S5.1');
+    expect(patch, 'RES>U-S5.1 patch').toBeDefined();
+    expect(patch!.ref).toMatch(PATCH_REF);
+    expect(patch!.targetObjectiveId).toBe('s5-access');
+    expect(patch!.injectedItems.length).toBeGreaterThan(0);
+    expect(patch!.injectedGroups.length).toBeGreaterThan(0);
+    for (const item of patch!.injectedItems) {
+      expect(item.id, item.id).toMatch(/^s5-access-pres-\d+$/);
+    }
+  });
+
+  it('Amanah: monitoringProtocol + buildsOnDisplay + planningDirectionMandate copy is covenant-clean across ALL authored s5 objectives', () => {
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const s5Authored = ALL_AUTHORED.filter(
+      (o) => o.stratumId === 's5-system-design',
+    );
+    const strings: string[] = [];
+    for (const o of s5Authored) {
+      const mp = o.monitoringProtocol;
+      if (mp) strings.push(...mp.indicators, ...mp.triggers, mp.feeds);
+      if (o.buildsOnDisplay) strings.push(o.buildsOnDisplay);
+      if (o.planningDirectionMandate) strings.push(o.planningDirectionMandate);
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
+  });
+});
+
 describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fields', () => {
   // The 2026-06-16 Tier-1 (Stratum-2) restructure reframed the six s2-* Land-
   // Reading objectives as a reception tier: each gains a reception-register
