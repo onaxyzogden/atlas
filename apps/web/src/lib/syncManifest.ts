@@ -1041,6 +1041,12 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   'ogden-connectivity',
   'ogden-atlas-matrix-toggles',
   'ogden-atlas-basemap',
+  // Per-device VISIBILITY ledger over the service-worker (Workbox) offline
+  // tile cache: per project + per basemap, whether tiles are
+  // 'ready'/'caching'/'error'/'uncached'. Offline-tile warmth is inherently
+  // device-local — syncing 'ready' from a device whose SW has warmed tiles to
+  // one that hasn't would falsely report offline availability. Must NOT sync.
+  'ogden-map-cache',
   // Phase 2 wizard pre-create state — there is no projectId until Step 1
   // "Next" promotes the draft via projectStore.createProject, at which
   // point the wizard store is cleared. Per-device transient by design;
