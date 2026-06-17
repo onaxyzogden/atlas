@@ -42,9 +42,9 @@ export const PLAN_STRATA: readonly PlanStratum[] = [
   {
     id: 's4-foundation-decisions',
     ordinal: 4,
-    title: 'Foundation Decisions',
+    title: 'Strategic Decisions',
     summary:
-      'Zones, sectors, and the spatial logic that frames every design choice downstream.',
+      'The strategic choices the approved Planning Direction unlocks — water strategy, zones, fertility and biodiversity — that frame every design choice downstream.',
   },
   {
     id: 's5-system-design',

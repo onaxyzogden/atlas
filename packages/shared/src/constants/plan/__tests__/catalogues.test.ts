@@ -29,6 +29,7 @@ import {
   LIVESTOCK_PRIMARY_OBJECTIVES,
   LIVESTOCK_SECONDARY_OBJECTIVES,
   LIVESTOCK_SECONDARY_PATCHES,
+  STRATUM_PREREQS,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -82,10 +83,21 @@ describe('catalogue conformance - schema validity', () => {
   describe('reception display fields round-trip', () => {
     const hydro = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's3-hydrology');
 
-    it('preserves intentLens / observeOutput / buildsOnDisplay / excludedFromResolution when set', () => {
+    it('preserves intentLens / observeOutput / buildsOnDisplay / excludedFromResolution + Mode-4 fields when set', () => {
       // s3-hydrology already carries the three display fields (authored in 1B);
-      // add the resolution flag to exercise all four on one object.
-      const withAll = { ...hydro!, excludedFromResolution: true };
+      // add the resolution flag plus the two Mode-4 design fields (2026-06-17)
+      // to exercise all six on one object.
+      const withAll = {
+        ...hydro!,
+        excludedFromResolution: true,
+        monitoringProtocol: {
+          indicators: ['Water table depth', 'Storage drawdown rate'],
+          triggers: ['Drawdown exceeds recharge for two cycles'],
+          feeds: 'Water Systems monitoring stream',
+        },
+        planningDirectionMandate:
+          'Carries the approved water direction; raises any water conditional for closure downstream.',
+      };
       const parsed = PlanStratumObjectiveSchema.parse(withAll);
       expect(parsed.intentLens?.length ?? 0).toBeGreaterThan(0);
       expect(parsed.intentLens?.every((row) => !!row.typeId && !!row.text)).toBe(
@@ -94,15 +106,52 @@ describe('catalogue conformance - schema validity', () => {
       expect(typeof parsed.observeOutput).toBe('string');
       expect(typeof parsed.buildsOnDisplay).toBe('string');
       expect(parsed.excludedFromResolution).toBe(true);
+      expect(parsed.monitoringProtocol?.indicators.length).toBe(2);
+      expect(parsed.monitoringProtocol?.triggers.length).toBe(1);
+      expect(parsed.monitoringProtocol?.feeds).toBe(
+        'Water Systems monitoring stream',
+      );
+      expect(typeof parsed.planningDirectionMandate).toBe('string');
     });
 
-    it('leaves the four fields undefined when omitted (legacy objectives unchanged)', () => {
+    it('leaves all six optional fields undefined when omitted (legacy objectives unchanged)', () => {
       const vision = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's1-vision');
       const parsed = PlanStratumObjectiveSchema.parse(vision!);
       expect(parsed.intentLens).toBeUndefined();
       expect(parsed.observeOutput).toBeUndefined();
       expect(parsed.buildsOnDisplay).toBeUndefined();
       expect(parsed.excludedFromResolution).toBeUndefined();
+      expect(parsed.monitoringProtocol).toBeUndefined();
+      expect(parsed.planningDirectionMandate).toBeUndefined();
+    });
+  });
+
+  // 2026-06-17 Mode-4 restructure: old objective 3.1 ('s4-direction') is retired
+  // (Threshold 1 now performs that synthesis). It must stay DEFINED but excluded,
+  // and must be dropped from the S5 prereq gate (an excluded objective never
+  // resolves -- gating S5 on it would dangle).
+  describe('Mode-4 restructure - s4-direction retire + S5 gate rewire', () => {
+    it('s4-direction is defined but excludedFromResolution', () => {
+      const dir = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's4-direction');
+      expect(dir, 's4-direction must remain authored (references stay valid)').toBeDefined();
+      expect(dir!.excludedFromResolution).toBe(true);
+    });
+
+    it('the S5 gate no longer references s4-direction', () => {
+      const gate = STRATUM_PREREQS['s5-system-design'];
+      expect(gate).not.toContain('s4-direction');
+      expect(gate).toEqual(['s4-water-strategy', 's4-zones']);
+    });
+
+    it('a Regen+Residential+Silvopasture resolve omits s4-direction from s4', () => {
+      const r = resolveProjectObjectives({
+        primaryTypeId: 'regenerative_farm',
+        secondaryTypeIds: ['residential', 'silvopasture'],
+      });
+      const s4Ids = r.objectives
+        .filter((o) => o.stratumId === 's4-foundation-decisions')
+        .map((o) => o.id);
+      expect(s4Ids).not.toContain('s4-direction');
     });
   });
 });
@@ -590,12 +639,14 @@ describe('catalogue conformance - ecovillage primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 51 objectives (20 universal + 31 primary)', () => {
+  it('resolves to 50 objectives (19 universal + 31 primary)', () => {
     // The source header table reads "Primary: 29", but the per-tier sub-headers
-    // and the (now 51) total both confirm 31. This locks the corrected count.
-    // Universal went 19 -> 20 with the 2026-06-16 s1-steward objective.
+    // and the (now 50) total both confirm 31. This locks the corrected count.
+    // Universal RESOLVES to 19: it has 20 authored objectives, but the
+    // 2026-06-17 Mode-4 restructure excludes s4-direction from resolution
+    // (migrated to Threshold 1), so the resolved universal count is 19.
     expect(ECOVILLAGE_PRIMARY_OBJECTIVES.length).toBe(31);
-    expect(objectives.length).toBe(51);
+    expect(objectives.length).toBe(50);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -619,9 +670,10 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 54 objectives (20 universal + 34 primary)', () => {
+  it('resolves to 53 objectives (19 universal + 34 primary)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(34);
-    expect(objectives.length).toBe(54);
+    expect(objectives.length).toBe(53);
   });
 
   it('carries the 5 eco-resort / glamping extension objectives, each conditionally scoped', () => {
@@ -680,9 +732,10 @@ describe('catalogue conformance - wellness primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 47 objectives (20 universal + 27 primary)', () => {
+  it('resolves to 46 objectives (19 universal + 27 primary)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(WELLNESS_PRIMARY_OBJECTIVES.length).toBe(27);
-    expect(objectives.length).toBe(47);
+    expect(objectives.length).toBe(46);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -749,9 +802,10 @@ describe('catalogue conformance - silvopasture primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 46 objectives (20 universal + 26 primary)', () => {
+  it('resolves to 45 objectives (19 universal + 26 primary)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(SILVOPASTURE_PRIMARY_OBJECTIVES.length).toBe(26);
-    expect(objectives.length).toBe(46);
+    expect(objectives.length).toBe(45);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -773,9 +827,10 @@ describe('catalogue conformance - livestock primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 43 objectives (20 universal + 23 primary)', () => {
+  it('resolves to 42 objectives (19 universal + 23 primary)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(LIVESTOCK_PRIMARY_OBJECTIVES.length).toBe(23);
-    expect(objectives.length).toBe(43);
+    expect(objectives.length).toBe(42);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
@@ -831,9 +886,10 @@ describe('catalogue conformance - orchard primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 45 objectives (20 universal + 25 primary)', () => {
+  it('resolves to 44 objectives (19 universal + 25 primary)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(ORCHARD_PRIMARY_OBJECTIVES.length).toBe(25);
-    expect(objectives.length).toBe(45);
+    expect(objectives.length).toBe(44);
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {

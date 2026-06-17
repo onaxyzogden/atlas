@@ -14,8 +14,9 @@ import { ck, obj, patch } from '../../constants/plan/catalogues/authoring.js';
 describe('resolveProjectObjectives - regenerative_farm (primary only)', () => {
   const r = resolveProjectObjectives({ primaryTypeId: 'regenerative_farm' });
 
-  it('resolves 20 universal + 13 primary = 33 objectives', () => {
-    expect(r.objectives).toHaveLength(33);
+  it('resolves 19 universal + 13 primary = 32 objectives', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
+    expect(r.objectives).toHaveLength(32);
   });
 
   it('emits only universal + primary sources, no secondary', () => {
@@ -49,8 +50,9 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 20 + 13 + 5 additive = 38 objectives (res-s3-water-quality excluded)', () => {
-    expect(r.objectives).toHaveLength(38);
+  it('resolves 19 + 13 + 5 additive = 37 objectives (res-s3-water-quality excluded)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
+    expect(r.objectives).toHaveLength(37);
   });
 
   it('applies all 10 residential patches (every target present)', () => {
@@ -310,8 +312,9 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 20 universal + 34 agritourism primary + 5 residential additive = 59 objectives', () => {
-    expect(r.objectives).toHaveLength(59);
+  it('resolves 19 universal + 34 agritourism primary + 5 residential additive = 58 objectives', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
+    expect(r.objectives).toHaveLength(58);
   });
 
   it('applies 9 patches and skips the regen-only landscape-context patch without throwing', () => {
@@ -353,8 +356,9 @@ describe('resolveProjectObjectives - N/A pair (homestead + residential)', () => 
     secondaryTypeIds: ['residential'],
   });
 
-  it('loads homestead primary but not the incompatible secondary (20 universal + 15 homestead primary = 35)', () => {
-    expect(r.objectives).toHaveLength(35);
+  it('loads homestead primary but not the incompatible secondary (19 universal + 15 homestead primary = 34)', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
+    expect(r.objectives).toHaveLength(34);
     expect(
       r.objectives.every(
         (o) => o.source === 'universal' || o.source === 'primary',
@@ -404,9 +408,10 @@ describe('resolveProjectObjectives - dedup by objective id (synthetic)', () => {
     },
   );
 
-  it('drops the duplicate, records it, and keeps the count at 33', () => {
+  it('drops the duplicate, records it, and keeps the count at 32', () => {
+    // Universal resolves to 19 (20 authored − s4-direction excluded, 2026-06-17).
     expect(r.provenance.dedupedObjectiveIds).toContain('s3-soil');
-    expect(r.objectives).toHaveLength(33);
+    expect(r.objectives).toHaveLength(32);
     const flag = r.provenance.secondaryFlags.find(
       (f) => f.secondaryTypeId === 'residential',
     );

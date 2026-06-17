@@ -69,7 +69,13 @@ export const STRATUM_PREREQS: Record<PlanStratumId, string[]> = {
     's2-infrastructure',
   ],
   's4-foundation-decisions': ['s3-hydrology', 's3-soil'],
-  's5-system-design': ['s4-direction', 's4-water-strategy', 's4-zones'],
+  // 2026-06-17 Mode-4 restructure: 's4-direction' (old objective 3.1, "confirm
+  // direction & feasibility") is retired -- Threshold 1 (The Reality Check) now
+  // performs that synthesis upstream. The universal objective is kept DEFINED
+  // but `excludedFromResolution: true`, so it must NOT gate S5 (an excluded
+  // objective never resolves and the gate would dangle). S5 now waits on the
+  // two surviving universal S4 reads: water strategy + zones.
+  's5-system-design': ['s4-water-strategy', 's4-zones'],
   's6-integration-design': [
     's5-access',
     's5-water-infrastructure',
@@ -253,6 +259,20 @@ export interface ObjectiveInput {
    */
   buildsOnDisplay?: string;
   /**
+   * Mode-4 Design DISPLAY-ONLY monitoring protocol (Key Indicators / Response
+   * Triggers / free-text Feeds stream label). NEVER a gate. Omit when absent.
+   */
+  monitoringProtocol?: {
+    indicators: string[];
+    triggers: string[];
+    feeds: string;
+  };
+  /**
+   * Mode-4 Design DISPLAY-ONLY amber "Planning Direction mandate" line. NEVER a
+   * gate. Omit when absent.
+   */
+  planningDirectionMandate?: string;
+  /**
    * When true, this authored objective is DEFINED but SKIPPED by the resolver
    * (kept for a later tier/pass). Omit (=> resolves normally) for all but the
    * deliberately-excluded objectives.
@@ -297,6 +317,18 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     ...(input.observeOutput ? { observeOutput: input.observeOutput } : {}),
     ...(input.buildsOnDisplay
       ? { buildsOnDisplay: input.buildsOnDisplay }
+      : {}),
+    ...(input.monitoringProtocol
+      ? {
+          monitoringProtocol: {
+            indicators: [...input.monitoringProtocol.indicators],
+            triggers: [...input.monitoringProtocol.triggers],
+            feeds: input.monitoringProtocol.feeds,
+          },
+        }
+      : {}),
+    ...(input.planningDirectionMandate
+      ? { planningDirectionMandate: input.planningDirectionMandate }
       : {}),
     ...(input.excludedFromResolution
       ? { excludedFromResolution: true }

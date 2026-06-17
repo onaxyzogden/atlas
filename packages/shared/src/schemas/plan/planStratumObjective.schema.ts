@@ -504,6 +504,32 @@ export const PlanStratumObjectiveSchema = z.object({
    */
   buildsOnDisplay: z.string().min(1).optional(),
   /**
+   * Mode-4 Design (doc Tier 3/4) DISPLAY-ONLY monitoring protocol: the design
+   * input this objective hands to the Observe stage. `indicators` = the Key
+   * Indicators to watch, `triggers` = the Response Triggers that prompt action,
+   * `feeds` = a FREE-TEXT monitoring-stream label (e.g. "Water Systems
+   * monitoring stream"). NOTE: `feeds` is intentionally NOT wired to the
+   * UniversalDomain Observe enum -- that audit is Threshold 2, which is
+   * deferred. Pure reading copy; NEVER a prerequisite or gate. Absent on every
+   * pre-Mode-4 objective, so legacy seed/catalogue objects validate unchanged.
+   */
+  monitoringProtocol: z
+    .object({
+      indicators: z.array(z.string().min(1)).min(1),
+      triggers: z.array(z.string().min(1)).min(1),
+      feeds: z.string().min(1),
+    })
+    .optional(),
+  /**
+   * Mode-4 Design DISPLAY-ONLY "Planning Direction mandate" line: how this
+   * objective carries the steward's approved Planning Direction (from
+   * Threshold 1), including raising/closing a Threshold-1 `conditional`. Amber
+   * reading copy narrated by the existing RealityCheckGateBanner register;
+   * structurally incapable of gating (no prereq plumbing reads it). Absent on
+   * every objective that does not carry a direction mandate.
+   */
+  planningDirectionMandate: z.string().min(1).optional(),
+  /**
    * Resolution metadata: when true, this authored objective is DEFINED but
    * SKIPPED by `resolveProjectObjectives` (Pass-1) -- kept in the catalogue for a
    * later tier/pass without resolving into the current config. Distinct from the

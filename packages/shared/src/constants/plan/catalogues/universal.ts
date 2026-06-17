@@ -761,6 +761,13 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Project direction confirmed. All vision elements classified. Planning direction approved.',
     actHandoff: 'Project Direction Brief',
+    // 2026-06-17 Mode-4 restructure: retired in favour of Threshold 1 (The
+    // Reality Check), which now performs the "confirm direction & feasibility"
+    // synthesis upstream of the design strata. Kept DEFINED (its feedsInto
+    // chips, evidence/Act-tool map keys, and Tier-0 workbench membership all
+    // stay referentially valid) but excluded from resolution so it no longer
+    // surfaces as a Strategic-Decisions objective. See STRATUM_PREREQS note.
+    excludedFromResolution: true,
   }),
   obj({
     id: 's4-water-strategy',
