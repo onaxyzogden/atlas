@@ -120,6 +120,16 @@ import {
   isTierZeroObjective,
   isTierZeroObjectiveId,
 } from '../../act/tier-shell/tierZeroObjectives.js';
+// Tier-2 / Stratum-3 Reception (Systems Reading) workbench: the same shared
+// ActTierZeroWorkbench runs in mode="reception" for the five resolved S3 surveys,
+// with a Plan-only right-rail reference surface. Membership + cross-tier progress
+// come from the pure receptionModel; Act never sets the mode -> byte-identical.
+import {
+  deriveReceptionProgress,
+  isReceptionObjective,
+  isReceptionObjectiveId,
+} from '../../act/tier-shell/receptionModel.js';
+import ReceptionReferencePanel from '../../act/tier-shell/ReceptionReferencePanel.js';
 // s2-ecology / s2-terrain survey map takeover (mirrors ActTierShell). Stores are
 // shell-agnostic singletons keyed by projectId; the panels are the Act survey
 // panels reused unchanged. The layer/draw-host mount inside VisionLayoutCanvas.
@@ -435,9 +445,19 @@ export default function PlanTierShell() {
   // mounts VisionLayoutCanvas (WebGL) before objectives hydrate; falls back to
   // the resolved-objective check for in-app selections. An armed survey on
   // s2-ecology/s2-terrain suppresses the workbench so the map takeover wins.
+  // The same inline workbench now hosts TWO Plan-only modes: Tier-0 Declaration
+  // (Stratum-1) and Tier-2 Reception (Stratum-3 systems-reading surveys). Both
+  // are keyed off the URL-synchronous objectiveId first (cold deep-link safe),
+  // then the resolved-objective check. Reception membership comes from the
+  // receptionModel display set; the two id-sets are disjoint.
+  const isTierZeroWorkbenchObjective =
+    isTierZeroObjectiveId(objectiveId) ||
+    (selectedObjective != null && isTierZeroObjective(selectedObjective));
+  const isReceptionWorkbenchObjective =
+    isReceptionObjectiveId(objectiveId) ||
+    (selectedObjective != null && isReceptionObjective(selectedObjective));
   const showTierZeroWorkbench =
-    (isTierZeroObjectiveId(objectiveId) ||
-      (selectedObjective != null && isTierZeroObjective(selectedObjective))) &&
+    (isTierZeroWorkbenchObjective || isReceptionWorkbenchObjective) &&
     !surveyActive &&
     !slopeActive &&
     // A generic map-tools takeover also yields the workbench to the map (so a
@@ -448,6 +468,21 @@ export default function PlanTierShell() {
     // the center, even on a Tier-0 objective, so the rail editor has a live
     // compass to edit against (same precedent as the survey takeovers).
     !sectorsEditorActive;
+  // Which mode the workbench runs in (reception wins when the objective is one of
+  // the five S3 surveys; otherwise the legacy Declaration header). Declaration is
+  // the default so a non-reception Tier-0 objective is unchanged.
+  const workbenchMode: 'declaration' | 'reception' = isReceptionWorkbenchObjective
+    ? 'reception'
+    : 'declaration';
+  // Cross-tier reception progress (Tier 1 Land-Reading + Tier 2 Systems-Reading
+  // completion + the assembled survey-record total). Derived from the FULL
+  // resolved objective list (not the current stratum slice) so both tier totals
+  // are visible; fed to both the ReceptionCenter gate cards and the right-rail
+  // reference panel. Cheap + pure, so computed unconditionally.
+  const receptionProgress = useMemo(
+    () => deriveReceptionProgress(objectives, objectiveStatuses),
+    [objectives, objectiveStatuses],
+  );
 
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
@@ -1072,15 +1107,18 @@ export default function PlanTierShell() {
                   onRecord={handleFormDataSave}
                   onSaveRationale={handleSaveRationale}
                   onToggleDefer={handleToggleDefer}
-                  // Plan Declaration mode: mounts the DeclarationCenter header
-                  // (mode banner + canonical-object cards + sequencing diagram)
-                  // above the 2-pane grid and the TeamRegistryPanel reference
-                  // for the team objective. Drives both off the live LOCKING
-                  // objective statuses; sequencing nodes select via the same
+                  // Plan-only workbench chrome. mode="declaration" mounts the
+                  // DeclarationCenter header (Tier-0 canonical cards + sequencing)
+                  // above the 2-pane grid; mode="reception" mounts ReceptionCenter
+                  // (Tier-2 systems-reading mode header + survey sequencing +
+                  // Threshold-1 gate) and threads the dual-output chip / intent
+                  // lens / builds-on into the list + working panel. Both drive off
+                  // the live LOCKING statuses; sequencing nodes select via the same
                   // prerequisite-gated handler the left rail uses. The Act stage
-                  // omits all three -> byte-identical legacy workbench.
-                  mode="declaration"
+                  // omits mode entirely -> byte-identical legacy workbench.
+                  mode={workbenchMode}
                   objectiveStatuses={objectiveStatuses}
+                  receptionProgress={receptionProgress}
                   onSelectObjective={handleSelectObjective}
                 />
               ) : (
@@ -1172,6 +1210,24 @@ export default function PlanTierShell() {
                         compact
                       />
                     )}
+                  </div>
+                </div>
+              ) : isReceptionWorkbenchObjective && selectedObjective ? (
+                // Plan Reception: the right rail is the read-only systems-reading
+                // REFERENCE surface for the selected survey (still-listening rule
+                // + intent lens + dual Observe/Act outputs + builds-on +
+                // cross-tier progress). The capture itself is the center working
+                // panel; this is its sibling reference, like the dashboard/detail
+                // toggle it replaces. No Act analog -- Act never sets
+                // mode="reception". Reached only after the takeover + protocols
+                // branches above fall through, so a map/tools takeover still wins.
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <ReceptionReferencePanel
+                      objective={selectedObjective}
+                      status={selectedObjectiveStatus}
+                      progress={receptionProgress}
+                    />
                   </div>
                 </div>
               ) : (

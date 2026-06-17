@@ -1,0 +1,344 @@
+/* ReceptionCenter.module.css
+ *
+ * Converts the mockup's center-column "Reception (Systems Reading)" chrome into
+ * project design tokens (var() with literal light fallbacks), keeping the
+ * mockup's LAYOUT, STRUCTURE, and spacing intact. ASCII-only: the reception-rule
+ * ear, the sequencing arrow, and the two gate icons are lucide icons rendered by
+ * the component (no glyphs here).
+ *
+ * Accent: Reception is the SKY/INFO surface (sibling to the gold Declaration and
+ * Act chrome) -- mode pill, title emphasis, and the active sequencing node use
+ * --color-info. The Threshold-1 gate is intentionally NOT info: the palette has
+ * no mauve (the mockup's threshold colour), so it renders as a neutral elevated
+ * parchment card carrying the Scale icon, tinting --color-success once open. This
+ * keeps covenant checkpoints visually distinct from the reception flow.
+ *
+ * Token substitution (mockup dark hex -> project token), shared with the sibling
+ * DecisionList so the Reception header reads as one surface with the workbench:
+ *   --sky          -> --color-info            (reception accent)
+ *   --green        -> --color-success         (done / complete)
+ *   --text / -2 / -3 -> --color-text / --color-text-muted / --color-text-subtle
+ *   --surface      -> --color-surface,        --border -> --color-border
+ *   rgba(255,255,255,0.05) avail fill -> --color-surface-alt (neutral parchment)
+ *   'Lora' serif   -> --font-serif,           'DM Mono' -> --font-mono
+ */
+
+.root {
+  display: block;
+}
+
+/* ---------- Mode header ---------- */
+
+.modeHd {
+  margin-bottom: 20px;
+}
+
+.modeEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modePill {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  color: var(--color-info, #5b8eaf);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 35%, transparent);
+  border-radius: 3px;
+}
+
+.modeTier {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  color: var(--color-text-subtle, #7a808a);
+  letter-spacing: 0.05em;
+}
+
+.modeTitle {
+  font-family: var(--font-serif, 'Cormorant Garamond', serif);
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 7px;
+  line-height: 1.3;
+}
+
+.modeTitleEm {
+  color: var(--color-info, #5b8eaf);
+  font-style: normal;
+}
+
+.modeDesc {
+  font-size: 12px;
+  color: var(--color-text-muted, #565c63);
+  line-height: 1.65;
+  max-width: 560px;
+}
+
+/* ---------- Reception rule callout ---------- */
+
+.rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 13px;
+  margin-bottom: 20px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 22%, transparent);
+  border-radius: 6px;
+}
+
+.ruleIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ruleText {
+  font-size: 11px;
+  color: var(--color-text-muted, #565c63);
+  line-height: 1.6;
+}
+
+.ruleLead {
+  color: var(--color-text, #1b1e22);
+  font-weight: 500;
+}
+
+/* ---------- Survey sequencing ---------- */
+
+.seqBlock {
+  margin-bottom: 20px;
+}
+
+.seqLabel {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 10px;
+}
+
+.seqRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.seqNode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: default;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+/* A node is interactive (a <button>) only when not locked and a select handler
+   is provided; static nodes render as <span>. Hover dim mirrors the mockup. */
+button.seqNode {
+  cursor: pointer;
+}
+
+button.seqNode:hover {
+  opacity: 0.8;
+}
+
+button.seqNode:focus-visible {
+  outline: 2px solid var(--color-info, #5b8eaf);
+  outline-offset: 1px;
+}
+
+.snDone {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  color: var(--color-success, #6b8f6b);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+}
+
+.snActive {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  color: var(--color-info, #5b8eaf);
+  border-color: color-mix(in srgb, var(--color-info, #5b8eaf) 35%, transparent);
+}
+
+.snAvail {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-muted, #565c63);
+  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.snLocked {
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  border-color: var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Active node gets a subtle ring so the current survey stands out (mockup marks
+   the open objective with the sky accent). */
+.seqNode[data-active='true'] {
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--color-info, #5b8eaf) 45%, transparent);
+}
+
+.seqArr {
+  color: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+}
+
+.seqNote {
+  margin-top: 6px;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+/* ---------- Tier-2 progress gate ---------- */
+
+.tierGate {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-top: 6px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 7px;
+}
+
+.tierGateIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-surface-alt, #f3efe6);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.tierGateBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.tierGateTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 3px;
+}
+
+.tierGateDesc {
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.tierGateFrac {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 14px;
+  color: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+}
+
+.tierGateFracDone {
+  color: var(--color-info, #5b8eaf);
+}
+
+/* ---------- Threshold-1 gate (neutral elevated, success when open) ---------- */
+
+.thGate {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-top: 7px;
+  background: var(--color-surface-alt, #f3efe6);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 7px;
+}
+
+.thGate[data-open='true'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+}
+
+.thGateIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  color: var(--color-text-muted, #565c63);
+}
+
+.thGate[data-open='true'] .thGateIcon {
+  color: var(--color-success, #6b8f6b);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+}
+
+.thGateBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.thGateEyebrow {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 3px;
+}
+
+.thGateTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, #565c63);
+  margin-bottom: 2px;
+}
+
+.thGateDesc {
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+  line-height: 1.5;
+}
+
+.thGateStatus {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  color: var(--color-text-subtle, #7a808a);
+  border: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+  padding: 2px 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.thGateStatus[data-open='true'] {
+  color: var(--color-success, #6b8f6b);
+  border-color: color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
+}

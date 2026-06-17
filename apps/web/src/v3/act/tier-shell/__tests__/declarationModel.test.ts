@@ -63,9 +63,13 @@ describe('TIER_ZERO_DISPLAY', () => {
 describe('THRESHOLDS', () => {
   it('positions three checkpoints against real stratum ids', () => {
     expect(THRESHOLDS).toHaveLength(3);
+    // 2026-06-16 Tier-2 Reception restructure: the Reality Check moved to sit
+    // AFTER Systems Reading (S3) and the Coherence Check after System Design
+    // (S5); the Act Mandate (S7) is unchanged. Single source of truth -- this
+    // intentionally shifts the Tier-0 spine display too.
     expect(THRESHOLDS.map((t) => t.afterStratumId)).toEqual([
-      's1-project-foundation',
-      's6-integration-design',
+      's3-systems-reading',
+      's5-system-design',
       's7-phasing-resourcing',
     ]);
     expect(THRESHOLDS[0]?.name).toContain('Reality Check');

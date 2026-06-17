@@ -35,8 +35,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, Clock, MousePointerClick } from 'lucide-react';
-import type { CriterionOption } from '@ogden/shared';
+import { ArrowRight, Check, Clock, Layers, MousePointerClick } from 'lucide-react';
+import type { CriterionOption, IntentLensRow } from '@ogden/shared';
+import IntentLensAccordion from './IntentLensAccordion.js';
 import type { FormFieldSpec, FormValue } from './actToolCatalog.js';
 import VisionFormFields, {
   initialFormValue,
@@ -440,6 +441,18 @@ export interface DecisionWorkingPanelProps {
   onSaveRationale: (text: string) => void;
   /** parent does setDecisionDeferred. */
   onToggleDefer: (deferred: boolean) => void;
+  /**
+   * OPTIONAL (Plan Reception / Tier-2 only). Display-only "builds on" dependency
+   * line for the panel header (e.g. "Tier 2.1 Water movement & hydrology").
+   * Absent everywhere else -> no row renders -> Act + Plan Declaration unchanged.
+   */
+  buildsOn?: string;
+  /**
+   * OPTIONAL (Plan Reception / Tier-2 only). Per-type intent-lens rows for this
+   * survey; rendered as the collapsible IntentLensAccordion above the capture
+   * body. Defaults to [] -> the accordion returns null -> unchanged elsewhere.
+   */
+  intentLens?: readonly IntentLensRow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -488,6 +501,8 @@ export default function DecisionWorkingPanel({
   onRecord,
   onSaveRationale,
   onToggleDefer,
+  buildsOn,
+  intentLens = [],
 }: DecisionWorkingPanelProps): JSX.Element {
   // The only real state: the working draft + the rationale draft. Seeded once on
   // mount and RE-SEEDED whenever the selected decision changes (keyed on itemId).
@@ -1362,10 +1377,18 @@ export default function DecisionWorkingPanel({
         {decision.prompt ? (
           <div className={css.hint}>{decision.prompt}</div>
         ) : null}
+        {buildsOn ? (
+          <div className={css.buildsOn} data-testid="builds-on">
+            <Layers size={12} className={css.buildsOnIcon} aria-hidden="true" />
+            <span className={css.buildsOnLbl}>Builds on</span>
+            <span className={css.buildsOnTxt}>{buildsOn}</span>
+          </div>
+        ) : null}
       </div>
 
       {/* ---------- Body router ---------- */}
       <div className={css.body}>
+        <IntentLensAccordion lens={intentLens} />
         {decision.isVisionClassify ? (
           <VisionClassifyCapture
             key={decision.itemId}

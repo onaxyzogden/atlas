@@ -405,3 +405,44 @@
   color: var(--color-text-muted, #565c63);
   font-family: var(--font-sans, 'Inter', sans-serif);
 }
+
+/* Observe-output chip (Plan Reception / Tier-2 only). Teal-tinted sibling to the
+   amber Act-handoff chip, mirroring the mockup dual `.outs` block: a mono
+   uppercase "Observe output" label + the survey-record name. The palette carries
+   no teal token, so the mockup teal (#3a9b8a) is the literal fallback -- chosen
+   over --color-info to keep this visually distinct from the sky reception accent
+   and the gold Act handoff. */
+.observe {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid
+    color-mix(in srgb, var(--color-teal, #3a9b8a) 22%, transparent);
+  background: color-mix(in srgb, var(--color-teal, #3a9b8a) 7%, transparent);
+}
+
+.observeLbl {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-teal, #3a9b8a);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.observeIcon {
+  color: var(--color-teal, #3a9b8a);
+}
+
+.observeName {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #565c63);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}

@@ -15,6 +15,9 @@ export const ACT_COPY = {
     optional: "optional",
     // Plan Declaration only: label above the Act-stage handoff artifact name.
     actHandoff: "Act handoff",
+    // Plan Reception only (Tier-2 systems reading): label above the Observe-stage
+    // survey-record name -- the dual output sibling to the Act handoff.
+    observeOutput: "Observe output",
   },
 
   workingPanel: {

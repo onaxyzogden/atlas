@@ -128,6 +128,40 @@
   font-family: var(--font-sans, 'Inter', sans-serif);
 }
 
+/* ---------- Builds-on row (Plan Reception only) ----------
+ * A small inline dependency line under the prompt: "Builds on <Tier 1.x ...>".
+ * DISPLAY ONLY -- this is the schema `buildsOnDisplay` string, never a prereq
+ * gate. Sky/info accent for the Layers glyph to sit under the reception chrome;
+ * the label is a mono uppercase eyebrow, the text muted. Rendered behind an
+ * optional `buildsOn` prop so every Act surface stays byte-identical. */
+.buildsOn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.buildsOnIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+}
+
+.buildsOnLbl {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+}
+
+.buildsOnTxt {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #565c63);
+}
+
 /* ---------- Body ---------- */
 
 .body {

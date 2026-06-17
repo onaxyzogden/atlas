@@ -34,6 +34,12 @@ import {
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 import DecisionList from './DecisionList.js';
 import DeclarationCenter from './DeclarationCenter.js';
+import ReceptionCenter from './ReceptionCenter.js';
+import {
+  readBuildsOn,
+  readIntentLens,
+  type ReceptionProgressModel,
+} from './receptionModel.js';
 import TeamRegistryPanel, { TEAM_OBJECTIVE_ID } from './TeamRegistryPanel.js';
 import DecisionWorkingPanel, {
   type DecisionPanelTarget,
@@ -71,18 +77,29 @@ export interface ActTierZeroWorkbenchProps {
   onSaveRationale: (itemId: string, text: string) => void;
   onToggleDefer: (itemId: string, deferred: boolean) => void;
   /**
-   * Declaration mode (Plan-only). When 'declaration', the Tier-0 / Stratum-1
-   * Declaration header (DeclarationCenter) is mounted above the 2-pane grid and
-   * the per-objective Act-handoff chip is surfaced in the decision list. Absent
-   * (the Act stage) -> byte-identical legacy 2-pane workbench.
+   * Plan-only workbench chrome (the Act stage omits it -> byte-identical legacy
+   * 2-pane workbench):
+   *   - 'declaration' (Tier-0 / Stratum-1): mounts the Declaration header
+   *     (DeclarationCenter) above the grid; surfaces the per-objective Act-handoff
+   *     chip in the decision list.
+   *   - 'reception' (Tier-2 / Stratum-3 Systems Reading): mounts the Reception
+   *     header (ReceptionCenter) above the grid; surfaces BOTH the teal
+   *     Observe-Output chip and the amber Act-handoff chip in the decision list,
+   *     plus the per-survey intent-lens accordion + builds-on row in the panel.
    */
-  mode?: 'declaration';
+  mode?: 'declaration' | 'reception';
   /**
    * Live per-objective status, keyed by objective id. Consumed by
-   * DeclarationCenter to drive the canonical-object cards + sequencing diagram.
-   * Only read in declaration mode.
+   * DeclarationCenter / ReceptionCenter to drive the canonical-object cards or
+   * survey-sequencing strip. Only read in declaration/reception mode.
    */
   objectiveStatuses?: Readonly<Record<string, PlanStratumObjectiveStatus>>;
+  /**
+   * Cross-tier reception progress (Tier 1 + Tier 2 fractions + record count),
+   * derived by the parent from the FULL objective list. Only read in reception
+   * mode -- feeds the ReceptionCenter gate cards.
+   */
+  receptionProgress?: ReceptionProgressModel;
   /**
    * Optional: select an objective from a sequencing-diagram node (declaration
    * mode). Absent -> sequencing nodes render static. Objective selection is the
@@ -478,9 +495,14 @@ export default function ActTierZeroWorkbench({
   onToggleDefer,
   mode,
   objectiveStatuses,
+  receptionProgress,
   onSelectObjective,
 }: ActTierZeroWorkbenchProps): JSX.Element {
   const isDeclaration = mode === 'declaration';
+  const isReception = mode === 'reception';
+  // Both Plan modes stack a header above the grid, so the grid flexes inside a
+  // shell instead of claiming full height.
+  const inShell = isDeclaration || isReception;
 
   const activeObjective =
     objectives.find((o) => o.id === activeObjectiveId) ?? objectives[0];
@@ -564,9 +586,9 @@ export default function ActTierZeroWorkbench({
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
   const target = selectedItem ? buildDecisionTarget(selectedItem) : null;
 
-  // In declaration mode the grid lives inside a flex-column shell beneath the
-  // DeclarationCenter, so it flexes instead of claiming the full height.
-  const gridClassName = isDeclaration
+  // In declaration/reception mode the grid lives inside a flex-column shell
+  // beneath the mode header, so it flexes instead of claiming the full height.
+  const gridClassName = inShell
     ? `${css.root} ${css.rootInShell}`
     : css.root;
 
@@ -612,7 +634,8 @@ export default function ActTierZeroWorkbench({
           onSelectItem={setSelectedItemId}
           showGroups={showGroups}
           modeFor={affordances.modeFor ?? undefined}
-          showActHandoff={isDeclaration}
+          showActHandoff={isDeclaration || isReception}
+          showObserveOutput={isReception}
         />
       </section>
 
@@ -640,6 +663,12 @@ export default function ActTierZeroWorkbench({
           recorded={
             selectedItem ? completedForActive.includes(selectedItem.id) : false
           }
+          // Reception (Tier-2) only: the survey objective's per-type intent lens
+          // + display-only builds-on line. Same value for every item of the
+          // survey (they belong to the objective, not the item). Act/Declaration
+          // omit both -> the panel renders byte-identical there.
+          buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
+          intentLens={isReception ? readIntentLens(activeObjective) : undefined}
           onRecord={(value, summary) => {
             if (selectedItem) onRecord(selectedItem.id, value, summary);
           }}
@@ -655,7 +684,36 @@ export default function ActTierZeroWorkbench({
   );
 
   // Act stage (mode omitted): byte-identical legacy 2-pane grid.
-  if (!isDeclaration) return grid;
+  if (!inShell) return grid;
+
+  // Plan Reception: the Tier-2 / Stratum-3 Systems-Reading header stacks above
+  // the grid. The cross-tier progress is derived by the parent (it holds the
+  // FULL objective list); ReceptionCenter renders the sequencing strip from the
+  // current stratum slice + the gate cards from the supplied progress.
+  if (isReception) {
+    return (
+      <div className={css.shell} data-mode="reception">
+        <div className={css.declTop}>
+          <ReceptionCenter
+            objectives={objectives}
+            objectiveStatuses={objectiveStatuses ?? {}}
+            progress={
+              receptionProgress ?? {
+                tierOne: { complete: 0, total: 0 },
+                tierTwo: { complete: 0, total: 0 },
+                totalRecords: 0,
+                capturedRecords: 0,
+                thresholdOpen: false,
+              }
+            }
+            activeObjectiveId={activeObjectiveId}
+            onSelectObjective={onSelectObjective}
+          />
+        </div>
+        {grid}
+      </div>
+    );
+  }
 
   // Plan Declaration: the Tier-0 / Stratum-1 header stacks above the grid.
   return (

@@ -1,0 +1,99 @@
+/* IntentLensAccordion.module.css
+ *
+ * The collapsible intent-lens disclosure inside the Reception working panel.
+ * Reception's accent is the SKY/INFO surface (sibling to the gold Declaration
+ * chrome), so the header label + count chip use --color-info; the per-type rows
+ * read as a neutral elevated list. ASCII-only: the lens eye and the disclosure
+ * chevron are lucide icons rendered by the component (no glyphs here).
+ */
+
+.root {
+  margin-bottom: 14px;
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+  border-radius: 7px;
+  background: var(--color-surface, #ffffff);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 6%, transparent);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.head:hover {
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 10%, transparent);
+}
+
+.head:focus-visible {
+  outline: 2px solid var(--color-info, #5b8eaf);
+  outline-offset: -2px;
+}
+
+.headIcon {
+  color: var(--color-info, #5b8eaf);
+  flex-shrink: 0;
+}
+
+.headLbl {
+  flex: 1;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #565c63);
+}
+
+.count {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 14%, transparent);
+  border-radius: 9px;
+  padding: 1px 7px;
+  flex-shrink: 0;
+}
+
+.chevron {
+  color: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.chevron[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+}
+
+.rowType {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-info, #5b8eaf);
+  margin-bottom: 3px;
+}
+
+.rowText {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}

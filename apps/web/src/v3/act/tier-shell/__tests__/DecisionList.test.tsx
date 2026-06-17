@@ -700,3 +700,76 @@ describe('DecisionList -- outcome titles (Act-only)', () => {
     expect(within(row).getByText(label)).toBeTruthy();
   });
 });
+
+describe('DecisionList -- dual outputs (Plan Reception observe chip)', () => {
+  // The Reception (Tier-2) objective carries BOTH an observeOutput (the survey
+  // record it produces) and an actHandoff. The chips are gated independently:
+  // showObserveOutput (teal) for the survey record, showActHandoff (amber).
+  function makeReceptionObjective(): PlanStratumObjective {
+    return makeObjective({
+      id: 's3-hydrology',
+      stratumId: 's3-systems-reading',
+      observeOutput: 'Hydrology Survey Record',
+      actHandoff: 'Water Infrastructure Brief',
+    } as Partial<PlanStratumObjective>);
+  }
+
+  it('renders the teal Observe Output chip when showObserveOutput is set', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeReceptionObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        showObserveOutput
+      />,
+    );
+    const chip = screen.getByTestId('observe-output');
+    expect(chip.textContent).toMatch(/Observe output/i);
+    expect(chip.textContent).toMatch(/Hydrology Survey Record/);
+  });
+
+  it('renders Observe + Act chips together when both flags are set', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeReceptionObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        showObserveOutput
+        showActHandoff
+      />,
+    );
+    expect(screen.getByTestId('observe-output')).toBeTruthy();
+    expect(screen.getByTestId('act-handoff')).toBeTruthy();
+  });
+
+  it('omits the Observe chip when showObserveOutput is absent (Act parity)', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeReceptionObjective()}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+      />,
+    );
+    expect(screen.queryByTestId('observe-output')).toBeNull();
+  });
+
+  it('omits the Observe chip when the flag is set but no observeOutput is authored', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective({ observeOutput: undefined })}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        showObserveOutput
+      />,
+    );
+    expect(screen.queryByTestId('observe-output')).toBeNull();
+  });
+});

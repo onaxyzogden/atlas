@@ -1,0 +1,272 @@
+/* ReceptionReferencePanel.module.css
+ *
+ * The Plan-stage Tier-2 right-rail reference surface. Maps the mockup's dark
+ * right column (olos_tier2_systems.html .rp) onto project --color-* tokens with
+ * literal fallbacks. Reception's accent is the SKY/INFO surface; the dual
+ * outputs keep their semantic colours -- teal (--color-teal, observe) and amber
+ * (--color-stage-act, act handoff). ASCII-only: every glyph is a lucide icon
+ * rendered by the component, not a Unicode character here.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ---------- Header ---------- */
+
+.head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.eyebrow {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text, #1b1e22);
+  margin-bottom: 3px;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Section ---------- */
+
+.section {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+}
+
+.sectionLabel {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 9px;
+}
+
+/* ---------- Reception-mode callout (sky) ---------- */
+
+.callout {
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 28%, transparent);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 8%, transparent);
+  border-radius: 6px;
+  padding: 11px 12px;
+}
+
+.calloutTitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-info, #5b8eaf);
+  margin-bottom: 5px;
+}
+
+.calloutIcon {
+  flex-shrink: 0;
+}
+
+.calloutBody {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Intent-lens rows ---------- */
+
+.lensRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(84, 92, 100, 0.08));
+}
+
+.lensRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.lensTag {
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-info, #5b8eaf);
+  background: color-mix(in srgb, var(--color-info, #5b8eaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5b8eaf) 26%, transparent);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-top: 1px;
+}
+
+.lensText {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Where this survey feeds (dual outputs) ---------- */
+
+.feed {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  margin-bottom: 6px;
+}
+
+.feed:last-child {
+  margin-bottom: 0;
+}
+
+.feedObserve {
+  background: color-mix(in srgb, var(--color-teal, #3a9b8a) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-teal, #3a9b8a) 24%, transparent);
+}
+
+.feedAct {
+  background: color-mix(
+    in srgb,
+    var(--color-stage-act, #d4944a) 9%,
+    transparent
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--color-stage-act, #d4944a) 24%,
+    transparent
+  );
+}
+
+.feedIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedObserve .feedIcon {
+  color: var(--color-teal, #3a9b8a);
+}
+
+.feedAct .feedIcon {
+  color: var(--color-stage-act, #d4944a);
+}
+
+.feedBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.feedLbl {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.feedObserve .feedLbl {
+  color: var(--color-teal, #3a9b8a);
+}
+
+.feedAct .feedLbl {
+  color: var(--color-stage-act, #d4944a);
+}
+
+.feedTxt {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Builds-on (display-only dependency) ---------- */
+
+.buildsOn {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #565c63);
+}
+
+/* ---------- Both-tier progress ---------- */
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progLabel {
+  flex: 1;
+  font-size: 11px;
+  color: var(--color-text-muted, #565c63);
+}
+
+.progBar {
+  width: 80px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-surface-alt, #f3efe6);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.progFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.progFillDone {
+  background: var(--color-success, #6b8f6b);
+}
+
+.progFillActive {
+  background: var(--color-info, #5b8eaf);
+}
+
+.progFrac {
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.recordsCaption {
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.55;
+  color: var(--color-text-subtle, #7a808a);
+}

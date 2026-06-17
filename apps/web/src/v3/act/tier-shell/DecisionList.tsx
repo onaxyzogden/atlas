@@ -42,6 +42,7 @@ import {
   Wrench,
   AlertTriangle,
   Landmark,
+  Eye,
 } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
@@ -89,6 +90,13 @@ export interface DecisionListProps {
    * false, so every existing surface -- including Act -- is UNCHANGED.
    */
   showActHandoff?: boolean;
+  /**
+   * OPTIONAL. When true AND the objective carries an `observeOutput` descriptor,
+   * a teal Observe-Output chip renders beside the Act-handoff chip (mockup dual
+   * `.outs` block, Plan Reception / Tier-2 only). Default false, so every
+   * existing surface -- including Act and Plan Declaration -- is UNCHANGED.
+   */
+  showObserveOutput?: boolean;
 }
 
 // Raw mode key -> human label. The keys cover three families: the LEGACY
@@ -415,6 +423,7 @@ export default function DecisionList({
   modeFor,
   showGroups = false,
   showActHandoff = false,
+  showObserveOutput = false,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
   const deferred = new Set(deferredItemIds);
@@ -560,7 +569,20 @@ export default function DecisionList({
         </div>
       ) : null}
 
-      {/* ---------- Act handoff (Plan Declaration only) ---------- */}
+      {/* ---------- Dual outputs (Plan Declaration / Reception only) ---------- */}
+      {/* Observe Output (teal) -- the survey record this objective produces;
+          shown in Plan Reception (Tier-2) beside the amber Act handoff. */}
+      {showObserveOutput && objective.observeOutput ? (
+        <div className={css.observe} data-testid="observe-output">
+          <div className={css.observeLbl}>
+            <Eye size={11} className={css.observeIcon} aria-hidden="true" />
+            <span>{ACT_COPY.decisionList.observeOutput}</span>
+          </div>
+          <div className={css.observeName}>{objective.observeOutput}</div>
+        </div>
+      ) : null}
+
+      {/* Act handoff (amber) -- Plan Declaration + Reception. */}
       {showActHandoff && objective.actHandoff ? (
         <div className={css.handoff} data-testid="act-handoff">
           <div className={css.handoffLbl}>

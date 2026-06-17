@@ -85,14 +85,20 @@ export interface ThresholdMarker {
 }
 
 /**
- * The three OLOS gate checkpoints, mapped onto the real seven-stratum spine:
- *   - Reality Check  after S1 (Declaration), entering land reading.
- *   - Coherence Check after S6 (Integration Design), entering launch prep.
+ * The three OLOS gate checkpoints, mapped onto the real seven-stratum spine.
+ * 2026-06-16 (Tier-2 Reception restructure): the spec relocates the gates onto
+ * the Systems-Reading model -- the Reality Check now sits AFTER S3 (Systems
+ * Reading), once the land has actually been read, and the Coherence Check after
+ * S5 (System Design). T3 (Act Mandate) is unchanged. This is the single source
+ * of truth (receptionModel imports it); the shift intentionally moves the
+ * already-shipped Tier-0 spine display too.
+ *   - Reality Check   after S3 (Systems Reading), land read before any decision.
+ *   - Coherence Check after S5 (System Design), design coheres before integration.
  *   - Act Mandate     after S7 (Phasing & Resourcing), entering the Act stage.
  */
 export const THRESHOLDS: readonly ThresholdMarker[] = [
-  { afterStratumId: 's1-project-foundation', name: 'Threshold 1 -- Reality Check' },
-  { afterStratumId: 's6-integration-design', name: 'Threshold 2 -- Coherence Check' },
+  { afterStratumId: 's3-systems-reading', name: 'Threshold 1 -- Reality Check' },
+  { afterStratumId: 's5-system-design', name: 'Threshold 2 -- Coherence Check' },
   { afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
 ];
 
