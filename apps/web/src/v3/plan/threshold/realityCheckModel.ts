@@ -392,3 +392,115 @@ export const CSA_ADVISORY_COPY = {
   body:
     'This wording resembles advance-sale or subscription financing, which this system does not use. Capital here flows through permitted channels -- charitable donation, restricted donation, qard hasan (interest-free loan), in-kind contribution, and sponsorship. This is an advisory only; your entry is saved exactly as written.',
 } as const;
+
+// ---------------------------------------------------------------------------
+// Mode-4 soft gate + downstream registers (Stage D -- display-only)
+// ---------------------------------------------------------------------------
+
+/**
+ * The four Mode-4 (Design) strata, in spine order. EDITORIAL CONSTANT pinned to
+ * the `PLAN_STRATA` ordinals 4-7 (asserted in tests). The approved Planning
+ * Direction is the mandate every Mode-4 objective proceeds from; the soft gate
+ * surfaces on these strata until Threshold 1 is approved.
+ *
+ * CRITICAL: this is NEVER a hard prerequisite. `prerequisiteObjectiveIds` /
+ * `STRATUM_PREREQS` are untouched; this constant only drives a display-only
+ * banner (mirrors the A8 "Act Mandate" soft-gate precedent). Mode-4 strata stay
+ * fully reachable whether or not Threshold 1 is approved.
+ */
+export const MODE_4_STRATUM_IDS: readonly string[] = [
+  's4-foundation-decisions',
+  's5-system-design',
+  's6-integration-design',
+  's7-phasing-resourcing',
+];
+
+/** Whether a stratum id is one of the four Mode-4 (Design) strata. */
+export function isMode4Stratum(stratumId: string | null | undefined): boolean {
+  return stratumId != null && MODE_4_STRATUM_IDS.includes(stratumId);
+}
+
+/** Derived state of the soft Mode-4 gate for one objective surface. */
+export interface RealityCheckGateState {
+  /** On a Mode-4 stratum (whether or not Threshold 1 is approved). */
+  mode4: boolean;
+  /** The Planning Direction has been approved (`approvedAt` present). */
+  approved: boolean;
+  /** TRUE iff on a Mode-4 stratum AND not yet approved -> show the amber gate. */
+  pending: boolean;
+}
+
+/**
+ * Pure derivation of the soft Mode-4 gate. NEVER blocks: callers render a banner
+ * from this and nothing else. `pending` arms the amber "approve Threshold 1
+ * first" reminder; `approved` (on a Mode-4 stratum) surfaces the direction
+ * registers. Off a Mode-4 stratum, `mode4` is false and the banner renders null.
+ */
+export function realityCheckGateState(
+  stratumId: string | null | undefined,
+  approvedAt: number | null | undefined,
+): RealityCheckGateState {
+  const mode4 = isMode4Stratum(stratumId);
+  const approved = approvedAt != null;
+  return { mode4, approved, pending: mode4 && !approved };
+}
+
+/** One classified intent element paired with its recorded decision. */
+export interface ClassifiedElement {
+  element: IntentElement;
+  classification: ElementClassification;
+}
+
+/** The classified elements grouped by status; each group is order-stable. */
+export interface ClassificationGroups {
+  feasible: ClassifiedElement[];
+  conditional: ClassifiedElement[];
+  deferred: ClassifiedElement[];
+  released: ClassifiedElement[];
+}
+
+/**
+ * Group classified elements by status for the display-only downstream registers
+ * (Conditional design-requirements, Deferred long-term register, Released with
+ * note). Unclassified elements are omitted; order follows `elements`.
+ */
+export function groupClassifications(
+  elements: readonly IntentElement[],
+  classifications: Readonly<Record<string, ElementClassification>>,
+): ClassificationGroups {
+  const groups: ClassificationGroups = {
+    feasible: [],
+    conditional: [],
+    deferred: [],
+    released: [],
+  };
+  for (const element of elements) {
+    const classification = classifications[element.id];
+    if (classification?.status == null) continue;
+    groups[classification.status].push({ element, classification });
+  }
+  return groups;
+}
+
+/**
+ * Copy for the Mode-4 soft-gate banner. Covenant-clean -- no advance-sale /
+ * subscription / CSA / yield-share framing. Wording-pinned in tests.
+ */
+export const MODE4_GATE_COPY = {
+  pending: {
+    pill: 'Threshold 1',
+    title: 'Planning Direction not yet approved',
+    body: 'Mode 4 Design proceeds from the Planning Direction you approve at Threshold 1. You can work here, but the direction that grounds these design decisions is not set yet.',
+    action: 'Open Threshold 1',
+  },
+  approved: {
+    pill: 'Planning Direction',
+    title: 'In effect from Threshold 1',
+    body: 'These design decisions proceed from the Reality Check you approved. The register below is what Mode 4 carries forward.',
+    action: 'Review Threshold 1',
+    conditionalLabel: 'Conditions Mode 4 must satisfy',
+    deferredLabel: 'Deferred to a later cycle',
+    releasedLabel: 'Released from the plan',
+    emptyConditional: 'No conditional requirements were recorded.',
+  },
+} as const;

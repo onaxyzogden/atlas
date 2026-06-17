@@ -118,6 +118,7 @@ import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
 // branch must sit FIRST in the center + right-rail ternaries below.
 import RealityCheckSurface from '../threshold/RealityCheckSurface.js';
 import RealityCheckReferenceRail from '../threshold/RealityCheckReferenceRail.js';
+import RealityCheckGateBanner from '../threshold/RealityCheckGateBanner.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -1382,6 +1383,19 @@ export default function PlanTierShell() {
                   selectedObjective &&
                   selectedObjectiveStratum ? (
                     <>
+                      {/* Soft Mode-4 gate (Threshold 1). Renders only on the
+                          four Design strata: an amber "approve Threshold 1
+                          first" reminder while unapproved, the Conditional/
+                          Deferred/Released register once approved. Derived +
+                          display-only -- it NEVER blocks navigation and NEVER
+                          touches prerequisiteObjectiveIds; returns null off
+                          Mode-4 so Reception details are undisturbed. */}
+                      <RealityCheckGateBanner
+                        projectId={id}
+                        stratumId={selectedObjectiveStratum.id}
+                        objectives={objectives}
+                        objectiveStatuses={objectiveStatuses}
+                      />
                       {/* Generic "Open map with tools" CTA — self-gates to
                           objectives that resolve to >= 1 map draw/place tool, so
                           it appears only for spatial objectives (the two bespoke

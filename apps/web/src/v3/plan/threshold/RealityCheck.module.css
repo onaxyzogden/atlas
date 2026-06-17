@@ -738,3 +738,155 @@
   font-size: 12px;
   color: var(--color-text-muted, #6f675b);
 }
+
+/* ------------------------------------------------ Mode-4 soft gate (Stage D) */
+
+/*
+ * The gate banner mounts OUTSIDE `.surface` (in the Plan objective-detail rail),
+ * so it carries its own copy of the amber register tokens. Same fallbacks ->
+ * reads as one register with the threshold surface and its spine entry.
+ */
+.gate {
+  --rc-accent: var(--color-threshold-accent, #d9a441);
+  --rc-accent-strong: var(--color-gold-brand, #b08a3a);
+  --rc-soft: var(--color-threshold-soft, rgba(217, 164, 65, 0.14));
+  --rc-line: rgba(217, 164, 65, 0.34);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--rc-line);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--rc-soft) 0%, transparent 120%);
+}
+
+/* Pending leans amber (a standing reminder); approved is calmer (a record). */
+.gatePending {
+  border-left: 3px solid var(--rc-accent);
+}
+
+.gateApproved {
+  border-left: 3px solid var(--rc-accent-strong);
+  background: var(--color-surface, #fff);
+}
+
+.gateHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gateIcon {
+  color: var(--rc-accent-strong);
+  flex: none;
+}
+
+.gatePill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--rc-accent-strong);
+}
+
+.gateTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.gateBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.gateAction {
+  appearance: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 7px 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: var(--rc-accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gateAction:hover {
+  filter: brightness(0.96);
+}
+
+.gateActionGhost {
+  appearance: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gateActionGhost:hover {
+  border-color: var(--rc-line);
+}
+
+/* Downstream registers -- Conditional / Deferred / Released, display-only. */
+.gateRegister {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border, #e2ddd2);
+}
+
+.gateRegisterLabel {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.gateRegisterEmpty {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.gateRegisterList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.gateRegisterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gateRegisterText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #2b2620);
+}
+
+.gateRegisterCond {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6f675b);
+}
