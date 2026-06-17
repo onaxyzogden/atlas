@@ -533,6 +533,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Species mix and planting plan strategy approved. All species confirmed available.',
     actHandoff: 'Species Mix & Planting Plan Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Establishment survival rate by layer and species (first three seasons)',
+        'Layer fill -- canopy, understory, shrub, and ground cover gaining target proportion',
+        'Pioneer species vigor vs. plan in bare or degraded zones',
+      ],
+      triggers: [
+        'Survival below target for a species -- review provenance, site match, replace from a nursery source',
+        'A layer failing to fill -- reassess species choice or planting density for that layer',
+        'Species mix drifting from the selection philosophy -- pause additions, re-confirm against design constraint',
+      ],
+      feeds: 'Tree Health monitoring stream',
+    },
   }),
   obj({
     id: 'orch-s4-water-strategy',
@@ -577,6 +590,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Establishment and maturity water strategy approved. Weaning schedule defined.',
     actHandoff: 'Establishment & Maturity Water Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Applied irrigation volume per tree vs. the planned frequency and volume by age',
+        'Tree water-stress signs -- wilting, leaf scorch, early drop (weekly through the dry season)',
+        'Weaning progress -- irrigation reduced on schedule as root systems establish',
+      ],
+      triggers: [
+        'Water-stress signs during normal irrigation -- check emitters and supply line, then raise volume',
+        'Drought threshold reached on a mature block -- activate supplemental irrigation trigger',
+        'Weaning step shows decline -- pause the reduction, hold the prior irrigation level',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 'orch-s4-guild-planting',
@@ -625,6 +651,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guild planting and companion species strategy approved.',
     actHandoff: 'Guild Planting & Companion Species Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Companion species establishment and survival within each tree guild',
+        'Ground cover coverage vs. plan -- living mulch closing or paths staying mulched',
+        'Nitrogen-fixer vigor and visible soil or tree-health response near each guild',
+      ],
+      triggers: [
+        'A companion species failing to establish -- replace or substitute a better-matched companion',
+        'Ground cover thinning to bare soil -- reseed or remulch before weed pressure builds',
+        'A guild species outcompeting the tree -- prune back or relocate that companion',
+      ],
+      feeds: 'Guild & Understory monitoring stream',
+    },
   }),
   obj({
     id: 'orch-s4-succession-management',
@@ -670,6 +709,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Succession management strategy approved. Stage targets and interventions defined.',
     actHandoff: 'Succession Management Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Succession stage progress against the 5, 10, and 25-year targets',
+        'Canopy light penetration vs. the target for a productive understory',
+        'Pioneer-species phase-out -- proportion retired on schedule',
+      ],
+      triggers: [
+        'Stage target missed at a milestone year -- schedule the planned intervention (chop and drop, coppice, or thin)',
+        'Understory light below target -- thin or prune the canopy to restore penetration',
+        'A pioneer species overstaying its phase-out trigger -- remove or replace per the succession plan',
+      ],
+      feeds: 'Succession monitoring stream',
+    },
   }),
   obj({
     id: 'orch-s4-pest-disease-management',
@@ -718,6 +770,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Pest and disease management strategy approved. All interventions philosophy-consistent.',
     actHandoff: 'Pest & Disease Management Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Pest counts against the defined intervention thresholds (weekly at peak pressure)',
+        'Disease incidence by crop family -- fireblight, brown rot, black spot',
+        'Beneficial-predator presence and sanitation compliance -- fallen-fruit removal, pruning hygiene',
+      ],
+      triggers: [
+        'Pest count crossing its threshold -- apply the defined response within the spray or biological program',
+        'Disease symptoms appearing -- isolate affected trees, remove infected material, review variety resistance',
+        'Predator population collapsing -- reduce intervention pressure, restore beneficial habitat',
+      ],
+      feeds: 'Pest & Disease monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({
@@ -1324,6 +1389,19 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Cultivar and rootstock selections approved. Pollination partners and bloom overlap secured. True-to-type stock sourcing confirmed.',
     actHandoff: 'Cultivar, Rootstock & Pollination Decision Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Fruit set rate per cross-pollinated species against expectation',
+        'Bloom-overlap timing between each species and its pollination partner each season',
+        'Pollinator activity in the canopy during the bloom window',
+      ],
+      triggers: [
+        'Poor fruit set on a cross-pollinated species -- verify a compatible partner is present and blooming in overlap',
+        'Bloom periods drifting apart between partners -- add or substitute a better-overlapping partner cultivar',
+        'Low pollinator activity at bloom -- add insectary planting or managed hives near the affected block',
+      ],
+      feeds: 'Pollination monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

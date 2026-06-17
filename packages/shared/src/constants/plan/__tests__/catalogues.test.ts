@@ -156,6 +156,94 @@ describe('catalogue conformance - schema validity', () => {
   });
 });
 
+describe('catalogue conformance - Mode-4 design fields (s4 / Tier 3)', () => {
+  // 2026-06-17 Mode-4 restructure: every resolving s4-foundation-decisions
+  // objective gains a DISPLAY-ONLY monitoringProtocol (Key Indicators / Response
+  // Triggers / Feeds) -- the design input to the Observe stage. The 7 spec config
+  // objectives carry the verbatim spec copy; silv-sec-s4-stock-infrastructure
+  // additionally RAISES the Silvopasture water conditional via a
+  // planningDirectionMandate (display-only, never a gate). The canonical config
+  // is the resolution target: Regen (primary) + Residential + Silvopasture.
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'regenerative_farm',
+    secondaryTypeIds: ['residential', 'silvopasture'],
+  });
+
+  // The spec's 7 Tier-3 config objectives (3.1-3.7).
+  const CONFIG_S4_IDS = [
+    's4-water-strategy',
+    's4-zones',
+    'rf-s4-fertility-strategy',
+    'rf-s4-biodiversity-strategy',
+    'silv-sec-s4-stock-infrastructure',
+    'silv-sec-s4-grazing-design',
+    'res-s4-living-zone',
+  ];
+
+  it('every spec config s4 objective carries a non-empty monitoringProtocol', () => {
+    for (const id of CONFIG_S4_IDS) {
+      const o = findPlanStratumObjectiveIn(objectives, id);
+      expect(o, id).toBeDefined();
+      const mp = o!.monitoringProtocol;
+      expect(mp, `${id} monitoringProtocol`).toBeDefined();
+      expect(mp!.indicators.length, `${id} indicators`).toBeGreaterThan(0);
+      expect(mp!.triggers.length, `${id} triggers`).toBeGreaterThan(0);
+      expect(mp!.feeds.trim().length, `${id} feeds`).toBeGreaterThan(0);
+    }
+  });
+
+  it('every resolving s4 objective carries a monitoringProtocol (s4-direction excluded)', () => {
+    const s4 = objectives.filter(
+      (o) => o.stratumId === 's4-foundation-decisions',
+    );
+    expect(s4.length).toBeGreaterThan(0);
+    for (const o of s4) {
+      const mp = o.monitoringProtocol;
+      expect(mp, o.id).toBeDefined();
+      expect(mp!.indicators.length, o.id).toBeGreaterThan(0);
+      expect(mp!.triggers.length, o.id).toBeGreaterThan(0);
+      expect(mp!.feeds.trim().length, o.id).toBeGreaterThan(0);
+    }
+    // s4-direction is excludedFromResolution -> never reaches the resolved spine.
+    expect(s4.map((o) => o.id)).not.toContain('s4-direction');
+  });
+
+  it('silv-sec-s4-stock-infrastructure raises the Silvopasture water conditional (display-only mandate)', () => {
+    const stock = findPlanStratumObjectiveIn(
+      objectives,
+      'silv-sec-s4-stock-infrastructure',
+    );
+    expect(stock).toBeDefined();
+    expect(typeof stock!.planningDirectionMandate).toBe('string');
+    expect(stock!.planningDirectionMandate!.trim().length).toBeGreaterThan(0);
+    // prereqs stay universal-ids-only: the mandate must NOT have become a gate.
+    expect(stock!.prerequisiteObjectiveIds ?? []).not.toContain(
+      's4-water-strategy',
+    );
+  });
+
+  it('Amanah: monitoringProtocol + planningDirectionMandate copy is covenant-clean across ALL authored s4 objectives', () => {
+    // Scan ONLY the two new Mode-4 fields -- NOT scopeNotes, which legitimately
+    // DOCUMENTS the prohibition using banned words (e.g. ag-s4-revenue-model's
+    // membership-benefit scope note names "advance sale" / "CSA" to forbid them).
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const s4Authored = ALL_AUTHORED.filter(
+      (o) => o.stratumId === 's4-foundation-decisions',
+    );
+    const strings: string[] = [];
+    for (const o of s4Authored) {
+      const mp = o.monitoringProtocol;
+      if (mp) strings.push(...mp.indicators, ...mp.triggers, mp.feeds);
+      if (o.planningDirectionMandate) strings.push(o.planningDirectionMandate);
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
+  });
+});
+
 describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fields', () => {
   // The 2026-06-16 Tier-1 (Stratum-2) restructure reframed the six s2-* Land-
   // Reading objectives as a reception tier: each gains a reception-register

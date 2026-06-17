@@ -266,6 +266,18 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Domestic living zone defined and privacy strategy approved. All conflicts with visitor or operational zones resolved.',
     actHandoff: 'Domestic Living Zone & Privacy Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Privacy buffer integrity between living zone and working zones (quarterly walk-through)',
+        'Recorded incursions of operational activity into the living zone (log per occurrence)',
+        'Access-control adherence at the living-zone boundary (quarterly review)',
+      ],
+      triggers: [
+        'Repeated operational incursion into the living zone -> formalize physical boundary marker or screening',
+        'Noise or chemical buffer breached by enterprise placement -> review zone allocation and exclusion distances',
+      ],
+      feeds: 'Residential Zone monitoring stream',
+    },
   }),
   obj({
     id: 'res-s5-living-infrastructure',

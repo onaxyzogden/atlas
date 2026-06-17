@@ -841,6 +841,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Guest experience zones and circulation strategy approved. All boundaries and safety requirements confirmed.',
     actHandoff: 'Guest Experience Zones & Visitor Circulation Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Guest adherence to designated zones -- incursions into farm-operation areas',
+        'Wayfinding effectiveness -- guests reaching destinations without staff redirection',
+        'Boundary integrity between guest zones and working operations',
+      ],
+      triggers: [
+        'Repeated guest incursion into a farm-operation zone -> reinforce the boundary or signage at that point',
+        'Guests frequently lost or redirected -> revise wayfinding and orientation',
+        'Circulation route conflicting with an emergency-evacuation path -> re-route and re-test evacuation',
+      ],
+      feeds: 'Visitor Circulation monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s4-service-model',
@@ -898,6 +911,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Hospitality service model approved. All offerings defined against capacity and compliance constraints.',
     actHandoff: 'Hospitality Service Model Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Guest satisfaction by offering -- accommodation, dining, programming',
+        'Service-standard adherence vs. the defined standard',
+        'Offering delivery within steward and staff capacity',
+      ],
+      triggers: [
+        'Satisfaction falling for an offering -> review the service standard and delivery for it',
+        'Service standard not met during peak periods -> review staffing and capacity for that offering',
+        'An offering exceeding available capacity to deliver -> scale it back or resource it',
+      ],
+      feeds: 'Visitor Experience monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s4-food-strategy',
@@ -955,6 +981,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Farm-to-guest food production strategy approved. Supply chain and gaps confirmed.',
     actHandoff: 'Farm-to-Guest Food Production Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Share of the guest menu supplied from on-farm production vs. plan',
+        'Seasonal supply gaps requiring external sourcing',
+        'Farm-to-guest supply-chain compliance with food-safety requirements',
+      ],
+      triggers: [
+        'On-farm supply share falling below plan -> review enterprise priorities or the sourcing strategy',
+        'A seasonal gap recurring -> adjust production or pre-arrange sourcing for that window',
+        'A food-safety lapse in the supply chain -> halt the affected line and remediate',
+      ],
+      feeds: 'Farm-to-Guest Food monitoring stream',
+    },
   }),
   obj({
     id: 'ag-s4-safety-compliance',
@@ -1020,6 +1059,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Safety, emergency, and compliance framework approved. All obligations confirmed before any guest access.',
     actHandoff: 'Safety, Emergency & Compliance Framework',
+    monitoringProtocol: {
+      indicators: [
+        'Compliance-obligation currency -- licences, insurance, certifications up to date',
+        'Safety-incident and near-miss frequency in guest zones',
+        'First-aid and emergency-equipment readiness',
+      ],
+      triggers: [
+        'A compliance obligation lapsing -> renew it before guest access continues',
+        'A rising incident or near-miss trend in a zone -> review hazards and controls for it',
+        'Emergency equipment or first-aid cover found deficient -> restore it before the next guest arrival',
+      ],
+      feeds: 'Safety & Compliance monitoring stream',
+    },
     scopeNotes:
       'This framework must be complete and confirmed before any guest arrives - not after the first season. Compliance and safety obligations discovered late cause expensive retrofitting or forced closure.',
   }),
@@ -1114,6 +1166,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Booking, pricing, and revenue model approved. Break-even timeline and minimum occupancy confirmed. Any contemplated membership / season-pass tier is membership-benefit-structured (not advance prepayment), carries genuine non-stay substance within AG-S3.7 limits, and is routed to Scholar Council review.',
     actHandoff: 'Booking, Pricing & Revenue Model Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Actual occupancy rate vs. the minimum viable target',
+        'Revenue vs. forecast by offering and by season',
+        'Operating cost-recovery ratio against the break-even plan',
+      ],
+      triggers: [
+        'Occupancy below the minimum viable rate across a season -> review pricing and the cost base within permitted offerings',
+        'Revenue concentrated in a single offering -> diversify within already-permitted experiences',
+        'Operating costs exceeding the break-even plan -> re-baseline targets and review fixed and variable costs',
+      ],
+      feeds: 'Financial Performance monitoring stream',
+    },
     scopeNotes:
       "Amanah flag - surface, do not omit: a season-pass / membership / advance multi-night package is a sales instrument that, if structured as prepayment for specific undelivered nights, is the advance sale of what the operator does not yet possess (bay` ma laysa `indak / gharar) - the structure that retired the MTC CSRA model. It is surfaced here, never silently dropped, but must be structured as a membership benefit (entitlement to access, priority, and belonging-benefits, not advance purchase), with each stay still transacted as a separate per-stay reservation and the membership cancellable with pro-rata refund of unused access (evidencing access, not purchase). The membership must carry genuine non-stay substance (community, seasonal events, bounded off-season access) so it is a membership in substance and not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6); and member access stays within the AG-S3.7 carrying-capacity limits (which the membership pulls into scope if access leaves a hardened precinct). It must not be presented as a default or recommended model, carries no CSRA / salam framing, and goes to Scholar Council review before adoption. Permissible without the flag: ordinary per-stay service reservation (deposit + balance on a booked, deliverable stay), already covered by c1-c2.",
   }),
@@ -1182,6 +1247,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Guest-to-production biosecurity strategy set. Pathways, buffers, entry hygiene, and animal-contact protocols defined and consistent with circulation zoning.',
     actHandoff:
       'Guest-to-Production Biosecurity & Contamination-Buffer Strategy',
+    monitoringProtocol: {
+      indicators: [
+        'Buffer and separation integrity between guest circulation and sensitive production',
+        'Arrival-hygiene measure usage at production crossings',
+        'Biosecurity incidents -- contamination carried into or hazards out of production zones',
+      ],
+      triggers: [
+        'A guest pathway breaching a production buffer -> reinstate separation at that point',
+        'Arrival-hygiene measures bypassed -> reinforce signage and supervision at the crossing',
+        'A contamination or zoonosis incident -> isolate the pathway and review animal-contact protocols',
+      ],
+      feeds: 'Biosecurity monitoring stream',
+    },
     scopeNotes:
       'Applies when guest circulation sits alongside working production, livestock, or sprayed areas (the eco-resort / glamping / working-farm-stay model); omit for retreats with no adjacent active production. Safe guest-animal interaction carries a welfare (ihsan) duty as well as a biosecurity one. Complements AG-S4.4 (guest circulation / zoning); does not replace it.',
   }),

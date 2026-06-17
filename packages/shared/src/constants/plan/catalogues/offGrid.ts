@@ -380,6 +380,19 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Water system strategy approved. Dual-source redundancy confirmed. Manual backup defined.',
     actHandoff: 'Water System Strategy & Redundancy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Storage reserve level in days-per-person (weekly, daily through dry season)',
+        'Primary vs. backup source draw split (monthly)',
+        'Treatment system output and consumable status (monthly)',
+      ],
+      triggers: [
+        'Reserve drops below the defined minimum days-per-person -> switch to backup source and restrict non-essential use',
+        'Primary source yield falls short of demand -> activate backup source and reassess dry-season sizing',
+        'Powered delivery fails -> stand up the manual fill point and schedule pump repair',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s4-energy-system-redundancy',
@@ -407,6 +420,19 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Energy system strategy approved. Worst-case month coverage confirmed with storage and backup.',
     actHandoff: 'Energy System Strategy & Redundancy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Battery state of charge and days-of-critical-load remaining (daily)',
+        'Generation vs. critical-load balance (weekly, daily in worst-case month)',
+        'Backup generator fuel reserve and run hours (monthly)',
+      ],
+      triggers: [
+        'Battery state of charge falls below the protected reserve floor -> shed non-critical loads and start the backup generator',
+        'Generation falls short of critical load over consecutive days -> switch to load-management protocol and reassess sizing',
+        'Generator fuel reserve drops below the defined minimum -> trigger resupply before the next worst-case window',
+      ],
+      feeds: 'Energy Systems monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s4-food-security-storage',
@@ -433,6 +459,19 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Food security and storage strategy approved. Reserve target, production plan, and emergency protocol confirmed.',
     actHandoff: 'Food Security & Storage Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Food reserve on hand in weeks-of-supply for all residents (monthly)',
+        'Production yield by enterprise vs. target (per harvest cycle)',
+        'Cold storage and preservation throughput vs. plan (seasonal)',
+      ],
+      triggers: [
+        'Reserve falls below the minimum weeks-of-supply threshold -> activate the emergency resupply protocol',
+        'Production yield runs short of target for a cycle -> adjust enterprise mix and increase preservation',
+        'Cold storage or preservation capacity is exceeded -> add capacity or shift surplus to a longer-keeping method',
+      ],
+      feeds: 'Food Security monitoring stream',
+    },
   }),
   obj({
     id: 'ofg-s4-emergency-comms-response',
@@ -460,6 +499,19 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Emergency communications and response strategy approved. All residents trained before habitation.',
     actHandoff: 'Emergency Communications & Response Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Primary and backup communication device check-in success (weekly)',
+        'Resident emergency-protocol training currency (per resident, on intake and at refresh)',
+        'Emergency contact list and response-time accuracy (quarterly review)',
+      ],
+      triggers: [
+        'Primary communication device fails a check-in -> switch to backup method and arrange repair or replacement',
+        'A resident lacks current emergency-protocol training -> bar permanent habitation until training is completed',
+        'Contact list or response assumptions go stale -> re-verify services and update the response plan',
+      ],
+      feeds: 'Emergency Response monitoring stream',
+    },
     scopeNotes:
       'Hard gate: no permanent habitation before all residents are trained in emergency protocols. Remote response times make internal emergency response the primary life-safety mechanism.',
   }),
@@ -489,6 +541,19 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Shelter resilience and thermal performance strategy approved. Primary and backup heating confirmed. Fuel reserve defined.',
     actHandoff: 'Shelter Resilience & Thermal Performance Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Indoor temperature vs. the thermal performance standard during the coldest period (daily in winter)',
+        'Heating fuel reserve in weeks-of-supply at peak demand (weekly through cold season)',
+        'Primary heating system output and condition (monthly in heating season)',
+      ],
+      triggers: [
+        'Indoor temperature falls below the defined minimum -> bring the backup heating system online and inspect the primary',
+        'Fuel reserve drops below the defined weeks-of-supply -> trigger resupply before the next cold spell',
+        'Primary heating output degrades -> service the unit and hold the backup on standby',
+      ],
+      feeds: 'Shelter Performance monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

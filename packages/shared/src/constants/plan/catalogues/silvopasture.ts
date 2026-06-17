@@ -626,6 +626,18 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Paddock layout and rotational grazing framework approved. Carrying capacity confirmed.',
     actHandoff: 'Paddock Layout & Rotational Grazing Framework Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Pasture cover height before paddock entry and after exit (every rotation)',
+        'Rest period days achieved vs. target',
+        'Pasture recovery rate by paddock (seasonal)',
+      ],
+      triggers: [
+        'Cover below 8cm at planned move-in date -> extend rest period',
+        'Pasture not recovering to 20cm+ after standard rest -> investigate soil compaction, stocking rate, or species',
+      ],
+      feeds: 'Pasture Health monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s4-stock-water-strategy',
@@ -677,6 +689,19 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Stock water infrastructure strategy approved. All paddocks confirmed with reliable water access.',
     actHandoff: 'Stock Water Infrastructure Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Trough fill speed and level (weekly during summer)',
+        'Pump operating hours vs. plan',
+        'Water quality at troughs (quarterly)',
+      ],
+      triggers: [
+        'Trough empty during normal operation -> check float valve, supply line',
+        'Water quality failure -> shut down affected trough, investigate source',
+        'Pump overuse -> check for leaks',
+      ],
+      feeds: 'Livestock Water monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s4-forage-improvement',
@@ -728,6 +753,18 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Forage and pasture improvement strategy approved. Target species, fertility, and improvement sequence confirmed.',
     actHandoff: 'Forage & Pasture Improvement Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Forage species composition by zone (seasonal pasture assessment)',
+        'Pasture dry-matter productivity vs. target (per improvement zone)',
+        'Bare-ground and weed cover % in priority zones (seasonal)',
+      ],
+      triggers: [
+        'Sown forage species failing to establish in a priority zone -> review overseeding method, soil fertility, grazing timing',
+        'Weed cover rising despite control program -> reassess weed strategy and grazing pressure',
+      ],
+      feeds: 'Pasture Health monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s4-tree-integration',
@@ -779,6 +816,18 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Tree integration strategy approved. Species, placement, density, and protection confirmed.',
     actHandoff: 'Tree Integration Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Establishing-tree survival rate by planting zone (annual)',
+        'Browse and rub damage on protected trees (seasonal inspection)',
+        'Canopy growth vs. establishment plan (annual)',
+      ],
+      triggers: [
+        'Tree survival below target in a zone -> review species choice, protection, grazing-exclusion timing',
+        'Browse damage on establishing trees -> extend temporary exclusion or strengthen guards',
+      ],
+      feeds: 'Tree Integration monitoring stream',
+    },
   }),
   obj({
     id: 'silv-s4-animal-health',
@@ -830,6 +879,18 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Animal health and veterinary protocol approved. Emergency vet access confirmed.',
     actHandoff: 'Animal Health & Veterinary Protocol Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Body condition score by mob (monthly)',
+        'Parasite burden indicators - FEC or dag scoring (per health cycle)',
+        'Mortality and morbidity rate vs. baseline (per season)',
+      ],
+      triggers: [
+        'Condition score falling below target for a class -> review feed, parasite burden, husbandry',
+        'Mortality or morbidity above baseline -> trigger veterinary investigation and isolation protocol',
+      ],
+      feeds: 'Animal Health monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({
@@ -1650,6 +1711,18 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Grazing method, rotation framework, and tree-protection rules approved. Graze/rest targets tied to recovery indicators. Feed-gap contingency defined.',
     actHandoff: 'Grazing System & Rotation Framework Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Pasture cover height before paddock entry and after exit (every rotation)',
+        'Rest period days achieved vs. target',
+        'Pasture recovery rate by paddock (seasonal)',
+      ],
+      triggers: [
+        'Cover below 8cm at planned move-in date -> extend rest period',
+        'Pasture not recovering to 20cm+ after standard rest -> investigate soil compaction, stocking rate, or species',
+      ],
+      feeds: 'Pasture Health monitoring stream',
+    },
   }),
   obj({
     id: 'silv-sec-s4-stock-infrastructure',
@@ -1697,6 +1770,21 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Stock water, fencing, and handling infrastructure designed. Shade and shelter confirmed. Hard gate set: no livestock arrive before water, fencing, and handling facilities each pass an independent go/no-go test.',
     actHandoff: 'Core Stock Infrastructure Design Package',
+    planningDirectionMandate:
+      'The silvopasture enterprise cannot proceed until this strategy confirms a viable stock water supply. This objective directly resolves the Threshold 1 conditional requirement raised against silvopasture water.',
+    monitoringProtocol: {
+      indicators: [
+        'Trough fill speed and level (weekly during summer)',
+        'Pump operating hours vs. plan',
+        'Water quality at troughs (quarterly)',
+      ],
+      triggers: [
+        'Trough empty during normal operation -> check float valve, supply line',
+        'Water quality failure -> shut down affected trough, investigate source',
+        'Pump overuse -> check for leaks',
+      ],
+      feeds: 'Livestock Water monitoring stream',
+    },
   }),
   obj({
     id: 'silv-sec-s4-husbandry-framework',
@@ -1749,6 +1837,19 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Livestock husbandry, health, and welfare framework approved. Humane and halal handling intent defined. Record-keeping established.',
     actHandoff: 'Livestock Husbandry & Welfare Framework Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Animal body condition score across the mob (monthly)',
+        'Health-event frequency -- illness and parasite load',
+        'Mortality rate vs. expected baseline',
+      ],
+      triggers: [
+        'Body condition declining across the mob -> review feed and animal-health program',
+        'Repeat health events of the same type -> escalate to veterinary review',
+        'Mortality above expected baseline -> investigate cause and adjust husbandry',
+      ],
+      feeds: 'Animal Welfare monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

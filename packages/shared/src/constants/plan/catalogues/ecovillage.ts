@@ -673,6 +673,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Phased settlement strategy approved. Habitability thresholds defined as hard gates for each cohort arrival. Founding group consensus confirmed.',
     actHandoff: 'Phased Settlement Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Cohort arrivals against the habitability-threshold gates',
+        'Population per phase vs. the carrying-capacity ceiling',
+        'Trial-residency completion before full membership',
+      ],
+      triggers: [
+        'A cohort approaching arrival before its habitability threshold is met -> hold the move until the gate passes',
+        'Phase population approaching the carrying-capacity ceiling -> pause further arrivals and reassess capacity',
+        'Trial residency repeatedly bypassed -> reinstate the trial gate before membership',
+      ],
+      feeds: 'Settlement & Habitability monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s4-infra-strategy',
@@ -722,6 +735,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal infrastructure strategy approved. Priority list, governance, and cost-sharing model confirmed.',
     actHandoff: 'Communal Infrastructure Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Communal infrastructure delivery against the Phase 1 priority list',
+        'Maintenance currency for each communal asset',
+        'Cost-share contributions against the agreed model',
+      ],
+      triggers: [
+        'A Phase 1 habitability asset slipping behind schedule -> re-prioritise resources to it',
+        'A communal asset falling behind on maintenance -> assign and fund the maintenance obligation',
+        'Cost-share contributions falling short -> review the cost base within permitted channels',
+      ],
+      feeds: 'Communal Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s4-housing-cluster',
@@ -767,6 +793,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Housing cluster and private zone framework approved. Density, privacy, and transitional zone standards confirmed.',
     actHandoff: 'Housing Cluster & Private Zone Framework Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Dwelling density per cluster vs. the agreed maximum',
+        'Private-zone boundary integrity for each dwelling',
+        'Communal-private interface adherence to design standards',
+      ],
+      triggers: [
+        'Cluster density approaching or exceeding the maximum -> halt further siting in that cluster',
+        'A private-zone boundary eroded by communal encroachment -> reinstate the boundary and screening',
+        'Dwelling-to-communal interface departing from design standards -> bring it back to standard',
+      ],
+      feeds: 'Housing & Privacy monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s4-food-system',
@@ -816,6 +855,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Community food system strategy approved. Production model, allocation, and governance confirmed.',
     actHandoff: 'Community Food System Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Communal food production against committed crop volumes and labour',
+        'Individual plot maintenance against allocation obligations',
+        'Fairness of communal-harvest distribution across households',
+      ],
+      triggers: [
+        'Communal production falling below committed volumes -> review the labour-contribution model',
+        'Plots left unmaintained against obligation -> review the allocation and tenure terms',
+        'Distribution falling unevenly across households -> review the sharing protocol',
+      ],
+      feeds: 'Community Food System monitoring stream',
+    },
   }),
   obj({
     id: 'ev-s4-financial-model',
@@ -873,6 +925,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Financial contribution model approved and agreed by all founding members. Communal fund governance confirmed.',
     actHandoff: 'Financial Contribution & Shared Economics Model Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Member contributions vs. plan across permitted capital channels',
+        'Operating cost-recovery ratio for communal costs',
+        'Capital-reserve balance against the renewal plan',
+      ],
+      triggers: [
+        'Contributions falling short of operating-cost recovery -> review the cost base and the permitted-channel mix',
+        'A cost overrun against the financial model -> re-baseline and re-prioritise',
+        'Contribution burden falling unevenly across households -> review the hardship protocol and fairness',
+      ],
+      feeds: 'Financial Stewardship monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

@@ -370,6 +370,19 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Restoration priority zones ranked and intervention sequence approved. Ecological logic documented.',
     actHandoff: 'Restoration Priority Zones & Intervention Sequence Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Restoration progress by priority zone vs. planned sequence (per season)',
+        'Ecological condition score trend in bridgehead zones vs. adjacent degraded zones',
+        'Phase 1 resource spend by zone vs. allocation',
+      ],
+      triggers: [
+        'Priority zone falling behind sequence -> reassess resourcing and constraints for that zone',
+        'Bridgehead zone failing to seed adjacent areas -> review provenance and establishment support',
+        'Cause-before-symptom order breached in the field -> halt downstream work until the cause is addressed',
+      ],
+      feeds: 'Restoration Progress monitoring stream',
+    },
   }),
   obj({
     id: 'con-s4-native-species-provenance',
@@ -397,6 +410,19 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Native species selection and provenance strategy approved. Local seed sources identified.',
     actHandoff: 'Native Species Selection & Provenance Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Seedling survival and establishment rate by species and zone (per season)',
+        'Provenance compliance of stock received vs. specified seed collection zones',
+        'Succession progression vs. planned pioneer, transitional, and climax sequence',
+      ],
+      triggers: [
+        'Establishment rate below target for a species -> review provenance, timing, and site preparation',
+        'Stock supplied outside the specified provenance zone -> reject batch and re-source from approved suppliers',
+        'Pioneer species failing to establish on degraded ground -> revise nurse crop strategy before climax planting',
+      ],
+      feeds: 'Ecological Health monitoring stream',
+    },
   }),
   obj({
     id: 'con-s4-pest-invasive-strategy',
@@ -424,6 +450,19 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Pest and invasive species management strategy approved. Methods, sequence, and triggers confirmed.',
     actHandoff: 'Pest & Invasive Species Management Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Invasive plant density and coverage at buffer zones and invasion vectors (per control window)',
+        'Pest animal index per priority species vs. control threshold',
+        'Reinvasion rate in zones already treated',
+      ],
+      triggers: [
+        'Invasive density crossing the defined control threshold -> initiate control action for that species',
+        'New invasive species detected at a site boundary -> map extent and treat the entry vector first',
+        'Reinvasion recurring after treatment -> review reinvasion prevention strategy and vector controls',
+      ],
+      feeds: 'Invasive Species monitoring stream',
+    },
   }),
   obj({
     id: 'con-s4-water-regime-restoration',
@@ -451,6 +490,19 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Water regime restoration strategy approved. All interventions consented and sequenced before planting.',
     actHandoff: 'Water Regime Restoration Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Water table depth and seasonal variation at fixed points vs. restoration target',
+        'Reinstated wetland extent and inundation pattern (per season)',
+        'Drain block integrity and watercourse stability after high-flow events',
+      ],
+      triggers: [
+        'Water table not rising toward target after drain blocking -> inspect blocks for bypass or failure',
+        'Reinstated wetland drying out of season -> review inflow management and bunding',
+        'Drain block or bank failure observed after a storm -> repair before dependent planting proceeds',
+      ],
+      feeds: 'Water Regime monitoring stream',
+    },
   }),
   obj({
     id: 'con-s4-fire-management-strategy',
@@ -477,6 +529,19 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     ],
     completionGate: 'Fire management strategy approved. Burn zones, frequency, and permits confirmed.',
     actHandoff: 'Fire Management Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Fuel load by zone vs. the threshold set for prescribed burning or exclusion (per season)',
+        'Fire weather conditions against the defined burn-window thresholds',
+        'Post-burn vegetation and fauna recovery in burned zones',
+      ],
+      triggers: [
+        'Fuel load exceeding the zone threshold -> schedule fuel reduction within the appropriate season',
+        'Fire weather outside the safe burn window -> defer the prescribed burn until conditions return to range',
+        'Fire entering an exclusion zone -> activate suppression response and review the exclusion boundary',
+      ],
+      feeds: 'Fire Risk monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

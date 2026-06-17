@@ -548,6 +548,19 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Species and breeds committed; sourcing and entry standards decided.',
     actHandoff: 'Species & Breed Selection Record',
+    monitoringProtocol: {
+      indicators: [
+        'Body condition and growth/performance of the chosen breeds against expectation (monthly)',
+        'Health-entry compliance of every incoming animal vs the agreed standard',
+        'Replacement vs bought-in sourcing mix against the committed strategy',
+      ],
+      triggers: [
+        'Chosen breed underperforming on the feed base -> review breed fit, adjust selection or management',
+        'Incoming stock failing entry health standard -> hold in quarantine, investigate before joining the herd',
+        'Sourcing strategy not delivering replacements on plan -> revisit buy-in vs raise-replacement balance',
+      ],
+      feeds: 'Animal Health monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s4-stocking-rate',
@@ -598,6 +611,19 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Stocking rate and herd structure decided within the carrying-capacity safety margin.',
     actHandoff: 'Stocking Rate & Herd Structure Record',
+    monitoringProtocol: {
+      indicators: [
+        'Actual head count by class vs the committed herd structure (monthly)',
+        'Stocking rate vs the carrying-capacity ceiling and feed-safety margin (seasonally)',
+        'Replacement and culling rate vs the rate needed to hold structure stable',
+      ],
+      triggers: [
+        'Stocking rate exceeding the carrying-capacity ceiling -> trigger the destock policy',
+        'Feed-safety margin eroding in a deficit season -> destock or bring forward conserved feed',
+        'Herd structure drifting from target -> adjust replacement and culling decisions',
+      ],
+      feeds: 'Stocking & Carrying Capacity monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s4-grazing-system',
@@ -643,6 +669,19 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Grazing/feeding system decided with rest, recovery, and supplement rules.',
     actHandoff: 'Grazing & Feeding System Record',
+    monitoringProtocol: {
+      indicators: [
+        'Pasture residual and recovery vs the rest-period targets after each graze (per rotation)',
+        'Ground cover and desirable-species trend by paddock (seasonally)',
+        'Supplementary-feeding events vs the defined trigger and budget',
+      ],
+      triggers: [
+        'Residual or recovery below target -> extend the rest period, slow the rotation',
+        'Ground cover declining in a paddock -> rest the paddock, review graze period',
+        'Supplementary feeding firing earlier than planned -> recheck the grazing method and feed budget',
+      ],
+      feeds: 'Pasture Health monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-s4-stock-water-strategy',
@@ -693,6 +732,19 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Stock-water strategy decided; peak demand met with a drought buffer.',
     actHandoff: 'Stock-Water Strategy Record',
+    monitoringProtocol: {
+      indicators: [
+        'Trough levels and flow at peak summer demand vs the design supply (weekly in summer)',
+        'Walk-to-water distance actually achieved per paddock vs the welfare maximum',
+        'Stored / buffer volume held against the drought reserve target',
+      ],
+      triggers: [
+        'Supply falling short of peak demand -> activate the drought buffer, develop the priority source',
+        'A paddock left beyond the welfare walk-to-water distance -> add a trough or restrict that paddock',
+        'Drought reserve drawn below target -> reduce demand or secure additional supply',
+      ],
+      feeds: 'Livestock Water monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({
@@ -1360,6 +1412,19 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Species, stocking rate, and grazing system decided. Dry-season feed budget defined. Stocking consistent with the surveyed carrying capacity.',
     actHandoff: 'Species, Stocking & Grazing-System Decision Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Stocking rate on the host area vs the surveyed carrying capacity (seasonally)',
+        'Graze-period and rest-period actuals vs the per-season targets',
+        'Dry-season feed cover vs the budgeted reserve and contingency',
+      ],
+      triggers: [
+        'Stocking exceeding the surveyed carrying capacity -> destock or expand the grazed area within host limits',
+        'Rest periods being cut short -> slow the rotation, review the stocking rate',
+        'Dry-season feed reserve running below budget -> trigger carried fodder, supplementary feed, or planned destocking',
+      ],
+      feeds: 'Stocking & Carrying Capacity monitoring stream',
+    },
   }),
   obj({
     id: 'lvs-sec-s4-stock-infrastructure',
@@ -1407,6 +1472,19 @@ export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Stock fencing, handling, and shelter designed and water reticulation confirmed. Hard gate set: no livestock arrive before water, fencing, and handling facilities each pass an independent go/no-go test.',
     actHandoff: 'Core Stock Infrastructure & Establishment Gate Package',
+    monitoringProtocol: {
+      indicators: [
+        'Fence integrity and containment by zone - breakouts and escapes (weekly during establishment)',
+        'Handling-facility function and throughput at each routine husbandry event',
+        'Establishment go/no-go test status for water, fencing, and handling ahead of stock arrival',
+      ],
+      triggers: [
+        'Stock breaking containment -> repair the fence line, re-test the zone before re-stocking',
+        'Handling facility unsafe or undersized in use -> pause handling, remediate before the next event',
+        'Any readiness test not passed -> hold the establishment gate, no animals arrive until it clears',
+      ],
+      feeds: 'Stock Infrastructure monitoring stream',
+    },
     scopeNotes:
       'Welfare / ihsan hard gate: no livestock arrive on the host before water, fencing, and handling facilities all pass independent go/no-go readiness tests. Bringing animals onto land that cannot yet contain, water, or handle them safely is an avoidable welfare failure.',
   }),

@@ -826,6 +826,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Water strategy approved. Supply, storage, and distribution approach defined for all enterprises.',
     actHandoff: 'Water Strategy Decision Brief',
+    planningDirectionMandate:
+      'Water strategy must address any Silvopasture conditional requirement -- the strategy is not complete until stock water infrastructure is confirmed as viable.',
+    monitoringProtocol: {
+      indicators: [
+        'Soil moisture by zone (monthly, growing season)',
+        'Dam/pond fill level (monthly)',
+        'Domestic supply volume (monthly)',
+        'Stock trough reliability (weekly during establishment)',
+      ],
+      triggers: [
+        'Dam below 30% at spring equinox -> restrict irrigation allocation',
+        'Domestic supply below household minimum -> review bore yield or augmentation options',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 's4-zones',
@@ -870,6 +885,18 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Spatial framework approved. All enterprise zones allocated without unresolved conflict.',
     actHandoff: 'Zone Allocation Framework',
+    monitoringProtocol: {
+      indicators: [
+        'Zone boundary adherence (quarterly audit)',
+        'Residential boundary conflicts (record any incursions)',
+        'Kitchen garden zone conditions (seasonal)',
+      ],
+      triggers: [
+        'Repeated enterprise encroachment into residential zone -> formalize physical boundary marker',
+        'Enterprise crowding kitchen garden -> review zone allocation',
+      ],
+      feeds: 'Land Use monitoring stream',
+    },
     // Surface the Zone & Circulation overview card (Z0-Z5 polygons + path
     // frequency validation + "open the map to draw" prompt) in this objective's
     // REFERENCE section, so the zones objective is no longer a dead-end and

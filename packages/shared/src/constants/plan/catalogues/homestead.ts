@@ -356,6 +356,19 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Food production strategy approved. Production targets, methods, and priorities confirmed for first cycle.',
     actHandoff: 'Household Food Production Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Actual harvest by food category vs. planned production targets (each season)',
+        'Share of household food needs met from own production vs. purchased (monthly)',
+        'Seed-saving success rate and stored seed viability (per saving cycle)',
+      ],
+      triggers: [
+        'Category yield falls well short of target -> review growing method and reallocate beds next cycle',
+        'Preserved or stored food spoiling before use -> revisit storage approach and preservation volumes',
+        'Saved-seed germination dropping -> refresh varieties or revise seed-saving practice',
+      ],
+      feeds: 'Food Production monitoring stream',
+    },
   }),
   obj({
     id: 'hms-s4-fertility-strategy',
@@ -405,6 +418,19 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Fertility and soil building strategy approved. Closed-loop approach defined for all productive zones.',
     actHandoff: 'Whole-Homestead Fertility Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Compost output volume and finished-compost quality (per batch)',
+        'Soil organic matter and structure in productive zones (annually)',
+        'Volume of external fertility inputs purchased vs. reduction targets (each cycle)',
+      ],
+      triggers: [
+        'Compost failing to heat or break down -> check carbon-to-nitrogen balance and moisture',
+        'Soil organic matter not improving in a zone -> increase mulch, cover cropping, or compost application there',
+        'External input spend not falling toward target -> trace which loop is still open and prioritise closing it',
+      ],
+      feeds: 'Soil Health monitoring stream',
+    },
   }),
   obj({
     id: 'hms-s4-energy-shelter-resilience',
@@ -454,6 +480,19 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Energy and shelter resilience strategy approved. Heating, power, and shelter adequacy confirmed.',
     actHandoff: 'Energy & Shelter Resilience Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Heating fuel reserve level vs. seasonal demand (monthly through cold season)',
+        'Indoor temperature and comfort across all rooms during peak cold and heat',
+        'Backup power readiness -- fuel, battery charge, last successful test (quarterly)',
+      ],
+      triggers: [
+        'Fuel reserve dropping below the season-ahead buffer -> replenish stock and review usage rate',
+        'Rooms failing to hold the resilience-threshold temperature -> prioritise insulation or heating upgrade',
+        'Backup power test fails -> service or replace the unit before the next disruption window',
+      ],
+      feeds: 'Energy & Shelter Resilience monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

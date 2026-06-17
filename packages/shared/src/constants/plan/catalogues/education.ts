@@ -292,6 +292,19 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Teaching zone allocation approved. Learning journey sequence confirmed.',
     actHandoff: 'Teaching Zone Allocation & Infrastructure Placement Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Learner journey flow through arrival, orientation, and departure (observed each program day)',
+        'Demonstration plot sight lines and group viewing comfort per teaching zone (per session)',
+        'Outdoor classroom usability under weather conditions and indoor backup uptake (seasonal)',
+      ],
+      triggers: [
+        'Congestion or backtracking on the interpretive trail -> revise learner journey sequence and signage',
+        'Group cannot see a demonstration clearly -> add staging or relocate the teaching zone',
+        'Outdoor program disrupted by weather with no usable backup -> activate indoor teaching space and review placement',
+      ],
+      feeds: 'Teaching Operations monitoring stream',
+    },
   }),
   obj({
     id: 'edu-s4-safety-risk-framework',
@@ -320,6 +333,19 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Safety and risk management framework approved. All requirements confirmed before first group.',
     actHandoff: 'Safety & Risk Management Framework',
+    monitoringProtocol: {
+      indicators: [
+        'Hazard register status -- open versus mitigated hazards on learner pathways (reviewed before each group)',
+        'Incident and near-miss count per program (logged each session)',
+        'First aid readiness -- trained personnel on site and equipment stock (checked weekly)',
+      ],
+      triggers: [
+        'New hazard identified on a learner pathway -> exclude the area and update the risk assessment before next group',
+        'Incident or near-miss recorded -> investigate, log, and revise the relevant protocol',
+        'No trained first aider available for a scheduled group -> postpone the group until first aid cover is confirmed',
+      ],
+      feeds: 'Safety & Safeguarding monitoring stream',
+    },
     scopeNotes:
       'Hard gate: no learner group arrives before site risk assessment is complete and all hazards mitigated.',
   }),
@@ -349,6 +375,19 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Program delivery model approved. Instructor requirements and quality standards confirmed.',
     actHandoff: 'Program Delivery Model Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Instructor-to-learner ratio achieved per program against the defined requirement (each session)',
+        'Program quality-standard pass rate from facilitator debriefs (per program)',
+        'Adherence to the defined program structure -- arrival, orientation, activities, reflection, departure (observed)',
+      ],
+      triggers: [
+        'Group ratio exceeds the defined maximum -> add an instructor or cap enrolment for that program',
+        'Program falls short of the quality standard -> trigger the program review cycle and revise delivery',
+        'Program consistently runs over or under its planned structure -> revise the format and timing',
+      ],
+      feeds: 'Program Delivery monitoring stream',
+    },
   }),
   obj({
     id: 'edu-s4-food-hospitality',
@@ -374,6 +413,19 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Food and hospitality provision strategy approved. Food safety compliance confirmed.',
     actHandoff: 'Food & Hospitality Provision Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Cold-chain and storage temperatures for served food (logged each service day)',
+        'Food safety compliance checks passed against group-service requirements (per event)',
+        'Handwashing and food-prep hygiene station readiness for group sizes (checked before service)',
+      ],
+      triggers: [
+        'Cold storage out of safe temperature range -> discard affected food and repair or replace the unit',
+        'Food safety check fails -> suspend food service until the issue is corrected and re-verified',
+        'Handwashing provision inadequate for the group -> add capacity before food is served',
+      ],
+      feeds: 'Food & Hospitality monitoring stream',
+    },
     scopeNotes: 'Omit this objective if no food service is intended.',
   }),
   // ---------------------------------------------------------------- Stratum 5

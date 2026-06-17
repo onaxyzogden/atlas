@@ -296,6 +296,19 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Crop rotation and bed layout approved. Bed count and dimensions confirmed against production targets.',
     actHandoff: 'Crop Rotation & Bed Layout Plan',
+    monitoringProtocol: {
+      indicators: [
+        'Same-family crops returning to a bed ahead of the defined rotation interval (each planting)',
+        'Bed count in active production vs. the count the rotation plan requires',
+        'Soil-borne disease incidence by rotation block (per season)',
+      ],
+      triggers: [
+        'Rotation interval breached on a bed -> reassign the planting and log the exception',
+        'Active bed count falls short of rotation requirement -> rebalance the block plan or reduce volume targets',
+        'Disease build-up recurring in a block -> lengthen the interval or rest the block',
+      ],
+      feeds: 'Bed & Rotation monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s4-irrigation-strategy',
@@ -322,6 +335,19 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Irrigation system strategy approved. System type, zones, and automation defined.',
     actHandoff: 'Irrigation System Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Pressure and volume at the furthest irrigation point vs. design target (weekly in season)',
+        'Irrigation run time per zone vs. plan (weekly)',
+        'Soil moisture readings against target band where sensors are fitted',
+      ],
+      triggers: [
+        'Pressure drop at the furthest point -> inspect mainline and zone valves for leaks or blockage',
+        'Zone run time rising without yield gain -> check emitters for clogging and recalibrate the schedule',
+        'Soil moisture outside the target band -> adjust irrigation timing for that zone',
+      ],
+      feeds: 'Water Systems monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s4-fertility-strategy',
@@ -349,6 +375,19 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Fertility system strategy approved. All inputs confirmed consistent with growing philosophy.',
     actHandoff: 'Fertility System Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Soil organic matter and key nutrient levels against the testing schedule (per season)',
+        'Compost produced vs. compost demand for the rotation (per cycle)',
+        'Cover crop establishment and biomass on rotation beds (each window)',
+      ],
+      triggers: [
+        'Soil test falls below the target fertility band -> adjust amendment plan before the next planting',
+        'Compost supply short of demand -> scale the compost system or source a compliant input',
+        'Cover crop fails to establish -> reseed or substitute a species suited to the window',
+      ],
+      feeds: 'Soil Health monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s4-ipm-strategy',
@@ -376,6 +415,19 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'IPM and pest management strategy approved. All interventions certified-compliant if applicable.',
     actHandoff: 'IPM & Pest Management Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Pest and beneficial-insect counts from scouting by zone (weekly in season)',
+        'Disease incidence by crop category against the action threshold (weekly)',
+        'Weed pressure and seed-bank spread on production beds (each cultivation)',
+      ],
+      triggers: [
+        'Pest count crosses the action threshold -> escalate up the IPM hierarchy, biological before chemical',
+        'Disease detected in a crop category -> apply sanitation and adjust air circulation, isolate affected beds',
+        'Weed pressure rising on a block -> bring forward cultivation, mulching, or flame weeding',
+      ],
+      feeds: 'Pest Management monitoring stream',
+    },
   }),
   obj({
     id: 'mgd-s4-post-harvest-handling',
@@ -403,6 +455,19 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Post-harvest handling and storage strategy approved. Food safety and channel requirements confirmed.',
     actHandoff: 'Post-Harvest Handling & Storage Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Cold storage temperature and humidity against the target range (daily in season)',
+        'Elapsed time from harvest to cooling and to delivery vs. the defined window (per batch)',
+        'Produce rejected or downgraded at pack for quality faults (per harvest day)',
+      ],
+      triggers: [
+        'Cold storage drifts outside the target range -> service the unit and move affected stock',
+        'Harvest-to-delivery window exceeded -> tighten the pack-shed workflow and recheck cooling capacity',
+        'Reject rate climbs at pack -> trace the cause back through wash, handling, and field harvest',
+      ],
+      feeds: 'Post-Harvest monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

@@ -482,6 +482,21 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Fertility strategy approved. Closed-loop cycling approach defined for all enterprises.',
     actHandoff: 'Whole-Farm Fertility Strategy Brief',
+    planningDirectionMandate:
+      'Soil remediation is a pre-condition for commercial production. Fertility strategy must target a 2-3 year rebuild timeline.',
+    monitoringProtocol: {
+      indicators: [
+        'Soil organic matter % by zone (annual lab test)',
+        'Earthworm counts per sample (biannual)',
+        'Compost output volume vs. plan (monthly)',
+      ],
+      triggers: [
+        'OM not improving after 2 years -> review input quantities and quality',
+        'Earthworm counts not recovering -> investigate soil compaction, chemical inputs',
+        'Compost output below plan -> investigate feedstock supply',
+      ],
+      feeds: 'Soil Health monitoring stream',
+    },
   }),
   obj({
     id: 'rf-s4-biodiversity-strategy',
@@ -552,6 +567,18 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Biodiversity readiness strategy approved. Habitat infrastructure locations decided and ecological roles defined. Design deferred to Stratum 5.',
     actHandoff: 'Biodiversity Readiness & Habitat Infrastructure Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Indicator species presence/absence by zone (biannual survey)',
+        'Native cover % in wild zones (annual)',
+        'Raptor perch activity at installed infrastructure (quarterly observation)',
+      ],
+      triggers: [
+        'Indicator species absent for 2 consecutive seasons -> investigate habitat condition',
+        'Native cover declining despite establishment efforts -> review species, competition, browse pressure',
+      ],
+      feeds: 'Ecological Health monitoring stream',
+    },
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

@@ -726,6 +726,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Sensory design standards approved and documented. All Tier 4 designs must meet these thresholds.',
     actHandoff: 'Sensory Design Philosophy & Low-Stimulation Standards',
+    monitoringProtocol: {
+      indicators: [
+        'Measured noise levels in treatment, meditation, and accommodation zones vs. defined decibel thresholds (spot checks by zone and time)',
+        'Presence of synthetic fragrance or artificial light exceeding the zone limits',
+        'Guest reports of sensory disturbance during sessions',
+      ],
+      triggers: [
+        'Zone noise reading above the defined threshold -> trace the source and apply or reinforce buffering',
+        'Synthetic fragrance detected in a therapeutic zone -> remove the source and reaffirm the natural-aromatics standard',
+        'Repeated guest reports of sensory disturbance -> review the affected zone against the standard and redesign',
+      ],
+      feeds: 'Sensory Environment monitoring stream',
+    },
     scopeNotes:
       'These standards are design gates, not aspirational targets. Any Tier 4 design element that cannot meet a defined threshold must be redesigned or removed.',
   }),
@@ -785,6 +798,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Therapeutic programme and practitioner framework approved. All qualifications confirmed.',
     actHandoff: 'Therapeutic Program & Practitioner Framework Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Practitioner-to-guest ratio actually delivered per modality vs. the defined ratio (per session)',
+        'Currency of practitioner qualifications and insurance against the compliance calendar',
+        'Number of guest presentations falling outside the defined scope of practice',
+      ],
+      triggers: [
+        'Delivered ratio exceeds the defined limit for a modality -> pause new bookings for that modality until staffing is restored',
+        'A practitioner qualification or insurance lapses -> suspend that practitioner from delivery until renewed',
+        'Out-of-scope presentation -> apply the referral pathway and log for program review',
+      ],
+      feeds: 'Therapeutic Program monitoring stream',
+    },
   }),
   obj({
     id: 'well-s4-privacy-zone-hierarchy',
@@ -838,6 +864,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Privacy gradient and zone hierarchy approved. Physical separation methods defined for all zone boundaries.',
     actHandoff: 'Privacy Gradient & Zone Hierarchy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Sightlines and acoustic separation at zone boundaries vs. the defined privacy tiers (walk-through checks each season)',
+        'Access-control breaches - entries into a higher privacy tier outside the defined conditions',
+        'Guest reports of feeling overlooked or overheard in private zones',
+      ],
+      triggers: [
+        'Sightline into a private zone opens up - vegetation thins or a barrier fails -> restore the screening or add separation',
+        'Access-control breach recorded -> review the control method for that boundary and tighten it',
+        'Guest reports a loss of privacy in a tier -> reassess that boundary against the gradient and remediate',
+      ],
+      feeds: 'Privacy & Zoning monitoring stream',
+    },
   }),
   obj({
     id: 'well-s4-healing-garden-strategy',
@@ -890,6 +929,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Healing garden and therapeutic landscape strategy approved. Planting palette and water feature strategy confirmed.',
     actHandoff: 'Healing Garden & Therapeutic Landscape Strategy Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Establishment and health of the therapeutic planting palette across seasons',
+        'Condition and water quality of enhanced and new water features (regular checks)',
+        'Seasonal sensory availability vs. the therapeutic landscape calendar - scent, texture, colour gaps',
+      ],
+      triggers: [
+        'A keystone therapeutic species fails to establish or declines -> replace or revise the palette for that zone',
+        'Water feature quality degrades or a feature stagnates -> investigate the source and restore or isolate it',
+        'A planned seasonal sensory window comes up empty -> adjust the planting succession to close the gap',
+      ],
+      feeds: 'Healing Garden monitoring stream',
+    },
   }),
   obj({
     id: 'well-s4-safeguarding-protocol',
@@ -951,6 +1003,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Safeguarding protocol approved and legally reviewed. All practitioners trained before first guest.',
     actHandoff: 'Guest Wellbeing Safeguarding Protocol',
+    monitoringProtocol: {
+      indicators: [
+        'Currency of practitioner safeguarding training against the required cadence',
+        'Logged incidents - crisis presentations, trauma disclosures, referrals - and time to response',
+        'Completeness of incident records against the recording and review system',
+      ],
+      triggers: [
+        'A practitioner safeguarding certification lapses -> remove that practitioner from guest contact until retrained',
+        'A crisis or referral response misses the defined protocol steps -> run an incident review and correct the gap',
+        'Incident records found incomplete at review -> reinforce the recording system and re-brief staff',
+      ],
+      feeds: 'Safeguarding monitoring stream',
+    },
     scopeNotes:
       'This protocol precedes the therapeutic programme framework. You cannot define what you offer until you have defined what you will do when something goes wrong.',
   }),
@@ -1649,6 +1714,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Sensory and low-stimulation standards for therapeutic zones approved against host operations.',
     actHandoff: 'Therapeutic Sensory Standards Overlay Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Measured noise levels in treatment, meditation, and guest zones vs. defined thresholds (spot checks during host operations)',
+        'Host primary operations encroaching on therapeutic zones beyond the defined buffering',
+        'Lighting, scent, or visual-complexity standard breaches at the therapeutic / working-land boundary',
+      ],
+      triggers: [
+        'A host operation breaches a zone threshold -> reschedule or re-buffer that operation against the therapeutic zone',
+        'Buffering between working land and a therapeutic zone proves insufficient -> strengthen the separation',
+        'A lighting or scent standard is breached in a therapeutic zone -> remove the source and reaffirm the standard',
+      ],
+      feeds: 'Sensory Environment monitoring stream',
+    },
   }),
   obj({
     id: 'well-sec-s4-therapeutic-program',
@@ -1683,6 +1761,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Therapeutic programme and practitioner framework for the overlay approved.',
     actHandoff: 'Therapeutic Program Overlay Brief',
+    monitoringProtocol: {
+      indicators: [
+        'Practitioner-to-guest ratio delivered per modality vs. the defined ratio',
+        'Therapeutic session scheduling clashes with primary land operations',
+        'Currency of practitioner qualifications and insurance for the overlay',
+      ],
+      triggers: [
+        'Delivered ratio exceeds the defined limit -> pause new bookings for that modality until staffing recovers',
+        'A session collides with a primary land operation -> reschedule the session to a compatible window',
+        'A practitioner qualification or insurance lapses -> suspend that practitioner until renewed',
+      ],
+      feeds: 'Therapeutic Program monitoring stream',
+    },
   }),
   obj({
     id: 'well-sec-s4-safeguarding',
@@ -1720,5 +1811,18 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Safeguarding protocol for the overlay approved and legally reviewed; staff trained before first guest.',
     actHandoff: 'Guest Wellbeing Safeguarding Overlay Protocol',
+    monitoringProtocol: {
+      indicators: [
+        'Currency of safeguarding training for practitioners and relevant host staff',
+        'Logged crisis presentations, trauma disclosures, and referrals on the host site, with time to response',
+        'Completeness of incident records, including any host-staff involvement',
+      ],
+      triggers: [
+        'Safeguarding training lapses for a practitioner or host staff member -> remove them from guest contact until retrained',
+        'A crisis or referral response misses the defined steps -> run an incident review and correct the gap',
+        'Incident records found incomplete at review -> reinforce recording across both therapeutic and host staff',
+      ],
+      feeds: 'Safeguarding monitoring stream',
+    },
   }),
 ];

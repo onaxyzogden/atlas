@@ -320,6 +320,19 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Propagation infrastructure design approved. Capacity confirmed.',
     actHandoff: 'Propagation Infrastructure Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Glasshouse and shade house temperature vs. target range (daily during germination season)',
+        'Misting bench and heat mat zones operating to set timing and thermostat values',
+        'Propagation throughput vs. calendar capacity (per cycle)',
+      ],
+      triggers: [
+        'Structure temperature outside target range -> check ventilation, shading, heating control',
+        'Misting or heat mat zone not cycling as set -> inspect timer, thermostat, nozzles',
+        'Throughput falling short of calendar capacity -> review bench layout and hardening off flow',
+      ],
+      feeds: 'Propagation Infrastructure monitoring stream',
+    },
   }),
   obj({
     id: 'nur-sec-s4-irrigation-design',
@@ -362,6 +375,19 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Propagation irrigation system design approved.',
     actHandoff: 'Propagation Irrigation System Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Misting and drip zone delivery pressure vs. design spec (weekly)',
+        'Distribution uniformity across propagation and growing on zones (per season)',
+        'Filter condition and zone valve function (monthly)',
+      ],
+      triggers: [
+        'Zone pressure below design spec -> check pump, filters, supply line for restriction',
+        'Uniformity drop or dry patches -> inspect nozzles and emitters for blockage or wear',
+        'Filter clogging faster than expected -> review source water quality and pre-filtration',
+      ],
+      feeds: 'Irrigation monitoring stream',
+    },
   }),
   obj({
     id: 'nur-sec-s4-sales-dispatch',
@@ -407,5 +433,18 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Plant sales, dispatch, and biosecurity infrastructure design approved. Zone separation confirmed.',
     actHandoff:
       'Plant Sales, Dispatch & Biosecurity Infrastructure Design Package',
+    monitoringProtocol: {
+      indicators: [
+        'Order fulfilment lead time from request to dispatch (weekly)',
+        'Stock hardening off status before dispatch -- share of orders meeting readiness standard',
+        'Dispatch reject or return rate for stock condition (per dispatch run)',
+      ],
+      triggers: [
+        'Lead time rising above target -> review picking, packing, and dispatch area flow',
+        'Stock leaving before hardening off complete -> hold dispatch, re-check readiness standard',
+        'Reject or return rate climbing -> inspect stock condition and packing handling',
+      ],
+      feeds: 'Dispatch & Stock Readiness monitoring stream',
+    },
   }),
 ];
