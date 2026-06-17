@@ -30,6 +30,12 @@ export interface SpineTypeChip {
 export interface SpineThreshold {
   afterStratumId: string;
   name: string;
+  /**
+   * OPTIONAL stable id. When provided AND listed in `clickableThresholdIds`, the
+   * divider becomes an interactive entry (the Plan-side Threshold surface). The
+   * Act spine omits it, so its dividers stay decorative `role="separator"`.
+   */
+  id?: string;
 }
 
 interface Props {
@@ -71,6 +77,20 @@ interface Props {
    * (Act spine byte-identical).
    */
   thresholds?: readonly SpineThreshold[];
+  /**
+   * OPTIONAL set of threshold ids that are currently OPEN -> rendered as an
+   * interactive button (the Plan-side Reality Check surface). A threshold id
+   * absent from this set stays a decorative `role="separator"` divider. Default
+   * undefined -> no threshold is clickable (Act spine byte-identical).
+   */
+  clickableThresholdIds?: readonly string[];
+  /** OPTIONAL currently-active threshold id -> amber active styling on its entry. */
+  thresholdActiveId?: string;
+  /**
+   * OPTIONAL handler fired when a clickable threshold entry is selected. Only
+   * reached for ids in `clickableThresholdIds`; Act passes none.
+   */
+  onSelectThreshold?: (thresholdId: string) => void;
 }
 
 export default function ActTierSpine({
@@ -85,12 +105,16 @@ export default function ActTierSpine({
   ariaLabel = 'Act strata',
   typeChips,
   thresholds,
+  clickableThresholdIds,
+  thresholdActiveId,
+  onSelectThreshold,
 }: Props) {
-  // Map afterStratumId -> threshold name for an O(1) post-tab divider lookup.
+  // Map afterStratumId -> threshold for an O(1) post-tab divider lookup.
   // Empty/undefined -> no entries -> no dividers (Act spine unchanged).
-  const thresholdAfter = new Map<string, string>(
-    (thresholds ?? []).map((t) => [t.afterStratumId, t.name]),
+  const thresholdAfter = new Map<string, SpineThreshold>(
+    (thresholds ?? []).map((t) => [t.afterStratumId, t]),
   );
+  const clickable = new Set(clickableThresholdIds ?? []);
   return (
     <div className={styles.spineRow}>
       {/* Project identity tile — static, sticky-pinned, NOT a tab (sibling of
@@ -126,7 +150,11 @@ export default function ActTierSpine({
           (o) => o.stratumId === stratum.id,
         ).length;
         const isActive = stratum.id === activeStratumId;
-        const thresholdName = thresholdAfter.get(stratum.id);
+        const threshold = thresholdAfter.get(stratum.id);
+        const thresholdClickable =
+          threshold?.id != null &&
+          clickable.has(threshold.id) &&
+          onSelectThreshold != null;
         return (
           <Fragment key={stratum.id}>
           <button
@@ -161,14 +189,28 @@ export default function ActTierSpine({
               {count} objective{count === 1 ? '' : 's'}
             </span>
           </button>
-          {thresholdName ? (
+          {threshold && thresholdClickable ? (
+            <button
+              type="button"
+              className={styles.spineThreshold}
+              data-testid="spine-threshold"
+              data-clickable="true"
+              data-active={threshold.id === thresholdActiveId || undefined}
+              aria-current={
+                threshold.id === thresholdActiveId ? 'step' : undefined
+              }
+              onClick={() => onSelectThreshold?.(threshold.id as string)}
+            >
+              <span className={styles.spineThresholdName}>{threshold.name}</span>
+            </button>
+          ) : threshold ? (
             <div
               className={styles.spineThreshold}
               data-testid="spine-threshold"
               role="separator"
-              aria-label={thresholdName}
+              aria-label={threshold.name}
             >
-              <span className={styles.spineThresholdName}>{thresholdName}</span>
+              <span className={styles.spineThresholdName}>{threshold.name}</span>
             </div>
           ) : null}
           </Fragment>

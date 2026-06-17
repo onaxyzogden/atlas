@@ -106,6 +106,7 @@ import {
   computeAllStratumStates,
   PLAN_STRATA,
 } from '@ogden/shared';
+import { deriveReceptionProgress } from '../v3/act/tier-shell/receptionModel.js';
 import { useDevUnlockStore } from '../store/devUnlockStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
@@ -708,6 +709,37 @@ const v3PlanStratumObjectiveRoute = createRoute({
     }
   },
 });
+// Threshold 1 -- The Reality Check. A non-tier "structural hinge" surface that
+// sits AFTER Systems Reading (S3): the steward reads the assembled 11-survey
+// evidence (Phase 1) and classifies each Tier-0 intent element against it
+// (Phase 2). Mounts PlanLayout like the stratum routes; PlanTierShell reads the
+// optional `$thresholdId` param to switch the center + right rail into the
+// amber Reality Check surface (no WebGL). The static `plan/threshold/...` prefix
+// resolves BEFORE `plan/$module`. Guard: the threshold is reachable only once
+// the reception gate is OPEN (Tier-1 6/6 + Tier-2 5/5 complete) -- otherwise it
+// redirects to the bare `plan` landing, mirroring the stratum guard. This is the
+// OPEN gate only; it is NOT a covenant prerequisite (the Mode-4 gate downstream
+// is a soft, display-only amber banner -- prerequisiteObjectiveIds untouched).
+const v3PlanThresholdRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/threshold/$thresholdId',
+  component: PlanLayout,
+  validateSearch: validatePlanSearch,
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    const { thresholdOpen } = deriveReceptionProgress(
+      ctx.objectives,
+      ctx.statuses,
+    );
+    if (!thresholdOpen) {
+      throw redirect({
+        to: '/v3/project/$projectId/plan',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -1164,6 +1196,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanSynthesisRoute,
       v3PlanStratumRoute,
       v3PlanStratumObjectiveRoute,
+      v3PlanThresholdRoute,
       v3PlanModuleRoute,
       // v3ActCompassRoute retired 2026-05-31 (page on disk).
       v3ActCommandCentreRoute,

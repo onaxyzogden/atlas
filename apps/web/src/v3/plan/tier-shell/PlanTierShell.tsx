@@ -112,6 +112,12 @@ import ActTierSpine, {
   type SpineTypeChip,
 } from '../../act/tier-shell/ActTierSpine.js';
 import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
+// Threshold 1 (The Reality Check) -- the Plan-only structural-hinge surface
+// mounted on the plan/threshold/$thresholdId route. Both takeovers render in
+// place of the editable map / dashboard (no WebGL), so the threshold-active
+// branch must sit FIRST in the center + right-rail ternaries below.
+import RealityCheckSurface from '../threshold/RealityCheckSurface.js';
+import RealityCheckReferenceRail from '../threshold/RealityCheckReferenceRail.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -212,9 +218,16 @@ export default function PlanTierShell() {
     projectId?: string;
     objectiveId?: string;
     stratumId?: string;
+    thresholdId?: string;
   };
   const id = params.projectId ?? 'mtc';
   const objectiveId = params.objectiveId ?? null;
+  // Threshold-route flag. Present ONLY on plan/threshold/$thresholdId (the route
+  // guard already redirected away if the threshold is not open), so it is
+  // mutually exclusive with every objective/stratum-driven takeover below: it
+  // carries no objectiveId, and each existing arm requires selectedObjective or
+  // a takeover store flag. The threshold branch therefore sits first.
+  const thresholdActive = !!params.thresholdId;
   const navigate = useNavigate();
 
   // Left-rail mode + protocol selection are URL-driven (same ?planMode/?protocol
@@ -1056,6 +1069,21 @@ export default function PlanTierShell() {
           // instance); the Act stage's own ActTierSpine passes neither.
           typeChips={spineTypeChips}
           thresholds={THRESHOLDS}
+          // Threshold 1 (Reality Check) becomes a clickable spine entry only
+          // once the gate is open (Tier-1 6/6 + Tier-2 5/5 complete, per
+          // receptionProgress.thresholdOpen). Selecting it routes to the
+          // threshold surface; while there, params.thresholdId marks it active.
+          // Act passes none of these -> its dividers stay decorative.
+          clickableThresholdIds={
+            receptionProgress.thresholdOpen ? ['threshold-1'] : []
+          }
+          thresholdActiveId={params.thresholdId}
+          onSelectThreshold={(thresholdId) =>
+            navigate({
+              to: '/v3/project/$projectId/plan/threshold/$thresholdId',
+              params: { projectId: id, thresholdId },
+            })
+          }
         />
         <div className={styles.shellWrap}>
           {showTierZeroWorkbench && !selectedObjective && railMode !== 'protocols' ? (
@@ -1112,7 +1140,17 @@ export default function PlanTierShell() {
               )
             }
             canvas={
-              railMode === 'protocols' ? (
+              thresholdActive ? (
+                // Threshold 1 (The Reality Check) center takeover. First arm so
+                // the WebGL VisionLayoutCanvas never mounts on this route. Reads
+                // the Tier-0 intent + survey evidence internally; no map.
+                <RealityCheckSurface
+                  projectId={id}
+                  projectName={project.name}
+                  objectives={objectives}
+                  objectiveStatuses={objectiveStatuses}
+                />
+              ) : railMode === 'protocols' ? (
                 // Protocols mode takes over the center: a two-pane workspace
                 // (mechanics editor + meaning context) where the steward designs
                 // the standing protocol. Placing this branch first guarantees the
@@ -1190,7 +1228,20 @@ export default function PlanTierShell() {
               )
             }
             rightRail={
-              // Generic objective-tools takeover: while armed for THIS objective,
+              // Threshold 1 reference rail (first arm, mirrors the center
+              // takeover). Read-only progress + classification digest + Amanah
+              // advisory; no objective/takeover state, so it precedes them all.
+              thresholdActive ? (
+                <div className={styles.rightRail}>
+                  <div className={styles.rightBody}>
+                    <RealityCheckReferenceRail
+                      projectId={id}
+                      objectives={objectives}
+                      objectiveStatuses={objectiveStatuses}
+                    />
+                  </div>
+                </div>
+              ) : // Generic objective-tools takeover: while armed for THIS objective,
               // the focused map-tools panel replaces the rail (parity with the
               // survey takeovers below). Done in the panel clears the store.
               toolsTakeoverActive && selectedObjective ? (
@@ -1365,7 +1416,9 @@ export default function PlanTierShell() {
               )
             }
             bottomTray={
-              showTierZeroWorkbench ? undefined : (
+              // The threshold surface is non-spatial -- no objective tools dock
+              // (mirrors the Tier-0 workbench suppression).
+              thresholdActive || showTierZeroWorkbench ? undefined : (
                 <PlanToolDock
                   objective={selectedObjective}
                   disabled={!params.projectId}

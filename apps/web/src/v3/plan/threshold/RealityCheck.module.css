@@ -1,0 +1,740 @@
+/*
+ * RealityCheck.module.css -- the amber/gold register for Threshold 1 (The
+ * Reality Check). This is its OWN mode skin, deliberately distinct from Mode 2
+ * (Reception) and Mode 4 (Design) so the steward feels the structural hinge.
+ *
+ * The amber palette degrades through fallbacks to the same hex the clickable
+ * spine entry uses (ActTierShell.module.css .spineThreshold), so the surface and
+ * its spine entry read as one register even where the design tokens are unset.
+ */
+
+.surface {
+  /* Local amber register -- one place to retune; spine entry mirrors the hex. */
+  --rc-accent: var(--color-threshold-accent, #d9a441);
+  --rc-accent-strong: var(--color-gold-brand, #b08a3a);
+  --rc-soft: var(--color-threshold-soft, rgba(217, 164, 65, 0.14));
+  --rc-soft-strong: rgba(217, 164, 65, 0.22);
+  --rc-line: rgba(217, 164, 65, 0.34);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--color-bg, #faf8f3);
+}
+
+/* ---------------------------------------------------------------- mode header */
+
+.modeHeader {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--rc-line);
+  background: linear-gradient(180deg, var(--rc-soft) 0%, transparent 100%);
+}
+
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--rc-soft-strong);
+  border: 1px solid var(--rc-line);
+  color: var(--rc-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modeTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.modeTagline {
+  margin: 8px 0 0;
+  max-width: 64ch;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* phase track (1 Review -> 2 Direction) */
+.phaseTrack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phaseStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #6f675b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.phaseStep[data-active] {
+  border-color: var(--rc-line);
+  background: var(--rc-soft);
+  color: var(--rc-accent-strong);
+}
+
+.phaseStepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-border, #e2ddd2);
+  color: var(--color-text, #2b2620);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.phaseStep[data-active] .phaseStepNum,
+.phaseStep[data-done] .phaseStepNum {
+  background: var(--rc-accent);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ phase body */
+
+.phaseBody {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 28px;
+}
+
+.phaseIntro {
+  margin: 0 0 18px;
+  max-width: 70ch;
+}
+
+.phaseHeading {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.phaseBlurb {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* -------------------------------------------------------------- evidence strands */
+
+.strandGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.strandCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-left: 3px solid var(--rc-accent);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+}
+
+.strandHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.strandLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.strandSummary {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rc-accent-strong);
+  white-space: nowrap;
+}
+
+.strandBlurb {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.strandSurveys {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.strandSurvey {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--color-text, #2b2620);
+}
+
+.strandSurvey[data-complete] {
+  color: var(--color-text-muted, #6f675b);
+}
+
+.surveyDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--rc-accent-strong);
+}
+
+.surveyDotPending {
+  width: 8px;
+  height: 8px;
+  margin: 3px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border, #cdc6b8);
+}
+
+/* per-strand stance + note */
+.strandStance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.stanceBtn {
+  appearance: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #6f675b);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.stanceBtn:hover {
+  border-color: var(--rc-line);
+}
+
+.stanceBtn[aria-pressed='true'] {
+  background: var(--rc-soft);
+  border-color: var(--rc-line);
+  color: var(--rc-accent-strong);
+}
+
+.noteField {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px 9px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  color: var(--color-text, #2b2620);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+  min-height: 38px;
+}
+
+.noteField:focus-visible {
+  outline: 2px solid var(--rc-line);
+  outline-offset: 1px;
+  border-color: var(--rc-accent);
+}
+
+/* declared-intent recap (read-only, Phase 1) */
+.intentRecap {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border, #e2ddd2);
+}
+
+.intentRecapTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.intentRecapHint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.intentRecapGroup {
+  margin-bottom: 12px;
+}
+
+.intentRecapGroupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rc-accent-strong);
+}
+
+.intentRecapList {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.intentRecapItem {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.emptyIntent {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ------------------------------------------------------------- intent cards (P2) */
+
+.elementList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.elementCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 16px 18px;
+}
+
+.elementCard[data-status='feasible'] {
+  border-left: 3px solid #3f8f5f;
+}
+.elementCard[data-status='conditional'] {
+  border-left: 3px solid var(--rc-accent);
+}
+.elementCard[data-status='deferred'] {
+  border-left: 3px solid #7b8794;
+}
+.elementCard[data-status='released'] {
+  border-left: 3px solid #b06a4f;
+}
+
+.elementHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-bg, #faf8f3);
+  color: var(--color-text-muted, #6f675b);
+}
+
+.typeBadge[data-type='non-negotiable'] {
+  border-color: #c2705a;
+  color: #a3543d;
+  background: rgba(176, 106, 79, 0.1);
+}
+
+.elementText {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.typeDesc {
+  margin: 6px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusBtn {
+  appearance: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 7px 12px;
+  min-width: 96px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.statusBtn:hover:not(:disabled) {
+  border-color: var(--rc-line);
+  background: var(--rc-soft);
+}
+
+.statusBtn[aria-pressed='true'] {
+  border-color: var(--rc-accent);
+  background: var(--rc-soft);
+  box-shadow: inset 0 0 0 1px var(--rc-accent);
+}
+
+.statusBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.statusBtnLabel {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.statusBtnHint {
+  font-size: 10px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.statusDesc {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* condition / note / gap fields */
+.fieldBlock {
+  margin-top: 12px;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.gapToggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--color-border, #cdc6b8);
+  background: transparent;
+  color: var(--color-text-muted, #6f675b);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gapToggle:hover {
+  border-color: var(--rc-line);
+  color: var(--rc-accent-strong);
+}
+
+/* release confirm */
+.releaseConfirm {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #c2705a;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(176, 106, 79, 0.08);
+}
+
+.releaseConfirmText {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8a4733;
+}
+
+.releaseConfirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* CSA advisory (non-blocking) */
+.advisory {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rc-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--rc-soft);
+}
+
+.advisoryTitle {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rc-accent-strong);
+}
+
+.advisoryBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #2b2620);
+}
+
+/* ------------------------------------------------------------- planning direction */
+
+.direction {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid var(--rc-line);
+}
+
+.directionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.directionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.directionStatement {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--rc-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 150px;
+}
+
+.directionStatement:focus-visible {
+  outline: 2px solid var(--rc-line);
+  outline-offset: 1px;
+}
+
+.directionStatement:read-only {
+  background: var(--rc-soft);
+  cursor: default;
+}
+
+.directionActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.directionLock {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rc-accent-strong);
+}
+
+.notYet {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ---------------------------------------------------------------------- buttons */
+
+.primaryBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--rc-accent-strong);
+  background: var(--rc-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghostBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghostBtn:hover {
+  border-color: var(--rc-line);
+}
+
+.proceedRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border, #e2ddd2);
+}
+
+/* ----------------------------------------------------------- reference rail (right) */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.railCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 12px 14px;
+}
+
+.railCardTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.railStat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+  padding: 3px 0;
+}
+
+.railStatValue {
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.railProgressTrack {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--color-border, #e2ddd2);
+  overflow: hidden;
+}
+
+.railProgressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--rc-accent);
+}
+
+.railApproved {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3f8f5f;
+}
+
+.railPending {
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+}

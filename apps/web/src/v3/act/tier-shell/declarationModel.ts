@@ -77,7 +77,16 @@ const CANONICAL_OBJECTIVE_ID: Readonly<Record<CanonicalKind, string>> = (() => {
 // Threshold checkpoints -- the spine dividers between strata (mockup nav).
 // ---------------------------------------------------------------------------
 
+/** Stable kebab id for a threshold checkpoint (route param + clickable-spine key). */
+export type ThresholdId = 'threshold-1' | 'threshold-2' | 'threshold-3';
+
 export interface ThresholdMarker {
+  /**
+   * Stable id for the checkpoint -- the `plan/threshold/$thresholdId` route param
+   * and the clickable-spine key. Additive (2026-06-17 Threshold-1 build); the
+   * display divider never used it, so existing consumers are unaffected.
+   */
+  id: ThresholdId;
   /** The stratum id this checkpoint divider sits AFTER in the spine. */
   afterStratumId: string;
   /** Display name, e.g. "Threshold 1 -- Reality Check". */
@@ -97,9 +106,9 @@ export interface ThresholdMarker {
  *   - Act Mandate     after S7 (Phasing & Resourcing), entering the Act stage.
  */
 export const THRESHOLDS: readonly ThresholdMarker[] = [
-  { afterStratumId: 's3-systems-reading', name: 'Threshold 1 -- Reality Check' },
-  { afterStratumId: 's5-system-design', name: 'Threshold 2 -- Coherence Check' },
-  { afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
+  { id: 'threshold-1', afterStratumId: 's3-systems-reading', name: 'Threshold 1 -- Reality Check' },
+  { id: 'threshold-2', afterStratumId: 's5-system-design', name: 'Threshold 2 -- Coherence Check' },
+  { id: 'threshold-3', afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
 ];
 
 // ---------------------------------------------------------------------------

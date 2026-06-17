@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { PlanStratum, PlanStratumState } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
@@ -60,6 +60,9 @@ const STATES: Record<string, PlanStratumState> = {};
 interface SpineOverrides {
   typeChips?: readonly SpineTypeChip[];
   thresholds?: readonly SpineThreshold[];
+  clickableThresholdIds?: readonly string[];
+  thresholdActiveId?: string;
+  onSelectThreshold?: (thresholdId: string) => void;
 }
 
 function renderSpine(over: SpineOverrides = {}): void {
@@ -86,6 +89,15 @@ const TYPE_CHIPS: SpineTypeChip[] = [
 
 const THRESHOLD: SpineThreshold[] = [
   { afterStratumId: 's1-project-foundation', name: 'Threshold 1 -- Reality Check' },
+];
+
+// Plan passes an `id` so the threshold CAN become clickable; Act never does.
+const THRESHOLD_WITH_ID: SpineThreshold[] = [
+  {
+    afterStratumId: 's1-project-foundation',
+    id: 'threshold-1',
+    name: 'Threshold 1 -- Reality Check',
+  },
 ];
 
 describe('ActTierSpine -- Plan Declaration chrome', () => {
@@ -120,5 +132,65 @@ describe('ActTierSpine -- Act parity (props omitted)', () => {
   it('renders NO threshold dividers when thresholds is omitted', () => {
     renderSpine();
     expect(screen.queryByTestId('spine-threshold')).toBeNull();
+  });
+
+  it('keeps the threshold a NON-interactive separator even with an id, when no clickability props are passed (Act case)', () => {
+    // Act passes `thresholds` (it shares the constant) but never the
+    // clickability triple -> the entry must stay a decorative separator.
+    renderSpine({ thresholds: THRESHOLD_WITH_ID });
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.getAttribute('role')).toBe('separator');
+    expect(entry.tagName).toBe('DIV');
+    expect(entry.getAttribute('data-clickable')).toBeNull();
+  });
+});
+
+describe('ActTierSpine -- Plan threshold clickability', () => {
+  it('renders the threshold as a button when its id is clickable AND a handler is given', () => {
+    const onSelect = vi.fn();
+    renderSpine({
+      thresholds: THRESHOLD_WITH_ID,
+      clickableThresholdIds: ['threshold-1'],
+      onSelectThreshold: onSelect,
+    });
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.tagName).toBe('BUTTON');
+    expect(entry.getAttribute('data-clickable')).toBe('true');
+    fireEvent.click(entry);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith('threshold-1');
+  });
+
+  it('marks the active threshold via data-active + aria-current', () => {
+    renderSpine({
+      thresholds: THRESHOLD_WITH_ID,
+      clickableThresholdIds: ['threshold-1'],
+      thresholdActiveId: 'threshold-1',
+      onSelectThreshold: vi.fn(),
+    });
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.getAttribute('data-active')).toBe('true');
+    expect(entry.getAttribute('aria-current')).toBe('step');
+  });
+
+  it('stays a separator when the id is clickable but NO handler is supplied', () => {
+    renderSpine({
+      thresholds: THRESHOLD_WITH_ID,
+      clickableThresholdIds: ['threshold-1'],
+      // onSelectThreshold omitted -> not interactive.
+    });
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.getAttribute('role')).toBe('separator');
+    expect(entry.getAttribute('data-clickable')).toBeNull();
+  });
+
+  it('stays a separator when a handler is supplied but the id is NOT in the clickable set', () => {
+    renderSpine({
+      thresholds: THRESHOLD_WITH_ID,
+      clickableThresholdIds: [],
+      onSelectThreshold: vi.fn(),
+    });
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.getAttribute('role')).toBe('separator');
   });
 });
