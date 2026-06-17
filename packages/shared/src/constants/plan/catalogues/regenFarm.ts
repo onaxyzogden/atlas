@@ -113,7 +113,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of land health & degradation',
     shortTitle: 'Land health & degradation',
     focusedQuestion:
-      'What is the current productive and ecological condition of the land, and what degradation must be addressed?',
+      'What is the current state of health or degradation of this land -- where is it thriving, where is it stressed, and what forces, historical and present, have shaped its condition?',
     checklist: [
       ck('rf-s2-land-health-c1', 'Map areas of soil erosion - sheet, rill, and gully', {
         feeds: ['s5-soil-improvement', 'rf-s4-fertility-strategy'],
@@ -176,6 +176,17 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Land health assessment complete. All degradation zones mapped and prioritised.',
     actHandoff: 'Land Health & Degradation Assessment',
+    observeOutput: 'Land Health Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read land health for the remediation priority order and the timeline before enterprises can begin',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read land health for grazing pressure legacy -- what the land has already been subjected to, and what the soil and pasture condition data means for stocking and recovery sequencing',
+      },
+    ],
   }),
   obj({
     id: 'rf-s2-landscape-context',
@@ -186,7 +197,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of surrounding landscape context',
     shortTitle: 'Surrounding landscape context',
     focusedQuestion:
-      'How does the surrounding landscape shape the opportunities and constraints of this project?',
+      'How does this land relate to the wider landscape -- the catchment, the neighbourhood, the ecological region -- and what arrives on or leaves it from beyond its boundaries?',
     checklist: [
       ck('rf-s2-landscape-context-c1', 'Map surrounding land uses within 2km radius', {
         feeds: ['s4-zones', 's7-risk-register'],
@@ -240,6 +251,17 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Landscape context survey complete. Key influences and opportunities recorded.',
     actHandoff: 'Landscape Context Survey Package',
+    observeOutput: 'Landscape Context Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read landscape context for what the farm receives -- water, pests, wind, wildlife -- and what it sends in turn -- runoff, wildlife, products, relationships',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Note landscape-scale grazing context -- whether neighbouring properties are also grazed, and what that means for pest and weed pressure across the fence',
+      },
+    ],
   }),
   // ---------------------------------------------------------------- Stratum 3
   obj({

@@ -366,7 +366,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of terrain & topography',
     shortTitle: 'Terrain & topography',
     focusedQuestion:
-      'What are the physical landform characteristics that will shape all design decisions?',
+      'What does the terrain of this land tell us -- about where water flows, where sun falls, what the slopes afford and constrain, and where permanent work should and should not happen?',
     checklist: [
       ck(
         's2-terrain-c1',
@@ -403,6 +403,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Full topographic survey complete. Landform map approved.',
     actHandoff: 'Topographic Survey Package',
+    observeOutput: 'Terrain & Topography Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read terrain for productive zone allocation -- which slopes and aspects support which enterprises, and where permanent work should and should not happen',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read terrain for natural livestock movement paths, topographic shelter, and paddock boundaries that work with gravity',
+      },
+      {
+        typeId: 'residential',
+        text: 'Read terrain for candidate habitation zones -- solar aspect, natural shelter, drainage away from the dwelling, accessible without crossing enterprise zones',
+      },
+    ],
   }),
   obj({
     id: 's2-climate',
@@ -412,7 +427,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of climate & sectors',
     shortTitle: 'Climate & sectors',
     focusedQuestion:
-      'What are the climate patterns and energy sectors that must be accommodated in all design decisions?',
+      'What are the sun, wind, rain, frost, fire, and noise patterns across this land -- and what do they mean for where different activities can and cannot thrive?',
     checklist: [
       ck('s2-climate-c1', 'Record annual and seasonal rainfall averages and variability', {
         feeds: ['s4-water-strategy', 's5-water-infrastructure'],
@@ -442,6 +457,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Climate and sector data recorded and mapped. All major sectors identified.',
     actHandoff: 'Climate & Sector Survey Package',
+    observeOutput: 'Climate & Sector Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read climate for enterprise suitability -- which zones support which crops, which sectors constrain access or activity windows',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read wind patterns for winter shelter placement and prevailing cold exposure in paddock zones',
+      },
+      {
+        typeId: 'residential',
+        text: 'Read wind and solar conditions at candidate habitation zones -- how exposed or sheltered is each zone across seasons',
+      },
+    ],
   }),
   obj({
     id: 's2-ecology',
@@ -451,7 +481,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of existing ecology & habitat',
     shortTitle: 'Existing ecology & habitat',
     focusedQuestion:
-      'What ecological communities, species, and habitat values are present on the site?',
+      'What living systems are already at work on this land -- what species, what relationships, what ecological processes -- and what do they reveal about the health, history, and potential of this land?',
     checklist: [
       ck('s2-ecology-c1', 'Record existing vegetation communities by zone', { feeds: ['s4-zones'] }),
       ck('s2-ecology-c2', 'Identify native and invasive species present', { feeds: ['s4-zones'] }),
@@ -482,6 +512,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Ecological survey complete. All habitat types and significant species recorded.',
     actHandoff: 'Ecological Survey Package',
+    observeOutput: 'Ecology & Habitat Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read ecology for baseline biodiversity, existing habitat assets, and species that indicate land condition',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read ecology for forage species composition, browse potential, and grazing pressure history encoded in the plant community',
+      },
+      {
+        typeId: 'residential',
+        text: 'Read ecology near candidate habitation zones for conditions that affect liveability -- wildlife attractants, seasonal pest vectors, flooding risk indicators',
+      },
+    ],
   }),
   obj({
     id: 's2-infrastructure',
@@ -491,7 +536,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'A clear read of existing infrastructure & access',
     shortTitle: 'Existing infrastructure & access',
     focusedQuestion:
-      'What infrastructure, access routes, and services currently exist on the site?',
+      'What built infrastructure exists on this land -- roads, buildings, fences, water systems, utilities -- and what does it tell us about what this land has been used for and what it can support?',
     checklist: [
       ck('s2-infrastructure-c1', 'Map all existing roads, tracks, and pathways', {
         feeds: ['s5-access'],
@@ -527,6 +572,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Full infrastructure inventory complete and mapped.',
     actHandoff: 'Infrastructure Survey Package',
+    observeOutput: 'Infrastructure & Access Survey Record',
+    intentLens: [
+      {
+        typeId: 'regenerative_farm',
+        text: 'Read infrastructure for enterprise suitability -- what exists that can be repurposed, what constraints exist on access and utility',
+      },
+      {
+        typeId: 'silvopasture',
+        text: 'Read infrastructure for livestock handling capacity and existing paddock infrastructure condition',
+      },
+      {
+        typeId: 'residential',
+        text: 'Read infrastructure for residential conversion potential and domestic service availability relative to candidate habitation zones',
+      },
+    ],
   }),
   // ---------------------------------------------------------------- Stratum 3
   obj({

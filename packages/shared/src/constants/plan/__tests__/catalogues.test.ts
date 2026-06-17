@@ -107,6 +107,96 @@ describe('catalogue conformance - schema validity', () => {
   });
 });
 
+describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fields', () => {
+  // The 2026-06-16 Tier-1 (Stratum-2) restructure reframed the six s2-* Land-
+  // Reading objectives as a reception tier: each gains a reception-register
+  // focusedQuestion, a per-type intentLens, and an observeOutput survey record.
+  // buildsOnDisplay is deliberately omitted (there is no prior reception tier;
+  // the Tier-0 connection rides the intent lens). 1.1-1.4 are universal (farm +
+  // silvopasture + residential lenses); 1.5-1.6 are the regen primary (farm +
+  // silvopasture lenses, NO residential per the spec).
+  const findAuthored = (id: string): PlanStratumObjective | undefined =>
+    [...UNIVERSAL_PLAN_OBJECTIVES, ...REGEN_FARM_PRIMARY_OBJECTIVES].find(
+      (o) => o.id === id,
+    );
+
+  const EXPECTED_LENS: ReadonlyArray<readonly [string, readonly string[]]> = [
+    ['s2-terrain', ['regenerative_farm', 'silvopasture', 'residential']],
+    ['s2-climate', ['regenerative_farm', 'silvopasture', 'residential']],
+    ['s2-ecology', ['regenerative_farm', 'silvopasture', 'residential']],
+    ['s2-infrastructure', ['regenerative_farm', 'silvopasture', 'residential']],
+    ['rf-s2-land-health', ['regenerative_farm', 'silvopasture']],
+    ['rf-s2-landscape-context', ['regenerative_farm', 'silvopasture']],
+  ];
+
+  it('all six carry observeOutput + the spec per-type intentLens, buildsOnDisplay omitted', () => {
+    for (const [id, expectedTypes] of EXPECTED_LENS) {
+      const o = findAuthored(id);
+      expect(o, id).toBeDefined();
+      expect(o!.stratumId, id).toBe('s2-land-reading');
+      expect(typeof o!.observeOutput, id).toBe('string');
+      expect(o!.observeOutput!.length, id).toBeGreaterThan(0);
+      expect(o!.buildsOnDisplay, id).toBeUndefined();
+      const lensTypes = (o!.intentLens ?? []).map((row) => row.typeId);
+      expect(new Set(lensTypes), id).toEqual(new Set(expectedTypes));
+      expect(lensTypes.length, id).toBe(expectedTypes.length);
+      for (const row of o!.intentLens ?? []) {
+        expect(row.text.trim().length, `${id} ${row.typeId}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('round-trips the reception display fields through the schema on s2-terrain (1.1)', () => {
+    const terrain = findAuthored('s2-terrain');
+    const parsed = PlanStratumObjectiveSchema.parse(terrain!);
+    expect(parsed.intentLens?.length).toBe(3);
+    expect(
+      parsed.intentLens?.every((row) => !!row.typeId && !!row.text),
+    ).toBe(true);
+    expect(typeof parsed.observeOutput).toBe('string');
+    expect(parsed.buildsOnDisplay).toBeUndefined();
+    expect(parsed.excludedFromResolution).toBeUndefined();
+  });
+
+  it('Amanah: no advance-sale / subscription / yield-share wording across the resolved set + new patches', () => {
+    // Tier 1 is pure observation of existing land + assets - no capital surface.
+    // Pin the resolved canonical triad's s2-land-reading objectives (base copy +
+    // silvopasture/residential injected items, gate amendments, scope notes) and
+    // the authored S2 patch strings against advance-sale / CSA / CSRA / salam.
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const r = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['residential', 'silvopasture'],
+    });
+    const strings: string[] = [];
+    for (const o of r.objectives.filter(
+      (x) => x.stratumId === 's2-land-reading',
+    )) {
+      strings.push(o.title, o.focusedQuestion);
+      if (o.completionGate) strings.push(o.completionGate);
+      if (o.actHandoff) strings.push(o.actHandoff);
+      if (o.observeOutput) strings.push(o.observeOutput);
+      if (o.scopeNotes) strings.push(o.scopeNotes);
+      for (const row of o.intentLens ?? []) strings.push(row.text);
+      for (const c of o.checklist) strings.push(c.label);
+    }
+    const s2Patches = [
+      ...SILVOPASTURE_SECONDARY_PATCHES,
+      ...RESIDENTIAL_PATCHES,
+    ].filter((p) => /S2\.\d/.test(p.ref ?? ''));
+    for (const p of s2Patches) {
+      for (const item of p.injectedItems) strings.push(item.label);
+      if (p.completionGateAmendment) strings.push(p.completionGateAmendment);
+      if (p.scopeNote) strings.push(p.scopeNote);
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
+  });
+});
+
 describe('catalogue conformance - authoring rubric (Standards v1.4)', () => {
   it('every objective has 5-15 checklist items', () => {
     for (const o of ALL_AUTHORED) {
@@ -808,16 +898,20 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes 9 additive objectives (one excluded from resolution) and 8 patches', () => {
+  it('contributes 9 additive objectives (one excluded from resolution) and 12 patches', () => {
     // SILV>RF-S1.4 targets the regen primary's enterprise-mix objective
     // (rf-s1-enterprise-mix), added by the 2026-06-16 Tier-0 restructure so
     // livestock integration is captured at declaration time. The 2026-06-16
     // Tier-2 (Stratum-3) restructure then added silv-sec-s3-stock-water (2.5, a
     // new additive) plus four S3 patches (hydrology/soil/nutrient/pest), and
     // flagged silv-sec-s3-forage-survey excludedFromResolution (definition kept,
-    // deferred to a later pass) - so the array holds 9 but only 8 resolve.
+    // deferred to a later pass). The 2026-06-16 Tier-1 (Stratum-2) Land-Reading
+    // restructure then added four more patches - terrain/ecology/infrastructure
+    // on the universal s2 surveys plus land-health on the regen primary survey -
+    // with no new objectives, so the array still holds 9 (8 resolve) while the
+    // patch count rises 8 -> 12.
     expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(9);
-    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(8);
+    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(12);
   });
 
   it('every silvopasture secondary patch ref matches the patch format', () => {
@@ -847,11 +941,13 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
-  it('applies all 8 patches (universal + regen primary targets), none skipped', () => {
-    // The 8 patches land on 8 distinct targets, all present under a regen
+  it('applies all 12 patches (universal + regen primary targets), none skipped', () => {
+    // The 12 patches land on 12 distinct targets, all present under a regen
     // primary: SILV>RF-S1.4 (rf-s1-enterprise-mix), the three original S4-S6
-    // universal patches, plus the four 2026-06-16 Tier-2 S3 patches on
-    // s3-hydrology, s3-soil, rf-s3-nutrient-cycling, and rf-s3-pest-pressure.
+    // universal patches, the four 2026-06-16 Tier-2 S3 patches on s3-hydrology,
+    // s3-soil, rf-s3-nutrient-cycling, and rf-s3-pest-pressure, plus the four
+    // 2026-06-16 Tier-1 S2 patches on s2-terrain, s2-ecology, s2-infrastructure,
+    // and rf-s2-land-health.
     const result = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
@@ -859,7 +955,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     const patched = result.objectives.filter((o) =>
       o.checklist.some((c) => c.expandedBySecondaryId === 'silvopasture'),
     );
-    expect(patched.length).toBe(8);
+    expect(patched.length).toBe(12);
     expect(result.provenance.skippedPatches).toEqual([]);
   });
 

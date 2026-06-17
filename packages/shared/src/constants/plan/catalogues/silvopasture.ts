@@ -2165,4 +2165,144 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
     scopeNote:
       'Silvopasture secondary: livestock add pressure vectors - internal parasites, flies, toxic plants in paddock zones - that the base pest read does not cover.',
   }),
+  // ---- Tier-1 (Stratum-2) Land-Reading restructure 2026-06-16 --------------
+  // Four livestock deltas folded into the shared Land-Reading surveys so the
+  // first reception tier carries the grazing dimension (spec 1.1/1.3/1.4 silv
+  // patch blocks + new 1.5 land-health patch). 1.1/1.3/1.4 land on UNIVERSAL
+  // surveys; 1.5 lands on the RegenFarm PRIMARY survey (applies only when
+  // regenerative_farm is primary - the resolver records a skip otherwise, never
+  // throws). Observations of present land and assets only; no allocation/sale
+  // surface.
+  // 1.1 Terrain & topography
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-terrain',
+    ref: 'SILV>U-S2.1',
+    injectedItems: [
+      ck(
+        's2-terrain-silv-1',
+        'Map paddock potential zones - flat to gently sloping areas with good solar exposure',
+      ),
+      ck(
+        's2-terrain-silv-2',
+        'Identify natural livestock movement paths following contour and gravity logic',
+      ),
+      ck(
+        's2-terrain-silv-3',
+        'Mark topographic shelter opportunities - hollows, lee slopes, ridgeline breaks - for winter yard placement',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-terrain-dgsilv1',
+        'Paddock potential & stock movement',
+        ['s2-terrain-silv-1', 's2-terrain-silv-2', 's2-terrain-silv-3'],
+        ['Terrain & Topography'],
+      ),
+    ],
+    completionGateAmendment:
+      'Paddock potential zones, livestock movement paths, and topographic shelter for winter yards mapped.',
+    scopeNote:
+      'Silvopasture secondary: terrain is read for grazing layout - where stock move with gravity, where paddocks and winter yards naturally sit.',
+  }),
+  // 1.3 Existing ecology & habitat (patch strengthened from v1.1)
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-ecology',
+    ref: 'SILV>U-S2.3',
+    injectedItems: [
+      ck(
+        's2-ecology-silv-1',
+        'Conduct pasture baseline survey - species composition of existing grassland by zone, estimated legume percentage, browse species present',
+      ),
+      ck(
+        's2-ecology-silv-2',
+        'Assess forage quality indicators - plant vigour, palatability species proportion, species suggesting overgrazing or undergrazing',
+      ),
+      ck(
+        's2-ecology-silv-3',
+        'Record wildlife and vegetation features with browse or forage value for intended livestock species',
+      ),
+      ck(
+        's2-ecology-silv-4',
+        'Note weed species associated with overgrazing or soil disturbance in future paddock zones',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-ecology-dgsilv1',
+        'Pasture baseline & forage value',
+        ['s2-ecology-silv-1', 's2-ecology-silv-2', 's2-ecology-silv-3', 's2-ecology-silv-4'],
+        ['Vegetation & Succession'],
+      ),
+    ],
+    completionGateAmendment:
+      'Pasture baseline and forage quality assessment complete - species composition, browse value, and overgrazing indicator weeds recorded.',
+    scopeNote:
+      'Silvopasture secondary: the existing plant community encodes forage value and grazing-pressure history; the ecology read must capture pasture composition and browse potential, not just habitat.',
+  }),
+  // 1.4 Existing infrastructure & access (retained from v1.1)
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-infrastructure',
+    ref: 'SILV>U-S2.4',
+    injectedItems: [
+      ck(
+        's2-infrastructure-silv-1',
+        'Inventory existing livestock infrastructure - yards, crushes, laneways, loading facilities; note condition and upgrade requirement',
+      ),
+      ck(
+        's2-infrastructure-silv-2',
+        'Assess existing paddock subdivision and fencing condition - which fences can define initial rotational paddocks',
+      ),
+      ck(
+        's2-infrastructure-silv-3',
+        'Assess water trough placement and reach - which paddock areas have water access within acceptable livestock travel distance',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-infrastructure-dgsilv1',
+        'Livestock infrastructure & paddock fencing',
+        ['s2-infrastructure-silv-1', 's2-infrastructure-silv-2', 's2-infrastructure-silv-3'],
+        ['Infrastructure & Access'],
+      ),
+    ],
+    completionGateAmendment:
+      'Existing livestock infrastructure, paddock fencing, and trough reach assessed for reuse in the rotational system.',
+    scopeNote:
+      'Silvopasture secondary: existing yards, fencing, and troughs determine what rotational grazing infrastructure can be reused versus built new.',
+  }),
+  // 1.5 Existing land health & degradation (RegenFarm primary survey)
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 'rf-s2-land-health',
+    ref: 'SILV>RF-S2.5',
+    injectedItems: [
+      ck(
+        'rf-s2-land-health-silv-1',
+        'Assess historical grazing pressure by zone - compaction depth under formerly stocked areas, weed species associated with overgrazing, bare ground percentage in future paddock zones',
+      ),
+      ck(
+        'rf-s2-land-health-silv-2',
+        'Record current forage and pasture condition category for each future paddock zone - degraded, fair, good',
+      ),
+      ck(
+        'rf-s2-land-health-silv-3',
+        'Note soil compaction depth and distribution in historically grazed areas - this determines recovery timeline before stocking can resume',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        'rf-s2-land-health-dgsilv1',
+        'Grazing pressure legacy & pasture condition',
+        ['rf-s2-land-health-silv-1', 'rf-s2-land-health-silv-2', 'rf-s2-land-health-silv-3'],
+        ['Soil'],
+      ),
+    ],
+    completionGateAmendment:
+      'Grazing pressure legacy, pasture condition category per future paddock zone, and compaction depth recorded - the recovery timeline before stocking can resume is defined.',
+    scopeNote:
+      'Silvopasture secondary: land health is read for grazing legacy - compaction, overgrazing weeds, and pasture condition that set the recovery sequence before stocking resumes. Observation of present land state; no production or sale commitment.',
+  }),
 ];

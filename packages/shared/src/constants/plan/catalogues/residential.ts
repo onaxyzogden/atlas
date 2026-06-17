@@ -486,6 +486,136 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
     scopeNote:
       'Residential Stratum 2 has no standalone objective - the primary landscape vector survey must explicitly cover drinking-water catchment contamination.',
   }),
+  // ---- Tier-1 (Stratum-2) Land-Reading restructure 2026-06-16 --------------
+  // Four Residential/Live-In deltas folded into the shared Land-Reading surveys
+  // so the first reception tier reads the land through the household-to-house
+  // lens (spec 1.1/1.2/1.3/1.4 Residential patch blocks). All four target
+  // UNIVERSAL surveys (always present). Observations of candidate habitation
+  // zones against existing land and assets only; no capital or sale surface.
+  // 1.1 Terrain & topography
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-terrain',
+    ref: 'RES>U-S2.1',
+    injectedItems: [
+      ck(
+        's2-terrain-pres-1',
+        'Identify candidate habitation zones - southerly solar aspect, topographic shelter on north and west, natural drainage away from footprint, accessible without crossing livestock or enterprise zones',
+      ),
+      ck(
+        's2-terrain-pres-2',
+        'Map slope gradients in candidate habitation zones for dwelling foundation and drainage planning',
+      ),
+      ck(
+        's2-terrain-pres-3',
+        'Note existing natural windbreaks near candidate zones - woodland, hedgerows, topographic features',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-terrain-dgres1',
+        'Candidate habitation zones',
+        ['s2-terrain-pres-1', 's2-terrain-pres-2', 's2-terrain-pres-3'],
+        ['Terrain & Topography'],
+      ),
+    ],
+    completionGateAmendment:
+      'Candidate habitation zones identified with solar aspect, slope gradient, natural drainage, and windbreak data.',
+    scopeNote:
+      'Residential secondary: terrain is read for where a dwelling can sit well - aspect, shelter, drainage, and access that does not cross enterprise zones. Observation only.',
+  }),
+  // 1.2 Climate & sectors
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-climate',
+    ref: 'RES>U-S2.2',
+    injectedItems: [
+      ck(
+        's2-climate-pres-1',
+        'Note wind exposure at each candidate habitation zone across seasons',
+      ),
+      ck(
+        's2-climate-pres-2',
+        'Identify existing or potential wind protection for candidate zones - topographic, structural, or vegetative',
+      ),
+      ck(
+        's2-climate-pres-3',
+        'Record solar access quality at candidate zones - obstructions, shading periods, orientation quality',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-climate-dgres1',
+        'Habitation zone climate',
+        ['s2-climate-pres-1', 's2-climate-pres-2', 's2-climate-pres-3'],
+        ['Climate & Sectors'],
+      ),
+    ],
+    completionGateAmendment:
+      'Candidate habitation zone climate conditions recorded - wind exposure, wind protection, and solar access quality.',
+    scopeNote:
+      'Residential secondary: wind and solar conditions at candidate habitation zones determine how exposed or sheltered each dwelling site is across seasons. Observation only.',
+  }),
+  // 1.3 Existing ecology & habitat
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-ecology',
+    ref: 'RES>U-S2.3',
+    injectedItems: [
+      ck(
+        's2-ecology-pres-1',
+        'Note ecological conditions near candidate habitation zones that affect liveability - wildlife attractants (rodents, insects), proximity to spray or dust sources from enterprise zones',
+      ),
+      ck(
+        's2-ecology-pres-2',
+        'Record any seasonal habitat features near candidate zones that may require management - seasonal flooding indicators, dense understorey near dwelling footprint',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-ecology-dgres1',
+        'Habitation zone liveability ecology',
+        ['s2-ecology-pres-1', 's2-ecology-pres-2'],
+        ['Ecology & Habitat'],
+      ),
+    ],
+    completionGateAmendment:
+      'Habitation zone ecological conditions recorded - liveability attractants and seasonal habitat features near the dwelling footprint.',
+    scopeNote:
+      'Residential secondary: ecology near candidate zones is read for liveability - attractants, spray/dust proximity, and seasonal features near the dwelling footprint. Observation only.',
+  }),
+  // 1.4 Existing infrastructure & access
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-infrastructure',
+    ref: 'RES>U-S2.4',
+    injectedItems: [
+      ck(
+        's2-infrastructure-pres-1',
+        'Survey existing structures for residential conversion potential - floor area, insulation state, structural condition, orientation, and proximity to domestic services',
+      ),
+      ck(
+        's2-infrastructure-pres-2',
+        'Assess vehicle access to candidate habitation zones - suitability for family vehicles, turning space, grade, surface condition',
+      ),
+      ck(
+        's2-infrastructure-pres-3',
+        'Map domestic service infrastructure relative to candidate habitation zones - sewage and septic, power connection, water mains or bore, communications - and note cost and feasibility of extending to each candidate zone',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's2-infrastructure-dgres1',
+        'Residential conversion & domestic services',
+        ['s2-infrastructure-pres-1', 's2-infrastructure-pres-2', 's2-infrastructure-pres-3'],
+        ['Infrastructure & Access'],
+      ),
+    ],
+    completionGateAmendment:
+      'Residential conversion potential and domestic service infrastructure mapped relative to candidate habitation zones.',
+    scopeNote:
+      'Residential secondary: existing structures and services are read for conversion potential and the feasibility of extending domestic services to candidate zones. Observation of present assets only.',
+  }),
   // P1 - Stratum 3 patch on universal hydrology survey (Residential 2.1).
   // Carries BOTH the spec 2.1 residential supply/reliability read AND the
   // condensed potability & treatment group relocated from the retired

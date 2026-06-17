@@ -53,8 +53,11 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     expect(r.objectives).toHaveLength(38);
   });
 
-  it('applies all 6 residential patches (every target present)', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(6);
+  it('applies all 10 residential patches (every target present)', () => {
+    // 6 prior patches + the 4 Tier-1 (Stratum-2) Land-Reading patches added
+    // 2026-06-16 (RES>U-S2.1 terrain, RES>U-S2.2 climate, RES>U-S2.3 ecology,
+    // RES>U-S2.4 infrastructure - all universal targets, always present).
+    expect(r.provenance.appliedPatchRefs).toHaveLength(10);
     expect(r.provenance.skippedPatches).toEqual([]);
   });
 
@@ -68,7 +71,7 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
       loaded: true,
       encoded: true,
       additiveCount: 5,
-      patchCount: 6,
+      patchCount: 10,
     });
   });
 
@@ -181,8 +184,54 @@ describe('resolveProjectObjectives - canonical declaration config (regen + resid
     );
   });
 
-  it('applies every patch from both secondaries with no skips (6 residential + 8 silvopasture)', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(14);
+  it('applies every patch from both secondaries with no skips (10 residential + 12 silvopasture)', () => {
+    // Both secondaries gained four Tier-1 (Stratum-2) Land-Reading patches on
+    // 2026-06-16: residential 6 -> 10, silvopasture 8 -> 12. Every target is
+    // present under the regen primary (universal s2 ids + rf-s2-land-health +
+    // rf-s2-landscape-context), so all 22 apply with nothing skipped.
+    expect(r.provenance.appliedPatchRefs).toHaveLength(22);
+    expect(r.provenance.skippedPatches).toEqual([]);
+  });
+
+  // ---- Tier-1 (Stratum-2) Reception / Land-Reading restructure 2026-06-16 -------
+
+  it('resolves EXACTLY the six spec Stratum-2 Land-Reading surveys for this config', () => {
+    // The resolved Land-Reading set must be precisely the six spec surveys:
+    // 1.1 terrain, 1.2 climate, 1.3 ecology, 1.4 infrastructure (universal), and
+    // 1.5 land-health, 1.6 landscape-context (regen primary). No objective was
+    // added or removed by the Tier-1 restructure - only reception framing +
+    // per-type intent lens + the eight secondary patches.
+    const s2 = r.objectives
+      .filter((o) => o.stratumId === 's2-land-reading')
+      .map((o) => o.id);
+    expect(new Set(s2)).toEqual(
+      new Set([
+        's2-terrain',
+        's2-climate',
+        's2-ecology',
+        's2-infrastructure',
+        'rf-s2-land-health',
+        'rf-s2-landscape-context',
+      ]),
+    );
+  });
+
+  it('applies all eight new Tier-1 S2 patches (4 silvopasture + 4 residential) onto the Land-Reading surveys', () => {
+    // The smoke for the Stage-1 finish gate: every authored Tier-1 patch ref is
+    // present in appliedPatchRefs and nothing was skipped for this triad.
+    const applied = new Set(r.provenance.appliedPatchRefs);
+    for (const ref of [
+      'SILV>U-S2.1',
+      'SILV>U-S2.3',
+      'SILV>U-S2.4',
+      'SILV>RF-S2.5',
+      'RES>U-S2.1',
+      'RES>U-S2.2',
+      'RES>U-S2.3',
+      'RES>U-S2.4',
+    ]) {
+      expect(applied.has(ref), ref).toBe(true);
+    }
     expect(r.provenance.skippedPatches).toEqual([]);
   });
 
@@ -250,10 +299,12 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
   // agritourism now has an encoded primary catalogue (34 objectives), so it
   // resolves universal + agritourism-primary. residential is compatible (X) on
   // agritourism, so its catalogue layers in too, but residential's P0 patch
-  // targets rf-s2-landscape-context - a regenfarm objective absent under an
-  // agritourism primary (agritourism has its OWN ag-s2-landscape-context, a
-  // different id) => P0 is still skipped, P1-P4 land. The skip-not-throw
-  // behaviour holds even with the primary encoded.
+  // (RES>RF-S2.6) targets rf-s2-landscape-context - a regenfarm objective absent
+  // under an agritourism primary (agritourism has its OWN ag-s2-landscape-context,
+  // a different id) => that one patch is still skipped while the other nine land
+  // (the 5 prior universal patches RES>U-S3.1/S3.2/S4.2/S4.3/S5.2 + the 4 Tier-1
+  // universal s2 patches RES>U-S2.1..S2.4 are all on always-present universal
+  // targets). The skip-not-throw behaviour holds even with the primary encoded.
   const r = resolveProjectObjectives({
     primaryTypeId: 'agritourism',
     secondaryTypeIds: ['residential'],
@@ -263,8 +314,8 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     expect(r.objectives).toHaveLength(59);
   });
 
-  it('applies 5 patches and skips P0 without throwing', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(5);
+  it('applies 9 patches and skips the regen-only landscape-context patch without throwing', () => {
+    expect(r.provenance.appliedPatchRefs).toHaveLength(9);
     expect(r.provenance.skippedPatches).toHaveLength(1);
     expect(r.provenance.skippedPatches[0]).toMatchObject({
       secondaryTypeId: 'residential',
@@ -288,8 +339,10 @@ describe('resolveProjectObjectives - wellness + residential', () => {
     expect(r.activeTensions.map((t) => t.id)).toContain('tension-10');
   });
 
-  it('skips P0 (wellness not encoded) and applies the 5 universal patches', () => {
-    expect(r.provenance.appliedPatchRefs).toHaveLength(5);
+  it('skips the regen-only landscape-context patch (wellness not encoded) and applies the 9 universal patches', () => {
+    // Only RES>RF-S2.6 targets a regen-primary objective absent here; the other
+    // 9 residential patches (5 prior + 4 Tier-1 s2) all target universal ids.
+    expect(r.provenance.appliedPatchRefs).toHaveLength(9);
     expect(r.provenance.skippedPatches).toHaveLength(1);
   });
 });
