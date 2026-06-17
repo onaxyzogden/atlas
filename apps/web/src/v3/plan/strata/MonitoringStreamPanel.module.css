@@ -1,0 +1,114 @@
+/*
+ * MonitoringStreamPanel.module.css -- the GREEN "monitoring stream" skin for a
+ * Mode-4 (Design) objective detail. Deliberately distinct from the amber
+ * Threshold-1 register (RealityCheck.module.css) and the neutral spine: green
+ * signals "this is the design input that will be watched in the Observe stage."
+ *
+ * Display-only. The panel renders an objective's monitoringProtocol -- Key
+ * Indicators, Response Triggers, and the single Feeds stream label. It never
+ * gates and carries no interactive state. The accent degrades through a hard
+ * fallback to the same green the Threshold "feasible / approved" register uses.
+ */
+
+.panel {
+  --ms-accent: #3f8f5f;
+  --ms-accent-strong: #2f7049;
+  --ms-soft: rgba(63, 143, 95, 0.1);
+  --ms-line: rgba(63, 143, 95, 0.32);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--ms-line);
+  border-left: 3px solid var(--ms-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--ms-soft) 0%, transparent 120%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: var(--ms-accent-strong);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ms-accent-strong);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.bullet {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ms-accent);
+}
+
+/* Triggers read as "if X -> do Y" -- a stronger bullet sets them apart. */
+.itemTrigger .bullet {
+  background: var(--ms-accent-strong);
+}
+
+.feeds {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--ms-line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ms-accent-strong);
+}
+
+.feedsLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}

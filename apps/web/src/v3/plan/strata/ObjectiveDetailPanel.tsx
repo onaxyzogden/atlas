@@ -29,6 +29,7 @@ import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
+import Mode4DesignChrome from './Mode4DesignChrome.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import FormulaResultSection from './FormulaResultSection.js';
@@ -466,6 +467,13 @@ export default function ObjectiveDetailPanel({
       )}
 
       <ActProgressBar projectId={projectId} objectiveId={objective.id} />
+
+      {/* MODE 4 — DESIGN chrome (Tiers 3-4 restructure): builds-on, the amber
+          Planning Direction mandate, the green monitoring stream, and the
+          act-handoff chip. Self-gating — renders nothing unless this objective
+          carries a Mode-4 display field, so non-Design objectives are untouched.
+          Plan-only by construction (Act never mounts this panel for s4/s5). */}
+      <Mode4DesignChrome objective={objective} />
 
       {upstreamSources.length > 0 && (
         <section
