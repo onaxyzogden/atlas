@@ -108,9 +108,10 @@ import {
   AGROFORESTRY_KINDS,
   pushAgroforestryToSpine,
 } from '../../../features/vegetation/agroforestrySpineSync.js';
-import ActTierSpine, {
-  type SpineTypeChip,
-} from '../../act/tier-shell/ActTierSpine.js';
+import { type SpineTypeChip } from '../../act/tier-shell/ActTierSpine.js';
+// Plan-only collapse-aware wrapper around the shared ActTierSpine. Forwards the
+// full spine prop set; Act renders ActTierSpine directly (no collapse).
+import PlanSpine from './PlanSpine.js';
 import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
 // Threshold 1 (The Reality Check) -- the Plan-only structural-hinge surface
 // mounted on the plan/threshold/$thresholdId route. Both takeovers render in
@@ -1054,7 +1055,7 @@ export default function PlanTierShell() {
   return (
     <PlanViewProvider view={activeView}>
       <div className={styles.tierShell}>
-        <ActTierSpine
+        <PlanSpine
           strata={PLAN_STRATA}
           objectives={objectives}
           stratumStates={stratumStates}

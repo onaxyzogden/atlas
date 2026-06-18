@@ -53,6 +53,15 @@ interface UIState {
   togglePlanToolDockCollapsed: () => void;
   setPlanToolDockCollapsed: (v: boolean) => void;
 
+  // Plan tier-shell strata spine — collapsed swaps the full S1-S7 tab row for a
+  // slim summary bar (project + active stratum + expand chevron), so the design
+  // canvas reclaims the row's height. Global across Plan modes, persisted across
+  // sessions. Plan-only: the shared ActTierSpine is unaffected (Act never reads
+  // this flag).
+  spineCollapsed: boolean;
+  toggleSpineCollapsed: () => void;
+  setSpineCollapsed: (v: boolean) => void;
+
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
   // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
   // 'stage'  = 5-step workflow lens (Understand → Constraints → Design → Feasibility → Report)
@@ -154,6 +163,12 @@ export const useUIStore = create<UIState>()(
         set((s) => ({ planToolDockCollapsed: !s.planToolDockCollapsed })),
       setPlanToolDockCollapsed: (v) => set({ planToolDockCollapsed: v }),
 
+      // Plan strata spine collapse — default expanded.
+      spineCollapsed: false,
+      toggleSpineCollapsed: () =>
+        set((s) => ({ spineCollapsed: !s.spineCollapsed })),
+      setSpineCollapsed: (v) => set({ spineCollapsed: v }),
+
       // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
       // per 2026-04-29 IA restructure). Existing users keep their persisted
       // choice via the persist middleware.
@@ -218,6 +233,7 @@ export const useUIStore = create<UIState>()(
         sidebarGrouping: state.sidebarGrouping,
         rightPanelCollapsed: state.rightPanelCollapsed,
         planToolDockCollapsed: state.planToolDockCollapsed,
+        spineCollapsed: state.spineCollapsed,
       }),
       migrate: migrateUIPersistedState,
     },

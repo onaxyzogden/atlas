@@ -1,0 +1,72 @@
+/* PlanSpine — collapse chrome for the Plan strata spine.
+   Expanded: the full ActTierSpine in a flex slot with a slim collapse chevron
+   pinned right. Collapsed: a slim summary bar (project + active stratum +
+   expand chevron) so the canvas below reclaims the height. */
+
+.spineWrap {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex: 0 0 auto;
+  /* match the spineRow's top/right padding so the chevron clears the edge */
+  padding: 0 8px 0 0;
+}
+
+/* ActTierSpine renders its own `spineRow` (overflow-x: auto). Give it a
+   flex slot with min-width: 0 so it scrolls within the wrapper rather than
+   pushing the collapse button off-screen. */
+.spineSlot {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.collapsedBar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 8px 0;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-left: 3px solid var(--color-gold-brand, #c4a265);
+  border-radius: var(--radius-md, 8px);
+}
+
+.collapsedTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.collapsedStratum {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collapseBtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  margin-left: auto;
+  padding: 4px 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.collapseBtn:hover {
+  border-color: var(--color-gold-brand);
+  color: var(--color-text);
+}
