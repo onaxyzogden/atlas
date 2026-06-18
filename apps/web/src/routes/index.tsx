@@ -107,6 +107,7 @@ import {
   PLAN_STRATA,
 } from '@ogden/shared';
 import { deriveReceptionProgress } from '../v3/act/tier-shell/receptionModel.js';
+import { deriveCoherenceOpen } from '../v3/plan/threshold/coherenceCheckModel.js';
 import { useDevUnlockStore } from '../store/devUnlockStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
@@ -728,11 +729,16 @@ const v3PlanThresholdRoute = createRoute({
   beforeLoad: ({ params }) => {
     const ctx = buildActLockContext(params.projectId);
     if (!ctx) return;
-    const { thresholdOpen } = deriveReceptionProgress(
-      ctx.objectives,
-      ctx.statuses,
-    );
-    if (!thresholdOpen) {
+    // Deep-link guard, dispatched per threshold. Threshold 2 (Coherence Check)
+    // opens once every s4 + s5 design objective is complete; Threshold 1
+    // (Reality Check) opens on the Tier-1/Tier-2 reception gate. A closed
+    // threshold redirects to the Plan root rather than rendering an empty
+    // surface. Both are soft, display-only gates -- STRATUM_PREREQS untouched.
+    const open =
+      params.thresholdId === 'threshold-2'
+        ? deriveCoherenceOpen(ctx.objectives, ctx.statuses)
+        : deriveReceptionProgress(ctx.objectives, ctx.statuses).thresholdOpen;
+    if (!open) {
       throw redirect({
         to: '/v3/project/$projectId/plan',
         params: { projectId: params.projectId },

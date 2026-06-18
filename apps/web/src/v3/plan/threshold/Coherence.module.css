@@ -1,0 +1,878 @@
+/*
+ * Coherence.module.css -- the MAUVE register for Threshold 2 (The Coherence
+ * Check). Its OWN mode skin, deliberately distinct from Mode 2 (Reception),
+ * Threshold 1 (amber/gold), and Mode 4 (Design) so the steward feels the
+ * structural hinge. The mauve hexes mirror COHERENCE_PALETTE in
+ * coherenceCheckModel.ts (the one canonical source); kept in sync there.
+ *
+ * Structurally a clone of RealityCheck.module.css adapted to the three-section
+ * A/B/C audit: a mode header, a section track, per-item audit cards (pass /
+ * open / resolved), the inline amendment field, and the seal panel. The rail +
+ * soft-gate classes mirror the Threshold-1 register so the surface, its rail,
+ * and the downstream banner read as one mauve register.
+ */
+
+.surface {
+  /* Local mauve register -- one place to retune; spine + rail mirror the hex. */
+  --cc-accent: var(--color-coherence-accent, #9b7ec8);
+  --cc-accent-strong: var(--color-coherence-accent-strong, #7b5ea8);
+  --cc-accent-light: var(--color-coherence-accent-light, #b89fd8);
+  --cc-soft: var(--color-coherence-soft, rgba(155, 126, 200, 0.12));
+  --cc-soft-strong: rgba(155, 126, 200, 0.2);
+  --cc-line: rgba(155, 126, 200, 0.28);
+  --cc-pass: #5aaf72;
+  --cc-fail: #c45a4a;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--color-bg, #faf8f3);
+}
+
+/* ---------------------------------------------------------------- mode header */
+
+.modeHeader {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--cc-line);
+  background: linear-gradient(180deg, var(--cc-soft) 0%, transparent 100%);
+}
+
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cc-soft-strong);
+  border: 1px solid var(--cc-line);
+  color: var(--cc-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modeTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.modeTagline {
+  margin: 8px 0 0;
+  max-width: 70ch;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* section track (A System Integration -> B Closed Loops -> C Monitoring) */
+.sectionTrack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.sectionTrackItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #6f675b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sectionTrackItem[data-complete] {
+  border-color: var(--cc-line);
+  background: var(--cc-soft);
+  color: var(--cc-accent-strong);
+}
+
+.sectionTrackKey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-border, #e2ddd2);
+  color: var(--color-text, #2b2620);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sectionTrackItem[data-complete] .sectionTrackKey {
+  background: var(--cc-accent);
+  color: #fff;
+}
+
+.sectionTrackTally {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ------------------------------------------------------------------ body */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.intro {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ----------------------------------------------------------------- sections */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sectionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.sectionLetter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--cc-soft-strong);
+  border: 1px solid var(--cc-line);
+  color: var(--cc-accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.sectionTallyChip {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cc-accent-strong);
+  white-space: nowrap;
+}
+
+.sectionBlurb {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.sectionEmpty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--color-border, #cdc6b8);
+  border-radius: var(--radius-md, 8px);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ------------------------------------------------------------- audit items */
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-left: 3px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 14px 16px;
+}
+
+.itemCard[data-status='pass'] {
+  border-left-color: var(--cc-pass);
+}
+.itemCard[data-status='open'] {
+  border-left-color: var(--cc-fail);
+}
+.itemCard[data-status='resolved'] {
+  border-left-color: var(--cc-accent);
+}
+
+.itemHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-bg, #faf8f3);
+  color: var(--color-text-muted, #6f675b);
+}
+
+.statusBadge[data-status='pass'] {
+  border-color: var(--cc-pass);
+  color: #2f7a48;
+  background: rgba(90, 175, 114, 0.1);
+}
+.statusBadge[data-status='open'] {
+  border-color: var(--cc-fail);
+  color: #a3543d;
+  background: rgba(196, 90, 74, 0.1);
+}
+.statusBadge[data-status='resolved'] {
+  border-color: var(--cc-line);
+  color: var(--cc-accent-strong);
+  background: var(--cc-soft);
+}
+
+.itemTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemId {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.itemLabel {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.itemSummary {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.passCriteria {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.passCriteriaLabel {
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.evidence {
+  margin: 10px 0 0;
+}
+
+.evidenceLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.evidenceList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.evidenceItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.evidenceDot {
+  flex: 0 0 auto;
+  color: var(--cc-accent-strong);
+}
+
+.evidenceMissing {
+  color: var(--color-text-muted, #6f675b);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------- gap block */
+
+.gapBlock {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--cc-soft);
+}
+
+.gapPrompt {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #2b2620);
+}
+
+.gapLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.amendField {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 64px;
+}
+
+.amendField:focus-visible {
+  outline: 2px solid var(--cc-line);
+  outline-offset: 1px;
+  border-color: var(--cc-accent);
+}
+
+.amendActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------- resolved block */
+
+.resolvedBlock {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--cc-soft);
+}
+
+.resolvedHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.resolvedText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text, #2b2620);
+}
+
+.resolvedMeta {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* CSA / advance-sale advisory (non-blocking) */
+.advisory {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--cc-soft);
+}
+
+.advisoryTitle {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cc-accent-strong);
+}
+
+.advisoryBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #2b2620);
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.primaryBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--cc-accent-strong);
+  background: var(--cc-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghostBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2b2620);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghostBtn:hover {
+  border-color: var(--cc-line);
+}
+
+/* -------------------------------------------------------------- seal panel */
+
+.sealPanel {
+  margin-top: 4px;
+  padding: 18px 20px;
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--cc-soft) 0%, transparent 130%);
+}
+
+.sealPanel[data-sealed] {
+  background: var(--color-surface, #fff);
+  border-left: 3px solid var(--cc-accent-strong);
+}
+
+.sealHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sealTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.verdictPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.verdictPill[data-verdict='pass'] {
+  background: rgba(90, 175, 114, 0.14);
+  color: #2f7a48;
+  border: 1px solid var(--cc-pass);
+}
+
+.verdictPill[data-verdict='forming'] {
+  background: var(--cc-soft);
+  color: var(--cc-accent-strong);
+  border: 1px solid var(--cc-line);
+}
+
+.sealSub {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.sealReady {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2f7a48;
+}
+
+.sealActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.sealedNote {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.sealedStamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cc-accent-strong);
+}
+
+/* what Threshold 2 does NOT do -- a reassurance block */
+.notList {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.notItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.notDot {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--cc-accent-strong);
+}
+
+/* ----------------------------------------------------------- reference rail */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.railCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 12px 14px;
+}
+
+.railCardTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.railStat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+  padding: 3px 0;
+}
+
+.railStatValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text, #2b2620);
+}
+
+.railStatValue[data-open] {
+  color: var(--cc-fail);
+}
+
+.railProgressTrack {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--color-border, #e2ddd2);
+  overflow: hidden;
+}
+
+.railProgressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cc-accent);
+}
+
+.railVerdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.railVerdict[data-verdict='pass'] {
+  color: #2f7a48;
+}
+.railVerdict[data-verdict='forming'] {
+  color: var(--cc-accent-strong);
+}
+
+.railSealed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cc-accent-strong);
+}
+
+.railPending {
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.amendLogList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.amendLogItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 10px;
+  border-left: 2px solid var(--cc-line);
+}
+
+.amendLogId {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.amendLogText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.amendLogMeta {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.amendLogEmpty {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ----------------------------------------- soft seal gate (Stage 5, s6/s7) */
+
+/*
+ * The gate banner mounts OUTSIDE `.surface` (in the Plan objective-detail rail),
+ * so it carries its own copy of the mauve register tokens. Same fallbacks ->
+ * reads as one register with the threshold surface + its spine entry.
+ */
+.gate {
+  --cc-accent: var(--color-coherence-accent, #9b7ec8);
+  --cc-accent-strong: var(--color-coherence-accent-strong, #7b5ea8);
+  --cc-soft: var(--color-coherence-soft, rgba(155, 126, 200, 0.12));
+  --cc-line: rgba(155, 126, 200, 0.28);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--cc-soft) 0%, transparent 120%);
+}
+
+/* Pending leans mauve (a standing reminder); sealed is calmer (a record). */
+.gatePending {
+  border-left: 3px solid var(--cc-accent);
+}
+
+.gateSealed {
+  border-left: 3px solid var(--cc-accent-strong);
+  background: var(--color-surface, #fff);
+}
+
+.gateHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gateIcon {
+  color: var(--cc-accent-strong);
+  flex: none;
+}
+
+.gatePill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.gateTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.gateBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.gateAction {
+  appearance: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 7px 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: var(--cc-accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gateAction:hover {
+  filter: brightness(0.96);
+}

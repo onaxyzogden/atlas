@@ -120,6 +120,14 @@ import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
 import RealityCheckSurface from '../threshold/RealityCheckSurface.js';
 import RealityCheckReferenceRail from '../threshold/RealityCheckReferenceRail.js';
 import RealityCheckGateBanner from '../threshold/RealityCheckGateBanner.js';
+// Threshold 2 (The Coherence Check) -- the Plan-only audit-hinge surface mounted
+// on the SAME plan/threshold/$thresholdId route, dispatched by thresholdId. Like
+// Threshold 1 it takes over the center + right rail (no WebGL); the branch
+// dispatches on params.thresholdId === 'threshold-2' inside the shared
+// threshold-active arms below.
+import CoherenceCheckSurface from '../threshold/CoherenceCheckSurface.js';
+import CoherenceCheckReferenceRail from '../threshold/CoherenceCheckReferenceRail.js';
+import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -535,6 +543,16 @@ export default function PlanTierShell() {
     () =>
       deriveReceptionProgress(objectives, objectiveStatuses, receptionRecordCount),
     [objectives, objectiveStatuses, receptionRecordCount],
+  );
+
+  // Threshold 2 (Coherence Check) open-state: derived from the FULL resolved
+  // objective list -- opens once every s4 + s5 design objective is complete
+  // (mirrors receptionProgress.thresholdOpen for Threshold 1). Cheap + pure, so
+  // computed unconditionally; drives the spine's clickableThresholdIds and the
+  // route guard's deep-link redirect. DISPLAY-ONLY -- never a prerequisite.
+  const coherenceProgress = useMemo(
+    () => deriveCoherenceProgress(objectives, objectiveStatuses),
+    [objectives, objectiveStatuses],
   );
 
   const [rightMode, setRightMode] = useState<RightMode>(
@@ -1071,14 +1089,17 @@ export default function PlanTierShell() {
           // instance); the Act stage's own ActTierSpine passes neither.
           typeChips={spineTypeChips}
           thresholds={THRESHOLDS}
-          // Threshold 1 (Reality Check) becomes a clickable spine entry only
-          // once the gate is open (Tier-1 6/6 + Tier-2 5/5 complete, per
-          // receptionProgress.thresholdOpen). Selecting it routes to the
-          // threshold surface; while there, params.thresholdId marks it active.
-          // Act passes none of these -> its dividers stay decorative.
-          clickableThresholdIds={
-            receptionProgress.thresholdOpen ? ['threshold-1'] : []
-          }
+          // Thresholds become clickable spine entries only once their gate is
+          // open. Threshold 1 (Reality Check): Tier-1 6/6 + Tier-2 5/5 complete
+          // (receptionProgress.thresholdOpen). Threshold 2 (Coherence Check):
+          // every s4 + s5 design objective complete (coherenceProgress.
+          // coherenceOpen). Selecting one routes to the threshold surface;
+          // while there, params.thresholdId marks it active. Act passes none of
+          // these -> its dividers stay decorative.
+          clickableThresholdIds={[
+            ...(receptionProgress.thresholdOpen ? ['threshold-1'] : []),
+            ...(coherenceProgress.coherenceOpen ? ['threshold-2'] : []),
+          ]}
           thresholdActiveId={params.thresholdId}
           onSelectThreshold={(thresholdId) =>
             navigate({
@@ -1143,15 +1164,32 @@ export default function PlanTierShell() {
             }
             canvas={
               thresholdActive ? (
-                // Threshold 1 (The Reality Check) center takeover. First arm so
-                // the WebGL VisionLayoutCanvas never mounts on this route. Reads
-                // the Tier-0 intent + survey evidence internally; no map.
-                <RealityCheckSurface
-                  projectId={id}
-                  projectName={project.name}
-                  objectives={objectives}
-                  objectiveStatuses={objectiveStatuses}
-                />
+                // Threshold center takeovers. First arm so the WebGL
+                // VisionLayoutCanvas never mounts on a threshold route. The
+                // shared `plan/threshold/$thresholdId` route carries both, so
+                // dispatch on params.thresholdId: 'threshold-2' -> the
+                // Coherence Check audit; anything else -> the Reality Check.
+                params.thresholdId === 'threshold-2' ? (
+                  // Threshold 2 (The Coherence Check) center takeover. Audits
+                  // the shipped s4 + s5 design objectives (Sections A/B/C);
+                  // Plan-only, no map.
+                  <CoherenceCheckSurface
+                    projectId={id}
+                    projectName={project.name}
+                    primaryTypeId={primaryTypeId}
+                    objectives={objectives}
+                    objectiveStatuses={objectiveStatuses}
+                  />
+                ) : (
+                  // Threshold 1 (The Reality Check) center takeover. Reads the
+                  // Tier-0 intent + survey evidence internally; no map.
+                  <RealityCheckSurface
+                    projectId={id}
+                    projectName={project.name}
+                    objectives={objectives}
+                    objectiveStatuses={objectiveStatuses}
+                  />
+                )
               ) : railMode === 'protocols' ? (
                 // Protocols mode takes over the center: a two-pane workspace
                 // (mechanics editor + meaning context) where the steward designs
@@ -1230,17 +1268,28 @@ export default function PlanTierShell() {
               )
             }
             rightRail={
-              // Threshold 1 reference rail (first arm, mirrors the center
-              // takeover). Read-only progress + classification digest + Amanah
-              // advisory; no objective/takeover state, so it precedes them all.
+              // Threshold reference rail (first arm, mirrors the center
+              // takeover). Read-only; no objective/takeover state, so it
+              // precedes them all. Dispatch on params.thresholdId to match the
+              // center arm: 'threshold-2' -> the Coherence audit digest,
+              // otherwise the Reality Check digest.
               thresholdActive ? (
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
-                    <RealityCheckReferenceRail
-                      projectId={id}
-                      objectives={objectives}
-                      objectiveStatuses={objectiveStatuses}
-                    />
+                    {params.thresholdId === 'threshold-2' ? (
+                      <CoherenceCheckReferenceRail
+                        projectId={id}
+                        primaryTypeId={primaryTypeId}
+                        objectives={objectives}
+                        objectiveStatuses={objectiveStatuses}
+                      />
+                    ) : (
+                      <RealityCheckReferenceRail
+                        projectId={id}
+                        objectives={objectives}
+                        objectiveStatuses={objectiveStatuses}
+                      />
+                    )}
                   </div>
                 </div>
               ) : // Generic objective-tools takeover: while armed for THIS objective,
