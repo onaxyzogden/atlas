@@ -30,6 +30,7 @@ import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
 import Mode4DesignChrome from './Mode4DesignChrome.js';
+import CoherenceObjectiveAmendments from '../threshold/CoherenceObjectiveAmendments.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import FormulaResultSection from './FormulaResultSection.js';
@@ -474,6 +475,15 @@ export default function ObjectiveDetailPanel({
           carries a Mode-4 display field, so non-Design objectives are untouched.
           Plan-only by construction (Act never mounts this panel for s4/s5). */}
       <Mode4DesignChrome objective={objective} />
+
+      {/* THRESHOLD 2 (Coherence Check) amendments touching this objective --
+          Plan-only, additive, display-only. Self-gates to null when none, so a
+          non-amended objective is undisturbed and the catalogue design above is
+          never mutated (amendments are permanent steward overlays in the store). */}
+      <CoherenceObjectiveAmendments
+        projectId={projectId}
+        objectiveId={objective.id}
+      />
 
       {upstreamSources.length > 0 && (
         <section

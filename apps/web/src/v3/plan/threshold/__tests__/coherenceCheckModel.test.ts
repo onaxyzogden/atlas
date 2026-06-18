@@ -24,6 +24,8 @@ import {
   selectDesignObjectives,
   isCoherenceDownstreamStratum,
   coherenceGateState,
+  auditItemObjectiveIds,
+  amendmentsForObjective,
   detectCsaLikeText,
   DESIGN_STRATUM_IDS,
   COHERENCE_DOWNSTREAM_STRATUM_IDS,
@@ -442,6 +444,61 @@ describe('coherenceCheckModel -- coherenceGateState (soft, never blocks)', () =>
     expect(coherenceGateState('s4-foundation-decisions', null).downstream).toBe(false);
     expect(coherenceGateState(null, null).downstream).toBe(false);
     expect(isCoherenceDownstreamStratum('s5-system-design')).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// On-objective amendment mapping (Stage 5 overlay)
+// ---------------------------------------------------------------------------
+
+describe('coherenceCheckModel -- auditItemObjectiveIds / amendmentsForObjective', () => {
+  it('maps a Section-C coverage id back to its single objective', () => {
+    expect(
+      auditItemObjectiveIds(coverageItemId('rf-s5-fertility-system')),
+    ).toEqual(['rf-s5-fertility-system']);
+  });
+
+  it('maps a Section-B loop id to its evidence objective(s)', () => {
+    // B3 (the designed residential gap) cites res-s5-living-infrastructure.
+    expect(auditItemObjectiveIds('B3')).toEqual(['res-s5-living-infrastructure']);
+    // Every authored A/B item resolves to a non-empty objective set.
+    for (const c of [...SECTION_A_CHECKS, ...SECTION_B_LOOPS]) {
+      expect(auditItemObjectiveIds(c.id).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('maps an unknown id to nothing', () => {
+    expect(auditItemObjectiveIds('not-an-item')).toEqual([]);
+    expect(auditItemObjectiveIds('Z9')).toEqual([]);
+  });
+
+  it('filters amendments to only those touching the objective, preserving order', () => {
+    const amendments = [
+      { itemId: 'B3', amendmentText: 'Compost bay added.', resolvedAt: 1 },
+      {
+        itemId: coverageItemId('s5-access'),
+        amendmentText: 'Protocol completed.',
+        resolvedAt: 2,
+      },
+      {
+        itemId: coverageItemId('res-s5-living-infrastructure'),
+        amendmentText: 'Second residential pass.',
+        resolvedAt: 3,
+      },
+    ];
+    // res-s5-living-infrastructure is touched by BOTH B3 (evidence) and its own
+    // coverage id -- both surface, in submission order.
+    expect(
+      amendmentsForObjective('res-s5-living-infrastructure', amendments).map(
+        (a) => a.resolvedAt,
+      ),
+    ).toEqual([1, 3]);
+    // s5-access is touched only by its own coverage amendment.
+    expect(
+      amendmentsForObjective('s5-access', amendments).map((a) => a.resolvedAt),
+    ).toEqual([2]);
+    // An un-amended objective gets nothing.
+    expect(amendmentsForObjective('s4-zones', amendments)).toEqual([]);
   });
 });
 

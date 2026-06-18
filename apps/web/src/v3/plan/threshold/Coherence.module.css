@@ -876,3 +876,80 @@
 .gateAction:hover {
   filter: brightness(0.96);
 }
+
+/* ------------------------- on-objective amendments overlay (Stage 5, Plan) */
+
+/*
+ * Mounted inside ObjectiveDetailPanel (Plan-only) beneath the design content of
+ * a Tier 3/4 objective an amendment touched. Carries its own copy of the mauve
+ * register tokens (it renders outside `.surface`), so it reads as one register
+ * with the threshold surface + the soft seal gate.
+ */
+.objAmend {
+  --cc-accent-strong: var(--color-coherence-accent-strong, #7b5ea8);
+  --cc-soft: var(--color-coherence-soft, rgba(155, 126, 200, 0.12));
+  --cc-line: rgba(155, 126, 200, 0.28);
+
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--cc-line);
+  border-left: 3px solid var(--cc-accent-strong);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--cc-soft) 0%, transparent 120%);
+}
+
+.objAmendLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.objAmendBlurb {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.objAmendList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.objAmendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 10px;
+  border-left: 2px solid var(--cc-line);
+}
+
+.objAmendId {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cc-accent-strong);
+}
+
+.objAmendText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.objAmendMeta {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}

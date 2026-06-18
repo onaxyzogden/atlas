@@ -616,6 +616,46 @@ export function coherenceGateState(
 }
 
 // ---------------------------------------------------------------------------
+// On-objective amendment mapping (Stage 5 -- the Plan-only objective overlay)
+// ---------------------------------------------------------------------------
+
+/**
+ * The design objective id(s) a recorded audit item touches -- the inverse of the
+ * audit's evidence wiring. A Section-C coverage id (`c-<objectiveId>`) maps to
+ * that one objective; a Section-A/B item maps to its `evidenceObjectiveIds`,
+ * scanned across every registered configuration so the mapping is independent of
+ * which primary type is in scope. An unknown id maps to nothing.
+ *
+ * Used to surface a recorded steward amendment back on the Tier 3/4 objective(s)
+ * it amended (the ObjectiveDetailPanel overlay) -- display-only, never a gate.
+ */
+export function auditItemObjectiveIds(itemId: string): readonly string[] {
+  if (itemId.startsWith('c-')) return [itemId.slice(2)];
+  for (const registry of Object.values(SECTION_AB_REGISTRY)) {
+    const check = registry.integrationChecks.find((c) => c.id === itemId);
+    if (check) return check.evidenceObjectiveIds;
+    const loop = registry.closedLoops.find((l) => l.id === itemId);
+    if (loop) return loop.evidenceObjectiveIds;
+  }
+  return [];
+}
+
+/**
+ * The amendments (any record carrying an `itemId`) that touch a given design
+ * objective, preserving submission order. A pure filter over the append-only log
+ * -- the ObjectiveDetailPanel overlay reads this to show "Threshold 2
+ * amendments" on the objective(s) an amendment amended, and only those.
+ */
+export function amendmentsForObjective<T extends { itemId: string }>(
+  objectiveId: string,
+  amendments: readonly T[],
+): T[] {
+  return amendments.filter((a) =>
+    auditItemObjectiveIds(a.itemId).includes(objectiveId),
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Surface copy (MAUVE register; CSA example omitted per Amanah). ASCII-only;
 // em-dashes written " -- ", arrows "->". Transcribed from OLOS_Threshold2_Spec.md
 // + olos_threshold2_coherence.html, covenant-clean.
@@ -678,6 +718,12 @@ export const COHERENCE_COPY = {
     readyLabel: 'All audit checks pass -- the Coherence Record is ready to seal.',
     verdictLabel: 'Coherence Verdict',
     verdictPass: 'PASS',
+  },
+  /** The Plan-only overlay shown on a Tier 3/4 objective that was amended here. */
+  onObjective: {
+    label: 'Threshold 2 amendments',
+    blurb:
+      'Recorded at the Coherence Check to close an audit gap touching this objective. The design above is unchanged -- these are permanent, timestamped overlays.',
   },
   /** What Threshold 2 does NOT do (spec) -- a reassurance block. */
   notList: [

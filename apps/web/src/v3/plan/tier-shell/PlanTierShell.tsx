@@ -127,6 +127,7 @@ import RealityCheckGateBanner from '../threshold/RealityCheckGateBanner.js';
 // threshold-active arms below.
 import CoherenceCheckSurface from '../threshold/CoherenceCheckSurface.js';
 import CoherenceCheckReferenceRail from '../threshold/CoherenceCheckReferenceRail.js';
+import CoherenceGateBanner from '../threshold/CoherenceGateBanner.js';
 import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
@@ -1445,6 +1446,16 @@ export default function PlanTierShell() {
                         stratumId={selectedObjectiveStratum.id}
                         objectives={objectives}
                         objectiveStatuses={objectiveStatuses}
+                      />
+                      {/* Soft Coherence seal banner (Threshold 2). Renders only
+                          on the two downstream strata (s6 / s7): an amber "seal
+                          the Coherence Check first" reminder while unsealed, a
+                          calm "sealed" reading once sealed. Derived + display-
+                          only -- it NEVER blocks navigation and NEVER touches
+                          STRATUM_PREREQS; returns null off s6 / s7. */}
+                      <CoherenceGateBanner
+                        projectId={id}
+                        stratumId={selectedObjectiveStratum.id}
                       />
                       {/* Generic "Open map with tools" CTA — self-gates to
                           objectives that resolve to >= 1 map draw/place tool, so
