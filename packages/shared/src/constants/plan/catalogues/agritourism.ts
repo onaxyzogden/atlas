@@ -843,16 +843,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Guest Experience Zones & Visitor Circulation Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Guest adherence to designated zones -- incursions into farm-operation areas',
-        'Wayfinding effectiveness -- guests reaching destinations without staff redirection',
-        'Boundary integrity between guest zones and working operations',
+        { metric: 'Guest adherence to designated zones -- incursions into farm-operation areas', frequency: 'logged as events occur' },
+        { metric: 'Wayfinding effectiveness -- guests reaching destinations without staff redirection', frequency: 'monthly' },
+        { metric: 'Boundary integrity between guest zones and working operations', frequency: 'monthly' },
       ],
       triggers: [
         'Repeated guest incursion into a farm-operation zone -> reinforce the boundary or signage at that point',
         'Guests frequently lost or redirected -> revise wayfinding and orientation',
         'Circulation route conflicting with an emergency-evacuation path -> re-route and re-test evacuation',
       ],
-      feeds: 'Visitor Circulation monitoring stream',
+      feeds: 'access-circulation',
     },
   }),
   obj({
@@ -913,16 +913,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Hospitality Service Model Brief',
     monitoringProtocol: {
       indicators: [
-        'Guest satisfaction by offering -- accommodation, dining, programming',
-        'Service-standard adherence vs. the defined standard',
-        'Offering delivery within steward and staff capacity',
+        { metric: 'Guest satisfaction by offering -- accommodation, dining, programming', frequency: 'per booking' },
+        { metric: 'Service-standard adherence vs. the defined standard', frequency: 'monthly' },
+        { metric: 'Offering delivery within steward and staff capacity', frequency: 'seasonal' },
       ],
       triggers: [
         'Satisfaction falling for an offering -> review the service standard and delivery for it',
         'Service standard not met during peak periods -> review staffing and capacity for that offering',
         'An offering exceeding available capacity to deliver -> scale it back or resource it',
       ],
-      feeds: 'Visitor Experience monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -983,16 +983,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Farm-to-Guest Food Production Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Share of the guest menu supplied from on-farm production vs. plan',
-        'Seasonal supply gaps requiring external sourcing',
-        'Farm-to-guest supply-chain compliance with food-safety requirements',
+        { metric: 'Share of the guest menu supplied from on-farm production vs. plan', frequency: 'seasonal' },
+        { metric: 'Seasonal supply gaps requiring external sourcing', frequency: 'seasonal' },
+        { metric: 'Farm-to-guest supply-chain compliance with food-safety requirements', frequency: 'monthly' },
       ],
       triggers: [
         'On-farm supply share falling below plan -> review enterprise priorities or the sourcing strategy',
         'A seasonal gap recurring -> adjust production or pre-arrange sourcing for that window',
         'A food-safety lapse in the supply chain -> halt the affected line and remediate',
       ],
-      feeds: 'Farm-to-Guest Food monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -1061,16 +1061,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Safety, Emergency & Compliance Framework',
     monitoringProtocol: {
       indicators: [
-        'Compliance-obligation currency -- licences, insurance, certifications up to date',
-        'Safety-incident and near-miss frequency in guest zones',
-        'First-aid and emergency-equipment readiness',
+        { metric: 'Compliance-obligation currency -- licences, insurance, certifications up to date', frequency: 'monthly' },
+        { metric: 'Safety-incident and near-miss frequency in guest zones', frequency: 'logged as events occur' },
+        { metric: 'First-aid and emergency-equipment readiness', frequency: 'monthly' },
       ],
       triggers: [
         'A compliance obligation lapsing -> renew it before guest access continues',
         'A rising incident or near-miss trend in a zone -> review hazards and controls for it',
         'Emergency equipment or first-aid cover found deficient -> restore it before the next guest arrival',
       ],
-      feeds: 'Safety & Compliance monitoring stream',
+      feeds: 'risk-compliance',
     },
     scopeNotes:
       'This framework must be complete and confirmed before any guest arrives - not after the first season. Compliance and safety obligations discovered late cause expensive retrofitting or forced closure.',
@@ -1168,16 +1168,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Booking, Pricing & Revenue Model Brief',
     monitoringProtocol: {
       indicators: [
-        'Actual occupancy rate vs. the minimum viable target',
-        'Revenue vs. forecast by offering and by season',
-        'Operating cost-recovery ratio against the break-even plan',
+        { metric: 'Actual occupancy rate vs. the minimum viable target', frequency: 'monthly' },
+        { metric: 'Revenue vs. forecast by offering and by season', frequency: 'monthly' },
+        { metric: 'Operating cost-recovery ratio against the break-even plan', frequency: 'quarterly' },
       ],
       triggers: [
         'Occupancy below the minimum viable rate across a season -> review pricing and the cost base within permitted offerings',
         'Revenue concentrated in a single offering -> diversify within already-permitted experiences',
         'Operating costs exceeding the break-even plan -> re-baseline targets and review fixed and variable costs',
       ],
-      feeds: 'Financial Performance monitoring stream',
+      feeds: 'economics-capacity',
     },
     scopeNotes:
       "Amanah flag - surface, do not omit: a season-pass / membership / advance multi-night package is a sales instrument that, if structured as prepayment for specific undelivered nights, is the advance sale of what the operator does not yet possess (bay` ma laysa `indak / gharar) - the structure that retired the MTC CSRA model. It is surfaced here, never silently dropped, but must be structured as a membership benefit (entitlement to access, priority, and belonging-benefits, not advance purchase), with each stay still transacted as a separate per-stay reservation and the membership cancellable with pro-rata refund of unused access (evidencing access, not purchase). The membership must carry genuine non-stay substance (community, seasonal events, bounded off-season access) so it is a membership in substance and not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6); and member access stays within the AG-S3.7 carrying-capacity limits (which the membership pulls into scope if access leaves a hardened precinct). It must not be presented as a default or recommended model, carries no CSRA / salam framing, and goes to Scholar Council review before adoption. Permissible without the flag: ordinary per-stay service reservation (deposit + balance on a booked, deliverable stay), already covered by c1-c2.",
@@ -1249,16 +1249,16 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Guest-to-Production Biosecurity & Contamination-Buffer Strategy',
     monitoringProtocol: {
       indicators: [
-        'Buffer and separation integrity between guest circulation and sensitive production',
-        'Arrival-hygiene measure usage at production crossings',
-        'Biosecurity incidents -- contamination carried into or hazards out of production zones',
+        { metric: 'Buffer and separation integrity between guest circulation and sensitive production', frequency: 'monthly' },
+        { metric: 'Arrival-hygiene measure usage at production crossings', frequency: 'logged as events occur' },
+        { metric: 'Biosecurity incidents -- contamination carried into or hazards out of production zones', frequency: 'logged as events occur' },
       ],
       triggers: [
         'A guest pathway breaching a production buffer -> reinstate separation at that point',
         'Arrival-hygiene measures bypassed -> reinforce signage and supervision at the crossing',
         'A contamination or zoonosis incident -> isolate the pathway and review animal-contact protocols',
       ],
-      feeds: 'Biosecurity monitoring stream',
+      feeds: 'risk-compliance',
     },
     scopeNotes:
       'Applies when guest circulation sits alongside working production, livestock, or sprayed areas (the eco-resort / glamping / working-farm-stay model); omit for retreats with no adjacent active production. Safe guest-animal interaction carries a welfare (ihsan) duty as well as a biosecurity one. Complements AG-S4.4 (guest circulation / zoning); does not replace it.',
@@ -1327,15 +1327,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the AG-S4.5 hospitality service model accommodation types and standards.',
     monitoringProtocol: {
       indicators: [
-        'Accommodation occupancy and utilisation across unit types vs. designed capacity',
-        'Guest-reported comfort -- thermal performance, amenity, room condition',
-        'Accommodation fabric condition -- defect, maintenance, and renovation backlog',
+        { metric: 'Accommodation occupancy and utilisation across unit types vs. designed capacity', frequency: 'monthly' },
+        { metric: 'Guest-reported comfort -- thermal performance, amenity, room condition', frequency: 'per booking' },
+        { metric: 'Accommodation fabric condition -- defect, maintenance, and renovation backlog', frequency: 'quarterly' },
       ],
       triggers: [
         'A unit type drawing repeated comfort or thermal complaints -> review insulation, heating, or cooling for that type',
         'A unit falling below its construction or maintenance standard -> schedule remediation before reletting',
       ],
-      feeds: 'Guest Accommodation monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1399,15 +1399,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the AG-S4.6 farm-to-guest food production strategy.',
     monitoringProtocol: {
       indicators: [
-        'Kitchen and dining throughput vs. designed seating and service capacity at peak',
-        'Food-storage performance -- cool-room and dry-store temperature and capacity adequacy',
-        'Food-safety compliance status of kitchen and dining operations',
+        { metric: 'Kitchen and dining throughput vs. designed seating and service capacity at peak', frequency: 'seasonal' },
+        { metric: 'Food-storage performance -- cool-room and dry-store temperature and capacity adequacy', frequency: 'weekly' },
+        { metric: 'Food-safety compliance status of kitchen and dining operations', frequency: 'monthly' },
       ],
       triggers: [
         'Dining demand exceeding seated capacity at peak -> review service sittings or layout',
         'A cool-room or storage unit failing to hold temperature or capacity -> repair and revalidate before service resumes',
       ],
-      feeds: 'Guest Dining monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -1471,15 +1471,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the AG-S4.5 hospitality service model programming offer.',
     monitoringProtocol: {
       indicators: [
-        'Utilisation of tour routes, trails, and workshop spaces vs. designed capacity',
-        'Trail and route condition -- surface wear, grade safety, waymarking legibility',
-        'Guest-reported experience quality across the programming offer',
+        { metric: 'Utilisation of tour routes, trails, and workshop spaces vs. designed capacity', frequency: 'seasonal' },
+        { metric: 'Trail and route condition -- surface wear, grade safety, waymarking legibility', frequency: 'monthly' },
+        { metric: 'Guest-reported experience quality across the programming offer', frequency: 'per booking' },
       ],
       triggers: [
         'A trail surface or waymarker degrading to an unsafe or unclear state -> repair or remark that segment',
         'A workshop or gathering space consistently exceeding its designed capacity -> review session sizing or layout',
       ],
-      feeds: 'Guest Programming monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -1541,15 +1541,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Guest Bathroom & Sanitation Infrastructure Design Package',
     monitoringProtocol: {
       indicators: [
-        'Fixture and hot-water adequacy vs. observed peak guest demand',
-        'Waste-system performance -- septic, composting, or connected capacity vs. load',
-        'Sanitation compliance status for the accommodation type',
+        { metric: 'Fixture and hot-water adequacy vs. observed peak guest demand', frequency: 'seasonal' },
+        { metric: 'Waste-system performance -- septic, composting, or connected capacity vs. load', frequency: 'monthly' },
+        { metric: 'Sanitation compliance status for the accommodation type', frequency: 'annual' },
       ],
       triggers: [
         'Hot water or fixtures failing to meet peak demand -> review capacity sizing against observed loads',
         'A waste system approaching or exceeding its capacity limit -> service it and reassess sizing before peak season',
       ],
-      feeds: 'Sanitation monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1620,15 +1620,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the AG-S4.7 safety, emergency and compliance framework.',
     monitoringProtocol: {
       indicators: [
-        'Safety-equipment readiness -- extinguishers, hose reels, smoke detectors, first-aid stations serviceable',
-        'Signage and evacuation-route legibility across all guest areas',
-        'Safety-incident and near-miss frequency in guest zones',
+        { metric: 'Safety-equipment readiness -- extinguishers, hose reels, smoke detectors, first-aid stations serviceable', frequency: 'monthly' },
+        { metric: 'Signage and evacuation-route legibility across all guest areas', frequency: 'quarterly' },
+        { metric: 'Safety-incident and near-miss frequency in guest zones', frequency: 'logged as events occur' },
       ],
       triggers: [
         'Fire, first-aid, or detection equipment found out of service or expired -> restore it before the next guest arrival',
         'A rising incident or near-miss trend in a zone -> review hazard signage and controls for that zone',
       ],
-      feeds: 'Visitor Safety monitoring stream',
+      feeds: 'risk-compliance',
     },
   }),
   obj({
@@ -1707,15 +1707,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the AG-S4.9 guest-to-production biosecurity and contamination-buffer strategy.',
     monitoringProtocol: {
       indicators: [
-        'Per-site ground disturbance and reversibility status vs. the light-footprint design',
-        'Inter-unit spacing holding the designed privacy and ecological breathing room',
-        'Site occupancy and load against the AG-S3.7 carrying-capacity ceiling',
+        { metric: 'Per-site ground disturbance and reversibility status vs. the light-footprint design', frequency: 'seasonal' },
+        { metric: 'Inter-unit spacing holding the designed privacy and ecological breathing room', frequency: 'annual' },
+        { metric: 'Site occupancy and load against the AG-S3.7 carrying-capacity ceiling', frequency: 'seasonal' },
       ],
       triggers: [
         'A site showing creeping ground disturbance or loss of reversibility -> restore the light-footprint condition',
         'Combined site load approaching the carrying-capacity ceiling -> pause further siting and reassess against AG-S3.7 limits',
       ],
-      feeds: 'Dispersed Siting monitoring stream',
+      feeds: 'built-infrastructure',
     },
     scopeNotes:
       'Applies when accommodation is dispersed light-footprint units scattered across the landscape (glamping / eco-cabin model); omit for a single fixed lodge or day-visit-only agritourism. Owns siting and landscape integration only; per-unit structure design stays with AG-S5.4 and servicing with AG-S5.10.',
@@ -1797,15 +1797,15 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Decentralised Servicing & Dark-Sky / Quiet Design Package',
     monitoringProtocol: {
       indicators: [
-        'Point-of-use water, power, and refrigeration reliability across dispersed sites',
-        'Greywater / blackwater treatment performance and discharge compliance per site',
-        'Dark-sky lighting and acoustic-quiet baseline held against the designed limits',
+        { metric: 'Point-of-use water, power, and refrigeration reliability across dispersed sites', frequency: 'monthly' },
+        { metric: 'Greywater / blackwater treatment performance and discharge compliance per site', frequency: 'quarterly' },
+        { metric: 'Dark-sky lighting and acoustic-quiet baseline held against the designed limits', frequency: 'seasonal' },
       ],
       triggers: [
         'A site losing water, power, or treatment reliability -> service that point-of-use system before reletting the site',
         'Stray light or plant noise breaching the dark-sky or quiet baseline -> reshield lighting or relocate the noise source',
       ],
-      feeds: 'Site Servicing monitoring stream',
+      feeds: 'built-infrastructure',
     },
     scopeNotes:
       'Applies when servicing dispersed off-grid eco-accommodation (glamping / eco-cabin model); omit for centrally serviced lodges or day-visit agritourism. Turns the AG-S3.3 water / sanitation and AG-S3.4 sensory-environment surveys into design commitments; does not duplicate those reads.',

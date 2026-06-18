@@ -382,16 +382,16 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Water System Strategy & Redundancy Brief',
     monitoringProtocol: {
       indicators: [
-        'Storage reserve level in days-per-person (weekly, daily through dry season)',
-        'Primary vs. backup source draw split (monthly)',
-        'Treatment system output and consumable status (monthly)',
+        { metric: 'Storage reserve level in days-per-person', frequency: 'weekly, daily through dry season' },
+        { metric: 'Primary vs. backup source draw split', frequency: 'monthly' },
+        { metric: 'Treatment system output and consumable status', frequency: 'monthly' },
       ],
       triggers: [
         'Reserve drops below the defined minimum days-per-person -> switch to backup source and restrict non-essential use',
         'Primary source yield falls short of demand -> activate backup source and reassess dry-season sizing',
         'Powered delivery fails -> stand up the manual fill point and schedule pump repair',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -422,16 +422,16 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Energy System Strategy & Redundancy Brief',
     monitoringProtocol: {
       indicators: [
-        'Battery state of charge and days-of-critical-load remaining (daily)',
-        'Generation vs. critical-load balance (weekly, daily in worst-case month)',
-        'Backup generator fuel reserve and run hours (monthly)',
+        { metric: 'Battery state of charge and days-of-critical-load remaining', frequency: 'daily' },
+        { metric: 'Generation vs. critical-load balance', frequency: 'weekly, daily in worst-case month' },
+        { metric: 'Backup generator fuel reserve and run hours', frequency: 'monthly' },
       ],
       triggers: [
         'Battery state of charge falls below the protected reserve floor -> shed non-critical loads and start the backup generator',
         'Generation falls short of critical load over consecutive days -> switch to load-management protocol and reassess sizing',
         'Generator fuel reserve drops below the defined minimum -> trigger resupply before the next worst-case window',
       ],
-      feeds: 'Energy Systems monitoring stream',
+      feeds: 'energy-resources',
     },
   }),
   obj({
@@ -461,16 +461,16 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Food Security & Storage Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Food reserve on hand in weeks-of-supply for all residents (monthly)',
-        'Production yield by enterprise vs. target (per harvest cycle)',
-        'Cold storage and preservation throughput vs. plan (seasonal)',
+        { metric: 'Food reserve on hand in weeks-of-supply for all residents', frequency: 'monthly' },
+        { metric: 'Production yield by enterprise vs. target', frequency: 'per harvest cycle' },
+        { metric: 'Cold storage and preservation throughput vs. plan', frequency: 'seasonal' },
       ],
       triggers: [
         'Reserve falls below the minimum weeks-of-supply threshold -> activate the emergency resupply protocol',
         'Production yield runs short of target for a cycle -> adjust enterprise mix and increase preservation',
         'Cold storage or preservation capacity is exceeded -> add capacity or shift surplus to a longer-keeping method',
       ],
-      feeds: 'Food Security monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -501,16 +501,16 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Emergency Communications & Response Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Primary and backup communication device check-in success (weekly)',
-        'Resident emergency-protocol training currency (per resident, on intake and at refresh)',
-        'Emergency contact list and response-time accuracy (quarterly review)',
+        { metric: 'Primary and backup communication device check-in success', frequency: 'weekly' },
+        { metric: 'Resident emergency-protocol training currency', frequency: 'per resident, on intake and at refresh' },
+        { metric: 'Emergency contact list and response-time accuracy', frequency: 'quarterly review' },
       ],
       triggers: [
         'Primary communication device fails a check-in -> switch to backup method and arrange repair or replacement',
         'A resident lacks current emergency-protocol training -> bar permanent habitation until training is completed',
         'Contact list or response assumptions go stale -> re-verify services and update the response plan',
       ],
-      feeds: 'Emergency Response monitoring stream',
+      feeds: 'risk-compliance',
     },
     scopeNotes:
       'Hard gate: no permanent habitation before all residents are trained in emergency protocols. Remote response times make internal emergency response the primary life-safety mechanism.',
@@ -543,16 +543,16 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Shelter Resilience & Thermal Performance Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Indoor temperature vs. the thermal performance standard during the coldest period (daily in winter)',
-        'Heating fuel reserve in weeks-of-supply at peak demand (weekly through cold season)',
-        'Primary heating system output and condition (monthly in heating season)',
+        { metric: 'Indoor temperature vs. the thermal performance standard during the coldest period', frequency: 'daily in winter' },
+        { metric: 'Heating fuel reserve in weeks-of-supply at peak demand', frequency: 'weekly through cold season' },
+        { metric: 'Primary heating system output and condition', frequency: 'monthly in heating season' },
       ],
       triggers: [
         'Indoor temperature falls below the defined minimum -> bring the backup heating system online and inspect the primary',
         'Fuel reserve drops below the defined weeks-of-supply -> trigger resupply before the next cold spell',
         'Primary heating output degrades -> service the unit and hold the backup on standby',
       ],
-      feeds: 'Shelter Performance monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -586,15 +586,15 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 water system strategy and redundancy decision.',
     monitoringProtocol: {
       indicators: [
-        'Stored water level in days-of-reserve per person across the tank array (weekly, daily in dry season)',
-        'Primary vs. backup source supply split and combined yield vs. demand (monthly)',
-        'Treatment train output quality and filter or disinfection consumable status (monthly)',
+        { metric: 'Stored water level in days-of-reserve per person across the tank array', frequency: 'weekly, daily in dry season' },
+        { metric: 'Primary vs. backup source supply split and combined yield vs. demand', frequency: 'monthly' },
+        { metric: 'Treatment train output quality and filter or disinfection consumable status', frequency: 'monthly' },
       ],
       triggers: [
         'Stored reserve drops below the defined minimum days-per-person -> bring the backup source online and restrict non-essential draw',
         'Pressurised distribution loses supply to a dwelling or production point -> open the manual fill point and repair the powered line',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -627,15 +627,15 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 energy system strategy and redundancy decision.',
     monitoringProtocol: {
       indicators: [
-        'Battery bank state of charge and days-of-critical-load remaining (daily)',
-        'Solar generation vs. critical-load demand (weekly, daily in the worst-case month)',
-        'Inverter and charge controller status plus backup generator fuel reserve (monthly)',
+        { metric: 'Battery bank state of charge and days-of-critical-load remaining', frequency: 'daily' },
+        { metric: 'Solar generation vs. critical-load demand', frequency: 'weekly, daily in the worst-case month' },
+        { metric: 'Inverter and charge controller status plus backup generator fuel reserve', frequency: 'monthly' },
       ],
       triggers: [
         'Battery state of charge falls below the protected reserve floor -> shed non-critical loads on the critical circuit and start the backup generator',
         'Generation falls short of critical load over consecutive days -> hold load management and reassess array or battery sizing',
       ],
-      feeds: 'Energy Systems monitoring stream',
+      feeds: 'energy-resources',
     },
   }),
   obj({
@@ -668,15 +668,15 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 shelter resilience and thermal performance decision.',
     monitoringProtocol: {
       indicators: [
-        'Indoor temperature vs. the thermal performance standard through the coldest period (daily in winter)',
-        'Heating fuel reserve in weeks-of-supply at peak demand (weekly through cold season)',
-        'Primary heating output and airtightness or insulation condition (monthly in heating season)',
+        { metric: 'Indoor temperature vs. the thermal performance standard through the coldest period', frequency: 'daily in winter' },
+        { metric: 'Heating fuel reserve in weeks-of-supply at peak demand', frequency: 'weekly through cold season' },
+        { metric: 'Primary heating output and airtightness or insulation condition', frequency: 'monthly in heating season' },
       ],
       triggers: [
         'Indoor temperature falls below the defined minimum -> bring the backup heating system online and inspect the primary unit',
         'Fuel reserve drops below the defined weeks-of-supply -> trigger resupply before the next cold spell',
       ],
-      feeds: 'Shelter Performance monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -708,15 +708,15 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 food security and storage strategy decision.',
     monitoringProtocol: {
       indicators: [
-        'Food reserve on hand in weeks-of-supply for all residents (monthly)',
-        'Production yield by zone vs. target across garden, orchard, and animals (per harvest cycle)',
-        'Root cellar and cold storage temperature, humidity, and throughput vs. plan (seasonal)',
+        { metric: 'Food reserve on hand in weeks-of-supply for all residents', frequency: 'monthly' },
+        { metric: 'Production yield by zone vs. target across garden, orchard, and animals', frequency: 'per harvest cycle' },
+        { metric: 'Root cellar and cold storage temperature, humidity, and throughput vs. plan', frequency: 'seasonal' },
       ],
       triggers: [
         'Reserve falls below the minimum weeks-of-supply threshold -> activate the resupply protocol and shift surplus into preservation',
         'Root cellar or cold storage drifts outside its temperature or humidity band -> service ventilation and move at-risk stock to a stable method',
       ],
-      feeds: 'Food Security monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -749,15 +749,15 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 emergency communications and response strategy decision.',
     monitoringProtocol: {
       indicators: [
-        'Satellite and backup radio check-in success rate plus device power status (weekly)',
-        'Emergency alert beacon and fire safety equipment readiness on inspection (monthly)',
-        'First aid station stock currency and assembly point access (quarterly review)',
+        { metric: 'Satellite and backup radio check-in success rate plus device power status', frequency: 'weekly' },
+        { metric: 'Emergency alert beacon and fire safety equipment readiness on inspection', frequency: 'monthly' },
+        { metric: 'First aid station stock currency and assembly point access', frequency: 'quarterly review' },
       ],
       triggers: [
         'Primary satellite link fails a check-in -> switch to the backup radio method and arrange repair or replacement',
         'Fire safety equipment or first aid stock is found expired or depleted -> restock before continued habitation',
       ],
-      feeds: 'Emergency Response monitoring stream',
+      feeds: 'risk-compliance',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

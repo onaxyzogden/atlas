@@ -675,16 +675,16 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Phased Settlement Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Cohort arrivals against the habitability-threshold gates',
-        'Population per phase vs. the carrying-capacity ceiling',
-        'Trial-residency completion before full membership',
+        { metric: 'Cohort arrivals against the habitability-threshold gates', frequency: 'per cohort arrival' },
+        { metric: 'Population per phase vs. the carrying-capacity ceiling', frequency: 'per phase' },
+        { metric: 'Trial-residency completion before full membership', frequency: 'per applicant' },
       ],
       triggers: [
         'A cohort approaching arrival before its habitability threshold is met -> hold the move until the gate passes',
         'Phase population approaching the carrying-capacity ceiling -> pause further arrivals and reassess capacity',
         'Trial residency repeatedly bypassed -> reinstate the trial gate before membership',
       ],
-      feeds: 'Settlement & Habitability monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -737,16 +737,16 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Communal Infrastructure Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Communal infrastructure delivery against the Phase 1 priority list',
-        'Maintenance currency for each communal asset',
-        'Cost-share contributions against the agreed model',
+        { metric: 'Communal infrastructure delivery against the Phase 1 priority list', frequency: 'monthly' },
+        { metric: 'Maintenance currency for each communal asset', frequency: 'per asset, monthly' },
+        { metric: 'Cost-share contributions against the agreed model', frequency: 'per contribution cycle' },
       ],
       triggers: [
         'A Phase 1 habitability asset slipping behind schedule -> re-prioritise resources to it',
         'A communal asset falling behind on maintenance -> assign and fund the maintenance obligation',
         'Cost-share contributions falling short -> review the cost base within permitted channels',
       ],
-      feeds: 'Communal Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -795,16 +795,16 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Housing Cluster & Private Zone Framework Brief',
     monitoringProtocol: {
       indicators: [
-        'Dwelling density per cluster vs. the agreed maximum',
-        'Private-zone boundary integrity for each dwelling',
-        'Communal-private interface adherence to design standards',
+        { metric: 'Dwelling density per cluster vs. the agreed maximum', frequency: 'per cluster' },
+        { metric: 'Private-zone boundary integrity for each dwelling', frequency: 'per dwelling, seasonal' },
+        { metric: 'Communal-private interface adherence to design standards', frequency: 'seasonal' },
       ],
       triggers: [
         'Cluster density approaching or exceeding the maximum -> halt further siting in that cluster',
         'A private-zone boundary eroded by communal encroachment -> reinstate the boundary and screening',
         'Dwelling-to-communal interface departing from design standards -> bring it back to standard',
       ],
-      feeds: 'Housing & Privacy monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -857,16 +857,16 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Community Food System Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Communal food production against committed crop volumes and labour',
-        'Individual plot maintenance against allocation obligations',
-        'Fairness of communal-harvest distribution across households',
+        { metric: 'Communal food production against committed crop volumes and labour', frequency: 'per season' },
+        { metric: 'Individual plot maintenance against allocation obligations', frequency: 'per plot, seasonal' },
+        { metric: 'Fairness of communal-harvest distribution across households', frequency: 'per harvest' },
       ],
       triggers: [
         'Communal production falling below committed volumes -> review the labour-contribution model',
         'Plots left unmaintained against obligation -> review the allocation and tenure terms',
         'Distribution falling unevenly across households -> review the sharing protocol',
       ],
-      feeds: 'Community Food System monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -927,16 +927,16 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Financial Contribution & Shared Economics Model Brief',
     monitoringProtocol: {
       indicators: [
-        'Member contributions vs. plan across permitted capital channels',
-        'Operating cost-recovery ratio for communal costs',
-        'Capital-reserve balance against the renewal plan',
+        { metric: 'Member contributions vs. plan across permitted capital channels', frequency: 'per contribution cycle' },
+        { metric: 'Operating cost-recovery ratio for communal costs', frequency: 'monthly' },
+        { metric: 'Capital-reserve balance against the renewal plan', frequency: 'quarterly' },
       ],
       triggers: [
         'Contributions falling short of operating-cost recovery -> review the cost base and the permitted-channel mix',
         'A cost overrun against the financial model -> re-baseline and re-prioritise',
         'Contribution burden falling unevenly across households -> review the hardship protocol and fairness',
       ],
-      feeds: 'Financial Stewardship monitoring stream',
+      feeds: 'economics-capacity',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -994,15 +994,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Stratum 4 housing cluster and private zone framework (ev-s4-housing-cluster).',
     monitoringProtocol: {
       indicators: [
-        'Dwelling condition across each built cluster - weathertightness, structural integrity, energy performance',
-        'Private outdoor zone integrity per dwelling - screening, planting, and boundary held',
-        'Shared transitional spaces in working condition and used as designed',
+        { metric: 'Dwelling condition across each built cluster - weathertightness, structural integrity, energy performance', frequency: 'per cluster, seasonal' },
+        { metric: 'Private outdoor zone integrity per dwelling - screening, planting, and boundary held', frequency: 'per dwelling, seasonal' },
+        { metric: 'Shared transitional spaces in working condition and used as designed', frequency: 'seasonal' },
       ],
       triggers: [
         'A cluster showing dwelling deterioration or failing energy performance -> schedule repair and review the dwelling standard',
         'A private zone eroded by communal encroachment or neglect -> reinstate the boundary and screening',
       ],
-      feeds: 'Housing Cluster monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1056,15 +1056,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy).',
     monitoringProtocol: {
       indicators: [
-        'Communal kitchen and dining facility function against designed capacity',
-        'Meeting hall, workshop, and shared service facilities in working condition and available',
-        'Maintenance currency for each communal building against its protocol',
+        { metric: 'Communal kitchen and dining facility function against designed capacity', frequency: 'monthly' },
+        { metric: 'Meeting hall, workshop, and shared service facilities in working condition and available', frequency: 'monthly' },
+        { metric: 'Maintenance currency for each communal building against its protocol', frequency: 'per building, monthly' },
       ],
       triggers: [
         'A communal facility unable to meet its designed capacity -> review usage load and equipment provision',
         'A communal building falling behind on maintenance -> assign and fund the maintenance obligation',
       ],
-      feeds: 'Communal Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1111,15 +1111,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy), which lists the communal sanitation system.',
     monitoringProtocol: {
       indicators: [
-        'Sewage and grey water treatment throughput against design capacity at current population',
-        'Effluent and grey water quality against treatment and reuse standards',
-        'Organic waste processing and recycling throughput against generated volumes',
+        { metric: 'Sewage and grey water treatment throughput against design capacity at current population', frequency: 'monthly' },
+        { metric: 'Effluent and grey water quality against treatment and reuse standards', frequency: 'monthly, lab test' },
+        { metric: 'Organic waste processing and recycling throughput against generated volumes', frequency: 'monthly' },
       ],
       triggers: [
         'Treatment throughput approaching design capacity at current population -> stage capacity expansion before the ceiling is reached',
         'Effluent or grey water quality breaching standard -> halt reuse and remediate the treatment train',
       ],
-      feeds: 'Sanitation & Waste monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1170,15 +1170,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Stratum 4 communal infrastructure strategy (ev-s4-infra-strategy), which lists the communal energy grid.',
     monitoringProtocol: {
       indicators: [
-        'Generation output against demand across dwellings and communal facilities',
-        'Battery or thermal storage state of charge and reserve margin',
-        'Micro-grid reliability - outage frequency and duration across the network',
+        { metric: 'Generation output against demand across dwellings and communal facilities', frequency: 'monthly' },
+        { metric: 'Battery or thermal storage state of charge and reserve margin', frequency: 'monthly' },
+        { metric: 'Micro-grid reliability - outage frequency and duration across the network', frequency: 'logged as events occur' },
       ],
       triggers: [
         'Generation falling short of demand or storage reserve running low -> shed non-essential load and review generation sizing',
         'Micro-grid outages recurring on a segment -> inspect and repair that distribution segment',
       ],
-      feeds: 'Communal Energy monitoring stream',
+      feeds: 'energy-resources',
     },
   }),
   obj({
@@ -1232,15 +1232,15 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Stratum 4 community food system strategy (ev-s4-food-system).',
     monitoringProtocol: {
       indicators: [
-        'Communal growing area harvest volumes against the production potential estimate',
-        'Individual plot occupancy and cultivation against allocation',
-        'Food storage and processing infrastructure in working order - cool room, drying shed, preserving kitchen',
+        { metric: 'Communal growing area harvest volumes against the production potential estimate', frequency: 'per season' },
+        { metric: 'Individual plot occupancy and cultivation against allocation', frequency: 'per plot, seasonal' },
+        { metric: 'Food storage and processing infrastructure in working order - cool room, drying shed, preserving kitchen', frequency: 'seasonal' },
       ],
       triggers: [
         'Communal harvest volumes falling below the production estimate -> review bed layout, irrigation, and growing practice',
         'Storage or processing infrastructure failing -> repair before harvest spoilage occurs',
       ],
-      feeds: 'Community Food Production monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

@@ -358,16 +358,16 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Household Food Production Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Actual harvest by food category vs. planned production targets (each season)',
-        'Share of household food needs met from own production vs. purchased (monthly)',
-        'Seed-saving success rate and stored seed viability (per saving cycle)',
+        { metric: 'Actual harvest by food category vs. planned production targets', frequency: 'each season' },
+        { metric: 'Share of household food needs met from own production vs. purchased', frequency: 'monthly' },
+        { metric: 'Seed-saving success rate and stored seed viability', frequency: 'per saving cycle' },
       ],
       triggers: [
         'Category yield falls well short of target -> review growing method and reallocate beds next cycle',
         'Preserved or stored food spoiling before use -> revisit storage approach and preservation volumes',
         'Saved-seed germination dropping -> refresh varieties or revise seed-saving practice',
       ],
-      feeds: 'Food Production monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -420,16 +420,16 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Whole-Homestead Fertility Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Compost output volume and finished-compost quality (per batch)',
-        'Soil organic matter and structure in productive zones (annually)',
-        'Volume of external fertility inputs purchased vs. reduction targets (each cycle)',
+        { metric: 'Compost output volume and finished-compost quality', frequency: 'per batch' },
+        { metric: 'Soil organic matter and structure in productive zones', frequency: 'annually' },
+        { metric: 'Volume of external fertility inputs purchased vs. reduction targets', frequency: 'each cycle' },
       ],
       triggers: [
         'Compost failing to heat or break down -> check carbon-to-nitrogen balance and moisture',
         'Soil organic matter not improving in a zone -> increase mulch, cover cropping, or compost application there',
         'External input spend not falling toward target -> trace which loop is still open and prioritise closing it',
       ],
-      feeds: 'Soil Health monitoring stream',
+      feeds: 'soil',
     },
   }),
   obj({
@@ -482,16 +482,16 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Energy & Shelter Resilience Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Heating fuel reserve level vs. seasonal demand (monthly through cold season)',
-        'Indoor temperature and comfort across all rooms during peak cold and heat',
-        'Backup power readiness -- fuel, battery charge, last successful test (quarterly)',
+        { metric: 'Heating fuel reserve level vs. seasonal demand', frequency: 'monthly through cold season' },
+        { metric: 'Indoor temperature and comfort across all rooms during peak cold and heat', frequency: 'seasonal' },
+        { metric: 'Backup power readiness -- fuel, battery charge, last successful test', frequency: 'quarterly' },
       ],
       triggers: [
         'Fuel reserve dropping below the season-ahead buffer -> replenish stock and review usage rate',
         'Rooms failing to hold the resilience-threshold temperature -> prioritise insulation or heating upgrade',
         'Backup power test fails -> service or replace the unit before the next disruption window',
       ],
-      feeds: 'Energy & Shelter Resilience monitoring stream',
+      feeds: 'energy-resources',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -549,15 +549,15 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the household food production strategy set in Tier 3 (hms-s4-food-production-strategy).',
     monitoringProtocol: {
       indicators: [
-        'Actual yield per production zone vs. the zone area and targets it was designed to deliver (each season)',
-        'Share of designed beds and growing infrastructure brought into active use (monthly through establishment)',
-        'Protected-growing and nursery throughput vs. designed capacity (per growing cycle)',
+        { metric: 'Actual yield per production zone vs. the zone area and targets it was designed to deliver', frequency: 'each season' },
+        { metric: 'Share of designed beds and growing infrastructure brought into active use', frequency: 'monthly through establishment' },
+        { metric: 'Protected-growing and nursery throughput vs. designed capacity', frequency: 'per growing cycle' },
       ],
       triggers: [
         'A zone consistently under-yielding for its footprint -> revisit bed layout, rotation, or species mix for that zone',
         'Designed beds or growing infrastructure sitting unused -> rephase the build or reassign the space to active production',
       ],
-      feeds: 'Food Production Zone monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -606,15 +606,15 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the energy and shelter resilience strategy set in Tier 3 (hms-s4-energy-shelter-resilience).',
     monitoringProtocol: {
       indicators: [
-        'Indoor temperature held by the designed heating system vs. the resilience-threshold standard (through cold and hot seasons)',
-        'Backup power output and run-time vs. the critical-systems load it was sized for (quarterly test)',
-        'On-site fuel stock and woodlot or woodshed reserve vs. seasonal demand (monthly through cold season)',
+        { metric: 'Indoor temperature held by the designed heating system vs. the resilience-threshold standard', frequency: 'through cold and hot seasons' },
+        { metric: 'Backup power output and run-time vs. the critical-systems load it was sized for', frequency: 'quarterly test' },
+        { metric: 'On-site fuel stock and woodlot or woodshed reserve vs. seasonal demand', frequency: 'monthly through cold season' },
       ],
       triggers: [
         'Heating system failing to hold the resilience-threshold temperature -> revisit insulation, stove sizing, or passive-solar measures',
         'Backup power unable to carry the designed critical load -> upgrade capacity or shed non-critical demand',
       ],
-      feeds: 'Energy & Shelter Systems monitoring stream',
+      feeds: 'energy-resources',
     },
   }),
   obj({
@@ -667,15 +667,15 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the animal integration role defined in the Tier 3 fertility and soil building strategy (hms-s4-fertility-strategy).',
     monitoringProtocol: {
       indicators: [
-        'Animal housing and run condition vs. species shelter and space standard (monthly walk-through)',
-        'Predator-exclusion and fencing integrity -- breaches or losses recorded (each incident, reviewed monthly)',
-        'Manure captured and returned to fertility loops vs. designed capture volume (each cycle)',
+        { metric: 'Animal housing and run condition vs. species shelter and space standard', frequency: 'monthly walk-through' },
+        { metric: 'Predator-exclusion and fencing integrity -- breaches or losses recorded', frequency: 'each incident, reviewed monthly' },
+        { metric: 'Manure captured and returned to fertility loops vs. designed capture volume', frequency: 'each cycle' },
       ],
       triggers: [
         'Housing or run condition falling below the species shelter standard -> schedule repair or rebuild before stocking levels rise',
         'Fencing breach or predator loss recorded -> reinforce exclusion at the failure point and recheck the perimeter',
       ],
-      feeds: 'Animal Husbandry monitoring stream',
+      feeds: 'animals-livestock',
     },
     scopeNotes:
       'Conditional objective - loads only if animals are confirmed in the Tier 0 household needs survey. If no animals are planned, this objective does not appear in the project.',

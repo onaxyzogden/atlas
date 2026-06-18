@@ -10,6 +10,7 @@
 
 import { z } from 'zod';
 import { OverlayId } from '../olos/overlay.schema.js';
+import { UniversalDomain } from '../universalDomain.schema.js';
 import {
   ProjectTypeId,
   SecondaryClass,
@@ -505,19 +506,33 @@ export const PlanStratumObjectiveSchema = z.object({
   buildsOnDisplay: z.string().min(1).optional(),
   /**
    * Mode-4 Design (doc Tier 3/4) DISPLAY-ONLY monitoring protocol: the design
-   * input this objective hands to the Observe stage. `indicators` = the Key
-   * Indicators to watch, `triggers` = the Response Triggers that prompt action,
-   * `feeds` = a FREE-TEXT monitoring-stream label (e.g. "Water Systems
-   * monitoring stream"). NOTE: `feeds` is intentionally NOT wired to the
-   * UniversalDomain Observe enum -- that audit is Threshold 2, which is
-   * deferred. Pure reading copy; NEVER a prerequisite or gate. Absent on every
-   * pre-Mode-4 objective, so legacy seed/catalogue objects validate unchanged.
+   * input this objective hands to the Observe stage. Tightened at Threshold 2
+   * (Coherence Check, Section C) to the spec's completeness rule:
+   *   - `indicators` = >=2 observable Key Indicators, each a `{ metric,
+   *     frequency }` pair (what is measured + how often it is measured);
+   *   - `triggers` = >=1 Response Trigger naming what observed value prompts
+   *     what management action (free text this round);
+   *   - `feeds` = the named Observe-stage destination, drawn from the
+   *     `UniversalDomain` enum (which monitoring-stream domain receives this
+   *     data). The human label renders via `constants/universalDomain.ts`
+   *     (`UNIVERSAL_DOMAIN_LABELS`), never the kebab id directly.
+   * STILL DISPLAY-ONLY; NEVER a prerequisite or gate (Threshold 2 audits
+   * completeness via a SOFT seal, it does not block navigation). Absent on
+   * every pre-Mode-4 objective, so legacy seed/catalogue objects validate
+   * unchanged.
    */
   monitoringProtocol: z
     .object({
-      indicators: z.array(z.string().min(1)).min(1),
+      indicators: z
+        .array(
+          z.object({
+            metric: z.string().min(1),
+            frequency: z.string().min(1),
+          }),
+        )
+        .min(2),
       triggers: z.array(z.string().min(1)).min(1),
-      feeds: z.string().min(1),
+      feeds: UniversalDomain,
     })
     .optional(),
   /**

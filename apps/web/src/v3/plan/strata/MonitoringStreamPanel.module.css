@@ -88,6 +88,24 @@
   background: var(--ms-accent);
 }
 
+/* A Key Indicator = the metric line + a frequency pill ("how often"). */
+.metric {
+  display: inline;
+}
+
+.freq {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--ms-soft);
+  border: 1px solid var(--ms-line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--ms-accent-strong);
+}
+
 /* Triggers read as "if X -> do Y" -- a stronger bullet sets them apart. */
 .itemTrigger .bullet {
   background: var(--ms-accent-strong);

@@ -26,6 +26,7 @@ import type {
   ProjectTypeId,
   SecondaryClass,
 } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
+import type { UniversalDomain } from '../../../schemas/universalDomain.schema.js';
 
 /**
  * Seven-tier spine gate. Maps each stratum to the prerequisite objective ids
@@ -259,13 +260,15 @@ export interface ObjectiveInput {
    */
   buildsOnDisplay?: string;
   /**
-   * Mode-4 Design DISPLAY-ONLY monitoring protocol (Key Indicators / Response
-   * Triggers / free-text Feeds stream label). NEVER a gate. Omit when absent.
+   * Mode-4 Design DISPLAY-ONLY monitoring protocol, tightened at Threshold 2:
+   * >=2 `{ metric, frequency }` Key Indicators, >=1 free-text Response Trigger,
+   * and a `feeds` destination drawn from the `UniversalDomain` Observe enum.
+   * NEVER a gate. Omit when absent.
    */
   monitoringProtocol?: {
-    indicators: string[];
+    indicators: { metric: string; frequency: string }[];
     triggers: string[];
-    feeds: string;
+    feeds: UniversalDomain;
   };
   /**
    * Mode-4 Design DISPLAY-ONLY amber "Planning Direction mandate" line. NEVER a
@@ -321,7 +324,10 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     ...(input.monitoringProtocol
       ? {
           monitoringProtocol: {
-            indicators: [...input.monitoringProtocol.indicators],
+            indicators: input.monitoringProtocol.indicators.map((i) => ({
+              metric: i.metric,
+              frequency: i.frequency,
+            })),
             triggers: [...input.monitoringProtocol.triggers],
             feeds: input.monitoringProtocol.feeds,
           },

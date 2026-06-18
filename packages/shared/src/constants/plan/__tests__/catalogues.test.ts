@@ -35,6 +35,7 @@ import {
   resolveProjectObjectives,
   findPlanStratumObjectiveIn,
 } from '../../../relationships/resolveProjectObjectives.js';
+import { UNIVERSAL_DOMAINS } from '../../universalDomain.js';
 
 const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...UNIVERSAL_PLAN_OBJECTIVES,
@@ -87,13 +88,18 @@ describe('catalogue conformance - schema validity', () => {
       // s3-hydrology already carries the three display fields (authored in 1B);
       // add the resolution flag plus the two Mode-4 design fields (2026-06-17)
       // to exercise all six on one object.
+      // Threshold-2 tighten (2026-06-18): indicators are >=2 { metric, frequency }
+      // pairs and feeds is a UniversalDomain enum id (not free text).
       const withAll = {
         ...hydro!,
         excludedFromResolution: true,
         monitoringProtocol: {
-          indicators: ['Water table depth', 'Storage drawdown rate'],
+          indicators: [
+            { metric: 'Water table depth', frequency: 'monthly' },
+            { metric: 'Storage drawdown rate', frequency: 'per cycle' },
+          ],
           triggers: ['Drawdown exceeds recharge for two cycles'],
-          feeds: 'Water Systems monitoring stream',
+          feeds: 'hydrology',
         },
         planningDirectionMandate:
           'Carries the approved water direction; raises any water conditional for closure downstream.',
@@ -107,10 +113,12 @@ describe('catalogue conformance - schema validity', () => {
       expect(typeof parsed.buildsOnDisplay).toBe('string');
       expect(parsed.excludedFromResolution).toBe(true);
       expect(parsed.monitoringProtocol?.indicators.length).toBe(2);
+      expect(parsed.monitoringProtocol?.indicators[0]).toEqual({
+        metric: 'Water table depth',
+        frequency: 'monthly',
+      });
       expect(parsed.monitoringProtocol?.triggers.length).toBe(1);
-      expect(parsed.monitoringProtocol?.feeds).toBe(
-        'Water Systems monitoring stream',
-      );
+      expect(parsed.monitoringProtocol?.feeds).toBe('hydrology');
       expect(typeof parsed.planningDirectionMandate).toBe('string');
     });
 
@@ -234,7 +242,12 @@ describe('catalogue conformance - Mode-4 design fields (s4 / Tier 3)', () => {
     const strings: string[] = [];
     for (const o of s4Authored) {
       const mp = o.monitoringProtocol;
-      if (mp) strings.push(...mp.indicators, ...mp.triggers, mp.feeds);
+      if (mp) {
+        // Threshold-2 tighten: indicators are now { metric, frequency } objects;
+        // scan BOTH nested strings (a banned term could hide in either).
+        for (const ind of mp.indicators) strings.push(ind.metric, ind.frequency);
+        strings.push(...mp.triggers, mp.feeds);
+      }
       if (o.planningDirectionMandate) strings.push(o.planningDirectionMandate);
     }
     expect(strings.length).toBeGreaterThan(0);
@@ -329,9 +342,80 @@ describe('catalogue conformance - Mode-4 design fields (s5 / Tier 4)', () => {
     const strings: string[] = [];
     for (const o of s5Authored) {
       const mp = o.monitoringProtocol;
-      if (mp) strings.push(...mp.indicators, ...mp.triggers, mp.feeds);
+      if (mp) {
+        // Threshold-2 tighten: indicators are now { metric, frequency } objects.
+        for (const ind of mp.indicators) strings.push(ind.metric, ind.frequency);
+        strings.push(...mp.triggers, mp.feeds);
+      }
       if (o.buildsOnDisplay) strings.push(o.buildsOnDisplay);
       if (o.planningDirectionMandate) strings.push(o.planningDirectionMandate);
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
+  });
+});
+
+describe('catalogue conformance - Mode-4 monitoringProtocol tightened shape (Threshold 2, Section C)', () => {
+  // 2026-06-18 Threshold-2 (Coherence Check, Section C) schema tighten: the
+  // shipped Mode-4 sweep distributed a DISPLAY-ONLY monitoringProtocol onto every
+  // resolving s4 + s5 objective. Section C enforces the spec letter, so the field
+  // is now: indicators = >=2 { metric, frequency } pairs (structured measurement
+  // cadence) and feeds = a UniversalDomain enum id (the named Observe-stage
+  // destination), never a free-text label. This pins the migrated shape across
+  // EVERY authored protocol so a future authoring slip fails loudly. The schema
+  // makes the runtime audit a presence/coverage check -- still NEVER a gate.
+  const WITH_PROTOCOL = ALL_AUTHORED.filter((o) => o.monitoringProtocol != null);
+
+  it('covers the full migrated set (>=120 authored protocols)', () => {
+    // Guards against a catalogue silently dropping its protocols in a future edit.
+    expect(WITH_PROTOCOL.length).toBeGreaterThanOrEqual(120);
+  });
+
+  it('every protocol carries >=2 { metric, frequency } indicators with non-empty text', () => {
+    for (const o of WITH_PROTOCOL) {
+      const mp = o.monitoringProtocol!;
+      expect(mp.indicators.length, `${o.id} indicators`).toBeGreaterThanOrEqual(2);
+      for (const ind of mp.indicators) {
+        expect(ind.metric.trim().length, `${o.id} metric`).toBeGreaterThan(0);
+        expect(ind.frequency.trim().length, `${o.id} frequency`).toBeGreaterThan(
+          0,
+        );
+      }
+    }
+  });
+
+  it('every protocol carries >=1 response trigger', () => {
+    for (const o of WITH_PROTOCOL) {
+      expect(
+        o.monitoringProtocol!.triggers.length,
+        o.id,
+      ).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('every feeds is a valid UniversalDomain id (no free-text label survived migration)', () => {
+    for (const o of WITH_PROTOCOL) {
+      const feeds = o.monitoringProtocol!.feeds;
+      expect(
+        UNIVERSAL_DOMAINS.includes(feeds),
+        `${o.id} feeds=${feeds}`,
+      ).toBe(true);
+    }
+  });
+
+  it('Amanah: every indicator metric + frequency across ALL protocols is covenant-clean', () => {
+    // Section C nests authored copy inside indicators[].{metric,frequency}; the
+    // banned-term scan must reach that new nesting (the s4/s5 scans above now do
+    // too). Covers the whole migrated set, not just the resolved canonical config.
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const strings: string[] = [];
+    for (const o of WITH_PROTOCOL) {
+      for (const ind of o.monitoringProtocol!.indicators) {
+        strings.push(ind.metric, ind.frequency);
+      }
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {

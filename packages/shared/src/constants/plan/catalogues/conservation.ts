@@ -372,16 +372,16 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Restoration Priority Zones & Intervention Sequence Brief',
     monitoringProtocol: {
       indicators: [
-        'Restoration progress by priority zone vs. planned sequence (per season)',
-        'Ecological condition score trend in bridgehead zones vs. adjacent degraded zones',
-        'Phase 1 resource spend by zone vs. allocation',
+        { metric: 'Restoration progress by priority zone vs. planned sequence', frequency: 'per season' },
+        { metric: 'Ecological condition score trend in bridgehead zones vs. adjacent degraded zones', frequency: 'per season' },
+        { metric: 'Phase 1 resource spend by zone vs. allocation', frequency: 'monthly' },
       ],
       triggers: [
         'Priority zone falling behind sequence -> reassess resourcing and constraints for that zone',
         'Bridgehead zone failing to seed adjacent areas -> review provenance and establishment support',
         'Cause-before-symptom order breached in the field -> halt downstream work until the cause is addressed',
       ],
-      feeds: 'Restoration Progress monitoring stream',
+      feeds: 'ecology',
     },
   }),
   obj({
@@ -412,16 +412,16 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Native Species Selection & Provenance Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Seedling survival and establishment rate by species and zone (per season)',
-        'Provenance compliance of stock received vs. specified seed collection zones',
-        'Succession progression vs. planned pioneer, transitional, and climax sequence',
+        { metric: 'Seedling survival and establishment rate by species and zone', frequency: 'per season' },
+        { metric: 'Provenance compliance of stock received vs. specified seed collection zones', frequency: 'per batch received' },
+        { metric: 'Succession progression vs. planned pioneer, transitional, and climax sequence', frequency: 'annual' },
       ],
       triggers: [
         'Establishment rate below target for a species -> review provenance, timing, and site preparation',
         'Stock supplied outside the specified provenance zone -> reject batch and re-source from approved suppliers',
         'Pioneer species failing to establish on degraded ground -> revise nurse crop strategy before climax planting',
       ],
-      feeds: 'Ecological Health monitoring stream',
+      feeds: 'ecology',
     },
   }),
   obj({
@@ -452,16 +452,16 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Pest & Invasive Species Management Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Invasive plant density and coverage at buffer zones and invasion vectors (per control window)',
-        'Pest animal index per priority species vs. control threshold',
-        'Reinvasion rate in zones already treated',
+        { metric: 'Invasive plant density and coverage at buffer zones and invasion vectors', frequency: 'per control window' },
+        { metric: 'Pest animal index per priority species vs. control threshold', frequency: 'per control window' },
+        { metric: 'Reinvasion rate in zones already treated', frequency: 'per season' },
       ],
       triggers: [
         'Invasive density crossing the defined control threshold -> initiate control action for that species',
         'New invasive species detected at a site boundary -> map extent and treat the entry vector first',
         'Reinvasion recurring after treatment -> review reinvasion prevention strategy and vector controls',
       ],
-      feeds: 'Invasive Species monitoring stream',
+      feeds: 'ecology',
     },
   }),
   obj({
@@ -492,16 +492,16 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Water Regime Restoration Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Water table depth and seasonal variation at fixed points vs. restoration target',
-        'Reinstated wetland extent and inundation pattern (per season)',
-        'Drain block integrity and watercourse stability after high-flow events',
+        { metric: 'Water table depth and seasonal variation at fixed points vs. restoration target', frequency: 'per season' },
+        { metric: 'Reinstated wetland extent and inundation pattern', frequency: 'per season' },
+        { metric: 'Drain block integrity and watercourse stability', frequency: 'after high-flow events' },
       ],
       triggers: [
         'Water table not rising toward target after drain blocking -> inspect blocks for bypass or failure',
         'Reinstated wetland drying out of season -> review inflow management and bunding',
         'Drain block or bank failure observed after a storm -> repair before dependent planting proceeds',
       ],
-      feeds: 'Water Regime monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -531,16 +531,16 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Fire Management Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Fuel load by zone vs. the threshold set for prescribed burning or exclusion (per season)',
-        'Fire weather conditions against the defined burn-window thresholds',
-        'Post-burn vegetation and fauna recovery in burned zones',
+        { metric: 'Fuel load by zone vs. the threshold set for prescribed burning or exclusion', frequency: 'per season' },
+        { metric: 'Fire weather conditions against the defined burn-window thresholds', frequency: 'daily in fire season' },
+        { metric: 'Post-burn vegetation and fauna recovery in burned zones', frequency: 'per season post-burn' },
       ],
       triggers: [
         'Fuel load exceeding the zone threshold -> schedule fuel reduction within the appropriate season',
         'Fire weather outside the safe burn window -> defer the prescribed burn until conditions return to range',
         'Fire entering an exclusion zone -> activate suppression response and review the exclusion boundary',
       ],
-      feeds: 'Fire Risk monitoring stream',
+      feeds: 'risk-compliance',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -574,15 +574,15 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the native species selection & provenance strategy.',
     monitoringProtocol: {
       indicators: [
-        'Seedling survival and establishment rate by species and planting zone (per season)',
-        'Canopy and ground-cover development vs. the planned succession stage per zone',
-        'Establishment-support condition -- guards, weed suppression, and irrigation where specified',
+        { metric: 'Seedling survival and establishment rate by species and planting zone', frequency: 'per season' },
+        { metric: 'Canopy and ground-cover development vs. the planned succession stage per zone', frequency: 'annual' },
+        { metric: 'Establishment-support condition -- guards, weed suppression, and irrigation where specified', frequency: 'per season' },
       ],
       triggers: [
         'Establishment rate below target in a zone -> review species choice, density, and site preparation',
         'Pioneer or nurse planting failing on degraded ground -> revise the sequence before climax planting proceeds',
       ],
-      feeds: 'Revegetation Establishment monitoring stream',
+      feeds: 'ecology',
     },
   }),
   obj({
@@ -613,15 +613,15 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the pest & invasive species management strategy.',
     monitoringProtocol: {
       indicators: [
-        'Trap and bait station network coverage and operational status vs. design (per check round)',
-        'Pest animal capture or index trend per priority species at network stations',
-        'Invasive plant density at buffer treatment zones and invasion vectors',
+        { metric: 'Trap and bait station network coverage and operational status vs. design', frequency: 'per check round' },
+        { metric: 'Pest animal capture or index trend per priority species at network stations', frequency: 'per check round' },
+        { metric: 'Invasive plant density at buffer treatment zones and invasion vectors', frequency: 'per season' },
       ],
       triggers: [
         'Pest index crossing the defined control threshold at a station cluster -> intensify control on that vector',
         'Buffer zone showing reinvasion or new incursion -> treat the entry vector and review buffer placement',
       ],
-      feeds: 'Pest Control Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -652,15 +652,15 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the water regime restoration strategy.',
     monitoringProtocol: {
       indicators: [
-        'Water table depth and seasonal variation at fixed points vs. restoration target',
-        'Drain block and bund integrity after high-flow events vs. as-built design',
-        'Reinstated wetland extent and inundation pattern vs. the designed inflow regime',
+        { metric: 'Water table depth and seasonal variation at fixed points vs. restoration target', frequency: 'per season' },
+        { metric: 'Drain block and bund integrity after high-flow events vs. as-built design', frequency: 'after high-flow events' },
+        { metric: 'Reinstated wetland extent and inundation pattern vs. the designed inflow regime', frequency: 'per season' },
       ],
       triggers: [
         'Water table not rising toward target after blocking structures are installed -> inspect structures for bypass or failure',
         'Bund, drain block, or watercourse work failing after a storm -> repair before dependent planting proceeds',
       ],
-      feeds: 'Water Regime Infrastructure monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -690,15 +690,15 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Wildlife Habitat Infrastructure Design Package',
     monitoringProtocol: {
       indicators: [
-        'Occupancy rate of nest boxes, perches, and refuge structures by target species (per season)',
-        'Target species presence and abundance near installed habitat structures vs. baseline',
-        'Structural condition and serviceability of installed habitat infrastructure (per check round)',
+        { metric: 'Occupancy rate of nest boxes, perches, and refuge structures by target species', frequency: 'per season' },
+        { metric: 'Target species presence and abundance near installed habitat structures vs. baseline', frequency: 'per season' },
+        { metric: 'Structural condition and serviceability of installed habitat infrastructure', frequency: 'per check round' },
       ],
       triggers: [
         'Habitat structures showing low occupancy after a full season -> review design, placement, and density against survey findings',
         'Structure damaged or degraded below serviceable condition -> schedule repair or replacement',
       ],
-      feeds: 'Wildlife Habitat monitoring stream',
+      feeds: 'ecology',
     },
   }),
   obj({
@@ -729,15 +729,15 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Fencing & Exclusion Infrastructure Design Package',
     monitoringProtocol: {
       indicators: [
-        'Fence line integrity and breach incidents along stock and predator exclusion zones (per check round)',
-        'Stock or pest incursion events inside protected revegetation zones',
-        'Gate, water crossing, and wildlife crossing condition vs. as-built design',
+        { metric: 'Fence line integrity and breach incidents along stock and predator exclusion zones', frequency: 'per check round' },
+        { metric: 'Stock or pest incursion events inside protected revegetation zones', frequency: 'logged as events occur' },
+        { metric: 'Gate, water crossing, and wildlife crossing condition vs. as-built design', frequency: 'per check round' },
       ],
       triggers: [
         'Breach or incursion detected inside an exclusion zone -> locate and repair the fence line before damage spreads',
         'Revegetation work scheduled in a zone before its exclusion fencing is verified complete -> hold planting until fencing is confirmed',
       ],
-      feeds: 'Exclusion Fencing monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

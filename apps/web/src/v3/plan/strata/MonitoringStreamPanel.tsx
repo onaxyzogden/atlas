@@ -1,23 +1,30 @@
 /**
  * MonitoringStreamPanel -- the display-only green "monitoring stream" panel of a
  * Mode-4 (Design) objective. Renders the objective's `monitoringProtocol`: the
- * Key Indicators it will watch, the Response Triggers that act on them, and the
- * single Feeds stream label naming where those readings flow in the Observe
- * stage.
+ * Key Indicators it will watch (each a metric + its measurement frequency), the
+ * Response Triggers that act on them, and the Observe-stage domain that receives
+ * the readings (`feeds`).
  *
  * Pure presentational. The protocol is authored in the shared catalogue and is
- * DISPLAY-ONLY -- it never gates. `feeds` is a free-text stream label, NOT an
- * Observe-domain wire (Threshold 2, which audits monitoring, is deferred), so it
- * renders as a plain line, not a domain chip.
+ * DISPLAY-ONLY -- it never gates. Tightened at Threshold 2 (Coherence Check,
+ * Section C): `indicators` is >=2 `{ metric, frequency }` pairs and `feeds` is a
+ * `UniversalDomain` id, rendered through `UNIVERSAL_DOMAIN_LABELS` as the named
+ * Observe-stage destination (never the kebab id directly).
  */
 
+import { UNIVERSAL_DOMAIN_LABELS, type UniversalDomain } from '@ogden/shared';
 import { Gauge, Telescope } from 'lucide-react';
 import css from './MonitoringStreamPanel.module.css';
 
+export interface MonitoringIndicator {
+  metric: string;
+  frequency: string;
+}
+
 export interface MonitoringStreamPanelProps {
-  indicators: readonly string[];
+  indicators: readonly MonitoringIndicator[];
   triggers: readonly string[];
-  feeds: string;
+  feeds: UniversalDomain;
 }
 
 export default function MonitoringStreamPanel({
@@ -39,10 +46,15 @@ export default function MonitoringStreamPanel({
       <div className={css.group}>
         <p className={css.groupLabel}>Key indicators</p>
         <ul className={css.list}>
-          {indicators.map((text) => (
-            <li key={text} className={css.item}>
+          {indicators.map(({ metric, frequency }) => (
+            <li key={metric} className={css.item}>
               <span className={css.bullet} aria-hidden="true" />
-              <span>{text}</span>
+              <span className={css.metric}>
+                {metric}
+                <span className={css.freq} data-testid="monitoring-stream-freq">
+                  {frequency}
+                </span>
+              </span>
             </li>
           ))}
         </ul>
@@ -63,7 +75,7 @@ export default function MonitoringStreamPanel({
       <p className={css.feeds} data-testid="monitoring-stream-feeds">
         <Telescope size={13} aria-hidden="true" className={css.icon} />
         <span className={css.feedsLabel}>Feeds</span>
-        <span>{feeds}</span>
+        <span>{UNIVERSAL_DOMAIN_LABELS[feeds]}</span>
       </p>
     </section>
   );

@@ -628,15 +628,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Paddock Layout & Rotational Grazing Framework Brief',
     monitoringProtocol: {
       indicators: [
-        'Pasture cover height before paddock entry and after exit (every rotation)',
-        'Rest period days achieved vs. target',
-        'Pasture recovery rate by paddock (seasonal)',
+        { metric: 'Pasture cover height before paddock entry and after exit', frequency: 'every rotation' },
+        { metric: 'Rest period days achieved vs. target', frequency: 'per rotation' },
+        { metric: 'Pasture recovery rate by paddock', frequency: 'seasonal' },
       ],
       triggers: [
         'Cover below 8cm at planned move-in date -> extend rest period',
         'Pasture not recovering to 20cm+ after standard rest -> investigate soil compaction, stocking rate, or species',
       ],
-      feeds: 'Pasture Health monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -691,16 +691,16 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Stock Water Infrastructure Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Trough fill speed and level (weekly during summer)',
-        'Pump operating hours vs. plan',
-        'Water quality at troughs (quarterly)',
+        { metric: 'Trough fill speed and level', frequency: 'weekly during summer' },
+        { metric: 'Pump operating hours vs. plan', frequency: 'monthly' },
+        { metric: 'Water quality at troughs', frequency: 'quarterly' },
       ],
       triggers: [
         'Trough empty during normal operation -> check float valve, supply line',
         'Water quality failure -> shut down affected trough, investigate source',
         'Pump overuse -> check for leaks',
       ],
-      feeds: 'Livestock Water monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -755,15 +755,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Forage & Pasture Improvement Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Forage species composition by zone (seasonal pasture assessment)',
-        'Pasture dry-matter productivity vs. target (per improvement zone)',
-        'Bare-ground and weed cover % in priority zones (seasonal)',
+        { metric: 'Forage species composition by zone (pasture assessment)', frequency: 'seasonal' },
+        { metric: 'Pasture dry-matter productivity vs. target (per improvement zone)', frequency: 'seasonal' },
+        { metric: 'Bare-ground and weed cover % in priority zones', frequency: 'seasonal' },
       ],
       triggers: [
         'Sown forage species failing to establish in a priority zone -> review overseeding method, soil fertility, grazing timing',
         'Weed cover rising despite control program -> reassess weed strategy and grazing pressure',
       ],
-      feeds: 'Pasture Health monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -818,15 +818,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Tree Integration Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Establishing-tree survival rate by planting zone (annual)',
-        'Browse and rub damage on protected trees (seasonal inspection)',
-        'Canopy growth vs. establishment plan (annual)',
+        { metric: 'Establishing-tree survival rate by planting zone', frequency: 'annual' },
+        { metric: 'Browse and rub damage on protected trees (inspection)', frequency: 'seasonal' },
+        { metric: 'Canopy growth vs. establishment plan', frequency: 'annual' },
       ],
       triggers: [
         'Tree survival below target in a zone -> review species choice, protection, grazing-exclusion timing',
         'Browse damage on establishing trees -> extend temporary exclusion or strengthen guards',
       ],
-      feeds: 'Tree Integration monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -881,15 +881,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Animal Health & Veterinary Protocol Brief',
     monitoringProtocol: {
       indicators: [
-        'Body condition score by mob (monthly)',
-        'Parasite burden indicators - FEC or dag scoring (per health cycle)',
-        'Mortality and morbidity rate vs. baseline (per season)',
+        { metric: 'Body condition score by mob', frequency: 'monthly' },
+        { metric: 'Parasite burden indicators - FEC or dag scoring', frequency: 'per health cycle' },
+        { metric: 'Mortality and morbidity rate vs. baseline', frequency: 'per season' },
       ],
       triggers: [
         'Condition score falling below target for a class -> review feed, parasite burden, husbandry',
         'Mortality or morbidity above baseline -> trigger veterinary investigation and isolation protocol',
       ],
-      feeds: 'Animal Health monitoring stream',
+      feeds: 'animals-livestock',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -947,15 +947,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
     monitoringProtocol: {
       indicators: [
-        'Share of paddocks reachable from the laneway without crossing another paddock',
-        'Fence integrity check pass rate per inspection round (breakouts, sagging, failed energiser sections)',
-        'Gate and crossing function rate during stock moves (delays or refusals logged)',
+        { metric: 'Share of paddocks reachable from the laneway without crossing another paddock', frequency: 'per rotation' },
+        { metric: 'Fence integrity check pass rate per inspection round (breakouts, sagging, failed energiser sections)', frequency: 'per inspection round' },
+        { metric: 'Gate and crossing function rate during stock moves (delays or refusals logged)', frequency: 'observed during movement' },
       ],
       triggers: [
         'Repeat stock breakout at the same fence section -> upgrade fence type or rebuild that boundary segment',
         'A paddock becomes reachable only by crossing another -> revise laneway or gate placement for that block',
       ],
-      feeds: 'Grazing Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1012,15 +1012,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the Tier 3 stock water infrastructure strategy (silv-s4-stock-water-strategy).',
     monitoringProtocol: {
       indicators: [
-        'Share of paddock troughs delivering water within the welfare access standard',
-        'Trough refill and flow rate against target during peak demand periods',
-        'Leak, overflow, or pressure-loss events logged per pipeline section',
+        { metric: 'Share of paddock troughs delivering water within the welfare access standard', frequency: 'monthly' },
+        { metric: 'Trough refill and flow rate against target during peak demand periods', frequency: 'weekly during peak demand' },
+        { metric: 'Leak, overflow, or pressure-loss events logged per pipeline section', frequency: 'logged as events occur' },
       ],
       triggers: [
         'A trough drops below the welfare-standard water access rate -> inspect float valve, pressure, and pipeline section',
         'Repeat leak or pressure loss on the same line -> review pipe material, burial depth, or pump sizing for that run',
       ],
-      feeds: 'Stock Water monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -1072,15 +1072,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
     monitoringProtocol: {
       indicators: [
-        'Yard and race throughput against design capacity during handling events (animals per session, hold-ups logged)',
-        'Shade shelter usage and heat-stress signs observed per paddock through hot periods',
-        'Isolation pen readiness check pass rate (water, shelter, treatment access available when needed)',
+        { metric: 'Yard and race throughput against design capacity during handling events (animals per session, hold-ups logged)', frequency: 'per handling event' },
+        { metric: 'Shade shelter usage and heat-stress signs observed per paddock through hot periods', frequency: 'observed during hot periods' },
+        { metric: 'Isolation pen readiness check pass rate (water, shelter, treatment access available when needed)', frequency: 'per readiness check' },
       ],
       triggers: [
         'Heat-stress signs observed where shade is short -> add or reposition shade shelter for that paddock',
         'Yard or race flow stalls or handler-safety incident recurs -> revise low-stress layout or race design',
       ],
-      feeds: 'Grazing Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1137,15 +1137,15 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on the Tier 3 tree integration strategy (silv-s4-tree-integration).',
     monitoringProtocol: {
       indicators: [
-        'Tree establishment and survival rate per planting zone at 6 and 12 months',
-        'Browse damage percentage on young trees while guards or exclusion remain in place',
-        'Share of planted zones still within their defined grazing exclusion period',
+        { metric: 'Tree establishment and survival rate per planting zone', frequency: 'at 6 and 12 months' },
+        { metric: 'Browse damage percentage on young trees while guards or exclusion remain in place', frequency: 'monthly during establishment' },
+        { metric: 'Share of planted zones still within their defined grazing exclusion period', frequency: 'per rotation' },
       ],
       triggers: [
         'Browse damage rises above the set tolerance on young trees -> review guard type, fencing, or timing of stock access',
         'Establishment failure in a planting zone -> review species choice, protection, or establishment irrigation for that zone',
       ],
-      feeds: 'Silvopasture Integration monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6
@@ -1769,15 +1769,15 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     actHandoff: 'Grazing System & Rotation Framework Design Package',
     monitoringProtocol: {
       indicators: [
-        'Pasture cover height before paddock entry and after exit (every rotation)',
-        'Rest period days achieved vs. target',
-        'Pasture recovery rate by paddock (seasonal)',
+        { metric: 'Pasture cover height before paddock entry and after exit', frequency: 'every rotation' },
+        { metric: 'Rest period days achieved vs. target', frequency: 'per rotation' },
+        { metric: 'Pasture recovery rate by paddock', frequency: 'seasonal' },
       ],
       triggers: [
         'Cover below 8cm at planned move-in date -> extend rest period',
         'Pasture not recovering to 20cm+ after standard rest -> investigate soil compaction, stocking rate, or species',
       ],
-      feeds: 'Pasture Health monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -1830,16 +1830,16 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       'The silvopasture enterprise cannot proceed until this strategy confirms a viable stock water supply. This objective directly resolves the Threshold 1 conditional requirement raised against silvopasture water.',
     monitoringProtocol: {
       indicators: [
-        'Trough fill speed and level (weekly during summer)',
-        'Pump operating hours vs. plan',
-        'Water quality at troughs (quarterly)',
+        { metric: 'Trough fill speed and level', frequency: 'weekly during summer' },
+        { metric: 'Pump operating hours vs. plan', frequency: 'monthly' },
+        { metric: 'Water quality at troughs', frequency: 'quarterly' },
       ],
       triggers: [
         'Trough empty during normal operation -> check float valve, supply line',
         'Water quality failure -> shut down affected trough, investigate source',
         'Pump overuse -> check for leaks',
       ],
-      feeds: 'Livestock Water monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -1895,16 +1895,16 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     actHandoff: 'Livestock Husbandry & Welfare Framework Brief',
     monitoringProtocol: {
       indicators: [
-        'Animal body condition score across the mob (monthly)',
-        'Health-event frequency -- illness and parasite load',
-        'Mortality rate vs. expected baseline',
+        { metric: 'Animal body condition score across the mob', frequency: 'monthly' },
+        { metric: 'Health-event frequency -- illness and parasite load', frequency: 'logged as events occur' },
+        { metric: 'Mortality rate vs. expected baseline', frequency: 'per season' },
       ],
       triggers: [
         'Body condition declining across the mob -> review feed and animal-health program',
         'Repeat health events of the same type -> escalate to veterinary review',
         'Mortality above expected baseline -> investigate cause and adjust husbandry',
       ],
-      feeds: 'Animal Welfare monitoring stream',
+      feeds: 'animals-livestock',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -1972,16 +1972,16 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
       'Builds on 3.6 -- Paddock layout, Survey 1.3 -- Ecology (existing species, browse patterns), and Survey 1.1 -- Terrain (aspect and shelter by paddock).',
     monitoringProtocol: {
       indicators: [
-        'Tree establishment rate at 6 and 12 months per paddock',
-        'Browse damage % on young trees, monthly until guards are removed',
-        'Understorey forage production in treed areas vs. open areas (seasonal yield comparison)',
-        'Household-allocated tree yield volumes (harvest records)',
+        { metric: 'Tree establishment rate per paddock', frequency: 'at 6 and 12 months' },
+        { metric: 'Browse damage % on young trees', frequency: 'monthly until guards are removed' },
+        { metric: 'Understorey forage production in treed areas vs. open areas (yield comparison)', frequency: 'seasonal' },
+        { metric: 'Household-allocated tree yield volumes (harvest records)', frequency: 'per harvest' },
       ],
       triggers: [
         'Browse damage exceeding 15% of young trees -> review protection type or timing of livestock access',
         'Establishment failure in a paddock zone -> review species choice, soil, competition, guard adequacy',
       ],
-      feeds: 'Silvopasture Integration monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

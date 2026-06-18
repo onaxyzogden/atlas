@@ -728,16 +728,16 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Sensory Design Philosophy & Low-Stimulation Standards',
     monitoringProtocol: {
       indicators: [
-        'Measured noise levels in treatment, meditation, and accommodation zones vs. defined decibel thresholds (spot checks by zone and time)',
-        'Presence of synthetic fragrance or artificial light exceeding the zone limits',
-        'Guest reports of sensory disturbance during sessions',
+        { metric: 'Measured noise levels in treatment, meditation, and accommodation zones vs. defined decibel thresholds', frequency: 'spot checks by zone and time' },
+        { metric: 'Presence of synthetic fragrance or artificial light exceeding the zone limits', frequency: 'logged as events occur' },
+        { metric: 'Guest reports of sensory disturbance during sessions', frequency: 'per session' },
       ],
       triggers: [
         'Zone noise reading above the defined threshold -> trace the source and apply or reinforce buffering',
         'Synthetic fragrance detected in a therapeutic zone -> remove the source and reaffirm the natural-aromatics standard',
         'Repeated guest reports of sensory disturbance -> review the affected zone against the standard and redesign',
       ],
-      feeds: 'Sensory Environment monitoring stream',
+      feeds: 'built-infrastructure',
     },
     scopeNotes:
       'These standards are design gates, not aspirational targets. Any Tier 4 design element that cannot meet a defined threshold must be redesigned or removed.',
@@ -800,16 +800,16 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Therapeutic Program & Practitioner Framework Brief',
     monitoringProtocol: {
       indicators: [
-        'Practitioner-to-guest ratio actually delivered per modality vs. the defined ratio (per session)',
-        'Currency of practitioner qualifications and insurance against the compliance calendar',
-        'Number of guest presentations falling outside the defined scope of practice',
+        { metric: 'Practitioner-to-guest ratio actually delivered per modality vs. the defined ratio', frequency: 'per session' },
+        { metric: 'Currency of practitioner qualifications and insurance against the compliance calendar', frequency: 'monthly' },
+        { metric: 'Number of guest presentations falling outside the defined scope of practice', frequency: 'logged as events occur' },
       ],
       triggers: [
         'Delivered ratio exceeds the defined limit for a modality -> pause new bookings for that modality until staffing is restored',
         'A practitioner qualification or insurance lapses -> suspend that practitioner from delivery until renewed',
         'Out-of-scope presentation -> apply the referral pathway and log for program review',
       ],
-      feeds: 'Therapeutic Program monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -866,16 +866,16 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Privacy Gradient & Zone Hierarchy Brief',
     monitoringProtocol: {
       indicators: [
-        'Sightlines and acoustic separation at zone boundaries vs. the defined privacy tiers (walk-through checks each season)',
-        'Access-control breaches - entries into a higher privacy tier outside the defined conditions',
-        'Guest reports of feeling overlooked or overheard in private zones',
+        { metric: 'Sightlines and acoustic separation at zone boundaries vs. the defined privacy tiers', frequency: 'walk-through checks each season' },
+        { metric: 'Access-control breaches - entries into a higher privacy tier outside the defined conditions', frequency: 'logged as events occur' },
+        { metric: 'Guest reports of feeling overlooked or overheard in private zones', frequency: 'logged as events occur' },
       ],
       triggers: [
         'Sightline into a private zone opens up - vegetation thins or a barrier fails -> restore the screening or add separation',
         'Access-control breach recorded -> review the control method for that boundary and tighten it',
         'Guest reports a loss of privacy in a tier -> reassess that boundary against the gradient and remediate',
       ],
-      feeds: 'Privacy & Zoning monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -931,16 +931,16 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Healing Garden & Therapeutic Landscape Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Establishment and health of the therapeutic planting palette across seasons',
-        'Condition and water quality of enhanced and new water features (regular checks)',
-        'Seasonal sensory availability vs. the therapeutic landscape calendar - scent, texture, colour gaps',
+        { metric: 'Establishment and health of the therapeutic planting palette across seasons', frequency: 'seasonal' },
+        { metric: 'Condition and water quality of enhanced and new water features', frequency: 'regular checks' },
+        { metric: 'Seasonal sensory availability vs. the therapeutic landscape calendar - scent, texture, colour gaps', frequency: 'seasonal' },
       ],
       triggers: [
         'A keystone therapeutic species fails to establish or declines -> replace or revise the palette for that zone',
         'Water feature quality degrades or a feature stagnates -> investigate the source and restore or isolate it',
         'A planned seasonal sensory window comes up empty -> adjust the planting succession to close the gap',
       ],
-      feeds: 'Healing Garden monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -1005,16 +1005,16 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Guest Wellbeing Safeguarding Protocol',
     monitoringProtocol: {
       indicators: [
-        'Currency of practitioner safeguarding training against the required cadence',
-        'Logged incidents - crisis presentations, trauma disclosures, referrals - and time to response',
-        'Completeness of incident records against the recording and review system',
+        { metric: 'Currency of practitioner safeguarding training against the required cadence', frequency: 'monthly' },
+        { metric: 'Logged incidents - crisis presentations, trauma disclosures, referrals - and time to response', frequency: 'logged as events occur' },
+        { metric: 'Completeness of incident records against the recording and review system', frequency: 'per incident review' },
       ],
       triggers: [
         'A practitioner safeguarding certification lapses -> remove that practitioner from guest contact until retrained',
         'A crisis or referral response misses the defined protocol steps -> run an incident review and correct the gap',
         'Incident records found incomplete at review -> reinforce the recording system and re-brief staff',
       ],
-      feeds: 'Safeguarding monitoring stream',
+      feeds: 'risk-compliance',
     },
     scopeNotes:
       'This protocol precedes the therapeutic programme framework. You cannot define what you offer until you have defined what you will do when something goes wrong.',
@@ -1079,15 +1079,15 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
-        'Measured noise level in treatment and meditation rooms against the defined decibel threshold',
-        'Recorded natural light, thermal comfort, and privacy complaints per treatment room per month',
-        'Utilisation rate of each treatment room and the meditation hall against scheduled capacity',
+        { metric: 'Measured noise level in treatment and meditation rooms against the defined decibel threshold', frequency: 'monthly' },
+        { metric: 'Recorded natural light, thermal comfort, and privacy complaints per treatment room', frequency: 'monthly' },
+        { metric: 'Utilisation rate of each treatment room and the meditation hall against scheduled capacity', frequency: 'monthly' },
       ],
       triggers: [
         'Measured noise in a treatment or meditation space exceeds the sensory threshold -> inspect acoustic isolation and add buffering before reuse',
         'Recurring guest comfort or privacy complaints for a space -> review layout, light, and thermal performance and remediate',
       ],
-      feeds: 'Therapeutic Spaces monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1149,15 +1149,15 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 healing garden and therapeutic landscape strategy.',
     monitoringProtocol: {
       indicators: [
-        'Condition of therapeutic planting zones - species establishment and seasonal succession against the planting plan',
-        'Function of water features - flow, acoustic quality, and water clarity checked on a regular cycle',
-        'Use of the sensory walk, contemplative seating, and shelters by guests against expected utilisation',
+        { metric: 'Condition of therapeutic planting zones - species establishment and seasonal succession against the planting plan', frequency: 'seasonal' },
+        { metric: 'Function of water features - flow, acoustic quality, and water clarity', frequency: 'checked on a regular cycle' },
+        { metric: 'Use of the sensory walk, contemplative seating, and shelters by guests against expected utilisation', frequency: 'monthly' },
       ],
       triggers: [
         'Planting zone fails to establish or a sensory element degrades below the design standard -> schedule replanting or repair',
         'A water feature loses flow, clarity, or acoustic quality -> inspect and restore before guest use resumes',
       ],
-      feeds: 'Healing Garden monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -1219,15 +1219,15 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
-        'Measured noise level inside accommodation units against the defined accommodation threshold',
-        'Thermal comfort and natural ventilation complaints per unit per month',
-        'Occupancy and utilisation of accommodation units against available capacity',
+        { metric: 'Measured noise level inside accommodation units against the defined accommodation threshold', frequency: 'monthly' },
+        { metric: 'Thermal comfort and natural ventilation complaints per unit', frequency: 'monthly' },
+        { metric: 'Occupancy and utilisation of accommodation units against available capacity', frequency: 'monthly' },
       ],
       triggers: [
         'Measured noise inside a unit exceeds the accommodation threshold -> inspect wall, floor, and ceiling construction and remediate before reletting',
         'Recurring thermal or ventilation complaints for a unit -> review passive ventilation and thermal design and adjust',
       ],
-      feeds: 'Guest Accommodation monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1284,15 +1284,15 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 privacy gradient and zone hierarchy.',
     monitoringProtocol: {
       indicators: [
-        'Establishment and density of boundary and internal screening planting against the screening plan',
-        'Measured acoustic separation across zone boundaries against the privacy gradient standard',
-        'Recorded sightline or noise breach reports between zones per month',
+        { metric: 'Establishment and density of boundary and internal screening planting against the screening plan', frequency: 'seasonal' },
+        { metric: 'Measured acoustic separation across zone boundaries against the privacy gradient standard', frequency: 'monthly' },
+        { metric: 'Recorded sightline or noise breach reports between zones', frequency: 'monthly' },
       ],
       triggers: [
         'Measured acoustic separation at a zone boundary falls below the standard -> reinforce planting, bunding, or barrier at that boundary',
         'A sightline or noise breach between zones is reported -> inspect the screening element and remediate the gap',
       ],
-      feeds: 'Privacy Screening monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1354,15 +1354,15 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
-        'Measured kitchen and dining noise level during service against the sensory comfort threshold',
-        'Natural light, acoustic comfort, and crowding complaints in the dining space per month',
-        'Utilisation of the dining space at each sitting against its intimate-scale capacity',
+        { metric: 'Measured kitchen and dining noise level against the sensory comfort threshold', frequency: 'during service' },
+        { metric: 'Natural light, acoustic comfort, and crowding complaints in the dining space', frequency: 'monthly' },
+        { metric: 'Utilisation of the dining space against its intimate-scale capacity', frequency: 'at each sitting' },
       ],
       triggers: [
         'Measured kitchen or dining noise during service exceeds the comfort threshold -> review equipment and acoustic treatment and remediate',
         'Dining space crowding or acoustic complaints recur -> adjust sitting scheduling or layout to restore the unhurried standard',
       ],
-      feeds: 'Dining & Nourishment monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6
@@ -1786,16 +1786,16 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Therapeutic Sensory Standards Overlay Brief',
     monitoringProtocol: {
       indicators: [
-        'Measured noise levels in treatment, meditation, and guest zones vs. defined thresholds (spot checks during host operations)',
-        'Host primary operations encroaching on therapeutic zones beyond the defined buffering',
-        'Lighting, scent, or visual-complexity standard breaches at the therapeutic / working-land boundary',
+        { metric: 'Measured noise levels in treatment, meditation, and guest zones vs. defined thresholds', frequency: 'spot checks during host operations' },
+        { metric: 'Host primary operations encroaching on therapeutic zones beyond the defined buffering', frequency: 'logged as events occur' },
+        { metric: 'Lighting, scent, or visual-complexity standard breaches at the therapeutic / working-land boundary', frequency: 'logged as events occur' },
       ],
       triggers: [
         'A host operation breaches a zone threshold -> reschedule or re-buffer that operation against the therapeutic zone',
         'Buffering between working land and a therapeutic zone proves insufficient -> strengthen the separation',
         'A lighting or scent standard is breached in a therapeutic zone -> remove the source and reaffirm the standard',
       ],
-      feeds: 'Sensory Environment monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1833,16 +1833,16 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Therapeutic Program Overlay Brief',
     monitoringProtocol: {
       indicators: [
-        'Practitioner-to-guest ratio delivered per modality vs. the defined ratio',
-        'Therapeutic session scheduling clashes with primary land operations',
-        'Currency of practitioner qualifications and insurance for the overlay',
+        { metric: 'Practitioner-to-guest ratio delivered per modality vs. the defined ratio', frequency: 'per session' },
+        { metric: 'Therapeutic session scheduling clashes with primary land operations', frequency: 'logged as events occur' },
+        { metric: 'Currency of practitioner qualifications and insurance for the overlay', frequency: 'monthly' },
       ],
       triggers: [
         'Delivered ratio exceeds the defined limit -> pause new bookings for that modality until staffing recovers',
         'A session collides with a primary land operation -> reschedule the session to a compatible window',
         'A practitioner qualification or insurance lapses -> suspend that practitioner until renewed',
       ],
-      feeds: 'Therapeutic Program monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -1883,16 +1883,16 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Guest Wellbeing Safeguarding Overlay Protocol',
     monitoringProtocol: {
       indicators: [
-        'Currency of safeguarding training for practitioners and relevant host staff',
-        'Logged crisis presentations, trauma disclosures, and referrals on the host site, with time to response',
-        'Completeness of incident records, including any host-staff involvement',
+        { metric: 'Currency of safeguarding training for practitioners and relevant host staff', frequency: 'monthly' },
+        { metric: 'Logged crisis presentations, trauma disclosures, and referrals on the host site, with time to response', frequency: 'logged as events occur' },
+        { metric: 'Completeness of incident records, including any host-staff involvement', frequency: 'per incident review' },
       ],
       triggers: [
         'Safeguarding training lapses for a practitioner or host staff member -> remove them from guest contact until retrained',
         'A crisis or referral response misses the defined steps -> run an incident review and correct the gap',
         'Incident records found incomplete at review -> reinforce recording across both therapeutic and host staff',
       ],
-      feeds: 'Safeguarding monitoring stream',
+      feeds: 'risk-compliance',
     },
   }),
 ];

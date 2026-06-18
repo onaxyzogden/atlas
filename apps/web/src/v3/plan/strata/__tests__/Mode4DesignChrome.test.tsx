@@ -61,11 +61,11 @@ const FULL = objective({
     'This design package CLOSES the Silvopasture water conditional raised at Threshold 1.',
   monitoringProtocol: {
     indicators: [
-      'Storage volume captured vs design target',
-      'Overflow events per season',
+      { metric: 'Storage volume captured vs design target', frequency: 'per season' },
+      { metric: 'Overflow events', frequency: 'per season' },
     ],
     triggers: ['Storage below 60% at season start -> review catchment sizing'],
-    feeds: 'Water Systems monitoring stream',
+    feeds: 'hydrology',
   },
   actHandoff: 'Water Harvesting & Storage Design Package',
 });
@@ -83,9 +83,13 @@ describe('Mode4DesignChrome -- full Mode-4 objective', () => {
     const stream = screen.getByTestId('monitoring-stream');
     expect(stream).toBeTruthy();
     expect(stream.textContent).toContain('Storage volume captured vs design target');
+    // Threshold-2 tighten: each indicator now renders a structured frequency chip.
+    expect(stream.textContent).toContain('per season');
+    expect(screen.getAllByTestId('monitoring-stream-freq').length).toBe(2);
     expect(stream.textContent).toContain('Storage below 60% at season start');
+    // feeds is a UniversalDomain id now, rendered through its human label.
     expect(screen.getByTestId('monitoring-stream-feeds').textContent).toContain(
-      'Water Systems monitoring stream',
+      'Hydrology & Water',
     );
 
     expect(screen.getByTestId('mode4-act-handoff').textContent).toContain(
@@ -106,7 +110,14 @@ describe('Mode4DesignChrome -- arming logic', () => {
     render(
       <Mode4DesignChrome
         objective={objective({
-          monitoringProtocol: { indicators: ['x'], triggers: ['y'], feeds: 'Z stream' },
+          monitoringProtocol: {
+            indicators: [
+              { metric: 'Indicator one', frequency: 'daily' },
+              { metric: 'Indicator two', frequency: 'weekly' },
+            ],
+            triggers: ['y'],
+            feeds: 'soil',
+          },
         })}
       />,
     );

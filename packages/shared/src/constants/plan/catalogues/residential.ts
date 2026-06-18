@@ -268,15 +268,15 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     actHandoff: 'Domestic Living Zone & Privacy Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Privacy buffer integrity between living zone and working zones (quarterly walk-through)',
-        'Recorded incursions of operational activity into the living zone (log per occurrence)',
-        'Access-control adherence at the living-zone boundary (quarterly review)',
+        { metric: 'Privacy buffer integrity between living zone and working zones', frequency: 'quarterly walk-through' },
+        { metric: 'Recorded incursions of operational activity into the living zone', frequency: 'logged per occurrence' },
+        { metric: 'Access-control adherence at the living-zone boundary', frequency: 'quarterly review' },
       ],
       triggers: [
         'Repeated operational incursion into the living zone -> formalize physical boundary marker or screening',
         'Noise or chemical buffer breached by enterprise placement -> review zone allocation and exclusion distances',
       ],
-      feeds: 'Residential Zone monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -369,16 +369,16 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Builds on 3.7 -- Living zone (household zone definition), Survey 1.1 -- Terrain & dwelling siting, and Survey 2.2 -- Soil & water for domestic supply.',
     monitoringProtocol: {
       indicators: [
-        'Domestic water supply vs household consumption (storage drawdown, refill interval)',
-        'Kitchen garden yield vs household provision targets (by season)',
-        'Domestic energy output vs household demand (generation vs draw)',
-        'Household-farm boundary adherence (domestic vs operational use staying separated as designed)',
+        { metric: 'Domestic water supply vs household consumption (storage drawdown)', frequency: 'per refill interval' },
+        { metric: 'Kitchen garden yield vs household provision targets', frequency: 'by season' },
+        { metric: 'Domestic energy output vs household demand (generation vs draw)', frequency: 'monthly' },
+        { metric: 'Household-farm boundary adherence (domestic vs operational use staying separated as designed)', frequency: 'quarterly' },
       ],
       triggers: [
         'Domestic water approaching supply limit -> review storage, rationing, or additional catchment',
         'Kitchen garden yield below provision targets -> review beds, inputs, or revise the provision plan',
       ],
-      feeds: 'Residential Systems monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({

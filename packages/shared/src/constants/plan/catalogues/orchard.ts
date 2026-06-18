@@ -535,16 +535,16 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Species Mix & Planting Plan Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Establishment survival rate by layer and species (first three seasons)',
-        'Layer fill -- canopy, understory, shrub, and ground cover gaining target proportion',
-        'Pioneer species vigor vs. plan in bare or degraded zones',
+        { metric: 'Establishment survival rate by layer and species', frequency: 'first three seasons' },
+        { metric: 'Layer fill -- canopy, understory, shrub, and ground cover gaining target proportion', frequency: 'per season' },
+        { metric: 'Pioneer species vigor vs. plan in bare or degraded zones', frequency: 'per season' },
       ],
       triggers: [
         'Survival below target for a species -- review provenance, site match, replace from a nursery source',
         'A layer failing to fill -- reassess species choice or planting density for that layer',
         'Species mix drifting from the selection philosophy -- pause additions, re-confirm against design constraint',
       ],
-      feeds: 'Tree Health monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -592,16 +592,16 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Establishment & Maturity Water Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Applied irrigation volume per tree vs. the planned frequency and volume by age',
-        'Tree water-stress signs -- wilting, leaf scorch, early drop (weekly through the dry season)',
-        'Weaning progress -- irrigation reduced on schedule as root systems establish',
+        { metric: 'Applied irrigation volume per tree vs. the planned frequency and volume by age', frequency: 'per watering cycle' },
+        { metric: 'Tree water-stress signs -- wilting, leaf scorch, early drop', frequency: 'weekly through the dry season' },
+        { metric: 'Weaning progress -- irrigation reduced on schedule as root systems establish', frequency: 'per season' },
       ],
       triggers: [
         'Water-stress signs during normal irrigation -- check emitters and supply line, then raise volume',
         'Drought threshold reached on a mature block -- activate supplemental irrigation trigger',
         'Weaning step shows decline -- pause the reduction, hold the prior irrigation level',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -653,16 +653,16 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Guild Planting & Companion Species Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Companion species establishment and survival within each tree guild',
-        'Ground cover coverage vs. plan -- living mulch closing or paths staying mulched',
-        'Nitrogen-fixer vigor and visible soil or tree-health response near each guild',
+        { metric: 'Companion species establishment and survival within each tree guild', frequency: 'per season' },
+        { metric: 'Ground cover coverage vs. plan -- living mulch closing or paths staying mulched', frequency: 'per season' },
+        { metric: 'Nitrogen-fixer vigor and visible soil or tree-health response near each guild', frequency: 'per season' },
       ],
       triggers: [
         'A companion species failing to establish -- replace or substitute a better-matched companion',
         'Ground cover thinning to bare soil -- reseed or remulch before weed pressure builds',
         'A guild species outcompeting the tree -- prune back or relocate that companion',
       ],
-      feeds: 'Guild & Understory monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -711,16 +711,16 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Succession Management Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Succession stage progress against the 5, 10, and 25-year targets',
-        'Canopy light penetration vs. the target for a productive understory',
-        'Pioneer-species phase-out -- proportion retired on schedule',
+        { metric: 'Succession stage progress against the 5, 10, and 25-year targets', frequency: 'annual' },
+        { metric: 'Canopy light penetration vs. the target for a productive understory', frequency: 'per season' },
+        { metric: 'Pioneer-species phase-out -- proportion retired on schedule', frequency: 'annual' },
       ],
       triggers: [
         'Stage target missed at a milestone year -- schedule the planned intervention (chop and drop, coppice, or thin)',
         'Understory light below target -- thin or prune the canopy to restore penetration',
         'A pioneer species overstaying its phase-out trigger -- remove or replace per the succession plan',
       ],
-      feeds: 'Succession monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -772,16 +772,16 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Pest & Disease Management Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Pest counts against the defined intervention thresholds (weekly at peak pressure)',
-        'Disease incidence by crop family -- fireblight, brown rot, black spot',
-        'Beneficial-predator presence and sanitation compliance -- fallen-fruit removal, pruning hygiene',
+        { metric: 'Pest counts against the defined intervention thresholds', frequency: 'weekly at peak pressure' },
+        { metric: 'Disease incidence by crop family -- fireblight, brown rot, black spot', frequency: 'per season' },
+        { metric: 'Beneficial-predator presence and sanitation compliance -- fallen-fruit removal, pruning hygiene', frequency: 'per season' },
       ],
       triggers: [
         'Pest count crossing its threshold -- apply the defined response within the spray or biological program',
         'Disease symptoms appearing -- isolate affected trees, remove infected material, review variety resistance',
         'Predator population collapsing -- reduce intervention pressure, restore beneficial habitat',
       ],
-      feeds: 'Pest & Disease monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -835,15 +835,15 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the species mix and planting plan settled in the Tier-3 species-mix decision.',
     monitoringProtocol: {
       indicators: [
-        'Tree survival rate per species against the planting map at the end of each establishment season',
-        'Measured spacing and row alignment as planted versus the approved layout',
-        'Canopy spread per species relative to expected growth for its age and rootstock',
+        { metric: 'Tree survival rate per species against the planting map', frequency: 'at the end of each establishment season' },
+        { metric: 'Measured spacing and row alignment as planted versus the approved layout', frequency: 'at planting' },
+        { metric: 'Canopy spread per species relative to expected growth for its age and rootstock', frequency: 'per season' },
       ],
       triggers: [
         'Survival rate below target in a planting zone -- inspect the zone for frost, drainage, or aspect mismatch and replant gaps',
         'Canopy crowding observed between rows ahead of schedule -- review spacing and plan early thinning or pruning for affected rows',
       ],
-      feeds: 'Orchard Establishment monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -891,15 +891,15 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the guild planting and companion species strategy set in the Tier-3 guild-planting decision.',
     monitoringProtocol: {
       indicators: [
-        'Establishment rate of companion and ground-cover species within each guild radius',
-        'Ground-cover percent coverage achieved per zone against the planting target',
-        'Pioneer and support species vigor relative to the planting sequence stage',
+        { metric: 'Establishment rate of companion and ground-cover species within each guild radius', frequency: 'per season' },
+        { metric: 'Ground-cover percent coverage achieved per zone against the planting target', frequency: 'per season' },
+        { metric: 'Pioneer and support species vigor relative to the planting sequence stage', frequency: 'per season' },
       ],
       triggers: [
         'Guild companions failing to establish around a tree -- review planting timing and soil conditions and reseed or transplant',
         'Ground cover failing to close in a zone -- adjust seeding density or switch from seeding to transplanting for that zone',
       ],
-      feeds: 'Guild Establishment monitoring stream',
+      feeds: 'plants-food',
     },
     // Orchard-primary projects (which don't receive the additive secondary
     // `orch-sec-s5-guild-layout`) reach the Plan-stage multilayer guild
@@ -956,15 +956,15 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the water strategy for establishment and maturity settled in the Tier-3 water-strategy decision.',
     monitoringProtocol: {
       indicators: [
-        'Emitter output rate per tree against the design specification during each watering cycle',
-        'System pressure at zone valves versus the regulated design pressure',
-        'Tree water-stress signs across each irrigation zone through the establishment window',
+        { metric: 'Emitter output rate per tree against the design specification', frequency: 'during each watering cycle' },
+        { metric: 'System pressure at zone valves versus the regulated design pressure', frequency: 'per watering cycle' },
+        { metric: 'Tree water-stress signs across each irrigation zone through the establishment window', frequency: 'weekly' },
       ],
       triggers: [
         'Emitter output drifting from spec or blocked emitters found -- flush lines, service filters, and replace failed emitters',
         'Water-stress signs concentrated in one zone -- check that zone valve, pressure regulation, and emitter count for that block',
       ],
-      feeds: 'Irrigation Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -1012,15 +1012,15 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Access Paths & Harvest Infrastructure Design Package',
     monitoringProtocol: {
       indicators: [
-        'Picking-path passability for harvest equipment across all rows during the harvest window',
-        'Pack-out staging throughput from picking station to cool storage or pack shed each harvest day',
-        'Harvested fruit volume moved through the harvest infrastructure per established block',
+        { metric: 'Picking-path passability for harvest equipment across all rows', frequency: 'during the harvest window' },
+        { metric: 'Pack-out staging throughput from picking station to cool storage or pack shed', frequency: 'each harvest day' },
+        { metric: 'Harvested fruit volume moved through the harvest infrastructure per established block', frequency: 'per season' },
       ],
       triggers: [
         'A picking path fails to pass the specified harvest vehicle -- regrade or resurface that path before the next harvest',
         'Pack-out staging congesting at peak harvest -- add collection points or relocate staging closer to cool storage',
       ],
-      feeds: 'Harvest Infrastructure monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -1069,15 +1069,15 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the pest and disease management strategy set in the Tier-3 pest-disease-management decision.',
     monitoringProtocol: {
       indicators: [
-        'Browse and gnaw damage incidents per planting zone since the last inspection',
-        'Tree guard and stake integrity across all protected planting sites',
-        'Exclusion fencing condition around high-threat zones',
+        { metric: 'Browse and gnaw damage incidents per planting zone', frequency: 'since the last inspection' },
+        { metric: 'Tree guard and stake integrity across all protected planting sites', frequency: 'per inspection' },
+        { metric: 'Exclusion fencing condition around high-threat zones', frequency: 'per inspection' },
       ],
       triggers: [
         'Browse or gnaw damage appearing inside a protected zone -- inspect guards and fencing for that zone and repair or upgrade the protection type',
         'Trees established beyond threat in a zone -- action the guard removal schedule for that zone to free up reusable guards',
       ],
-      feeds: 'Tree Protection monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6
@@ -1459,16 +1459,16 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Cultivar, Rootstock & Pollination Decision Brief',
     monitoringProtocol: {
       indicators: [
-        'Fruit set rate per cross-pollinated species against expectation',
-        'Bloom-overlap timing between each species and its pollination partner each season',
-        'Pollinator activity in the canopy during the bloom window',
+        { metric: 'Fruit set rate per cross-pollinated species against expectation', frequency: 'per season' },
+        { metric: 'Bloom-overlap timing between each species and its pollination partner', frequency: 'each season' },
+        { metric: 'Pollinator activity in the canopy during the bloom window', frequency: 'during the bloom window' },
       ],
       triggers: [
         'Poor fruit set on a cross-pollinated species -- verify a compatible partner is present and blooming in overlap',
         'Bloom periods drifting apart between partners -- add or substitute a better-overlapping partner cultivar',
         'Low pollinator activity at bloom -- add insectary planting or managed hives near the affected block',
       ],
-      feeds: 'Pollination monitoring stream',
+      feeds: 'ecology',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -1519,15 +1519,15 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the cultivar, rootstock, and pollination decisions whose rootstock vigor drives spacing and density in the Tier-3 cultivars-rootstocks-pollination decision.',
     monitoringProtocol: {
       indicators: [
-        'Tree spacing and density as planted against the rootstock-driven design per zone',
-        'Understory light levels at the ground layer relative to canopy development',
-        'Support species establishment - nitrogen fixers and insectary plants - within each guild',
+        { metric: 'Tree spacing and density as planted against the rootstock-driven design per zone', frequency: 'at planting' },
+        { metric: 'Understory light levels at the ground layer relative to canopy development', frequency: 'per season' },
+        { metric: 'Support species establishment - nitrogen fixers and insectary plants - within each guild', frequency: 'per season' },
       ],
       triggers: [
         'Understory species declining under a maturing canopy -- review light competition and prune the canopy or substitute shade-tolerant understory',
         'Support species failing to establish in a guild -- reseed or transplant nitrogen fixers and insectary plants for that zone',
       ],
-      feeds: 'Guild Establishment monitoring stream',
+      feeds: 'plants-food',
     },
     // Surfaces the full 7-layer GuildSpatialBuilderCard (the Plan-stage
     // multilayer guild designer) in this objective's REFERENCE section.

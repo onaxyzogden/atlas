@@ -298,16 +298,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     actHandoff: 'Crop Rotation & Bed Layout Plan',
     monitoringProtocol: {
       indicators: [
-        'Same-family crops returning to a bed ahead of the defined rotation interval (each planting)',
-        'Bed count in active production vs. the count the rotation plan requires',
-        'Soil-borne disease incidence by rotation block (per season)',
+        { metric: 'Same-family crops returning to a bed ahead of the defined rotation interval', frequency: 'each planting' },
+        { metric: 'Bed count in active production vs. the count the rotation plan requires', frequency: 'per season' },
+        { metric: 'Soil-borne disease incidence by rotation block', frequency: 'per season' },
       ],
       triggers: [
         'Rotation interval breached on a bed -> reassign the planting and log the exception',
         'Active bed count falls short of rotation requirement -> rebalance the block plan or reduce volume targets',
         'Disease build-up recurring in a block -> lengthen the interval or rest the block',
       ],
-      feeds: 'Bed & Rotation monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -337,16 +337,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     actHandoff: 'Irrigation System Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Pressure and volume at the furthest irrigation point vs. design target (weekly in season)',
-        'Irrigation run time per zone vs. plan (weekly)',
-        'Soil moisture readings against target band where sensors are fitted',
+        { metric: 'Pressure and volume at the furthest irrigation point vs. design target', frequency: 'weekly in season' },
+        { metric: 'Irrigation run time per zone vs. plan', frequency: 'weekly' },
+        { metric: 'Soil moisture readings against target band where sensors are fitted', frequency: 'weekly in season' },
       ],
       triggers: [
         'Pressure drop at the furthest point -> inspect mainline and zone valves for leaks or blockage',
         'Zone run time rising without yield gain -> check emitters for clogging and recalibrate the schedule',
         'Soil moisture outside the target band -> adjust irrigation timing for that zone',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -377,16 +377,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     actHandoff: 'Fertility System Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Soil organic matter and key nutrient levels against the testing schedule (per season)',
-        'Compost produced vs. compost demand for the rotation (per cycle)',
-        'Cover crop establishment and biomass on rotation beds (each window)',
+        { metric: 'Soil organic matter and key nutrient levels against the testing schedule', frequency: 'per season' },
+        { metric: 'Compost produced vs. compost demand for the rotation', frequency: 'per cycle' },
+        { metric: 'Cover crop establishment and biomass on rotation beds', frequency: 'each window' },
       ],
       triggers: [
         'Soil test falls below the target fertility band -> adjust amendment plan before the next planting',
         'Compost supply short of demand -> scale the compost system or source a compliant input',
         'Cover crop fails to establish -> reseed or substitute a species suited to the window',
       ],
-      feeds: 'Soil Health monitoring stream',
+      feeds: 'soil',
     },
   }),
   obj({
@@ -417,16 +417,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     actHandoff: 'IPM & Pest Management Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Pest and beneficial-insect counts from scouting by zone (weekly in season)',
-        'Disease incidence by crop category against the action threshold (weekly)',
-        'Weed pressure and seed-bank spread on production beds (each cultivation)',
+        { metric: 'Pest and beneficial-insect counts from scouting by zone', frequency: 'weekly in season' },
+        { metric: 'Disease incidence by crop category against the action threshold', frequency: 'weekly' },
+        { metric: 'Weed pressure and seed-bank spread on production beds', frequency: 'each cultivation' },
       ],
       triggers: [
         'Pest count crosses the action threshold -> escalate up the IPM hierarchy, biological before chemical',
         'Disease detected in a crop category -> apply sanitation and adjust air circulation, isolate affected beds',
         'Weed pressure rising on a block -> bring forward cultivation, mulching, or flame weeding',
       ],
-      feeds: 'Pest Management monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -457,16 +457,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     actHandoff: 'Post-Harvest Handling & Storage Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Cold storage temperature and humidity against the target range (daily in season)',
-        'Elapsed time from harvest to cooling and to delivery vs. the defined window (per batch)',
-        'Produce rejected or downgraded at pack for quality faults (per harvest day)',
+        { metric: 'Cold storage temperature and humidity against the target range', frequency: 'daily in season' },
+        { metric: 'Elapsed time from harvest to cooling and to delivery vs. the defined window', frequency: 'per batch' },
+        { metric: 'Produce rejected or downgraded at pack for quality faults', frequency: 'per harvest day' },
       ],
       triggers: [
         'Cold storage drifts outside the target range -> service the unit and move affected stock',
         'Harvest-to-delivery window exceeded -> tighten the pack-shed workflow and recheck cooling capacity',
         'Reject rate climbs at pack -> trace the cause back through wash, handling, and field harvest',
       ],
-      feeds: 'Post-Harvest monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -499,15 +499,15 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       'Builds on the crop rotation and bed layout plan defined in the strategic foundation decisions.',
     monitoringProtocol: {
       indicators: [
-        'Marketable yield per bed against the design target (per crop cycle)',
-        'Beds in active production vs. the planned bed count (per season)',
-        'Tunnel and row-cover condition - anchoring, ventilation, tears (monthly in season)',
+        { metric: 'Marketable yield per bed against the design target', frequency: 'per crop cycle' },
+        { metric: 'Beds in active production vs. the planned bed count', frequency: 'per season' },
+        { metric: 'Tunnel and row-cover condition - anchoring, ventilation, tears', frequency: 'monthly in season' },
       ],
       triggers: [
         'Per-bed yield falling below target -> review bed orientation, spacing, and soil condition for that block',
         'Tunnel or cover damage observed -> repair the structure before the next planting window',
       ],
-      feeds: 'Production Beds monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -540,15 +540,15 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       'Builds on the irrigation system strategy defined in the strategic foundation decisions.',
     monitoringProtocol: {
       indicators: [
-        'Pressure and volume at the furthest emitter vs. the design figure (weekly in season)',
-        'Zone valve and controller function on the scheduled run (weekly)',
-        'Visible leaks, blockages, or wet spots along mainlines and sublines (per inspection)',
+        { metric: 'Pressure and volume at the furthest emitter vs. the design figure', frequency: 'weekly in season' },
+        { metric: 'Zone valve and controller function on the scheduled run', frequency: 'weekly' },
+        { metric: 'Visible leaks, blockages, or wet spots along mainlines and sublines', frequency: 'per inspection' },
       ],
       triggers: [
         'Pressure or volume short at the furthest point -> inspect the mainline, headers, and pressure regulation for faults',
         'Emitters clogging or a zone failing to run -> flush or replace the line and recalibrate the schedule',
       ],
-      feeds: 'Irrigation Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -581,15 +581,15 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       'Builds on the post-harvest handling and storage strategy defined in the strategic foundation decisions.',
     monitoringProtocol: {
       indicators: [
-        'Cold storage temperature and humidity against the target range (daily in season)',
-        'Throughput from wash to cold storage vs. the designed pack-shed workflow (per harvest day)',
-        'Surface-cleanliness and food-safety checks against the standard (per cleaning cycle)',
+        { metric: 'Cold storage temperature and humidity against the target range', frequency: 'daily in season' },
+        { metric: 'Throughput from wash to cold storage vs. the designed pack-shed workflow', frequency: 'per harvest day' },
+        { metric: 'Surface-cleanliness and food-safety checks against the standard', frequency: 'per cleaning cycle' },
       ],
       triggers: [
         'Cold storage drifts outside the target range -> service the unit and relocate affected stock',
         'Pack-shed throughput falling behind harvest volume -> rebalance the wash-to-pack workflow or staffing',
       ],
-      feeds: 'Post-Harvest Handling monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -620,15 +620,15 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       'Builds on the fertility system strategy defined in the strategic foundation decisions.',
     monitoringProtocol: {
       indicators: [
-        'Compost produced through the bay system vs. demand for the rotation (per cycle)',
-        'Compost maturity and temperature curve across the turning schedule (per batch)',
-        'Application coverage on production beds vs. the fertility plan (per cycle)',
+        { metric: 'Compost produced through the bay system vs. demand for the rotation', frequency: 'per cycle' },
+        { metric: 'Compost maturity and temperature curve across the turning schedule', frequency: 'per batch' },
+        { metric: 'Application coverage on production beds vs. the fertility plan', frequency: 'per cycle' },
       ],
       triggers: [
         'Compost output short of bed demand -> add bays, adjust feedstock, or increase turning frequency',
         'Batch failing to reach maturity -> correct the feedstock mix or turning cadence before applying',
       ],
-      feeds: 'Composting Systems monitoring stream',
+      feeds: 'soil',
     },
   }),
   obj({
@@ -661,15 +661,15 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       'Builds on the crop rotation and bed layout plan, which sets the transplant demand the nursery must meet.',
     monitoringProtocol: {
       indicators: [
-        'Healthy transplants produced vs. the transplanting schedule at peak demand (per propagation run)',
-        'Germination rate by crop in the propagation area against expected (per sowing)',
-        'Propagation environment - temperature, light, and humidity within the target band (daily in season)',
+        { metric: 'Healthy transplants produced vs. the transplanting schedule at peak demand', frequency: 'per propagation run' },
+        { metric: 'Germination rate by crop in the propagation area against expected', frequency: 'per sowing' },
+        { metric: 'Propagation environment - temperature, light, and humidity within the target band', frequency: 'daily in season' },
       ],
       triggers: [
         'Transplant output short of the schedule -> expand bench or germination capacity or stagger sowings',
         'Germination rate dropping below expected -> check heat, moisture, and seed lot, then resow as needed',
       ],
-      feeds: 'Propagation & Nursery monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

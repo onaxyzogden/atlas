@@ -486,16 +486,16 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Soil remediation is a pre-condition for commercial production. Fertility strategy must target a 2-3 year rebuild timeline.',
     monitoringProtocol: {
       indicators: [
-        'Soil organic matter % by zone (annual lab test)',
-        'Earthworm counts per sample (biannual)',
-        'Compost output volume vs. plan (monthly)',
+        { metric: 'Soil organic matter % by zone (lab test)', frequency: 'annual' },
+        { metric: 'Earthworm counts per sample', frequency: 'biannual' },
+        { metric: 'Compost output volume vs. plan', frequency: 'monthly' },
       ],
       triggers: [
         'OM not improving after 2 years -> review input quantities and quality',
         'Earthworm counts not recovering -> investigate soil compaction, chemical inputs',
         'Compost output below plan -> investigate feedstock supply',
       ],
-      feeds: 'Soil Health monitoring stream',
+      feeds: 'soil',
     },
   }),
   obj({
@@ -569,15 +569,15 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Biodiversity Readiness & Habitat Infrastructure Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Indicator species presence/absence by zone (biannual survey)',
-        'Native cover % in wild zones (annual)',
-        'Raptor perch activity at installed infrastructure (quarterly observation)',
+        { metric: 'Indicator species presence/absence by zone (survey)', frequency: 'biannual' },
+        { metric: 'Native cover % in wild zones', frequency: 'annual' },
+        { metric: 'Raptor perch activity at installed infrastructure (observation)', frequency: 'quarterly' },
       ],
       triggers: [
         'Indicator species absent for 2 consecutive seasons -> investigate habitat condition',
         'Native cover declining despite establishment efforts -> review species, competition, browse pressure',
       ],
-      feeds: 'Ecological Health monitoring stream',
+      feeds: 'ecology',
     },
   }),
   // ---------------------------------------------------------------- Stratum 5
@@ -645,17 +645,17 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on 3.3 -- Fertility strategy (approach) and 3.6 -- Paddock layout (livestock movement zones).',
     monitoringProtocol: {
       indicators: [
-        'Compost output volume vs. plan (monthly)',
-        'Fertility transfer events completed vs. scheduled (quarterly)',
-        'Crop yield response to fertility applications by zone (seasonal)',
-        'External input spend vs. plan (annual)',
+        { metric: 'Compost output volume vs. plan', frequency: 'monthly' },
+        { metric: 'Fertility transfer events completed vs. scheduled', frequency: 'quarterly' },
+        { metric: 'Crop yield response to fertility applications by zone', frequency: 'seasonal' },
+        { metric: 'External input spend vs. plan', frequency: 'annual' },
       ],
       triggers: [
         'Compost output below plan for two consecutive months -> investigate feedstock bottleneck',
         'Fertility transfer delayed -> flag the scheduling conflict',
         'Crop yield not responding to applications -> soil test, review application method and timing',
       ],
-      feeds: 'Fertility System monitoring stream',
+      feeds: 'soil',
     },
   }),
   obj({
@@ -736,15 +736,15 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on 3.4 -- Biodiversity strategy (corridor intent) and Survey 1.2 -- Climate & wind exposure (prevailing wind direction and severity).',
     monitoringProtocol: {
       indicators: [
-        'Planting survival rate at 6 and 12 months (by species and row)',
-        'Wind speed sheltered vs unsheltered (spot measurements in the lee zone)',
-        'Wildlife activity along the established corridor (sightings, nesting, movement)',
+        { metric: 'Planting survival rate (by species and row)', frequency: 'at 6 and 12 months' },
+        { metric: 'Wind speed sheltered vs unsheltered (spot measurements in the lee zone)', frequency: 'seasonal' },
+        { metric: 'Wildlife activity along the established corridor (sightings, nesting, movement)', frequency: 'seasonal' },
       ],
       triggers: [
         'Survival below 70% at 6 months -> review species choice, watering, or browse protection',
         'Wildlife activity absent after establishment -> review corridor structure and connectivity',
       ],
-      feeds: 'Vegetation & Microclimate monitoring stream',
+      feeds: 'ecology',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6

@@ -294,16 +294,16 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Teaching Zone Allocation & Infrastructure Placement Brief',
     monitoringProtocol: {
       indicators: [
-        'Learner journey flow through arrival, orientation, and departure (observed each program day)',
-        'Demonstration plot sight lines and group viewing comfort per teaching zone (per session)',
-        'Outdoor classroom usability under weather conditions and indoor backup uptake (seasonal)',
+        { metric: 'Learner journey flow through arrival, orientation, and departure', frequency: 'observed each program day' },
+        { metric: 'Demonstration plot sight lines and group viewing comfort per teaching zone', frequency: 'per session' },
+        { metric: 'Outdoor classroom usability under weather conditions and indoor backup uptake', frequency: 'seasonal' },
       ],
       triggers: [
         'Congestion or backtracking on the interpretive trail -> revise learner journey sequence and signage',
         'Group cannot see a demonstration clearly -> add staging or relocate the teaching zone',
         'Outdoor program disrupted by weather with no usable backup -> activate indoor teaching space and review placement',
       ],
-      feeds: 'Teaching Operations monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -335,16 +335,16 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Safety & Risk Management Framework',
     monitoringProtocol: {
       indicators: [
-        'Hazard register status -- open versus mitigated hazards on learner pathways (reviewed before each group)',
-        'Incident and near-miss count per program (logged each session)',
-        'First aid readiness -- trained personnel on site and equipment stock (checked weekly)',
+        { metric: 'Hazard register status -- open versus mitigated hazards on learner pathways', frequency: 'reviewed before each group' },
+        { metric: 'Incident and near-miss count per program', frequency: 'logged each session' },
+        { metric: 'First aid readiness -- trained personnel on site and equipment stock', frequency: 'checked weekly' },
       ],
       triggers: [
         'New hazard identified on a learner pathway -> exclude the area and update the risk assessment before next group',
         'Incident or near-miss recorded -> investigate, log, and revise the relevant protocol',
         'No trained first aider available for a scheduled group -> postpone the group until first aid cover is confirmed',
       ],
-      feeds: 'Safety & Safeguarding monitoring stream',
+      feeds: 'risk-compliance',
     },
     scopeNotes:
       'Hard gate: no learner group arrives before site risk assessment is complete and all hazards mitigated.',
@@ -377,16 +377,16 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Program Delivery Model Brief',
     monitoringProtocol: {
       indicators: [
-        'Instructor-to-learner ratio achieved per program against the defined requirement (each session)',
-        'Program quality-standard pass rate from facilitator debriefs (per program)',
-        'Adherence to the defined program structure -- arrival, orientation, activities, reflection, departure (observed)',
+        { metric: 'Instructor-to-learner ratio achieved per program against the defined requirement', frequency: 'each session' },
+        { metric: 'Program quality-standard pass rate from facilitator debriefs', frequency: 'per program' },
+        { metric: 'Adherence to the defined program structure -- arrival, orientation, activities, reflection, departure', frequency: 'observed each session' },
       ],
       triggers: [
         'Group ratio exceeds the defined maximum -> add an instructor or cap enrolment for that program',
         'Program falls short of the quality standard -> trigger the program review cycle and revise delivery',
         'Program consistently runs over or under its planned structure -> revise the format and timing',
       ],
-      feeds: 'Program Delivery monitoring stream',
+      feeds: 'people-governance',
     },
   }),
   obj({
@@ -415,16 +415,16 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Food & Hospitality Provision Strategy Brief',
     monitoringProtocol: {
       indicators: [
-        'Cold-chain and storage temperatures for served food (logged each service day)',
-        'Food safety compliance checks passed against group-service requirements (per event)',
-        'Handwashing and food-prep hygiene station readiness for group sizes (checked before service)',
+        { metric: 'Cold-chain and storage temperatures for served food', frequency: 'logged each service day' },
+        { metric: 'Food safety compliance checks passed against group-service requirements', frequency: 'per event' },
+        { metric: 'Handwashing and food-prep hygiene station readiness for group sizes', frequency: 'checked before service' },
       ],
       triggers: [
         'Cold storage out of safe temperature range -> discard affected food and repair or replace the unit',
         'Food safety check fails -> suspend food service until the issue is corrected and re-verified',
         'Handwashing provision inadequate for the group -> add capacity before food is served',
       ],
-      feeds: 'Food & Hospitality monitoring stream',
+      feeds: 'plants-food',
     },
     scopeNotes: 'Omit this objective if no food service is intended.',
   }),
@@ -458,15 +458,15 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
     monitoringProtocol: {
       indicators: [
-        'Teaching space utilisation against maximum group size per program type (each session)',
-        'Acoustic and sight-line adequacy reported by facilitators during demonstrations (per session)',
-        'Weather-proofing and indoor backup performance when outdoor programs are disrupted (seasonal)',
+        { metric: 'Teaching space utilisation against maximum group size per program type', frequency: 'each session' },
+        { metric: 'Acoustic and sight-line adequacy reported by facilitators during demonstrations', frequency: 'per session' },
+        { metric: 'Weather-proofing and indoor backup performance when outdoor programs are disrupted', frequency: 'seasonal' },
       ],
       triggers: [
         'Group exceeds the confirmed capacity of a teaching space -> cap enrolment or stage the group across sessions',
         'Facilitators report learners cannot hear or see a demonstration -> add staging or revise the space layout',
       ],
-      feeds: 'Teaching Spaces monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -498,15 +498,15 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
     monitoringProtocol: {
       indicators: [
-        'Demonstration plot condition and label legibility per curriculum theme (inspected each season)',
-        'Interpretive signage legibility and physical condition along the trail (monthly)',
-        'Observation infrastructure sight lines and group viewing access at each waypoint (per program)',
+        { metric: 'Demonstration plot condition and label legibility per curriculum theme', frequency: 'inspected each season' },
+        { metric: 'Interpretive signage legibility and physical condition along the trail', frequency: 'monthly' },
+        { metric: 'Observation infrastructure sight lines and group viewing access at each waypoint', frequency: 'per program' },
       ],
       triggers: [
         'Signage becomes illegible or damaged -> replace to the defined legibility standard before next group',
         'A demonstration plot no longer matches the curriculum calendar -> trigger the seasonal rotation update',
       ],
-      feeds: 'Demonstration Plots & Signage monitoring stream',
+      feeds: 'plants-food',
     },
   }),
   obj({
@@ -538,15 +538,15 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier 3 safety and risk management framework.',
     monitoringProtocol: {
       indicators: [
-        'Toilet and handwashing capacity against maximum group size in use (each program day)',
-        'First aid station equipment stock and accessibility (checked weekly)',
-        'Emergency assembly point access and signage clarity from all teaching zones (per program)',
+        { metric: 'Toilet and handwashing capacity against maximum group size in use', frequency: 'each program day' },
+        { metric: 'First aid station equipment stock and accessibility', frequency: 'checked weekly' },
+        { metric: 'Emergency assembly point access and signage clarity from all teaching zones', frequency: 'per program' },
       ],
       triggers: [
         'Toilet or handwashing provision is inadequate for the group on site -> cap the group or add temporary capacity',
         'Emergency assembly point becomes obstructed or unmarked -> clear and re-mark before the next group arrives',
       ],
-      feeds: 'Learner Amenity monitoring stream',
+      feeds: 'built-infrastructure',
     },
   }),
   obj({
@@ -578,15 +578,15 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on the Tier 3 food and hospitality provision strategy.',
     monitoringProtocol: {
       indicators: [
-        'Cold-chain and dry-storage conditions in the teaching kitchen (logged each service day)',
-        'Kitchen equipment compliance with food safety standard (inspected per service)',
-        'Dining area utilisation and learner observation positions against group size (per program)',
+        { metric: 'Cold-chain and dry-storage conditions in the teaching kitchen', frequency: 'logged each service day' },
+        { metric: 'Kitchen equipment compliance with food safety standard', frequency: 'inspected per service' },
+        { metric: 'Dining area utilisation and learner observation positions against group size', frequency: 'per program' },
       ],
       triggers: [
         'Food storage falls out of safe temperature range -> discard affected food and repair or replace the unit',
         'Kitchen equipment fails a food safety check -> suspend food service until corrected and re-verified',
       ],
-      feeds: 'Food Kitchen monitoring stream',
+      feeds: 'plants-food',
     },
     scopeNotes: 'Omit this objective if no food service is intended.',
   }),

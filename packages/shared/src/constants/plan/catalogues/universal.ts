@@ -830,16 +830,19 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Water strategy must address any Silvopasture conditional requirement -- the strategy is not complete until stock water infrastructure is confirmed as viable.',
     monitoringProtocol: {
       indicators: [
-        'Soil moisture by zone (monthly, growing season)',
-        'Dam/pond fill level (monthly)',
-        'Domestic supply volume (monthly)',
-        'Stock trough reliability (weekly during establishment)',
+        { metric: 'Soil moisture by zone', frequency: 'monthly (growing season)' },
+        { metric: 'Dam/pond fill level', frequency: 'monthly' },
+        { metric: 'Domestic supply volume', frequency: 'monthly' },
+        {
+          metric: 'Stock trough reliability',
+          frequency: 'weekly during establishment',
+        },
       ],
       triggers: [
         'Dam below 30% at spring equinox -> restrict irrigation allocation',
         'Domestic supply below household minimum -> review bore yield or augmentation options',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -887,15 +890,18 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Zone Allocation Framework',
     monitoringProtocol: {
       indicators: [
-        'Zone boundary adherence (quarterly audit)',
-        'Residential boundary conflicts (record any incursions)',
-        'Kitchen garden zone conditions (seasonal)',
+        { metric: 'Zone boundary adherence', frequency: 'quarterly audit' },
+        {
+          metric: 'Residential boundary conflicts',
+          frequency: 'logged as incursions occur',
+        },
+        { metric: 'Kitchen garden zone conditions', frequency: 'seasonal' },
       ],
       triggers: [
         'Repeated enterprise encroachment into residential zone -> formalize physical boundary marker',
         'Enterprise crowding kitchen garden -> review zone allocation',
       ],
-      feeds: 'Land Use monitoring stream',
+      feeds: 'land-base',
     },
     // Surface the Zone & Circulation overview card (Z0-Z5 polygons + path
     // frequency validation + "open the map to draw" prompt) in this objective's
@@ -947,15 +953,24 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on 3.2 -- Spatial framework & zones (zone layout determines access route structure).',
     monitoringProtocol: {
       indicators: [
-        'Track surface condition after wet events (monthly in wet season)',
-        'Laneway width adequacy for actual livestock operations (after first use)',
-        'Livestock stress points in the laneway network (observed during movement)',
+        {
+          metric: 'Track surface condition after wet events',
+          frequency: 'monthly in wet season',
+        },
+        {
+          metric: 'Laneway width adequacy for actual livestock operations',
+          frequency: 'after first use',
+        },
+        {
+          metric: 'Livestock stress points in the laneway network',
+          frequency: 'observed during each movement',
+        },
       ],
       triggers: [
         'Track surface failure after 25mm+ rain -> repair priority before the next wet event',
         'Livestock stress or bottleneck in a laneway -> review width, corner radius, or surface',
       ],
-      feeds: 'Infrastructure Condition monitoring stream',
+      feeds: 'access-circulation',
     },
   }),
   obj({
@@ -1013,18 +1028,33 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 2.5 Livestock Water Availability demand assessment, the conditional requirement raised at Tier 3 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
     monitoringProtocol: {
       indicators: [
-        'Dam/tank fill level as % capacity (monthly)',
-        'Days to refill after a 25mm rainfall event',
-        'Trough reliability -- recorded empty events',
-        'Domestic supply pressure and volume (monthly)',
-        'Overflow events (record date and rainfall trigger)',
+        {
+          metric: 'Dam/tank fill level as % capacity',
+          frequency: 'monthly',
+        },
+        {
+          metric: 'Days to refill after a 25mm rainfall event',
+          frequency: 'logged per 25mm+ rainfall event',
+        },
+        {
+          metric: 'Trough reliability (recorded empty events)',
+          frequency: 'logged as events occur',
+        },
+        {
+          metric: 'Domestic supply pressure and volume',
+          frequency: 'monthly',
+        },
+        {
+          metric: 'Overflow events (date and rainfall trigger)',
+          frequency: 'logged as events occur',
+        },
       ],
       triggers: [
         'Dam not reaching 75% capacity after two 25mm+ events -> investigate inlet, berm, or catchment',
         'Trough empty during operation -> check float valve, supply line, pump',
         'Domestic supply below minimum -> investigate bore, augment storage',
       ],
-      feeds: 'Water Systems monitoring stream',
+      feeds: 'hydrology',
     },
   }),
   obj({
@@ -1080,17 +1110,29 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Builds on 3.3 -- Fertility strategy (approach pre-decided) and Survey 2.2 -- Soil (baseline conditions by zone).',
     monitoringProtocol: {
       indicators: [
-        'Soil organic matter % by zone (annual lab test, same month each year)',
-        'Bulk density at 0-10cm and 10-20cm (biannual)',
-        'Cover crop establishment rate (% ground cover at 6 weeks)',
-        'Earthworm counts per square metre (biannual, same locations)',
+        {
+          metric: 'Soil organic matter % by zone (lab test)',
+          frequency: 'annual, same month each year',
+        },
+        {
+          metric: 'Bulk density at 0-10cm and 10-20cm',
+          frequency: 'biannual',
+        },
+        {
+          metric: 'Cover crop establishment rate (% ground cover)',
+          frequency: 'at 6 weeks post-sowing',
+        },
+        {
+          metric: 'Earthworm counts per square metre',
+          frequency: 'biannual, same locations',
+        },
       ],
       triggers: [
         'Bulk density not improving after 18 months in a zone -> investigate mechanical compaction-breaking need',
         'Organic matter not improving in Year 2 -> review input rates and composition',
         'Cover crop failure -> investigate seeding timing, rate, or competition',
       ],
-      feeds: 'Soil Health monitoring stream',
+      feeds: 'soil',
     },
   }),
   // ---------------------------------------------------------------- Stratum 6
