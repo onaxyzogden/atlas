@@ -15,7 +15,11 @@ import styles from './ActTierShell.module.css';
 
 interface Props {
   objective: PlanStratumObjective;
-  eyebrow: string;
+  // Optional context line above the title. The stratum objective rail omits it
+  // (every card shares one stratum, already named in the rail header), so it
+  // renders only when a caller supplies it — e.g. the search rail, where results
+  // span strata and the eyebrow ("S2 · ...") disambiguates each match.
+  eyebrow?: string;
   progress: ObjectiveProgress;
   isActive: boolean;
   onSelect: () => void;
@@ -67,7 +71,9 @@ export default function ActTierObjectiveCard({
           {source.label}
         </span>
       )}
-      <span className={styles.objEyebrow}>{eyebrow}</span>
+      {eyebrow ? (
+        <span className={styles.objEyebrow}>{eyebrow}</span>
+      ) : null}
       <span className={styles.objTitle}>{objective.shortTitle ?? objective.title}</span>
       <span className={styles.objDesc}>{objective.focusedQuestion}</span>
       <div className={styles.objFooter}>

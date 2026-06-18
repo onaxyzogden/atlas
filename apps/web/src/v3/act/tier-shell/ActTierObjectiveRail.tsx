@@ -218,7 +218,10 @@ export default function ActTierObjectiveRail({
                 <ActTierObjectiveCard
                   key={objective.id}
                   objective={objective}
-                  eyebrow={stratum?.title ?? 'Objective'}
+                  // No eyebrow here: every card in this list belongs to the
+                  // selected stratum, which the rail header already names, so the
+                  // per-card stratum title was redundant. (The search rail still
+                  // passes an eyebrow — its results span strata.)
                   progress={progressByObjective[objective.id] ?? EMPTY_PROGRESS}
                   isActive={objective.id === activeObjectiveId}
                   onSelect={() => onSelectObjective(objective.id)}

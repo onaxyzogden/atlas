@@ -106,6 +106,13 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.queryByTestId('protocol-layer-panel')).toBeNull();
   });
 
+  it('objective cards carry no stratum-title eyebrow (it lives only in the rail header)', () => {
+    const { container } = renderRail('objectives');
+    // The per-card stratum eyebrow was removed as redundant — every card in the
+    // list shares the selected stratum, which the rail header already names.
+    expect(container.querySelector('[class*="objEyebrow"]')).toBeNull();
+  });
+
   it('protocols mode renders the ProtocolLayerPanel and hides the objective list', () => {
     renderRail('protocols');
     expect(screen.getByTestId('act-rail-mode-toggle')).toBeTruthy();
