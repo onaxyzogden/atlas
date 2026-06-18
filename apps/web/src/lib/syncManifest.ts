@@ -121,6 +121,7 @@ import { useProofRecordStore } from '../store/olos/proofRecordStore.js';
 import { useVerificationRecordStore } from '../store/olos/verificationRecordStore.js';
 import { useActEvidenceStore } from '../store/actEvidenceStore.js';
 import { useRealityCheckStore } from '../store/realityCheckStore.js';
+import { useCoherenceCheckStore } from '../store/coherenceCheckStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
@@ -1006,6 +1007,11 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // text + approvedAt). Client-only IndexedDB, no server table -> opaque
   // byProject versioned-blob. v1 matches the persist version.
   blob('ogden-reality-check', useRealityCheckStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Threshold 2 (The Coherence Check) steward state: one ProjectCoherenceCheck
+  // per project (itemResolutions map + append-only amendments log + sealedAt).
+  // Client-only IndexedDB, no server table -> opaque byProject versioned-blob.
+  // v1 matches the persist version. Mirrors ogden-reality-check exactly.
+  blob('ogden-coherence-check', useCoherenceCheckStore, 'byProject', 1, byKey('byProject', null, {})),
   // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
   // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
   // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4
