@@ -189,6 +189,16 @@ describe('catalogue-wide - live catalogue is fully migrated + stable under re-re
     }
   });
 
+  // Mode-5 Launch Preparation (Tier 6, 2026-06-18): the FINAL stratum is renamed
+  // for display only -- id + ordinal stay byte-identical (renaming an id would be
+  // a multi-store migration), so the slug-stability guarantees above are untouched.
+  it('Tier-6 stratum is renamed "Launch Preparation" with id + ordinal byte-identical', () => {
+    const s7 = PLAN_STRATA.find((s) => s.id === 's7-phasing-resourcing');
+    expect(s7, 's7-phasing-resourcing must remain present by id').toBeDefined();
+    expect(s7!.ordinal).toBe(7);
+    expect(s7!.title).toBe('Launch Preparation');
+  });
+
   it('every authored objective id + stratumId is already s{n} (no double-bump)', () => {
     for (const o of ALL_AUTHORED) {
       expect(remapId(o.id), o.id).toBe(o.id);

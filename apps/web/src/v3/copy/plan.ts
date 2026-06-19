@@ -60,7 +60,7 @@ const LOCK_REASON: Record<PlanStratumId, string> = {
   "s6-integration-design":
     "Integration weaves access, water, and soil work into one design -- but only once each is settled on its own. Design them first.",
   "s7-phasing-resourcing":
-    "Phasing and resourcing schedule the work. There's nothing to schedule until the design above is settled.",
+    "Launch preparation sequences the work and resources Phase 1 against your team's capacity. There's nothing to prepare until the design above is settled.",
 };
 
 /** The ecological reason a given stratum is still locked. */

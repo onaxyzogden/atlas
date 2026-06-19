@@ -63,9 +63,13 @@ export const PLAN_STRATA: readonly PlanStratum[] = [
   {
     id: 's7-phasing-resourcing',
     ordinal: 7,
-    title: 'Phasing & Resourcing',
+    // Mode-5 Launch Preparation (Tier 6, 2026-06-18): display rename only -- the
+    // id 's7-phasing-resourcing' and ordinal 7 stay byte-identical (renaming the
+    // id is a multi-store migration; mirrors the Mode-4 's4-foundation-decisions'
+    // -> "Strategic Decisions" display rename).
+    title: 'Launch Preparation',
     summary:
-      'Phasing plan, capital schedule, labour and material sequencing.',
+      'Sequence the launch, resource Phase 1 against steward capacity, and set progress tracking and contingencies for execution.',
   },
 ] as const;
 
