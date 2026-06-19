@@ -1,0 +1,109 @@
+name: Deploy offline demo to GitHub Pages
+
+# Free, fully client-only "Try OLOS" demo (FEATURE_DEMO_OFFLINE=true): no backend,
+# no /api calls, no login wall. Served at try.atlas.ogden.ag via GitHub Pages.
+#
+# SEPARATE from the paid full-stack Render deploy (render.yaml -> atlas.ogden.ag),
+# which is untouched and unaffected. The earlier deploy.yml.disabled shipped the
+# SPA WITHOUT the offline flag, so its relative /api/v1/... calls 404'd and auth
+# broke -- the reason it was disabled. FEATURE_DEMO_OFFLINE removes the backend
+# dependency entirely (the guest session is minted in-browser), which is what
+# makes a static Pages deploy viable.
+#
+# BUILD NOTE: we run `vite build` directly (NOT the `build` package script) so we
+# skip `tsc` -- exactly mirroring infrastructure/Dockerfile.nginx, which builds
+# the production SPA the same way. `vite build` does no type-checking (esbuild
+# transpile-only), so the repo's test-only tsc errors cannot fail this deploy.
+# The showcase SEO prerender (normally the `postbuild` hook) is then run as an
+# explicit step, since invoking `vite build` directly does not fire `postbuild`.
+#
+# Trigger: manual (workflow_dispatch) or a push to the `demo` branch. It does NOT
+# fire on pushes to `main`, so landing the (flag-gated) demo source on main never
+# auto-deploys. Operator prerequisites before the first run:
+#   1. repo secret DEMO_MAPTILER_KEY -- a free MapTiler key that MUST be
+#      HTTP-referrer-LOCKED to https://try.atlas.ogden.ag in the MapTiler
+#      dashboard BEFORE you store it. This key is inlined into the PUBLIC
+#      static bundle (anyone can read it via DevTools); the referrer lock is
+#      the ONLY thing that stops a stranger from spending your quota with it.
+#      The lock is dashboard-side config -- it is NOT enforced by this workflow
+#      or by any code, so it is on the operator to set it. An unrestricted key
+#      here is a real abuse vector; do not skip this step.
+#   2. Settings -> Pages -> Source = "GitHub Actions"
+#   3. Settings -> Pages -> Custom domain = try.atlas.ogden.ag (this, not the
+#      CNAME file, is what binds the domain for an Actions-source deploy)
+#   4. DNS: CNAME try.atlas.ogden.ag -> onaxyzogden.github.io
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [demo]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one Pages deployment at a time; never cancel an in-flight publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # pnpm MUST be set up before setup-node so `cache: pnpm` can find the store.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Chromium is needed by the showcase prerender step below.
+      - name: Install Playwright browsers (Chromium)
+        run: pnpm --filter @ogden/web exec playwright install --with-deps chromium
+
+      # vite build directly (skips tsc, mirrors Dockerfile.nginx) with the
+      # offline-demo feature flags + the domain-restricted MapTiler key.
+      - name: Build offline demo
+        run: pnpm --filter @ogden/web exec vite build
+        env:
+          NODE_OPTIONS: --max-old-space-size=7168
+          FEATURE_DEMO_OFFLINE: "true"
+          FEATURE_MULTI_USER: "false"
+          FEATURE_AI: "false"
+          FEATURE_PUBLIC_PORTAL: "false"
+          FEATURE_RELATIONSHIPS: "false"
+          FEATURE_DEMO_MODE: "false"
+          VITE_MAPTILER_KEY: ${{ secrets.DEMO_MAPTILER_KEY }}
+
+      # Equivalent of the `postbuild` hook: prerender the 4 static showcase
+      # routes for SEO. Backend-less-safe (the showcase entry issues no /api
+      # calls; scene data is a static JSON copied into dist/).
+      - name: Prerender showcase routes
+        run: pnpm --filter @ogden/web prerender:showcase
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

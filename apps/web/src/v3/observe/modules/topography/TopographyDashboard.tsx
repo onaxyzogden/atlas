@@ -23,6 +23,7 @@ import {
 } from '../../../../store/topographyStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import { pickDefined, pickTruthy } from '@ogden/shared';
 import AspectCompass from './AspectCompass.js';
 import ElevationProfileChart from './ElevationProfileChart.js';
@@ -256,7 +257,7 @@ export default function TopographyDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export terrain report'}

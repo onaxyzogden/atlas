@@ -15,6 +15,7 @@
 
 import { create } from 'zustand';
 import { api } from '../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../app/demoSession.js';
 import type {
   PortfolioPoi,
   CreatePortfolioPoiInput,
@@ -50,6 +51,10 @@ export const usePoiStore = create<PoiState>()((set, get) => ({
   flows: EMPTY_FLOWS as PoiProjectFlow[],
 
   fetchAll: async () => {
+    // Offline demo: POIs are server-backed with no local persistence, so there
+    // is nothing to read (and a fetch would only 401). The Portfolio Map POI
+    // controls are themselves gated off in offline mode.
+    if (DEMO_OFFLINE_ENABLED) return;
     try {
       const { data } = await api.portfolioPois.list();
       if (data) {

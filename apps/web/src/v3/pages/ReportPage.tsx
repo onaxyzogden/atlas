@@ -21,6 +21,7 @@ import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { api } from "../../lib/apiClient.js";
+import { DEMO_OFFLINE_ENABLED } from "../../app/demoSession.js";
 import { downloadProjectReport } from "../data/generateProjectReport.js";
 import { formatLocationArea } from "../data/parcelIntegrity.js";
 import type { ProjectScores } from "../types.js";
@@ -150,8 +151,12 @@ export default function ReportPage() {
               type="button"
               className={css.btn}
               onClick={onServerPdf}
-              disabled={!generated || pdfBusy}
-              title="Generate a server-rendered PDF (capital partner summary)"
+              disabled={!generated || pdfBusy || DEMO_OFFLINE_ENABLED}
+              title={
+                DEMO_OFFLINE_ENABLED
+                  ? "Server-rendered PDF isn't available in the offline demo — use Download Markdown or Print"
+                  : "Generate a server-rendered PDF (capital partner summary)"
+              }
             >
               {pdfBusy ? "Generating PDF…" : "Download PDF"}
             </button>
@@ -168,8 +173,12 @@ export default function ReportPage() {
               type="button"
               className={css.btn}
               onClick={onPublishShare}
-              disabled={!generated || shareBusy}
-              title="Publish a tokenized, view-only link (no recipient login)"
+              disabled={!generated || shareBusy || DEMO_OFFLINE_ENABLED}
+              title={
+                DEMO_OFFLINE_ENABLED
+                  ? "Publishing a view-only link needs the OLOS backend — not available in the offline demo"
+                  : "Publish a tokenized, view-only link (no recipient login)"
+              }
             >
               {shareBusy
                 ? "Publishing…"

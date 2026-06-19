@@ -19,6 +19,7 @@ import { useVisionStore } from '../../../../store/visionStore.js';
 import type { StewardProfile } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
@@ -260,7 +261,7 @@ function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
           type="button"
           className={card.btn}
           onClick={onExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export human-context report'}

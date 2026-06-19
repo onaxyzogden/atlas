@@ -24,6 +24,7 @@ import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
 import {
   useBuildingsForProject,
@@ -336,7 +337,7 @@ export default function BuiltEnvironmentDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export built-environment report'}

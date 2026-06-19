@@ -32,7 +32,13 @@ import '../dev/seedMtcObserveBaseline.js';
 import '../dev/seedMtcRotationFixture.js';
 
 import { useAuthStore } from '../store/authStore.js';
-import { maybeBootDemoSession, maybeCloneBuiltinsForDemo, DEMO_MODE_ENABLED } from './demoSession.js';
+import {
+  maybeBootDemoSession,
+  maybeCloneBuiltinsForDemo,
+  bootOfflineDemoSession,
+  DEMO_MODE_ENABLED,
+  DEMO_OFFLINE_ENABLED,
+} from './demoSession.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import {
@@ -55,6 +61,18 @@ async function bootAuth(): Promise<void> {
   const init = useAuthStore.getState().initFromStorage();
   const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
   await Promise.race([init, timeout]);
+
+  // Offline demo (free client-only static build): synthesise a guest session
+  // entirely in-browser — no /api register, no /auth/me. Mutually exclusive with
+  // FEATURE_DEMO_MODE (the API-backed path below). Never throws.
+  if (DEMO_OFFLINE_ENABLED) {
+    await bootOfflineDemoSession({
+      getToken: () => useAuthStore.getState().token,
+      setSession: (token, user) =>
+        useAuthStore.setState({ token, user, isLoaded: true, sessionUnverified: false }),
+    });
+    return;
+  }
 
   // Demo mode (live test deployment only): if there's no session, silently
   // auto-register a throwaway guest account so the visitor lands in a working,
@@ -82,6 +100,22 @@ async function bootAuth(): Promise<void> {
  */
 export async function bootAuthedShell(): Promise<void> {
   await bootAuth();
+
+  // Offline demo (free client-only static build): there is NO backend, so skip
+  // the ENTIRE server-integration layer in one shot — client-error telemetry,
+  // the global error handlers (they POST to /api/telemetry), the API-reachability
+  // + success hooks, the 401 → session-expiry bridge, and all sync (siteDataSync,
+  // syncService). This early return MUST precede the handler wiring below: wiring
+  // the session-expiry bridge in offline mode is actively harmful — route-level
+  // authed fetches (e.g. projects/my-roles, portfolio-pois) 401 against any
+  // reachable API and would tear down the synthetic guest session
+  // (sessionExpiredStore.trigger → authStore.logout), re-raising the login wall
+  // this demo exists to avoid; the reachability reporter would likewise flip the
+  // unreachable-API banner. The guest token is never a real session here, so the
+  // residual fetch rejections are harmless once no handler reacts to them.
+  if (DEMO_OFFLINE_ENABLED) {
+    return;
+  }
 
   // Client-error telemetry wiring (authed-only — see showcase bundle-split
   // ADR). Register the active-project resolver so boundary / unhandled-

@@ -16,6 +16,7 @@ import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
 import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
@@ -117,7 +118,7 @@ export default function SwotDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export synthesis summary'}

@@ -40,6 +40,7 @@ import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useMapSheetExport } from '../useMapSheetExport.js';
 import { SHEET_EXPORTS, SHEET_LABEL } from '../MapSheetExportControl.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../app/demoSession.js';
 import css from './DesignToolRail.module.css';
 
 export type ToolMode = 'pan' | 'select';
@@ -351,61 +352,68 @@ export default function DesignToolRail({
         </div>
       )}
 
-      <div className={css.divider} aria-hidden="true" />
-      <DelayedTooltip label="Export sheet" position="left">
-        <button
-          type="button"
-          className={css.btn}
-          data-active={exportOpen}
-          onClick={() => {
-            setExportOpen((o) => !o);
-            setLayersOpen(false);
-          }}
-          disabled={generatingType !== null}
-          aria-label="Export sheet"
-          aria-haspopup="menu"
-          aria-expanded={exportOpen}
-        >
-          {generatingType !== null ? (
-            <Loader2 size={15} strokeWidth={1.75} className={css.spin} />
-          ) : (
-            <FileDown size={15} strokeWidth={1.75} />
-          )}
-        </button>
-      </DelayedTooltip>
-
-      {exportOpen && (
-        <div className={css.popover} role="menu" aria-label="Export map sheet">
-          <div className={css.popoverTitle}>Export sheet</div>
-          {SHEET_EXPORTS.map((sheet) => (
+      {/* Sheet export POSTs the captured map to the server (api.exports.generate)
+          to render the PDF, so it can't work in the offline demo — hide the
+          control rather than leave a button that only spins and errors. */}
+      {!DEMO_OFFLINE_ENABLED && (
+        <>
+          <div className={css.divider} aria-hidden="true" />
+          <DelayedTooltip label="Export sheet" position="left">
             <button
-              key={sheet.type}
               type="button"
-              role="menuitem"
-              className={css.popoverAction}
-              onClick={() => handleExport(sheet.type)}
+              className={css.btn}
+              data-active={exportOpen}
+              onClick={() => {
+                setExportOpen((o) => !o);
+                setLayersOpen(false);
+              }}
               disabled={generatingType !== null}
+              aria-label="Export sheet"
+              aria-haspopup="menu"
+              aria-expanded={exportOpen}
             >
-              {sheet.label}
+              {generatingType !== null ? (
+                <Loader2 size={15} strokeWidth={1.75} className={css.spin} />
+              ) : (
+                <FileDown size={15} strokeWidth={1.75} />
+              )}
             </button>
-          ))}
-          {generatingType !== null && (
-            <div className={css.popoverStatus}>
-              Exporting {SHEET_LABEL[generatingType]}…
+          </DelayedTooltip>
+
+          {exportOpen && (
+            <div className={css.popover} role="menu" aria-label="Export map sheet">
+              <div className={css.popoverTitle}>Export sheet</div>
+              {SHEET_EXPORTS.map((sheet) => (
+                <button
+                  key={sheet.type}
+                  type="button"
+                  role="menuitem"
+                  className={css.popoverAction}
+                  onClick={() => handleExport(sheet.type)}
+                  disabled={generatingType !== null}
+                >
+                  {sheet.label}
+                </button>
+              ))}
+              {generatingType !== null && (
+                <div className={css.popoverStatus}>
+                  Exporting {SHEET_LABEL[generatingType]}…
+                </div>
+              )}
+              {exportError && <div className={css.popoverError}>{exportError}</div>}
+              {downloadUrl && (
+                <a
+                  href={downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={css.popoverLink}
+                >
+                  Download PDF
+                </a>
+              )}
             </div>
           )}
-          {exportError && <div className={css.popoverError}>{exportError}</div>}
-          {downloadUrl && (
-            <a
-              href={downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={css.popoverLink}
-            >
-              Download PDF
-            </a>
-          )}
-        </div>
+        </>
       )}
     </div>
   );

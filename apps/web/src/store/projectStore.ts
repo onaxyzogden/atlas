@@ -1657,9 +1657,14 @@ async function hydrateBuiltins(): Promise<void> {
     applyBuiltinsToStore([LOCAL_BUILTIN_FALLBACK]);
   }
   // Trigger demo clone after builtins land. Tree-shaken to nothing in non-demo
-  // builds (Vite folds FEATURE_DEMO_MODE to a literal). Dynamic import avoids a
-  // circular dep: demoSession.ts statically imports projectStore.ts below.
-  if (process.env.FEATURE_DEMO_MODE === 'true') {
+  // builds (Vite folds the FEATURE_DEMO_* flags to literals). Dynamic import
+  // avoids a circular dep: demoSession.ts statically imports projectStore.ts
+  // below. Fires for BOTH demo modes — in offline mode the boot-time clone may
+  // run before builtins hydrate, so this is the retry that actually lands it.
+  if (
+    process.env.FEATURE_DEMO_MODE === 'true' ||
+    process.env.FEATURE_DEMO_OFFLINE === 'true'
+  ) {
     void import('../app/demoSession.js').then((m) => void m.maybeCloneBuiltinsForDemo());
   }
 }

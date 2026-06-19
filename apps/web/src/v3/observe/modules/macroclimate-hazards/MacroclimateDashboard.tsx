@@ -18,6 +18,7 @@ import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useHazardsStore } from '../../../../store/hazardsStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
 import HazardRiskMatrix from './HazardRiskMatrix.js';
@@ -152,7 +153,7 @@ export default function MacroclimateDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export macroclimate report'}

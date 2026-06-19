@@ -7,6 +7,11 @@
 
 import { create } from 'zustand';
 import { api, setAuthToken, ApiError, type ApiAuthUser } from '../lib/apiClient.js';
+import {
+  DEMO_OFFLINE_ENABLED,
+  DEMO_LOCAL_TOKEN,
+  getOrCreateOfflineDemoUser,
+} from '../app/demoSession.js';
 
 const TOKEN_KEY = 'ogden-auth-token';
 
@@ -94,6 +99,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       const stored = localStorage.getItem(TOKEN_KEY);
       if (!stored) {
         set({ isLoaded: true, sessionUnverified: false });
+        return;
+      }
+
+      // Offline demo: the sentinel token never hits a server. Restore the guest
+      // session directly — no /auth/me — so reloads are instant and the
+      // unverified banner never shows. (No setAuthToken: offline makes no authed
+      // calls.) Skip when offline mode is off so a real stored token still verifies.
+      if (DEMO_OFFLINE_ENABLED && stored === DEMO_LOCAL_TOKEN) {
+        set({
+          token: stored,
+          user: getOrCreateOfflineDemoUser(),
+          isLoaded: true,
+          sessionUnverified: false,
+        });
         return;
       }
 

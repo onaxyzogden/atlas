@@ -21,6 +21,7 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import { pickDefined, pickTruthy } from '@ogden/shared';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
@@ -217,7 +218,7 @@ export default function EarthWaterEcologyDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export earth · water · ecology report'}

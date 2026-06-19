@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Check, GitCompare, Plus, Search } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
+import { DEMO_OFFLINE_ENABLED } from '../../app/demoSession.js';
 import {
   STAGE_FILTERS,
   STAGE_PAINT,
@@ -178,15 +179,20 @@ export default function PortfolioProjectList({
                     <span className={css.itemName}>{p.name}</span>
                     <span className={css.itemMeta}>
                       {STAGE_PAINT[stage].label} · {projectAreaLabel(p)}
-                      {syncState === 'unsynced' && (
+                      {/* Sync state is meaningless in the offline demo (no
+                          backend), so the synced/unsynced tags are suppressed
+                          there — only the truthful "Sample" tag remains. */}
+                      {!DEMO_OFFLINE_ENABLED && syncState === 'unsynced' && (
                         <span className={css.tagUnsynced}>Not synced</span>
                       )}
-                      {syncState === 'synced' && <span className={css.tagSynced}>Synced</span>}
+                      {!DEMO_OFFLINE_ENABLED && syncState === 'synced' && (
+                        <span className={css.tagSynced}>Synced</span>
+                      )}
                       {syncState === 'builtin' && <span className={css.tagSample}>Sample</span>}
                     </span>
                   </span>
                 </button>
-                {syncState === 'unsynced' && onSyncProject && (
+                {!DEMO_OFFLINE_ENABLED && syncState === 'unsynced' && onSyncProject && (
                   <button
                     type="button"
                     className={css.syncBtn}
