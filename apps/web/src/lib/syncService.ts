@@ -1876,6 +1876,10 @@ export async function hydrateProjectStateBlobs(
   for (const row of rows) {
     const d = descByKey.get(row.storeKey);
     if (!d || !d.store || !d.applyForProject) continue;
+    // F8: append-only governance logs carry a RECONCILE applier that unions the
+    // server slice with the local one (no last-writer-wins clobber across
+    // devices). Every other blob store falls back to the replace applier.
+    const inbound = d.reconcileForProject ?? d.applyForProject;
     if (pendingBlobIds.has(blobLocalId(row.storeKey, project.id))) {
       console.warn(
         `[SYNC] blob "${row.storeKey}" has a pending un-synced local edit; ` +
@@ -1905,7 +1909,7 @@ export async function hydrateProjectStateBlobs(
         setState: (p: unknown) => void;
         temporal?: { getState: () => { clear: () => void } };
       };
-      d.applyForProject(handle, project.id, row.payload);
+      inbound(handle, project.id, row.payload);
       blobBaseRev.set(blobLocalId(row.storeKey, project.id), row.rev);
       if (d.usesTemporal) handle.temporal?.getState().clear();
     } catch (err) {
