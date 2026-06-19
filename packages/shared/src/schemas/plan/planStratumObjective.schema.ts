@@ -545,6 +545,32 @@ export const PlanStratumObjectiveSchema = z.object({
    */
   planningDirectionMandate: z.string().min(1).optional(),
   /**
+   * Mode-5 Launch Preparation (doc Tier 6 / Stratum `s7-phasing-resourcing`)
+   * DISPLAY-ONLY progress-tracking field: the project-management milestones a
+   * steward watches while EXECUTING this launch objective (milestone-vs-plan,
+   * expenditure-vs-budget, capacity-deployment-vs-estimate). Each milestone is a
+   * `{ metric, cadence }` pair (what is tracked + how often it is reviewed),
+   * >=2 per objective. Deliberately DISTINCT from `monitoringProtocol`: that is
+   * the ecological/operational Observe-stage design input and carries a `feeds`
+   * Observe-domain destination; progress tracking has NO Observe destination
+   * (no `feeds`) -- it is execution bookkeeping the steward reads on the Plan
+   * launch-prep chrome. STILL DISPLAY-ONLY; NEVER a prerequisite or gate. Absent
+   * on every non-Tier-6 objective, so legacy seed/catalogue objects validate
+   * unchanged.
+   */
+  progressTracking: z
+    .object({
+      milestones: z
+        .array(
+          z.object({
+            metric: z.string().min(1),
+            cadence: z.string().min(1),
+          }),
+        )
+        .min(2),
+    })
+    .optional(),
+  /**
    * Resolution metadata: when true, this authored objective is DEFINED but
    * SKIPPED by `resolveProjectObjectives` (Pass-1) -- kept in the catalogue for a
    * later tier/pass without resolving into the current config. Distinct from the

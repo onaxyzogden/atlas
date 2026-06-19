@@ -103,6 +103,14 @@ describe('catalogue conformance - schema validity', () => {
         },
         planningDirectionMandate:
           'Carries the approved water direction; raises any water conditional for closure downstream.',
+        // Mode-5 Launch Preparation (Tier 6, 2026-06-18): >=2 { metric, cadence }
+        // execution milestones, DISPLAY-ONLY, no Observe `feeds`.
+        progressTracking: {
+          milestones: [
+            { metric: 'Phase-1 tasks complete vs plan', cadence: 'weekly' },
+            { metric: 'Capital spent vs budget', cadence: 'monthly' },
+          ],
+        },
       };
       const parsed = PlanStratumObjectiveSchema.parse(withAll);
       expect(parsed.intentLens?.length ?? 0).toBeGreaterThan(0);
@@ -120,9 +128,14 @@ describe('catalogue conformance - schema validity', () => {
       expect(parsed.monitoringProtocol?.triggers.length).toBe(1);
       expect(parsed.monitoringProtocol?.feeds).toBe('hydrology');
       expect(typeof parsed.planningDirectionMandate).toBe('string');
+      expect(parsed.progressTracking?.milestones.length).toBe(2);
+      expect(parsed.progressTracking?.milestones[0]).toEqual({
+        metric: 'Phase-1 tasks complete vs plan',
+        cadence: 'weekly',
+      });
     });
 
-    it('leaves all six optional fields undefined when omitted (legacy objectives unchanged)', () => {
+    it('leaves all seven optional fields undefined when omitted (legacy objectives unchanged)', () => {
       const vision = UNIVERSAL_PLAN_OBJECTIVES.find((o) => o.id === 's1-vision');
       const parsed = PlanStratumObjectiveSchema.parse(vision!);
       expect(parsed.intentLens).toBeUndefined();
@@ -131,6 +144,7 @@ describe('catalogue conformance - schema validity', () => {
       expect(parsed.excludedFromResolution).toBeUndefined();
       expect(parsed.monitoringProtocol).toBeUndefined();
       expect(parsed.planningDirectionMandate).toBeUndefined();
+      expect(parsed.progressTracking).toBeUndefined();
     });
   });
 

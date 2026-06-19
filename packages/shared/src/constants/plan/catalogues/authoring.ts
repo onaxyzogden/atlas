@@ -276,6 +276,15 @@ export interface ObjectiveInput {
    */
   planningDirectionMandate?: string;
   /**
+   * Mode-5 Launch Preparation (Tier 6) DISPLAY-ONLY progress tracking: >=2
+   * `{ metric, cadence }` execution milestones the steward watches while running
+   * this launch objective. No Observe `feeds` (distinct from monitoringProtocol).
+   * NEVER a gate. Omit for all non-Tier-6 objectives.
+   */
+  progressTracking?: {
+    milestones: { metric: string; cadence: string }[];
+  };
+  /**
    * When true, this authored objective is DEFINED but SKIPPED by the resolver
    * (kept for a later tier/pass). Omit (=> resolves normally) for all but the
    * deliberately-excluded objectives.
@@ -335,6 +344,16 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
       : {}),
     ...(input.planningDirectionMandate
       ? { planningDirectionMandate: input.planningDirectionMandate }
+      : {}),
+    ...(input.progressTracking
+      ? {
+          progressTracking: {
+            milestones: input.progressTracking.milestones.map((m) => ({
+              metric: m.metric,
+              cadence: m.cadence,
+            })),
+          },
+        }
       : {}),
     ...(input.excludedFromResolution
       ? { excludedFromResolution: true }
