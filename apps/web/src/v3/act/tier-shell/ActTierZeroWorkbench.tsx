@@ -411,6 +411,19 @@ export function buildDecisionTarget(
   // advance-purchase channel; CSRA erased 2026-05-04). False for every other id.
   const isCapitalPlan = item.id.startsWith('ev-s7-financial-plan-');
 
+  // Phase-1 demand capture upgrades two EXISTING universal s7-resource-plan items
+  // in place: c1 (labour demand by task/season) and c4 (capital demand by
+  // category). The panel's isDemandCapture body-router arm (DemandCapture
+  // self-routes on itemId via demandModeFor) takes precedence over the generic
+  // form. EXACT-id match (c1/c4 are not contiguous and share their objective with
+  // generic c2/c3/c5) -- so no checklist item is added/removed and no
+  // decision-group membership changes; completion math is byte-identical. Advisory
+  // only -- no store write, no projectId. AMANAH: the capital-demand channel reuses
+  // the closed CAPITAL_CHANNEL_LIST enum (no advance-purchase channel; CSRA erased
+  // 2026-05-04). False for every other id.
+  const isDemandCapture =
+    item.id === 's7-resource-plan-c1' || item.id === 's7-resource-plan-c4';
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -478,6 +491,7 @@ export function buildDecisionTarget(
     isSettlementPlan,
     isOnboarding,
     isCapitalPlan,
+    isDemandCapture,
     deferLabel,
     deferrable,
   };

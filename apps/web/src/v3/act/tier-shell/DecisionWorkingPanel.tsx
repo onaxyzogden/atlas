@@ -308,6 +308,13 @@ import {
   type CapitalPlanMode,
 } from './EcovillageCapitalPlanCapture.js';
 import {
+  DemandCapture,
+  demandModeFor,
+  isDemandValid,
+  summariseDemand,
+  type DemandMode,
+} from './DemandCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -404,6 +411,8 @@ export interface DecisionPanelTarget {
   isOnboarding?: boolean;
   /** true => render EcovillageCapitalPlanCapture (self-routing on itemId via capitalPlanModeFor). */
   isCapitalPlan?: boolean;
+  /** true => render DemandCapture (self-routing on itemId via demandModeFor; c1 labour / c4 capital). */
+  isDemandCapture?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -923,6 +932,17 @@ export default function DecisionWorkingPanel({
     ? capitalPlanModeFor(decision.itemId)
     : null;
 
+  // Phase-1 demand capture is a 2-mode capture (labourDemand for s7-resource-plan-c1
+  // / capitalDemand for s7-resource-plan-c4) routed by demandModeFor(itemId).
+  // Advisory only -- validates / summarises off the FormValue, writes no store /
+  // takes no projectId; the captured demand is read back display-only by the
+  // Plan-only Capacity Bridge. AMANAH: the capital-demand channel reuses the closed
+  // CAPITAL_CHANNEL_LIST enum (no advance-purchase channel; CSRA erased 2026-05-04).
+  // Only the resolved mode is held here.
+  const demandMode: DemandMode | null = decision.isDemandCapture
+    ? demandModeFor(decision.itemId)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -1013,6 +1033,12 @@ export default function DecisionWorkingPanel({
     // isCapitalPlanValid. The c2 scheduled-vs-required strip is display-only, so
     // validity does not depend on siblingValues.
     valid = isCapitalPlanValid(capitalPlanMode, draft);
+  } else if (demandMode) {
+    // Phase-1 demand: c1 needs >=1 labour line; c4 needs >=1 capital line with a
+    // positive amount and a permitted funding channel. Demand is self-contained
+    // (the supply/demand join is display-only in the Plan Capacity Bridge), so
+    // validity does not depend on siblingValues.
+    valid = isDemandValid(demandMode, draft);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1243,6 +1269,14 @@ export default function DecisionWorkingPanel({
                   ? 'Choose a communal fund holding structure to record'
                   : 'Choose a reporting cadence to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (demandMode) {
+      // The verbatim Amanah boundary (CAPITAL_SCOPE_NOTES) is surfaced in the
+      // capitalDemand body's warn block, so the gate note here stays a short reason.
+      const note =
+        demandMode === 'labourDemand'
+          ? 'Add at least one labour line with a task and weekly hours (or headcount) to record'
+          : 'Add at least one capital line with a category, amount, and permitted funding channel to record';
+      gateNote = <div className={css.gateNote}>{note}</div>;
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -1344,6 +1378,8 @@ export default function DecisionWorkingPanel({
     } else if (capitalPlanMode) {
       // c2 references the c1 sibling FormValue for the scheduled-vs-required line.
       summary = summariseCapitalPlan(capitalPlanMode, draft, siblingValues);
+    } else if (demandMode) {
+      summary = summariseDemand(demandMode, draft);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1731,6 +1767,14 @@ export default function DecisionWorkingPanel({
             onChange={setDraft}
             itemId={decision.itemId}
             siblingValues={siblingValues}
+          />
+        ) : demandMode ? (
+          <DemandCapture
+            key={decision.itemId}
+            mode={demandMode}
+            value={draft}
+            onChange={setDraft}
+            itemId={decision.itemId}
           />
         ) : hasFields ? (
           <VisionFormFields
