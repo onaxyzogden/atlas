@@ -63,6 +63,7 @@ interface SpineOverrides {
   clickableThresholdIds?: readonly string[];
   thresholdActiveId?: string;
   onSelectThreshold?: (thresholdId: string) => void;
+  activeStratumId?: string;
 }
 
 function renderSpine(over: SpineOverrides = {}): void {
@@ -171,6 +172,29 @@ describe('ActTierSpine -- Plan threshold clickability', () => {
     const entry = screen.getByTestId('spine-threshold');
     expect(entry.getAttribute('data-active')).toBe('true');
     expect(entry.getAttribute('aria-current')).toBe('step');
+  });
+
+  it('highlights ONLY the active threshold, not a stratum tab, when activeStratumId matches none', () => {
+    // The Plan shell passes activeStratumId="" while a threshold surface is
+    // open (selectedStratumId still falls back to S1 for the rail context, but
+    // the spine must not show a stray active stratum behind the threshold).
+    renderSpine({
+      activeStratumId: '',
+      thresholds: THRESHOLD_WITH_ID,
+      clickableThresholdIds: ['threshold-1'],
+      thresholdActiveId: 'threshold-1',
+      onSelectThreshold: vi.fn(),
+    });
+    // No stratum tab is active.
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(STRATA.length);
+    for (const tab of tabs) {
+      expect(tab.getAttribute('data-active')).toBe('false');
+      expect(tab.getAttribute('aria-selected')).toBe('false');
+    }
+    // The threshold button is the only active entry.
+    const entry = screen.getByTestId('spine-threshold');
+    expect(entry.getAttribute('data-active')).toBe('true');
   });
 
   it('stays a separator when the id is clickable but NO handler is supplied', () => {

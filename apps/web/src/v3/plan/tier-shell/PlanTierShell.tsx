@@ -1082,7 +1082,12 @@ export default function PlanTierShell() {
           objectives={objectives}
           stratumStates={stratumStates}
           lockedStratumIds={lockedStratumIds}
-          activeStratumId={selectedStratumId}
+          // While a threshold surface is open, ONLY its divider button is
+          // highlighted -- no stratum tab. selectedStratumId still falls back to
+          // S1 (it scopes the rail context), but passing '' here means no tab
+          // matches, so S1 stops showing a stray active highlight behind the
+          // active threshold. The threshold button carries its own data-active.
+          activeStratumId={thresholdActive ? '' : selectedStratumId}
           onSelectStratum={handleSelectStratum}
           projectTitle={project.name}
           projectTypeLabel={projectTypeLabel}
