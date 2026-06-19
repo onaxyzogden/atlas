@@ -79,6 +79,7 @@ import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
 import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
 import ActObjectiveAmendments from './ActObjectiveAmendments.js';
 import ActObjectiveMonitoringPanel from './ActObjectiveMonitoringPanel.js';
+import ActObjectiveLaunchProgress from './ActObjectiveLaunchProgress.js';
 import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
@@ -890,6 +891,16 @@ export default function ActTierExecutionPanel({
           objective so the record form resets when the steward navigates. */}
       <ActObjectiveMonitoringPanel
         key={objective.id}
+        projectId={projectId}
+        objective={objective}
+      />
+
+      {/* Launch progress: the Plan-authored progressTracking.milestones made live
+          during Act -- each milestone toggles "reached", persisted through
+          launchMilestoneStore. Self-gates to null when the objective has no
+          progressTracking. Keyed by objective so toggles reset on navigation. */}
+      <ActObjectiveLaunchProgress
+        key={`progress-${objective.id}`}
         projectId={projectId}
         objective={objective}
       />
