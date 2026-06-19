@@ -2507,4 +2507,88 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
     scopeNote:
       'Silvopasture secondary: land health is read for grazing legacy - compaction, overgrazing weeds, and pasture condition that set the recovery sequence before stocking resumes. Observation of present land state; no production or sale commitment.',
   }),
+  // ---- Tier-6 (Stratum-7) Launch Preparation restructure 2026-06-18 ---------
+  // Three livestock deltas folded into the shared universal s7 launch-prep
+  // objectives so the grazing dimension rides the whole-site Phase 1 plan,
+  // resource plan, and risk register. Sequencing only - the silvopasture primary
+  // s7 set already owns the establishment-sequence / stocking-buildup objectives;
+  // these patches surface the stock layer in the UNIVERSAL launch objectives.
+  // SILV>U-S7.1 Establishment sequence
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-phase1',
+    ref: 'SILV>U-S7.1',
+    injectedItems: [
+      ck(
+        's7-phase1-silv-1',
+        'Sequence pasture and tree establishment ahead of livestock introduction within the Phase 1 plan - stock arrive only after infrastructure and pasture-readiness gates pass',
+      ),
+      ck(
+        's7-phase1-silv-2',
+        'Mark the tree-protection-phase milestones in the Phase 1 sequence that gate partial and full stocking',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-phase1-dgsilv1', 'Establishment sequence & stocking gates', [
+        's7-phase1-silv-1',
+        's7-phase1-silv-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Establishment sequence places pasture and tree establishment ahead of stocking, with tree-protection milestones gating stock introduction.',
+    scopeNote:
+      'Silvopasture secondary: integrated grazing is sequenced behind pasture and tree establishment; stock arrive only after readiness gates pass.',
+  }),
+  // SILV>U-S7.2 Livestock sourcing folded into the resource plan
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-resource-plan',
+    ref: 'SILV>U-S7.2',
+    injectedItems: [
+      ck(
+        's7-resource-plan-silv-1',
+        'Add livestock acquisition to the Phase 1 resource plan - breed, vendor, transport, and quarantine sourcing, scheduled behind the infrastructure readiness gates',
+      ),
+      ck(
+        's7-resource-plan-silv-2',
+        'Add establishment-period feed and fencing / water capital for the staged stocking buildup',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-resource-plan-dgsilv1', 'Livestock sourcing & establishment capital', [
+        's7-resource-plan-silv-1',
+        's7-resource-plan-silv-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Livestock sourcing and establishment-period feed / infrastructure capital folded into the Phase 1 resource plan.',
+    scopeNote:
+      'Silvopasture secondary: stocking is a resourced, sequenced acquisition of livestock the steward will own and possess - no advance sale or commitment of unproduced output.',
+  }),
+  // SILV>U-S7.3 Livestock-establishment risks
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-risk-register',
+    ref: 'SILV>U-S7.3',
+    injectedItems: [
+      ck(
+        's7-risk-register-silv-1',
+        'Add livestock-establishment risks to the register - stocking ahead of pasture readiness, tree-guard failure under early grazing, drought-driven feed shortfall during buildup',
+      ),
+      ck(
+        's7-risk-register-silv-2',
+        'Define contingency for reduced establishment-period carrying capacity - supplementary feed, agistment, or a destocking trigger',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-risk-register-dgsilv1', 'Livestock establishment risks', [
+        's7-risk-register-silv-1',
+        's7-risk-register-silv-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Livestock-establishment risks and a reduced-carrying-capacity contingency added to the register.',
+    scopeNote:
+      'Silvopasture secondary: the establishment period carries grazing-specific risks (premature stocking, tree-guard failure, feed shortfall) the base register may not capture.',
+  }),
 ];

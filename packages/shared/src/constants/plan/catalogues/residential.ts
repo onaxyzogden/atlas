@@ -868,4 +868,85 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
     completionGateAmendment:
       'Residential access route designed and separated from farm operational traffic where practical.',
   }),
+  // P6 - Stratum 7 (Tier 6 / Launch Preparation) patch on the universal Phase 1
+  // implementation plan: place the household move-on-site milestone within the
+  // Phase 1 sequence, gated on the habitability threshold defined in the
+  // res-s7-phasing objective (this patch references that gate, it does not
+  // re-define it - no duplication of the habitability checklist).
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-phase1',
+    ref: 'RES>U-S7.1',
+    injectedItems: [
+      ck(
+        's7-phase1-pres-1',
+        'Mark the household move-on-site milestone within the Phase 1 implementation sequence - tied to the habitability go/no-go gate defined in the residential phasing plan',
+      ),
+      ck(
+        's7-phase1-pres-2',
+        'Confirm the Phase 1 milestones that are prerequisites for occupancy are sequenced before the move-on-site date',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-phase1-dgres1', 'Domestic occupancy milestone', [
+        's7-phase1-pres-1',
+        's7-phase1-pres-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Household occupancy milestone placed within the Phase 1 sequence and gated on the habitability threshold.',
+  }),
+  // P7 - Stratum 7 patch on the universal resource & capacity plan: fold domestic
+  // establishment capital and household labour availability into the Phase 1
+  // resource estimate (the same people often build the dwelling and move into it).
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-resource-plan',
+    ref: 'RES>U-S7.2',
+    injectedItems: [
+      ck(
+        's7-resource-plan-pres-1',
+        'Add domestic establishment capital to the Phase 1 capital estimate - dwelling, domestic water / energy / heating systems, fit-out',
+      ),
+      ck(
+        's7-resource-plan-pres-2',
+        'Account for household labour availability against domestic-build demand when estimating capacity - the same people often build and move in',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-resource-plan-dgres1', 'Domestic capital & capacity', [
+        's7-resource-plan-pres-1',
+        's7-resource-plan-pres-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Domestic establishment capital and household capacity folded into the Phase 1 resource plan.',
+  }),
+  // P8 - Stratum 7 patch on the universal risk & contingency register: add the
+  // domestic-specific risks (habitability slippage, temporary-accommodation
+  // overrun, first-occupancy system failure) and a missed-habitability-gate
+  // contingency.
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-risk-register',
+    ref: 'RES>U-S7.3',
+    injectedItems: [
+      ck(
+        's7-risk-register-pres-1',
+        'Add domestic-specific risks to the register - habitability slippage delaying move-in, temporary-accommodation overrun, domestic-system failure in first occupancy',
+      ),
+      ck(
+        's7-risk-register-pres-2',
+        'Define contingency for a missed habitability gate - where the household lives and what triggers deferral of the move-on-site date',
+      ),
+    ],
+    injectedGroups: [
+      dg('s7-risk-register-dgres1', 'Domestic risks & contingency', [
+        's7-risk-register-pres-1',
+        's7-risk-register-pres-2',
+      ]),
+    ],
+    completionGateAmendment:
+      'Domestic-specific risks and a missed-habitability-gate contingency added to the register.',
+  }),
 ];

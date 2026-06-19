@@ -1308,7 +1308,7 @@ describe('catalogue conformance - nursery secondary resolution', () => {
 });
 
 describe('catalogue conformance - silvopasture secondary resolution', () => {
-  it('contributes 9 additive objectives (one excluded from resolution) and 12 patches', () => {
+  it('contributes 9 additive objectives (one excluded from resolution) and 15 patches', () => {
     // SILV>RF-S1.4 targets the regen primary's enterprise-mix objective
     // (rf-s1-enterprise-mix), added by the 2026-06-16 Tier-0 restructure so
     // livestock integration is captured at declaration time. The 2026-06-16
@@ -1317,11 +1317,14 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     // flagged silv-sec-s3-forage-survey excludedFromResolution (definition kept,
     // deferred to a later pass). The 2026-06-16 Tier-1 (Stratum-2) Land-Reading
     // restructure then added four more patches - terrain/ecology/infrastructure
-    // on the universal s2 surveys plus land-health on the regen primary survey -
-    // with no new objectives, so the array still holds 9 (8 resolve) while the
-    // patch count rises 8 -> 12.
+    // on the universal s2 surveys plus land-health on the regen primary survey.
+    // The 2026-06-18 Tier-6 (Stratum-7) Launch Preparation restructure then added
+    // three more - establishment-sequence / livestock-sourcing / risk on the
+    // universal s7 launch objectives (s7-phase1, s7-resource-plan,
+    // s7-risk-register) - with no new objectives, so the array still holds 9 (8
+    // resolve) while the patch count rises 8 -> 12 -> 15.
     expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(9);
-    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(12);
+    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(15);
   });
 
   it('every silvopasture secondary patch ref matches the patch format', () => {
@@ -1351,13 +1354,14 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     expect(withSilv.objectives.length).toBe(base.objectives.length + 8);
   });
 
-  it('applies all 12 patches (universal + regen primary targets), none skipped', () => {
-    // The 12 patches land on 12 distinct targets, all present under a regen
+  it('applies all 15 patches (universal + regen primary targets), none skipped', () => {
+    // The 15 patches land on 15 distinct targets, all present under a regen
     // primary: SILV>RF-S1.4 (rf-s1-enterprise-mix), the three original S4-S6
     // universal patches, the four 2026-06-16 Tier-2 S3 patches on s3-hydrology,
-    // s3-soil, rf-s3-nutrient-cycling, and rf-s3-pest-pressure, plus the four
+    // s3-soil, rf-s3-nutrient-cycling, and rf-s3-pest-pressure, the four
     // 2026-06-16 Tier-1 S2 patches on s2-terrain, s2-ecology, s2-infrastructure,
-    // and rf-s2-land-health.
+    // and rf-s2-land-health, plus the three 2026-06-18 Tier-6 S7 patches on
+    // s7-phase1, s7-resource-plan, and s7-risk-register.
     const result = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['silvopasture'],
@@ -1365,7 +1369,7 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
     const patched = result.objectives.filter((o) =>
       o.checklist.some((c) => c.expandedBySecondaryId === 'silvopasture'),
     );
-    expect(patched.length).toBe(12);
+    expect(patched.length).toBe(15);
     expect(result.provenance.skippedPatches).toEqual([]);
   });
 
