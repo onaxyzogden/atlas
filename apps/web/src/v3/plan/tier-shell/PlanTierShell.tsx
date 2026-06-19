@@ -136,9 +136,10 @@ import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
 // Threshold 3 (The Act Mandate) -- the FINAL Plan-stage surface, after the
 // terminal stratum (s7). Dispatched on the SAME plan/threshold/$thresholdId
 // route by thresholdId === 'threshold-3'; like T1/T2 it takes over the center +
-// right rail (no WebGL). Its spine divider stays DECORATIVE (not in
-// REACHABLE_THRESHOLD_IDS) -- the surface is reached by deep-link or by the
-// deliberate s7-terminal ActMandateEntryCue mounted in the objective detail.
+// right rail (no WebGL). Reached three ways (all navigate-only, none arm the
+// lock): the clickable T3 switcher row (REACHABLE_THRESHOLD_IDS includes
+// threshold-3 since 2026-06-19), a deep-link, or the deliberate s7-terminal
+// ActMandateEntryCue mounted in the objective detail.
 import ActMandateSurface from '../threshold/ActMandateSurface.js';
 import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
 import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
@@ -1499,12 +1500,12 @@ export default function PlanTierShell() {
                         projectId={id}
                         stratumId={selectedObjectiveStratum.id}
                       />
-                      {/* Deliberate doorway into Threshold 3 (The Act Mandate).
+                      {/* Contextual doorway into Threshold 3 (The Act Mandate).
                           Self-gates to the terminal stratum (s7) only -- the one
-                          place the steward crosses from planning into doing. The
-                          T3 spine divider stays decorative; this cue (and a
-                          deep-link) are how the one-way crossing is entered, by
-                          intent rather than a casual spine click. Plan-only. */}
+                          place the steward crosses from planning into doing. One
+                          of several navigate-only entry paths (alongside the
+                          clickable T3 switcher row and a deep-link); the one-way
+                          crossing is entered via the surface's own CTA. Plan-only. */}
                       <ActMandateEntryCue
                         projectId={id}
                         stratumId={selectedObjectiveStratum.id}

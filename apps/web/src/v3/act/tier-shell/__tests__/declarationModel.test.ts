@@ -81,20 +81,20 @@ describe('THRESHOLDS', () => {
 });
 
 // DECOUPLE (2026-06-19, Threshold-3 build): two distinct id sets. REACHABLE is
-// the SPINE-CLICKABLE soft-checkpoint set the Plan spine renders as clickable
-// dividers; it stays [threshold-1, threshold-2]. Threshold 3 (Act Mandate) is
-// deliberately excluded NOT because it is unbuilt, but because its one-way
-// Begin-Act crossing is entered intentionally (deep-link / s7-terminal cue), so
-// its divider stays a decorative separator. These tests guard that exclusion
-// against an accidental add that would make the T3 divider clickable.
+// the CLICKABLE-row set the Plan rail-header switcher renders as buttons. All
+// three thresholds are clickable: T3 (Act Mandate) was added 2026-06-19 by
+// operator decision ("a button that functions like the other two thresholds").
+// Clicking T3 only NAVIGATES to the Act Mandate surface -- the one-way Begin-Act
+// planReadOnly arming stays gated behind the surface's own CTA, so clickability
+// != arming. These tests guard that all three ids stay clickable.
 describe('REACHABLE_THRESHOLD_IDS', () => {
-  it('contains the two spine-clickable soft checkpoints (Reality + Coherence)', () => {
+  it('contains the two soft checkpoints (Reality + Coherence)', () => {
     expect(REACHABLE_THRESHOLD_IDS).toContain('threshold-1');
     expect(REACHABLE_THRESHOLD_IDS).toContain('threshold-2');
   });
 
-  it('excludes threshold-3 (Act Mandate) -- its divider stays decorative', () => {
-    expect(REACHABLE_THRESHOLD_IDS).not.toContain('threshold-3');
+  it('includes threshold-3 (Act Mandate) -- its switcher row is clickable (navigates)', () => {
+    expect(REACHABLE_THRESHOLD_IDS).toContain('threshold-3');
   });
 
   it('every reachable id is a real threshold in THRESHOLDS (no typo / stale id)', () => {
@@ -106,9 +106,10 @@ describe('REACHABLE_THRESHOLD_IDS', () => {
 });
 
 // ROUTABLE is the BUILT-SURFACE set the threshold route guard (routes/index.tsx
-// isThresholdReachable) consumes -- all three surfaces exist now, so it is the
-// superset of REACHABLE. Keeping the two separate lets T3 be routable (deep-link
-// / deliberate cue) WITHOUT making its spine divider clickable.
+// isThresholdReachable) consumes -- all three surfaces exist. It now matches
+// REACHABLE (every clickable row is also a routable surface), but the two stay
+// distinct constants: "has a built surface" (route reach) is a different concern
+// from "is a clickable switcher row" (nav affordance), and they could diverge.
 describe('ROUTABLE_THRESHOLD_IDS', () => {
   it('contains all three built threshold surfaces, including the Act Mandate', () => {
     expect(ROUTABLE_THRESHOLD_IDS).toContain('threshold-1');

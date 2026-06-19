@@ -7,12 +7,11 @@
  * (threshold props omitted -> no checkpoint rows). Verified behaviours:
  *   1. Collapsed (default): header shows the active stratum's eyebrow + title;
  *      the expanded panel is NOT rendered.
- *   2. Clicking the header expands the panel: all 7 strata rows render, with the
- *      two reachable threshold rows (T1 after S3, T2 after S5) AND the decorative
- *      T3 row present.
+ *   2. Clicking the header expands the panel: all 7 strata rows render, with all
+ *      three threshold rows (T1 after S3, T2 after S5, T3 after S7) as buttons.
  *   3. Clicking a stratum row calls onSelectStratum with its id and collapses.
- *   4. Clicking the T1 row calls onSelectThreshold('threshold-1'); the T3 row is
- *      decorative (not a button) and fires nothing.
+ *   4. Clicking the T1 row calls onSelectThreshold('threshold-1') and the T3 row
+ *      calls onSelectThreshold('threshold-3') -- both navigate to their surface.
  *   5. With thresholdActiveId set, the collapsed header shows the threshold name
  *      (eyebrow "Checkpoint"), not the active stratum.
  *   6. A locked stratum row still calls onSelectStratum (the locked popover is
@@ -99,7 +98,7 @@ describe('ActTierStratumSwitcher', () => {
     expect(screen.queryByTestId('switcher-panel')).toBeNull();
   });
 
-  it('expands to all 7 strata + reachable + decorative thresholds', () => {
+  it('expands to all 7 strata + all three threshold buttons', () => {
     setup();
     expand();
     expect(screen.getByTestId('switcher-panel')).toBeTruthy();
@@ -109,14 +108,14 @@ describe('ActTierStratumSwitcher', () => {
     // Project identity preserved (what the spine carried).
     expect(screen.getByText('Wadi Farm')).toBeTruthy();
     expect(screen.getByText('Silvopasture')).toBeTruthy();
-    // T1 + T2 reachable buttons, T3 present but decorative (separator, no button).
+    // All three thresholds are clickable buttons (T3 added 2026-06-19; clicking
+    // it navigates to the Act Mandate surface, it does not arm the lock).
     const t1 = screen.getByTestId('switcher-threshold-threshold-1');
     const t2 = screen.getByTestId('switcher-threshold-threshold-2');
     const t3 = screen.getByTestId('switcher-threshold-threshold-3');
     expect(t1.tagName).toBe('BUTTON');
     expect(t2.tagName).toBe('BUTTON');
-    expect(t3.tagName).not.toBe('BUTTON');
-    expect(t3.getAttribute('role')).toBe('separator');
+    expect(t3.tagName).toBe('BUTTON');
   });
 
   it('selecting a stratum calls onSelectStratum and collapses', () => {
@@ -129,16 +128,18 @@ describe('ActTierStratumSwitcher', () => {
     expect(screen.queryByTestId('switcher-panel')).toBeNull();
   });
 
-  it('clicking the T1 row navigates; the T3 row is decorative', () => {
+  it('clicking the T1 and T3 rows both navigate', () => {
     const { onSelectThreshold } = setup();
     expand();
     fireEvent.click(screen.getByTestId('switcher-threshold-threshold-1'));
     expect(onSelectThreshold).toHaveBeenCalledWith('threshold-1');
 
-    // Re-expand (the click collapsed the panel) and click the decorative T3.
+    // Re-expand (the click collapsed the panel) and click the now-clickable T3:
+    // it navigates to the Act Mandate surface (arming stays on the surface CTA).
     expand();
     fireEvent.click(screen.getByTestId('switcher-threshold-threshold-3'));
-    expect(onSelectThreshold).toHaveBeenCalledTimes(1);
+    expect(onSelectThreshold).toHaveBeenCalledWith('threshold-3');
+    expect(onSelectThreshold).toHaveBeenCalledTimes(2);
   });
 
   it('active threshold shows in the collapsed header instead of the stratum', () => {

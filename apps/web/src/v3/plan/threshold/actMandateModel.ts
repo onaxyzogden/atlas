@@ -467,10 +467,11 @@ export const ACT_MANDATE_COPY = {
       'Crossing this line holds the plan steady. A held objective stays fully visible -- to change one, raise a concern against it.',
   },
   /**
-   * The deliberate Plan-only doorway into Threshold 3, shown at the top of the
-   * terminal-stratum (s7) objective detail. The T3 divider is a decorative
-   * separator (not spine-clickable), so this cue -- and deep-links -- are how the
-   * one-way crossing is entered, intentionally rather than by a casual click.
+   * The contextual Plan-only doorway into Threshold 3, shown at the top of the
+   * terminal-stratum (s7) objective detail. One of several entry paths (alongside
+   * deep-links and -- since 2026-06-19 -- the clickable T3 switcher row); each
+   * only NAVIGATES to the surface, where the one-way crossing is entered via its
+   * own deliberate CTA.
    */
   entryCue: {
     pill: 'Threshold 3',

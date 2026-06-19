@@ -6,12 +6,13 @@
  * nothing anywhere else. It NEVER blocks and touches no prerequisite; it is
  * purely the intentional entrance to the Act Mandate ceremony.
  *
- * DECOUPLE (2026-06-19): the T3 spine divider stays a decorative separator
- * (REACHABLE_THRESHOLD_IDS = [threshold-1, threshold-2], so it is not
- * spine-clickable). The Act Mandate surface is reached by a deep-link OR by this
- * deliberate s7-terminal cue -- the one-way Begin-Act crossing should be entered
- * intentionally, not bounced into mid-plan by a casual spine click. Route
- * reachability is owned separately by ROUTABLE_THRESHOLD_IDS.
+ * One of several entry paths into the Act Mandate surface: this deliberate
+ * s7-terminal cue, a deep-link, and -- since 2026-06-19 -- the T3 row in the
+ * rail-header stratum switcher (REACHABLE_THRESHOLD_IDS now includes
+ * threshold-3). All of them only NAVIGATE to the surface; the one-way Begin-Act
+ * crossing is still entered only via the surface's own deliberate CTA, so no
+ * entry path arms the lock by itself. This cue stays as the contextual,
+ * in-objective doorway.
  *
  * Plan-only: imported solely by PlanTierShell, so the Act stage + the shared
  * ObjectiveDetailPanel stay byte-identical. Mirrors CoherenceGateBanner (the
