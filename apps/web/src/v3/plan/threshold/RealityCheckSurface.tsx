@@ -15,6 +15,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { Minus } from 'lucide-react';
 import {
   EMPTY_REALITY_CHECK,
   useRealityCheckStore,
@@ -97,6 +98,16 @@ export default function RealityCheckSurface({
             record={record}
           />
         )}
+
+        {/* Reassurance block: what Threshold 1 does NOT do (parity with T2/T3). */}
+        <ul className={styles.notList} aria-label="What this threshold does not do">
+          {REALITY_CHECK_COPY.notList.map((line) => (
+            <li key={line} className={styles.notItem}>
+              <Minus size={13} aria-hidden="true" className={styles.notDot} />
+              {line}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

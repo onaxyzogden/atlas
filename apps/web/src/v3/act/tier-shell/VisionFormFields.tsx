@@ -69,6 +69,8 @@ interface LeafProps {
   setFreeMode: (next: boolean) => void;
   /** Stable id base for label/control association. */
   idBase: string;
+  /** Marks the control `aria-required` (top-level required leaves only). */
+  required?: boolean;
 }
 
 function LeafControl({
@@ -79,6 +81,7 @@ function LeafControl({
   freeMode,
   setFreeMode,
   idBase,
+  required,
 }: LeafProps) {
   if (leaf.kind === 'text') {
     const common = {
@@ -86,6 +89,7 @@ function LeafControl({
       className: css.input,
       value: current,
       placeholder: leaf.placeholder,
+      'aria-required': required || undefined,
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         onLeafChange(e.target.value),
     };
@@ -122,6 +126,7 @@ function LeafControl({
         id={idBase}
         className={css.select}
         value={selectValue}
+        aria-required={required || undefined}
         onChange={onSelectChange}
       >
         <option value="">Select...</option>
@@ -180,7 +185,15 @@ export default function VisionFormFields({
           const itemLabel = field.itemLabel ?? 'Item';
           return (
             <fieldset key={field.key} className={css.repeatable}>
-              <legend className={css.legend}>{field.label}</legend>
+              <legend className={css.legend}>
+                {field.label}
+                {field.min >= 1 ? (
+                  <span className={css.reqHint}>
+                    {' '}
+                    &middot; at least {field.min}
+                  </span>
+                ) : null}
+              </legend>
               {arr.map((entry, idx) => {
                 const path = `${field.key}.${idx}`;
                 return (
@@ -245,10 +258,19 @@ export default function VisionFormFields({
         if (!field.key) return null;
         const key = field.key;
         const idBase = `field-${key}-${fieldIndex}`;
+        // `field` is already narrowed to the non-repeatable arm here (the
+        // repeatable branch returns above), so `required` reads straight off it.
+        const required = Boolean(field.required);
         return (
           <div key={key} className={css.field}>
             <label className={css.label} htmlFor={idBase}>
               {field.label}
+              {required ? (
+                <span className={css.required} aria-hidden="true">
+                  {' '}
+                  *
+                </span>
+              ) : null}
             </label>
             <LeafControl
               leaf={field}
@@ -258,6 +280,7 @@ export default function VisionFormFields({
               freeMode={Boolean(freeModes[key])}
               setFreeMode={(next) => setFree(key, next)}
               idBase={idBase}
+              required={required}
             />
           </div>
         );
@@ -319,6 +342,44 @@ export function summariseFormValue(
   return lines.join('\n');
 }
 
+/** One unmet save requirement, for the modal's required-field signal. */
+export interface MissingRequirement {
+  /** The field's label (falls back to its key). */
+  label: string;
+  /** For a repeatable: how many more non-empty entries are still needed. */
+  need?: number;
+}
+
+/**
+ * The requirements still blocking a save: each required leaf left empty, and
+ * each repeatable below its `min` (with how many more entries it needs). Order
+ * follows `fields`. Empty array == the form is valid. The single source of truth
+ * for both `isFormValueValid` and the modal's "still needed to save" signal, so
+ * the disabled Save button can always name exactly what it is waiting on.
+ */
+export function missingRequirements(
+  fields: readonly FormFieldSpec[],
+  value: FormValue,
+): MissingRequirement[] {
+  const out: MissingRequirement[] = [];
+  for (const field of fields) {
+    if (field.kind === 'repeatable') {
+      const filled = asArray(value[field.key]).filter(
+        (e) => e.trim() !== '',
+      ).length;
+      if (filled < field.min) {
+        out.push({ label: field.label, need: field.min - filled });
+      }
+      continue;
+    }
+    if (!field.key) continue;
+    if (field.required && asString(value[field.key]).trim() === '') {
+      out.push({ label: field.label ?? field.key });
+    }
+  }
+  return out;
+}
+
 /**
  * True when every required leaf is non-empty (trimmed) AND every repeatable has
  * at least `min` non-empty (trimmed) entries. Used by the modal for canSave.
@@ -327,18 +388,5 @@ export function isFormValueValid(
   fields: readonly FormFieldSpec[],
   value: FormValue,
 ): boolean {
-  for (const field of fields) {
-    if (field.kind === 'repeatable') {
-      const filled = asArray(value[field.key]).filter(
-        (e) => e.trim() !== '',
-      ).length;
-      if (filled < field.min) return false;
-      continue;
-    }
-    if (!field.key) continue;
-    if (field.required && asString(value[field.key]).trim() === '') {
-      return false;
-    }
-  }
-  return true;
+  return missingRequirements(fields, value).length === 0;
 }

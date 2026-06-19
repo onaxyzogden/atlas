@@ -189,7 +189,11 @@ export const useActMandateStore = create<ActMandateState>()(
       name: 'ogden-act-mandate',
       version: 1,
       // Synced project data lives in IndexedDB like every other byProject store
-      // (Node-safe; degrades to localStorage/null). No schema migrate at v1.
+      // (Node-safe; degrades to localStorage/null). No `migrate` at v1.
+      // TRIP-WIRE: the next change to the persisted shape (`ProjectActMandate`)
+      // MUST bump `version` AND add a `migrate(persisted, from)`. persist drops
+      // any stored state whose version != current when no migrate is supplied, so
+      // a silent shape change would discard the append-only `objectiveOverrides`.
       storage: idbPersistStorage,
       partialize: (state) => ({ byProject: state.byProject }),
     },

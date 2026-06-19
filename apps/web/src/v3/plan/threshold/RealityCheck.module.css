@@ -609,6 +609,34 @@
   color: var(--color-text-muted, #6f675b);
 }
 
+/* what Threshold 1 does NOT do -- a reassurance block (parity with T2/T3) */
+.notList {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.notItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.notDot {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--rc-accent-strong);
+}
+
 /* ---------------------------------------------------------------------- buttons */
 
 .primaryBtn {
