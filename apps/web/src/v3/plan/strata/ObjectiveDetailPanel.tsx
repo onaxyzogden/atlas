@@ -33,6 +33,8 @@ import Mode4DesignChrome from './Mode4DesignChrome.js';
 import Mode5LaunchChrome from './Mode5LaunchChrome.js';
 import CapacityBridgePanel from './CapacityBridgePanel.js';
 import CoherenceObjectiveAmendments from '../threshold/CoherenceObjectiveAmendments.js';
+import ConcernAmendments from '../threshold/ConcernAmendments.js';
+import RaiseConcernAffordance from '../threshold/RaiseConcernAffordance.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import FormulaResultSection from './FormulaResultSection.js';
@@ -556,6 +558,18 @@ export default function ObjectiveDetailPanel({
         projectId={projectId}
         objectiveId={objective.id}
       />
+
+      {/* THRESHOLD 3 (Act Mandate) approved-amendments overlay -- Plan-only,
+          additive, display-only. Self-gates to null when this objective has no
+          APPROVED amendment, so the catalogue design above is never mutated
+          (amendments are permanent steward overlays in planConcernsStore). */}
+      <ConcernAmendments projectId={projectId} objectiveId={objective.id} />
+
+      {/* THRESHOLD 3 (Act Mandate) Raise-a-Concern affordance -- Plan-only. Self-
+          gates: renders ONLY when this objective is HELD under the mandate, so a
+          held objective stays viewable and a concern can be raised against it.
+          Covenant: free text is CSA-advised in UI + hard-rejected at persist. */}
+      <RaiseConcernAffordance projectId={projectId} objectiveId={objective.id} />
 
       {upstreamSources.length > 0 && (
         <section

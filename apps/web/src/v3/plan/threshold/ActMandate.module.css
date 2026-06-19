@@ -723,3 +723,235 @@
 .entryCueAction:hover {
   filter: brightness(0.96);
 }
+
+/* ------------------ on-objective overlays (Plan, mounted outside .surface) */
+
+/*
+ * The approved-amendments overlay (ConcernAmendments) + the Raise-a-Concern
+ * affordance both mount inside ObjectiveDetailPanel (Plan-only), OUTSIDE
+ * `.surface`, so each carries its own copy of the green register tokens --
+ * reading as one register with the Act-Mandate threshold surface. Mirrors the
+ * Coherence on-objective overlay shape in the green register.
+ */
+
+.concernAmend {
+  --am-accent-strong: #3c7e52;
+  --am-soft: rgba(79, 157, 105, 0.12);
+  --am-line: rgba(79, 157, 105, 0.28);
+
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-accent-strong);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 120%);
+}
+
+.concernAmendLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.concernAmendBlurb {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.concernAmendList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.concernAmendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 10px;
+  border-left: 2px solid var(--am-line);
+}
+
+.concernAmendId {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.concernAmendText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.concernAmendContext {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.concernAmendMeta {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ------------------------------ Raise-a-Concern affordance (Plan, on a held objective) */
+
+.raise {
+  --am-accent: #4f9d69;
+  --am-accent-strong: #3c7e52;
+  --am-soft: rgba(79, 157, 105, 0.12);
+  --am-line: rgba(79, 157, 105, 0.28);
+  --am-pending: #c9a227;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 140%);
+}
+
+.raiseHead {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.raiseBlurb {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.raiseField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.raiseLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.raiseTextarea,
+.raiseSelect {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+  background: rgba(127, 127, 127, 0.08);
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.raiseTextarea {
+  resize: vertical;
+  min-height: 56px;
+}
+
+.raiseTextarea:focus,
+.raiseSelect:focus {
+  outline: none;
+  border-color: var(--am-accent-strong);
+}
+
+.raiseAdvisory {
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-left: 3px solid var(--am-pending);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.raiseAdvisoryTitle {
+  margin: 0 0 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9a7b1c;
+}
+
+.raiseAdvisoryBody {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.raiseActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.raiseSubmit {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: var(--am-accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.raiseSubmit:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.raiseSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.raiseAck {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2f7a48;
+}
+
+.raisePending {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}

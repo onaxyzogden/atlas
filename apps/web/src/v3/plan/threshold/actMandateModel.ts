@@ -479,6 +479,41 @@ export const ACT_MANDATE_COPY = {
       'Every stratum is resolved and Launch Preparation is in hand. When you judge the plan ready, cross deliberately into the Act Mandate -- the line between planning and doing.',
     button: 'Enter the Act Mandate',
   },
+  /**
+   * Raise-a-Concern affordance copy (Plan-only, shown on a HELD objective). The
+   * free-text fields are scanned by `detectCsaLikeText` as a UI advisory AND
+   * hard-rejected at the persistence boundary in planConcernsStore -- a banned
+   * term cannot reach storage. Covenant-clean (banned-term-scanned in test).
+   */
+  concern: {
+    heading: 'Raise a concern',
+    blurb:
+      'This objective is held under the Act Mandate. To change it, raise a concern -- describe how reality diverged and what you propose, and the team governance reviews it. Nothing is edited in place: an approved change is recorded alongside the original, never replacing it.',
+    observationLabel: 'What diverged',
+    observationPlaceholder:
+      'Describe how reality diverged from the plan on this objective.',
+    proposedChangeLabel: 'What you propose',
+    proposedChangePlaceholder:
+      'Describe the change you propose -- it would be recorded alongside the original.',
+    raisedByLabel: 'Raised by',
+    raisedByPlaceholder: 'Select a steward',
+    submit: 'Raise concern',
+    raisedAck: 'Concern raised -- it now awaits governance review.',
+    needObservationNote: 'Add an observation to raise a concern.',
+    pendingOne: '1 concern on this objective is awaiting review.',
+    pendingManySuffix: 'concerns on this objective are awaiting review.',
+  },
+  /**
+   * On-objective amendments overlay copy (Plan-only). Mirrors the Coherence
+   * Check on-objective register, in the green Act-Mandate register. Approved
+   * amendments are permanent overlays held in planConcernsStore; the catalogue
+   * objective above is never mutated.
+   */
+  onObjective: {
+    label: 'Act Mandate amendments',
+    blurb:
+      'Approved changes recorded against this objective during Act. Each was raised as a concern, reviewed by the team governance, and recorded here alongside the original design -- which is never overwritten.',
+  },
   /** What Threshold 3 does NOT do -- a reassurance block. */
   notList: [
     'It does not design anything new -- it hands the resolved design to Act.',
