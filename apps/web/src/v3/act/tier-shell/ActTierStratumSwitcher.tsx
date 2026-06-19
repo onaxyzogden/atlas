@@ -1,13 +1,15 @@
 /**
- * PlanStratumSwitcher -- the Plan tier shell's stratum navigation, slotted into
+ * ActTierStratumSwitcher -- the tier shell's stratum navigation, slotted into
  * the objective rail header (ActTierObjectiveRail's `headerSlot`). It replaces
- * the horizontal Plan spine: the active stratum (or active threshold) stays
- * visible as a clickable disclosure button; clicking it expands a VERTICAL list
- * of all strata S1-S7 with the two reachable thresholds interleaved at their
- * positions, plus a compact project-identity row (name + type chips) that the
- * spine used to carry.
+ * the horizontal spine: the active stratum (or active threshold) stays visible
+ * as a clickable disclosure button; clicking it expands a VERTICAL list of all
+ * strata S1-S7, with any reachable thresholds interleaved at their positions,
+ * plus a compact project-identity row (name + type chips) the spine carried.
  *
- * Plan-only. It owns NO routing or locking logic: selecting a stratum calls
+ * Shared by both shells. On Plan it receives thresholds + type chips; on Act
+ * the threshold props are omitted (Act has no planning checkpoints) so no
+ * threshold rows render -- mirroring how ActTierSpine itself makes thresholds
+ * optional. It owns NO routing or locking logic: selecting a stratum calls
  * `onSelectStratum` (the shell's handleSelectStratum, which opens the locked
  * popover or navigates) and selecting a reachable threshold calls
  * `onSelectThreshold`. Pure display + a local open/closed toggle.
@@ -19,11 +21,11 @@
 import { useState } from 'react';
 import { Check, ChevronDown, Loader, Lock } from 'lucide-react';
 import type { PlanStratum, PlanStratumState } from '@ogden/shared';
-import type { SpineTypeChip } from '../../act/tier-shell/ActTierSpine.js';
-import type { ThresholdMarker } from '../../act/tier-shell/declarationModel.js';
-import css from './PlanStratumSwitcher.module.css';
+import type { SpineTypeChip } from './ActTierSpine.js';
+import type { ThresholdMarker } from './declarationModel.js';
+import css from './ActTierStratumSwitcher.module.css';
 
-export interface PlanStratumSwitcherProps {
+export interface ActTierStratumSwitcherProps {
   strata: readonly PlanStratum[];
   stratumStates: Readonly<Record<string, PlanStratumState>>;
   lockedStratumIds: ReadonlySet<string>;
@@ -31,14 +33,15 @@ export interface PlanStratumSwitcherProps {
   activeStratumId: string;
   /** Resolved active stratum object (for the collapsed title/summary). */
   activeStratum: PlanStratum | undefined;
-  thresholds: readonly ThresholdMarker[];
-  clickableThresholdIds: readonly string[];
+  /** Planning checkpoints (Plan only); omitted on Act -> no threshold rows. */
+  thresholds?: readonly ThresholdMarker[];
+  clickableThresholdIds?: readonly string[];
   /** Active threshold id when a threshold surface is open -> header shows it. */
   thresholdActiveId?: string;
+  onSelectThreshold?: (thresholdId: string) => void;
   onSelectStratum: (stratumId: string) => void;
-  onSelectThreshold: (thresholdId: string) => void;
   projectTitle: string;
-  typeChips: readonly SpineTypeChip[];
+  typeChips?: readonly SpineTypeChip[];
 }
 
 function StatusDot({ status }: { status: PlanStratumState }): JSX.Element | null {
@@ -57,20 +60,20 @@ function StatusDot({ status }: { status: PlanStratumState }): JSX.Element | null
   return null;
 }
 
-export default function PlanStratumSwitcher({
+export default function ActTierStratumSwitcher({
   strata,
   stratumStates,
   lockedStratumIds,
   activeStratumId,
   activeStratum,
-  thresholds,
-  clickableThresholdIds,
+  thresholds = [],
+  clickableThresholdIds = [],
   thresholdActiveId,
-  onSelectStratum,
   onSelectThreshold,
+  onSelectStratum,
   projectTitle,
-  typeChips,
-}: PlanStratumSwitcherProps): JSX.Element {
+  typeChips = [],
+}: ActTierStratumSwitcherProps): JSX.Element {
   const [open, setOpen] = useState(false);
 
   const clickable = new Set(clickableThresholdIds);
@@ -183,7 +186,7 @@ export default function PlanStratumSwitcher({
                       data-active={thresholdActive || undefined}
                       aria-current={thresholdActive ? 'step' : undefined}
                       onClick={() =>
-                        choose(() => onSelectThreshold(threshold.id))
+                        choose(() => onSelectThreshold?.(threshold.id))
                       }
                     >
                       <span className={css.thresholdName}>{threshold.name}</span>

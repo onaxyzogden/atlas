@@ -1,9 +1,10 @@
 /*
- * PlanStratumSwitcher — Plan-only rail-header stratum switcher. Collapsed it
- * matches the static railHeader (eyebrow + title + summary) so swapping the
- * spine for it is visually seamless; expanded it drops an in-flow vertical
- * panel of strata + interleaved thresholds + project identity. Tokens mirror
- * ActTierShell.module.css (BentoBox surface / gold-brand accent).
+ * ActTierStratumSwitcher — shared rail-header stratum switcher (Plan + Act).
+ * Collapsed it matches the static railHeader (eyebrow + title + summary) so
+ * swapping the spine for it is visually seamless; expanded it drops an in-flow
+ * vertical panel of strata + interleaved thresholds (Plan only) + project
+ * identity. Tokens mirror ActTierShell.module.css (BentoBox surface / gold-
+ * brand accent).
  */
 
 .root {

@@ -112,7 +112,7 @@ import { type SpineTypeChip } from '../../act/tier-shell/ActTierSpine.js';
 // Plan: it slots into ActTierObjectiveRail's headerSlot and absorbs the spine's
 // stratum navigation, threshold checkpoints, and project identity. PlanSpine /
 // ActTierSpine are preserved (Act still renders ActTierSpine directly).
-import PlanStratumSwitcher from './PlanStratumSwitcher.js';
+import ActTierStratumSwitcher from '../../act/tier-shell/ActTierStratumSwitcher.js';
 import {
   THRESHOLDS,
   REACHABLE_THRESHOLD_IDS,
@@ -373,8 +373,8 @@ export default function PlanTierShell() {
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
   // Per-type chips for the switcher identity row (Plan Declaration chrome): one
   // primary chip + one chip per secondary, each resolved to its human label.
-  // Passed to the rail-header PlanStratumSwitcher (Plan-only; never touches the
-  // Act stage). Empty when no primary type is set.
+  // Passed to the rail-header ActTierStratumSwitcher. Empty when no primary
+  // type is set.
   const spineTypeChips = useMemo<SpineTypeChip[]>(() => {
     if (!primaryTypeId) return [];
     const chips: SpineTypeChip[] = [
@@ -1076,9 +1076,8 @@ export default function PlanTierShell() {
         {/*
           The horizontal Plan spine is hidden: its stratum navigation, threshold
           checkpoints, and project identity now live in the rail-header
-          PlanStratumSwitcher (passed below as ActTierObjectiveRail's
-          headerSlot). ActTierSpine / PlanSpine are preserved for reuse; Act
-          still renders ActTierSpine directly.
+          ActTierStratumSwitcher (passed below as ActTierObjectiveRail's
+          headerSlot). ActTierSpine / PlanSpine are preserved for reuse.
         */}
         <div className={styles.shellWrap}>
           {showTierZeroWorkbench && !selectedObjective && railMode !== 'protocols' ? (
@@ -1125,7 +1124,7 @@ export default function PlanTierShell() {
                 // activeStratumId='' rule). Act passes no headerSlot -> its
                 // static railHeader renders, byte-identical.
                 headerSlot={
-                  <PlanStratumSwitcher
+                  <ActTierStratumSwitcher
                     strata={PLAN_STRATA}
                     stratumStates={stratumStates}
                     lockedStratumIds={lockedStratumIds}

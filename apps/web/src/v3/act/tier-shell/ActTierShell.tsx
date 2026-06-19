@@ -33,6 +33,7 @@ import {
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
   computeAllStratumStates,
+  findProjectType,
   getObjectiveActTools,
   type PlanStratum,
   type PlanStratumObjective,
@@ -71,7 +72,6 @@ import {
 } from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
-import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js';
 import {
   buildPrefillMap,
   type FormPrefillResult,
@@ -130,7 +130,8 @@ import {
 } from './objectiveProgress.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
-import ActTierSpine from './ActTierSpine.js';
+import { type SpineTypeChip } from './ActTierSpine.js';
+import ActTierStratumSwitcher from './ActTierStratumSwitcher.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActSearchRail from './ActSearchRail.js';
 import type { RailMode } from './ActRailModeToggle.js';
@@ -402,12 +403,22 @@ export default function ActTierShell() {
   const typeRecord = project.metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
-  // Same label the Plan stratum-spine header shows (primary first, ` · `-joined;
-  // null when no primary type). Feeds the Act spine's project identity tile.
-  const projectTypeLabel = planHeaderProjectTypeLabel(
-    primaryTypeId,
-    secondaryTypeIds,
-  );
+  // Per-type chips for the rail-header switcher's identity row (mirrors Plan):
+  // one primary chip + one chip per secondary, each resolved to its human
+  // label. Empty when no primary type is set.
+  const spineTypeChips = useMemo<SpineTypeChip[]>(() => {
+    if (!primaryTypeId) return [];
+    const chips: SpineTypeChip[] = [
+      {
+        label: findProjectType(primaryTypeId)?.label ?? primaryTypeId,
+        kind: 'primary',
+      },
+    ];
+    for (const sid of secondaryTypeIds) {
+      chips.push({ label: findProjectType(sid)?.label ?? sid, kind: 'secondary' });
+    }
+    return chips;
+  }, [primaryTypeId, secondaryTypeIds]);
 
   // Left-rail view: design objectives (default) vs the standing-protocol
   // library. URL-derived (?mode=protocols); absence = objectives. Single source
@@ -1049,16 +1060,15 @@ export default function ActTierShell() {
 
   return (
     <div className={styles.tierShell}>
-      <ActTierSpine
-        strata={PLAN_STRATA}
-        objectives={objectives}
-        stratumStates={stratumStates}
-        lockedStratumIds={lockedStratumIds}
-        activeStratumId={selectedStratumId}
-        onSelectStratum={handleSelectStratum}
-        projectTitle={project.name}
-        projectTypeLabel={projectTypeLabel}
-      />
+      {/*
+        The horizontal Act spine is hidden: its stratum navigation and project
+        identity now live in the rail-header ActTierStratumSwitcher (passed
+        below as ActTierObjectiveRail's headerSlot). Act omits the threshold
+        props -- it has no planning checkpoints -- so no threshold rows render.
+        ActTierSpine is preserved (still standalone-tested), just not mounted
+        here. The Plan prerequisite gate survives: handleSelectStratum still
+        opens StratumLockedPopover for a locked stratum.
+      */}
       <div className={styles.shellWrap}>
         {showTierZeroWorkbench && !selectedObjective ? (
           // Tier-0 route resolved before its objective set hydrated: hold a
@@ -1102,6 +1112,22 @@ export default function ActTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
+                // The rail header IS the stratum switcher (the horizontal spine
+                // is hidden), carrying the S1-S7 tabs + Act execution-rollup
+                // status dots + project identity. Threshold props are omitted:
+                // Act has no planning checkpoints, so no threshold rows render.
+                headerSlot={
+                  <ActTierStratumSwitcher
+                    strata={PLAN_STRATA}
+                    stratumStates={stratumStates}
+                    lockedStratumIds={lockedStratumIds}
+                    activeStratumId={selectedStratumId}
+                    activeStratum={selectedStratum}
+                    onSelectStratum={handleSelectStratum}
+                    projectTitle={project.name}
+                    typeChips={spineTypeChips}
+                  />
+                }
                 mode={railMode}
                 onModeChange={handleRailModeChange}
                 triggeredCount={triggeredCount}
