@@ -111,17 +111,36 @@ export const THRESHOLDS: readonly ThresholdMarker[] = [
   { id: 'threshold-3', afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
 ];
 
-// Thresholds whose content surface is BUILT and therefore reachable as a
-// clickable spine entry / valid deep-link. Threshold 3 (Act Mandate) is a model
-// stub with no surface yet, so it is intentionally absent -- its divider stays
-// decorative and its route redirects. Operator chose always-clickable for the
-// two built thresholds (open-gate requirement dropped; STRATUM_PREREQS, the
-// covenant prerequisites, untouched). Consumed by both the Plan spine's
-// clickableThresholdIds and the threshold route guard, so the two never drift.
+// Two related-but-distinct threshold id sets (DECOUPLED 2026-06-19, Threshold-3
+// build). Conflating them is what previously forced an unwanted choice between
+// "T3 routable" and "T3 divider stays decorative"; splitting them resolves it.
+//
+//   REACHABLE_THRESHOLD_IDS -- the SOFT checkpoints the Plan spine renders as a
+//     CLICKABLE divider. Operator chose always-clickable for the two soft
+//     checkpoints (open-gate requirement dropped; STRATUM_PREREQS, the covenant
+//     prerequisites, untouched). Threshold 3 (Act Mandate) is deliberately
+//     ABSENT: its one-way Begin-Act crossing is entered DELIBERATELY (a
+//     deep-link, or the s7-terminal "Enter the Act Mandate" cue), never bounced
+//     into by a casual spine click -- so its divider stays a decorative
+//     separator. Consumed by the Plan spine's clickableThresholdIds.
+//
+//   ROUTABLE_THRESHOLD_IDS -- the thresholds whose content surface is BUILT and
+//     therefore valid as a `plan/threshold/$thresholdId` route / deep-link. All
+//     three surfaces exist now, so this is the superset the threshold route
+//     guard (isThresholdReachable) consumes. Keeping it separate from the
+//     spine-clickable set lets the T3 surface be reachable WITHOUT making its
+//     divider clickable.
 export const REACHABLE_THRESHOLD_IDS = ['threshold-1', 'threshold-2'] as const;
 
+export const ROUTABLE_THRESHOLD_IDS = [
+  'threshold-1',
+  'threshold-2',
+  'threshold-3',
+] as const;
+
+/** True when a threshold has a BUILT surface (route guard / deep-link check). */
 export function isThresholdReachable(id: string): boolean {
-  return (REACHABLE_THRESHOLD_IDS as readonly string[]).includes(id);
+  return (ROUTABLE_THRESHOLD_IDS as readonly string[]).includes(id);
 }
 
 // ---------------------------------------------------------------------------

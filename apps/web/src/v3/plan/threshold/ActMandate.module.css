@@ -642,3 +642,84 @@
 .railVerdict:not([data-ready]) {
   color: var(--am-accent-strong);
 }
+
+/* ----------------------------------------------- s7-terminal entry cue (Plan) */
+
+/*
+ * Mounted at the top of the terminal-stratum (s7) objective detail in the Plan
+ * shell, beside CoherenceGateBanner. Renders OUTSIDE `.surface`, so it carries
+ * its own copy of the green register tokens -- reading as one register with the
+ * Threshold-3 surface. Display-only: the action is the deliberate doorway into
+ * the Act Mandate ceremony (it navigates, never blocks).
+ */
+.entryCue {
+  --am-accent: var(--color-act-mandate-accent, #4f9d69);
+  --am-accent-strong: var(--color-act-mandate-accent-strong, #3c7e52);
+  --am-soft: var(--color-act-mandate-soft, rgba(79, 157, 105, 0.12));
+  --am-line: rgba(79, 157, 105, 0.28);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 100%);
+}
+
+.entryCueHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.entryCueIcon {
+  color: var(--am-accent-strong);
+  flex: none;
+}
+
+.entryCuePill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.entryCueTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.entryCueBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.entryCueAction {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 7px 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: var(--am-accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.entryCueAction:hover {
+  filter: brightness(0.96);
+}

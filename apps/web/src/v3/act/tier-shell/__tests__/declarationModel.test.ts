@@ -10,6 +10,7 @@ import {
   deriveSequencing,
   isThresholdReachable,
   REACHABLE_THRESHOLD_IDS,
+  ROUTABLE_THRESHOLD_IDS,
   THRESHOLDS,
   TIER_ZERO_DISPLAY,
   tierZeroDisplayFor,
@@ -79,18 +80,20 @@ describe('THRESHOLDS', () => {
   });
 });
 
-// Single source of truth for which threshold dividers are clickable spine
-// entries / valid deep-links. Both the Plan spine (clickableThresholdIds) and
-// the threshold route guard (routes/index.tsx) read from this, so the two can
-// never drift. Threshold 3 (Act Mandate) is deliberately excluded until its
-// surface is built -- these tests guard that exclusion against an accidental add.
+// DECOUPLE (2026-06-19, Threshold-3 build): two distinct id sets. REACHABLE is
+// the SPINE-CLICKABLE soft-checkpoint set the Plan spine renders as clickable
+// dividers; it stays [threshold-1, threshold-2]. Threshold 3 (Act Mandate) is
+// deliberately excluded NOT because it is unbuilt, but because its one-way
+// Begin-Act crossing is entered intentionally (deep-link / s7-terminal cue), so
+// its divider stays a decorative separator. These tests guard that exclusion
+// against an accidental add that would make the T3 divider clickable.
 describe('REACHABLE_THRESHOLD_IDS', () => {
-  it('contains the two built thresholds (Reality Check + Coherence Check)', () => {
+  it('contains the two spine-clickable soft checkpoints (Reality + Coherence)', () => {
     expect(REACHABLE_THRESHOLD_IDS).toContain('threshold-1');
     expect(REACHABLE_THRESHOLD_IDS).toContain('threshold-2');
   });
 
-  it('excludes threshold-3 (Act Mandate) -- no surface built yet', () => {
+  it('excludes threshold-3 (Act Mandate) -- its divider stays decorative', () => {
     expect(REACHABLE_THRESHOLD_IDS).not.toContain('threshold-3');
   });
 
@@ -102,14 +105,41 @@ describe('REACHABLE_THRESHOLD_IDS', () => {
   });
 });
 
-describe('isThresholdReachable', () => {
-  it('returns true for the two built thresholds', () => {
-    expect(isThresholdReachable('threshold-1')).toBe(true);
-    expect(isThresholdReachable('threshold-2')).toBe(true);
+// ROUTABLE is the BUILT-SURFACE set the threshold route guard (routes/index.tsx
+// isThresholdReachable) consumes -- all three surfaces exist now, so it is the
+// superset of REACHABLE. Keeping the two separate lets T3 be routable (deep-link
+// / deliberate cue) WITHOUT making its spine divider clickable.
+describe('ROUTABLE_THRESHOLD_IDS', () => {
+  it('contains all three built threshold surfaces, including the Act Mandate', () => {
+    expect(ROUTABLE_THRESHOLD_IDS).toContain('threshold-1');
+    expect(ROUTABLE_THRESHOLD_IDS).toContain('threshold-2');
+    expect(ROUTABLE_THRESHOLD_IDS).toContain('threshold-3');
   });
 
-  it('returns false for threshold-3 and unknown ids', () => {
-    expect(isThresholdReachable('threshold-3')).toBe(false);
+  it('is a superset of the spine-clickable REACHABLE set', () => {
+    for (const id of REACHABLE_THRESHOLD_IDS) {
+      expect(ROUTABLE_THRESHOLD_IDS).toContain(id);
+    }
+  });
+
+  it('every routable id is a real threshold in THRESHOLDS (no typo / stale id)', () => {
+    const known = new Set(THRESHOLDS.map((t) => t.id));
+    for (const id of ROUTABLE_THRESHOLD_IDS) {
+      expect(known.has(id)).toBe(true);
+    }
+  });
+});
+
+describe('isThresholdReachable', () => {
+  it('returns true for all three built threshold surfaces', () => {
+    expect(isThresholdReachable('threshold-1')).toBe(true);
+    expect(isThresholdReachable('threshold-2')).toBe(true);
+    // threshold-3 (Act Mandate) is now BUILT -> routable (its divider stays
+    // decorative, but the surface is reachable by deep-link / the s7 cue).
+    expect(isThresholdReachable('threshold-3')).toBe(true);
+  });
+
+  it('returns false for unknown ids', () => {
     expect(isThresholdReachable('threshold-99')).toBe(false);
     expect(isThresholdReachable('')).toBe(false);
   });

@@ -466,6 +466,19 @@ export const ACT_MANDATE_COPY = {
     lockNote:
       'Crossing this line holds the plan steady. A held objective stays fully visible -- to change one, raise a concern against it.',
   },
+  /**
+   * The deliberate Plan-only doorway into Threshold 3, shown at the top of the
+   * terminal-stratum (s7) objective detail. The T3 divider is a decorative
+   * separator (not spine-clickable), so this cue -- and deep-links -- are how the
+   * one-way crossing is entered, intentionally rather than by a casual click.
+   */
+  entryCue: {
+    pill: 'Threshold 3',
+    title: 'The plan is complete',
+    body:
+      'Every stratum is resolved and Launch Preparation is in hand. When you judge the plan ready, cross deliberately into the Act Mandate -- the line between planning and doing.',
+    button: 'Enter the Act Mandate',
+  },
   /** What Threshold 3 does NOT do -- a reassurance block. */
   notList: [
     'It does not design anything new -- it hands the resolved design to Act.',

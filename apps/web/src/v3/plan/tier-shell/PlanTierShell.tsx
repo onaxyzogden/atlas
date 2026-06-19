@@ -133,6 +133,15 @@ import CoherenceCheckSurface from '../threshold/CoherenceCheckSurface.js';
 import CoherenceCheckReferenceRail from '../threshold/CoherenceCheckReferenceRail.js';
 import CoherenceGateBanner from '../threshold/CoherenceGateBanner.js';
 import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
+// Threshold 3 (The Act Mandate) -- the FINAL Plan-stage surface, after the
+// terminal stratum (s7). Dispatched on the SAME plan/threshold/$thresholdId
+// route by thresholdId === 'threshold-3'; like T1/T2 it takes over the center +
+// right rail (no WebGL). Its spine divider stays DECORATIVE (not in
+// REACHABLE_THRESHOLD_IDS) -- the surface is reached by deep-link or by the
+// deliberate s7-terminal ActMandateEntryCue mounted in the objective detail.
+import ActMandateSurface from '../threshold/ActMandateSurface.js';
+import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
+import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -1165,10 +1174,22 @@ export default function PlanTierShell() {
               thresholdActive ? (
                 // Threshold center takeovers. First arm so the WebGL
                 // VisionLayoutCanvas never mounts on a threshold route. The
-                // shared `plan/threshold/$thresholdId` route carries both, so
-                // dispatch on params.thresholdId: 'threshold-2' -> the
-                // Coherence Check audit; anything else -> the Reality Check.
-                params.thresholdId === 'threshold-2' ? (
+                // shared `plan/threshold/$thresholdId` route carries all three,
+                // so dispatch on params.thresholdId: 'threshold-3' -> the Act
+                // Mandate; 'threshold-2' -> the Coherence Check audit; anything
+                // else -> the Reality Check.
+                params.thresholdId === 'threshold-3' ? (
+                  // Threshold 3 (The Act Mandate) center takeover -- the final
+                  // Plan-stage surface. Assembles the resolved design + the two
+                  // prior threshold records into the handoff to Act; Plan-only,
+                  // no map.
+                  <ActMandateSurface
+                    projectId={id}
+                    projectName={project.name}
+                    objectives={objectives}
+                    objectiveStatuses={objectiveStatuses}
+                  />
+                ) : params.thresholdId === 'threshold-2' ? (
                   // Threshold 2 (The Coherence Check) center takeover. Audits
                   // the shipped s4 + s5 design objectives (Sections A/B/C);
                   // Plan-only, no map.
@@ -1275,7 +1296,13 @@ export default function PlanTierShell() {
               thresholdActive ? (
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
-                    {params.thresholdId === 'threshold-2' ? (
+                    {params.thresholdId === 'threshold-3' ? (
+                      <ActMandateReferenceRail
+                        projectId={id}
+                        objectives={objectives}
+                        objectiveStatuses={objectiveStatuses}
+                      />
+                    ) : params.thresholdId === 'threshold-2' ? (
                       <CoherenceCheckReferenceRail
                         projectId={id}
                         primaryTypeId={primaryTypeId}
@@ -1452,6 +1479,16 @@ export default function PlanTierShell() {
                           only -- it NEVER blocks navigation and NEVER touches
                           STRATUM_PREREQS; returns null off s6 / s7. */}
                       <CoherenceGateBanner
+                        projectId={id}
+                        stratumId={selectedObjectiveStratum.id}
+                      />
+                      {/* Deliberate doorway into Threshold 3 (The Act Mandate).
+                          Self-gates to the terminal stratum (s7) only -- the one
+                          place the steward crosses from planning into doing. The
+                          T3 spine divider stays decorative; this cue (and a
+                          deep-link) are how the one-way crossing is entered, by
+                          intent rather than a casual spine click. Plan-only. */}
+                      <ActMandateEntryCue
                         projectId={id}
                         stratumId={selectedObjectiveStratum.id}
                       />
