@@ -187,3 +187,43 @@ describe('ActTierObjectiveRail (protocols mode threads stratum scope + selection
     expect(card.getAttribute('data-selected')).toBe('true');
   });
 });
+
+describe('ActTierObjectiveRail (headerSlot)', () => {
+  // The Plan tier shell passes its interactive stratum switcher as headerSlot;
+  // Act passes none. The default static header must render byte-identically when
+  // the slot is omitted, and be REPLACED (not duplicated) when it is provided.
+  it('renders the default stratum header when headerSlot is omitted (Act parity)', () => {
+    renderRail('objectives');
+    // The stratum summary is unique to the default header.
+    expect(screen.getByText(STRATUM.summary)).toBeTruthy();
+  });
+
+  it('replaces the default header with headerSlot when provided (Plan)', () => {
+    render(
+      <ActTierObjectiveRail
+        stratum={STRATUM}
+        objectives={[OBJECTIVE]}
+        progressByObjective={PROGRESS}
+        activeObjectiveId={null}
+        onSelectObjective={vi.fn()}
+        mode="objectives"
+        onModeChange={vi.fn()}
+        triggeredCount={0}
+        projectId="proj-1"
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        activeStratumId="s6-integration-design"
+        selectedProtocolId={null}
+        onSelectProtocol={vi.fn()}
+        headerSlot={<div data-testid="custom-header-slot">SWITCHER</div>}
+      />,
+    );
+    expect(screen.getByTestId('custom-header-slot')).toBeTruthy();
+    // Default header replaced, not duplicated.
+    expect(screen.queryByText(STRATUM.summary)).toBeNull();
+    // The objective list still renders below the slot.
+    expect(
+      screen.getByText(OBJECTIVE.shortTitle ?? OBJECTIVE.title),
+    ).toBeTruthy();
+  });
+});

@@ -81,7 +81,6 @@ import {
 } from '../../strata/resolveFormPrefill.js';
 import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
-import { planHeaderProjectTypeLabel } from '../strata/planHeaderLabel.js';
 import {
   deriveStratum1EvidenceMap,
   deriveStratum1StewardshipMap,
@@ -109,9 +108,11 @@ import {
   pushAgroforestryToSpine,
 } from '../../../features/vegetation/agroforestrySpineSync.js';
 import { type SpineTypeChip } from '../../act/tier-shell/ActTierSpine.js';
-// Plan-only collapse-aware wrapper around the shared ActTierSpine. Forwards the
-// full spine prop set; Act renders ActTierSpine directly (no collapse).
-import PlanSpine from './PlanSpine.js';
+// Plan-only rail-header stratum switcher. Replaces the horizontal spine on
+// Plan: it slots into ActTierObjectiveRail's headerSlot and absorbs the spine's
+// stratum navigation, threshold checkpoints, and project identity. PlanSpine /
+// ActTierSpine are preserved (Act still renders ActTierSpine directly).
+import PlanStratumSwitcher from './PlanStratumSwitcher.js';
 import {
   THRESHOLDS,
   REACHABLE_THRESHOLD_IDS,
@@ -370,15 +371,10 @@ export default function PlanTierShell() {
   const typeRecord = project.metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
-  const projectTypeLabel = planHeaderProjectTypeLabel(
-    primaryTypeId,
-    secondaryTypeIds,
-  );
-  // Per-type chips for the spine identity tile (Plan Declaration chrome): one
+  // Per-type chips for the switcher identity row (Plan Declaration chrome): one
   // primary chip + one chip per secondary, each resolved to its human label.
-  // Passed unconditionally to the PLAN spine instance (a sibling of Act's own
-  // ActTierSpine, so this never touches the Act stage). Empty when no primary
-  // type is set -> the spine falls back to the joined projectTypeLabel text.
+  // Passed to the rail-header PlanStratumSwitcher (Plan-only; never touches the
+  // Act stage). Empty when no primary type is set.
   const spineTypeChips = useMemo<SpineTypeChip[]>(() => {
     if (!primaryTypeId) return [];
     const chips: SpineTypeChip[] = [
@@ -1077,44 +1073,13 @@ export default function PlanTierShell() {
   return (
     <PlanViewProvider view={activeView}>
       <div className={styles.tierShell}>
-        <PlanSpine
-          strata={PLAN_STRATA}
-          objectives={objectives}
-          stratumStates={stratumStates}
-          lockedStratumIds={lockedStratumIds}
-          // While a threshold surface is open, ONLY its divider button is
-          // highlighted -- no stratum tab. selectedStratumId still falls back to
-          // S1 (it scopes the rail context), but passing '' here means no tab
-          // matches, so S1 stops showing a stray active highlight behind the
-          // active threshold. The threshold button carries its own data-active.
-          activeStratumId={thresholdActive ? '' : selectedStratumId}
-          onSelectStratum={handleSelectStratum}
-          projectTitle={project.name}
-          projectTypeLabel={projectTypeLabel}
-          ariaLabel="Plan strata"
-          // Plan Declaration chrome: per-type chips replace the joined label in
-          // the identity tile, and the three OLOS gate checkpoints render as
-          // dividers between strata. Both are Plan-only (this is the Plan spine
-          // instance); the Act stage's own ActTierSpine passes neither.
-          typeChips={spineTypeChips}
-          thresholds={THRESHOLDS}
-          // Threshold 1 (Reality Check) and Threshold 2 (Coherence Check) are
-          // always clickable -- the operator dropped the open-gate requirement
-          // so a steward can jump to either surface at any stratum (the soft
-          // Mode-4 banners still advise; STRATUM_PREREQS untouched). Threshold 3
-          // (Act Mandate) is omitted (no surface built yet) so its divider stays
-          // decorative. Selecting one routes to the threshold surface; while
-          // there, params.thresholdId marks it active. Act passes none of these
-          // -> its dividers stay decorative.
-          clickableThresholdIds={[...REACHABLE_THRESHOLD_IDS]}
-          thresholdActiveId={params.thresholdId}
-          onSelectThreshold={(thresholdId) =>
-            navigate({
-              to: '/v3/project/$projectId/plan/threshold/$thresholdId',
-              params: { projectId: id, thresholdId },
-            })
-          }
-        />
+        {/*
+          The horizontal Plan spine is hidden: its stratum navigation, threshold
+          checkpoints, and project identity now live in the rail-header
+          PlanStratumSwitcher (passed below as ActTierObjectiveRail's
+          headerSlot). ActTierSpine / PlanSpine are preserved for reuse; Act
+          still renders ActTierSpine directly.
+        */}
         <div className={styles.shellWrap}>
           {showTierZeroWorkbench && !selectedObjective && railMode !== 'protocols' ? (
             // Tier-0 route resolved before its objective set hydrated: hold a
@@ -1152,6 +1117,34 @@ export default function PlanTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
+                // Plan-only: the rail header IS the stratum switcher (the
+                // horizontal spine is hidden). It absorbs everything the spine
+                // carried -- stratum tabs, the reachable threshold checkpoints,
+                // and project identity. While a threshold surface is open its
+                // name shows in the collapsed header (mirrors the old spine's
+                // activeStratumId='' rule). Act passes no headerSlot -> its
+                // static railHeader renders, byte-identical.
+                headerSlot={
+                  <PlanStratumSwitcher
+                    strata={PLAN_STRATA}
+                    stratumStates={stratumStates}
+                    lockedStratumIds={lockedStratumIds}
+                    activeStratumId={thresholdActive ? '' : selectedStratumId}
+                    activeStratum={selectedStratum}
+                    thresholds={THRESHOLDS}
+                    clickableThresholdIds={[...REACHABLE_THRESHOLD_IDS]}
+                    thresholdActiveId={params.thresholdId}
+                    onSelectStratum={handleSelectStratum}
+                    onSelectThreshold={(thresholdId) =>
+                      navigate({
+                        to: '/v3/project/$projectId/plan/threshold/$thresholdId',
+                        params: { projectId: id, thresholdId },
+                      })
+                    }
+                    projectTitle={project.name}
+                    typeChips={spineTypeChips}
+                  />
+                }
                 // Protocols mode is LIVE in Plan: the toggle drives ?planMode,
                 // and the protocols list spans the full S1->S7 library
                 // (protocolScopeStratumId={null}) rather than the active stratum.

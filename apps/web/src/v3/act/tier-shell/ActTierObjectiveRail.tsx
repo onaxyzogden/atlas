@@ -10,6 +10,7 @@
 // An aggregate amber badge on the Protocols segment flags triggered protocols.
 
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -83,6 +84,14 @@ interface Props {
    * unchanged (the toggle still renders for Act).
    */
   hideModeToggle?: boolean;
+  /**
+   * OPTIONAL replacement for the default stratum header (eyebrow + title +
+   * summary). When provided, it renders IN PLACE of the static header in the
+   * objectives view — the Plan tier shell passes its interactive stratum
+   * switcher here. Default undefined -> the static header renders (Act
+   * byte-identical).
+   */
+  headerSlot?: ReactNode;
 }
 
 export default function ActTierObjectiveRail({
@@ -104,6 +113,7 @@ export default function ActTierObjectiveRail({
   onSelectProtocol,
   bulkActivation = false,
   hideModeToggle = false,
+  headerSlot,
 }: Props) {
   // When the toggle is hidden (Plan tier shell), the rail is always the
   // objectives list regardless of the incoming `mode`.
@@ -172,15 +182,17 @@ export default function ActTierObjectiveRail({
         </div>
       ) : (
         <>
-          <div className={styles.railHeader}>
-            <span className={styles.railEyebrow}>{eyebrow}</span>
-            <span className={styles.railTitle}>
-              {stratum?.title ?? 'Objectives'}
-            </span>
-            {stratum?.summary && (
-              <span className={styles.railSummary}>{stratum.summary}</span>
-            )}
-          </div>
+          {headerSlot ?? (
+            <div className={styles.railHeader}>
+              <span className={styles.railEyebrow}>{eyebrow}</span>
+              <span className={styles.railTitle}>
+                {stratum?.title ?? 'Objectives'}
+              </span>
+              {stratum?.summary && (
+                <span className={styles.railSummary}>{stratum.summary}</span>
+              )}
+            </div>
+          )}
           {sourceKinds.size > 1 && (
             <div
               role="group"

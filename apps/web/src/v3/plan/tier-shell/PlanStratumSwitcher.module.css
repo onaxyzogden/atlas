@@ -1,0 +1,245 @@
+/*
+ * PlanStratumSwitcher — Plan-only rail-header stratum switcher. Collapsed it
+ * matches the static railHeader (eyebrow + title + summary) so swapping the
+ * spine for it is visually seamless; expanded it drops an in-flow vertical
+ * panel of strata + interleaved thresholds + project identity. Tokens mirror
+ * ActTierShell.module.css (BentoBox surface / gold-brand accent).
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
+/* Collapsed disclosure button — laid out like .railHeader, full-width click. */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 14px 10px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.head:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 6%,
+    transparent
+  );
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.summary {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.chevron {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  transition: transform 0.15s ease;
+}
+
+.chevron[data-open] {
+  transform: rotate(180deg);
+}
+
+/* Expanded panel — in-flow, pushes the objective list down (not an overlay). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 10px 10px;
+  border-top: 1px solid var(--color-border, rgba(242, 237, 227, 0.08));
+}
+
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 10px;
+}
+
+.projectName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.16));
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.chip[data-kind='primary'] {
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stratumRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md, 8px);
+  border-left: 3px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text, #f2ede3);
+}
+
+.stratumRow:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    transparent
+  );
+}
+
+.stratumRow[data-active] {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 14%,
+    transparent
+  );
+  border-left-color: var(--color-gold-brand, #c4a265);
+}
+
+.stratumRow[data-locked] {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
+}
+
+.ordinal {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-gold-brand, #c4a265);
+  min-width: 22px;
+}
+
+.rowTitle {
+  flex: 1 1 auto;
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.statusChip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.statusChip[data-status='complete'] {
+  color: var(--color-emerald, #6bbf7b);
+}
+
+.statusChip[data-status='active'] {
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.statusChip[data-status='locked'] {
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+}
+
+/* Threshold rows sit between strata, visually inset to read as checkpoints. */
+.thresholdRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-left: 22px;
+  padding: 5px 8px;
+  background: transparent;
+  border: 0;
+  border-left: 1px dashed var(--color-border, rgba(242, 237, 227, 0.24));
+  text-align: left;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
+
+button.thresholdRow {
+  cursor: pointer;
+}
+
+button.thresholdRow:hover {
+  color: var(--color-gold-brand, #c4a265);
+  border-left-color: var(--color-gold-brand, #c4a265);
+}
+
+.thresholdRow[data-active] {
+  color: var(--color-gold-brand, #c4a265);
+  border-left-color: var(--color-gold-brand, #c4a265);
+}
+
+.thresholdName {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
