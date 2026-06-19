@@ -78,6 +78,7 @@ import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
 import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
 import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
 import ActObjectiveAmendments from './ActObjectiveAmendments.js';
+import ActObjectiveMonitoringPanel from './ActObjectiveMonitoringPanel.js';
 import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
@@ -882,6 +883,16 @@ export default function ActTierExecutionPanel({
           </p>
         )}
       </section>
+
+      {/* Live monitoring: the Plan-authored monitoringProtocol made live during
+          Act -- reads indicators/triggers/feed, surfaces the latest reading per
+          indicator, and records covenant-guarded readings into Observe. Keyed by
+          objective so the record form resets when the steward navigates. */}
+      <ActObjectiveMonitoringPanel
+        key={objective.id}
+        projectId={projectId}
+        objective={objective}
+      />
 
       <button
         type="button"
