@@ -2566,4 +2566,10 @@ in-flight `ProtocolLibraryCard.tsx` WIP + offline API (:3001) were degrading the
 into the error boundary — both independent of this change ([[project-screenshot-hang]]). The Act
 wiring is a verbatim mirror of the already-verified Plan path. Log
 [[log/2026-06-13-atlas-plan-survey-fixes-map-takeover]]. Amanah: surfaces existing draw tools per
-objective only — no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
+objective only -- no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
+
+## Byte-identical under Threshold 3 -- The Act Mandate (2026-06-19)
+
+Threshold 3 (the final Plan-stage Plan->Act ceremony, [[decisions/2026-06-19-atlas-threshold3-act-mandate]]) introduced a project-global `planReadOnly` lock armed at **Begin Act**, but it is enforced ENTIRELY as a Plan-host **surface policy** (render `readOnly?` prop on `ObjectiveDetailPanel` + Plan route `beforeLoad` context). `ActTierShell` and the shared `ActTierZeroWorkbench` / `DecisionWorkingPanel` **never read the lock store** -- the `readOnly?` prop defaults `false`, and the original 3-layer plan's store backstop was deliberately DROPPED so the Act execution loop (which writes the same `planStratumStore` / `actEvidenceStore` keys) is never frozen. `*.mandateNeutrality.test.ts` guards the surface-agnostic store contract. **The Act surface is byte-identical** -- no `v3/plan/threshold/ActMandate*` / `RaiseConcern*` / `ConcernAmendments*` / `ConcernGovernancePanel*` component is imported anywhere under `v3/act` (grep-proven). Concerns originate only from the Plan-under-mandate surface; Act raises none. See [[entities/plan-tier-shell]] for the hosting side.
+
+Amanah: the lock is timestamps/booleans only; all covenant scanning lives in the Plan-only concern fields ([[fiqh-csra-erased-2026-05-04]]).
