@@ -44,6 +44,21 @@ const SELECTABLE_LAYERS = [
   `${LAYER_PREFIX}setback-line`,
 ];
 
+// Design elements (plant systems, springs, roads, turnarounds) render via
+// `DesignElementLayers` under the `design-el-` prefix and own their OWN
+// selection lifecycle: a `mousedown` on one sets the selection (with its
+// `projectId`) and arms drag-translate. Those layers are intentionally NOT in
+// `SELECTABLE_LAYERS` above — this handler must not re-select them. But it must
+// also not CLEAR them: a click that lands on a design element has to leave the
+// `mousedown`-set selection intact, otherwise the edit toolbar vanishes on
+// release. We query these only to detect that case and bail (mirrors the
+// design-el guard already present in `PlanDataLayers.onBgClick`).
+const DESIGN_EL_LAYERS = [
+  'design-el-poly-fill',
+  'design-el-line',
+  'design-el-point',
+];
+
 function mapKindToSelectionKind(
   kind: string | undefined,
 ): PlanSelectionKind | null {
@@ -76,46 +91,30 @@ interface Props {
 export default function Plan3DSelectionHandler({ map }: Props) {
   useEffect(() => {
     if (!map) return;
-    // [DIAG 2026-05-12] Mount log — confirms the handler is attached.
-    // eslint-disable-next-line no-console
-    console.debug('[Plan3DSelect] mount', { hasMap: !!map });
     const onClick = (e: maplibregl.MapMouseEvent) => {
-      const present = SELECTABLE_LAYERS.filter((id) => map.getLayer(id));
-      // Sample everything under the point (no layer filter) to detect
-      // competing layers / occluders.
-      let anyHits: maplibregl.MapGeoJSONFeature[] = [];
-      try {
-        anyHits = map.queryRenderedFeatures(e.point);
-      } catch {
-        /* ignore */
+      // A click that lands on a design element is owned by DesignElementLayers
+      // (it selected on `mousedown`). Bail without touching the store so the
+      // freshly-set selection — and its edit toolbar — survives the release.
+      const designPresent = DESIGN_EL_LAYERS.filter((id) => map.getLayer(id));
+      if (designPresent.length > 0) {
+        let designHits: maplibregl.MapGeoJSONFeature[] = [];
+        try {
+          designHits = map.queryRenderedFeatures(e.point, {
+            layers: designPresent,
+          });
+        } catch {
+          /* query unavailable — fall through to plan-data handling */
+        }
+        if (designHits.length > 0) return;
       }
-      // eslint-disable-next-line no-console
-      console.debug('[Plan3DSelect] click', {
-        point: e.point,
-        present,
-        anyHits: anyHits.slice(0, 8).map((f) => ({
-          layer: f.layer?.id,
-          kind: f.properties?.kind,
-          id: f.properties?.id,
-        })),
-      });
+      const present = SELECTABLE_LAYERS.filter((id) => map.getLayer(id));
       if (present.length === 0) return;
       let features: maplibregl.MapGeoJSONFeature[] = [];
       try {
         features = map.queryRenderedFeatures(e.point, { layers: present });
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.debug('[Plan3DSelect] queryRenderedFeatures threw', err);
+      } catch {
         return;
       }
-      // eslint-disable-next-line no-console
-      console.debug('[Plan3DSelect] selectable hits', features.length,
-        features.map((f) => ({
-          layer: f.layer?.id,
-          kind: f.properties?.kind,
-          id: f.properties?.id,
-        })),
-      );
       if (features.length === 0) {
         usePlanSelectionStore.getState().set([]);
         return;
@@ -127,8 +126,6 @@ export default function Plan3DSelectionHandler({ map }: Props) {
         typeof rawKind === 'string' ? rawKind : undefined,
       );
       const id = f.properties?.id;
-      // eslint-disable-next-line no-console
-      console.debug('[Plan3DSelect] resolved', { rawKind, kind, id });
       if (!kind || typeof id !== 'string') return;
       const selItem = { kind, id };
       if (e.originalEvent.shiftKey) {
@@ -136,9 +133,6 @@ export default function Plan3DSelectionHandler({ map }: Props) {
       } else {
         usePlanSelectionStore.getState().set([selItem]);
       }
-      // eslint-disable-next-line no-console
-      console.debug('[Plan3DSelect] store items after set',
-        usePlanSelectionStore.getState().items);
     };
     map.on('click', onClick);
     return () => {

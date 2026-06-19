@@ -141,7 +141,7 @@ export default function PlanLayout() {
     activeSectionId && planSectionIdModule(activeSectionId) === validModule
       ? activeSectionId
       : null;
-  const [activeView, setActiveView] = useState<PlanView>('vision');
+  const [activeView, setActiveView] = useState<PlanView>('current');
   const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
   const [currentHovering, setCurrentHovering] = useState(false);
   const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);

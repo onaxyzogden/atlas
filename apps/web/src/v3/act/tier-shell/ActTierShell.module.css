@@ -207,6 +207,36 @@
   padding-left: 5px;
 }
 
+/* Clickable Threshold entry (Plan side, when the gate is open). The bare
+   decorative divider is unchanged; only the <button> variant resets chrome and
+   takes the amber Threshold register on hover / active. */
+.spineThreshold[data-clickable] {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 120ms ease;
+}
+
+.spineThreshold[data-clickable]:hover .spineThresholdName,
+.spineThreshold[data-clickable]:focus-visible .spineThresholdName {
+  color: var(--color-threshold-accent, #d9a441);
+  border-left-color: var(--color-threshold-accent, #d9a441);
+}
+
+.spineThreshold[data-clickable][data-active] {
+  background: var(--color-threshold-soft, rgba(217, 164, 65, 0.14));
+}
+
+.spineThreshold[data-clickable][data-active] .spineThresholdName {
+  color: var(--color-threshold-accent, #d9a441);
+  border-left-color: var(--color-threshold-accent, #d9a441);
+  font-style: normal;
+  font-weight: 600;
+}
+
 .tier {
   flex: 1 1 0;
   min-width: 124px;
