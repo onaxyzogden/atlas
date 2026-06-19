@@ -1,0 +1,93 @@
+/*
+ * LaunchProgressPanel.module.css -- the BLUE "progress tracking" skin for a
+ * Mode-5 (Launch Preparation) objective detail. Deliberately distinct from the
+ * green monitoring stream (MonitoringStreamPanel) and the amber Threshold
+ * register: blue signals "this is execution bookkeeping the steward reads on the
+ * Plan launch-prep chrome" -- milestone-vs-plan, expenditure-vs-budget,
+ * capacity-deployment-vs-estimate.
+ *
+ * Display-only. The panel renders an objective's progressTracking.milestones --
+ * each a metric line + a cadence pill. It never gates and carries no interactive
+ * state. The accent degrades through a hard fallback to a steady slate-blue.
+ */
+
+.panel {
+  --lp-accent: #3f6f9f;
+  --lp-accent-strong: #2f567c;
+  --lp-soft: rgba(63, 111, 159, 0.1);
+  --lp-line: rgba(63, 111, 159, 0.32);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--lp-line);
+  border-left: 3px solid var(--lp-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--lp-soft) 0%, transparent 120%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: var(--lp-accent-strong);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--lp-accent-strong);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.bullet {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--lp-accent);
+}
+
+/* A milestone = the metric line + a cadence pill ("how often it is reviewed"). */
+.metric {
+  display: inline;
+}
+
+.cadence {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--lp-soft);
+  border: 1px solid var(--lp-line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--lp-accent-strong);
+}

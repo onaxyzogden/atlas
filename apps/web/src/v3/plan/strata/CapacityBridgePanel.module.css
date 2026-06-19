@@ -1,0 +1,206 @@
+/*
+ * CapacityBridgePanel.module.css -- the Plan-only "Tier 0 Capacity Bridge" on
+ * the s7-resource-plan objective. A neutral container (mirrors the Mode-4/Mode-5
+ * chrome) holding two columns: declared SUPPLY (slate) read against captured
+ * Phase-1 DEMAND (blue, tying to the Mode-5 launch skin), with a derived hours
+ * balance footer.
+ *
+ * Display-only -- it never gates. Plan-only by construction (its only mount,
+ * ObjectiveDetailPanel, is rendered solely by the Plan shells), so the Act stage
+ * is byte-identical.
+ */
+
+.bridge {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  /* 18px side margin matches the panel's sibling-section gutter (Informed by). */
+  margin: 8px 18px 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.eyebrowIcon {
+  flex: none;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.lede {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-muted, rgba(0, 0, 0, 0.015));
+}
+
+/* Supply = declared capacity (slate "have"); Demand = captured need (blue). */
+.colSupply {
+  border-left: 3px solid #6f7a86;
+}
+
+.colDemand {
+  --lp-accent: #3f6f9f;
+  --lp-soft: rgba(63, 111, 159, 0.1);
+  border-left: 3px solid var(--lp-accent);
+  background: linear-gradient(180deg, var(--lp-soft) 0%, transparent 140%);
+}
+
+.colHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text, #2b2620);
+}
+
+.colIcon {
+  flex: none;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.stats {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.statLabel {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.statValue {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text, #2b2620);
+}
+
+.empty {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.channels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+  padding-top: 7px;
+  border-top: 1px solid var(--color-border, #e2ddd2);
+}
+
+.channelsLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.channelList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.channel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-text, #2b2620);
+}
+
+.channelName {
+  line-height: 1.4;
+}
+
+.channelAmount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Derived hours balance -- the actual "bridge" reading. Green when supply covers
+   demand, amber when it falls short. Display-only, never a gate. */
+.balance {
+  margin: 2px 0 0;
+  padding: 8px 11px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.balanceOk {
+  border: 1px solid rgba(63, 143, 95, 0.32);
+  border-left: 3px solid #3f8f5f;
+  background: rgba(63, 143, 95, 0.1);
+  color: #2f7049;
+}
+
+.balanceShort {
+  border: 1px solid rgba(217, 164, 65, 0.34);
+  border-left: 3px solid var(--color-threshold-accent, #d9a441);
+  background: var(--color-threshold-soft, rgba(217, 164, 65, 0.14));
+  color: var(--color-gold-brand, #b08a3a);
+}

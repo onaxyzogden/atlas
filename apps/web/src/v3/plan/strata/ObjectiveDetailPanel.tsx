@@ -30,6 +30,8 @@ import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
 import Mode4DesignChrome from './Mode4DesignChrome.js';
+import Mode5LaunchChrome from './Mode5LaunchChrome.js';
+import CapacityBridgePanel from './CapacityBridgePanel.js';
 import CoherenceObjectiveAmendments from '../threshold/CoherenceObjectiveAmendments.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
@@ -475,6 +477,21 @@ export default function ObjectiveDetailPanel({
           carries a Mode-4 display field, so non-Design objectives are untouched.
           Plan-only by construction (Act never mounts this panel for s4/s5). */}
       <Mode4DesignChrome objective={objective} />
+
+      {/* MODE 5 -- LAUNCH PREPARATION chrome (Tier-6 restructure): the blue
+          progress-tracking panel + act-handoff chip. Self-gating -- renders
+          nothing unless this objective carries `progressTracking` (every
+          resolving s7 objective does, nothing else). Separate from
+          Mode4DesignChrome so an objective carrying both fields shows accurate,
+          non-overlapping eyebrows. Plan-only by construction (Act never mounts
+          this panel). */}
+      <Mode5LaunchChrome objective={objective} />
+
+      {/* TIER 0 CAPACITY BRIDGE -- arms ONLY on s7-resource-plan: declared
+          steward supply (from Tier 0 / Obj 0.2) read against the Phase-1 demand
+          captured in this resource plan. Display-only; demand absent -> honest
+          "not yet captured" reading. Plan-only by construction. */}
+      <CapacityBridgePanel objective={objective} projectId={projectId} />
 
       {/* THRESHOLD 2 (Coherence Check) amendments touching this objective --
           Plan-only, additive, display-only. Self-gates to null when none, so a

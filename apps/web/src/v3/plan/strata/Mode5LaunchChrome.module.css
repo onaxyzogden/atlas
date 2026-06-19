@@ -1,0 +1,65 @@
+/*
+ * Mode5LaunchChrome.module.css -- the Plan-only wrapper for a Mode-5 (Launch
+ * Preparation) objective's display-only detail: the blue progress-tracking panel
+ * and the act-handoff chip. Neutral container (mirrors Mode4DesignChrome); the
+ * progress panel carries its own blue skin.
+ *
+ * Every affordance here is display-only and never gates. The whole wrapper is
+ * Plan-only by construction (its only mount, ObjectiveDetailPanel, is rendered
+ * solely by the Plan shells), so the Act stage is byte-identical.
+ */
+
+.chrome {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  /* 18px side margin matches the panel's sibling-section gutter (Informed by). */
+  margin: 8px 18px 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.eyebrowIcon {
+  flex: none;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* Act handoff -- the launch package this objective hands to Act. */
+.handoff {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--color-text, #2b2620);
+}
+
+.handoffIcon {
+  flex: none;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.handoffLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.handoffValue {
+  font-weight: 600;
+}
