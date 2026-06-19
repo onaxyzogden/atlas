@@ -768,6 +768,18 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Provision phasing approved. Fast, medium, and long-term production sequenced by ecological readiness and yield speed.',
     actHandoff: 'Provision Phasing Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Each production layer launched only after its ecological-readiness criteria are met',
+          cadence: 'per production layer',
+        },
+        {
+          metric: 'Household grocery spend reduction vs. provision phasing',
+          cadence: 'per planning cycle',
+        },
+      ],
+    },
     scopeNotes:
       'Sequencing logic is ecological readiness + yield speed - not capital enablement. A homestead that plants the orchard before the kitchen garden is ready has sequenced by aspiration, not provision logic.',
   }),
@@ -811,6 +823,18 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Household budget and input reduction plan approved. Baseline spend recorded and reduction milestones confirmed.',
     actHandoff: 'Household Budget & Input Reduction Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Input reduction achieved vs. milestones by planning cycle',
+          cadence: 'per planning cycle',
+        },
+        {
+          metric: 'Household food + supply spend vs. recorded baseline',
+          cadence: 'per planning cycle',
+        },
+      ],
+    },
   }),
   obj({
     id: 'hms-s7-adaptive-management',
@@ -855,5 +879,17 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Adaptive management protocol approved. Review cycle and decision triggers confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual homestead review held against monitoring data',
+          cadence: 'annual',
+        },
+        {
+          metric: '3-year comprehensive review against Tier 0 self-sufficiency targets',
+          cadence: 'every 3 years',
+        },
+      ],
+    },
   }),
 ];

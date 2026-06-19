@@ -868,6 +868,12 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Systems establishment sequence approved. Go/no-go test defined for each system. No habitation before all life-safety systems pass.',
     actHandoff: 'Systems Establishment Sequence',
+    progressTracking: {
+      milestones: [
+        { metric: 'Go/no-go test pass per system before the next system commences', cadence: 'per system' },
+        { metric: 'Water / energy / shelter / emergency-comms go/no-go passed before any habitation', cadence: 'one-time gate, before occupancy' },
+      ],
+    },
     scopeNotes:
       'Hard gate: no permanent habitation until water (potable), energy (critical loads), shelter (thermal performance), and emergency communications all pass their go/no-go tests. These are confirmed independently, not self-certified.',
   }),
@@ -896,6 +902,12 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Resourcing and supply chain plan approved. All Phase 1 materials scheduled within access windows.',
     actHandoff: 'Resourcing & Supply Chain Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Phase 1 materials ordered + scheduled within access windows', cadence: 'per access window' },
+        { metric: 'On-site critical consumables vs. defined minimum inventory', cadence: 'per resupply cycle' },
+      ],
+    },
   }),
   obj({
     id: 'ofg-s7-phased-habitation',
@@ -922,6 +934,12 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Phased habitation plan approved. Habitability thresholds confirmed as hard gates independently verified.',
     actHandoff: 'Phased Habitation Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Habitability thresholds independently verified before each occupation', cadence: 'per cohort / seasonal occupation' },
+        { metric: 'Residents confirmed understanding + acceptance of life-safety protocols before first occupation', cadence: 'per resident, before occupation' },
+      ],
+    },
     scopeNotes:
       'Habitability thresholds are hard gates - potable water, energy critical loads, thermal performance, and emergency communications must each be independently verified, not self-certified, before first occupation.',
   }),

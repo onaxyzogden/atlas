@@ -1327,6 +1327,12 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Livestock establishment sequence approved. All infrastructure go/no-go tests defined. No livestock arrive before all infrastructure passes.',
     actHandoff: 'Livestock Establishment Sequence',
+    progressTracking: {
+      milestones: [
+        { metric: 'Fencing / water / yards go/no-go passed before livestock arrive', cadence: 'per infrastructure category, before stocking' },
+        { metric: 'Livestock sourcing (breed / vendor / transport / quarantine) on schedule', cadence: 'per sourcing batch' },
+      ],
+    },
     scopeNotes:
       'Hard gate: no livestock arrive before fencing, water, and handling facilities all pass independent go/no-go tests.',
   }),
@@ -1370,6 +1376,12 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Stocking buildup plan approved. All stocking increases tied to pasture condition monitoring, not calendar.',
     actHandoff: 'Stocking Buildup & Pasture Readiness Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Stocking rate vs. carrying-capacity ceiling each review cycle', cadence: 'per review cycle' },
+        { metric: 'Stocking increases tied to pasture-condition triggers, not calendar', cadence: 'per review cycle' },
+      ],
+    },
   }),
   obj({
     id: 'silv-s7-financial-viability',
@@ -1422,6 +1434,12 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Enterprise financial viability plan approved. Break-even confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Infrastructure + stocking spend vs. Phase 1 budget', cadence: 'per establishment phase' },
+        { metric: 'Revenue vs. timeline toward break-even at target stocking', cadence: 'monthly once sales begin' },
+      ],
+    },
   }),
   obj({
     id: 'silv-s7-pasture-spelling',
@@ -1463,6 +1481,12 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Pasture spelling and recovery protocol approved. Re-entry indicators defined. All rotation decisions tied to recovery data.',
     actHandoff: 'Pasture Spelling & Recovery Protocol',
+    progressTracking: {
+      milestones: [
+        { metric: 'Paddock rest periods met vs. minimum-rest protocol', cadence: 'per rotation' },
+        { metric: 'Re-entry only after recovery indicator (height / cover / species) confirmed', cadence: 'per paddock re-entry' },
+      ],
+    },
   }),
 ];
 
@@ -2090,6 +2114,12 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     completionGate:
       'Tree-protection phase milestones set, partial-stocking plan documented, full-stocking timeline projected, financial impact on host enterprise assessed, high-mortality contingency defined.',
     actHandoff: 'Stocking Phasing Plan - communicate protection-phase constraints to host primary operator and update carrying-capacity calculations for the establishment period',
+    progressTracking: {
+      milestones: [
+        { metric: 'Livestock re-entry only after tree-protection-phase milestone (height / guard integrity) met', cadence: 'per paddock, per protection phase' },
+        { metric: 'Stocking density vs. reduced establishment-period carrying capacity', cadence: 'per review cycle during establishment' },
+      ],
+    },
   }),
 ];
 

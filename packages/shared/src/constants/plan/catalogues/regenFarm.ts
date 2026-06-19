@@ -916,6 +916,18 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Enterprise sequencing logic approved. Launch order and enabling dependencies confirmed.',
     actHandoff: 'Enterprise Sequencing & Phasing Logic Brief',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Go/no-go criteria status at each planned launch threshold',
+          cadence: 'quarterly review',
+        },
+        {
+          metric: 'Enterprise launch sequence adherence vs. planned cycle',
+          cadence: 'at each planned launch',
+        },
+      ],
+    },
   }),
   obj({
     id: 'rf-s7-cash-flow',
@@ -954,5 +966,18 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Cash flow staging approved. Revenue timeline and gap strategy confirmed within operational planning scope.',
     actHandoff: 'Cash Flow Staging Brief',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Revenue vs. projection by enterprise, once production begins',
+          cadence: 'monthly',
+        },
+        { metric: 'Expenditure vs. budget', cadence: 'quarterly' },
+        {
+          metric: 'Cash flow gap emergence vs. defined threshold',
+          cadence: 'monitored continuously, response at threshold breach',
+        },
+      ],
+    },
   }),
 ];

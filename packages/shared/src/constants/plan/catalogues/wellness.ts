@@ -1566,6 +1566,18 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Therapeutic programme launch sequence approved. Soft launch pass/fail criteria defined as hard gate before public bookings.',
     actHandoff: 'Therapeutic Program Launch Sequence',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Soft-launch pass/fail criteria signed off before public bookings',
+          cadence: 'one-time gate, re-run before bookings expand for each new modality',
+        },
+        {
+          metric: 'Modality introduction vs. phased readiness plan',
+          cadence: 'per modality added',
+        },
+      ],
+    },
     scopeNotes:
       'Hard gate: no public bookings until soft launch criteria are reviewed and passed. This is the same principle as Agritourism - launching at full capacity before systems are tested produces poor outcomes and reputational damage that is slow to recover.',
   }),
@@ -1617,6 +1629,18 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Practitioner onboarding and supervision framework approved. All practitioners inducted before launch.',
     actHandoff: 'Practitioner Onboarding & Supervision Framework',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'All practitioners completed onboarding before first guest arrival',
+          cadence: 'per practitioner, before launch',
+        },
+        {
+          metric: 'Supervision sessions held vs. defined schedule',
+          cadence: 'per supervision cycle',
+        },
+      ],
+    },
   }),
   obj({
     id: 'well-s7-adaptive-management',
@@ -1666,6 +1690,18 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual review held (therapeutic outcomes + sensory + financial + practitioner-wellbeing data)',
+          cadence: 'annual',
+        },
+        {
+          metric: '3-year comprehensive review against Tier 0 healing philosophy + vision',
+          cadence: 'every 3 years',
+        },
+      ],
+    },
   }),
 ];
 

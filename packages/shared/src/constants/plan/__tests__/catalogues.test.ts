@@ -438,6 +438,78 @@ describe('catalogue conformance - Mode-4 monitoringProtocol tightened shape (Thr
   });
 });
 
+describe('catalogue conformance - Mode-5 progressTracking sweep (Tier 6 / Launch Preparation)', () => {
+  // 2026-06-18 Tier-6 restructure (Launch Preparation): every resolving
+  // s7-phasing-resourcing objective gains a DISPLAY-ONLY progressTracking field
+  // (project-management milestones: milestone-vs-plan / expenditure-vs-budget /
+  // capacity-deployment cadence). It is distinct from monitoringProtocol -- it has
+  // NO Observe `feeds` destination (progress tracking is PM bookkeeping, not an
+  // Observe-stage design input) -- and like every other display field it NEVER
+  // gates. The 5 reference objectives carry the verbatim spec copy; the other 43
+  // are derived faithfully from each objective's own checklist / completionGate /
+  // focusedQuestion (the Mode-4 derivation method). This pins the full 48-objective
+  // sweep so a future authoring slip (a dropped or single-milestone field) fails
+  // loudly.
+  const S7 = ALL_AUTHORED.filter(
+    (o) => o.stratumId === 's7-phasing-resourcing',
+  );
+
+  it('covers every resolving s7 objective (the full 48-objective census)', () => {
+    expect(S7.length).toBe(48);
+    for (const o of S7) {
+      // No s7 objective is excludedFromResolution -- every one resolves.
+      expect(o.excludedFromResolution ?? false, o.id).toBe(false);
+    }
+  });
+
+  it('every s7 objective carries >=2 progressTracking milestones with non-empty metric + cadence', () => {
+    for (const o of S7) {
+      const pt = o.progressTracking;
+      expect(pt, `${o.id} progressTracking`).toBeDefined();
+      expect(pt!.milestones.length, `${o.id} milestones`).toBeGreaterThanOrEqual(
+        2,
+      );
+      for (const m of pt!.milestones) {
+        expect(m.metric.trim().length, `${o.id} metric`).toBeGreaterThan(0);
+        expect(m.cadence.trim().length, `${o.id} cadence`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('progressTracking carries no Observe feeds (it is PM bookkeeping, not an Observe input)', () => {
+    // Distinct from monitoringProtocol: the schema has no `feeds` key on
+    // progressTracking. This guards against a future authoring slip that conflates
+    // the two display fields.
+    for (const o of S7) {
+      expect(
+        (o.progressTracking as Record<string, unknown>).feeds,
+        o.id,
+      ).toBeUndefined();
+    }
+  });
+
+  it('Amanah: every milestone metric + cadence across ALL s7 objectives is covenant-clean', () => {
+    // The Tier-6 sweep nests authored copy inside progressTracking.milestones[].
+    // {metric,cadence}; the banned-term scan must reach that new nesting. Covers
+    // the whole authored s7 set (the Amanah-sensitive financial / marketing
+    // objectives -- ev-s7-financial-plan, ag-s7-booking-system, lvs-s7-marketing --
+    // are deliberately framed with no advance-sale / subscription / yield-share
+    // wording in their progress milestones).
+    const banned =
+      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    const strings: string[] = [];
+    for (const o of S7) {
+      for (const m of o.progressTracking!.milestones) {
+        strings.push(m.metric, m.cadence);
+      }
+    }
+    expect(strings.length).toBeGreaterThan(0);
+    for (const s of strings) {
+      expect(banned.test(s), s).toBe(false);
+    }
+  });
+});
+
 describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fields', () => {
   // The 2026-06-16 Tier-1 (Stratum-2) restructure reframed the six s2-* Land-
   // Reading objectives as a reception tier: each gains a reception-register

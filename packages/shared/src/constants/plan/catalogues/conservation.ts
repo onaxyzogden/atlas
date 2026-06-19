@@ -872,6 +872,18 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Phase 1 restoration priorities approved. Ecological sequencing confirmed and go/no-go criteria defined.',
     actHandoff: 'Restoration Phase 1 Implementation Priorities',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Phase 1 intervention sequence adherence (exclusion -> water -> weed -> planting)',
+          cadence: 'per intervention',
+        },
+        {
+          metric: 'Go/no-go criteria status per Phase 1 intervention',
+          cadence: 'at each intervention start',
+        },
+      ],
+    },
   }),
   obj({
     id: 'con-s7-longterm-timeline',
@@ -898,6 +910,18 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Long-term restoration timeline approved. Milestones defined, measurable, and linked to assessment methodology.',
     actHandoff: 'Long-Term Restoration Timeline & Milestone Targets',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Ecological state vs. 5 / 10 / 25-year milestone targets per zone',
+          cadence: 'per assessment cycle',
+        },
+        {
+          metric: 'Milestone assessment completed per defined methodology',
+          cadence: 'per scheduled assessment',
+        },
+      ],
+    },
   }),
   obj({
     id: 'con-s7-funding-resourcing',
@@ -925,6 +949,22 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Ongoing funding and resourcing strategy approved. Minimum annual requirement defined and funding gap addressed.',
     actHandoff: 'Ongoing Funding & Stewardship Resourcing Strategy',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual resourcing secured vs. minimum annual requirement',
+          cadence: 'annual',
+        },
+        {
+          metric: 'Grant applications submitted + reporting obligations met vs. schedule',
+          cadence: 'per grant cycle',
+        },
+        {
+          metric: 'Resourcing gap vs. bridging strategy',
+          cadence: 'annual review',
+        },
+      ],
+    },
   }),
   obj({
     id: 'con-s7-adaptive-management',
@@ -951,6 +991,22 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation requirements confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual management review held with defined participants + data',
+          cadence: 'annual',
+        },
+        {
+          metric: 'Decision-trigger status against monitoring outcomes',
+          cadence: 'per monitoring report',
+        },
+        {
+          metric: '5-year comprehensive plan review against long-term milestones',
+          cadence: 'every 5 years',
+        },
+      ],
+    },
   }),
   obj({
     id: 'con-s7-volunteer-stewardship',
@@ -978,5 +1034,17 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Volunteer and community stewardship programme approved. Roles, safety, and partnership structure confirmed.',
     actHandoff: 'Volunteer & Community Stewardship Programme',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Volunteer recruitment + retention vs. programme plan',
+          cadence: 'quarterly',
+        },
+        {
+          metric: 'Citizen-science data collection vs. monitoring schedule',
+          cadence: 'per recording cycle',
+        },
+      ],
+    },
   }),
 ];

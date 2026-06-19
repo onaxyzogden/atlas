@@ -1250,6 +1250,18 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Planting establishment sequence approved. All prerequisite infrastructure confirmed before tree arrival.',
     actHandoff: 'Planting Establishment Sequence',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Soil / irrigation / wind / guard readiness confirmed before tree delivery is accepted',
+          cadence: 'per planting zone, before delivery',
+        },
+        {
+          metric: 'Planting order adherence (frost-hardy before frost-sensitive, canopy before understory)',
+          cadence: 'during planting',
+        },
+      ],
+    },
     scopeNotes:
       'Tree stock is often non-refundable. Do not accept delivery until soil, water, and protection infrastructure is confirmed ready.',
   }),
@@ -1297,6 +1309,18 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Long-term succession management plan approved. 5, 10, and 25-year targets defined.',
     actHandoff: 'Long-Term Succession Management Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Canopy + species composition vs. Year 5 / 10 / 25 targets',
+          cadence: 'per succession review',
+        },
+        {
+          metric: 'Stage management interventions executed vs. succession plan',
+          cadence: 'per defined stage',
+        },
+      ],
+    },
   }),
   obj({
     id: 'orch-s7-financial-viability',
@@ -1342,6 +1366,19 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Enterprise financial viability plan approved. Cash flow gap and bridge strategy confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Cash-flow gap vs. bridge strategy through non-productive years',
+          cadence: 'quarterly',
+        },
+        {
+          metric: 'Revenue vs. projection by species, once production begins',
+          cadence: 'annual at harvest',
+        },
+        { metric: 'Break-even progress vs. projected break-even year', cadence: 'annual' },
+      ],
+    },
   }),
 ];
 

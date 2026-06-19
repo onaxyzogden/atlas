@@ -485,6 +485,18 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Residential phasing plan approved. Habitability threshold defined. Move-on-site go/no-go criteria confirmed.',
     actHandoff: 'Residential Phasing & Domestic Establishment Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Domestic infrastructure installation vs. Phase 1 timeline',
+          cadence: 'monthly during the build phase',
+        },
+        {
+          metric: 'Habitability go/no-go criteria met + confirmed before the household moves on-site',
+          cadence: 'one-time gate, before move-in',
+        },
+      ],
+    },
   }),
 ];
 

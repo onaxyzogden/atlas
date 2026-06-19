@@ -703,6 +703,18 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Program launch sequence approved. Soft launch pass/fail criteria defined as hard gate.',
     actHandoff: 'Program Launch Sequence',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Soft-launch pass/fail criteria signed off before full public launch',
+          cadence: 'one-time gate, before full launch',
+        },
+        {
+          metric: 'Program additions sequenced only after simpler programs are tested',
+          cadence: 'per program added',
+        },
+      ],
+    },
     scopeNotes:
       'Hard gate: no full public launch before soft launch criteria are reviewed and passed.',
   }),
@@ -732,6 +744,18 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Instructor onboarding and teaching standards approved. All instructors inducted before launch.',
     actHandoff: 'Instructor Onboarding & Teaching Standards',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'All instructors inducted before first public group',
+          cadence: 'per instructor, before launch',
+        },
+        {
+          metric: 'Working-with-children checks satisfied vs. regulatory framework',
+          cadence: 'per instructor',
+        },
+      ],
+    },
   }),
   obj({
     id: 'edu-s7-financial-viability',
@@ -759,5 +783,18 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ],
     completionGate: 'Enterprise financial viability plan approved. Break-even confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Participant numbers vs. break-even per program', cadence: 'per program run' },
+        {
+          metric: 'Revenue vs. annual target at defined program frequency',
+          cadence: 'monthly',
+        },
+        {
+          metric: 'Revenue shortfall vs. defined review trigger',
+          cadence: 'monthly, review at threshold breach',
+        },
+      ],
+    },
   }),
 ];

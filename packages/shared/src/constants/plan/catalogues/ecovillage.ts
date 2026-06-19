@@ -1472,6 +1472,19 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Phased settlement implementation plan approved. Habitability thresholds defined as explicit checklists, not aspirational descriptions.',
     actHandoff: 'Phased Settlement Implementation Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Cohort arrivals vs. phased arrival schedule', cadence: 'per cohort arrival' },
+        {
+          metric: 'Habitability threshold sign-off completed before each household moves in',
+          cadence: 'per household, before move-in',
+        },
+        {
+          metric: 'Total settled population vs. Stratum 2 maximum sustainable population',
+          cadence: 'per cohort',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ev-s7-financial-plan',
@@ -1511,6 +1524,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal financial plan approved. All founding member contributions committed and payment schedule confirmed.',
     actHandoff: 'Communal Financial Plan & Capital Contribution Schedule',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Member contributions received vs. committed contribution schedule',
+          cadence: 'per scheduled payment date',
+        },
+        {
+          metric: 'Phase 1 capital raised vs. total Phase 1 capital requirement',
+          cadence: 'monthly until fully committed',
+        },
+        {
+          metric: 'Financial report issued to all members per the reporting schedule',
+          cadence: 'per reporting cycle',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ev-s7-launch-sequence',
@@ -1553,6 +1582,18 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Communal systems launch sequence approved. Water, sanitation, and energy sequenced before dependent activities.',
     actHandoff: 'Communal Systems Launch Sequence',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Communal system completion vs. launch sequence (water, sanitation, energy)',
+          cadence: 'at each system launch',
+        },
+        {
+          metric: 'Go/no-go test pass confirmed before each dependent activity begins',
+          cadence: 'per system launch',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ev-s7-onboarding',
@@ -1589,6 +1630,18 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Membership onboarding protocol approved. Trial period, full membership criteria, and orientation program confirmed.',
     actHandoff: 'Membership Onboarding & Integration Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'New-member trial residency progress vs. defined review criteria',
+          cadence: 'per trial review',
+        },
+        {
+          metric: 'Orientation program completed before full-membership confirmation',
+          cadence: 'per new member',
+        },
+      ],
+    },
   }),
   // EV-S7.9: the source labels this objective "6.6" (a duplicate of the
   // enterprise-sequencing ref above) - it was appended in v1.2 ("Adaptive
@@ -1634,6 +1687,22 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual management review held (land data + social-health data together)',
+          cadence: 'annual',
+        },
+        {
+          metric: 'Decision-trigger status against defined monitoring outcomes',
+          cadence: 'per monitoring report',
+        },
+        {
+          metric: '5-year comprehensive review against Stratum 1 vision + ecological targets',
+          cadence: 'every 5 years',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ev-s7-exit-succession',
@@ -1678,5 +1747,17 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Exit and succession protocol approved with legal review confirmed. All founding members acknowledge and sign before moving on-site.',
     actHandoff: 'Member Exit & Land Succession Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Legal review of exit/succession protocol signed off before any member moves on-site',
+          cadence: 'one-time gate, before first occupancy',
+        },
+        {
+          metric: 'Founding-member acknowledgement + signature collected',
+          cadence: 'per founding member, before move-in',
+        },
+      ],
+    },
   }),
 ];

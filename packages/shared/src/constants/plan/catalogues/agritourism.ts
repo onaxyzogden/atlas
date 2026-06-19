@@ -2096,6 +2096,18 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Staffing and training plan approved. All required certifications confirmed before launch.',
     actHandoff: 'Hospitality Staffing & Training Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Recruitment fill vs. planned staffing requirement by service area',
+          cadence: 'monthly during hiring, against the launch timeline',
+        },
+        {
+          metric: 'Required certifications obtained before first guest arrival',
+          cadence: 'per certification, before launch',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ag-s7-booking-system',
@@ -2148,6 +2160,18 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Booking system and reservation infrastructure operational. Confirmed before marketing launch.',
     actHandoff: 'Booking System & Reservation Infrastructure',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Booking system operational before marketing begins',
+          cadence: 'one-time gate, before marketing',
+        },
+        {
+          metric: 'Reservations processed vs. availability and capacity settings',
+          cadence: 'per booking cycle',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ag-s7-phased-launch',
@@ -2207,6 +2231,19 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Phased launch and financial viability plan approved. Soft launch criteria defined as explicit pass/fail checklist - hard gate before any public bookings.',
     actHandoff: 'Phased Launch & Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Soft-launch pass/fail criteria signed off before full public launch',
+          cadence: 'one-time gate, before public bookings',
+        },
+        { metric: 'Revenue ramp-up vs. break-even timeline', cadence: 'monthly' },
+        {
+          metric: 'Occupancy rate / revenue vs. defined viability-review trigger',
+          cadence: 'monthly, review at threshold breach',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ag-s7-adaptive-management',
@@ -2256,6 +2293,22 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Annual review held (guest-experience + financial + land-health data together)',
+          cadence: 'annual',
+        },
+        {
+          metric: 'Decision-trigger status against defined outcomes',
+          cadence: 'per monitoring report',
+        },
+        {
+          metric: '3-year comprehensive review against Stratum 1 vision + commercial model',
+          cadence: 'every 3 years',
+        },
+      ],
+    },
   }),
   obj({
     id: 'ag-s7-seasonal-resilience',
@@ -2311,6 +2364,18 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Seasonal resilience plan set. Off-season maintenance, staffing cycle, cash-flow buffering, and complementary uses defined within capacity and viability limits.',
     actHandoff: 'Seasonal-Occupancy Resilience & Off-Season Resourcing Plan',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Cash-flow buffer vs. off-season fixed costs through the trough',
+          cadence: 'monthly across the off-season',
+        },
+        {
+          metric: 'Seasonal staffing scale-down / re-hire executed vs. planned cycle',
+          cadence: 'per season transition',
+        },
+      ],
+    },
     scopeNotes:
       "Applies when occupancy is strongly seasonal (the eco-resort / glamping pattern); omit for steady year-round operations. This is operational planning, not a sales surface - it introduces no season-pass, advance multi-night package, or membership prepayment. Should the operator later want such an instrument (now scoped at AG-S4.8), it must be encoded verbatim and carry an Amanah scopeNote (bay' ma laysa 'indak / gharar - no advance sale of undelivered nights) and go to Scholar Council review; it is not assumed here.",
   }),

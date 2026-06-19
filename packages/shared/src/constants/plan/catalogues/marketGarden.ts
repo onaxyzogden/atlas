@@ -774,6 +774,18 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     ],
     completionGate: 'Crop calendar approved. Supply continuity confirmed for all channels.',
     actHandoff: 'Crop Calendar & Production Schedule',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Planting + succession sowing executed vs. crop calendar',
+          cadence: 'per planting window',
+        },
+        {
+          metric: 'Harvest supply continuity vs. market-channel schedules',
+          cadence: 'weekly in season',
+        },
+      ],
+    },
   }),
   obj({
     id: 'mgd-s7-financial-viability',
@@ -800,6 +812,16 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     ],
     completionGate: 'Enterprise financial viability plan approved. Break-even confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Revenue vs. target by channel', cadence: 'monthly' },
+        { metric: 'Production volume vs. break-even by channel', cadence: 'monthly' },
+        {
+          metric: 'Revenue shortfall vs. defined review trigger',
+          cadence: 'monthly, review at threshold breach',
+        },
+      ],
+    },
   }),
   obj({
     id: 'mgd-s7-season-startup-readiness',
@@ -827,5 +849,17 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
     completionGate:
       'Season startup protocol approved. All infrastructure and channel readiness confirmed before first planting.',
     actHandoff: 'Season Startup & Infrastructure Readiness Protocol',
+    progressTracking: {
+      milestones: [
+        {
+          metric: 'Season startup checklist complete before first planting',
+          cadence: 'per season start',
+        },
+        {
+          metric: 'Market-channel relationships renewed + schedules confirmed',
+          cadence: 'per season start',
+        },
+      ],
+    },
   }),
 ];

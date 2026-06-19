@@ -1214,6 +1214,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Phase 1 implementation plan approved. Scope, sequence, responsibilities, and milestones confirmed.',
     actHandoff: 'Phase 1 Implementation Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Phase 1 milestone achievement vs. plan', cadence: 'monthly review' },
+        {
+          metric: 'Task completion vs. schedule',
+          cadence: 'weekly during active implementation',
+        },
+        {
+          metric:
+            'Scope creep log -- any addition to Phase 1 scope must be approved and capacity-confirmed',
+          cadence: 'per proposed addition',
+        },
+      ],
+    },
   }),
   obj({
     id: 's7-resource-plan',
@@ -1245,6 +1259,13 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Resource and capacity plan approved. All Phase 1 requirements identified and sourcing strategy confirmed.',
     actHandoff: 'Resource & Capacity Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Labour hours deployed vs. estimated by task', cadence: 'monthly' },
+        { metric: 'Expenditure vs. budget by category', cadence: 'monthly' },
+        { metric: 'Contractor engagement vs. plan', cadence: 'as needed' },
+      ],
+    },
   }),
   obj({
     id: 's7-risk-register',
@@ -1276,6 +1297,19 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Risk register approved. All principal risks identified with defined contingency responses.',
     actHandoff: 'Risk & Contingency Register',
+    progressTracking: {
+      milestones: [
+        { metric: 'Risk status review', cadence: 'monthly' },
+        {
+          metric: 'Early warning indicators monitored as specified per risk',
+          cadence: 'per risk, as specified',
+        },
+        {
+          metric: 'Risk register updated when new risks emerge or status changes',
+          cadence: 'on change',
+        },
+      ],
+    },
   }),
 ];
 

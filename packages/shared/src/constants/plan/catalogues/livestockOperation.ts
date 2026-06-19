@@ -1177,6 +1177,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Establishment sequence approved. Hard gate: no livestock are introduced before fencing, water, and handling facilities each pass an independent go/no-go test.',
     actHandoff: 'Herd Build-Up & Establishment Sequence',
+    progressTracking: {
+      milestones: [
+        { metric: 'Fencing / water / handling go/no-go passed before each stock intake', cadence: 'per intake' },
+        { metric: 'Each build-up phase stays within carrying capacity + feed budget', cadence: 'per phase' },
+      ],
+    },
     scopeNotes:
       'Hard gate transcribed from grazing-establishment best practice - stock readiness is gated on infrastructure, not the calendar (mirrors SILV-S7.4).',
   }),
@@ -1225,6 +1231,13 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Financial viability plan approved; break-even timeline and cash-flow buffer confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Revenue vs. projection by enterprise toward break-even', cadence: 'monthly once production begins' },
+        { metric: 'Expenditure vs. operating budget (feed, health, labour, processing)', cadence: 'monthly' },
+        { metric: 'Cash-flow buffer vs. pre-break-even build-up years', cadence: 'quarterly' },
+      ],
+    },
     scopeNotes:
       'Ordinary break-even budgeting (cost vs revenue timeline). No advance sale, no financial product, no riba- or gharar-adjacent content.',
   }),
@@ -1272,6 +1285,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Marketing, sales-channel, and processing logistics defined and confirmed compliant.',
     actHandoff: 'Marketing & Sales-Channel Plan',
+    progressTracking: {
+      milestones: [
+        { metric: 'Processing slots booked vs. scheduling lead time', cadence: 'per processing cycle' },
+        { metric: 'Channels confirmed compliant with food-safety + animal-product regulation before sale', cadence: 'per channel, before first sale' },
+      ],
+    },
     scopeNotes:
       'Amanah Gate - flag, do not omit: meat-share / herd-share / CSA-style advance-subscription channels (c3) entail the advance sale of animals or yield the steward does not yet possess (bay` ma laysa `indak). The channel is surfaced, never silently dropped, but it is flagged for Scholar Council review before adoption, must not be presented as a default or recommended model, and no CSRA / salam advance-purchase framing is used. ' +
       'Permissible models that carry no advance-sale exposure: (1) farmgate / spot sale of stock on hand; (2) processor or wholesale contracts settled on delivered animals - no prepayment; (3) halal-certified abattoir gate sales; (4) buyers-club spot purchases at delivery. ' +
