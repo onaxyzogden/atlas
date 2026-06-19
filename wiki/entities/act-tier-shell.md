@@ -2568,6 +2568,30 @@ wiring is a verbatim mirror of the already-verified Plan path. Log
 [[log/2026-06-13-atlas-plan-survey-fixes-map-takeover]]. Amanah: surfaces existing draw tools per
 objective only -- no economic instrument ([[fiqh-csra-erased-2026-05-04]]).
 
+## Byte-identical under Threshold 1 -- The Reality Check (2026-06-17)
+
+Threshold 1 (the first Plan-stage readiness review after `s3-systems-reading`, [[decisions/2026-06-17-atlas-threshold1-reality-check]]) is wholly Plan-only: the two-phase evidence-review / direction surface, the `RealityCheckGateBanner`, and the `useRealityCheckStore` (`ogden-reality-check`) all live under `apps/web/src/v3/plan/` and are reached only via `PlanTierShell` / `PlanStratumShell` and the new `plan/threshold/$thresholdId` route. **The Act surface is byte-identical** -- no Reality-Check component is imported anywhere under `v3/act` (grep-proven), and the soft Mode-4 gate is derived / display-only (`prerequisiteObjectiveIds` / `STRATUM_PREREQS` untouched), so `ActTierShell` and the shared `ActTierZeroWorkbench` / `DecisionWorkingPanel` read nothing new. The additive defaulted props on the shared `ActTierSpine` change no Act render. See [[entities/plan-tier-shell]] for the hosting side.
+
+Amanah: the reality-check gate never blocks; `detectCsaLikeText` raises a non-blocking advisory on the Plan surface only ([[fiqh-csra-erased-2026-05-04]]).
+
+## Byte-identical under Mode-4 Design Tiers 3-4 (2026-06-17)
+
+Mode-4's first two design tiers ([[decisions/2026-06-17-atlas-mode4-design-tiers34]]) added the net-new `monitoringProtocol` + `planningDirectionMandate?` schema and the `MonitoringStreamPanel` / `Mode4DesignChrome` chrome. The chrome mounts in `ObjectiveDetailPanel` (`v3/plan/strata/`, the Plan-tree objective panel) after `ActProgressBar` -- a panel Act does not import. **The Act surface is byte-identical** -- no Mode-4 chrome component is imported under `v3/act` (grep-proven), and the schema is **DISPLAY-ONLY**: no gate reads it (`STRATUM_PREREQS` for `s5-system-design` stays universal-ids-only), so the Act-side workbench never renders or reads it. The s4/s5 display renames and the `s4-direction` retirement change ids the Act side already resolves unchanged. See [[entities/plan-tier-shell]] for the hosting side.
+
+Amanah: `monitoringProtocol` is display-only / advisory; the banned-term scanner recurses its fields, nothing fabricated ([[fiqh-csra-erased-2026-05-04]]).
+
+## Byte-identical under Threshold 2 -- The Coherence Check (2026-06-18)
+
+Threshold 2 ([[decisions/2026-06-18-atlas-threshold2-coherence-check]]) added the `CoherenceCheckSurface` / `CoherenceCheckReferenceRail` / `CoherenceGateBanner` / `CoherenceObjectiveAmendments` chrome and the `coherenceCheckModel.ts` + `coherenceCheckStore.ts` (`ogden-coherence-check`), all under `apps/web/src/v3/plan/` and reached only via the Plan shells + the `threshold-2` route. **The Act surface is byte-identical** -- no Coherence component is imported under `v3/act` (grep-proven); the seal is soft (the s6 + s7 banner navigates, never blocks, `STRATUM_PREREQS` untouched) and amendments are an append-only Plan-only overlay that never mutates the catalogue the Act side reads. Section C's `monitoringProtocol` tighten (`indicators` >= 2 + structured frequency, enum `feeds`) is a schema-validation change the shared catalogue satisfies identically for both shells. See [[entities/plan-tier-shell]] for the hosting side.
+
+Amanah: the seal never blocks; `resolveItem` refuses CSA-like text at the persistence boundary -- a Plan-store guard, no Act path involved ([[fiqh-csra-erased-2026-05-04]]).
+
+## Byte-identical under Tier 6 / Mode 5 -- Launch Preparation (2026-06-18)
+
+Tier 6 ([[decisions/2026-06-18-atlas-tier6-launch-preparation]]) display-renamed `s7-phasing-resourcing` to "Launch Preparation" (id byte-identical), added the net-new DISPLAY-ONLY `progressTracking` milestone schema, and mounted the `LaunchProgressPanel` / `Mode5LaunchChrome` / `CapacityBridgePanel` chrome plus the `DemandCapture` upgrade -- all in the Plan-tree `ObjectiveDetailPanel` (`v3/plan/strata/`) after `ActProgressBar`. **The Act surface is byte-identical** -- no Mode-5 chrome component is imported under `v3/act` (grep-proven); `progressTracking` is display-only (distinct from `monitoringProtocol`, no `feeds`) and no gate reads it; the stratum rename is id-stable so the Act spine and workbench resolve `s7-phasing-resourcing` unchanged. See [[entities/plan-tier-shell]] for the hosting side.
+
+Amanah: capital capture is constrained to the closed `CAPITAL_CHANNEL_LIST`; the Capacity Bridge shows an honest empty state -- all on the Plan surface, no Act path ([[fiqh-csra-erased-2026-05-04]]).
+
 ## Byte-identical under Threshold 3 -- The Act Mandate (2026-06-19)
 
 Threshold 3 (the final Plan-stage Plan->Act ceremony, [[decisions/2026-06-19-atlas-threshold3-act-mandate]]) introduced a project-global `planReadOnly` lock armed at **Begin Act**, but it is enforced ENTIRELY as a Plan-host **surface policy** (render `readOnly?` prop on `ObjectiveDetailPanel` + Plan route `beforeLoad` context). `ActTierShell` and the shared `ActTierZeroWorkbench` / `DecisionWorkingPanel` **never read the lock store** -- the `readOnly?` prop defaults `false`, and the original 3-layer plan's store backstop was deliberately DROPPED so the Act execution loop (which writes the same `planStratumStore` / `actEvidenceStore` keys) is never frozen. `*.mandateNeutrality.test.ts` guards the surface-agnostic store contract. **The Act surface is byte-identical** -- no `v3/plan/threshold/ActMandate*` / `RaiseConcern*` / `ConcernAmendments*` / `ConcernGovernancePanel*` component is imported anywhere under `v3/act` (grep-proven). Concerns originate only from the Plan-under-mandate surface; Act raises none. See [[entities/plan-tier-shell]] for the hosting side.
