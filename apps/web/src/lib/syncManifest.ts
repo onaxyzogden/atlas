@@ -122,6 +122,8 @@ import { useVerificationRecordStore } from '../store/olos/verificationRecordStor
 import { useActEvidenceStore } from '../store/actEvidenceStore.js';
 import { useRealityCheckStore } from '../store/realityCheckStore.js';
 import { useCoherenceCheckStore } from '../store/coherenceCheckStore.js';
+import { useActMandateStore } from '../store/actMandateStore.js';
+import { usePlanConcernsStore } from '../store/planConcernsStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
@@ -1012,6 +1014,17 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // Client-only IndexedDB, no server table -> opaque byProject versioned-blob.
   // v1 matches the persist version. Mirrors ogden-reality-check exactly.
   blob('ogden-coherence-check', useCoherenceCheckStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Threshold 3 (The Act Mandate) steward state: one ProjectActMandate per
+  // project (mandatedAt + planReadOnly + per-objective lift window). Client-only
+  // IndexedDB, no server table -> opaque byProject versioned-blob. v1 matches the
+  // persist version. Mirrors ogden-coherence-check / ogden-reality-check.
+  blob('ogden-act-mandate', useActMandateStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Threshold 3 concern log: append-only PlanConcern[] per project -- the
+  // governance escape valve over a locked plan (raise -> review -> approve +
+  // amendment-alongside / decline). Client-only IndexedDB, no server table ->
+  // opaque byProject versioned-blob (empty bucket = []). v1 matches the persist
+  // version.
+  blob('ogden-plan-concerns', usePlanConcernsStore, 'byProject', 1, byKey('byProject', null, [])),
   // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
   // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
   // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4
