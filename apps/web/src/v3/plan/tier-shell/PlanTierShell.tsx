@@ -142,6 +142,7 @@ import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
 import ActMandateSurface from '../threshold/ActMandateSurface.js';
 import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
 import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
+import { useObjectivePlanLock } from '../../../store/actMandateStore.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -445,6 +446,17 @@ export default function PlanTierShell() {
   const selectedObjectiveStatus = selectedObjective
     ? objectiveStatuses[selectedObjective.id] ?? 'locked'
     : 'locked';
+
+  // Threshold-3 (Act Mandate) lock for the active objective. False until Begin
+  // Act arms `planReadOnly`. The SHARED workbench (ActTierZeroWorkbench) cannot
+  // read this store itself -- it is also Act's surface, and a hook call there
+  // would lock Act -- so the Plan host derives it here and threads it down as the
+  // `readOnly` prop. (ObjectiveDetailPanel is Plan-only and self-derives, so it
+  // needs no prop.) Hook called unconditionally with a '' fallback id.
+  const activeObjectiveLocked = useObjectivePlanLock(
+    id,
+    selectedObjective?.id ?? '',
+  );
 
   // s2-ecology / s2-terrain draw-on-map survey takeover (mirrors ActTierShell:433-447).
   // When a survey is open for THIS project AND its objective is the active route,
@@ -1257,6 +1269,11 @@ export default function PlanTierShell() {
                   receptionProgress={receptionProgress}
                   receptionTier={receptionTier}
                   onSelectObjective={handleSelectObjective}
+                  // Threshold-3 lock: when the active Plan objective is locked
+                  // (post Begin Act) the shared workbench renders display-only.
+                  // Defaults false in Act (the prop is absent there), so Act stays
+                  // byte-identical.
+                  readOnly={activeObjectiveLocked}
                 />
               ) : (
                 <div
@@ -1516,6 +1533,10 @@ export default function PlanTierShell() {
                         // The map lives in the CENTER canvas; suppress the
                         // panel's embedded ObjectiveMap so it isn't duplicated.
                         hideMap
+                        // Threshold-3 lock (explicit; the panel also self-derives
+                        // the same value -- this keeps the wiring symmetric with
+                        // the workbench above). False until Begin Act.
+                        readOnly={activeObjectiveLocked}
                       />
                     </>
                   ) : (

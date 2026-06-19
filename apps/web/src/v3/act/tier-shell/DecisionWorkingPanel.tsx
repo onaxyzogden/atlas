@@ -35,7 +35,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, Clock, Layers, MousePointerClick } from 'lucide-react';
+import { ArrowRight, Check, Clock, Layers, Lock, MousePointerClick } from 'lucide-react';
 import type { CriterionOption, IntentLensRow } from '@ogden/shared';
 import IntentLensAccordion from './IntentLensAccordion.js';
 import type { FormFieldSpec, FormValue } from './actToolCatalog.js';
@@ -464,6 +464,16 @@ export interface DecisionWorkingPanelProps {
    * body. Defaults to [] -> the accordion returns null -> unchanged elsewhere.
    */
   intentLens?: readonly IntentLensRow[];
+  /**
+   * OPTIONAL (Plan under the Act Mandate only). When true the working panel is
+   * display-only: the Record / defer affordances are disabled and the three
+   * commit handlers (onRecord / onSaveRationale / onToggleDefer) early-return, so
+   * a locked Plan objective cannot be edited while the steward executes in Act.
+   * Absent everywhere else (Act + ordinary Plan) -> defaults false -> the panel
+   * is byte-identical to today. The bypass-proof guarantee lives in the Stage-6
+   * store backstop; this is the render-layer cue + first gate.
+   */
+  readOnly?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -514,6 +524,7 @@ export default function DecisionWorkingPanel({
   onToggleDefer,
   buildsOn,
   intentLens = [],
+  readOnly = false,
 }: DecisionWorkingPanelProps): JSX.Element {
   // The only real state: the working draft + the rationale draft. Seeded once on
   // mount and RE-SEEDED whenever the selected decision changes (keyed on itemId).
@@ -1288,7 +1299,7 @@ export default function DecisionWorkingPanel({
 
   // ---------- Record ----------
   const handleRecord = () => {
-    if (invalid) return;
+    if (invalid || readOnly) return;
     let summary: string;
     if (decision.isVisionClassify) {
       summary = summariseVisionClassify(classifyModel!);
@@ -1431,6 +1442,33 @@ export default function DecisionWorkingPanel({
           </div>
         ) : null}
       </div>
+
+      {/* ---------- Plan-under-Act-Mandate lock notice (Plan-only; absent in Act
+           since readOnly defaults false there) ---------- */}
+      {readOnly ? (
+        <div
+          data-testid="decision-panel-plan-lock"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            margin: '0 0 4px',
+            padding: '8px 12px',
+            borderLeft: '3px solid #94A3B8',
+            background: 'rgba(148, 163, 184, 0.12)',
+            color: '#475569',
+            fontSize: 12.5,
+            lineHeight: 1.45,
+            borderRadius: 4,
+          }}
+        >
+          <Lock size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <span>
+            This objective is locked -- the plan was sealed at Begin Act. It stays
+            viewable, but edits are paused. Raise a concern to propose an amendment.
+          </span>
+        </div>
+      ) : null}
 
       {/* ---------- Body router ---------- */}
       <div className={css.body}>
@@ -1789,6 +1827,7 @@ export default function DecisionWorkingPanel({
             aria-label={decision.label}
             value={asString(draft.text)}
             placeholder={ACT_COPY.workingPanel.decisionPlaceholder}
+            readOnly={readOnly}
             onChange={(e) =>
               setDraft((d) => ({ ...d, text: e.target.value }))
             }
@@ -1805,8 +1844,11 @@ export default function DecisionWorkingPanel({
             aria-label="Rationale"
             value={rationaleDraft}
             placeholder={ACT_COPY.workingPanel.rationalePlaceholder}
+            readOnly={readOnly}
             onChange={(e) => setRationaleDraft(e.target.value)}
-            onBlur={() => onSaveRationale(rationaleDraft)}
+            onBlur={() => {
+              if (!readOnly) onSaveRationale(rationaleDraft);
+            }}
           />
         </div>
       </div>
@@ -1826,7 +1868,7 @@ export default function DecisionWorkingPanel({
           <button
             type="button"
             className={css.recordBtn}
-            disabled={invalid}
+            disabled={invalid || readOnly}
             data-locked={invalid ? 'true' : 'false'}
             onClick={handleRecord}
           >
@@ -1839,7 +1881,10 @@ export default function DecisionWorkingPanel({
               className={css.deferBtn}
               data-deferred={deferred ? 'true' : 'false'}
               aria-pressed={deferred}
-              onClick={() => onToggleDefer(!deferred)}
+              disabled={readOnly}
+              onClick={() => {
+                if (!readOnly) onToggleDefer(!deferred);
+              }}
             >
               <Clock size={14} className={css.deferIcon} />
               {deferLabelFor(deferred)}

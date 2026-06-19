@@ -113,6 +113,15 @@ export interface ActTierZeroWorkbenchProps {
    * parent's concern (the left rail owns it), so this is threaded through.
    */
   onSelectObjective?: (objectiveId: string) => void;
+  /**
+   * OPTIONAL (Plan under the Act Mandate only). Forwarded to the working panel so
+   * a locked Plan objective renders display-only (commit handlers no-op, edit
+   * controls disabled). Absent in Act + ordinary Plan -> defaults false -> the
+   * workbench (and Act) stay byte-identical. The Plan host (PlanTierShell) derives
+   * this from useObjectivePlanLock; the workbench itself never reads the lock
+   * store, so Act can never become locked.
+   */
+  readOnly?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -519,6 +528,7 @@ export default function ActTierZeroWorkbench({
   receptionProgress,
   receptionTier = 'tier2',
   onSelectObjective,
+  readOnly = false,
 }: ActTierZeroWorkbenchProps): JSX.Element {
   const isDeclaration = mode === 'declaration';
   const isReception = mode === 'reception';
@@ -691,6 +701,7 @@ export default function ActTierZeroWorkbench({
           // omit both -> the panel renders byte-identical there.
           buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
           intentLens={isReception ? readIntentLens(activeObjective) : undefined}
+          readOnly={readOnly}
           onRecord={(value, summary) => {
             if (selectedItem) onRecord(selectedItem.id, value, summary);
           }}
