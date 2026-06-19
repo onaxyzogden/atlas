@@ -1,0 +1,84 @@
+/*
+ * ActObjectiveAmendments.module.css -- the Act-side green register for the
+ * approved-amendment overlay surfaced on an executing objective. A self-
+ * contained copy of the Threshold-3 green tokens (the surface they belong to is
+ * Plan-only), so the Act panel reads as one register with the Act Mandate
+ * ceremony that produced these amendments. Mirrors the `.concernAmend*` block in
+ * the Plan-only ActMandate.module.css; kept visually in sync with
+ * ACT_MANDATE_PALETTE.
+ */
+
+.amendments {
+  --am-accent-strong: #3c7e52;
+  --am-soft: rgba(79, 157, 105, 0.12);
+  --am-line: rgba(79, 157, 105, 0.28);
+
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-accent-strong);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 120%);
+}
+
+.amendmentsLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.amendmentsBlurb {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.amendmentsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.amendmentItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 10px;
+  border-left: 2px solid var(--am-line);
+}
+
+.amendmentId {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.amendmentText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.amendmentContext {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.amendmentMeta {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}

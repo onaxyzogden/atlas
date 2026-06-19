@@ -77,6 +77,7 @@ import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
 import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
 import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
 import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
+import ActObjectiveAmendments from './ActObjectiveAmendments.js';
 import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
@@ -665,6 +666,10 @@ export default function ActTierExecutionPanel({
       </div>
 
       <div className={styles.execBody}>
+      {/* Threshold-3 governance-approved amendments for THIS objective, surfaced
+          alongside the original catalogue design (append-only, never mutates
+          it). Self-gates to null when there is no approved amendment. */}
+      <ActObjectiveAmendments projectId={projectId} objectiveId={objective.id} />
       {objective.legacyCardSectionId === 'plan-guild-builder' && (
         <section className={styles.execSection}>
           <h4 className={styles.execSectionTitle}>Plan reference</h4>
