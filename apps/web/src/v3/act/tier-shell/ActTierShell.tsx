@@ -141,6 +141,7 @@ import CommunityMeetingMarker from './CommunityMeetingMarker.js';
 import CommunityMeetingPlaceDrawHandler from './CommunityMeetingPlaceDrawHandler.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
+import ActMandateBriefingCard from './ActMandateBriefingCard.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import ActWorkPanel from './work/ActWorkPanel.js';
@@ -1356,11 +1357,20 @@ export default function ActTierShell() {
                       onOpenCalendar={openWorkCalendar}
                     />
                   ) : (
-                    <ActOpsDashboard
-                      projectId={id}
-                      onOpenWeather={() => setWeatherOpen(true)}
-                      onOpenWork={openWorkPanel}
-                    />
+                    <>
+                      {/* Read-only Threshold-3 mandate briefing: self-gates to
+                          null until the project has crossed into Act. */}
+                      <ActMandateBriefingCard
+                        projectId={id}
+                        objectives={objectives}
+                        objectiveStatuses={planObjectiveStatuses}
+                      />
+                      <ActOpsDashboard
+                        projectId={id}
+                        onOpenWeather={() => setWeatherOpen(true)}
+                        onOpenWork={openWorkPanel}
+                      />
+                    </>
                   )}
                 </div>
               </div>
@@ -1504,11 +1514,20 @@ export default function ActTierShell() {
                           onBack={() => setWeatherOpen(false)}
                         />
                       ) : (
-                        <ActOpsDashboard
-                          projectId={id}
-                          onOpenWeather={() => setWeatherOpen(true)}
-                          onOpenWork={openWorkPanel}
-                        />
+                        <>
+                          {/* Read-only Threshold-3 mandate briefing: self-gates
+                              to null until the project has crossed into Act. */}
+                          <ActMandateBriefingCard
+                            projectId={id}
+                            objectives={objectives}
+                            objectiveStatuses={planObjectiveStatuses}
+                          />
+                          <ActOpsDashboard
+                            projectId={id}
+                            onOpenWeather={() => setWeatherOpen(true)}
+                            onOpenWork={openWorkPanel}
+                          />
+                        </>
                       )}
                     </div>
                   </>
