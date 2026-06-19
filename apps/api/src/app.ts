@@ -119,8 +119,23 @@ declare module 'fastify' {
   }
 }
 
+/**
+ * Translate the TRUST_PROXY env string into the Fastify `trustProxy` option.
+ * See lib/config.ts for the accepted forms and the security rationale (the
+ * per-IP portal rate limits depend on req.ip being the real client).
+ */
+function parseTrustProxy(raw: string | undefined): boolean | number | string {
+  if (raw === undefined || raw === '') return false; // safe default: trust nobody
+  if (raw === 'true') return true;
+  if (raw === 'false') return false;
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 0) return n; // number of trusted proxy hops
+  return raw; // subnet / comma-separated IP list — passed through verbatim
+}
+
 export async function buildApp(opts: FastifyServerOptions = {}) {
-  const app = Fastify(opts);
+  // `trustProxy` from env unless the caller (e.g. a test) overrides it.
+  const app = Fastify({ trustProxy: parseTrustProxy(config.TRUST_PROXY), ...opts });
 
   // ─── Plugins ────────────────────────────────────────────────────────────────
 
