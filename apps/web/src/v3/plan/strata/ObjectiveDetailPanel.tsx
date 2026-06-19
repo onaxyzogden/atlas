@@ -110,9 +110,10 @@ interface Props {
    * the panel self-derives the lock from `useObjectivePlanLock` (this panel is
    * Plan-only -- imported solely by PlanTierShell / PlanStratumShell, never under
    * v3/act/ -- so calling the hook here can never lock an Act surface). A locked
-   * objective stays fully VIEWABLE but its edit affordances are suppressed; the
-   * bypass-proof guarantee lives in the Stage-6 store backstop. Absent + no
-   * mandate armed -> false -> the panel renders byte-identical to today.
+   * objective stays fully VIEWABLE but its edit affordances are suppressed at the
+   * render layer (the surface-aware seam); the shared stores stay writable so Act
+   * execution is never frozen. Absent + no mandate armed -> false -> the panel
+   * renders byte-identical to today.
    */
   readOnly?: boolean;
 }

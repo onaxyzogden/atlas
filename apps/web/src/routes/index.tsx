@@ -108,6 +108,7 @@ import {
 } from '@ogden/shared';
 import { isThresholdReachable } from '../v3/act/tier-shell/declarationModel.js';
 import { useDevUnlockStore } from '../store/devUnlockStore.js';
+import { isObjectivePlanLocked } from '../store/actMandateStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -697,16 +698,33 @@ const v3PlanStratumObjectiveRoute = createRoute({
   // mounting the workbench on a gated objective. Mirrors the Act objective
   // guard; Plan redirect target is `/plan`, not `/act/tier-shell`.
   beforeLoad: ({ params }) => {
+    // Threshold-3 (Act Mandate) lock context. ADDITIVE and NEVER a redirect: a
+    // Plan objective sealed at Begin Act stays fully VIEWABLE so a concern can
+    // be raised against it. `planReadOnly` is a SURFACE policy -- enforced where
+    // the calling surface is known: the render layer (`useObjectivePlanLock`,
+    // Stage 5) holds Plan edit controls read-only, while the shared stores stay
+    // surface-agnostic so the Act execution loop keeps writing (see the
+    // *.mandateNeutrality.test.ts guards). This loader is the route-layer seam:
+    // a synchronous Zustand-persist read (same pattern as buildActLockContext)
+    // that surfaces the flag to the Plan route tree. Distinct from the
+    // stratum-progression `'locked'` status below, which is a prerequisite gate,
+    // not the mandate lock.
+    const planReadOnly = isObjectivePlanLocked(
+      params.projectId,
+      params.objectiveId,
+    );
     const ctx = buildActLockContext(params.projectId);
-    if (!ctx) return;
+    if (!ctx) return { planReadOnly };
     // Unknown objective id — let the component handle gracefully (e.g. 404).
-    if (!ctx.objectives.some((o) => o.id === params.objectiveId)) return;
+    if (!ctx.objectives.some((o) => o.id === params.objectiveId))
+      return { planReadOnly };
     if ((ctx.statuses[params.objectiveId] ?? 'locked') === 'locked') {
       throw redirect({
         to: '/v3/project/$projectId/plan',
         params: { projectId: params.projectId },
       });
     }
+    return { planReadOnly };
   },
 });
 // Threshold 1 -- The Reality Check. A non-tier "structural hinge" surface that

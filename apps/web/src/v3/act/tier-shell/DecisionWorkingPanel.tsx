@@ -470,8 +470,9 @@ export interface DecisionWorkingPanelProps {
    * commit handlers (onRecord / onSaveRationale / onToggleDefer) early-return, so
    * a locked Plan objective cannot be edited while the steward executes in Act.
    * Absent everywhere else (Act + ordinary Plan) -> defaults false -> the panel
-   * is byte-identical to today. The bypass-proof guarantee lives in the Stage-6
-   * store backstop; this is the render-layer cue + first gate.
+   * is byte-identical to today. `planReadOnly` is a SURFACE policy enforced at
+   * the render layer (here) + the route loader; the shared stores stay writable
+   * so the Act execution loop is never frozen (see *.mandateNeutrality.test.ts).
    */
   readOnly?: boolean;
 }

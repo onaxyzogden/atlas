@@ -9,7 +9,8 @@
  *      setParameterValue (byte-identical to today).
  *   2. readOnly true -> the input carries the `readonly` attribute AND the
  *      onChange persist is guarded, so a change event never calls
- *      setParameterValue. The store backstop (Stage 6) is the bypass-proof layer.
+ *      setParameterValue. The render layer is the enforcement seam (no store
+ *      backstop -- the shared stores must stay writable for Act execution).
  *
  * The two consuming stores + the shared enterprise-eligibility helper are mocked
  * so the component renders in isolation (the guard requires eligible enterprises

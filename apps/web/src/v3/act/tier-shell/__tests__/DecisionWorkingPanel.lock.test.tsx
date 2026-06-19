@@ -14,8 +14,9 @@
  *      three commit handlers (onRecord / onSaveRationale / onToggleDefer) never
  *      fire from the panel's own controls.
  *
- * The store backstop (Stage 6) is the bypass-proof guarantee; this proves the
- * first gate -- the render layer cannot be used to mutate a locked objective.
+ * The render layer is the enforcement seam -- it knows the calling surface.
+ * There is intentionally NO store backstop (the stores are shared with the Act
+ * execution loop and must stay writable), so this render proof IS the guarantee.
  *
  * A text-fallback decision (no fields, not success-criteria) is used so the body
  * router takes the plain <textarea> path; `initialValue: { text }` makes the

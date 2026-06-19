@@ -37,8 +37,9 @@ interface Props {
    * Threshold-3 lock (Plan under the Act Mandate). When true the inputs are
    * display-only: `readOnly` on the field + the onChange persist is guarded, so a
    * locked objective's thresholds cannot be re-edited at the render layer.
-   * Defaults false -> byte-identical everywhere else. The store backstop
-   * (Stage 6) is the bypass-proof guarantee.
+   * Defaults false -> byte-identical everywhere else. Enforced at the render
+   * layer only; the shared stores stay surface-agnostic (no store backstop, so
+   * Act execution is never frozen).
    */
   readOnly?: boolean;
 }
