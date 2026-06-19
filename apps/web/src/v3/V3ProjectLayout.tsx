@@ -15,7 +15,6 @@ import LandOsShell from "../features/land-os/LandOsShell.js";
 // V3LifecycleSidebar (the "Project chrome" left nav) is intentionally no longer
 // mounted — the v3 workspace runs without the left sidebar. The component is
 // preserved for reuse; do not delete it.
-import ProjectBundleBar from "./components/ProjectBundleBar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
 import { useProjectStore } from "../store/projectStore.js";
@@ -81,7 +80,7 @@ export default function V3ProjectLayout() {
 
   // The Stage Compass, Observe Command Centre, and the Stage 0 True North /
   // Fit Gate are full-screen surfaces that own their own chrome — skip
-  // LandOsShell (sidebar/rail) and ProjectBundleBar entirely.
+  // LandOsShell (sidebar/rail) entirely.
   if (
     pathname
       .split("/")
@@ -100,8 +99,8 @@ export default function V3ProjectLayout() {
 
   // The Project Creation Wizard (/wizard/site|vision|team|complete) owns its
   // own chrome (step indicator + footer) and must not show the DecisionRail.
-  // It still lives inside LandOsShell so the global header + ProjectBundleBar
-  // stay visible — only the rail track is omitted.
+  // It still lives inside LandOsShell so the global header stays visible —
+  // only the rail track is omitted.
   const isWizard = pathname
     .split("/")
     .filter(Boolean)
@@ -115,7 +114,6 @@ export default function V3ProjectLayout() {
   return (
     <LandOsShell rail={rail}>
       <div className={css.frame}>
-        <ProjectBundleBar />
         <div className={css.outletHost}>
           <Outlet />
         </div>
