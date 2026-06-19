@@ -1,0 +1,644 @@
+/*
+ * ActMandate.module.css -- the GREEN register for Threshold 3 (The Act Mandate).
+ * Its OWN mode skin, deliberately distinct from Threshold 1 (amber/gold) and
+ * Threshold 2 (mauve) so the steward feels the final crossing -- from designing
+ * (Plan) into doing (Act). The green hexes mirror ACT_MANDATE_PALETTE in
+ * actMandateModel.ts (the one canonical source); kept in sync there.
+ *
+ * Structurally a clone of Coherence.module.css adapted to the assembly + ceremony
+ * shape: a mode header with a readiness track, the three key documents, the
+ * grouped handoff inventory, and the Begin Act panel. The rail classes mirror the
+ * Threshold-2 register so the surface and its rail read as one green register.
+ */
+
+.surface {
+  /* Local green register -- one place to retune; rail mirrors the hex. */
+  --am-accent: var(--color-act-mandate-accent, #4f9d69);
+  --am-accent-strong: var(--color-act-mandate-accent-strong, #3c7e52);
+  --am-accent-light: var(--color-act-mandate-accent-light, #7fbf95);
+  --am-soft: var(--color-act-mandate-soft, rgba(79, 157, 105, 0.12));
+  --am-soft-strong: rgba(79, 157, 105, 0.2);
+  --am-line: rgba(79, 157, 105, 0.28);
+  --am-ready: #4f9d69;
+  --am-pending: #c9a227;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--color-bg, #faf8f3);
+}
+
+/* ---------------------------------------------------------------- mode header */
+
+.modeHeader {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--am-line);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 100%);
+}
+
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--am-soft-strong);
+  border: 1px solid var(--am-line);
+  color: var(--am-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modeTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.modeTagline {
+  margin: 8px 0 0;
+  max-width: 70ch;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* readiness track (T1 approved -> T2 sealed -> Launch Preparation complete) */
+.readinessTrack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.readinessTrackItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #6f675b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.readinessTrackItem[data-met] {
+  border-color: var(--am-line);
+  background: var(--am-soft);
+  color: var(--am-accent-strong);
+}
+
+.readinessTrackDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-border, #e2ddd2);
+  color: var(--color-text, #2b2620);
+}
+
+.readinessTrackItem[data-met] .readinessTrackDot {
+  background: var(--am-accent);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ body */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.intro {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ----------------------------------------------------------------- sections */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.sectionTallyChip {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--am-accent-strong);
+  white-space: nowrap;
+}
+
+.sectionBlurb {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.sectionEmpty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--color-border, #cdc6b8);
+  border-radius: var(--radius-md, 8px);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* -------------------------------------------------------------- documents */
+
+.docList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.docCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-left: 3px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 14px 16px;
+}
+
+.docCard[data-present] {
+  border-left-color: var(--am-accent);
+}
+
+.docHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.docTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.docName {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.docDesc {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.docState {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--am-accent-strong);
+}
+
+.docCard:not([data-present]) .docState {
+  color: var(--color-text-muted, #6f675b);
+  font-style: italic;
+}
+
+/* ------------------------------------------------------- presence badge */
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-bg, #faf8f3);
+  color: var(--color-text-muted, #6f675b);
+}
+
+.presence[data-present] {
+  border-color: var(--am-accent);
+  color: var(--am-accent-strong);
+  background: var(--am-soft);
+}
+
+/* ---------------------------------------------------------- handoffs */
+
+.handoffGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.handoffGroupHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.handoffGroupTally {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.handoffList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.handoffCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-left: 3px solid var(--am-accent-light);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 12px 14px;
+}
+
+.handoffCard[data-kind='synthetic'] {
+  border-left-color: var(--am-accent-strong);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 130%);
+}
+
+.handoffHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.handoffTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.handoffRef {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.handoffTitle {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.handoffText {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.kindBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--am-line);
+  background: var(--am-soft);
+  color: var(--am-accent-strong);
+}
+
+.kindBadge[data-kind='synthetic'] {
+  background: var(--am-soft-strong);
+}
+
+/* -------------------------------------------------------------- begin panel */
+
+.beginPanel {
+  margin-top: 4px;
+  padding: 18px 20px;
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 130%);
+}
+
+.beginHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.beginTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.readyPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.readyPill[data-ready] {
+  background: rgba(79, 157, 105, 0.14);
+  color: #2f7a48;
+  border: 1px solid var(--am-ready);
+}
+
+.readyPill:not([data-ready]) {
+  background: var(--am-soft);
+  color: var(--am-accent-strong);
+  border: 1px solid var(--am-line);
+}
+
+.beginBlurb {
+  margin: 8px 0 0;
+  max-width: 78ch;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.readinessHeading {
+  margin: 16px 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.readinessList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.readinessItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.readinessItem[data-met] {
+  color: var(--color-text, #2b2620);
+}
+
+.readinessIcon {
+  flex: 0 0 auto;
+  color: var(--color-text-muted, #9a9384);
+}
+
+.readinessItem[data-met] .readinessIcon {
+  color: var(--am-accent-strong);
+}
+
+.readinessTally {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.advisoryNote {
+  margin: 14px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.readyNote {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2f7a48;
+}
+
+.beginActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.lockNote {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.primaryBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--am-accent-strong);
+  background: var(--am-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* what Threshold 3 does NOT do -- a reassurance block */
+.notList {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.notItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.notDot {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--am-accent-strong);
+}
+
+/* ----------------------------------------------------------- reference rail */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.railCard {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 12px 14px;
+}
+
+.railCardTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text, #2b2620);
+}
+
+.railStat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted, #6f675b);
+  padding: 3px 0;
+}
+
+.railStatValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text, #2b2620);
+}
+
+.railPresence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.railPresence[data-present] {
+  color: var(--am-accent-strong);
+}
+
+.railVerdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.railVerdict[data-ready] {
+  color: #2f7a48;
+}
+
+.railVerdict:not([data-ready]) {
+  color: var(--am-accent-strong);
+}
