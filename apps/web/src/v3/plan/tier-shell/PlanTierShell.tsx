@@ -570,8 +570,10 @@ export default function PlanTierShell() {
   // Threshold 2 (Coherence Check) open-state: derived from the FULL resolved
   // objective list -- opens once every s4 + s5 design objective is complete
   // (mirrors receptionProgress.thresholdOpen for Threshold 1). Cheap + pure, so
-  // computed unconditionally; drives the spine's clickableThresholdIds and the
-  // route guard's deep-link redirect. DISPLAY-ONLY -- never a prerequisite.
+  // computed unconditionally. DISPLAY-ONLY -- it does NOT gate reachability
+  // (thresholds are deliberately always-clickable, see REACHABLE_THRESHOLD_IDS,
+  // commit 7b23c547); it is consumed by CoherenceCheckSurface as an honest
+  // early-state readiness banner when the Tier 3/4 design is still unfinished.
   const coherenceProgress = useMemo(
     () => deriveCoherenceProgress(objectives, objectiveStatuses),
     [objectives, objectiveStatuses],
@@ -1212,6 +1214,7 @@ export default function PlanTierShell() {
                     primaryTypeId={primaryTypeId}
                     objectives={objectives}
                     objectiveStatuses={objectiveStatuses}
+                    coherenceProgress={coherenceProgress}
                   />
                 ) : (
                   // Threshold 1 (The Reality Check) center takeover. Reads the

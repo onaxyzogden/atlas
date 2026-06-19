@@ -956,6 +956,17 @@
   color: var(--color-text-muted, #6f675b);
 }
 
+/* Breadcrumb footnote: where a raised concern is reviewed. Quiet, hairline-
+   separated from the form so it reads as guidance, not a field. */
+.raiseReview {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--am-hairline, rgba(120, 110, 95, 0.18));
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
 /* ------------------------------ Concern governance review (Plan, on the Act Mandate surface) */
 
 .governance {

@@ -19,6 +19,8 @@ import {
   createRouter,
   Outlet,
   redirect,
+  useParams,
+  type ErrorComponentProps,
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
@@ -109,6 +111,7 @@ import {
 import { isThresholdReachable } from '../v3/act/tier-shell/declarationModel.js';
 import { useDevUnlockStore } from '../store/devUnlockStore.js';
 import { isObjectivePlanLocked } from '../store/actMandateStore.js';
+import { DEMO_OFFLINE_ENABLED } from '../app/demoSession.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -577,6 +580,10 @@ type PlanSearch = {
   // arrival so the steward lands directly on the Plan designer rather than a
   // collapsed toggle. Allowlisted here so the strict validator preserves it.
   expandRef?: '1';
+  // One-shot deep-link flag: arm a specific tool on arrival. Set by the Act
+  // search rail's "Open in Plan" control (carries the catalogue tool id); the
+  // Plan tier shell activates the tool then strips the param on mount.
+  armTool?: string;
 };
 
 const validatePlanSearch = (
@@ -594,6 +601,9 @@ const validatePlanSearch = (
   }
   if (search.expandRef === '1') {
     out.expandRef = '1';
+  }
+  if (typeof search.armTool === 'string' && search.armTool) {
+    out.armTool = search.armTool;
   }
   return out;
 };
@@ -738,10 +748,69 @@ const v3PlanStratumObjectiveRoute = createRoute({
 // redirects to the bare `plan` landing, mirroring the stratum guard. This is the
 // OPEN gate only; it is NOT a covenant prerequisite (the Mode-4 gate downstream
 // is a soft, display-only amber banner -- prerequisiteObjectiveIds untouched).
+// Graceful fallback when a ceremony surface (Reality Check / Coherence Check /
+// Act Mandate) throws while assembling its model from the threshold stores --
+// e.g. a malformed persisted record after a future schema change (see the
+// version-bump trip-wire on the ceremony stores). Without this the whole
+// PlanLayout white-screens; instead the steward keeps a clear way back to the
+// plan, and nothing in the plan is touched (these surfaces never edit design).
+// No `pendingComponent` is wired: this route has no async loader, so a pending
+// state can never render -- adding one would be dead code.
+function ThresholdRouteErrorComponent({ reset }: ErrorComponentProps) {
+  const { projectId } = useParams({ strict: false });
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '60vh',
+        gap: 16,
+        padding: 24,
+        textAlign: 'center',
+      }}
+    >
+      <h2 style={{ color: 'var(--color-text)', fontSize: 20, margin: 0 }}>
+        This threshold could not be assembled
+      </h2>
+      <p style={{ color: 'var(--color-text-muted)', margin: 0, maxWidth: 440 }}>
+        Something went wrong building this threshold surface. Your plan is
+        unchanged -- nothing here edits the design.
+      </p>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={reset}
+          style={{
+            color: 'var(--color-text)',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: 8,
+            padding: '7px 16px',
+            cursor: 'pointer',
+          }}
+        >
+          Try again
+        </button>
+        {projectId ? (
+          <a
+            href={`/v3/project/${projectId}/plan`}
+            style={{ color: semantic.sidebarActive, textDecoration: 'underline' }}
+          >
+            Return to the plan
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 const v3PlanThresholdRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/threshold/$thresholdId',
   component: PlanLayout,
+  errorComponent: ThresholdRouteErrorComponent,
   validateSearch: validatePlanSearch,
   beforeLoad: ({ params }) => {
     // Always-clickable thresholds (operator ruling): a BUILT threshold opens
@@ -974,6 +1043,14 @@ const landingRoute = createRoute({
   path: '/',
   component: LandingPage,
   beforeLoad: () => {
+    // Offline demo: boot mints the guest token before the router mounts, so the
+    // count-aware redirect below would bounce visitors straight into the app.
+    // Send the bare domain to the showcase tour instead (a sibling main-router
+    // route → clean client-side redirect). The "Launch the interactive demo"
+    // CTA in the showcase is the explicit entry into the live app.
+    if (DEMO_OFFLINE_ENABLED) {
+      throw redirect({ to: '/showcase/three-streams' });
+    }
     if (!isAuthenticated()) return;
     // §6 project-count-aware landing. projectStore is zustand-persist (hydrates
     // synchronously from localStorage on import), so the count is readable here

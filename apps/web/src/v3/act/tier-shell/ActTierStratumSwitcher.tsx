@@ -18,7 +18,7 @@
  * pattern (local useState, chevron, conditional content).
  */
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, Loader, Lock } from 'lucide-react';
 import type { PlanStratum, PlanStratumState } from '@ogden/shared';
 import type { SpineTypeChip } from './ActTierSpine.js';
@@ -75,6 +75,36 @@ export default function ActTierStratumSwitcher({
   typeChips = [],
 }: ActTierStratumSwitcherProps): JSX.Element {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+
+  // Dismiss on Escape (return focus to the trigger) or click-outside, mirroring
+  // the dropdown idiom used across the v3 popovers (ActStructurePopover,
+  // InlineFeaturePopover) and the modal StratumLockedPopover. Listeners only
+  // attach while open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    const onDown = (e: MouseEvent) => {
+      const node = rootRef.current;
+      if (!node) return;
+      if (e.target instanceof Node && node.contains(e.target)) return;
+      setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [open]);
 
   const clickable = new Set(clickableThresholdIds);
   const thresholdAfter = new Map<string, ThresholdMarker>(
@@ -87,7 +117,7 @@ export default function ActTierStratumSwitcher({
   // Collapsed header reflects the active context: a threshold when one is open,
   // otherwise the active stratum (mirrors the spine's activeStratumId='' rule).
   const eyebrow = activeThreshold
-    ? 'Checkpoint'
+    ? 'Threshold'
     : activeStratum
       ? `Stratum S${activeStratum.ordinal}`
       : 'Stratum';
@@ -101,12 +131,15 @@ export default function ActTierStratumSwitcher({
   };
 
   return (
-    <div className={css.root} data-testid="plan-stratum-switcher">
+    <div className={css.root} ref={rootRef} data-testid="plan-stratum-switcher">
       <button
         type="button"
+        ref={triggerRef}
         className={css.head}
         data-testid="switcher-header"
+        aria-haspopup="true"
         aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((o) => !o)}
       >
         <span className={css.headText}>
@@ -125,7 +158,7 @@ export default function ActTierStratumSwitcher({
       </button>
 
       {open ? (
-        <div className={css.panel} data-testid="switcher-panel">
+        <div className={css.panel} id={panelId} data-testid="switcher-panel">
           <div className={css.identity}>
             <span className={css.projectName}>{projectTitle}</span>
             {typeChips.length > 0 && (

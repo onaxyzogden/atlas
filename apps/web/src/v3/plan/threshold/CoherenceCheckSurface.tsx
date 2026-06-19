@@ -39,6 +39,7 @@ import {
   selectDesignObjectives,
   type AuditItemResult,
   type CoherenceItemStatus,
+  type CoherenceProgressModel,
   type CoherenceSection,
 } from './coherenceCheckModel.js';
 import styles from './Coherence.module.css';
@@ -50,6 +51,12 @@ export interface CoherenceCheckSurfaceProps {
   primaryTypeId: string | null | undefined;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
+  /**
+   * Tier 3/4 completion readiness (already derived once by the shell). Consumed
+   * here only as an honest early-state banner -- it NEVER gates entry (Threshold
+   * 2 is deliberately always reachable). Drives `COHERENCE_COPY.readiness`.
+   */
+  coherenceProgress: CoherenceProgressModel;
 }
 
 /** YYYY-MM-DD from an epoch-ms timestamp (ASCII + deterministic). */
@@ -226,6 +233,7 @@ export default function CoherenceCheckSurface({
   primaryTypeId,
   objectives,
   objectiveStatuses,
+  coherenceProgress,
 }: CoherenceCheckSurfaceProps) {
   const record = useCoherenceCheckStore(
     (s) => s.byProject[projectId] ?? EMPTY_COHERENCE_CHECK,
@@ -248,6 +256,13 @@ export default function CoherenceCheckSurface({
 
   const sealed = record.sealedAt != null;
   const canSeal = audit.verdict === 'pass';
+
+  // Honest readiness tally (display-only). The banner appears only while the
+  // Tier 3/4 design is unfinished -- it states the audit reads an incomplete
+  // design; it never blocks entry (always-clickable thresholds, op decision).
+  const designComplete =
+    coherenceProgress.tierThree.complete + coherenceProgress.tierFour.complete;
+  const designTotal = coherenceProgress.totalDesignObjectives;
 
   const sectionsById: Record<CoherenceSection, AuditItemResult[]> = {
     A: audit.sectionA,
@@ -304,6 +319,27 @@ export default function CoherenceCheckSurface({
       </header>
 
       <div className={styles.body}>
+        {!coherenceProgress.coherenceOpen ? (
+          <div
+            className={styles.readiness}
+            data-testid="coherence-readiness"
+            role="status"
+          >
+            <AlertTriangle size={15} aria-hidden="true" />
+            <div className={styles.readinessText}>
+              <p className={styles.readinessTitle}>
+                {COHERENCE_COPY.readiness.incompleteTitle}
+              </p>
+              <p className={styles.readinessBody}>
+                {COHERENCE_COPY.readiness.incompleteBody}
+              </p>
+              <p className={styles.readinessTally}>
+                {designComplete}/{designTotal}{' '}
+                {COHERENCE_COPY.readiness.tallyLabel}
+              </p>
+            </div>
+          </div>
+        ) : null}
         <p className={styles.intro}>{COHERENCE_COPY.intro}</p>
 
         {SECTION_META.map((meta) => {

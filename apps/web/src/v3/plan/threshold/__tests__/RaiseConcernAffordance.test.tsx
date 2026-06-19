@@ -133,6 +133,11 @@ describe('RaiseConcernAffordance', () => {
     // Roster names appear in the picker (display name, then email fallback).
     expect(screen.getByText('Maya')).toBeTruthy();
     expect(screen.getByText('sam@farm.test')).toBeTruthy();
+    // Breadcrumb to the review surface is present (F7: concern -> review path
+    // discoverable), single-sourced from ACT_MANDATE_COPY.
+    expect(
+      screen.getByTestId('raise-concern-review-location').textContent,
+    ).toBe(ACT_MANDATE_COPY.concern.reviewLocation);
   });
 
   it('appends a raised concern against this objective on submit', () => {

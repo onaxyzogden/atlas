@@ -503,6 +503,10 @@ export const ACT_MANDATE_COPY = {
     needObservationNote: 'Add an observation to raise a concern.',
     pendingOne: '1 concern on this objective is awaiting review.',
     pendingManySuffix: 'concerns on this objective are awaiting review.',
+    // Breadcrumb: where a raised concern is actually reviewed. Single-sourced so
+    // the Plan affordance and the Act briefing point to the same place.
+    reviewLocation:
+      'A raised concern goes to the team governance, who review it in the "Concerns under review" queue on the Act Mandate (Threshold 3) surface in Plan.',
   },
   /**
    * On-objective amendments overlay copy (Plan-only). Mirrors the Coherence

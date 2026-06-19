@@ -13,9 +13,13 @@
  *   4. Clicking the T1 row calls onSelectThreshold('threshold-1') and the T3 row
  *      calls onSelectThreshold('threshold-3') -- both navigate to their surface.
  *   5. With thresholdActiveId set, the collapsed header shows the threshold name
- *      (eyebrow "Checkpoint"), not the active stratum.
+ *      (eyebrow "Threshold" -- distinct from the cyclical-review "checkpoint"
+ *      meaning on ObjectiveCard), not the active stratum.
  *   6. A locked stratum row still calls onSelectStratum (the locked popover is
  *      handled upstream by the shell's handleSelectStratum).
+ *   7. The expanded panel dismisses on Escape and on click-outside, and the
+ *      trigger carries aria-haspopup / aria-controls (parity with the v3
+ *      popover dismissal idiom).
  *
  * No jest-dom in this suite -> vanilla DOM assertions only. Lucide ships CJS ->
  * mock it (repo convention) with a generic <svg> stub.
@@ -144,9 +148,31 @@ describe('ActTierStratumSwitcher', () => {
 
   it('active threshold shows in the collapsed header instead of the stratum', () => {
     setup({ activeStratumId: '', thresholdActiveId: 'threshold-1' });
-    expect(screen.getByText('Checkpoint')).toBeTruthy();
+    // Eyebrow reads "Threshold" (not the overloaded "Checkpoint"); the full
+    // threshold name carries the ordinal.
+    expect(screen.getByText('Threshold')).toBeTruthy();
     expect(screen.getByText('Threshold 1 -- Reality Check')).toBeTruthy();
     expect(screen.queryByText(`Stratum S${S1.ordinal}`)).toBeNull();
+  });
+
+  it('dismisses the panel on Escape and on click-outside; trigger is ARIA-wired', () => {
+    setup();
+    const trigger = screen.getByTestId('switcher-header');
+    expect(trigger.getAttribute('aria-haspopup')).toBe('true');
+
+    // Escape closes the expanded panel and wires aria-controls while open.
+    expand();
+    expect(screen.getByTestId('switcher-panel')).toBeTruthy();
+    expect(trigger.getAttribute('aria-controls')).toBeTruthy();
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(screen.queryByTestId('switcher-panel')).toBeNull();
+    expect(trigger.getAttribute('aria-controls')).toBeNull();
+
+    // Click-outside (mousedown on the document body) also closes it.
+    expand();
+    expect(screen.getByTestId('switcher-panel')).toBeTruthy();
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByTestId('switcher-panel')).toBeNull();
   });
 
   it('a locked stratum still calls onSelectStratum (popover handled upstream)', () => {

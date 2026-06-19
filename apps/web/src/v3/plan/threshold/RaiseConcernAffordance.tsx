@@ -199,6 +199,16 @@ export default function RaiseConcernAffordance({
           </span>
         )}
       </div>
+
+      {/* Breadcrumb to where the concern is reviewed (the governance queue on the
+          Act Mandate surface). Always visible so the path is discoverable before
+          AND after raising. */}
+      <p
+        className={styles.raiseReview}
+        data-testid="raise-concern-review-location"
+      >
+        {ACT_MANDATE_COPY.concern.reviewLocation}
+      </p>
     </section>
   );
 }
