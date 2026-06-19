@@ -44,7 +44,9 @@ This is the single operator-authorized exception to "soft gate / never block," a
 
 ### 3. DECOUPLE reach from clickability
 
-`REACHABLE_THRESHOLD_IDS = ['threshold-1','threshold-2']` (spine divider clickability) was SPLIT from a new `ROUTABLE_THRESHOLD_IDS = ['threshold-1','threshold-2','threshold-3']`. T3 is reachable by deep-link + a Plan-only "Enter the Act Mandate" CTA (`ActMandateEntryCue`) on the `s7` objective detail; its spine divider stays decorative (not clickable). This keeps the ceremony a deliberate entry, not an idle tab-click.
+`REACHABLE_THRESHOLD_IDS = ['threshold-1','threshold-2']` (spine/switcher clickability) was SPLIT from a new `ROUTABLE_THRESHOLD_IDS = ['threshold-1','threshold-2','threshold-3']`. T3 is reachable by deep-link + a Plan-only "Enter the Act Mandate" CTA (`ActMandateEntryCue`) on the `s7` objective detail; its divider stays decorative (not clickable). This keeps the ceremony a deliberate entry, not an idle tab-click.
+
+> **UPDATE 2026-06-19 (commit `8f82dc0a`) -- partially superseded by operator decision.** Looking at the live rail-header switcher the operator asked that T3 "be a button that functions like the other two thresholds." `threshold-3` was therefore **added** to `REACHABLE_THRESHOLD_IDS`, so the T3 switcher row is now a clickable button. Clicking it only **navigates** to the Act Mandate surface (`plan/threshold/threshold-3`) -- it does **not** arm `planReadOnly`; the one-way Begin-Act crossing is still entered solely via the surface's own "Begin Act" CTA, so **clickability != arming** and the ceremony's deliberateness is preserved at the actual crossing. `ROUTABLE_THRESHOLD_IDS` / `isThresholdReachable` are unchanged (now coextensive with `REACHABLE`, kept distinct: route reach vs nav affordance). The `ActMandateEntryCue` and deep-links remain valid alternate entry paths. The rejected alternative below is thus now the adopted approach -- with the clarification that the clickable row navigates rather than arms.
 
 ### 4. The ceremony surface (`ActMandateSurface` + `ActMandateReferenceRail` + `ActMandate.module.css`)
 
@@ -65,7 +67,7 @@ Plan-only, mounted in `ObjectiveDetailPanel`, all self-gating. `RaiseConcernAffo
 - **Store-layer mutator backstop (original 3-layer plan):** rejected -- it keys on `isObjectiveLocked`, but Act writes the same store keys, so it would freeze Act's evidence capture. Dropped in favour of render+route only; the surface-agnostic store contract is now guarded.
 - **Hard-block Begin Act until readiness complete:** rejected per operator decision -- readiness is advisory; gating it would contradict the soft-gate covenant.
 - **Overwrite the objective in place on approve / mutate the catalogue:** rejected -- violates the append-only / never-overwrite covenant; amendments append to `planConcernsStore` and render alongside.
-- **Make the T3 spine divider clickable (single `REACHABLE_THRESHOLD_IDS` edit):** rejected -- the ceremony is a deliberate entry, so reach (`ROUTABLE_*`) was decoupled from clickability (`REACHABLE_*`).
+- **Make the T3 spine divider clickable (single `REACHABLE_THRESHOLD_IDS` edit):** initially rejected -- the ceremony is a deliberate entry, so reach (`ROUTABLE_*`) was decoupled from clickability (`REACHABLE_*`). **ADOPTED later the same day (commit `8f82dc0a`)** by operator decision -- see the UPDATE under section 3. The deliberateness concern is satisfied differently: the clickable row only navigates, while the one-way arming stays gated behind the surface's Begin-Act CTA.
 - **Route `beforeLoad` redirect for locked Plan objectives:** rejected -- locked objectives must stay viewable to raise a concern; the context flag is additive, no redirect.
 
 ## Consequences
