@@ -112,7 +112,10 @@ import { type SpineTypeChip } from '../../act/tier-shell/ActTierSpine.js';
 // Plan-only collapse-aware wrapper around the shared ActTierSpine. Forwards the
 // full spine prop set; Act renders ActTierSpine directly (no collapse).
 import PlanSpine from './PlanSpine.js';
-import { THRESHOLDS } from '../../act/tier-shell/declarationModel.js';
+import {
+  THRESHOLDS,
+  REACHABLE_THRESHOLD_IDS,
+} from '../../act/tier-shell/declarationModel.js';
 // Threshold 1 (The Reality Check) -- the Plan-only structural-hinge surface
 // mounted on the plan/threshold/$thresholdId route. Both takeovers render in
 // place of the editable map / dashboard (no WebGL), so the threshold-active
@@ -1090,17 +1093,15 @@ export default function PlanTierShell() {
           // instance); the Act stage's own ActTierSpine passes neither.
           typeChips={spineTypeChips}
           thresholds={THRESHOLDS}
-          // Thresholds become clickable spine entries only once their gate is
-          // open. Threshold 1 (Reality Check): Tier-1 6/6 + Tier-2 5/5 complete
-          // (receptionProgress.thresholdOpen). Threshold 2 (Coherence Check):
-          // every s4 + s5 design objective complete (coherenceProgress.
-          // coherenceOpen). Selecting one routes to the threshold surface;
-          // while there, params.thresholdId marks it active. Act passes none of
-          // these -> its dividers stay decorative.
-          clickableThresholdIds={[
-            ...(receptionProgress.thresholdOpen ? ['threshold-1'] : []),
-            ...(coherenceProgress.coherenceOpen ? ['threshold-2'] : []),
-          ]}
+          // Threshold 1 (Reality Check) and Threshold 2 (Coherence Check) are
+          // always clickable -- the operator dropped the open-gate requirement
+          // so a steward can jump to either surface at any stratum (the soft
+          // Mode-4 banners still advise; STRATUM_PREREQS untouched). Threshold 3
+          // (Act Mandate) is omitted (no surface built yet) so its divider stays
+          // decorative. Selecting one routes to the threshold surface; while
+          // there, params.thresholdId marks it active. Act passes none of these
+          // -> its dividers stay decorative.
+          clickableThresholdIds={[...REACHABLE_THRESHOLD_IDS]}
           thresholdActiveId={params.thresholdId}
           onSelectThreshold={(thresholdId) =>
             navigate({

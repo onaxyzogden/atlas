@@ -111,6 +111,19 @@ export const THRESHOLDS: readonly ThresholdMarker[] = [
   { id: 'threshold-3', afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
 ];
 
+// Thresholds whose content surface is BUILT and therefore reachable as a
+// clickable spine entry / valid deep-link. Threshold 3 (Act Mandate) is a model
+// stub with no surface yet, so it is intentionally absent -- its divider stays
+// decorative and its route redirects. Operator chose always-clickable for the
+// two built thresholds (open-gate requirement dropped; STRATUM_PREREQS, the
+// covenant prerequisites, untouched). Consumed by both the Plan spine's
+// clickableThresholdIds and the threshold route guard, so the two never drift.
+export const REACHABLE_THRESHOLD_IDS = ['threshold-1', 'threshold-2'] as const;
+
+export function isThresholdReachable(id: string): boolean {
+  return (REACHABLE_THRESHOLD_IDS as readonly string[]).includes(id);
+}
+
 // ---------------------------------------------------------------------------
 // Mode-header + section copy (centralized so the Amanah wording-pin test can
 // assert over the rendered strings in one place).

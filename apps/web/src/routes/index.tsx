@@ -106,8 +106,7 @@ import {
   computeAllStratumStates,
   PLAN_STRATA,
 } from '@ogden/shared';
-import { deriveReceptionProgress } from '../v3/act/tier-shell/receptionModel.js';
-import { deriveCoherenceOpen } from '../v3/plan/threshold/coherenceCheckModel.js';
+import { isThresholdReachable } from '../v3/act/tier-shell/declarationModel.js';
 import { useDevUnlockStore } from '../store/devUnlockStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
@@ -727,18 +726,13 @@ const v3PlanThresholdRoute = createRoute({
   component: PlanLayout,
   validateSearch: validatePlanSearch,
   beforeLoad: ({ params }) => {
-    const ctx = buildActLockContext(params.projectId);
-    if (!ctx) return;
-    // Deep-link guard, dispatched per threshold. Threshold 2 (Coherence Check)
-    // opens once every s4 + s5 design objective is complete; Threshold 1
-    // (Reality Check) opens on the Tier-1/Tier-2 reception gate. A closed
-    // threshold redirects to the Plan root rather than rendering an empty
-    // surface. Both are soft, display-only gates -- STRATUM_PREREQS untouched.
-    const open =
-      params.thresholdId === 'threshold-2'
-        ? deriveCoherenceOpen(ctx.objectives, ctx.statuses)
-        : deriveReceptionProgress(ctx.objectives, ctx.statuses).thresholdOpen;
-    if (!open) {
+    // Always-clickable thresholds (operator ruling): a BUILT threshold opens
+    // regardless of upstream progress -- the open-gate requirement was dropped
+    // so a steward can jump to either surface at any stratum (the soft Mode-4
+    // banners still advise; STRATUM_PREREQS untouched). Unbuilt / unknown ids
+    // (e.g. threshold-3 Act Mandate) have no surface, so they redirect to the
+    // Plan root rather than render an empty takeover.
+    if (!isThresholdReachable(params.thresholdId)) {
       throw redirect({
         to: '/v3/project/$projectId/plan',
         params: { projectId: params.projectId },
