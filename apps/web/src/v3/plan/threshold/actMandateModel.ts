@@ -514,6 +514,42 @@ export const ACT_MANDATE_COPY = {
     blurb:
       'Approved changes recorded against this objective during Act. Each was raised as a concern, reviewed by the team governance, and recorded here alongside the original design -- which is never overwritten.',
   },
+  /**
+   * Governance review queue copy (Plan-only, on the Act Mandate surface). The
+   * team governance declared in Objective 0.2 reviews concerns raised against
+   * held objectives. The recorded `amendmentText` is scanned by
+   * `detectCsaLikeText` as a UI advisory AND hard-rejected at the persistence
+   * boundary -- a banned term cannot be recorded as an amendment. Covenant-clean
+   * (banned-term-scanned in test).
+   */
+  governance: {
+    heading: 'Concerns under review',
+    blurb:
+      'Concerns raised against held objectives during Act come here for the team governance to review. Approving one lifts that objective just long enough to record the change alongside the original, then holds it steady again -- the original design is never overwritten. Declining closes the concern with no change.',
+    contextLabel: 'Your team governance',
+    contextFallback:
+      'No governance framework was recorded in Objective 0.2. The team can record one there to guide who reviews concerns.',
+    reviewerLabel: 'Reviewing as',
+    reviewerPlaceholder: 'Select a reviewer',
+    openHeading: 'Awaiting review',
+    resolvedHeading: 'Resolved',
+    emptyOpen: 'No concerns are awaiting review.',
+    raisedByPrefix: 'Raised by',
+    observationLabel: 'What diverged',
+    proposedLabel: 'Proposed',
+    amendmentLabel: 'Change to record (required to approve)',
+    amendmentPlaceholder:
+      'Describe the change to record alongside the original objective.',
+    beginReview: 'Begin review',
+    approve: 'Approve and record',
+    decline: 'Decline',
+    approveHint: 'Add the change to record before approving.',
+    raisedBadge: 'Raised',
+    underReviewBadge: 'Under review',
+    approvedBadge: 'Approved',
+    declinedBadge: 'Declined',
+    recordedPrefix: 'Recorded alongside the original',
+  },
   /** What Threshold 3 does NOT do -- a reassurance block. */
   notList: [
     'It does not design anything new -- it hands the resolved design to Act.',

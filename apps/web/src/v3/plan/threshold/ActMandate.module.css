@@ -955,3 +955,297 @@
   font-style: italic;
   color: var(--color-text-muted, #6f675b);
 }
+
+/* ------------------------------ Concern governance review (Plan, on the Act Mandate surface) */
+
+.governance {
+  /* Mounts inside .surface (inherits --am-*), but carry fallback copies for
+     robustness if ever rendered standalone. */
+  --am-accent: #4f9d69;
+  --am-accent-strong: #3c7e52;
+  --am-soft: rgba(79, 157, 105, 0.12);
+  --am-line: rgba(79, 157, 105, 0.28);
+  --am-pending: #c9a227;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 16px 18px;
+  border: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--am-soft) 0%, transparent 160%);
+}
+
+.governanceHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--am-accent-strong);
+}
+
+.governanceTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.governanceBlurb {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceContext {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(127, 127, 127, 0.05);
+}
+
+.governanceContextLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.governanceContextText {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text, #2b2620);
+}
+
+.governanceField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.governanceLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceSelect,
+.governanceTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+  background: rgba(127, 127, 127, 0.08);
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.governanceTextarea {
+  resize: vertical;
+  min-height: 52px;
+}
+
+.governanceSelect:focus,
+.governanceTextarea:focus {
+  outline: none;
+  border-color: var(--am-accent-strong);
+}
+
+.governanceSubhead {
+  margin: 6px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.governanceEmpty {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.governanceItem {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 11px 13px;
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface, #fff);
+}
+
+.governanceItemHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.governanceStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+.governanceObjective {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #2b2620);
+}
+
+.governanceMeta {
+  margin: 0;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceFieldText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.governanceFieldLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceAdvisory {
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-left: 3px solid var(--am-pending);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.governanceAdvisoryTitle {
+  margin: 0 0 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9a7b1c;
+}
+
+.governanceAdvisoryBody {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.governanceGhostBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--am-line);
+  background: transparent;
+  color: var(--am-accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.governanceGhostBtn:hover {
+  background: var(--am-soft);
+}
+
+.governanceApproveBtn,
+.governanceDeclineBtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+.governanceApproveBtn {
+  background: var(--am-accent-strong);
+  color: #fff;
+}
+
+.governanceDeclineBtn {
+  background: transparent;
+  border-color: rgba(170, 90, 80, 0.5);
+  color: #9a4a40;
+}
+
+.governanceApproveBtn:hover:not(:disabled),
+.governanceDeclineBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.governanceApproveBtn:disabled,
+.governanceDeclineBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.governanceHint {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.governanceResolved {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--am-line);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(79, 157, 105, 0.05);
+}
