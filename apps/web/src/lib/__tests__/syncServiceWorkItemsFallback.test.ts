@@ -116,7 +116,7 @@ describe('hydrateTypedRecords — promoted-store blob hydrate fallback', () => {
 
     // The matching blob row (and only it) reaches the fallback applier.
     expect(applyFallback).toHaveBeenCalledTimes(1);
-    const [, projectId, payload] = applyFallback.mock.calls[0];
+    const [, projectId, payload] = applyFallback.mock.calls[0]!;
     expect(projectId).toBe('PA');
     expect(payload).toEqual(BLOB_PAYLOAD);
     // Per-record apply never runs — there are no records.

@@ -116,8 +116,8 @@ describe('WorkConflictSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keep mine' }));
 
     await waitFor(() => expect(resolveMock).toHaveBeenCalledTimes(1));
-    expect(resolveMock.mock.calls[0][0].syncLogId).toBe(item.syncLogId);
-    expect(resolveMock.mock.calls[0][1]).toBe('keep_mine');
+    expect(resolveMock.mock.calls[0]![0].syncLogId).toBe(item.syncLogId);
+    expect(resolveMock.mock.calls[0]![1]).toBe('keep_mine');
     await waitFor(() =>
       expect(screen.queryByTestId('work-conflict-section')).toBeNull(),
     );
@@ -131,7 +131,7 @@ describe('WorkConflictSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keep server' }));
 
     await waitFor(() => expect(resolveMock).toHaveBeenCalledTimes(1));
-    expect(resolveMock.mock.calls[0][1]).toBe('keep_server');
+    expect(resolveMock.mock.calls[0]![1]).toBe('keep_server');
   });
 
   it('falls back to the server title, then the record id, when a side is missing', async () => {

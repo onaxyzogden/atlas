@@ -76,7 +76,7 @@ describe('addSecondaryType - reopen round-trip (regenerative_farm + residential)
     useProjectStore.setState({ projects: [], activeProjectId: null });
   });
 
-  it('flips s3-hydrology complete -> active without clearing completed work', () => {
+  it('reopens s3-hydrology (complete -> not complete) without clearing completed work', () => {
     const projectId = seedProject();
 
     // BEFORE: every required item checked across the regen_farm objective set.
@@ -103,15 +103,21 @@ describe('addSecondaryType - reopen round-trip (regenerative_farm + residential)
     const record = getRecord(projectId);
     expect(record.secondaryTypeIds).toEqual([SECONDARY]);
 
-    // AFTER: re-resolve and recompute against the SAME progress map. The 2
+    // AFTER: re-resolve and recompute against the SAME progress map. The
     // injected required items are absent from progress, so s3-hydrology can no
-    // longer be complete.
+    // longer be complete. Since the Tier-2 reception restructure, `residential`
+    // injects net-new required presence items (`*-pres-*`) into s3-hydrology's
+    // prerequisites (s2-terrain/climate/ecology/infrastructure) as well, so the
+    // reopened objective lands on 'locked' (upstream prerequisites reopened too)
+    // rather than 'active'. The load-bearing guarantee is that it reopened at
+    // all — it is no longer 'complete'.
     const after = resolveProjectObjectives({
       primaryTypeId: PRIMARY,
       secondaryTypeIds: [SECONDARY],
     }).objectives;
     const statusAfter = computeAllObjectiveStatuses(after, progress);
-    expect(statusAfter['s3-hydrology']).toBe('active');
+    expect(statusAfter['s3-hydrology']).not.toBe('complete');
+    expect(statusAfter['s3-hydrology']).toBe('locked');
 
     // Completed work is preserved: every original required item still exists
     // on the after-objective AND is still checked. Only the freshly injected
