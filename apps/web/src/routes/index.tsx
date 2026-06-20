@@ -1043,13 +1043,14 @@ const landingRoute = createRoute({
   path: '/',
   component: LandingPage,
   beforeLoad: () => {
-    // Offline demo: boot mints the guest token before the router mounts, so the
-    // count-aware redirect below would bounce visitors straight into the app.
-    // Send the bare domain to the showcase tour instead (a sibling main-router
-    // route → clean client-side redirect). The "Launch the interactive demo"
-    // CTA in the showcase is the explicit entry into the live app.
+    // Offline demo: boot mints the guest token + clones the seeded sample
+    // projects before the router mounts, so send the bare domain straight to
+    // the Portfolio surface — the live app entry. (Explicit target rather than
+    // the count-aware branch below, so the landing is the portfolio regardless
+    // of how many sample projects seed.) The showcase tour stays reachable at
+    // /showcase/three-streams via its own route and the in-app links.
     if (DEMO_OFFLINE_ENABLED) {
-      throw redirect({ to: '/showcase/three-streams' });
+      throw redirect({ to: '/v3/portfolio' });
     }
     if (!isAuthenticated()) return;
     // §6 project-count-aware landing. projectStore is zustand-persist (hydrates
