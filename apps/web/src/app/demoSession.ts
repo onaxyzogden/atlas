@@ -23,6 +23,34 @@ import type { ApiAuthUser } from '../lib/apiClient.js';
 export const DEMO_MODE_ENABLED = process.env.FEATURE_DEMO_MODE === 'true';
 
 /**
+ * True only when the build was produced with FEATURE_DEMO_OFFLINE=true — a fully
+ * client-only static build (e.g. the free public GitHub Pages demo). Unlike
+ * DEMO_MODE_ENABLED (which auto-registers a guest through the live API), offline
+ * mode synthesises the entire session in-browser: no /api register, no
+ * /auth/me, no server sync. With the flag off, behaviour is unchanged.
+ */
+export const DEMO_OFFLINE_ENABLED = process.env.FEATURE_DEMO_OFFLINE === 'true';
+
+/**
+ * Sentinel bearer token for an offline-demo session. It never reaches a server
+ * (offline mode makes no authed calls); it exists only so the persisted-token
+ * checks (authStore.initFromStorage, bootAuth) recognise a live guest session
+ * across reloads. authStore short-circuits /auth/me when it sees this value.
+ */
+export const DEMO_LOCAL_TOKEN = 'demo-offline-local';
+
+/**
+ * localStorage key for the offline guest's stable id. Persisting it keeps the
+ * synthetic user identity — and therefore the clone-idempotency flag
+ * (DEMO_CLONE_FLAG + user.id) — stable across reloads, so the seeded sample is
+ * cloned exactly once per browser.
+ */
+export const DEMO_USER_ID_KEY = 'demo-user-id';
+
+/** Mirrors authStore's private TOKEN_KEY — the localStorage slot for the JWT. */
+const AUTH_TOKEN_KEY = 'ogden-auth-token';
+
+/**
  * Domain stamped onto auto-provisioned guest accounts. Lets us recognise a demo
  * session after the fact (isDemoUser) and keeps these addresses visibly
  * non-real / non-deliverable.
@@ -88,6 +116,67 @@ export async function maybeBootDemoSession(deps: DemoBootDeps): Promise<boolean>
   }
 }
 
+/**
+ * Synthetic organisation id for offline guests. Projects created in offline mode
+ * are org-free (createProject carries no orgId), so this is never used as a real
+ * foreign key — it only satisfies the ApiAuthUser shape. Fixed (not random) so
+ * the synthesised user is byte-stable across reloads.
+ */
+const DEMO_OFFLINE_ORG_ID = '00000000-0000-0000-0000-0000000de110';
+
+/**
+ * Get the offline guest user, creating (and persisting) a stable identity on
+ * first call. The id is held in localStorage (DEMO_USER_ID_KEY) so the clone-
+ * idempotency flag survives reloads and the seeded sample is cloned exactly
+ * once. The email keeps the @demo.ogden.ag suffix so isDemoUser() still matches.
+ */
+export function getOrCreateOfflineDemoUser(): ApiAuthUser {
+  let id = localStorage.getItem(DEMO_USER_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEMO_USER_ID_KEY, id);
+  }
+  return {
+    id,
+    email: `guest-${id}@${DEMO_EMAIL_DOMAIN}`,
+    displayName: 'Guest Explorer',
+    defaultOrgId: DEMO_OFFLINE_ORG_ID,
+    // No real verification flow exists offline; treat the guest as verified so
+    // no "verify your email" gate ever shows.
+    emailVerified: true,
+  };
+}
+
+export interface OfflineDemoBootDeps {
+  /** Current session token (null when logged out). */
+  getToken: () => string | null;
+  /** Commit the synthetic session into the auth store (token + user). */
+  setSession: (token: string, user: ApiAuthUser) => void;
+  /** Override the build flag (tests). Defaults to DEMO_OFFLINE_ENABLED. */
+  enabled?: boolean;
+}
+
+/**
+ * Offline demo boot: when enabled and there's no session, synthesise a guest
+ * session entirely in-browser — NO /api register, NO /auth/me — then clone +
+ * seed the sample project. Writes the sentinel token to localStorage so reloads
+ * restore the session (authStore.initFromStorage short-circuits on it). No-op
+ * when disabled or already signed in. Returns true when a session was minted.
+ */
+export async function bootOfflineDemoSession(deps: OfflineDemoBootDeps): Promise<boolean> {
+  const enabled = deps.enabled ?? DEMO_OFFLINE_ENABLED;
+  if (!enabled || deps.getToken()) return false;
+
+  const user = getOrCreateOfflineDemoUser();
+  localStorage.setItem(AUTH_TOKEN_KEY, DEMO_LOCAL_TOKEN);
+  deps.setSession(DEMO_LOCAL_TOKEN, user);
+
+  // Builtins may not be hydrated yet — this clone bails harmlessly if so, and
+  // the hydrateBuiltins trigger (projectStore.ts) retries once they land.
+  await maybeCloneBuiltinsForDemo(true);
+  return true;
+}
+
 // Server UUID for the "351 House -- Atlas Sample" builtin project (migration 017).
 const SAMPLE_PROJECT_SERVER_ID = '00000000-0000-0000-0000-0000005a3791';
 // localStorage key prefix — one entry per demo user (keyed by user.id).
@@ -111,7 +200,7 @@ const DEMO_CLONE_FLAG = 'demo-cloned-';
  * build-time constant DEMO_MODE_ENABLED governs.
  */
 export async function maybeCloneBuiltinsForDemo(
-  _enabled = DEMO_MODE_ENABLED,
+  _enabled = DEMO_MODE_ENABLED || DEMO_OFFLINE_ENABLED,
 ): Promise<void> {
   if (!_enabled) return;
 

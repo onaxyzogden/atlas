@@ -203,6 +203,14 @@ describe('ThresholdDirectionPhase -- planning direction + approval', () => {
     expect(screen.getByTestId('direction-not-ready')).toBeTruthy();
   });
 
+  it('shows an honest empty state (not "0 of 0 classified") when no elements were declared', () => {
+    render(<Harness elements={[]} />);
+    // The zero-element case gets its own copy, not the count-based prompt.
+    expect(screen.queryByTestId('direction-not-ready')).toBeNull();
+    expect(screen.getByTestId('direction-empty')).toBeTruthy();
+    expect(screen.queryByTestId('planning-direction')).toBeNull();
+  });
+
   it('composes the statement, approves (stamps + locks), and re-opens', () => {
     render(<Harness elements={ONE} />);
     fireEvent.click(

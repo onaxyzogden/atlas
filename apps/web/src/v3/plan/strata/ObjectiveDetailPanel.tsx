@@ -33,6 +33,8 @@ import Mode4DesignChrome from './Mode4DesignChrome.js';
 import Mode5LaunchChrome from './Mode5LaunchChrome.js';
 import CapacityBridgePanel from './CapacityBridgePanel.js';
 import CoherenceObjectiveAmendments from '../threshold/CoherenceObjectiveAmendments.js';
+import ConcernAmendments from '../threshold/ConcernAmendments.js';
+import RaiseConcernAffordance from '../threshold/RaiseConcernAffordance.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import FormulaResultSection from './FormulaResultSection.js';
@@ -61,6 +63,7 @@ import {
   useProtocolStore,
   useObjectiveInstantiated,
 } from '../../../store/protocolStore.js';
+import { useObjectivePlanLock } from '../../../store/actMandateStore.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 // T1.7 -- shared button style for the three review-flag action buttons.
@@ -104,6 +107,17 @@ interface Props {
    * embedded map.
    */
   hideMap?: boolean;
+  /**
+   * Threshold-3 (Act Mandate) lock override. When provided it wins; when omitted
+   * the panel self-derives the lock from `useObjectivePlanLock` (this panel is
+   * Plan-only -- imported solely by PlanTierShell / PlanStratumShell, never under
+   * v3/act/ -- so calling the hook here can never lock an Act surface). A locked
+   * objective stays fully VIEWABLE but its edit affordances are suppressed at the
+   * render layer (the surface-aware seam); the shared stores stay writable so Act
+   * execution is never frozen. Absent + no mandate armed -> false -> the panel
+   * renders byte-identical to today.
+   */
+  readOnly?: boolean;
 }
 
 export default function ObjectiveDetailPanel({
@@ -116,6 +130,7 @@ export default function ObjectiveDetailPanel({
   completedItemIds,
   visionDerivedMap,
   hideMap = false,
+  readOnly,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
@@ -332,6 +347,13 @@ export default function ObjectiveDetailPanel({
     [objective.id],
   );
 
+  // Threshold-3 lock. The hook is called UNCONDITIONALLY (Rules-of-Hooks) and
+  // returns false until Begin Act arms `planReadOnly`; the optional `readOnly`
+  // prop, when passed, overrides it (used by tests + explicit hosts). This panel
+  // is Plan-only, so the hook can never run inside an Act surface.
+  const lockFromStore = useObjectivePlanLock(projectId, objective.id);
+  const locked = readOnly ?? lockFromStore;
+
   return (
     <section
       aria-label={`Objective: ${objective.title}`}
@@ -352,6 +374,36 @@ export default function ObjectiveDetailPanel({
         status={status}
         onBackToStratum={onBackToStratum}
       />
+
+      {/* Threshold-3 lock notice. Renders ONLY when this objective is locked
+          (post Begin Act), so an unlocked panel is byte-identical. The objective
+          stays viewable; edits are suppressed. Raise a concern (Stage 7) is the
+          covenant path to propose an amendment. */}
+      {locked && (
+        <div
+          data-testid="objective-detail-plan-lock"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            margin: '8px 12px 0',
+            padding: '9px 12px',
+            borderLeft: '3px solid #94A3B8',
+            background: 'rgba(148, 163, 184, 0.12)',
+            color: '#475569',
+            fontSize: 12.5,
+            lineHeight: 1.45,
+            borderRadius: 4,
+          }}
+        >
+          <span>
+            This objective is locked. The plan was sealed at Begin Act -- it stays
+            viewable, but edits are paused while you execute in Act. Raise a concern
+            to propose an amendment.
+          </span>
+        </div>
+      )}
+
       <SeededProtocolPills objective={objective} projectId={projectId} />
 
       <DecisionProgressBar
@@ -402,14 +454,19 @@ export default function ObjectiveDetailPanel({
             {openReviewFlags.map((flag) => (
               <li key={flag.id} data-testid={`review-flag-${flag.id}`} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 13, lineHeight: 1.4, color: C.textPrimary }}>{flag.reason}</span>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {/* Acknowledge stamps acknowledgedAt only; the flag stays OPEN
-                      (still visible here, still counted on the card) until the
-                      steward Resolves or Dismisses it. */}
-                  <button type="button" onClick={() => acknowledgeFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Acknowledge</button>
-                  <button type="button" onClick={() => resolveFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Resolve</button>
-                  <button type="button" onClick={() => dismissFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Dismiss</button>
-                </div>
+                {/* Action row suppressed while the objective is locked (the flag
+                    stays VISIBLE, read-only); under lock, amendments go through
+                    Raise a Concern. Unlocked -> renders byte-identical. */}
+                {!locked && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {/* Acknowledge stamps acknowledgedAt only; the flag stays OPEN
+                        (still visible here, still counted on the card) until the
+                        steward Resolves or Dismisses it. */}
+                    <button type="button" onClick={() => acknowledgeFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Acknowledge</button>
+                    <button type="button" onClick={() => resolveFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Resolve</button>
+                    <button type="button" onClick={() => dismissFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Dismiss</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -502,6 +559,18 @@ export default function ObjectiveDetailPanel({
         objectiveId={objective.id}
       />
 
+      {/* THRESHOLD 3 (Act Mandate) approved-amendments overlay -- Plan-only,
+          additive, display-only. Self-gates to null when this objective has no
+          APPROVED amendment, so the catalogue design above is never mutated
+          (amendments are permanent steward overlays in planConcernsStore). */}
+      <ConcernAmendments projectId={projectId} objectiveId={objective.id} />
+
+      {/* THRESHOLD 3 (Act Mandate) Raise-a-Concern affordance -- Plan-only. Self-
+          gates: renders ONLY when this objective is HELD under the mandate, so a
+          held objective stays viewable and a concern can be raised against it.
+          Covenant: free text is CSA-advised in UI + hard-rejected at persist. */}
+      <RaiseConcernAffordance projectId={projectId} objectiveId={objective.id} />
+
       {upstreamSources.length > 0 && (
         <section
           aria-label="Upstream readings informing this objective"
@@ -569,7 +638,7 @@ export default function ObjectiveDetailPanel({
           checklist items, so non-livestock panels are untouched. */}
       <FormulaResultSection projectId={projectId} objective={objective} />
 
-      <ParameterGroup projectId={projectId} objective={objective} />
+      <ParameterGroup projectId={projectId} objective={objective} readOnly={locked} />
 
       {/* §10.1 — Approve & instantiate protocols button: shown when a gating
           objective (carries a parameter group + the project has eligible
@@ -579,7 +648,7 @@ export default function ObjectiveDetailPanel({
           confirmation flow at will. Opens ProtocolApprovalOverlay, which derives
           token values from the entered thresholds and activates chosen protocols
           into protocolStore. */}
-      {gatesProtocolInstantiation && status === 'complete' && (
+      {gatesProtocolInstantiation && status === 'complete' && !locked && (
           <div
             style={{
               padding: '12px 20px 16px',

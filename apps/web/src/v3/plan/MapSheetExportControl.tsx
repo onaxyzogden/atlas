@@ -31,6 +31,7 @@ import { findEntry } from "../../data/plantCatalog.js";
 import { captureMapImage } from "./captureMapImage.js";
 import { MapControlPopover } from "../../components/ui/MapControlPopover.js";
 import { group, warning } from "../../lib/tokens.js";
+import { DEMO_OFFLINE_ENABLED } from "../../app/demoSession.js";
 
 export type MapSheetType = "master_plan" | "base_map_sheet" | "zone_map_sheet";
 export type SheetExportType = MapSheetType | "planting_plan";
@@ -270,6 +271,11 @@ export default function MapSheetExportControl({
   );
 
   const busy = generatingType !== null;
+
+  // PDF export is generated server-side (api.exports.generate). In the offline
+  // demo there is no backend, so the control can't do anything but mislead —
+  // drop it entirely. Guard placed after all hooks so the hook order is stable.
+  if (DEMO_OFFLINE_ENABLED) return null;
 
   return (
     <div

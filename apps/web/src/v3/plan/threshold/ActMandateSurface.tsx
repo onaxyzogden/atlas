@@ -47,6 +47,7 @@ import {
   type HandoffPackage,
   type KeyDocument,
 } from './actMandateModel.js';
+import ConcernGovernancePanel from './ConcernGovernancePanel.js';
 import styles from './ActMandate.module.css';
 
 export interface ActMandateSurfaceProps {
@@ -341,6 +342,19 @@ export default function ActMandateSurface({
 
           <p className={styles.lockNote}>{begin.lockNote}</p>
         </section>
+
+        {/*
+         * Governance review queue (Plan-only). Self-gates to null until a concern
+         * exists, so the ceremony stays clean pre-mandate. Approve here lifts the
+         * lock just long enough to append an amendment ALONGSIDE the original, then
+         * re-locks -- the catalogue objective is never overwritten.
+         */}
+        <ConcernGovernancePanel
+          projectId={projectId}
+          objectiveTitleFor={(id) =>
+            objectives.find((o) => o.id === id)?.title ?? id
+          }
+        />
 
         <ul className={styles.notList} aria-label="What this threshold does not do">
           {ACT_MANDATE_COPY.notList.map((line) => (

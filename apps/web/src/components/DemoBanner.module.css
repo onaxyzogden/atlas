@@ -1,0 +1,64 @@
+/* ==========================================================================
+   DemoBanner — slim persistent honesty bar for the offline (client-only) demo.
+   Mirrors OfflineBanner's sticky full-width layout; uses Atlas design tokens.
+   ========================================================================== */
+
+@keyframes demoSlideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-toast, 500);
+  padding: var(--space-1\.5, 6px) var(--space-5, 20px);
+  font-size: var(--text-xs, 12px);
+  font-weight: 500;
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  flex-shrink: 0;
+  animation: demoSlideDown 200ms ease-out;
+  letter-spacing: 0.01em;
+  /* Calm, informational tone — not a warning. Atlas brand-tinted neutral. */
+  background: var(--color-info, #3d7f9e);
+  color: #ffffff;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.reset {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reset:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.reset:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

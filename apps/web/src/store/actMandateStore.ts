@@ -12,10 +12,12 @@
  *                            This is the SINGLE operator-authorized exception to
  *                            the standing "soft gate / never block" posture,
  *                            scoped strictly to the Plan->Act transition. It is
- *                            consulted ONLY by the three enforcement seams (render
- *                            prop / store backstop / route context); no
- *                            prerequisite, threshold, monitoring, or
- *                            progressTracking logic reads it.
+ *                            consulted ONLY by the surface-aware seams -- the
+ *                            render prop (useObjectivePlanLock) and the route
+ *                            loader; the shared stores stay surface-agnostic so
+ *                            Act execution is never frozen. No prerequisite,
+ *                            threshold, monitoring, or progressTracking logic
+ *                            reads it.
  *   - `objectiveOverrides`-- per-objective lift window: objectiveId -> epoch ms
  *                            the lock was lifted (governance approved a concern).
  *                            While an objective is in this map its lock is lifted
@@ -187,7 +189,11 @@ export const useActMandateStore = create<ActMandateState>()(
       name: 'ogden-act-mandate',
       version: 1,
       // Synced project data lives in IndexedDB like every other byProject store
-      // (Node-safe; degrades to localStorage/null). No schema migrate at v1.
+      // (Node-safe; degrades to localStorage/null). No `migrate` at v1.
+      // TRIP-WIRE: the next change to the persisted shape (`ProjectActMandate`)
+      // MUST bump `version` AND add a `migrate(persisted, from)`. persist drops
+      // any stored state whose version != current when no migrate is supplied, so
+      // a silent shape change would discard the append-only `objectiveOverrides`.
       storage: idbPersistStorage,
       partialize: (state) => ({ byProject: state.byProject }),
     },
@@ -195,6 +201,42 @@ export const useActMandateStore = create<ActMandateState>()(
 );
 
 rehydrateWithLogging(useActMandateStore);
+
+// ---------------------------------------------------------------------------
+// Imperative lock read -- the route-layer lock seam (Stage 6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Non-React lock read for the Plan-objective route loader (`routes/index.tsx`
+ * `beforeLoad`), which injects `planReadOnly` into route context without
+ * redirecting (a locked objective stays viewable so a concern can be raised).
+ * Reads live store state directly (no subscription), so it is safe to call
+ * outside React.
+ *
+ * `id` is an objectiveId: a governance lift drops it from `objectiveOverrides`,
+ * so `isObjectiveLocked` reads false and that objective reopens while the rest
+ * of the plan stays frozen; `relock` re-freezes it.
+ *
+ * DELIBERATELY NOT a store backstop. `planReadOnly` is a SURFACE policy -- the
+ * Plan design surfaces are read-only, the Act execution surfaces stay writable.
+ * Only the render + route layers know the calling surface; the shared mutators
+ * (`planStratumStore.setItemComplete`, `actEvidenceStore.saveVisionForm`, ...)
+ * do not, because the Act execution loop (ActTierShell) writes the SAME store
+ * with the SAME projectId+objectiveId+itemId keys. A mutator-level guard here
+ * could not tell a Plan write from an Act write and would freeze Act execution
+ * after Begin Act -- breaking the "Act stays byte-identical" invariant. The lock
+ * is therefore enforced where the surface is known (render: `useObjectivePlanLock`;
+ * route: this helper) and the stores stay surface-agnostic. See the
+ * `*.mandateNeutrality.test.ts` suites, which pin that those mutators keep
+ * writing under an armed mandate. One-way edge: nothing this store imports
+ * depends on it, so there is no cycle.
+ */
+export function isObjectivePlanLocked(projectId: string, id: string): boolean {
+  return isObjectiveLocked(
+    readRecord(useActMandateStore.getState().byProject, projectId),
+    id,
+  );
+}
 
 // ---------------------------------------------------------------------------
 // React hook -- the render-layer lock seam (Stage 5)

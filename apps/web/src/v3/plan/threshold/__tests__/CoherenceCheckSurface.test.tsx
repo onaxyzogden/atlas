@@ -51,9 +51,15 @@ vi.mock('lucide-react', async (importOriginal) => {
   return stubbed;
 });
 
-import type { PlanStratumObjective } from '@ogden/shared';
+import type {
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
+} from '@ogden/shared';
 import { useCoherenceCheckStore } from '../../../../store/coherenceCheckStore.js';
-import { COHERENCE_COPY } from '../coherenceCheckModel.js';
+import {
+  COHERENCE_COPY,
+  deriveCoherenceProgress,
+} from '../coherenceCheckModel.js';
 import CoherenceCheckSurface from '../CoherenceCheckSurface.js';
 
 const PID = 'project-coherence-1';
@@ -104,14 +110,17 @@ const allComplete: Record<string, 'complete'> = Object.fromEntries(
   referenceDesign.map((o) => [o.id, 'complete'] as const),
 );
 
-function renderSurface() {
+function renderSurface(
+  statuses: Record<string, PlanStratumObjectiveStatus> = allComplete,
+) {
   return render(
     <CoherenceCheckSurface
       projectId={PID}
       projectName="Hillside Farm"
       primaryTypeId="regenerative_farm"
       objectives={referenceDesign}
-      objectiveStatuses={allComplete}
+      objectiveStatuses={statuses}
+      coherenceProgress={deriveCoherenceProgress(referenceDesign, statuses)}
     />,
   );
 }
@@ -125,6 +134,31 @@ describe('CoherenceCheckSurface', () => {
     renderSurface();
     expect(screen.getByText(COHERENCE_COPY.modeLabel)).toBeTruthy();
     expect(screen.getByText(COHERENCE_COPY.title)).toBeTruthy();
+  });
+
+  it('shows the honest readiness banner (with tally) when Tier 3/4 design is unfinished', () => {
+    // 3 of the 15 design objectives are not yet complete -> threshold is still
+    // reachable (op decision) but the surface must NOT claim the design is done.
+    const mostlyComplete: Record<string, PlanStratumObjectiveStatus> = {
+      ...allComplete,
+      's4-water-strategy': 'active',
+      's5-access': 'locked',
+      'silv-sec-s5-tree-establishment': 'locked',
+    };
+    renderSurface(mostlyComplete);
+    const banner = screen.getByTestId('coherence-readiness');
+    expect(
+      within(banner).getByText(COHERENCE_COPY.readiness.incompleteTitle),
+    ).toBeTruthy();
+    // Honest 12/15 tally -- not a "completed across Tiers 3 and 4" assertion.
+    expect(banner.textContent).toContain(
+      `12/15 ${COHERENCE_COPY.readiness.tallyLabel}`,
+    );
+  });
+
+  it('hides the readiness banner once all Tier 3/4 design objectives are complete', () => {
+    renderSurface(); // allComplete -> coherenceOpen
+    expect(screen.queryByTestId('coherence-readiness')).toBeNull();
   });
 
   it('mounts NO map / canvas / WebGL on the threshold surface', () => {

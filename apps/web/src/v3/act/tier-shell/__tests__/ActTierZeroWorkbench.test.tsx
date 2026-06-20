@@ -1303,9 +1303,13 @@ describe('ActTierZeroWorkbench -- settlement-plan objective (sp- badges + no gen
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // Default selection is c1; SettlementPlanCapture renders -- the composition
-    // textarea is present with its specific aria-label (not a generic fallback).
-    expect(screen.getByLabelText('Founding cohort composition')).toBeTruthy();
+    // Default selection is c1; SettlementPlanCapture renders in cohort mode.
+    // The c1 cohort capture is now a structured row register (spCohortRows[]),
+    // so "Founding cohort composition" is a SectionEyebrow heading -- not a
+    // form-control label. Prove the SettlementPlanCapture cohort branch routed
+    // via its data-sp-mode container + the heading, not a removed aria-label.
+    expect(document.querySelector('[data-sp-mode="cohort"]')).toBeTruthy();
+    expect(screen.getByText('Founding cohort composition')).toBeTruthy();
     // No generic fallback textarea labelled with the item label
     const c1 = objective.checklist[0]!;
     expect(screen.queryByLabelText(c1.label)).toBeNull();

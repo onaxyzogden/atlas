@@ -123,6 +123,7 @@ import { useActEvidenceStore } from '../store/actEvidenceStore.js';
 import { useRealityCheckStore } from '../store/realityCheckStore.js';
 import { useCoherenceCheckStore } from '../store/coherenceCheckStore.js';
 import { useActMandateStore } from '../store/actMandateStore.js';
+import { useLaunchMilestoneStore } from '../store/launchMilestoneStore.js';
 import { usePlanConcernsStore } from '../store/planConcernsStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
@@ -212,6 +213,26 @@ export interface SyncedStoreDescriptor {
     incoming: unknown,
   ) => void;
   /**
+   * OPTIONAL append-only RECONCILE applier (F8). Same signature as
+   * `applyForProject`, but instead of replacing the project bucket it MERGES
+   * the incoming server slice with the locally-held one (union append-only logs
+   * by id; OR/min-defined the singleton fields). Consumed ONLY by the
+   * multi-device sync hydrate path (`hydrateProjectStateBlobs`), so two devices
+   * that each edited a governance log offline keep BOTH sides on reconcile
+   * instead of last-writer-wins clobber.
+   *
+   * `applyForProject` (whole-bucket REPLACE) is deliberately left untouched so
+   * the two contracts that depend on replace semantics keep holding: the P0-1
+   * `select`↔`apply` round-trip, and `restorePlanSnapshot`'s documented
+   * destructive OVERWRITE. Absent ⇒ the hydrate path falls back to
+   * `applyForProject` (the existing behaviour for every other blob store).
+   */
+  reconcileForProject?: (
+    store: { getState: () => unknown; setState: (p: unknown) => void },
+    projectId: string,
+    incoming: unknown,
+  ) => void;
+  /**
    * `typed-record` only: enumerate this project's records as
    * `{ recordId, record, meta }` triples. `recordId` is the stable per-record
    * sync key (an array element's `id`, or the inner map key for keyed-map
@@ -265,7 +286,144 @@ type Applier = (store: StoreApi, projectId: string, incoming: unknown) => void;
 interface BlobShape {
   select: Selector;
   apply: Applier;
+  /**
+   * OPTIONAL multi-device reconcile applier (F8). When present it is surfaced as
+   * the descriptor's `reconcileForProject` and used by the sync hydrate path
+   * INSTEAD of `apply` (replace). Snapshot-restore and the P0-1 round-trip keep
+   * using `apply`. Absent ⇒ hydrate falls back to `apply` (every other store).
+   */
+  reconcile?: Applier;
 }
+
+/** Attach an append-only reconcile applier to an existing replace-shape. */
+const withReconcile = (shape: BlobShape, reconcile: Applier): BlobShape => ({
+  ...shape,
+  reconcile,
+});
+
+/** Earliest-defined wins: the original crossing/seal time stands across devices. */
+const minDefined = (a: unknown, b: unknown): unknown => {
+  if (a == null) return b;
+  if (b == null) return a;
+  return (a as number) <= (b as number) ? a : b;
+};
+
+/**
+ * Reconcile applier for a byProject ARRAY bucket (append-only log): UNION the
+ * incoming slice with the locally-held one by `idField` rather than replacing
+ * it, so two devices that each appended offline keep BOTH sides. On an id
+ * collision `rank` picks the winner (higher wins; incoming wins ties, so a
+ * remote record that advanced its lifecycle is not lost). Rows missing the id
+ * field are preserved verbatim. `order` gives a deterministic final ordering so
+ * the two devices converge on an identical array regardless of merge direction.
+ */
+const unionListReconcile =
+  (
+    record: string,
+    idField: string,
+    rank: (row: any) => number,
+    order: (row: any) => number,
+  ): Applier =>
+  (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const rec = { ...((st?.[record] as any) ?? {}) };
+      const mine: any[] = Array.isArray(rec[pid]) ? rec[pid] : [];
+      const inc: any[] = Array.isArray(incoming) ? incoming : [];
+      const byId = new Map<string, any>();
+      const noId: any[] = [];
+      for (const row of [...mine, ...inc]) {
+        const id = row?.[idField];
+        if (id == null) {
+          noId.push(row);
+          continue;
+        }
+        const key = String(id);
+        const held = byId.get(key);
+        if (held == null || rank(row) >= rank(held)) byId.set(key, row);
+      }
+      const merged = [...byId.values(), ...noId].sort(
+        (a, b) => order(a) - order(b),
+      );
+      rec[pid] = merged;
+      return { [record]: rec };
+    });
+
+/**
+ * Reconcile applier for a byProject OBJECT bucket (singleton record): pass every
+ * field through (`{...mine, ...inc}`, incoming wins) EXCEPT the named fields,
+ * which are merged by their merger. A named field is written ONLY when at least
+ * one side actually carries it, so a synthetic payload (P0-1 fixtures) bearing
+ * none of the schema fields passes through untouched.
+ */
+const mergeRecordReconcile =
+  (
+    record: string,
+    mergers: Record<string, (mine: any, inc: any) => any>,
+  ): Applier =>
+  (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const rec = { ...((st?.[record] as any) ?? {}) };
+      const mine =
+        rec[pid] && typeof rec[pid] === 'object' ? (rec[pid] as any) : {};
+      const inc =
+        incoming && typeof incoming === 'object' ? (incoming as any) : {};
+      const merged: any = { ...mine, ...inc };
+      for (const [field, mergeFn] of Object.entries(mergers)) {
+        if (!(field in mine) && !(field in inc)) continue;
+        merged[field] = mergeFn(mine[field], inc[field]);
+      }
+      rec[pid] = merged;
+      return { [record]: rec };
+    });
+
+/** Union two append-only amendment logs by `itemId` (each item resolved once,
+ *  frozen), ordered by `resolvedAt` for deterministic cross-device convergence. */
+const unionAmendments = (a: unknown, b: unknown): any[] => {
+  const byItem = new Map<string, any>();
+  const all = [
+    ...(Array.isArray(a) ? a : []),
+    ...(Array.isArray(b) ? b : []),
+  ];
+  for (const am of all) {
+    const id = (am as any)?.itemId;
+    if (id == null) continue;
+    if (!byItem.has(String(id))) byItem.set(String(id), am); // append-only/frozen
+  }
+  return [...byItem.values()].sort(
+    (x, y) => ((x as any)?.resolvedAt ?? 0) - ((y as any)?.resolvedAt ?? 0),
+  );
+};
+
+/** Lifecycle rank for a PlanConcern so a remote resolution wins over a local
+ *  still-raised copy of the same id. raised < under-review < terminal. */
+const concernRank = (c: any): number =>
+  c?.status === 'approved' || c?.status === 'declined'
+    ? 2
+    : c?.status === 'under-review'
+      ? 1
+      : 0;
+
+/** F8 reconcile appliers for the three Threshold governance logs. */
+const planConcernsReconcile: Applier = unionListReconcile(
+  'byProject',
+  'id',
+  concernRank,
+  (c) => c?.timestamp ?? 0,
+);
+const actMandateReconcile: Applier = mergeRecordReconcile('byProject', {
+  // The original crossing stands; once armed anywhere, the lock stays armed;
+  // the per-objective lift windows union (a lifted objective stays writable).
+  mandatedAt: (a, b) => minDefined(a, b),
+  planReadOnly: (a, b) => Boolean(a) || Boolean(b),
+  objectiveOverrides: (a, b) => ({ ...(a ?? {}), ...(b ?? {}) }),
+});
+const coherenceCheckReconcile: Applier = mergeRecordReconcile('byProject', {
+  // Resolutions shallow-merge by itemId (append-only/frozen); the amendments
+  // log unions by itemId; the original seal time stands.
+  itemResolutions: (a, b) => ({ ...(a ?? {}), ...(b ?? {}) }),
+  amendments: (a, b) => unionAmendments(a, b),
+  sealedAt: (a, b) => minDefined(a, b),
+});
 
 /** active-singleton: the whole persisted state is the project slice. */
 const whole: BlobShape = {
@@ -527,6 +685,9 @@ function blob(
     store: store as unknown as VersionedBlobStoreHandle,
     selectForProject: shape.select,
     applyForProject: shape.apply as SyncedStoreDescriptor['applyForProject'],
+    reconcileForProject: shape.reconcile as
+      | SyncedStoreDescriptor['reconcileForProject']
+      | undefined,
   };
 }
 
@@ -1009,22 +1170,38 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // text + approvedAt). Client-only IndexedDB, no server table -> opaque
   // byProject versioned-blob. v1 matches the persist version.
   blob('ogden-reality-check', useRealityCheckStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Act-side Launch-milestone progress: byProject -> objectiveId -> milestoneKey
+  // -> { reachedAt, reachedBy }. The live, persisted half of the Plan-authored
+  // progressTracking.milestones -- records that a milestone was marked reached
+  // during Act. Record-only (never gates), no free-text covenant surface.
+  // Client-only IndexedDB, no server table -> opaque byProject versioned-blob.
+  // v1 matches the persist version. Mirrors ogden-reality-check.
+  blob('ogden-launch-milestone-progress', useLaunchMilestoneStore, 'byProject', 1,
+    byKey('byProject', null, {})),
   // Threshold 2 (The Coherence Check) steward state: one ProjectCoherenceCheck
   // per project (itemResolutions map + append-only amendments log + sealedAt).
   // Client-only IndexedDB, no server table -> opaque byProject versioned-blob.
-  // v1 matches the persist version. Mirrors ogden-reality-check exactly.
-  blob('ogden-coherence-check', useCoherenceCheckStore, 'byProject', 1, byKey('byProject', null, {})),
+  // v1 matches the persist version. Mirrors ogden-reality-check exactly. F8:
+  // carries an append-only RECONCILE applier (union amendments by itemId, merge
+  // itemResolutions, earliest seal stands) so concurrent offline edits across
+  // devices keep both sides instead of last-writer-wins clobber.
+  blob('ogden-coherence-check', useCoherenceCheckStore, 'byProject', 1,
+    withReconcile(byKey('byProject', null, {}), coherenceCheckReconcile)),
   // Threshold 3 (The Act Mandate) steward state: one ProjectActMandate per
   // project (mandatedAt + planReadOnly + per-objective lift window). Client-only
   // IndexedDB, no server table -> opaque byProject versioned-blob. v1 matches the
-  // persist version. Mirrors ogden-coherence-check / ogden-reality-check.
-  blob('ogden-act-mandate', useActMandateStore, 'byProject', 1, byKey('byProject', null, {})),
+  // persist version. Mirrors ogden-coherence-check / ogden-reality-check. F8:
+  // reconcile = earliest mandatedAt + OR(planReadOnly) + union(objectiveOverrides).
+  blob('ogden-act-mandate', useActMandateStore, 'byProject', 1,
+    withReconcile(byKey('byProject', null, {}), actMandateReconcile)),
   // Threshold 3 concern log: append-only PlanConcern[] per project -- the
   // governance escape valve over a locked plan (raise -> review -> approve +
   // amendment-alongside / decline). Client-only IndexedDB, no server table ->
   // opaque byProject versioned-blob (empty bucket = []). v1 matches the persist
-  // version.
-  blob('ogden-plan-concerns', usePlanConcernsStore, 'byProject', 1, byKey('byProject', null, [])),
+  // version. F8: reconcile = union the concern log by id (a remote resolution of
+  // the same id wins over a local still-raised copy via concernRank).
+  blob('ogden-plan-concerns', usePlanConcernsStore, 'byProject', 1,
+    withReconcile(byKey('byProject', null, []), planConcernsReconcile)),
   // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
   // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
   // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4

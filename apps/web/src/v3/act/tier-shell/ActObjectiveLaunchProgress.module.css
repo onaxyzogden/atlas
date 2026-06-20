@@ -1,0 +1,126 @@
+/*
+ * ActObjectiveLaunchProgress.module.css -- the BLUE "launch progress" skin for an
+ * executing objective in Act. Mirrors the Plan LaunchProgressPanel register (blue
+ * = execution bookkeeping) and adds the live affordance the Plan panel lacks: a
+ * per-milestone reached toggle plus a "Reached {day} by {who}" meta line.
+ *
+ * Record-only. Toggling a milestone reached persists through launchMilestoneStore;
+ * it never gates the Act loop and carries no free-text covenant surface. The
+ * accent degrades through a hard fallback to a steady slate-blue.
+ */
+
+.panel {
+  --lp-accent: #3f6f9f;
+  --lp-accent-strong: #2f567c;
+  --lp-soft: rgba(63, 111, 159, 0.1);
+  --lp-line: rgba(63, 111, 159, 0.32);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--lp-line);
+  border-left: 3px solid var(--lp-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--lp-soft) 0%, transparent 120%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: var(--lp-accent-strong);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--lp-accent-strong);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+/* The reached toggle -- a borderless icon button that flips hollow -> filled. */
+.toggle {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--lp-line);
+  transition: color 120ms ease;
+}
+
+.toggle:hover {
+  color: var(--lp-accent);
+}
+
+.toggleOn {
+  color: var(--lp-accent-strong);
+}
+
+.metricWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric {
+  display: inline;
+}
+
+/* A reached milestone reads as struck-through + muted -- crossed off the list. */
+.metricDone {
+  display: inline;
+  text-decoration: line-through;
+  color: var(--color-text-muted, #6b6258);
+}
+
+.cadence {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--lp-soft);
+  border: 1px solid var(--lp-line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--lp-accent-strong);
+}
+
+.reachedMeta {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--lp-accent-strong);
+}

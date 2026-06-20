@@ -672,9 +672,32 @@ export const COHERENCE_COPY = {
   /** The one-line framing of the moment (synthesis, not confrontation). */
   tagline:
     'Where the designs from Tiers 3 and 4 are verified to connect into a coherent whole -- nothing new is designed here.',
-  /** The header description (spec, verbatim, covenant-clean). */
+  /**
+   * The header description. Adapted from the spec (covenant-clean) but corrected
+   * for honesty: Threshold 2 is always reachable (a deliberate operator decision
+   * -- see REACHABLE_THRESHOLD_IDS), so it can be entered BEFORE the Tier 3/4
+   * design work is finished. The old copy flatly asserted "the design objectives
+   * have been completed across Tiers 3 and 4," which is false in that case. This
+   * states what the check DOES rather than presuming the design is done; the
+   * readiness banner below carries the actual completion state.
+   */
   intro:
-    'The design objectives have been completed across Tiers 3 and 4. This threshold verifies that all systems connect, all enterprises close at least one waste-to-input loop, and all monitoring protocols are complete. Nothing is designed here. Gaps are resolved inline -- no navigation back to tiers.',
+    'This threshold verifies that the designs from Tiers 3 and 4 connect into a coherent whole: that all systems connect, all enterprises close at least one waste-to-input loop, and all monitoring protocols are complete. Nothing is designed here. Gaps are resolved inline -- no navigation back to tiers.',
+  /**
+   * Honest readiness banner copy. Because the threshold can open before the
+   * design is finished, the surface shows this when Tier 3/4 is incomplete --
+   * stating plainly that the audit reads an unfinished design (incomplete
+   * objectives surface as open gaps) rather than implying completion. Display
+   * only; it never gates entry.
+   */
+  readiness: {
+    incompleteTitle: 'Design still in progress',
+    incompleteBody:
+      'Some Tier 3 and Tier 4 design objectives are not yet complete. You can run the Coherence Check now, but it audits the design exactly as it stands -- incomplete objectives surface below as open gaps. Finish the remaining design work for a complete verdict.',
+    completeNote:
+      'All Tier 3 and Tier 4 design objectives are complete -- this audit reads a finished design.',
+    tallyLabel: 'design objectives complete',
+  },
   sectionA: {
     key: 'A' as const,
     label: 'System Integration',

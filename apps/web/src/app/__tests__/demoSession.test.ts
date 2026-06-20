@@ -36,10 +36,14 @@ vi.mock('../../data/builtinSampleObserveData.js', () => ({
 
 import {
   DEMO_EMAIL_DOMAIN,
+  DEMO_LOCAL_TOKEN,
+  DEMO_USER_ID_KEY,
   makeGuestCredentials,
   isDemoUser,
   maybeBootDemoSession,
   maybeCloneBuiltinsForDemo,
+  getOrCreateOfflineDemoUser,
+  bootOfflineDemoSession,
 } from '../demoSession';
 import type { ApiAuthUser } from '../../lib/apiClient';
 
@@ -256,5 +260,100 @@ describe('maybeCloneBuiltinsForDemo', () => {
 
     await maybeCloneBuiltinsForDemo(true);
     expect(mockGetProjectState).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getOrCreateOfflineDemoUser
+// ---------------------------------------------------------------------------
+
+describe('getOrCreateOfflineDemoUser', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('creates and persists a stable id, returning the same identity on reload', () => {
+    const a = getOrCreateOfflineDemoUser();
+    expect(localStorage.getItem(DEMO_USER_ID_KEY)).toBe(a.id);
+
+    // A second call (simulating a reload) returns the persisted identity.
+    const b = getOrCreateOfflineDemoUser();
+    expect(b.id).toBe(a.id);
+    expect(b.email).toBe(a.email);
+  });
+
+  it('mints a guest on the demo domain so isDemoUser matches, pre-verified', () => {
+    const user = getOrCreateOfflineDemoUser();
+    expect(user.email).toMatch(new RegExp(`^guest-.+@${DEMO_EMAIL_DOMAIN}$`));
+    expect(isDemoUser(user)).toBe(true);
+    expect(user.emailVerified).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// bootOfflineDemoSession
+// ---------------------------------------------------------------------------
+
+describe('bootOfflineDemoSession', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('mints a synthetic session in-browser (no register) and persists the token', async () => {
+    const setSession = vi.fn();
+    // No builtins yet — keep the clone a harmless no-op; we only assert the session mint.
+    mockGetAuthState.mockReturnValue({ user: null });
+    mockGetProjectState.mockReturnValue({ projects: [], duplicateProject: vi.fn() });
+
+    const booted = await bootOfflineDemoSession({
+      enabled: true,
+      getToken: () => null,
+      setSession,
+    });
+
+    expect(booted).toBe(true);
+    expect(setSession).toHaveBeenCalledTimes(1);
+    const [token, user] = setSession.mock.calls[0]!;
+    expect(token).toBe(DEMO_LOCAL_TOKEN);
+    expect(isDemoUser(user)).toBe(true);
+    // Token persisted so reloads restore the session without /auth/me.
+    expect(localStorage.getItem('ogden-auth-token')).toBe(DEMO_LOCAL_TOKEN);
+  });
+
+  it('triggers the sample clone once builtins are present', async () => {
+    const setSession = vi.fn();
+    mockGetAuthState.mockReturnValue({ user: DEMO_USER });
+    const dup = vi.fn().mockReturnValue({ id: 'clone-x', isBuiltin: true, name: BUILTIN_HOUSE.name });
+    mockGetProjectState.mockReturnValue({ projects: [BUILTIN_HOUSE], duplicateProject: dup });
+
+    await bootOfflineDemoSession({ enabled: true, getToken: () => null, setSession });
+
+    expect(dup).toHaveBeenCalledWith(BUILTIN_HOUSE.id, BUILTIN_HOUSE.name);
+    expect(localStorage.getItem(`demo-cloned-${DEMO_USER.id}`)).toBe('1');
+  });
+
+  it('does nothing when disabled', async () => {
+    const setSession = vi.fn();
+    const booted = await bootOfflineDemoSession({
+      enabled: false,
+      getToken: () => null,
+      setSession,
+    });
+    expect(booted).toBe(false);
+    expect(setSession).not.toHaveBeenCalled();
+    expect(localStorage.getItem('ogden-auth-token')).toBeNull();
+  });
+
+  it('does nothing when a session token already exists', async () => {
+    const setSession = vi.fn();
+    const booted = await bootOfflineDemoSession({
+      enabled: true,
+      getToken: () => DEMO_LOCAL_TOKEN,
+      setSession,
+    });
+    expect(booted).toBe(false);
+    expect(setSession).not.toHaveBeenCalled();
   });
 });

@@ -14,7 +14,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, within } from '@testing-library/react';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -92,5 +92,18 @@ describe('RealityCheckSurface', () => {
       screen.getByTestId('reality-check-surface').getAttribute('data-phase'),
     ).toBe('direction');
     expect(screen.getByTestId('threshold-direction')).toBeTruthy();
+  });
+
+  it('renders the "what this threshold does not do" reassurance block (parity with T2/T3)', () => {
+    renderSurface();
+    const list = screen.getByRole('list', {
+      name: /what this threshold does not do/i,
+    });
+    const items = within(list).getAllByRole('listitem');
+    expect(items).toHaveLength(REALITY_CHECK_COPY.notList.length);
+    // Every authored "does not" line is present verbatim.
+    for (const line of REALITY_CHECK_COPY.notList) {
+      expect(within(list).getByText(line)).toBeTruthy();
+    }
   });
 });

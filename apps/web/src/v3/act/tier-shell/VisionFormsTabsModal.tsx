@@ -41,6 +41,7 @@ import PrefillRecap from './PrefillRecap.js';
 import VisionFormFields, {
   initialFormValue,
   isFormValueValid,
+  missingRequirements,
   summariseFormValue,
 } from './VisionFormFields.js';
 import type {
@@ -161,6 +162,33 @@ function preSeedFromLabels(
 
   // Ambiguous mapping -- keep initialFormValue defaults (data still lives in Plan).
   return base;
+}
+
+/**
+ * The save-readiness line under a structured form. When the form still has unmet
+ * requirements it names them (so the disabled Save button is never silent);
+ * otherwise it shows the Ctrl+Enter affordance, matching the textarea path.
+ */
+function StructuredFormHint({
+  fields,
+  value,
+}: {
+  fields: readonly FormFieldSpec[];
+  value: FormValue;
+}) {
+  const missing = missingRequirements(fields, value);
+  if (missing.length === 0) {
+    return <span className={styles.hint}>All set &mdash; Ctrl+Enter to save</span>;
+  }
+  const parts = missing.map((m) =>
+    m.need && m.need > 1 ? `${m.label} (${m.need} more)` : m.label,
+  );
+  return (
+    <p className={styles.requiredSignal} role="status" data-testid="required-signal">
+      <span className={styles.requiredSignalLabel}>Still needed to save:</span>{' '}
+      {parts.join(', ')}
+    </p>
+  );
 }
 
 export default function VisionFormsTabsModal({
@@ -399,12 +427,18 @@ export default function VisionFormsTabsModal({
                 {fields ? (
                   // Structured form supersedes both the recap and the textarea
                   // on this surface (recap precedence).
-                  <VisionFormFields
-                    fields={fields}
-                    value={dataDrafts[formId] ?? {}}
-                    onChange={(next) => setDataDraft(formId, next)}
-                    resolveOptions={resolveOptions}
-                  />
+                  <>
+                    <VisionFormFields
+                      fields={fields}
+                      value={dataDrafts[formId] ?? {}}
+                      onChange={(next) => setDataDraft(formId, next)}
+                      resolveOptions={resolveOptions}
+                    />
+                    <StructuredFormHint
+                      fields={fields}
+                      value={dataDrafts[formId] ?? {}}
+                    />
+                  </>
                 ) : isRecap && spec && resolved ? (
                   <div className={styles.recapActions}>
                     <AnswerValue resolved={resolved} optionSetId={spec.optionSetId} />

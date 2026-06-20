@@ -10,13 +10,14 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
-import { DEMO_MODE_ENABLED, isDemoUser } from './demoSession.js';
+import { DEMO_MODE_ENABLED, DEMO_OFFLINE_ENABLED, isDemoUser } from './demoSession.js';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
 import OfflineBanner from '../components/OfflineBanner.js';
+import DemoBanner from '../components/DemoBanner.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -43,6 +44,10 @@ export default function AppShell({ children }: AppShellProps) {
           report (dropped > conflict > offline > syncing > pending). */}
       <OfflineBanner />
 
+      {/* Offline-demo honesty bar — "saved in this browser only" + Reset demo.
+          Self-gates to FEATURE_DEMO_OFFLINE + the synthetic guest; null otherwise. */}
+      <DemoBanner />
+
       {!isProjectPage && <header className={styles.header}>
         <Link to="/v3/portfolio" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
@@ -57,13 +62,16 @@ export default function AppShell({ children }: AppShellProps) {
             currently selected stage (renders only on observe/plan/act). */}
         <HeaderStageSearch />
 
-        {/* Sync status (relocated from the Act in-page rails to global header) */}
-        <ProofSyncIndicator />
+        {/* Sync status (relocated from the Act in-page rails to global header).
+            Server-only + actively misleading in the offline demo (there's no
+            backend to be "synced" with), so it and the reachability chip below
+            are suppressed entirely in the FEATURE_DEMO_OFFLINE build. */}
+        {!DEMO_OFFLINE_ENABLED && <ProofSyncIndicator />}
 
         {/* API reachability — non-blocking status chip (replaces the former
             fixed full-width banner that occluded the header/toolbar). Visible
             only on a problem; self-heal runs globally via ApiReachabilityWatcher. */}
-        <ApiReachabilityStatus />
+        {!DEMO_OFFLINE_ENABLED && <ApiReachabilityStatus />}
 
         {/* Theme toggle */}
         <button
@@ -90,11 +98,20 @@ export default function AppShell({ children }: AppShellProps) {
           )}
         </button>
 
-        {/* Auth: in demo mode a "Demo mode" badge + Sign in link (signals the
-            product is not "ready" and gives the team a path to real login —
-            signing in overwrites the throwaway token); otherwise the usual
-            account/sign-out button or Sign In link. */}
-        {DEMO_MODE_ENABLED && isDemoUser(user) ? (
+        {/* Auth. Three cases, in order:
+            1. Offline demo (FEATURE_DEMO_OFFLINE): a "Demo" badge only — NO
+               sign-in link (the real atlas.ogden.ag login is currently broken,
+               so pointing visitors there would break the honesty promise) and
+               NO sign-out button (the guest is synthetic; "logging out" would
+               only re-mint it and confuse).
+            2. Live demo mode (FEATURE_DEMO_MODE, API-backed): "Demo mode" badge
+               + Sign in link (signs in over the throwaway token).
+            3. Normal: account/sign-out button or Sign In link. */}
+        {DEMO_OFFLINE_ENABLED && isDemoUser(user) ? (
+          <span className={styles.demoBadge} title="You are exploring a free, browser-local demo">
+            Demo
+          </span>
+        ) : DEMO_MODE_ENABLED && isDemoUser(user) ? (
           <>
             <span className={styles.demoBadge} title="You are exploring a demo session">
               Demo mode

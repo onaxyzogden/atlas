@@ -111,17 +111,42 @@ export const THRESHOLDS: readonly ThresholdMarker[] = [
   { id: 'threshold-3', afterStratumId: 's7-phasing-resourcing', name: 'Threshold 3 -- Act Mandate' },
 ];
 
-// Thresholds whose content surface is BUILT and therefore reachable as a
-// clickable spine entry / valid deep-link. Threshold 3 (Act Mandate) is a model
-// stub with no surface yet, so it is intentionally absent -- its divider stays
-// decorative and its route redirects. Operator chose always-clickable for the
-// two built thresholds (open-gate requirement dropped; STRATUM_PREREQS, the
-// covenant prerequisites, untouched). Consumed by both the Plan spine's
-// clickableThresholdIds and the threshold route guard, so the two never drift.
-export const REACHABLE_THRESHOLD_IDS = ['threshold-1', 'threshold-2'] as const;
+// Two related threshold id sets, kept as distinct constants because they answer
+// different questions even though they are now COEXTENSIVE.
+//
+//   REACHABLE_THRESHOLD_IDS -- the checkpoints the Plan rail-header switcher
+//     renders as a CLICKABLE row (consumed by clickableThresholdIds). Originally
+//     this held only the two soft checkpoints; Threshold 3 (Act Mandate) was
+//     excluded so its row stayed a decorative separator. REVERSED 2026-06-19 by
+//     operator decision ("this should be a button that functions like the other
+//     two thresholds"): T3 is now clickable too. Clicking it only NAVIGATES to
+//     the Act Mandate surface (`plan/threshold/threshold-3`) -- it does NOT arm
+//     the project-wide planReadOnly lock. The one-way Begin-Act crossing is
+//     still entered only via the surface's own deliberate "Begin Act" CTA, so
+//     clickability != arming. (The s7 "Enter the Act Mandate" cue + deep-links
+//     remain valid alternate entry paths.)
+//
+//   ROUTABLE_THRESHOLD_IDS -- the thresholds whose content surface is BUILT and
+//     therefore valid as a `plan/threshold/$thresholdId` route / deep-link.
+//     Consumed by the threshold route guard (isThresholdReachable). All three
+//     surfaces exist, so this matches REACHABLE; it is kept separate because
+//     "has a built surface" (route reach) is a distinct concern from "is a
+//     clickable switcher row" (nav affordance), and they could diverge again.
+export const REACHABLE_THRESHOLD_IDS = [
+  'threshold-1',
+  'threshold-2',
+  'threshold-3',
+] as const;
 
+export const ROUTABLE_THRESHOLD_IDS = [
+  'threshold-1',
+  'threshold-2',
+  'threshold-3',
+] as const;
+
+/** True when a threshold has a BUILT surface (route guard / deep-link check). */
 export function isThresholdReachable(id: string): boolean {
-  return (REACHABLE_THRESHOLD_IDS as readonly string[]).includes(id);
+  return (ROUTABLE_THRESHOLD_IDS as readonly string[]).includes(id);
 }
 
 // ---------------------------------------------------------------------------

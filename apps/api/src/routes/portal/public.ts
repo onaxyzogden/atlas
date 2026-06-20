@@ -14,8 +14,12 @@
  * immediate, and the payload is a large binary.
  * Still open from D2: CDN-cached static render (ISR/blob) — a separate
  * launch item, tracked in the 2026-05-04 decision.
- * NOTE: `trustProxy` is not set; behind a reverse proxy all visitors
- * share one IP bucket. Pre-launch follow-up.
+ * Per-IP keying: these limits key on `req.ip`, which is only the real
+ * client when Fastify `trustProxy` is configured for the deployment's
+ * proxy chain. That knob is the `TRUST_PROXY` env (see lib/config.ts and
+ * render.yaml); behind a proxy it MUST be set or every visitor shares one
+ * bucket. Confirm the hop count against live logs (two client IPs → two
+ * independent buckets) before relying on these limits in production.
  */
 
 import type { FastifyInstance, FastifyRequest } from 'fastify';

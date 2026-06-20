@@ -466,6 +466,95 @@ export const ACT_MANDATE_COPY = {
     lockNote:
       'Crossing this line holds the plan steady. A held objective stays fully visible -- to change one, raise a concern against it.',
   },
+  /**
+   * The contextual Plan-only doorway into Threshold 3, shown at the top of the
+   * terminal-stratum (s7) objective detail. One of several entry paths (alongside
+   * deep-links and -- since 2026-06-19 -- the clickable T3 switcher row); each
+   * only NAVIGATES to the surface, where the one-way crossing is entered via its
+   * own deliberate CTA.
+   */
+  entryCue: {
+    pill: 'Threshold 3',
+    title: 'The plan is complete',
+    body:
+      'Every stratum is resolved and Launch Preparation is in hand. When you judge the plan ready, cross deliberately into the Act Mandate -- the line between planning and doing.',
+    button: 'Enter the Act Mandate',
+  },
+  /**
+   * Raise-a-Concern affordance copy (Plan-only, shown on a HELD objective). The
+   * free-text fields are scanned by `detectCsaLikeText` as a UI advisory AND
+   * hard-rejected at the persistence boundary in planConcernsStore -- a banned
+   * term cannot reach storage. Covenant-clean (banned-term-scanned in test).
+   */
+  concern: {
+    heading: 'Raise a concern',
+    blurb:
+      'This objective is held under the Act Mandate. To change it, raise a concern -- describe how reality diverged and what you propose, and the team governance reviews it. Nothing is edited in place: an approved change is recorded alongside the original, never replacing it.',
+    observationLabel: 'What diverged',
+    observationPlaceholder:
+      'Describe how reality diverged from the plan on this objective.',
+    proposedChangeLabel: 'What you propose',
+    proposedChangePlaceholder:
+      'Describe the change you propose -- it would be recorded alongside the original.',
+    raisedByLabel: 'Raised by',
+    raisedByPlaceholder: 'Select a steward',
+    submit: 'Raise concern',
+    raisedAck: 'Concern raised -- it now awaits governance review.',
+    needObservationNote: 'Add an observation to raise a concern.',
+    pendingOne: '1 concern on this objective is awaiting review.',
+    pendingManySuffix: 'concerns on this objective are awaiting review.',
+    // Breadcrumb: where a raised concern is actually reviewed. Single-sourced so
+    // the Plan affordance and the Act briefing point to the same place.
+    reviewLocation:
+      'A raised concern goes to the team governance, who review it in the "Concerns under review" queue on the Act Mandate (Threshold 3) surface in Plan.',
+  },
+  /**
+   * On-objective amendments overlay copy (Plan-only). Mirrors the Coherence
+   * Check on-objective register, in the green Act-Mandate register. Approved
+   * amendments are permanent overlays held in planConcernsStore; the catalogue
+   * objective above is never mutated.
+   */
+  onObjective: {
+    label: 'Act Mandate amendments',
+    blurb:
+      'Approved changes recorded against this objective during Act. Each was raised as a concern, reviewed by the team governance, and recorded here alongside the original design -- which is never overwritten.',
+  },
+  /**
+   * Governance review queue copy (Plan-only, on the Act Mandate surface). The
+   * team governance declared in Objective 0.2 reviews concerns raised against
+   * held objectives. The recorded `amendmentText` is scanned by
+   * `detectCsaLikeText` as a UI advisory AND hard-rejected at the persistence
+   * boundary -- a banned term cannot be recorded as an amendment. Covenant-clean
+   * (banned-term-scanned in test).
+   */
+  governance: {
+    heading: 'Concerns under review',
+    blurb:
+      'Concerns raised against held objectives during Act come here for the team governance to review. Approving one lifts that objective just long enough to record the change alongside the original, then holds it steady again -- the original design is never overwritten. Declining closes the concern with no change.',
+    contextLabel: 'Your team governance',
+    contextFallback:
+      'No governance framework was recorded in Objective 0.2. The team can record one there to guide who reviews concerns.',
+    reviewerLabel: 'Reviewing as',
+    reviewerPlaceholder: 'Select a reviewer',
+    openHeading: 'Awaiting review',
+    resolvedHeading: 'Resolved',
+    emptyOpen: 'No concerns are awaiting review.',
+    raisedByPrefix: 'Raised by',
+    observationLabel: 'What diverged',
+    proposedLabel: 'Proposed',
+    amendmentLabel: 'Change to record (required to approve)',
+    amendmentPlaceholder:
+      'Describe the change to record alongside the original objective.',
+    beginReview: 'Begin review',
+    approve: 'Approve and record',
+    decline: 'Decline',
+    approveHint: 'Add the change to record before approving.',
+    raisedBadge: 'Raised',
+    underReviewBadge: 'Under review',
+    approvedBadge: 'Approved',
+    declinedBadge: 'Declined',
+    recordedPrefix: 'Recorded alongside the original',
+  },
   /** What Threshold 3 does NOT do -- a reassurance block. */
   notList: [
     'It does not design anything new -- it hands the resolved design to Act.',

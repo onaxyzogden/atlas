@@ -28,6 +28,16 @@ interface Props {
   activeObjectiveId: string | null;
   onSelectTool: (match: ActToolMatch) => void;
   onSelectObjective: (objective: PlanStratumObjective) => void;
+  /**
+   * Ids of tools that ALSO have a home on the Plan stage (i.e. survive
+   * resolvePlanTools — everything except `log`-arm field logs). When provided
+   * together with onOpenToolInPlan, a secondary "Open in Plan" control renders on
+   * each plan-capable tool row so the steward can jump to Plan and use the tool
+   * on its editable canvas / decision workbench, instead of only arming it in Act.
+   */
+  planToolIds?: ReadonlySet<string>;
+  /** Hand off the matched tool to the Plan stage (navigate + arm on arrival). */
+  onOpenToolInPlan?: (match: ActToolMatch) => void;
 }
 
 export default function ActSearchRail({
@@ -38,6 +48,8 @@ export default function ActSearchRail({
   activeObjectiveId,
   onSelectTool,
   onSelectObjective,
+  planToolIds,
+  onOpenToolInPlan,
 }: Props) {
   const total = toolMatches.length + objectiveMatches.length;
 
@@ -62,24 +74,37 @@ export default function ActSearchRail({
               {toolMatches.map((match) => {
                 const Icon = match.tool.icon;
                 const stratum = findPlanStratum(match.objective.stratumId);
+                const canOpenInPlan =
+                  onOpenToolInPlan != null &&
+                  (planToolIds?.has(match.tool.id) ?? false);
                 return (
-                  <button
-                    key={match.tool.id}
-                    type="button"
-                    className={css.toolRow}
-                    onClick={() => onSelectTool(match)}
-                  >
-                    <Icon size={15} aria-hidden="true" className={css.toolIcon} />
-                    <span className={css.toolBody}>
-                      <span className={css.toolLabel}>{match.tool.label}</span>
-                      <span className={css.toolMeta}>
-                        {match.categoryLabel}
-                        {' · '}
-                        {match.objective.shortTitle ?? match.objective.title}
-                        {stratum ? ` · S${stratum.ordinal}` : ''}
+                  <div key={match.tool.id} className={css.toolRowWrap}>
+                    <button
+                      type="button"
+                      className={css.toolRow}
+                      onClick={() => onSelectTool(match)}
+                    >
+                      <Icon size={15} aria-hidden="true" className={css.toolIcon} />
+                      <span className={css.toolBody}>
+                        <span className={css.toolLabel}>{match.tool.label}</span>
+                        <span className={css.toolMeta}>
+                          {match.categoryLabel}
+                          {' · '}
+                          {match.objective.shortTitle ?? match.objective.title}
+                          {stratum ? ` · S${stratum.ordinal}` : ''}
+                        </span>
                       </span>
-                    </span>
-                  </button>
+                    </button>
+                    {canOpenInPlan && (
+                      <button
+                        type="button"
+                        className={css.openInPlanBtn}
+                        onClick={() => onOpenToolInPlan(match)}
+                      >
+                        Open in Plan
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </>

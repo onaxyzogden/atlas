@@ -55,7 +55,10 @@ export const PLAN_MODULE_FULL_LABEL: Record<UniversalDomain, string> = {
 // camera-preset placeholder.
 export type PlanView = 'current' | 'vision' | 'terrain3d';
 
-export const PLAN_VIEWS: PlanView[] = ['vision', 'current', 'terrain3d'];
+// `terrain3d` is intentionally absent from the tab strip (removed 2026-06-15);
+// the union member + label below are kept so the dormant Terrain3DController
+// branch in VisionLayoutCanvas/PlanLayout still compiles.
+export const PLAN_VIEWS: PlanView[] = ['current', 'vision'];
 
 export const PLAN_VIEW_LABEL: Record<PlanView, string> = {
   current: 'Current Land',

@@ -77,6 +77,9 @@ import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
 import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
 import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
 import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
+import ActObjectiveAmendments from './ActObjectiveAmendments.js';
+import ActObjectiveMonitoringPanel from './ActObjectiveMonitoringPanel.js';
+import ActObjectiveLaunchProgress from './ActObjectiveLaunchProgress.js';
 import { useObjectivePlacedFeatures } from '../../../features/shared/placedFeatures/useObjectivePlacedFeatures.js';
 import type { ObjectivePlacedRow } from '../../../features/shared/placedFeatures/objectiveFeatureRegistry.js';
 import { useMapFocusStore } from '../../../store/mapFocusStore.js';
@@ -665,6 +668,10 @@ export default function ActTierExecutionPanel({
       </div>
 
       <div className={styles.execBody}>
+      {/* Threshold-3 governance-approved amendments for THIS objective, surfaced
+          alongside the original catalogue design (append-only, never mutates
+          it). Self-gates to null when there is no approved amendment. */}
+      <ActObjectiveAmendments projectId={projectId} objectiveId={objective.id} />
       {objective.legacyCardSectionId === 'plan-guild-builder' && (
         <section className={styles.execSection}>
           <h4 className={styles.execSectionTitle}>Plan reference</h4>
@@ -877,6 +884,26 @@ export default function ActTierExecutionPanel({
           </p>
         )}
       </section>
+
+      {/* Live monitoring: the Plan-authored monitoringProtocol made live during
+          Act -- reads indicators/triggers/feed, surfaces the latest reading per
+          indicator, and records covenant-guarded readings into Observe. Keyed by
+          objective so the record form resets when the steward navigates. */}
+      <ActObjectiveMonitoringPanel
+        key={objective.id}
+        projectId={projectId}
+        objective={objective}
+      />
+
+      {/* Launch progress: the Plan-authored progressTracking.milestones made live
+          during Act -- each milestone toggles "reached", persisted through
+          launchMilestoneStore. Self-gates to null when the objective has no
+          progressTracking. Keyed by objective so toggles reset on navigation. */}
+      <ActObjectiveLaunchProgress
+        key={`progress-${objective.id}`}
+        projectId={projectId}
+        objective={objective}
+      />
 
       <button
         type="button"

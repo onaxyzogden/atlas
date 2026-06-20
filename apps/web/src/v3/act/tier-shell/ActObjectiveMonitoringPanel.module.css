@@ -1,0 +1,252 @@
+/*
+ * ActObjectiveMonitoringPanel.module.css -- the Act-side GREEN skin for the
+ * live monitoring stream of an executing objective. Reuses the same green
+ * register as the Plan-only MonitoringStreamPanel (so the live Act stream reads
+ * as one register with the design input it executes), and adds the controls for
+ * the read-write half: a per-indicator "latest reading" line and the
+ * record-a-reading form (indicator select + note + covenant advisory + button).
+ *
+ * Display + append-only -- never gates the Act loop. The accent degrades through
+ * a hard fallback to the same green the Threshold "feasible / approved" register
+ * uses.
+ */
+
+.panel {
+  --ms-accent: #3f8f5f;
+  --ms-accent-strong: #2f7049;
+  --ms-soft: rgba(63, 143, 95, 0.1);
+  --ms-line: rgba(63, 143, 95, 0.32);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--ms-line);
+  border-left: 3px solid var(--ms-accent);
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(180deg, var(--ms-soft) 0%, transparent 120%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: var(--ms-accent-strong);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ms-accent-strong);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text, #2b2620);
+}
+
+.bullet {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ms-accent);
+}
+
+.metricWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metric {
+  display: inline;
+}
+
+.freq {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--ms-soft);
+  border: 1px solid var(--ms-line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--ms-accent-strong);
+}
+
+/* The latest recorded reading for this indicator, surfaced inline under it. */
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 11.5px;
+  color: var(--color-text, #2b2620);
+}
+
+.readingMeta {
+  font-size: 10px;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.readingEmpty {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* Triggers read as "if X -> do Y" -- a stronger bullet sets them apart. */
+.itemTrigger .bullet {
+  background: var(--ms-accent-strong);
+}
+
+.feeds {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--ms-line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ms-accent-strong);
+}
+
+.feedsLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* --- Record a reading ----------------------------------------------------- */
+
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ms-line);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fieldLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.select,
+.textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface, #fff);
+  font-size: 12px;
+  color: var(--color-text, #2b2620);
+  font-family: inherit;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 38px;
+  line-height: 1.45;
+}
+
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 2px var(--ms-soft);
+}
+
+/* Non-blocking covenant advisory -- shown beside the input, never instead of it. */
+.advisory {
+  display: flex;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(201, 162, 39, 0.1);
+  font-size: 11px;
+  line-height: 1.45;
+  color: #6b561a;
+}
+
+.advisory svg {
+  flex: none;
+  margin-top: 1px;
+  color: #9a7d1f;
+}
+
+.recordBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--ms-accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recordBtn:hover:not(:disabled) {
+  background: var(--ms-accent);
+}
+
+.recordBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

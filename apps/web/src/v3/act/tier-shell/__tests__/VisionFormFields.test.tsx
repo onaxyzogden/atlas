@@ -31,6 +31,7 @@ import VisionFormFields, {
   initialFormValue,
   summariseFormValue,
   isFormValueValid,
+  missingRequirements,
 } from '../VisionFormFields.js';
 import type { FormFieldSpec, FormValue } from '../actToolCatalog.js';
 
@@ -254,5 +255,89 @@ describe('isFormValueValid', () => {
     expect(
       isFormValueValid(fields, { purpose: 'x', criteria: ['a'] }),
     ).toBe(true);
+  });
+});
+
+describe('missingRequirements (F11 -- names what blocks a save)', () => {
+  const fields: FormFieldSpec[] = [
+    { kind: 'text', key: 'purpose', label: 'Primary purpose', required: true },
+    { kind: 'text', key: 'notes', label: 'Notes' },
+    {
+      kind: 'repeatable',
+      key: 'criteria',
+      label: 'Success criterion',
+      min: 3,
+      max: 5,
+      item: { kind: 'text' },
+    },
+  ];
+
+  it('lists each unmet required leaf and how many more repeatable entries are needed', () => {
+    const missing = missingRequirements(fields, {
+      purpose: '',
+      notes: '',
+      criteria: ['only one'],
+    });
+    expect(missing).toEqual([
+      { label: 'Primary purpose' },
+      { label: 'Success criterion', need: 2 },
+    ]);
+  });
+
+  it('returns [] exactly when isFormValueValid is true (single source of truth)', () => {
+    const value: FormValue = {
+      purpose: 'grow food',
+      notes: '',
+      criteria: ['a', 'b', 'c'],
+    };
+    expect(missingRequirements(fields, value)).toEqual([]);
+    expect(isFormValueValid(fields, value)).toBe(true);
+  });
+
+  it('omits an optional (non-required) empty leaf', () => {
+    const missing = missingRequirements(
+      [{ kind: 'text', key: 'notes', label: 'Notes' }],
+      { notes: '' },
+    );
+    expect(missing).toEqual([]);
+  });
+});
+
+describe('VisionFormFields -- required-field markers (F11)', () => {
+  it('marks a required leaf control aria-required and renders an asterisk', () => {
+    renderFields(
+      [{ kind: 'text', key: 'purpose', label: 'Primary purpose', required: true }],
+      { purpose: '' },
+    );
+    const input = screen.getByRole('textbox');
+    expect(input.getAttribute('aria-required')).toBe('true');
+    // The visible asterisk sits in the label.
+    expect(screen.getByText('*')).toBeTruthy();
+  });
+
+  it('does NOT mark an optional leaf required', () => {
+    renderFields(
+      [{ kind: 'text', key: 'notes', label: 'Notes' }],
+      { notes: '' },
+    );
+    expect(screen.getByRole('textbox').getAttribute('aria-required')).toBeNull();
+    expect(screen.queryByText('*')).toBeNull();
+  });
+
+  it('shows an "at least N" note on a repeatable whose min >= 1', () => {
+    renderFields(
+      [
+        {
+          kind: 'repeatable',
+          key: 'criteria',
+          label: 'Success criterion',
+          min: 3,
+          max: 5,
+          item: { kind: 'text' },
+        },
+      ],
+      { criteria: ['', '', ''] },
+    );
+    expect(screen.getByText(/at least 3/i)).toBeTruthy();
   });
 });

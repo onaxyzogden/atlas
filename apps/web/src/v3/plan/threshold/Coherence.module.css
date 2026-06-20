@@ -147,6 +147,51 @@
   color: var(--color-text-muted, #6f675b);
 }
 
+/* Honest early-state banner -- shown only while Tier 3/4 design is unfinished.
+   Amber/advisory, never blocking (mirrors the soft-advisory tone elsewhere). */
+.readiness {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 78ch;
+  padding: 12px 14px;
+  border: 1px solid var(--color-warning-border, #e4c48a);
+  border-radius: 8px;
+  background: var(--color-warning-surface, #fbf4e2);
+  color: var(--color-warning-text, #7a5a1c);
+}
+
+.readiness > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-warning-text, #7a5a1c);
+}
+
+.readinessText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.readinessTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.readinessBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.readinessTally {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ----------------------------------------------------------------- sections */
 
 .section {

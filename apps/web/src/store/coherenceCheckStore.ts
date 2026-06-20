@@ -198,7 +198,11 @@ export const useCoherenceCheckStore = create<CoherenceCheckState>()(
       name: 'ogden-coherence-check',
       version: 1,
       // Synced project data lives in IndexedDB like every other byProject store
-      // (Node-safe; degrades to localStorage/null). No schema migrate at v1.
+      // (Node-safe; degrades to localStorage/null). No `migrate` at v1.
+      // TRIP-WIRE: the next change to the persisted shape (`ProjectCoherenceCheck`)
+      // MUST bump `version` AND add a `migrate(persisted, from)`. persist drops
+      // any stored state whose version != current when no migrate is supplied, so
+      // a silent shape change would discard the append-only `amendments` log.
       storage: idbPersistStorage,
       partialize: (state) => ({ byProject: state.byProject }),
     },

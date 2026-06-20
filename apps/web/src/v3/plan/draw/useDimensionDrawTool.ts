@@ -4,6 +4,15 @@
  * in the requested shape (rect / circle / line) at the dimensions provided,
  * commits on a single click, and dismisses on ESC.
  *
+ * Commit gesture: a `mousedown`→`mouseup` that stays within MapLibre's click
+ * tolerance — NOT the high-level `click` event. The Dimensions tool is reached
+ * by toggling out of freehand, which tears down a MapboxDraw control
+ * (`map.removeControl`); after that teardown MapLibre suppresses the next
+ * synthesized `click`, while the raw `mousedown`/`mousemove`/`mouseup` stream
+ * keeps flowing (the ghost-follow proves `mousemove` still fires). Committing on
+ * the raw stream sidesteps the suppression and still ignores genuine drags/pans
+ * (they move beyond the tolerance).
+ *
  * The hook owns one source + two layers (fill + outline) on the supplied map
  * and tears them down on unmount or when `enabled` flips to false.
  */
@@ -42,6 +51,11 @@ export interface UseDimensionDrawToolArgs {
 const SOURCE_ID = '__dim-draw-ghost-src';
 const FILL_LAYER_ID = '__dim-draw-ghost-fill';
 const LINE_LAYER_ID = '__dim-draw-ghost-line';
+
+// Mirrors MapLibre's default `clickTolerance` (px). A mousedown→mouseup pair
+// that stays within this radius is a placement click; beyond it the steward is
+// dragging/panning, so no feature is committed.
+const CLICK_TOLERANCE_PX = 3;
 
 function buildGeom(
   shape: DimensionShape,
@@ -136,7 +150,7 @@ export function useDimensionDrawTool({
     const onMove = (e: MapMouseEvent) => {
       updateGhost([e.lngLat.lng, e.lngLat.lat]);
     };
-    const onClick = (e: MapMouseEvent) => {
+    const commit = (e: MapMouseEvent) => {
       const anchor: LngLat = [e.lngLat.lng, e.lngLat.lat];
       const geom = buildGeom(shapeRef.current, anchor, valuesRef.current);
       onCompleteRef.current(geom);
@@ -145,6 +159,30 @@ export function useDimensionDrawTool({
         | { setData: (d: GeoJSON.FeatureCollection) => void }
         | undefined;
       src?.setData(emptyFC());
+    };
+
+    // Track the press point; commit on release only when the pointer barely
+    // moved (a click, not a drag). Left button only — a right-click / context
+    // gesture must never drop a feature.
+    let downPoint: { x: number; y: number } | null = null;
+    const onDown = (e: MapMouseEvent) => {
+      if (e.originalEvent && e.originalEvent.button !== 0) {
+        downPoint = null;
+        return;
+      }
+      downPoint = { x: e.point.x, y: e.point.y };
+    };
+    const onUp = (e: MapMouseEvent) => {
+      const start = downPoint;
+      downPoint = null;
+      if (!start) return;
+      if (
+        Math.abs(e.point.x - start.x) > CLICK_TOLERANCE_PX ||
+        Math.abs(e.point.y - start.y) > CLICK_TOLERANCE_PX
+      ) {
+        return; // genuine drag / pan — not a placement click
+      }
+      commit(e);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
@@ -155,12 +193,14 @@ export function useDimensionDrawTool({
     };
 
     map.on('mousemove', onMove);
-    map.on('click', onClick);
+    map.on('mousedown', onDown);
+    map.on('mouseup', onUp);
     window.addEventListener('keydown', onKey);
 
     return () => {
       map.off('mousemove', onMove);
-      map.off('click', onClick);
+      map.off('mousedown', onDown);
+      map.off('mouseup', onUp);
       window.removeEventListener('keydown', onKey);
       try {
         if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);

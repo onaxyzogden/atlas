@@ -32,6 +32,7 @@ import { usePoiStore } from '../../store/poiStore.js';
 import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
 import { portfolioAccess } from './portfolioModel.js';
+import { DEMO_OFFLINE_ENABLED } from '../../app/demoSession.js';
 import { ApiError } from '../../lib/apiClient.js';
 import { syncProjectNow, hydrateProjectBoundaries } from '../../lib/syncService.js';
 import css from './PortfolioMapPage.module.css';
@@ -235,6 +236,13 @@ export default function PortfolioMapPage({
     }
   };
 
+  // Portfolio POIs are server-backed with no local persistence, so creation
+  // can't work offline. Withholding the handlers hides the Add-POI / Add-flow
+  // controls (PortfolioMap renders them only when the handler is present)
+  // rather than leaving buttons that can only toast a failure.
+  const addPoiHandler = DEMO_OFFLINE_ENABLED ? undefined : handleAddPoi;
+  const addPoiFlowHandler = DEMO_OFFLINE_ENABLED ? undefined : handleAddPoiFlow;
+
   // Manual "Sync now" for an un-synced project (the row's Sync button). Routes
   // through the canonical idempotent path; on success the project's serverId is
   // stamped and the row flips to "Synced". A builtin can't be synced (system-
@@ -296,8 +304,8 @@ export default function PortfolioMapPage({
             onAddRelationship={handleAddRelationship}
             pois={pois}
             poiFlows={poiFlows}
-            onAddPoi={handleAddPoi}
-            onAddPoiFlow={handleAddPoiFlow}
+            onAddPoi={addPoiHandler}
+            onAddPoiFlow={addPoiFlowHandler}
           />
           <PortfolioToast />
         </div>

@@ -133,6 +133,17 @@ import CoherenceCheckSurface from '../threshold/CoherenceCheckSurface.js';
 import CoherenceCheckReferenceRail from '../threshold/CoherenceCheckReferenceRail.js';
 import CoherenceGateBanner from '../threshold/CoherenceGateBanner.js';
 import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
+// Threshold 3 (The Act Mandate) -- the FINAL Plan-stage surface, after the
+// terminal stratum (s7). Dispatched on the SAME plan/threshold/$thresholdId
+// route by thresholdId === 'threshold-3'; like T1/T2 it takes over the center +
+// right rail (no WebGL). Reached three ways (all navigate-only, none arm the
+// lock): the clickable T3 switcher row (REACHABLE_THRESHOLD_IDS includes
+// threshold-3 since 2026-06-19), a deep-link, or the deliberate s7-terminal
+// ActMandateEntryCue mounted in the objective detail.
+import ActMandateSurface from '../threshold/ActMandateSurface.js';
+import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
+import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
+import { useObjectivePlanLock } from '../../../store/actMandateStore.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -437,6 +448,17 @@ export default function PlanTierShell() {
     ? objectiveStatuses[selectedObjective.id] ?? 'locked'
     : 'locked';
 
+  // Threshold-3 (Act Mandate) lock for the active objective. False until Begin
+  // Act arms `planReadOnly`. The SHARED workbench (ActTierZeroWorkbench) cannot
+  // read this store itself -- it is also Act's surface, and a hook call there
+  // would lock Act -- so the Plan host derives it here and threads it down as the
+  // `readOnly` prop. (ObjectiveDetailPanel is Plan-only and self-derives, so it
+  // needs no prop.) Hook called unconditionally with a '' fallback id.
+  const activeObjectiveLocked = useObjectivePlanLock(
+    id,
+    selectedObjective?.id ?? '',
+  );
+
   // s2-ecology / s2-terrain draw-on-map survey takeover (mirrors ActTierShell:433-447).
   // When a survey is open for THIS project AND its objective is the active route,
   // the Tier-0 workbench yields to the editable map canvas (see the
@@ -548,8 +570,10 @@ export default function PlanTierShell() {
   // Threshold 2 (Coherence Check) open-state: derived from the FULL resolved
   // objective list -- opens once every s4 + s5 design objective is complete
   // (mirrors receptionProgress.thresholdOpen for Threshold 1). Cheap + pure, so
-  // computed unconditionally; drives the spine's clickableThresholdIds and the
-  // route guard's deep-link redirect. DISPLAY-ONLY -- never a prerequisite.
+  // computed unconditionally. DISPLAY-ONLY -- it does NOT gate reachability
+  // (thresholds are deliberately always-clickable, see REACHABLE_THRESHOLD_IDS,
+  // commit 7b23c547); it is consumed by CoherenceCheckSurface as an honest
+  // early-state readiness banner when the Tier 3/4 design is still unfinished.
   const coherenceProgress = useMemo(
     () => deriveCoherenceProgress(objectives, objectiveStatuses),
     [objectives, objectiveStatuses],
@@ -1165,10 +1189,22 @@ export default function PlanTierShell() {
               thresholdActive ? (
                 // Threshold center takeovers. First arm so the WebGL
                 // VisionLayoutCanvas never mounts on a threshold route. The
-                // shared `plan/threshold/$thresholdId` route carries both, so
-                // dispatch on params.thresholdId: 'threshold-2' -> the
-                // Coherence Check audit; anything else -> the Reality Check.
-                params.thresholdId === 'threshold-2' ? (
+                // shared `plan/threshold/$thresholdId` route carries all three,
+                // so dispatch on params.thresholdId: 'threshold-3' -> the Act
+                // Mandate; 'threshold-2' -> the Coherence Check audit; anything
+                // else -> the Reality Check.
+                params.thresholdId === 'threshold-3' ? (
+                  // Threshold 3 (The Act Mandate) center takeover -- the final
+                  // Plan-stage surface. Assembles the resolved design + the two
+                  // prior threshold records into the handoff to Act; Plan-only,
+                  // no map.
+                  <ActMandateSurface
+                    projectId={id}
+                    projectName={project.name}
+                    objectives={objectives}
+                    objectiveStatuses={objectiveStatuses}
+                  />
+                ) : params.thresholdId === 'threshold-2' ? (
                   // Threshold 2 (The Coherence Check) center takeover. Audits
                   // the shipped s4 + s5 design objectives (Sections A/B/C);
                   // Plan-only, no map.
@@ -1178,6 +1214,7 @@ export default function PlanTierShell() {
                     primaryTypeId={primaryTypeId}
                     objectives={objectives}
                     objectiveStatuses={objectiveStatuses}
+                    coherenceProgress={coherenceProgress}
                   />
                 ) : (
                   // Threshold 1 (The Reality Check) center takeover. Reads the
@@ -1236,6 +1273,11 @@ export default function PlanTierShell() {
                   receptionProgress={receptionProgress}
                   receptionTier={receptionTier}
                   onSelectObjective={handleSelectObjective}
+                  // Threshold-3 lock: when the active Plan objective is locked
+                  // (post Begin Act) the shared workbench renders display-only.
+                  // Defaults false in Act (the prop is absent there), so Act stays
+                  // byte-identical.
+                  readOnly={activeObjectiveLocked}
                 />
               ) : (
                 <div
@@ -1275,7 +1317,13 @@ export default function PlanTierShell() {
               thresholdActive ? (
                 <div className={styles.rightRail}>
                   <div className={styles.rightBody}>
-                    {params.thresholdId === 'threshold-2' ? (
+                    {params.thresholdId === 'threshold-3' ? (
+                      <ActMandateReferenceRail
+                        projectId={id}
+                        objectives={objectives}
+                        objectiveStatuses={objectiveStatuses}
+                      />
+                    ) : params.thresholdId === 'threshold-2' ? (
                       <CoherenceCheckReferenceRail
                         projectId={id}
                         primaryTypeId={primaryTypeId}
@@ -1455,6 +1503,16 @@ export default function PlanTierShell() {
                         projectId={id}
                         stratumId={selectedObjectiveStratum.id}
                       />
+                      {/* Contextual doorway into Threshold 3 (The Act Mandate).
+                          Self-gates to the terminal stratum (s7) only -- the one
+                          place the steward crosses from planning into doing. One
+                          of several navigate-only entry paths (alongside the
+                          clickable T3 switcher row and a deep-link); the one-way
+                          crossing is entered via the surface's own CTA. Plan-only. */}
+                      <ActMandateEntryCue
+                        projectId={id}
+                        stratumId={selectedObjectiveStratum.id}
+                      />
                       {/* Generic "Open map with tools" CTA — self-gates to
                           objectives that resolve to >= 1 map draw/place tool, so
                           it appears only for spatial objectives (the two bespoke
@@ -1479,6 +1537,10 @@ export default function PlanTierShell() {
                         // The map lives in the CENTER canvas; suppress the
                         // panel's embedded ObjectiveMap so it isn't duplicated.
                         hideMap
+                        // Threshold-3 lock (explicit; the panel also self-derives
+                        // the same value -- this keeps the wiring symmetric with
+                        // the workbench above). False until Begin Act.
+                        readOnly={activeObjectiveLocked}
                       />
                     </>
                   ) : (

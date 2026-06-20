@@ -56,6 +56,20 @@
   user-select: none;
 }
 
+/* "Still needed to save" signal: names the unmet required fields so the
+   disabled Save button is never silent. */
+.requiredSignal {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
+
+.requiredSignalLabel {
+  font-weight: 700;
+  color: var(--color-gold-brand, #c4a265);
+}
+
 /* Read-only recap tab: prefilled value + Edit-in-Plan, no textarea. */
 .recapActions {
   display: flex;

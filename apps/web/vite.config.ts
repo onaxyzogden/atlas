@@ -172,6 +172,11 @@ export default defineConfig({
     // test site is explorable without the (broken) login. Off by default;
     // enabled only on the live deployment build. See src/app/demoSession.ts.
     'process.env.FEATURE_DEMO_MODE': JSON.stringify(process.env.FEATURE_DEMO_MODE ?? 'false'),
+    // Offline demo: a fully client-only static build (GitHub Pages, no backend).
+    // Synthesises a guest session in-browser — NO /api register, NO /auth/me, NO
+    // sync. Distinct from FEATURE_DEMO_MODE (which auto-registers via the API).
+    // Off by default; enabled only on the free public demo build. See demoSession.ts.
+    'process.env.FEATURE_DEMO_OFFLINE': JSON.stringify(process.env.FEATURE_DEMO_OFFLINE ?? 'false'),
   },
   resolve: {
     alias: {

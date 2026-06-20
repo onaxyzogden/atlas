@@ -16,6 +16,7 @@
 
 import { useEffect, useRef } from 'react';
 import { api } from '../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../app/demoSession.js';
 import {
   useMachineryInventoryStore,
   type MachineryItem,
@@ -83,6 +84,9 @@ export function useServerMachineryInventory(projectId: string | undefined): void
   // ── Initial hydration ─────────────────────────────────────────────────
   useEffect(() => {
     if (!projectId) return;
+    // Offline demo: machinery inventory is local-first (persisted to IndexedDB),
+    // so there is no backend to hydrate from — a GET would only 401 and warn.
+    if (DEMO_OFFLINE_ENABLED) return;
     if (hydratedRef.current === projectId) return;
     hydratedRef.current = projectId;
 
@@ -121,6 +125,9 @@ export function useServerMachineryInventory(projectId: string | undefined): void
   // ── Push local changes to the server ──────────────────────────────────
   useEffect(() => {
     if (!projectId) return;
+    // Offline demo: no backend to push to — local mutations persist via the
+    // store's IndexedDB and need no server sync.
+    if (DEMO_OFFLINE_ENABLED) return;
 
     let prev = useMachineryInventoryStore.getState().byProject[projectId] ?? [];
 

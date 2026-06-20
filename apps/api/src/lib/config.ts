@@ -10,6 +10,24 @@ const EnvSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5200,http://localhost:5300'),
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
+  // ── Reverse-proxy awareness ──────────────────────────────────────────────
+  // Controls how Fastify derives the client IP (req.ip) from X-Forwarded-For.
+  // The per-IP portal rate limits (PORTAL_*_RATE_LIMIT_MAX) are USELESS unless
+  // this is set in any deployment that sits behind a proxy: every request would
+  // otherwise share the proxy's single IP bucket (ineffective AND a self-DoS
+  // vector). Passed through to the Fastify `trustProxy` option in app.ts.
+  //   ''/unset/'false' — trust nobody (correct for local dev: the socket peer
+  //                      IS the client; a spoofed XFF must be ignored). DEFAULT.
+  //   'true'           — trust the whole XFF chain (spoofable; avoid in prod).
+  //   a number N       — trust N proxy hops nearest the server (proxy-addr
+  //                      semantics). On Render the chain is
+  //                      client → Render edge → nginx → api, so api trusts 2
+  //                      hops to recover the client IP. CONFIRM the count against
+  //                      live logs before relying on it (see render.yaml note):
+  //                      too few → everyone shares the proxy bucket; too many →
+  //                      a client can spoof X-Forwarded-For.
+  //   a subnet/IP list — trust exactly those addresses (comma-separated).
+  TRUST_PROXY: z.string().optional().transform((v) => (v ? v : undefined)),
   // Per-IP caps for the UNAUTHENTICATED public portal routes (fixed 1-minute
   // window). Tighter than the global limit: these are the only routes
   // reachable without a JWT, so they bound the blast radius of a leaked

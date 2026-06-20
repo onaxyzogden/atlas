@@ -15,6 +15,7 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import { api } from '../../../../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
 import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
@@ -187,7 +188,7 @@ export default function SectorsDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting}
+          disabled={exporting || DEMO_OFFLINE_ENABLED}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export sectors report'}

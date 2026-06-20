@@ -33,9 +33,22 @@ import { C, F, CA } from '../spine/tokens.js';
 interface Props {
   projectId: string;
   objective: PlanStratumObjective;
+  /**
+   * Threshold-3 lock (Plan under the Act Mandate). When true the inputs are
+   * display-only: `readOnly` on the field + the onChange persist is guarded, so a
+   * locked objective's thresholds cannot be re-edited at the render layer.
+   * Defaults false -> byte-identical everywhere else. Enforced at the render
+   * layer only; the shared stores stay surface-agnostic (no store backstop, so
+   * Act execution is never frozen).
+   */
+  readOnly?: boolean;
 }
 
-export default function ParameterGroup({ projectId, objective }: Props) {
+export default function ParameterGroup({
+  projectId,
+  objective,
+  readOnly = false,
+}: Props) {
   const { parameterGroup } = objective;
 
   // Derive enterprise eligibility from the project's type record — the same
@@ -142,14 +155,16 @@ export default function ParameterGroup({ projectId, objective }: Props) {
                   inputMode="decimal"
                   placeholder={item.placeholder ?? ''}
                   value={currentValue}
-                  onChange={(e) =>
+                  readOnly={readOnly}
+                  onChange={(e) => {
+                    if (readOnly) return;
                     setParameterValue(
                       projectId,
                       objective.id,
                       item.id,
                       e.target.value,
-                    )
-                  }
+                    );
+                  }}
                   aria-label={item.label}
                   data-testid={`plan-parameter-input-${item.id}`}
                   style={{

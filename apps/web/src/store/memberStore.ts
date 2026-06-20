@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { api } from '../lib/apiClient.js';
+import { DEMO_OFFLINE_ENABLED } from '../app/demoSession.js';
 import type { ProjectMemberRecord, ProjectRole } from '@ogden/shared';
 
 interface MemberState {
@@ -36,6 +37,9 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
   isLoading: false,
 
   fetchMembers: async (projectId: string) => {
+    // Offline demo: no backend to read from — the sample seeds its roster via
+    // seedLocalMembers, so a server fetch would only 401 and clobber nothing.
+    if (DEMO_OFFLINE_ENABLED) return;
     set({ isLoading: true });
     try {
       const { data } = await api.members.list(projectId);
@@ -55,6 +59,7 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
   },
 
   fetchMyRole: async (projectId: string) => {
+    if (DEMO_OFFLINE_ENABLED) return;
     try {
       const { data } = await api.members.myRole(projectId);
       if (data) {
@@ -66,6 +71,7 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
   },
 
   fetchMyRoles: async () => {
+    if (DEMO_OFFLINE_ENABLED) return;
     try {
       const { data } = await api.members.myRoles();
       if (data) {
