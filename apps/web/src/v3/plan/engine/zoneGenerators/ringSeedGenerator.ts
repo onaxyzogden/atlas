@@ -187,7 +187,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
 
 export const ringSeedGenerator: ZoneGenerator = {
   id: 'ring-seed',
-  label: 'Seed zones from rings',
+  label: 'Seed zones from home',
   describe:
     'Click a point on the map to seed editable Z0–Z5 Mollison rings ' +
     'from there. Adjust, trim to the parcel, or clear them anytime.',

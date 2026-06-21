@@ -14,8 +14,10 @@
  */
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import * as turf from '@turf/turf';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { runZoneGenerator } from '../../engine/zoneGenerators/index.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
@@ -60,6 +62,29 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, 
           'No zones seeded — these Z-levels are already ring-seeded here.',
         );
       } else {
+        // The Mollison rings use fixed real-world radii (Z0 ~15 m disc out to
+        // Z5 ~1200 m). Without re-framing, on a fresh project at a wide default
+        // zoom the seeded rings land off-screen / sub-pixel and read as
+        // "nothing happened" even though the zones are in the store. Make sure
+        // the seeded-zone layer is visible, then ease the camera to the seeded
+        // extent so the rings are always on screen.
+        if (!useMatrixTogglesStore.getState().seededZones) {
+          useMatrixTogglesStore.setState({ seededZones: true });
+        }
+        try {
+          const [minX, minY, maxX, maxY] = turf.bbox(
+            turf.featureCollection(seeded.map((z) => turf.feature(z.geometry))),
+          );
+          map.fitBounds(
+            [
+              [minX, minY],
+              [maxX, maxY],
+            ],
+            { padding: 64, duration: 600 },
+          );
+        } catch {
+          /* bbox/fitBounds is best-effort — never block seeding on a camera move */
+        }
         toast.success(
           `Seeded ${seeded.length} draft zone(s) from the Mollison rings. ` +
             'Adjust, trim to the parcel, or clear them anytime.',
@@ -73,9 +98,9 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, 
     <div
       className={css.popover}
       role="dialog"
-      aria-label="Seed zones from rings"
+      aria-label="Seed zones from home"
     >
-      <span className={css.title}>Seed zones from rings</span>
+      <span className={css.title}>Seed zones from home</span>
       <span className={css.hint}>
         Click where the home centre sits — full Z0–Z5 rings grow from
         there. Trim or clear them afterwards.
