@@ -575,6 +575,14 @@
       "silv-s3-stock-water-availability-c5",
       "silv-s3-stock-water-availability-c6"
     ],
+    "silv-sec-s3-stock-water": [
+      "silv-sec-s3-stock-water-c2",
+      "silv-sec-s3-stock-water-c3",
+      "silv-sec-s3-stock-water-c4",
+      "silv-sec-s3-stock-water-c5",
+      "silv-sec-s3-stock-water-c6",
+      "silv-sec-s3-stock-water-c7"
+    ],
     "well-s3-acoustic-conditions": [
       "well-s3-acoustic-conditions-c1",
       "well-s3-acoustic-conditions-c2",
