@@ -10,6 +10,7 @@ import { useProjectStore, type ProjectAttachment } from '../../../store/projectS
 import { useAuthStore } from '../../../store/authStore.js';
 import { api } from '../../../lib/apiClient.js';
 import { recordShowcaseEvent } from '../../../showcase/lib/showcaseEventLog.js';
+import { seedFromEcosystemFarmTemplate } from '../../../dev/seedThreeStreamsFarm.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 
@@ -190,6 +191,15 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         // Backend unavailable — local copy is intact, sync will retry later.
         // Proceed to navigate so the user is not blocked offline.
       }
+    }
+
+    // Explicit, one-shot client seed for the ecosystem-farm template. This is
+    // the deliberate user action that justifies populating the design (it is
+    // NOT an ambient subscription firing on any flagged project). Idempotent
+    // via the seeder's own localStorage sentinel; in the authed app this gives
+    // instant local render while the server instantiation syncs back.
+    if (data.templateSlug === 'ecosystem-farm') {
+      seedFromEcosystemFarmTemplate(project.id);
     }
 
     navigate({
