@@ -698,9 +698,18 @@ if (typeof window !== 'undefined') {
 
 if (typeof window !== 'undefined') {
   try {
-    // Tracks projects we've already kicked off a seed for in this tab so
-    // a single subscription can serve both the canonical Three Streams
-    // arrival and any number of Ecosystem-Farm-template instantiations.
+    // Tracks projects we've already kicked off a seed for in this tab.
+    // This subscription serves ONLY the canonical Three Streams sample's
+    // arrival (a reserved builtin id). It deliberately does NOT match on
+    // `metadata.instantiatedFromTemplate`: auto-seeding any project merely
+    // for carrying the template flag is a silent-clobber vector (it can
+    // fire on rehydration, sync, or reload, dropping fixed Three Streams
+    // geometry onto user-drawn parcels). Template instantiation is instead
+    // an explicit, one-shot call from the user's create action — see
+    // StepNotes.tsx / NewProjectPage.tsx, which call
+    // `seedFromEcosystemFarmTemplate` directly when the ecosystem-farm
+    // template card / CTA is chosen (the offline-fallback seam; the authed
+    // app instantiates server-side via api.templates.instantiatePublic).
     const fired = new Set<string>();
 
     const tryFireFor = (projectId: string) => {
@@ -717,11 +726,6 @@ if (typeof window !== 'undefined') {
           p.id === THREE_STREAMS_PROJECT_ID ||
           p.serverId === THREE_STREAMS_PROJECT_ID
         ) {
-          tryFireFor(p.id);
-          continue;
-        }
-        const meta = (p as { metadata?: Record<string, unknown> }).metadata;
-        if (meta && meta.instantiatedFromTemplate === 'ecosystem-farm') {
           tryFireFor(p.id);
         }
       }

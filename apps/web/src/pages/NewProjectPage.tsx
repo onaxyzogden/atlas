@@ -25,6 +25,7 @@ import { api } from '../lib/apiClient.js';
 import { syncProjectNow } from '../lib/syncService.js';
 import { toast } from '../components/Toast.js';
 import { recordShowcaseEvent } from '../showcase/lib/showcaseEventLog.js';
+import { seedFromEcosystemFarmTemplate } from '../dev/seedThreeStreamsFarm.js';
 import { OrganizationSwitcherModal } from '../features/organizations/OrganizationSwitcherModal.js';
 import styles from './NewProjectPage.module.css';
 
@@ -144,6 +145,13 @@ export default function NewProjectPage() {
           );
         }
       }
+    }
+
+    // Explicit, one-shot client seed for the ecosystem-farm template (the
+    // showcase-CTA path). Deliberate user action, not an ambient subscription;
+    // idempotent via the seeder's own sentinel.
+    if (prefillTemplate === 'ecosystem-farm') {
+      seedFromEcosystemFarmTemplate(project.id);
     }
 
     navigate({
