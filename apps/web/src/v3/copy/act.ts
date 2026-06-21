@@ -18,6 +18,9 @@ export const ACT_COPY = {
     // Plan Reception only (Tier-2 systems reading): label above the Observe-stage
     // survey-record name -- the dual output sibling to the Act handoff.
     observeOutput: "Observe output",
+    // Stacked workbench (Plan Declaration + Reception): the back affordance shown
+    // above the collapsed selected tile to return to the full decision list.
+    backToList: "All decisions",
   },
 
   workingPanel: {
