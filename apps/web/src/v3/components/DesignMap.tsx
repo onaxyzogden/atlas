@@ -24,7 +24,9 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   maplibregl,
   MAP_STYLES,
+  ESRI_WORLD_IMAGERY_STYLE,
   hasMapToken,
+  mapRenderable,
   maptilerTransformRequest,
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
@@ -118,7 +120,9 @@ export default function DesignMap({
     if (!containerRef.current) return;
     const m = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES[styleKey] ?? MAP_STYLES["satellite"]!,
+      style: hasMapToken
+        ? (MAP_STYLES[styleKey] ?? MAP_STYLES["satellite"]!)
+        : ESRI_WORLD_IMAGERY_STYLE,
       center: initialCenter,
       zoom,
       attributionControl: { compact: true },
@@ -232,7 +236,7 @@ export default function DesignMap({
     clearFocus();
   }, [map, focusRequest, projectId, clearFocus]);
 
-  if (!hasMapToken) {
+  if (!mapRenderable) {
     return (
       <div className={css.wrap}>
         <div className={css.empty}>

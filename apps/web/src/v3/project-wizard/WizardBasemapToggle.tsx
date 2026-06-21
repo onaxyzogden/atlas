@@ -7,7 +7,7 @@
 
 import { Layers } from 'lucide-react';
 import {
-  BASEMAP_OPTIONS,
+  AVAILABLE_BASEMAP_OPTIONS,
   useBasemapStore,
   type BasemapKey,
 } from '../observe/components/measure/useMapToolStore.js';
@@ -28,7 +28,7 @@ export default function WizardBasemapToggle() {
         Base layer
       </span>
       <div className={styles.options}>
-        {BASEMAP_OPTIONS.map((opt) => (
+        {AVAILABLE_BASEMAP_OPTIONS.map((opt) => (
           <button
             type="button"
             key={opt.key}

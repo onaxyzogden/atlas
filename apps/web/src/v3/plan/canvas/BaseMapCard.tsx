@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
-  BASEMAP_OPTIONS,
+  AVAILABLE_BASEMAP_OPTIONS,
   useBasemapStore,
   type BasemapKey,
 } from '../../observe/components/measure/useMapToolStore.js';
@@ -162,7 +162,7 @@ export default function BaseMapCard({
           value={basemap}
           onChange={(e) => setBasemap(e.target.value as BasemapKey)}
         >
-          {BASEMAP_OPTIONS.map((opt) => (
+          {AVAILABLE_BASEMAP_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>
               {opt.label}
             </option>

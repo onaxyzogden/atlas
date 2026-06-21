@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Satellite, Mountain, MountainSnow, Map as MapIcon, Layers, type LucideIcon } from 'lucide-react';
-import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, ESRI_WORLD_IMAGERY_STYLE, hasMapToken, mapRenderable, maptilerTransformRequest } from '../../lib/maplibre.js';
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
 import { semantic, mapZIndex } from '../../lib/tokens.js';
 import { map as mapTokens } from '../../lib/tokens.js';
@@ -13,6 +13,9 @@ const STYLES: { id: MapStyle; label: string; icon: LucideIcon }[] = [
   { id: 'street',      label: 'Street',      icon: MapIcon },
   { id: 'hybrid',      label: 'Hybrid',      icon: Layers },
 ];
+
+// Keyless (offline demo) only the Esri satellite style renders; hide the rest.
+const AVAILABLE_STYLES = hasMapToken ? STYLES : STYLES.filter((s) => s.id === 'satellite');
 
 interface SplitScreenCompareProps {
   primaryMap: maplibregl.Map | null;
@@ -44,7 +47,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
   // Init the right map once when split activates.
   useEffect(() => {
     if (!active || !primaryMap || !containerRef.current) return;
-    if (!hasMapToken) return;
+    if (!mapRenderable) return;
     if (rightMapRef.current) return;
 
     const center = primaryMap.getCenter();
@@ -52,7 +55,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
 
     const right = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES[rightStyle] ?? MAP_STYLES['satellite']!,
+      style: hasMapToken ? (MAP_STYLES[rightStyle] ?? MAP_STYLES['satellite']!) : ESRI_WORLD_IMAGERY_STYLE,
       center: [center.lng, center.lat],
       zoom,
       pitch: primaryMap.getPitch(),
@@ -133,7 +136,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
   useEffect(() => {
     const right = rightMapRef.current;
     if (!right || !ready) return;
-    right.setStyle(MAP_STYLES[rightStyle] ?? MAP_STYLES['satellite']!);
+    right.setStyle(hasMapToken ? (MAP_STYLES[rightStyle] ?? MAP_STYLES['satellite']!) : ESRI_WORLD_IMAGERY_STYLE);
   }, [rightStyle, ready]);
 
   // Render boundary + mirrored draw features on the right pane.
@@ -278,7 +281,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
           pointerEvents: 'auto',
         }}
       >
-        {STYLES.map((s) => {
+        {AVAILABLE_STYLES.map((s) => {
           const Icon = s.icon;
           const active = rightStyle === s.id;
           return (

@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   maplibregl,
   MAP_STYLES,
-  hasMapToken,
+  mapRenderable,
   maptilerTransformRequest,
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
@@ -174,7 +174,7 @@ export default function OperateMap({
     };
   }, [map, boundary]);
 
-  if (!hasMapToken) {
+  if (!mapRenderable) {
     return (
       <div className={css.wrap}>
         <div className={css.empty}>

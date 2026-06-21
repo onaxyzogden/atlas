@@ -3,7 +3,7 @@
  */
 
 import { useRef, useEffect } from 'react';
-import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, mapRenderable, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { semantic } from '../../../lib/tokens.js';
@@ -15,7 +15,7 @@ export default function InteractiveMapView({ config, project }: Props) {
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current || !hasMapToken) return;
+    if (!containerRef.current || mapRef.current || !mapRenderable) return;
 
     const center: [number, number] = config.storyScenes[0]?.mapCenter ?? [-79.8, 43.5];
     const zoom = config.storyScenes[0]?.mapZoom ?? 13;

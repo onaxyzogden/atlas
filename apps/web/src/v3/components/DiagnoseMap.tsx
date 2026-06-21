@@ -16,7 +16,9 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   maplibregl,
   MAP_STYLES,
+  ESRI_WORLD_IMAGERY_STYLE,
   hasMapToken,
+  mapRenderable,
   maptilerTransformRequest,
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
@@ -125,7 +127,9 @@ export default function DiagnoseMap({
     if (!containerRef.current) return;
     const m = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES[initialBasemapRef.current] ?? MAP_STYLES["topographic"],
+      style: hasMapToken
+        ? (MAP_STYLES[initialBasemapRef.current] ?? MAP_STYLES["topographic"])
+        : ESRI_WORLD_IMAGERY_STYLE,
       center: initialCenter,
       zoom,
       attributionControl: { compact: true },
@@ -307,7 +311,7 @@ export default function DiagnoseMap({
     clearFocus();
   }, [map, focusRequest, projectId, clearFocus]);
 
-  if (!hasMapToken) {
+  if (!mapRenderable) {
     return (
       <div className={css.wrap}>
         <MapTokenMissing />
