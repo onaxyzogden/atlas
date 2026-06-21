@@ -352,7 +352,7 @@ export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: 
           {(
             [
               {
-                label: 'Seed zones from rings',
+                label: 'Seed zones from home',
                 Icon: Sprout,
                 onClick: handleSeed,
                 disabled: false,

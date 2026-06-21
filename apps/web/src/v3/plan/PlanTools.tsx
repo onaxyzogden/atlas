@@ -242,7 +242,7 @@ interface ZoneGeneratorAction {
 const ZONE_GENERATOR_ACTIONS: ZoneGeneratorAction[] = [
   {
     id: 'ring-seed',
-    label: 'Seed zones from rings',
+    label: 'Seed zones from home',
     Icon: Sprout,
     generator: ringSeedGenerator,
     armToolId: 'plan.zone-circulation.zone-seed-anchor',

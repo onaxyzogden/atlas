@@ -289,10 +289,11 @@ describe('BoundaryCapture -- render c6 (covenant)', () => {
 // --------------------------------------------------------------------------
 
 describe('BoundaryCapture -- render c2 (map)', () => {
-  it('open-map button is rendered disabled', () => {
+  it('open-map button is rendered enabled (wired, not "coming soon")', () => {
     renderCapture('s1-boundaries-c2', {});
     const btn = screen.getByTestId('open-map') as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    expect(btn.disabled).toBe(false);
+    expect(btn.textContent).toContain('Open map');
   });
 
   it('clicking ack-toggle emits onChange with acknowledged "true"', () => {
@@ -388,10 +389,11 @@ describe('BoundaryCapture -- mapEntry mode (c3)', () => {
     expect(arg.implications).toEqual(['Access required']);
   });
 
-  it('open-map button is rendered disabled', () => {
+  it('open-map button is rendered enabled (wired, not "coming soon")', () => {
     renderCapture('s1-boundaries-c3', {});
     const btn = screen.getByTestId('open-map') as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    expect(btn.disabled).toBe(false);
+    expect(btn.textContent).toContain('Open map');
   });
 
   it('mapEntry renders BOTH the map mock AND the entry-list that plain map does not', () => {

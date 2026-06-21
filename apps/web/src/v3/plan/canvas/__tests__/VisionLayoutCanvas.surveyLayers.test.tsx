@@ -78,6 +78,10 @@ vi.mock('../../draw/UtilityConflictDialog.js', nullMod);
 vi.mock('../../draw/PlacementConflictDialog.js', nullMod);
 vi.mock('../../draw/ObserveLinkPopover.js', nullMod);
 vi.mock('../../layers/PlanDataLayers.js', nullMod);
+// Tier-2 reception survey hosts mount the plan/reception SurveyLayer, which
+// gates on map.getStyle() — irrelevant to the slope/veg contract here and would
+// crash on the throwaway map stub above. Neutralise like the other map children.
+vi.mock('../../reception/ReceptionSurveyHosts.js', nullMod);
 vi.mock('../../layers/PlanScheduledMovesOverlay.js', nullMod);
 vi.mock('../../layers/PlanWaterRouterOverlay.js', nullMod);
 vi.mock('../../draw/PlanDrawHost.js', nullMod);

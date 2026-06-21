@@ -804,7 +804,7 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   // and clear them. See wiki/log/2026-06-04-atlas-act-zone-seeding-toolbar.
   'zone-seed': {
     id: 'zone-seed',
-    label: 'Seed zones from rings',
+    label: 'Seed zones from home',
     icon: Sprout,
     category: 'zones-planning',
     arm: { kind: 'map', mapToolId: 'plan.zone-circulation.zone-seed-anchor' },
