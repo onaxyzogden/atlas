@@ -185,7 +185,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
             className={styles.btn}
             onClick={seedZonesFromRings}
           >
-            Seed zones from rings
+            Seed zones from home
           </button>
         ) : null}
         {!canGenerate ? (
