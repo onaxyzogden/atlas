@@ -11,11 +11,14 @@
  *      Tier 1" diagram, status driven, laid out top-to-bottom for the rail.
  *      Nodes select their objective when an onSelectObjective handler is given.
  *
- * Plan-only orientation: mounted by PlanTierShell only for the Declaration
- * workbench (mode === "declaration"); the Act surface and Reception never mount
- * it. All derivations come from the pure declarationModel; this file owns
- * presentation only. Same data-testids as the former DeclarationCenter regions
- * (canonical-*, seq-node-*) so the behavior contract is unchanged.
+ * Plan-only orientation: mounted by PlanTierShell across every Stratum-1
+ * Project-Foundation objective -- both the non-spatial Declaration workbench
+ * objectives AND the spatial/map ones (the orientation is tier-level, so it
+ * stays put as the steward moves between foundation objectives). The Act surface
+ * and Reception (Stratum 3) never mount it. All derivations come from the pure
+ * declarationModel; this file owns presentation only. Same data-testids as the
+ * former DeclarationCenter regions (canonical-*, seq-node-*) so the behavior
+ * contract is unchanged.
  *
  * ASCII-only: every glyph is a lucide icon.
  */

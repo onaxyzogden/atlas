@@ -559,6 +559,17 @@ export default function PlanTierShell() {
   const workbenchMode: 'declaration' | 'reception' = isReceptionWorkbenchObjective
     ? 'reception'
     : 'declaration';
+  // Tier-0 orientation rail visibility. The canonical-object cards + objective
+  // sequencing are TIER-LEVEL (they describe all of Stratum 1 / Tier 0), not
+  // per-objective detail, so they ride the right rail across EVERY Project-
+  // Foundation objective -- including the spatial/map ones (e.g. the
+  // decision-makers/stakeholders objective) where the editable map, not the
+  // Declaration workbench, fills the center. Gated purely on the active stratum
+  // being S1; the takeover branches in the rail ternary still replace the whole
+  // rail when one is armed (this flag is only consulted in the final else, which
+  // those branches precede). Stratum 1 carries no Reception (S3) objectives, so
+  // the orientation is always the Declaration set here.
+  const showFoundationOrientation = selectedStratumId === S1_STRATUM_ID;
   // (receptionTier is computed above, ahead of the survey record-count read.)
   // Cross-tier reception progress (Tier 1 Land-Reading + Tier 2 Systems-Reading
   // completion + the assembled survey-record total). Derived from the FULL
@@ -1450,14 +1461,17 @@ export default function PlanTierShell() {
                 </div>
               ) : (
               <div className={styles.rightRail}>
-                {/* Tier-0 Declaration orientation: the canonical-object cards +
-                    objective-sequencing diagram, relocated from the center header
-                    band (2026-06-22). Persistently at the TOP of the rail (above
-                    the Dashboard/Detail toggle) and gated to the Declaration
-                    workbench only, so it never shows for Reception or editable-map
-                    objectives. Fed the same values as the workbench above; the
-                    sequencing nodes select objectives via handleSelectObjective. */}
-                {showTierZeroWorkbench && workbenchMode === 'declaration' ? (
+                {/* Tier-0 orientation: the canonical-object cards + objective-
+                    sequencing diagram, relocated from the center header band
+                    (2026-06-22). Persistently at the TOP of the rail (above the
+                    Dashboard/Detail toggle) across EVERY Stratum-1 Project-
+                    Foundation objective -- including the spatial/map ones, where
+                    the center is the editable map rather than the Declaration
+                    workbench (operator decision 2026-06-22: tier-level orientation
+                    should not vanish when moving between foundation objectives).
+                    Fed the stratum slice + statuses; the sequencing nodes select
+                    objectives via handleSelectObjective. */}
+                {showFoundationOrientation ? (
                   <DeclarationOrientationRail
                     objectives={stratumObjectives}
                     objectiveStatuses={objectiveStatuses}
