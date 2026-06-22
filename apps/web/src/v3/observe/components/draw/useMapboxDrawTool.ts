@@ -158,8 +158,25 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     // undefined (reading 'getLayer')". Bail cleanly in that case - the next
     // effect run wires up the fresh map. Observe always passes a live map, so
     // its behaviour is unchanged.
-    try {
-      map.addControl(draw);
+    // MapboxDraw installs BOTH its GeoJSON sources/layers AND its click/tap
+    // handlers inside connect(), which onAdd defers to a one-shot
+    // `map.on('load')` whenever map.loaded() is false at addControl time. That
+    // `load` never arrives when the first style failed to load (e.g. a keyed
+    // basemap 403s, so the style errors out) or when a basemap fallback swapped
+    // the style via setStyle (which fires styledata/style.load, NOT load). The
+    // result is a tool that LOOKS armed (its mode is set) but is inert: a real
+    // map click never becomes a `draw.create`, so seeding / boundary draws
+    // silently no-op (the operator's "Seed zones from home does nothing, Clear
+    // says 'No seeded zones'"). The connect-watchdog below detects the miss and
+    // re-attaches as soon as the style is parsed — without waiting on tile load,
+    // which on the keyless raster may never finish. `DRAW_COLD_SOURCE` is the
+    // source connect() installs — its presence proves connect actually ran.
+    const DRAW_COLD_SOURCE = 'mapbox-gl-draw-cold';
+
+    // Enter the active mode + force the crosshair + tint the in-progress
+    // polygon. Factored out so the watchdog can re-apply it after a re-add
+    // (removeControl resets the mode to simple_select and drops the paint).
+    const enterModeAndPaint = () => {
       canvas.style.cursor = 'crosshair';
       // MapboxDraw's `changeMode` is typed as a string-literal overload that
       // doesn't include our union directly; cast through to satisfy. When a
@@ -197,10 +214,94 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
           );
         }
       }
-    } catch {
-      /* map torn down during setup; nothing wired, nothing to clean up */
+    };
+
+    try {
+      map.addControl(draw);
+      enterModeAndPaint();
+    } catch (err) {
+      // The map may have been torn down mid-setup (e.g. the wizard "Redo"
+      // affordance recreates DiagnoseMap's map): addControl/getLayer then throw
+      // on a style-less map. That is benign — the next effect run wires the
+      // fresh map. But a throw on a *live* map is a real attach failure worth
+      // surfacing rather than silently disabling the tool (a silent swallow
+      // here once masked a draw-engine starvation bug). Distinguish the two.
+      let mapAlive = false;
+      try {
+        mapAlive = Boolean((map as { getStyle?: () => unknown }).getStyle?.());
+      } catch {
+        /* style gone — torn-down map, benign */
+      }
+      if (mapAlive) {
+        console.warn(
+          '[useMapboxDrawTool] draw control failed to attach to a live map:',
+          err,
+        );
+      }
       return;
     }
+
+    // Connect-watchdog. MapboxDraw's connect() (which installs both the GeoJSON
+    // sources/layers AND the click handlers) runs synchronously only when
+    // map.loaded() is true at addControl time; otherwise onAdd defers to
+    // map.on('load') plus a 16ms poll that ALSO gates on map.loaded(). And
+    // map.loaded() stays false until every source's TILES finish loading — which,
+    // on the keyless Esri raster fallback (after a keyed basemap 403s and we
+    // setStyle to satellite), can be never. So the tool looks armed (its mode +
+    // crosshair are set optimistically right after addControl) yet every click is
+    // inert because connect() — and its handlers — never ran. Waiting on
+    // map.loaded() therefore can't fix it; instead we gate on the STYLE being
+    // parsed (tile-independent) and then force onAdd down its synchronous connect
+    // branch by reporting loaded===true for exactly the one synchronous
+    // addControl call. `DRAW_COLD_SOURCE` is the source connect() installs — its
+    // presence proves connect actually ran, and short-circuiting on it keeps the
+    // already-working keyed path a pure no-op.
+    const styleReady = () => (map.getStyle()?.layers?.length ?? 0) > 0;
+    let rewiring = false; // re-entrancy guard. add/removeControl mutate the
+    //                       style, which fires `styledata` — but asynchronously,
+    //                       on a later frame, by which point the getSource
+    //                       short-circuit below already covers us (maplibre
+    //                       4.7.1 emits no synchronous styledata from
+    //                       addSource/addLayer). So this flag is belt-and-
+    //                       suspenders, not load-bearing.
+    const ensureDrawConnected = () => {
+      if (rewiring) return;
+      if (map.getSource(DRAW_COLD_SOURCE)) return; // connect already ran
+      if (!styleReady()) return; // no parsed style yet — nothing to attach to
+      rewiring = true;
+      // Force onAdd's synchronous `if (map.loaded()) connect()` branch. The style
+      // is parsed, so connect() is safe NOW even though the tiles (and thus
+      // map.loaded()) may never settle on the keyless raster. The override spans
+      // only the one synchronous addControl call; the honest implementation is
+      // restored immediately after, in the finally — even on the early return.
+      const realLoaded = map.loaded.bind(map);
+      try {
+        try {
+          map.removeControl(draw);
+        } catch {
+          /* control was only half-added; the re-add below re-runs onAdd cleanly */
+        }
+        (map as unknown as { loaded: () => boolean }).loaded = () => true;
+        try {
+          map.addControl(draw);
+        } catch {
+          return; // style mid-swap; the next styledata/idle/style.load retries
+        } finally {
+          (map as unknown as { loaded: () => boolean }).loaded = realLoaded;
+        }
+        if (map.getSource(DRAW_COLD_SOURCE)) enterModeAndPaint();
+      } finally {
+        rewiring = false;
+      }
+    };
+    map.on('styledata', ensureDrawConnected);
+    map.on('idle', ensureDrawConnected);
+    map.on('style.load', ensureDrawConnected);
+    // A map that already fell back to the keyless raster BEFORE this tool mounted
+    // emits no further style event to ride, so attempt the connect on the spot —
+    // a no-op if the first addControl above already connected (cold source set)
+    // or the style isn't parsed yet (a later style event then retries).
+    ensureDrawConnected();
 
     const expectedType =
       mode === 'draw_point'
@@ -311,6 +412,9 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
       // Guard the whole map teardown: the map may already be disposed.
       try {
         canvas.style.cursor = prevCursor;
+        map.off('styledata', ensureDrawConnected);
+        map.off('idle', ensureDrawConnected);
+        map.off('style.load', ensureDrawConnected);
         map.off('draw.create', onCreate);
         map.off('draw.render', onRender);
         map.removeControl(draw);
