@@ -24,14 +24,14 @@
 /* ---------- Mode header ---------- */
 
 .modeHd {
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 
 .modeEyebrow {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .modePill {
@@ -57,11 +57,11 @@
 
 .modeTitle {
   font-family: var(--font-serif, 'Cormorant Garamond', serif);
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 400;
   color: var(--color-text, #1b1e22);
-  margin-bottom: 7px;
-  line-height: 1.3;
+  margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .modeTitleEm {
@@ -70,10 +70,10 @@
 }
 
 .modeDesc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-muted, #565c63);
-  line-height: 1.65;
-  max-width: 560px;
+  line-height: 1.45;
+  max-width: 640px;
 }
 
 /* ---------- Canonical objects ---------- */
@@ -81,13 +81,13 @@
 .coRow {
   display: flex;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 
 .coCard {
   flex: 1;
   border-radius: 7px;
-  padding: 12px 14px;
+  padding: 9px 12px;
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
   background: var(--color-surface, #ffffff);
 }
@@ -115,7 +115,7 @@
 }
 
 .coEyebrow {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .coTag {
@@ -162,19 +162,19 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text, #1b1e22);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 
 .coDesc {
   font-size: 10px;
   color: var(--color-text-muted, #565c63);
-  line-height: 1.55;
+  line-height: 1.4;
 }
 
 /* ---------- Objective sequencing ---------- */
 
 .seqBlock {
-  margin-bottom: 22px;
+  margin-bottom: 8px;
 }
 
 .seqLabel {
@@ -183,7 +183,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-subtle, #7a808a);
-  margin-bottom: 10px;
+  margin-bottom: 7px;
 }
 
 .seqRow {

@@ -76,6 +76,45 @@
   padding: 2px 8px;
 }
 
+/* ---------- Back affordance (stacked workbench, collapsed state) ---------- */
+
+/* Slim, left-aligned text button shown above the single collapsed tile. Muted
+ * by default, gains an amber affordance on hover/focus to match the selected
+ * accent. Sits between the count row and the chosen tile. */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  padding: 2px 4px;
+  margin: -2px 0 -4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  transition: color 120ms ease;
+}
+
+.backBtn:hover,
+.backBtn:focus-visible {
+  color: var(--color-stage-act, #d9a036);
+}
+
+.backBtn:focus-visible {
+  outline: 2px solid var(--color-stage-act, #d9a036);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.backBtnIcon {
+  flex: none;
+}
+
 /* ---------- Decision rows ---------- */
 
 .rows {

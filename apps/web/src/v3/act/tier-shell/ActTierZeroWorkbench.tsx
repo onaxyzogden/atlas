@@ -539,15 +539,17 @@ export default function ActTierZeroWorkbench({
   const activeObjective =
     objectives.find((o) => o.id === activeObjectiveId) ?? objectives[0];
 
-  // Selection state: default to the active objective's first checklist item id.
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(
-    () => activeObjective?.checklist[0]?.id ?? null,
-  );
+  // Selection state: list-first -- the workbench opens with NOTHING selected so
+  // the full-width scrollable decision list is the entry surface. A decision is
+  // chosen by clicking a row, which collapses the list to that tile + the
+  // workspace below it.
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  // Re-seed selection whenever the active objective changes so switching
-  // objectives resets to that objective's first item.
+  // Reset to the list whenever the active objective changes, so switching
+  // objectives (0.1 -> 0.2) returns to the full list rather than carrying a
+  // stale selection into the new objective.
   useEffect(() => {
-    setSelectedItemId(activeObjective?.checklist[0]?.id ?? null);
+    setSelectedItemId(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeObjectiveId]);
 
@@ -618,101 +620,104 @@ export default function ActTierZeroWorkbench({
     activeObjective.checklist.find((i) => i.id === selectedItemId) ?? null;
   const target = selectedItem ? buildDecisionTarget(selectedItem) : null;
 
-  // In declaration/reception mode the grid lives inside a flex-column shell
-  // beneath the mode header, so it flexes instead of claiming the full height.
-  const gridClassName = inShell
-    ? `${css.root} ${css.rootInShell}`
-    : css.root;
+  // Single stacked column (both Plan modes): the upper section (map/register
+  // strips + DecisionList header + count) is always visible; below it the list
+  // fills the body full-width when nothing is selected, or collapses to the
+  // chosen tile + the workspace when a decision is selected. In the shell the
+  // stack flexes beneath the mode header instead of claiming full height.
+  const stackClassName = inShell
+    ? `${css.stack} ${css.stackInShell}`
+    : css.stack;
 
   const grid = (
-    <div className={gridClassName}>
-      {/* ---------- LEFT pane: decision list ---------- */}
-      <section className={css.left}>
-        {affordances.mapStrips.map((strip) => (
-          <div
-            key={strip.testId}
-            className={css.mapStrip}
-            data-testid={strip.testId}
+    <div className={stackClassName}>
+      {/* ---------- Upper section: map/register strips ---------- */}
+      {affordances.mapStrips.map((strip) => (
+        <div
+          key={strip.testId}
+          className={css.mapStrip}
+          data-testid={strip.testId}
+        >
+          <Layers size={15} className={css.mapStripIcon} aria-hidden="true" />
+          <span>{strip.text}</span>
+        </div>
+      ))}
+      {affordances.registerStrip ? (
+        <div
+          className={css.regStrip}
+          data-testid={affordances.registerStrip.testId}
+        >
+          <Users size={14} className={css.regStripIcon} aria-hidden="true" />
+          <span
+            className={css.regStripCount}
+            data-testid={affordances.registerStrip.countTestId}
           >
-            <Layers size={15} className={css.mapStripIcon} aria-hidden="true" />
-            <span>{strip.text}</span>
-          </div>
-        ))}
-        {affordances.registerStrip ? (
-          <div
-            className={css.regStrip}
-            data-testid={affordances.registerStrip.testId}
-          >
-            <Users size={14} className={css.regStripIcon} aria-hidden="true" />
-            <span
-              className={css.regStripCount}
-              data-testid={affordances.registerStrip.countTestId}
-            >
-              {registerCount}
-            </span>
-            <span className={css.regStripLabel}>
-              {affordances.registerStrip.label}
-            </span>
-            <span className={css.regStripNote}>
-              {affordances.registerStrip.note}
-            </span>
-          </div>
-        ) : null}
-        <DecisionList
-          objective={activeObjective}
-          completedItemIds={completedForActive}
-          deferredItemIds={deferredForActive}
-          selectedItemId={selectedItemId}
-          onSelectItem={setSelectedItemId}
-          showGroups={showGroups}
-          modeFor={affordances.modeFor ?? undefined}
-          showActHandoff={isDeclaration || isReception}
-          showObserveOutput={isReception}
-        />
-      </section>
+            {registerCount}
+          </span>
+          <span className={css.regStripLabel}>
+            {affordances.registerStrip.label}
+          </span>
+          <span className={css.regStripNote}>
+            {affordances.registerStrip.note}
+          </span>
+        </div>
+      ) : null}
 
-      {/* ---------- RIGHT pane: capture form ---------- */}
-      <section className={css.right}>
-        {/* Declaration-only reference block: the canonical Team Object registry
-            sits ABOVE the working panel and only for the team objective (0.2).
-            Read-only -- the actual capture is the working panel below. */}
-        {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
-          <TeamRegistryPanel projectId={projectId} />
-        ) : null}
-        <DecisionWorkingPanel
-          decision={target}
-          projectId={projectId}
-          resolveOptions={resolveOptions}
-          successCriteriaOptions={scOptions}
-          labourSkillSuggestions={labourSkills}
-          visionClassifySuggestions={vcSuggestions}
-          initialValue={selectedItem ? (formValues[selectedItem.id] ?? {}) : {}}
-          siblingValues={formValues}
-          initialRationale={
-            selectedItem ? (rationales[selectedItem.id] ?? '') : ''
-          }
-          deferred={selectedItem ? Boolean(deferredItems[selectedItem.id]) : false}
-          recorded={
-            selectedItem ? completedForActive.includes(selectedItem.id) : false
-          }
-          // Reception (Tier-2) only: the survey objective's per-type intent lens
-          // + display-only builds-on line. Same value for every item of the
-          // survey (they belong to the objective, not the item). Act/Declaration
-          // omit both -> the panel renders byte-identical there.
-          buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
-          intentLens={isReception ? readIntentLens(activeObjective) : undefined}
-          readOnly={readOnly}
-          onRecord={(value, summary) => {
-            if (selectedItem) onRecord(selectedItem.id, value, summary);
-          }}
-          onSaveRationale={(text) => {
-            if (selectedItem) onSaveRationale(selectedItem.id, text);
-          }}
-          onToggleDefer={(deferred) => {
-            if (selectedItem) onToggleDefer(selectedItem.id, deferred);
-          }}
-        />
-      </section>
+      {/* ---------- Decision list: full-width, or collapsed to the chosen tile ---------- */}
+      <DecisionList
+        objective={activeObjective}
+        completedItemIds={completedForActive}
+        deferredItemIds={deferredForActive}
+        selectedItemId={selectedItemId}
+        onSelectItem={setSelectedItemId}
+        showGroups={showGroups}
+        modeFor={affordances.modeFor ?? undefined}
+        showActHandoff={isDeclaration || isReception}
+        showObserveOutput={isReception}
+        collapsed={Boolean(selectedItem)}
+        onBack={() => setSelectedItemId(null)}
+      />
+
+      {/* ---------- Workspace: only when a decision is selected ---------- */}
+      {selectedItem ? (
+        <section className={css.workspace}>
+          {/* Declaration-only reference block: the canonical Team Object registry
+              sits ABOVE the working panel and only for the team objective (0.2).
+              Read-only -- the actual capture is the working panel below. */}
+          {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
+            <TeamRegistryPanel projectId={projectId} />
+          ) : null}
+          <DecisionWorkingPanel
+            decision={target}
+            projectId={projectId}
+            resolveOptions={resolveOptions}
+            successCriteriaOptions={scOptions}
+            labourSkillSuggestions={labourSkills}
+            visionClassifySuggestions={vcSuggestions}
+            initialValue={formValues[selectedItem.id] ?? {}}
+            siblingValues={formValues}
+            initialRationale={rationales[selectedItem.id] ?? ''}
+            deferred={Boolean(deferredItems[selectedItem.id])}
+            recorded={completedForActive.includes(selectedItem.id)}
+            // Reception (Tier-2) only: the survey objective's per-type intent lens
+            // + display-only builds-on line. Same value for every item of the
+            // survey (they belong to the objective, not the item). Act/Declaration
+            // omit both -> the panel renders byte-identical there.
+            buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
+            intentLens={isReception ? readIntentLens(activeObjective) : undefined}
+            readOnly={readOnly}
+            onRecord={(value, summary) => {
+              onRecord(selectedItem.id, value, summary);
+            }}
+            onSaveRationale={(text) => {
+              onSaveRationale(selectedItem.id, text);
+            }}
+            onToggleDefer={(deferred) => {
+              onToggleDefer(selectedItem.id, deferred);
+            }}
+          />
+        </section>
+      ) : null}
     </div>
   );
 

@@ -142,24 +142,40 @@ function renderWorkbench(
   return { onRecord, onSaveRationale, onToggleDefer };
 }
 
+// List-first: the workbench opens on the decision list with NOTHING selected.
+// Click a decision row to collapse the list to that tile and reveal its
+// DecisionWorkingPanel workspace below. Tests that assert on the working panel
+// must select a row first.
+function selectDecision(itemId: string): void {
+  const row = screen
+    .getAllByTestId('decision-item')
+    .find((r) => r.getAttribute('data-item-id') === itemId);
+  if (!row) throw new Error(`decision row not found: ${itemId}`);
+  fireEvent.click(row);
+}
+
 describe('ActTierZeroWorkbench -- panes', () => {
-  it('renders both panes (center DecisionList, right working panel)', () => {
+  it('opens on the decision list; selecting a row reveals the working panel', () => {
     renderWorkbench();
-    // Center pane: DecisionList header
+    // Center: DecisionList header always renders.
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    // Right panel header eyebrow.
-    expect(screen.getByText(/working on/i)).toBeTruthy();
+    // List-first: NO working panel until a decision is selected.
+    expect(screen.queryByText(/working on/i)).toBeNull();
     // Objectives rail is NOT rendered by this component (moved to ActTierShell)
     expect(screen.queryByText('Objectives')).toBeNull();
     // "Completes Tier 0" next-box is NOT rendered by this component
     expect(screen.queryByText('Completes Tier 0')).toBeNull();
+    // Selecting a decision collapses the list and reveals its workspace.
+    selectDecision('s1-vision-c1');
+    expect(screen.getByText(/working on/i)).toBeTruthy();
   });
 });
 
 describe('ActTierZeroWorkbench -- selection', () => {
-  it('defaults selection to the first checklist item (right panel shows its label)', () => {
+  it('shows the selected decision label in the working panel after selecting it', () => {
     renderWorkbench();
-    // The right panel header carries the selected decision label.
+    selectDecision('s1-vision-c1');
+    // The working-panel header carries the selected decision label.
     const headings = screen.getAllByText('State the primary purpose');
     expect(headings.length).toBeGreaterThan(0);
   });
@@ -210,23 +226,20 @@ describe('ActTierZeroWorkbench -- success criteria', () => {
   });
 });
 
-describe('ActTierZeroWorkbench -- rationale flush on switch', () => {
-  it('flushes the typed rationale to the OUTGOING item id when a different decision is clicked', () => {
+describe('ActTierZeroWorkbench -- rationale flush on return to list', () => {
+  it('flushes the typed rationale to the selected item id when returning to the list', () => {
     const { onSaveRationale } = renderWorkbench();
-    // Default selection is the first checklist item (s1-vision-c1).
+    // List-first: open the first decision (s1-vision-c1).
+    selectDecision('s1-vision-c1');
     const ta = screen.getByLabelText(/rationale/i);
     fireEvent.change(ta, {
       target: { value: 'Reasoning bound to the first decision.' },
     });
     expect(onSaveRationale).not.toHaveBeenCalled();
-    // Click a DIFFERENT decision row WITHOUT blurring the textarea.
-    const rows = screen.getAllByTestId('decision-item');
-    const sc = rows.find(
-      (r) => r.getAttribute('data-item-id') === 's1-vision-c2',
-    )!;
-    fireEvent.click(sc);
-    // The save must land on the OUTGOING item id (s1-vision-c1), not the
-    // newly-selected one.
+    // Return to the list via the back button WITHOUT blurring the textarea. The
+    // working panel unmounts and its cleanup flushes the draft to the OUTGOING
+    // item id (s1-vision-c1).
+    fireEvent.click(screen.getByTestId('decision-back'));
     expect(onSaveRationale).toHaveBeenCalledTimes(1);
     expect(onSaveRationale).toHaveBeenCalledWith(
       's1-vision-c1',
@@ -240,7 +253,8 @@ describe('ActTierZeroWorkbench -- recorded badge', () => {
     renderWorkbench({
       progressByObjective: { 's1-vision': ['s1-vision-c1'] },
     });
-    // Default selection is the first item (s1-vision-c1), which is complete.
+    // List-first: select the first item (s1-vision-c1), which is complete.
+    selectDecision('s1-vision-c1');
     expect(screen.getByText(/^recorded$/i)).toBeTruthy();
   });
 });
@@ -894,9 +908,9 @@ describe('ActTierZeroWorkbench -- arbitrary future objective (no descriptor entr
       objectives: [S2_OBJECTIVE],
       activeObjectiveId: S2_OBJECTIVE.id,
     });
-    // Both panes present.
+    // List-first: the decision list mounts (no working panel until selection).
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
+    expect(screen.queryByText(/working on/i)).toBeNull();
     // No affordance strips of any kind.
     expect(screen.queryByTestId('boundary-map-strip')).toBeNull();
     expect(screen.queryByTestId('stakeholder-map-strip')).toBeNull();
@@ -925,10 +939,9 @@ describe('ActTierZeroWorkbench -- universal gap-closure objectives (2026-06-12)'
       activeObjectiveId: id,
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its OUTCOME-phrased title heads
-    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
-    // is a no-op for non-safe-verb labels, so this holds for every objective.
+    // List-first: the list mounts with the first item's OUTCOME-phrased title as
+    // a row (no working panel until a row is selected). toOutcomeTitle is a no-op
+    // for non-safe-verb labels, so this holds for every objective.
     expect(
       screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
@@ -940,7 +953,9 @@ describe('ActTierZeroWorkbench -- universal gap-closure objectives (2026-06-12)'
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // The generic fallback textarea is labelled with the item's own label.
+    // List-first: select the first decision to reveal the generic fallback
+    // textarea, which is labelled with the item's own label.
+    selectDecision(objective.checklist[0]!.id);
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
       target: { value: 'Bounded planning direction approved for cycle 1.' },
@@ -981,10 +996,9 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
       activeObjectiveId: id,
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its OUTCOME-phrased title heads
-    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
-    // is a no-op for non-safe-verb labels, so this holds for every objective.
+    // List-first: the list mounts with the first item's OUTCOME-phrased title as
+    // a row (no working panel until a row is selected). toOutcomeTitle is a no-op
+    // for non-safe-verb labels, so this holds for every objective.
     expect(
       screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
@@ -1001,7 +1015,9 @@ describe('ActTierZeroWorkbench -- ecovillage (ev-) gap-closure objectives (2026-
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // The generic fallback textarea is labelled with the item's own label.
+    // List-first: select the first decision to reveal the generic fallback
+    // textarea, which is labelled with the item's own label.
+    selectDecision(objective.checklist[0]!.id);
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
       target: { value: 'Bounded financial plan approved for cycle 1.' },
@@ -1062,10 +1078,9 @@ describe('ActTierZeroWorkbench -- orchard (orch-) gap-closure objectives (2026-0
       activeObjectiveId: id,
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its OUTCOME-phrased title heads
-    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
-    // is a no-op for non-safe-verb labels, so this holds for every objective.
+    // List-first: the list mounts with the first item's OUTCOME-phrased title as
+    // a row (no working panel until a row is selected). toOutcomeTitle is a no-op
+    // for non-safe-verb labels, so this holds for every objective.
     expect(
       screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
@@ -1077,7 +1092,9 @@ describe('ActTierZeroWorkbench -- orchard (orch-) gap-closure objectives (2026-0
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // The generic fallback textarea is labelled with the item's own label.
+    // List-first: select the first decision to reveal the generic fallback
+    // textarea, which is labelled with the item's own label.
+    selectDecision(objective.checklist[0]!.id);
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
       target: { value: 'Bounded planting establishment plan approved for cycle 1.' },
@@ -1128,10 +1145,9 @@ describe('ActTierZeroWorkbench -- silvopasture/nursery/homestead (silv-/nur-sec-
       activeObjectiveId: id,
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its OUTCOME-phrased title heads
-    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
-    // is a no-op for non-safe-verb labels, so this holds for every objective.
+    // List-first: the list mounts with the first item's OUTCOME-phrased title as
+    // a row (no working panel until a row is selected). toOutcomeTitle is a no-op
+    // for non-safe-verb labels, so this holds for every objective.
     expect(
       screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
@@ -1143,7 +1159,9 @@ describe('ActTierZeroWorkbench -- silvopasture/nursery/homestead (silv-/nur-sec-
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // The generic fallback textarea is labelled with the item's own label.
+    // List-first: select the first decision to reveal the generic fallback
+    // textarea, which is labelled with the item's own label.
+    selectDecision(objective.checklist[0]!.id);
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
       target: { value: 'Bounded livestock establishment plan approved for cycle 1.' },
@@ -1215,10 +1233,9 @@ describe('ActTierZeroWorkbench -- un-prioritized tail (ag-/ofg-/well-/edu-/con-/
       activeObjectiveId: id,
     });
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
-    expect(screen.getByText(/working on/i)).toBeTruthy();
-    // Default selection = first checklist item; its OUTCOME-phrased title heads
-    // the panel (and the list row), matching the Act decision list. toOutcomeTitle
-    // is a no-op for non-safe-verb labels, so this holds for every objective.
+    // List-first: the list mounts with the first item's OUTCOME-phrased title as
+    // a row (no working panel until a row is selected). toOutcomeTitle is a no-op
+    // for non-safe-verb labels, so this holds for every objective.
     expect(
       screen.getAllByText(toOutcomeTitle(objective!.checklist[0]!.label)).length,
     ).toBeGreaterThan(0);
@@ -1230,7 +1247,9 @@ describe('ActTierZeroWorkbench -- un-prioritized tail (ag-/ofg-/well-/edu-/con-/
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // The generic fallback textarea is labelled with the item's own label.
+    // List-first: select the first decision to reveal the generic fallback
+    // textarea, which is labelled with the item's own label.
+    selectDecision(objective.checklist[0]!.id);
     const ta = screen.getByLabelText(objective.checklist[0]!.label);
     fireEvent.change(ta, {
       target: { value: 'Bounded household-needs plan approved for cycle 1.' },
@@ -1303,7 +1322,8 @@ describe('ActTierZeroWorkbench -- settlement-plan objective (sp- badges + no gen
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // Default selection is c1; SettlementPlanCapture renders in cohort mode.
+    // List-first: select c1; SettlementPlanCapture renders in cohort mode.
+    selectDecision(objective.checklist[0]!.id);
     // The c1 cohort capture is now a structured row register (spCohortRows[]),
     // so "Founding cohort composition" is a SectionEyebrow heading -- not a
     // form-control label. Prove the SettlementPlanCapture cohort branch routed
@@ -1353,8 +1373,9 @@ describe('ActTierZeroWorkbench -- onboarding objective (ob- badges + no generic 
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // Default selection is c1 (application); OnboardingCapture renders --
+    // List-first: select c1 (application); OnboardingCapture renders --
     // the "Add step" button from RegisterList is present (not a generic textarea).
+    selectDecision(objective.checklist[0]!.id);
     expect(screen.getByText(/Add step/i)).toBeTruthy();
     // No generic fallback textarea labelled with the c1 item label
     const c1 = objective.checklist[0]!;
@@ -1401,11 +1422,12 @@ describe('ActTierZeroWorkbench -- capital-plan objective (cp- badges + no generi
       objectives: [objective],
       activeObjectiveId: objective.id,
     });
-    // Default selection is c1 (capitalRequirement); the capture renders -- its
+    // List-first: select c1 (capitalRequirement); the capture renders -- its
     // distinctive AmountRow label "Total founding infrastructure capital
     // required" is present (not a generic fallback textarea). Anchored on the
     // AmountRow label rather than the eyebrow because the eyebrow text overlaps
     // the c1 checklist label ("Define total Phase 1 capital requirement").
+    selectDecision(objective.checklist[0]!.id);
     expect(
       screen.getByText(/Total founding infrastructure capital required/i),
     ).toBeTruthy();
@@ -1428,9 +1450,9 @@ describe('ActTierZeroWorkbench -- capital-plan objective (cp- badges + no generi
 
 describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
   it('threads type-aware resolved vision-classify suggestions into the panel', () => {
-    // Use an objective whose FIRST checklist item is the vision-classify
-    // decision so default selection lands on it (mirrors the labour threading
-    // test, but seeds the item via the objectives override).
+    // Use an objective whose only checklist item is the vision-classify
+    // decision; list-first, we select it to open the panel (mirrors the labour
+    // threading test, but seeds the item via the objectives override).
     const classifyObjective: PlanStratumObjective = {
       ...ACTIVE_OBJECTIVE,
       checklist: [
@@ -1448,6 +1470,7 @@ describe('ActTierZeroWorkbench -- vision-classify suggestion threading', () => {
       primaryTypeId: 'homestead',
       secondaryTypeIds: [],
     });
+    selectDecision('s1-vision-classify');
     // The suggestions the panel should offer == resolveVisionClassifyOptions.
     const expected = resolveVisionClassifyOptions('homestead', []);
     expect(expected.length).toBeGreaterThan(0);
