@@ -148,6 +148,10 @@ import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from '../../act/tier-shell/ActTierZeroWorkbench.js';
+// Tier-0 Declaration orientation (canonical-object cards + objective sequencing),
+// relocated from the DeclarationCenter header band into the right rail (2026-06-22)
+// so the center canvas stays focused on the decision list + working panel.
+import DeclarationOrientationRail from '../../act/tier-shell/DeclarationOrientationRail.js';
 import {
   isTierZeroObjective,
   isTierZeroObjectiveId,
@@ -1446,6 +1450,21 @@ export default function PlanTierShell() {
                 </div>
               ) : (
               <div className={styles.rightRail}>
+                {/* Tier-0 Declaration orientation: the canonical-object cards +
+                    objective-sequencing diagram, relocated from the center header
+                    band (2026-06-22). Persistently at the TOP of the rail (above
+                    the Dashboard/Detail toggle) and gated to the Declaration
+                    workbench only, so it never shows for Reception or editable-map
+                    objectives. Fed the same values as the workbench above; the
+                    sequencing nodes select objectives via handleSelectObjective. */}
+                {showTierZeroWorkbench && workbenchMode === 'declaration' ? (
+                  <DeclarationOrientationRail
+                    objectives={stratumObjectives}
+                    objectiveStatuses={objectiveStatuses}
+                    activeObjectiveId={selectedObjective?.id}
+                    onSelectObjective={handleSelectObjective}
+                  />
+                ) : null}
                 <div
                   className={styles.rightToggle}
                   role="tablist"
