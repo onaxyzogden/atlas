@@ -27,7 +27,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, cleanup, act } from '@testing-library/react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import PlanDataLayers from '../PlanDataLayers.js';
+import PlanDataLayers, { retileStalledSource } from '../PlanDataLayers.js';
 
 const POLY_SOURCE = 'plan-data-poly';
 const POLY_LAYERS = ['plan-data-poly-fill', 'plan-data-poly-line'] as const;
@@ -48,6 +48,11 @@ function makeMap(styleReady = true) {
   const container = document.createElement('div');
 
   return {
+    // Default healthy: loaded() === true keeps the keyless re-tile kick (see
+    // retileStalledSource) gated off, so these remount/basemap-swap tests are
+    // unaffected by it.
+    loaded: vi.fn(() => true),
+    triggerRepaint: vi.fn(),
     getStyle: vi.fn(() => style),
     getSource: vi.fn((id: string) =>
       sources.has(id) ? { setData: vi.fn() } : undefined,
@@ -195,5 +200,80 @@ describe('PlanDataLayers — survives stage remounts + basemap swaps', () => {
     expect(offEvents).toContain('style.load');
     expect(offEvents).toContain('load');
     expect(offEvents).toContain('styledata');
+  });
+});
+
+/**
+ * retileStalledSource — guards the fix for "seed zones from home: the seeded
+ * zones don't render until I toggle the overlay off/on".
+ *
+ * Root cause (verified live on the keyless Esri-raster fallback): when a
+ * previously-empty GeoJSON source receives its first features while the map is
+ * stuck at `loaded() === false`, maplibre's `setData()` -> SourceCache reload
+ * path does NOT request viewport tiles for it, so the features never tile
+ * (`querySourceFeatures` = 0) and never paint until the operator toggles the
+ * overlay (which re-adds the layer and forces a fresh tile request). The proven
+ * minimal kick is `clearTiles()` + `update(transform)` + `triggerRepaint()`,
+ * gated on the exact failure fingerprint (features present, zero tiles) so the
+ * healthy keyed path stays a no-op (no flicker from clearing live tiles).
+ */
+describe('retileStalledSource — paints first features on a stalled keyless map', () => {
+  const SID = 'plan-data-poly';
+
+  /** Minimal map exposing the private surface retileStalledSource reaches. */
+  function makeKickMap(tileKeys: string[]) {
+    const sc = {
+      _tiles: Object.fromEntries(tileKeys.map((k) => [k, {}])),
+      clearTiles: vi.fn(),
+      update: vi.fn(),
+    };
+    const transform = { __t: true };
+    return {
+      map: {
+        triggerRepaint: vi.fn(),
+        transform,
+        style: { _otherSourceCaches: { [SID]: sc } },
+      } as unknown as MaplibreMap,
+      sc,
+      transform,
+    };
+  }
+
+  it('kicks (clearTiles + update + repaint) when the source has features but zero tiles', () => {
+    const { map, sc, transform } = makeKickMap([]);
+    retileStalledSource(map, SID, true);
+    expect(sc.clearTiles).toHaveBeenCalledTimes(1);
+    expect(sc.update).toHaveBeenCalledWith(transform);
+    expect((map as unknown as { triggerRepaint: ReturnType<typeof vi.fn> }).triggerRepaint).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT kick when the source already has tiles (avoids clearing live tiles / flicker)', () => {
+    const { map, sc } = makeKickMap(['0/0/0']);
+    retileStalledSource(map, SID, true);
+    expect(sc.update).not.toHaveBeenCalled();
+    expect(sc.clearTiles).not.toHaveBeenCalled();
+  });
+
+  it('is a no-op when the source has no features', () => {
+    const { map, sc } = makeKickMap([]);
+    retileStalledSource(map, SID, false);
+    expect(sc.update).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the sourceCaches accessor and degrades silently when internals are absent', () => {
+    // sourceCaches (older field name) instead of _otherSourceCaches
+    const sc = { _tiles: {}, clearTiles: vi.fn(), update: vi.fn() };
+    const map = {
+      triggerRepaint: vi.fn(),
+      transform: {},
+      style: { sourceCaches: { [SID]: sc } },
+    } as unknown as MaplibreMap;
+    retileStalledSource(map, SID, true);
+    expect(sc.update).toHaveBeenCalledTimes(1);
+
+    // Missing cache entirely → no throw, no repaint.
+    const bare = { triggerRepaint: vi.fn(), transform: {}, style: {} } as unknown as MaplibreMap;
+    expect(() => retileStalledSource(bare, SID, true)).not.toThrow();
+    expect((bare as unknown as { triggerRepaint: ReturnType<typeof vi.fn> }).triggerRepaint).not.toHaveBeenCalled();
   });
 });

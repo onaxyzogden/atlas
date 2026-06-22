@@ -242,6 +242,60 @@ const SOURCE_PREFIX = 'plan-data-';
 const LAYER_PREFIX = 'plan-data-';
 
 /**
+ * Force a previously-empty GeoJSON source to tile + paint when its first
+ * features arrive on a map that is stuck at `loaded() === false`.
+ *
+ * On the keyless Esri-raster fallback (offline demo / referrer-locked key 403),
+ * the basemap renders but `map.loaded()` can stay false indefinitely. In that
+ * state maplibre's normal `setData()` -> SourceCache reload path does NOT
+ * request viewport tiles for a source that had zero tiles, so the new features
+ * never tile (`querySourceFeatures` = 0) and never paint — they only appear
+ * once the operator toggles the overlay off/on (which re-adds the layer and
+ * forces a fresh tile request). This reproduces the reported "seed zones from
+ * home: zones don't show until I re-toggle the overlay" bug.
+ *
+ * The fix is the minimal operation verified to re-tile+paint such a source:
+ * `clearTiles()` (a no-op when the cache is already empty) + `update(transform)`
+ * to request tiles for the current viewport, then a repaint. It is gated on the
+ * exact failure fingerprint — the source has features but its SourceCache holds
+ * zero tiles — so on the healthy keyed path (where sources tile normally) it is
+ * a no-op and there is no flicker from clearing live tiles. Reaches private
+ * maplibre internals (`style._otherSourceCaches`/`sourceCaches`, `transform`),
+ * so every access is feature-detected and wrapped; on any miss it degrades to
+ * today's behavior.
+ */
+export const retileStalledSource = (
+  map: maplibregl.Map,
+  sid: string,
+  hasFeatures: boolean,
+): void => {
+  if (!hasFeatures) return;
+  try {
+    const style = map.style as unknown as {
+      _otherSourceCaches?: Record<string, unknown>;
+      sourceCaches?: Record<string, unknown>;
+    };
+    const sc = (style?._otherSourceCaches?.[sid] ??
+      style?.sourceCaches?.[sid]) as
+      | {
+          _tiles?: Record<string, unknown>;
+          clearTiles?: () => void;
+          update?: (transform: unknown) => void;
+        }
+      | undefined;
+    if (!sc || typeof sc.update !== 'function') return;
+    // Only kick when the cache failed to tile (empty) — the broken-path
+    // fingerprint. A source that already has tiles updates fine via setData.
+    if (Object.keys(sc._tiles ?? {}).length > 0) return;
+    sc.clearTiles?.();
+    sc.update((map as unknown as { transform: unknown }).transform);
+    map.triggerRepaint();
+  } catch {
+    /* private-internals miss — degrade to default reload behavior */
+  }
+};
+
+/**
  * Maps each plan-data feature `kind` to the Plan module it belongs to, so
  * single-objective focus can drop everything outside the active module.
  * Derived from the per-feature module comments in the FC builder below
@@ -1405,6 +1459,11 @@ export default function PlanDataLayers({
           | undefined;
         if (existing) existing.setData(data);
         else map.addSource(sid, { type: 'geojson', data, promoteId: 'id' });
+        // Keyless/stalled-map kick: paint first-arriving features even while
+        // map.loaded() stays false (see retileStalledSource).
+        if (!map.loaded()) {
+          retileStalledSource(map, sid, (data.features?.length ?? 0) > 0);
+        }
         return sid;
       };
 
