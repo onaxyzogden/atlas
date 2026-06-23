@@ -42,6 +42,12 @@ export interface ActTierStratumSwitcherProps {
   onSelectStratum: (stratumId: string) => void;
   projectTitle: string;
   typeChips?: readonly SpineTypeChip[];
+  /**
+   * OPTIONAL (Plan only). When provided, the PRIMARY type chip becomes a button
+   * that opens the project-type change flow. Absent (Act) -> the chip renders as
+   * a static span, byte-identical to before.
+   */
+  onEditPrimaryType?: () => void;
 }
 
 function StatusDot({ status }: { status: PlanStratumState }): JSX.Element | null {
@@ -73,6 +79,7 @@ export default function ActTierStratumSwitcher({
   onSelectStratum,
   projectTitle,
   typeChips = [],
+  onEditPrimaryType,
 }: ActTierStratumSwitcherProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -163,15 +170,29 @@ export default function ActTierStratumSwitcher({
             <span className={css.projectName}>{projectTitle}</span>
             {typeChips.length > 0 && (
               <span className={css.chips}>
-                {typeChips.map((chip) => (
-                  <span
-                    key={`${chip.kind}:${chip.label}`}
-                    className={css.chip}
-                    data-kind={chip.kind}
-                  >
-                    {chip.label}
-                  </span>
-                ))}
+                {typeChips.map((chip) =>
+                  chip.kind === 'primary' && onEditPrimaryType ? (
+                    <button
+                      key={`${chip.kind}:${chip.label}`}
+                      type="button"
+                      className={css.chip}
+                      data-kind={chip.kind}
+                      data-testid="switcher-edit-primary-type"
+                      title="Change project type"
+                      onClick={onEditPrimaryType}
+                    >
+                      {chip.label}
+                    </button>
+                  ) : (
+                    <span
+                      key={`${chip.kind}:${chip.label}`}
+                      className={css.chip}
+                      data-kind={chip.kind}
+                    >
+                      {chip.label}
+                    </span>
+                  ),
+                )}
               </span>
             )}
           </div>
