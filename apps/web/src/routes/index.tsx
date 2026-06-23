@@ -603,7 +603,10 @@ const validatePlanSearch = (
   if (typeof search.protocol === 'string' && search.protocol) {
     out.protocol = search.protocol;
   }
-  if (search.expandRef === '1') {
+  // TanStack's default search parser coerces a bare numeric value, so
+  // ?expandRef=1 arrives as the NUMBER 1 (not the string '1'); accept both and
+  // normalize to the string sentinel the consumer compares against.
+  if (search.expandRef === '1' || search.expandRef === 1) {
     out.expandRef = '1';
   }
   if (typeof search.armTool === 'string' && search.armTool) {
