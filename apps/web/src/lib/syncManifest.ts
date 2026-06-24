@@ -1275,4 +1275,11 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   // follow-on. Parked here as device-local until that sync is wired; promote
   // to SYNCED_STORES (with a transport) when it is.
   'ogden-community-meeting-place',
+  // Per-project adjustable Mollison zone-ring radii (zoneRingConfigStore,
+  // byProject). Like ogden-community-meeting-place above, this IS project-design
+  // data but is client-first by design: the v3 demo bundle is client-only, and
+  // the store defers server sync until the radii are folded into the normal
+  // project bundle. Parked here as device-local until that transport exists;
+  // promote to SYNCED_STORES (with a transport) when it is.
+  'ogden-atlas-zone-ring-config',
 ]);

@@ -67,19 +67,14 @@ describe('uiStore.viewFocusMode (Operational Role Layer)', () => {
     expect(parsed.state.viewFocusMode).toEqual({ 'proj-a': 'full' });
   });
 
-  it('migrate seeds an empty viewFocusMode for pre-v4 persisted state', () => {
-    const migrated = migrateUIPersistedState(
-      { sidebarGrouping: 'stage3', planToolDockCollapsed: true },
-      3,
-    ) as { viewFocusMode?: unknown };
-    expect(migrated.viewFocusMode).toEqual({});
-  });
-
-  it('migrate leaves an existing viewFocusMode untouched', () => {
-    const existing = { viewFocusMode: { 'proj-a': 'full' } };
-    const migrated = migrateUIPersistedState(existing, 3) as {
-      viewFocusMode?: unknown;
-    };
-    expect(migrated.viewFocusMode).toEqual({ 'proj-a': 'full' });
+  it('migrate does NOT inject viewFocusMode (default-merge supplies it; migrate stays idempotent)', () => {
+    // The per-project viewFocusMode default is supplied by the store's initial
+    // state via zustand's shallow persist-merge, NOT by migrate. Seeding it in
+    // migrate would break the idempotent same-reference contract that
+    // uiStoreMigrate.test.ts pins. A pre-v4 payload passes through untouched.
+    const input = { sidebarGrouping: 'stage3', planToolDockCollapsed: true };
+    const migrated = migrateUIPersistedState(input, 3);
+    expect(migrated).toBe(input);
+    expect((migrated as { viewFocusMode?: unknown }).viewFocusMode).toBeUndefined();
   });
 });

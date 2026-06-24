@@ -142,16 +142,12 @@ export function migrateUIPersistedState(
       persistedState = { ...s, activeDashboardSection: 'map-layers' };
     }
   }
-  if (fromVersion < 4) {
-    // 2026-06-24 — Operational Role Layer adds a per-project `viewFocusMode`
-    // map. Seed it empty for returning users so the persisted shape carries
-    // the key; every project then resolves to its computed default until the
-    // steward explicitly picks a focus.
-    const s = persistedState as { viewFocusMode?: unknown } | null;
-    if (s && s.viewFocusMode === undefined) {
-      persistedState = { ...s, viewFocusMode: {} };
-    }
-  }
+  // v4 (2026-06-24, Operational Role Layer) adds a per-project `viewFocusMode`
+  // map. It needs NO migration action: an absent key is supplied as `{}` by the
+  // store's initial state through zustand's shallow persist-merge, so seeding it
+  // here would be redundant AND would break migrate's idempotent same-reference
+  // contract (return the input unchanged when nothing needs coercing — pinned by
+  // uiStoreMigrate.test.ts). The version bump alone re-stamps the payload shape.
   return persistedState;
 }
 
