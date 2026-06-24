@@ -30,3 +30,13 @@ export const THREE_STREAMS_PROJECT_ID = '00000000-0000-0000-0000-000000357320';
 // uses this sentinel to detect the project and run its client-side seed once
 // per browser (apps/web/src/dev/seedApricotLane.ts).
 export const APRICOT_LANE_PROJECT_ID = '00000000-0000-0000-0000-000000a91c01';
+
+// Homestead — Atlas Sample. A fully-worked, fully-curated homestead fixture
+// for the offline demo (FEATURE_DEMO_OFFLINE → try.atlas.ogden.ag). Unlike the
+// server-backed showcases above, this one ships entirely client-side: the
+// project row + metadata + drawn design cascade to the demo clone, and a
+// client seeder (apps/web/src/dev/seedHomesteadSample.ts) writes the complete
+// Plan/Act/threshold journey onto the clone. First of a per-type series; the
+// `f00d5ead` tail ("food-stead") keeps it mnemonic and distinct from the four
+// ids above. Pinned because the seeders compare against it.
+export const HOMESTEAD_SAMPLE_PROJECT_ID = '00000000-0000-0000-0000-0000f00d5ead';

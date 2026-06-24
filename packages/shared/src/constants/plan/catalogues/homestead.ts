@@ -559,6 +559,10 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ],
       feeds: 'plants-food',
     },
+    // Homestead food-zone design reaches the Plan-stage guild / companion-
+    // planting designer through this objective's REFERENCE section (c2
+    // companion planting, c3 perennial food zones, c5 herb/medicinal zones).
+    legacyCardSectionId: 'plan-guild-builder',
   }),
   obj({
     id: 'hms-s5-energy-shelter-systems',
