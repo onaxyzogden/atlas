@@ -13,6 +13,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { DEMO_MODE_ENABLED, DEMO_OFFLINE_ENABLED, isDemoUser } from './demoSession.js';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import HeaderStageSearch from '../v3/HeaderStageSearch.js';
+import HeaderProjectSelector from './HeaderProjectSelector.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
@@ -27,6 +28,10 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isProjectPage = pathname.startsWith('/project/');
+  const V3_PROJ_RE = /^\/v3\/project\/([^/]+)\/(observe|plan|act|report)/;
+  const v3Match = V3_PROJ_RE.exec(pathname);
+  const v3ProjectId = v3Match?.[1] ?? null;
+  const v3Stage = (v3Match?.[2] ?? null) as 'observe' | 'plan' | 'act' | 'report' | null;
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
 
@@ -49,10 +54,15 @@ export default function AppShell({ children }: AppShellProps) {
       <DemoBanner />
 
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/v3/portfolio" className={styles.logo}>
-          <span className={styles.logoMark}>OGDEN</span>
-          <span className={styles.logoSub}>Land OS</span>
-        </Link>
+        <div className={styles.logoArea}>
+          <Link to="/v3/portfolio" className={styles.logo}>
+            <span className={styles.logoMark}>OGDEN</span>
+            <span className={styles.logoSub}>Land OS</span>
+          </Link>
+          {v3ProjectId && (
+            <HeaderProjectSelector projectId={v3ProjectId} currentStage={v3Stage} />
+          )}
+        </div>
 
         <div className={styles.headerCenter}>
           <HeaderStageSpine />
