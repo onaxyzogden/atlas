@@ -1287,6 +1287,10 @@ export default function ActTierShell() {
                         progressByObjective={progressByObjective}
                         activeObjectiveId={objectiveId}
                         onSelectObjective={handleSelectObjective}
+                        scopedDomains={
+                          viewScope.isScoped ? viewScope.scope : undefined
+                        }
+                        surfaceMap={surfaceMap}
                       />
                       <ProtocolMapMarkers
                         map={map}
