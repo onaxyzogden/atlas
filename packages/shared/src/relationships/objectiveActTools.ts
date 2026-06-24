@@ -490,13 +490,16 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // hms-s5-energy-shelter-systems. gap: all.
   'hms-s4-energy-shelter-resilience': [],
   // S5 — food production zones & garden layout: the core spatial design — beds
-  // (kitchen/annual/herb), crop areas, perennial orchards, production zones,
-  // protected-growing building, compost integration, mulch paths.
+  // (kitchen/annual/herb), crop areas, perennial orchards, guild / companion
+  // plantings (guild — c2 companion planting, c3 perennial food zones, c5
+  // herb/medicinal), production zones, protected-growing building, compost
+  // integration, mulch paths. Carries legacyCardSectionId 'plan-guild-builder'.
   'hms-s5-food-zones-layout': [
     'zone',
     'beds',
     'crops',
     'orchards',
+    'guild',
     'buildings',
     'compost',
     'path',

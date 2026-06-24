@@ -23,6 +23,7 @@ import {
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
 import { useBasemapStore } from "../observe/components/measure/useMapToolStore.js";
+import { useKeyedStyleErrorFallback } from "../_shared/map/useKeyedStyleErrorFallback.js";
 import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import css from "./DiagnoseMap.module.css";
 
@@ -107,6 +108,13 @@ export default function DiagnoseMap({
   // layers) the steward had just placed — a Polygon/Building adopt would
   // appear briefly and then vanish.
   const appliedBasemapRef = useRef(basemap);
+
+  // Recover from a keyed basemap whose style 403s (e.g. a referrer-locked
+  // MapTiler key on localhost): fall back to keyless Satellite so the style
+  // loads and the draw engine attaches. Without this the map silently dies and
+  // every draw tool (zone-seed included) is starved. The basemap-swap effect
+  // below picks up the store change and runs setStyle to the keyless style.
+  useKeyedStyleErrorFallback(map);
 
   // Derive viewport from boundary when available; fall back to props otherwise.
   const { initialCenter, effectiveCentroid } = useMemo(() => {

@@ -10,6 +10,7 @@
  */
 
 import type { LandZone } from '../../../../store/zoneStore.js';
+import type { ZoneRingRadii } from '../../layers/zoneRingConstants.js';
 
 export interface ZoneGeneratorContext {
   projectId: string;
@@ -23,6 +24,14 @@ export interface ZoneGeneratorContext {
    * chooses where the rings grow from instead of the generator guessing.
    */
   anchorPoint?: [number, number];
+  /**
+   * Adjustable home + Z1–Z5 ring radii for this seed. When omitted the
+   * generator uses `DEFAULT_RING_RADII` (the canonical Mollison ladder),
+   * so untouched callers get identical output. The seed tool threads the
+   * steward's chosen radii here; the resize editor re-runs the same band
+   * math directly.
+   */
+  ringRadii?: ZoneRingRadii;
   /**
    * Goal-tree archetype (e.g. `'regenerative-farm'`). Reserved as the
    * archetype-bias hook; v1 generators use the Z-level default category

@@ -35,6 +35,8 @@ import {
   type LandZone,
   type ZoneCategory,
 } from '../../../store/zoneStore.js';
+import type { ZoneRingRadii } from './zoneRingConstants.js';
+import { scaleRadii } from '../../../store/zoneRingConfigStore.js';
 import {
   PATH_TYPE_CONFIG,
   type DesignPath,
@@ -193,6 +195,98 @@ export function buildZoneEditSchema(
     },
     onCancel: () => {
       /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Seeded-ring resize ----------
+//
+// The after-placement counterpart to the seed tool's RingRadiiFields:
+// an overall-scale multiplier plus an expandable per-ring panel. The
+// inline-form host can't embed the React component, so the same control
+// is expressed as FieldSpecs here — both share `scaleRadii` for the
+// scale → radii math. Editing the scale cross-fills the six per-ring
+// inputs (via `onValuesChange`); editing a per-ring input leaves the
+// scale untouched. The clamp + recompute happen in the save handler.
+
+const RING_RESIZE_ROWS: { key: keyof ZoneRingRadii; label: string }[] = [
+  { key: 'homeM', label: 'Home centre' },
+  { key: 'z1M', label: 'Z1 — Daily touch' },
+  { key: 'z2M', label: 'Z2 — Weekly touch' },
+  { key: 'z3M', label: 'Z3 — Main crops' },
+  { key: 'z4M', label: 'Z4 — Forage' },
+  { key: 'z5M', label: 'Z5 — Wilderness' },
+];
+
+export function buildRingResizeSchema(
+  radii: ZoneRingRadii,
+  onSave: (next: ZoneRingRadii) => void,
+): Omit<InlineFormPayload, 'anchor'> {
+  const ringFields: FieldSpec[] = RING_RESIZE_ROWS.map((r) => ({
+    key: r.key,
+    label: r.label,
+    kind: 'number',
+    suffix: 'm',
+  }));
+  const num = (
+    values: Record<string, string | number>,
+    key: keyof ZoneRingRadii,
+  ): number => {
+    const n = Number(values[key]);
+    return Number.isFinite(n) && n > 0 ? n : radii[key];
+  };
+  return {
+    title: 'Resize rings',
+    fields: [
+      {
+        key: 'scale',
+        label: 'Overall scale (×)',
+        kind: 'number',
+        placeholder: '1.0',
+      },
+      {
+        key: 'perRing',
+        label: '',
+        kind: 'disclosure',
+        triggerLabel: 'Per-ring sizes',
+        children: ringFields,
+      },
+    ],
+    initial: {
+      scale: 1,
+      homeM: Math.round(radii.homeM),
+      z1M: Math.round(radii.z1M),
+      z2M: Math.round(radii.z2M),
+      z3M: Math.round(radii.z3M),
+      z4M: Math.round(radii.z4M),
+      z5M: Math.round(radii.z5M),
+    },
+    onValuesChange: (_next, _prev, changed) => {
+      // Scale multiplies the canonical ladder into all six fields; a
+      // direct per-ring edit is left alone.
+      if (changed.key !== 'scale') return null;
+      const scaled = scaleRadii(Number(changed.value));
+      return {
+        homeM: Math.round(scaled.homeM),
+        z1M: Math.round(scaled.z1M),
+        z2M: Math.round(scaled.z2M),
+        z3M: Math.round(scaled.z3M),
+        z4M: Math.round(scaled.z4M),
+        z5M: Math.round(scaled.z5M),
+      };
+    },
+    onSave: (values) => {
+      onSave({
+        homeM: num(values, 'homeM'),
+        z1M: num(values, 'z1M'),
+        z2M: num(values, 'z2M'),
+        z3M: num(values, 'z3M'),
+        z4M: num(values, 'z4M'),
+        z5M: num(values, 'z5M'),
+      });
+    },
+    onCancel: () => {
+      /* no-op — the zones already exist; cancel just closes the popover */
     },
   };
 }

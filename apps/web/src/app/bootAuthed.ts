@@ -30,6 +30,7 @@ import '../dev/seedThreeStreamsFarm.js';
 import '../dev/seedApricotLane.js';
 import '../dev/seedMtcObserveBaseline.js';
 import '../dev/seedMtcRotationFixture.js';
+import '../dev/seedHomesteadSample.js';
 
 import { useAuthStore } from '../store/authStore.js';
 import {

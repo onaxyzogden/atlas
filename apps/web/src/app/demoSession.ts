@@ -14,6 +14,7 @@
  */
 
 import type { ApiAuthUser } from '../lib/apiClient.js';
+import { HOMESTEAD_SAMPLE_PROJECT_ID } from '@ogden/shared';
 
 /**
  * True only when the build was produced with FEATURE_DEMO_MODE=true. Vite's
@@ -211,10 +212,12 @@ export async function maybeCloneBuiltinsForDemo(
     { useAuthStore },
     { useProjectStore },
     { seedBuiltinObserveData },
+    { seedHomesteadObserveData },
   ] = await Promise.all([
     import('../store/authStore.js'),
     import('../store/projectStore.js'),
     import('../data/builtinSampleObserveData.js'),
+    import('../dev/seedHomesteadObserveData.js'),
   ]);
 
   const user = useAuthStore.getState().user;
@@ -227,11 +230,12 @@ export async function maybeCloneBuiltinsForDemo(
 
   const house351 = projects.find((p) => p.serverId === SAMPLE_PROJECT_SERVER_ID);
   const mtc = projects.find((p) => p.id === 'mtc');
+  const homestead = projects.find((p) => p.id === HOMESTEAD_SAMPLE_PROJECT_ID);
 
-  // If neither builtin is in the store yet, bail — the other trigger will retry.
-  if (!house351 && !mtc) return;
+  // If no builtin is in the store yet, bail — the other trigger will retry.
+  if (!house351 && !mtc && !homestead) return;
 
-  for (const builtin of ([house351, mtc] as const).filter(Boolean)) {
+  for (const builtin of ([house351, mtc, homestead] as const).filter(Boolean)) {
     const clone = duplicateProject(builtin!.id, builtin!.name);
     if (!clone) continue;
 
@@ -244,7 +248,15 @@ export async function maybeCloneBuiltinsForDemo(
     }));
 
     // Seed rich observe data so demo users start with explore-stage content.
-    seedBuiltinObserveData(clone.id);
+    // The homestead carries its own location-specific Observe fixture; every
+    // other builtin uses the shared 351-House-shaped substrate. (The homestead
+    // clone's Plan/Act/threshold completion is seeded separately by the
+    // auto-run hook in seedHomesteadSample.ts, keyed on the clone's metadata.)
+    if (builtin!.id === HOMESTEAD_SAMPLE_PROJECT_ID) {
+      seedHomesteadObserveData(clone.id);
+    } else {
+      seedBuiltinObserveData(clone.id);
+    }
   }
 
   localStorage.setItem(flagKey, '1');

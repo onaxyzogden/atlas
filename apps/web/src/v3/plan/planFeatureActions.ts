@@ -46,7 +46,14 @@ import {
   buildHabitatFeatureEditSchema,
   buildLineFeatureEditSchema,
   buildSlopeReclassifySchema,
+  buildRingResizeSchema,
 } from './layers/inlineEditSchemas.js';
+import { useZoneRingConfigStore } from '../../store/zoneRingConfigStore.js';
+import { bandsFromRadii, ringCircle } from './layers/zoneRingConstants.js';
+import { buildRingZoneGeometries } from './engine/zoneGenerators/ringSeedGenerator.js';
+import type { PolyFeature } from './engine/zoneGenerators/parcelGeometry.js';
+import type { LandZone } from '../../store/zoneStore.js';
+import type { ZoneRingRadii } from './layers/zoneRingConstants.js';
 import {
   resolveSilvopastureHosts,
   listHostsForSelection,
@@ -246,6 +253,104 @@ function slopeReclassifyHandler(
   };
 }
 
+/** Resolve a project's ring-seed home centre (the anchor every ring grows
+ *  from). Prefers the explicit `isHomeCentre` flag, falls back to a Z0 zone. */
+function findHomeCentre(zones: LandZone[], projectId: string): LandZone | null {
+  const mine = zones.filter((z) => z.projectId === projectId);
+  return (
+    mine.find((z) => z.isHomeCentre) ??
+    mine.find((z) => z.permacultureZone === 0) ??
+    null
+  );
+}
+
+/**
+ * Re-grow the whole seeded ring set in place from the home anchor at the
+ * given radii — the "whole ring set together" resize. The home disc (Z0)
+ * and the Z1–Z5 annuli are recomputed via the SAME `buildRingZoneGeometries`
+ * the seeder uses, so resized rings stay nested and never cover hand-drawn
+ * work or the home centre. Only `ring-seed` zones are touched; each existing
+ * ring is matched by its Z-level and gets new geometry + area, preserving
+ * its name / category / notes / any reshape.
+ */
+export function recomputeRingZones(
+  projectId: string,
+  radii: ZoneRingRadii,
+): void {
+  const store = useZoneStore.getState();
+  const mine = store.zones.filter((z) => z.projectId === projectId);
+  const home = findHomeCentre(mine, projectId);
+  if (!home) return;
+  const center = turf.centroid(
+    turf.feature(home.geometry),
+  ) as GeoJSON.Feature<GeoJSON.Point>;
+
+  // New Z0 disc — also a blocker for the annuli, exactly as the seeder.
+  const homeDisc = ringCircle(center, radii.homeM) as PolyFeature;
+  if (home.seedProvenance === 'ring-seed') {
+    store.updateZone(home.id, {
+      geometry: homeDisc.geometry,
+      areaM2: turf.area(homeDisc),
+    });
+  }
+
+  // Hand-drawn / non-ring work the resized annuli must not cover, plus the
+  // new home disc. (Old ring-seed annuli are NOT blockers — we replace them.)
+  const blockers: PolyFeature[] = mine
+    .filter((z) => z.seedProvenance !== 'ring-seed')
+    .map((z) => turf.feature(z.geometry) as PolyFeature);
+  blockers.push(homeDisc);
+
+  const byLevel = new Map(
+    buildRingZoneGeometries(center, bandsFromRadii(radii), blockers).map(
+      (b) => [b.zLevel, b.geometry] as const,
+    ),
+  );
+  for (const z of mine) {
+    if (z.seedProvenance !== 'ring-seed') continue;
+    if (z.permacultureZone == null || z.permacultureZone === 0) continue;
+    const geom = byLevel.get(z.permacultureZone as 1 | 2 | 3 | 4 | 5);
+    if (!geom) continue; // band collapsed to a sliver — keep the old geometry
+    store.updateZone(z.id, {
+      geometry: geom,
+      areaM2: turf.area(turf.feature(geom)),
+    });
+  }
+}
+
+/** "Resize rings" editor — only for seeded (`ring-seed`) zones. Opens the
+ *  scale + per-ring form prefilled from the project's current radii; on save
+ *  it persists the radii (so the overlay follows) and re-grows the whole set
+ *  from the home anchor. Returns null for hand-drawn zones (no edit handler). */
+function ringResizeHandler(item: PlanSelectionItem): FeatureEditHandler | null {
+  const zones = useZoneStore.getState().zones;
+  const zone = zones.find((z) => z.id === item.id);
+  if (!zone || zone.seedProvenance !== 'ring-seed') return null;
+  const projectId = zone.projectId;
+  if (!findHomeCentre(zones, projectId)) return null;
+  return {
+    title: 'Resize rings',
+    run: () => {
+      const home = findHomeCentre(useZoneStore.getState().zones, projectId);
+      if (!home) return;
+      const centroid = turf.centroid(turf.feature(home.geometry));
+      const [lng, lat] = centroid.geometry.coordinates as [number, number];
+      const current = useZoneRingConfigStore.getState().getRadii(projectId);
+      useInlineFormStore.getState().open({
+        ...buildRingResizeSchema(current, (next) => {
+          useZoneRingConfigStore.getState().setRadii(projectId, next);
+          // Recompute from the clamped, persisted value (not the raw form).
+          recomputeRingZones(
+            projectId,
+            useZoneRingConfigStore.getState().getRadii(projectId),
+          );
+        }),
+        anchor: [lng, lat],
+      });
+    },
+  };
+}
+
 export const PLAN_FEATURE_ACTIONS: Record<PlanSelectionKind, FeatureActionConfig> = {
   guild: {
     label: 'Guild',
@@ -264,6 +369,9 @@ export const PLAN_FEATURE_ACTIONS: Record<PlanSelectionKind, FeatureActionConfig
     label: 'Zone',
     supportsVertexEdit: 'polygon',
     remove: (item) => useZoneStore.getState().deleteZone(item.id),
+    // Seeded rings get a "Resize rings" editor (whole set re-grows together);
+    // hand-drawn zones return null → no count-label editor, as before.
+    getEditHandler: (item) => ringResizeHandler(item),
   },
   crop: {
     label: 'Crop area',

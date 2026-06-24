@@ -47,6 +47,13 @@
   z-index: var(--z-sticky);
 }
 
+/* ─── Logo area (logo link + optional project selector) ────────────────── */
+.logoArea {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 /* ─── Logo ─────────────────────────────────────────────────────────────── */
 .logo {
   text-decoration: none;

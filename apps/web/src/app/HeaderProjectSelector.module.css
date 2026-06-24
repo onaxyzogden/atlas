@@ -1,0 +1,130 @@
+/* ─── Root wrapper ──────────────────────────────────────────────────────── */
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-inline-start: var(--space-2);
+}
+
+/* ─── Trigger button ────────────────────────────────────────────────────── */
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  height: auto;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.trigger:hover {
+  color: var(--color-text);
+  border-color: var(--color-neutral-300);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: transform 120ms ease;
+}
+
+/* ─── Popover ───────────────────────────────────────────────────────────── */
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  z-index: 300;
+  padding: var(--space-1) 0;
+}
+
+/* ─── Current project row (non-interactive) ─────────────────────────────── */
+.currentRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+/* ─── Other project rows ────────────────────────────────────────────────── */
+.projectRow {
+  display: block;
+  width: 100%;
+  padding: 6px var(--space-3);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 80ms ease, color 80ms ease;
+}
+
+.projectRow:hover {
+  background: var(--color-surface-hover, rgba(255, 255, 255, 0.06));
+  color: var(--color-text);
+}
+
+.projectRow:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+/* ─── Divider ───────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-1) 0;
+}
+
+/* ─── Footer link ───────────────────────────────────────────────────────── */
+.footer {
+  padding: 6px var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.footer a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.footer a:hover {
+  color: var(--color-text);
+}
+
+/* ─── Mobile: hide name text, keep chevron ──────────────────────────────── */
+@media (max-width: 768px) {
+  .name {
+    display: none;
+  }
+}

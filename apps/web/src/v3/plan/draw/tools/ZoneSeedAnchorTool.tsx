@@ -8,21 +8,29 @@
  * Mollison Z0–Z5 rings are seeded around it (un-clipped — trimming to the
  * parcel is a separate, explicit action).
  *
- * One-shot: capture the point → run the `ring-seed` generator → addZone
- * each draft → disarm. No inline form; refinement happens per-zone via
- * the normal selection floater afterwards.
+ * One-shot: set the ring sizes (overall-scale slider + optional per-ring
+ * fields) → capture the point → run the `ring-seed` generator with those
+ * radii → addZone each draft → disarm. Refinement still happens per-zone
+ * via the normal selection floater (incl. "Resize rings") afterwards.
  */
 
+import { useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
+import {
+  useZoneRingConfigStore,
+  clampRingRadii,
+  type ZoneRingRadii,
+} from '../../../../store/zoneRingConfigStore.js';
 import { runZoneGenerator } from '../../engine/zoneGenerators/index.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { toast } from '../../../../components/Toast.js';
+import RingRadiiFields from '../RingRadiiFields.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -40,6 +48,15 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, 
   const addZone = useZoneStore((s) => s.addZone);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
+  // Draft radii for this seed: start from any persisted per-project value,
+  // else the canonical Mollison ladder. Held in a ref too because the
+  // draw-tool `onComplete` closure is captured once (stale-state guard).
+  const [radii, setRadii] = useState<ZoneRingRadii>(() =>
+    useZoneRingConfigStore.getState().getRadii(projectId),
+  );
+  const radiiRef = useRef(radii);
+  radiiRef.current = radii;
+
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
@@ -48,11 +65,16 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, 
     onComplete: (geom) => {
       const anchorPoint = geom.coordinates as [number, number];
       const project = projects.find((p) => p.id === projectId);
+      // Commit the chosen radii first so the reference overlay (and any
+      // later "Resize rings" edit) follow the same diameters we seed at.
+      const ringRadii = clampRingRadii(radiiRef.current);
+      useZoneRingConfigStore.getState().setRadii(projectId, ringRadii);
       const seeded = runZoneGenerator('ring-seed', {
         projectId,
         parcelBoundary: project?.parcelBoundaryGeojson ?? null,
         existingZones: zones,
         anchorPoint,
+        ringRadii,
       });
       seeded.forEach((z) =>
         addZone({ ...z, sourceObjectiveId: sourceObjectiveId ?? undefined }),
@@ -102,9 +124,10 @@ export default function ZoneSeedAnchorTool({ map, projectId, sourceObjectiveId, 
     >
       <span className={css.title}>Seed zones from home</span>
       <span className={css.hint}>
-        Click where the home centre sits — full Z0–Z5 rings grow from
-        there. Trim or clear them afterwards.
+        Set the ring sizes, then click where the home centre sits — full
+        Z0–Z5 rings grow from there. Resize, trim, or clear them afterwards.
       </span>
+      <RingRadiiFields value={radii} onChange={setRadii} />
     </div>
   );
 }

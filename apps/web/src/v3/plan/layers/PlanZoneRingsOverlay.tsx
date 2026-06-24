@@ -12,9 +12,11 @@
  *
  * Defaults are intentionally rough — a steward planning a Z2 wheelbarrow
  * orchard wants to see whether their proposed orchard polygon falls
- * inside the 100 m ring, not a precise geodesic computation. The values
- * are constants here; if a project ever needs custom distances the
- * fix is to lift them onto the LandZone schema.
+ * inside the 100 m ring, not a precise geodesic computation. They are no
+ * longer fixed, though: the rings FOLLOW the per-project adjustable radii
+ * in `zoneRingConfigStore` (a steward can re-size them before/after
+ * seeding), defaulting to the Mollison ladder when untouched — so the
+ * reference rings and the seeded zones always agree.
  *
  * Visibility is gated on the global `zoneRings` toggle in
  * `useMatrixTogglesStore`. Idempotent ensure-on-styledata so basemap
@@ -30,7 +32,12 @@ import * as turf from '@turf/turf';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
-import { ZONE_RING_BANDS, ringCircle } from './zoneRingConstants.js';
+import { useZoneRingConfigStore } from '../../../store/zoneRingConfigStore.js';
+import {
+  DEFAULT_RING_RADII,
+  bandsFromRadii,
+  ringCircle,
+} from './zoneRingConstants.js';
 
 const SOURCE_ID = 'plan-zone-rings-source';
 const CASING_LAYER = 'plan-zone-rings-line-casing';
@@ -47,14 +54,21 @@ interface Props {
 export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.zoneRings);
   const zones = useZoneStore((s) => s.zones);
+  // Follow the per-project adjustable radii so the reference rings track
+  // whatever the steward set (default = the Mollison ladder). Reactive:
+  // a resize re-renders the overlay in lockstep with the seeded zones.
+  const radii = useZoneRingConfigStore(
+    (s) => s.byProject[projectId] ?? DEFAULT_RING_RADII,
+  );
 
   const fc = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
+    const bands = bandsFromRadii(radii);
     for (const z of zones) {
       if (z.projectId !== projectId) continue;
       if (z.permacultureZone !== 0) continue;
       const center = turf.centroid(z.geometry);
-      for (const band of ZONE_RING_BANDS) {
+      for (const band of bands) {
         const ring = ringCircle(center, band.outerM);
         ring.properties = {
           radiusM: band.outerM,
@@ -66,7 +80,7 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
       }
     }
     return { type: 'FeatureCollection', features };
-  }, [zones, projectId]);
+  }, [zones, projectId, radii]);
 
   useEffect(() => {
     if (!map) return;

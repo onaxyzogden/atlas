@@ -15,6 +15,7 @@ import {
   resolveProjectObjectives,
   computeAllObjectiveStatuses,
   findProjectType,
+  HOMESTEAD_SAMPLE_PROJECT_ID,
   type CreateProjectInput,
   type ProjectMetadata,
   type QueuedTeamInvite,
@@ -43,6 +44,7 @@ import {
 } from './planStratumStore.js';
 import { seedCuratedMtcActionsIfEmpty } from '../v3/act/field-action/seedCuratedMtcActions.js';
 import { seedMtcObserveDataPoints } from '../data/builtinObserveDataPoints.js';
+import { seedHomesteadDesign } from '../dev/seedHomesteadDesign.js';
 import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
@@ -1267,6 +1269,7 @@ export const useProjectStore = create<ProjectState>()(
 // 3) is no longer needed — see ADDENDUM 6.
 useProjectStore.persist.onFinishHydration(() => {
   seedMtcDemo();
+  seedHomesteadSampleProject();
   void hydrateBuiltins();
 });
 
@@ -1358,6 +1361,140 @@ function seedMtcDemo(): void {
   // the 351-House fixture) now that builtins default to the dashboard shell.
   // Idempotent merge-by-id replay into the data-point store.
   seedMtcObserveDataPoints('mtc');
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Homestead — Atlas Sample. A fully-worked homestead fixture for the offline
+// demo. The work is split across the builtin/clone boundary because
+// `duplicateProject` cascade-clones metadata + design + boundary but NOT the
+// `byProject` progress stores:
+//   • Here we register the canonical builtin row (record + completion metadata
+//     + boundary + drawn permaculture zones). All of this CASCADES to the
+//     visitor's demo clone.
+//   • `dev/seedHomesteadSample.ts` writes the Plan/Act/threshold completion
+//     state onto the CLONE id (it scans `metadata.instantiatedFromTemplate`).
+//
+// Parcel boundary + permaculture zones 0–5 are OPERATOR-CAPTURED (drawn live in
+// OLOS, then transcribed). Until captured they are null/empty and
+// `seedHomesteadDesign` is a no-op — the row still lists in the portfolio and
+// the spine still resolves all 34 objectives (resolution keys off
+// `projectTypeRecord` only).
+const HOMESTEAD_SAMPLE_BOUNDARY: GeoJSON.FeatureCollection | null = null;
+
+// Structured metadata (typed as ProjectMetadata). `instantiatedFromTemplate`
+// is added via spread in HOMESTEAD_SAMPLE_SEED below — it is a passthrough key
+// not in the static type, and a spread relaxes the excess-property check (same
+// idiom as features/project/wizard/StepNotes.tsx).
+//
+// The vision vocab here is intentionally lightweight; the curated vision /
+// persona pass and location facts (centerLat/Lng, hardinessZone, climate) land
+// with the operator-chosen site. What matters now: `projectTypeRecord` drives
+// the 34-objective resolution, and `visionProfile` / `team` feed the Stratum-1
+// effective-progress derivations the completion seeder builds on.
+const HOMESTEAD_SAMPLE_METADATA: ProjectMetadata = {
+  wizardStatus: 'complete',
+  projectTypeRecord: {
+    primaryTypeId: 'homestead',
+    secondaryTypeIds: [],
+    tensionAcknowledgements: [],
+    versionHistory: [],
+    reopeningAcknowledgements: [],
+  },
+  visionProfile: {
+    primaryType: 'homestead',
+    secondaryTypes: [],
+    landIdentity: [
+      'A family homestead stewarded as an amanah — feeding the household first, building soil and water security, and leaving the land more alive each year.',
+    ],
+    primaryOutcomes: ['household_food_security', 'soil_regeneration', 'water_resilience'],
+    systemsInScope: {
+      food: ['annual_vegetables', 'perennial_fruit', 'staple_crops'],
+      animals: ['poultry', 'small_ruminants'],
+      water: ['rainwater_harvesting', 'swales'],
+      built: ['existing_dwelling', 'storage'],
+    },
+    economicIntentLevel: 'subsistence_plus',
+    values: ['stewardship', 'self_reliance', 'family'],
+    developmentStyle: 'incremental',
+    willLiveOnLand: 'yes_full_time',
+    livestock: {
+      roles: ['eggs', 'meat', 'land_management'],
+      intensity: 'low',
+      managementStyle: 'rotational',
+      priorities: ['household_provision', 'soil_fertility'],
+    },
+    budgetRange: 'modest',
+    timelineProgress: 'three_to_five_years',
+  },
+  team: {
+    primarySteward: { name: 'Yusuf & Amina', email: 'steward@homestead.example' },
+    coStewards: [{ name: 'Bilal (eldest son)', email: 'bilal@homestead.example' }],
+    queuedInvites: [
+      {
+        name: 'Local water-systems contractor',
+        email: 'contractor@example.org',
+        role: 'contractor',
+        queuedAt: '2026-01-15T09:00:00.000Z',
+      },
+    ],
+  },
+};
+
+export const HOMESTEAD_SAMPLE_SEED: LocalProject = {
+  id: HOMESTEAD_SAMPLE_PROJECT_ID,
+  name: 'Homestead — Atlas Sample',
+  description:
+    'A fully-worked family homestead — the complete OLOS journey end to end: vision, land reading, system design, and a launch-ready plan, all under stewardship of the land as an amanah.',
+  status: 'active',
+  projectType: 'homestead',
+  country: 'CA',
+  provinceState: 'ON',
+  conservationAuthId: null,
+  address: null,
+  parcelId: null,
+  acreage: null,
+  dataCompletenessScore: null,
+  hasParcelBoundary: false,
+  isBuiltin: true,
+  createdAt: '2026-01-10T00:00:00.000Z',
+  updatedAt: '2026-06-20T00:00:00.000Z',
+  parcelBoundaryGeojson: HOMESTEAD_SAMPLE_BOUNDARY,
+  ownerNotes: null,
+  zoningNotes: null,
+  accessNotes: null,
+  waterRightsNotes: null,
+  visionStatement: null,
+  units: 'metric',
+  attachments: [],
+  // `instantiatedFromTemplate` is the flag the clone seeder scans for. Added via
+  // spread so the excess-property check is relaxed (see note above).
+  metadata: { ...HOMESTEAD_SAMPLE_METADATA, instantiatedFromTemplate: 'homestead-sample' },
+};
+
+function seedHomesteadSampleProject(): void {
+  const existing = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === HOMESTEAD_SAMPLE_PROJECT_ID);
+  if (!existing) {
+    useProjectStore.setState((state) => ({
+      projects: [...state.projects, HOMESTEAD_SAMPLE_SEED],
+    }));
+  } else if (!existing.parcelBoundaryGeojson && HOMESTEAD_SAMPLE_BOUNDARY) {
+    // Backfill the captured boundary onto a row persisted before it existed.
+    // Idempotent; never overwrites a boundary the visitor drew themselves.
+    useProjectStore.setState((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === HOMESTEAD_SAMPLE_PROJECT_ID
+          ? { ...p, parcelBoundaryGeojson: HOMESTEAD_SAMPLE_BOUNDARY, hasParcelBoundary: true }
+          : p,
+      ),
+    }));
+  }
+  // Seed the operator-captured permaculture zones 0–5 + the existing homebase
+  // structure onto the canonical builtin id so they CASCADE to the demo clone
+  // via cascadeCloneProject. No-op until the geometry is captured (Phase 4),
+  // idempotent once it is.
+  seedHomesteadDesign(HOMESTEAD_SAMPLE_PROJECT_ID);
 }
 
 // Local fallback used when the API is unreachable (e.g. dev server not
