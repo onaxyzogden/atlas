@@ -1,0 +1,39 @@
+.root {
+  margin-bottom: 16px;
+}
+
+.hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-panel-muted);
+  margin: 0 0 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  border: 1px solid var(--color-panel-card-border);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.chip:hover {
+  border-color: rgba(212, 175, 95, 0.4);
+}
+
+.chip[data-active='true'] {
+  background: rgba(212, 175, 95, 0.15);
+  color: var(--color-gold-brand);
+  border-color: rgba(212, 175, 95, 0.4);
+}

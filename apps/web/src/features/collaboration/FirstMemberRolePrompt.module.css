@@ -1,0 +1,45 @@
+.root {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: rgba(212, 175, 95, 0.1);
+  border: 1px solid rgba(212, 175, 95, 0.28);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-gold-brand);
+  margin-bottom: 3px;
+}
+
+.text {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-panel-text);
+  margin: 0;
+}
+
+.dismiss {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-panel-muted);
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.dismiss:hover {
+  color: var(--color-panel-text);
+}

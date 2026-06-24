@@ -8,11 +8,18 @@ import { useMemberStore } from '../../store/memberStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import type { ProjectRole } from '@ogden/shared';
+import {
+  operationalRolesApplyTo,
+  OPERATIONAL_ROLE_DEFS,
+  type ProjectRole,
+} from '@ogden/shared';
 import p from '../../styles/panel.module.css';
 import { role as roleToken, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import UserManagementReadinessCard from './UserManagementReadinessCard.js';
+import MyOperationalRoleCard from './MyOperationalRoleCard.js';
+import FirstMemberRolePrompt from './FirstMemberRolePrompt.js';
+import { useIsSoloProject } from './useIsSoloProject.js';
 
 interface MembersTabProps {
   project: LocalProject;
@@ -74,6 +81,15 @@ export default function MembersTab({ project }: MembersTabProps) {
 
   const isOwner = myRole === 'owner';
 
+  // Operational Role Layer (ADR 2026-06-24): suppressed entirely on a solo
+  // project. When a team exists, the viewer sets their own focus here, and a
+  // one-time nudge appears while any assignable member still lacks a focus.
+  const solo = useIsSoloProject(projectId);
+  const layerApplies = !solo && operationalRolesApplyTo(myRole);
+  const anyAssignableUnfocused = members.some(
+    (m) => operationalRolesApplyTo(m.role) && (m.operationalRoles?.length ?? 0) === 0,
+  );
+
   const handleInvite = useCallback(async () => {
     if (!inviteEmail.trim()) return;
     setInviteError(null);
@@ -112,6 +128,15 @@ export default function MembersTab({ project }: MembersTabProps) {
     <div>
       {/* §26 user-management readiness audit (sibling of AuditLogCard) */}
       <UserManagementReadinessCard project={project} />
+
+      {/* Operational Role Layer -- self focus + first-team nudge (ADR 2026-06-24).
+          Both gated on a non-solo project where the layer applies to the viewer. */}
+      {layerApplies && (
+        <>
+          {anyAssignableUnfocused && <FirstMemberRolePrompt projectId={projectId} />}
+          <MyOperationalRoleCard projectId={projectId} />
+        </>
+      )}
 
       {/* Invite form (owner only) */}
       {isOwner && (
@@ -214,6 +239,27 @@ export default function MembersTab({ project }: MembersTabProps) {
                 <div className={`${p.text10} ${p.muted}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {m.email}
                 </div>
+                {/* Operational-role chips (ADR 2026-06-24) -- hidden on solo. */}
+                {!solo && (m.operationalRoles?.length ?? 0) > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                    {m.operationalRoles!.map((slug) => {
+                      const def = OPERATIONAL_ROLE_DEFS[slug];
+                      if (!def) return null;
+                      return (
+                        <span
+                          key={slug}
+                          style={{
+                            fontSize: 9, fontWeight: 600, color: 'var(--color-gold-brand)',
+                            background: 'rgba(212,175,95,0.12)', padding: '1px 6px',
+                            borderRadius: 4, whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {def.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Role badge / selector */}
