@@ -103,6 +103,7 @@ export * from './constants/dataSources.js';
 export * from './constants/flags.js';
 export * from './constants/system.js';
 export * from './constants/universalDomain.js';
+export * from './constants/collaboration/operationalRoles.js';
 
 // Store mirrors / payload helpers
 export * from './store-mirrors/pickHelpers.js';

@@ -54,6 +54,26 @@ export const ProjectRoleSpec = z.enum([
 ]);
 export type ProjectRoleSpec = z.infer<typeof ProjectRoleSpec>;
 
+/**
+ * OperationalRole — the per-membership "operational role" layer (ADR
+ * 2026-06-24-atlas-spec-operational-role-layer). Orthogonal to ProjectRole:
+ * `ProjectRole` governs which *surfaces* a user reaches; `OperationalRole`
+ * sets which of the 16 `UniversalDomain`s are that member's *default focus*
+ * within those surfaces. It scopes the view; it never grants or removes a
+ * capability. Stored on the membership (a person can hold different
+ * operational roles per project) and stackable. Domain scopes + helpers
+ * live in `constants/collaboration/operationalRoles.ts`.
+ */
+export const OperationalRole = z.enum([
+  'ecology_soils',
+  'food_production',
+  'livestock',
+  'infrastructure',
+  'community_governance',
+  'finance_legal',
+]);
+export type OperationalRole = z.infer<typeof OperationalRole>;
+
 export const OrgRole = z.enum(['owner', 'admin', 'editor', 'viewer']);
 export type OrgRole = z.infer<typeof OrgRole>;
 
@@ -109,11 +129,25 @@ export const UpdateMemberRoleInput = z.object({
 });
 export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleInput>;
 
+/**
+ * Body for PATCH /:id/members/:userId/operational-roles. A member may set
+ * their own operational roles, or a steward may set a member's. The full
+ * desired set is sent each time (idempotent replace). Max 6 = all roles;
+ * empty array clears them (⇒ full, unfiltered view).
+ */
+export const SetOperationalRolesInput = z.object({
+  operationalRoles: z.array(OperationalRole).max(6),
+});
+export type SetOperationalRolesInput = z.infer<typeof SetOperationalRolesInput>;
+
 export const ProjectMemberRecord = z.object({
   userId: z.string().uuid(),
   email: z.string(),
   displayName: z.string().nullable(),
   role: ProjectRole,
+  // Operational role layer (ADR 2026-06-24). Additive with `.default([])`
+  // so every pre-existing serialized member stays valid; empty ⇒ full view.
+  operationalRoles: z.array(OperationalRole).default([]),
   joinedAt: z.string(),
 });
 export type ProjectMemberRecord = z.infer<typeof ProjectMemberRecord>;
