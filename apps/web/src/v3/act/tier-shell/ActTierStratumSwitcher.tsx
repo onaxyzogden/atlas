@@ -48,6 +48,14 @@ export interface ActTierStratumSwitcherProps {
    * a static span, byte-identical to before.
    */
   onEditPrimaryType?: () => void;
+  /**
+   * OPTIONAL (Operational Role Layer). Per-stratum "N in focus / M total" under
+   * the viewer's role scope. Present only when the layer is engaged; absent ->
+   * no count badges render (byte-identical for Act, solo, no-role, full view).
+   */
+  focusCountByStratum?: Readonly<
+    Record<string, { inFocus: number; total: number }>
+  >;
 }
 
 function StatusDot({ status }: { status: PlanStratumState }): JSX.Element | null {
@@ -80,6 +88,7 @@ export default function ActTierStratumSwitcher({
   projectTitle,
   typeChips = [],
   onEditPrimaryType,
+  focusCountByStratum,
 }: ActTierStratumSwitcherProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -137,6 +146,13 @@ export default function ActTierStratumSwitcher({
     setOpen(false);
   };
 
+  // Operational Role Layer: the active stratum's in-focus count for the
+  // collapsed header (only when scoped and not on a threshold surface).
+  const activeFocus =
+    !activeThreshold && activeStratum
+      ? focusCountByStratum?.[activeStratum.id]
+      : undefined;
+
   return (
     <div className={css.root} ref={rootRef} data-testid="plan-stratum-switcher">
       <button
@@ -154,6 +170,11 @@ export default function ActTierStratumSwitcher({
           <span className={css.title}>{title}</span>
           {!activeThreshold && activeStratum?.summary && (
             <span className={css.summary}>{activeStratum.summary}</span>
+          )}
+          {activeFocus && (
+            <span className={css.focusBadge} data-testid="switcher-active-focus">
+              {activeFocus.inFocus} / {activeFocus.total} in focus
+            </span>
           )}
         </span>
         <ChevronDown
@@ -201,6 +222,7 @@ export default function ActTierStratumSwitcher({
             {strata.map((stratum) => {
               const status = stratumStates[stratum.id] ?? 'available';
               const isLocked = lockedStratumIds.has(stratum.id);
+              const focus = focusCountByStratum?.[stratum.id];
               const isActive =
                 !activeThreshold && stratum.id === activeStratumId;
               const threshold = thresholdAfter.get(stratum.id);
@@ -222,6 +244,15 @@ export default function ActTierStratumSwitcher({
                   >
                     <span className={css.ordinal}>S{stratum.ordinal}</span>
                     <span className={css.rowTitle}>{stratum.title}</span>
+                    {focus && (
+                      <span
+                        className={css.focusCount}
+                        data-testid={`switcher-focus-${stratum.id}`}
+                        title={`${focus.inFocus} of ${focus.total} objectives in your focus`}
+                      >
+                        {focus.inFocus}/{focus.total}
+                      </span>
+                    )}
                     {isLocked ? (
                       <span className={css.statusChip} data-status="locked">
                         <Lock size={11} aria-hidden="true" />
