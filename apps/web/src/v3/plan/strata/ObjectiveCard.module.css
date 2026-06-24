@@ -344,6 +344,55 @@
   border: 1px solid rgba(232, 169, 88, 0.45);
 }
 
+/* Operational Role Layer — out-of-focus de-emphasis (never hide, only
+   de-emphasize). 'out' cards dim in place and restore to full on hover/focus so
+   they stay one glance away; 'out-surfaced' cards are NOT dimmed (the
+   always-surface engine promoted them) and instead carry the amber .surfaceChip.
+   Absent attribute ⇒ unscoped column ⇒ byte-identical to before. */
+.card[data-scope='out'] {
+  opacity: 0.5;
+}
+
+.card[data-scope='out']:hover,
+.card[data-scope='out']:focus-within {
+  opacity: 1;
+}
+
+/* Amber promotion chip — the sibling of .reviewFlagChip, naming WHY an
+   out-of-focus objective was surfaced back into view. */
+.surfaceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  background: rgba(232, 169, 88, 0.16);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.45);
+}
+
+/* Owning-role context badge for an out-of-focus card ("belongs to Livestock
+   Lead"). Slate + sentence-case, deliberately quieter than the amber chips so
+   it reads as context, not an alert. */
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(122, 128, 138, 0.16);
+  color: var(--color-text-subtle, #7a808a);
+  border: 1px solid rgba(122, 128, 138, 0.4);
+}
+
 /* --- Slice 2.4 highlight flash ------------------------------------------ */
 /* See StratumRow.module.css for the rationale + the matching animation on the
    spine row; the card-level flash points the steward at the specific

@@ -16,8 +16,19 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import type { ScopeState } from '../../roles/railScope.js';
+import type { SurfaceReason } from '../../roles/alwaysSurface.js';
 import { getSourceTag } from './sourceTag.js';
 import css from './ObjectiveCard.module.css';
+
+// Human label for each always-surface reason — the amber chip on a promoted
+// out-of-focus card. Mirrors ActTierObjectiveCard's map (shared visual
+// contract); reasons arrive pre-ordered by priority. ASCII-only copy.
+const SURFACE_REASON_LABEL: Record<SurfaceReason, string> = {
+  'open-review-flag': 'Open review flag',
+  'cross-role-dependency': 'Feeds your work',
+  'shared-resource-divergence': 'Shared resource changed',
+};
 
 interface Props {
   objective: PlanStratumObjective;
@@ -82,6 +93,15 @@ interface Props {
    * it on whole-objective `deferred` cards, so it never appears there.
    */
   onHoldDecisionCount?: number;
+  // ---- Operational Role Layer (additive; all undefined ⇒ byte-identical) ----
+  // The viewer's scope classification for this card. Drives a `data-scope`
+  // attribute the CSS dims on; absent ⇒ no attribute ⇒ unscoped column. The
+  // card stays fully interactive in every state (never hide, only de-emphasize).
+  scopeState?: ScopeState;
+  // Promotion reasons — rendered as an amber chip only when out-surfaced.
+  surfaceReasons?: readonly SurfaceReason[];
+  // Owning-role labels for out-of-focus context ("belongs to Livestock Lead").
+  roleBadges?: readonly string[];
 }
 
 const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
@@ -105,8 +125,16 @@ export default function ObjectiveCard({
   onDivergenceClick,
   onRestore,
   onHoldDecisionCount = 0,
+  scopeState,
+  surfaceReasons,
+  roleBadges,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
+  const promotionReasons =
+    scopeState === 'out-surfaced' && surfaceReasons && surfaceReasons.length > 0
+      ? surfaceReasons
+      : null;
+  const hasRoleBadges = !!roleBadges && roleBadges.length > 0;
   const decisionsOnHold = onHoldDecisionCount > 0;
   const isDeferred = status === 'deferred';
   const sourceTag = getSourceTag(objective);
@@ -149,6 +177,9 @@ export default function ObjectiveCard({
       data-has-divergence={hasDivergence ? 'true' : undefined}
       data-soft-review={isReviewCheckpoint ? 'true' : undefined}
       data-decisions-on-hold={decisionsOnHold ? 'true' : undefined}
+      // Operational Role Layer: omitted when unscoped ⇒ no attribute ⇒ the
+      // column renders exactly as today. 'out'/'out-surfaced' dim via CSS.
+      data-scope={scopeState}
       onClick={handleClick}
       onKeyDown={handleKey}
       aria-label={ariaLabel}
@@ -166,6 +197,21 @@ export default function ObjectiveCard({
         >
           {sourceTag.label}
         </span>
+        {promotionReasons && (
+          <span
+            className={css.surfaceChip}
+            data-testid={`objective-surface-chip-${objective.id}`}
+            title="Outside your default focus — surfaced because it affects your work"
+          >
+            {promotionReasons.map((r) => SURFACE_REASON_LABEL[r]).join(' · ')}
+          </span>
+        )}
+        {hasRoleBadges &&
+          roleBadges!.map((label) => (
+            <span key={label} className={css.roleBadge}>
+              {label}
+            </span>
+          ))}
         {hasDivergence && (
           <button
             type="button"
