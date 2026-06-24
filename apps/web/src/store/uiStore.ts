@@ -17,6 +17,17 @@ import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
 export type ColorScheme = 'light' | 'dark' | 'system';
 export type SidebarGrouping = 'stage3' | 'stage' | 'phase' | 'domain';
 
+/**
+ * Per-project view-focus preference for the Operational Role Layer (ADR
+ * 2026-06-24). `'role'` scopes Plan/Act/Observe to the viewer's operational
+ * domains (never hiding — only de-emphasizing out-of-scope work); `'full'`
+ * shows the unfiltered catalogue. Only an EXPLICIT user choice is stored:
+ * a project absent from the map falls back to a computed default (role mode
+ * when the layer is active), so adding a role later re-defaults correctly
+ * without a stale `'full'` override lingering. See `useViewScope`.
+ */
+export type ViewFocusMode = 'role' | 'full';
+
 interface UndoEntry {
   timestamp: number;
   label: string;
@@ -61,6 +72,12 @@ interface UIState {
   spineCollapsed: boolean;
   toggleSpineCollapsed: () => void;
   setSpineCollapsed: (v: boolean) => void;
+
+  // Operational-role view focus — per-project explicit override of the
+  // role-scoped default view. Absent project ⇒ computed default (see
+  // ViewFocusMode + useViewScope). Persisted so a chosen focus sticks.
+  viewFocusMode: Record<string, ViewFocusMode>;
+  setViewFocusMode: (projectId: string, mode: ViewFocusMode) => void;
 
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
   // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
@@ -125,6 +142,16 @@ export function migrateUIPersistedState(
       persistedState = { ...s, activeDashboardSection: 'map-layers' };
     }
   }
+  if (fromVersion < 4) {
+    // 2026-06-24 — Operational Role Layer adds a per-project `viewFocusMode`
+    // map. Seed it empty for returning users so the persisted shape carries
+    // the key; every project then resolves to its computed default until the
+    // steward explicitly picks a focus.
+    const s = persistedState as { viewFocusMode?: unknown } | null;
+    if (s && s.viewFocusMode === undefined) {
+      persistedState = { ...s, viewFocusMode: {} };
+    }
+  }
   return persistedState;
 }
 
@@ -168,6 +195,12 @@ export const useUIStore = create<UIState>()(
       toggleSpineCollapsed: () =>
         set((s) => ({ spineCollapsed: !s.spineCollapsed })),
       setSpineCollapsed: (v) => set({ spineCollapsed: v }),
+
+      // Operational-role view focus — per-project map, default empty (every
+      // project falls back to the computed default until the steward picks).
+      viewFocusMode: {} as Record<string, ViewFocusMode>,
+      setViewFocusMode: (projectId, mode) =>
+        set((s) => ({ viewFocusMode: { ...s.viewFocusMode, [projectId]: mode } })),
 
       // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
       // per 2026-04-29 IA restructure). Existing users keep their persisted
@@ -226,7 +259,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ogden-ui',
-      version: 3,
+      version: 4,
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
@@ -234,6 +267,7 @@ export const useUIStore = create<UIState>()(
         rightPanelCollapsed: state.rightPanelCollapsed,
         planToolDockCollapsed: state.planToolDockCollapsed,
         spineCollapsed: state.spineCollapsed,
+        viewFocusMode: state.viewFocusMode,
       }),
       migrate: migrateUIPersistedState,
     },
