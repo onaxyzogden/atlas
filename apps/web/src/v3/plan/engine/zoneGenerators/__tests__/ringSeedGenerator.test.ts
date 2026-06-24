@@ -13,6 +13,10 @@ import { ringSeedGenerator } from '../ringSeedGenerator.js';
 import type { ZoneGeneratorContext } from '../types.js';
 import type { LandZone } from '../../../../../store/zoneStore.js';
 import { PERMACULTURE_ZONE_LABEL } from '../../../../../lib/zones/permacultureLabels.js';
+import {
+  DEFAULT_RING_RADII,
+  type ZoneRingRadii,
+} from '../../../layers/zoneRingConstants.js';
 
 const PID = 'proj-seed';
 
@@ -197,5 +201,52 @@ describe('ringSeedGenerator', () => {
     }
     expect(byZ.get(3)!.areaM2).toBeGreaterThan(byZ.get(2)!.areaM2);
     expect(byZ.get(5)!.areaM2).toBeGreaterThan(byZ.get(4)!.areaM2);
+  });
+
+  it('omitting ringRadii equals passing DEFAULT_RING_RADII (default fallback, regression)', () => {
+    const anchor: [number, number] = [0.001, 0.001];
+    const base = ringSeedGenerator.generate(
+      ctx({ parcelBoundary: null, anchorPoint: anchor }),
+    );
+    const explicit = ringSeedGenerator.generate(
+      ctx({
+        parcelBoundary: null,
+        anchorPoint: anchor,
+        ringRadii: DEFAULT_RING_RADII,
+      }),
+    );
+    expect(explicit).toHaveLength(base.length);
+    const byZBase = new Map(base.map((z) => [z.permacultureZone, z.areaM2]));
+    for (const z of explicit) {
+      // Default-radii seeding is byte-identical in area to the no-radii path.
+      expect(z.areaM2).toBeCloseTo(byZBase.get(z.permacultureZone)!, 6);
+    }
+  });
+
+  it('custom ringRadii enlarge every band; the Z0 disc tracks homeM', () => {
+    const anchor: [number, number] = [0, 0];
+    // Roughly the default ladder doubled — every radius strictly larger.
+    const big: ZoneRingRadii = {
+      homeM: 30,
+      z1M: 60,
+      z2M: 200,
+      z3M: 600,
+      z4M: 1200,
+      z5M: 2400,
+    };
+    const base = ringSeedGenerator.generate(
+      ctx({ parcelBoundary: null, anchorPoint: anchor }),
+    );
+    const scaled = ringSeedGenerator.generate(
+      ctx({ parcelBoundary: null, anchorPoint: anchor, ringRadii: big }),
+    );
+    const byZBase = new Map(base.map((z) => [z.permacultureZone, z.areaM2]));
+    const byZBig = new Map(scaled.map((z) => [z.permacultureZone, z.areaM2]));
+    for (const level of [0, 1, 2, 3, 4, 5] as const) {
+      expect(byZBig.get(level)!).toBeGreaterThan(byZBase.get(level)!);
+    }
+    // Z0 disc ~ π·30² ≈ 2827 m² (geodesic 64-step circle — allow slack).
+    expect(byZBig.get(0)!).toBeGreaterThan(2500);
+    expect(byZBig.get(0)!).toBeLessThan(3100);
   });
 });

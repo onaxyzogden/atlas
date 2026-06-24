@@ -29,7 +29,12 @@ import {
 } from '../../../../store/zoneStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { PERMACULTURE_ZONE_LABEL } from '../../../../lib/zones/permacultureLabels.js';
-import { ZONE_RING_BANDS, ringCircle } from '../../layers/zoneRingConstants.js';
+import {
+  DEFAULT_RING_RADII,
+  bandsFromRadii,
+  ringCircle,
+  type ZoneRingBand,
+} from '../../layers/zoneRingConstants.js';
 import {
   diff,
   parcelPolygon,
@@ -42,8 +47,43 @@ import type {
   ZoneGeneratorAvailability,
 } from './types.js';
 
-const HOME_CENTRE_RADIUS_M = 15;
 const MIN_SEED_AREA_M2 = 50;
+
+/**
+ * Pure annulus builder shared by the seed generator and the after-placement
+ * resize editor: for each band, `ringCircle(outerM)` minus `ringCircle(innerM)`
+ * (the annulus), then minus every blocker (hand-drawn work, the home disc,
+ * already-built rings this pass), dropping sub-`MIN_SEED_AREA_M2` slivers.
+ * Returns one entry per surviving band — geometry + its Z-level — leaving
+ * provenance / category / naming to the caller. No idempotency, no home
+ * centre: those are the seeder's concern (the resize editor wants ALL levels
+ * rebuilt). `blockers` is consumed read-only.
+ */
+export function buildRingZoneGeometries(
+  center: GeoJSON.Feature<GeoJSON.Point>,
+  bands: readonly ZoneRingBand[],
+  blockers: readonly PolyFeature[],
+): { zLevel: 1 | 2 | 3 | 4 | 5; geometry: Poly }[] {
+  const out: { zLevel: 1 | 2 | 3 | 4 | 5; geometry: Poly }[] = [];
+  for (const band of bands) {
+    let geom: PolyFeature | null = ringCircle(center, band.outerM);
+    if (band.innerM > 0) {
+      geom = diff(geom, ringCircle(center, band.innerM) as PolyFeature);
+    }
+    if (!geom) continue;
+    for (const b of [
+      ...blockers,
+      ...out.map((z) => turf.feature(z.geometry) as PolyFeature),
+    ]) {
+      geom = diff(geom, b);
+      if (!geom) break;
+    }
+    if (!geom) continue;
+    if (turf.area(geom) < MIN_SEED_AREA_M2) continue;
+    out.push({ zLevel: band.zLevel as 1 | 2 | 3 | 4 | 5, geometry: geom.geometry });
+  }
+  return out;
+}
 
 interface Anchor {
   center: GeoJSON.Feature<GeoJSON.Point>;
@@ -97,6 +137,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
   const anchor = resolveAnchor(ctx);
   if (!anchor) return [];
   const { center, homeCentreZone } = anchor;
+  const radii = ctx.ringRadii ?? DEFAULT_RING_RADII;
   const now = new Date().toISOString();
   const mine = ctx.existingZones.filter((z) => z.projectId === ctx.projectId);
   const out: LandZone[] = [];
@@ -129,7 +170,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
     ? (turf.feature(homeCentreZone.geometry) as PolyFeature)
     : null;
   if (!homeCentreZone) {
-    const hc = ringCircle(center, HOME_CENTRE_RADIUS_M);
+    const hc = ringCircle(center, radii.homeM);
     homeFeature = hc as PolyFeature;
     out.push(make(0, hc.geometry, 'habitation', 'Home centre', true));
   }
@@ -143,40 +184,25 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
   );
   if (homeFeature) blockers.push(homeFeature);
 
-  for (const band of ZONE_RING_BANDS) {
-    // Idempotent per Z-level: don't re-seed a level already seeded.
-    if (
-      mine.some(
+  // Idempotent per Z-level: skip any band already ring-seeded. The
+  // already-seeded zone stays in `mine` → it's still a blocker for the
+  // remaining bands, so re-running only fills the uncovered remainder.
+  const pending = bandsFromRadii(radii).filter(
+    (band) =>
+      !mine.some(
         (z) =>
           z.seedProvenance === 'ring-seed' &&
           z.permacultureZone === band.zLevel,
-      )
-    ) {
-      continue;
-    }
+      ),
+  );
 
-    let geom: PolyFeature | null = ringCircle(center, band.outerM);
-    if (band.innerM > 0) {
-      geom = diff(geom, ringCircle(center, band.innerM) as PolyFeature);
-    }
-    if (!geom) continue;
-    for (const b of [
-      ...blockers,
-      ...out.map((z) => turf.feature(z.geometry) as PolyFeature),
-    ]) {
-      geom = diff(geom, b);
-      if (!geom) break;
-    }
-    if (!geom) continue;
-    if (turf.area(geom) < MIN_SEED_AREA_M2) continue;
-
-    const zLevel = band.zLevel as 1 | 2 | 3 | 4 | 5;
+  for (const ring of buildRingZoneGeometries(center, pending, blockers)) {
     out.push(
       make(
-        zLevel,
-        geom.geometry,
-        defaultCategoryForZ(zLevel),
-        PERMACULTURE_ZONE_LABEL[zLevel],
+        ring.zLevel,
+        ring.geometry,
+        defaultCategoryForZ(ring.zLevel),
+        PERMACULTURE_ZONE_LABEL[ring.zLevel],
         false,
       ),
     );
