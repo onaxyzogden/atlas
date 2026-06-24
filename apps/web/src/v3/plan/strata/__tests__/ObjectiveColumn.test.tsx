@@ -12,6 +12,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useReviewFlagStore } from '../../../../store/reviewFlagStore.js';
+import { useMemberStore } from '../../../../store/memberStore.js';
+import { useAuthStore } from '../../../../store/authStore.js';
+import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
 import { findObjectiveGlobally } from '../../objectiveCatalog.js';
 import ObjectiveColumn from '../ObjectiveColumn.js';
 import type { PlanStratum } from '@ogden/shared';
@@ -62,6 +65,11 @@ const STRATUM: PlanStratum = {
 beforeEach(() => {
   // Reset store state and localStorage between tests.
   useReviewFlagStore.setState({ byProject: {} });
+  // Operational Role Layer stores read by useViewScope / the divergence wiring.
+  // Default empty == layer disengaged, so the existing tests stay byte-identical.
+  useMemberStore.setState({ members: [], myRole: null });
+  useAuthStore.setState({ user: null });
+  useObserveDataPointStore.getState().clearForProject(PROJECT_ID);
   window.localStorage.clear();
 });
 
@@ -142,6 +150,91 @@ describe('ObjectiveColumn -- reviewFlagCount threading', () => {
 
     expect(
       screen.queryByTestId(`objective-review-flag-${objective.id}`),
+    ).toBeNull();
+  });
+});
+
+describe('ObjectiveColumn -- shared-resource-divergence promotion (Operational Role Layer)', () => {
+  // s5-water-strategy's footprint includes hydrology -- a SHARED resource owned
+  // by ecology_soils + infrastructure. A viewer scoped to food_production
+  // ({ plants-food }) has it OUT of focus; an ACTIVE hydrology divergence must
+  // PROMOTE it back into view, because a shared-resource change is everyone's
+  // concern. This pins the Phase-4 always-surface divergence channel end-to-end
+  // through the shell wiring (useDivergedDomains -> collectAlwaysSurface).
+  const water = findObjectiveGlobally('s5-water-strategy')!;
+  const WATER_STRATUM: PlanStratum = {
+    id: water.stratumId,
+    ordinal: 5,
+    title: 'System Design',
+    summary: 'Water + systems design.',
+  };
+
+  // A non-solo (2-member) project where the viewer is scoped to food_production,
+  // so a hydrology-footprint objective is out of focus.
+  function seedScopedViewer(): void {
+    useAuthStore.setState({ user: { id: 'u1' } as never });
+    useMemberStore.setState({
+      members: [
+        {
+          userId: 'u1',
+          role: 'team_member',
+          operationalRoles: ['food_production'],
+        } as never,
+        { userId: 'u2', role: 'team_member', operationalRoles: [] } as never,
+      ],
+      myRole: 'team_member',
+    });
+  }
+
+  function seedHydrologyDivergence(): void {
+    useObserveDataPointStore
+      .getState()
+      .setProjectPoints(PROJECT_ID, [
+        {
+          domainId: 'hydrology',
+          isSuperseded: false,
+          statusOutput: 'major_constraint',
+        } as never,
+      ]);
+  }
+
+  it('promotes an out-of-focus objective when its shared-resource domain has diverged', () => {
+    seedScopedViewer();
+    seedHydrologyDivergence();
+
+    render(
+      <ObjectiveColumn
+        stratum={WATER_STRATUM}
+        objectives={[water]}
+        objectiveStatuses={{ [water.id]: 'active' }}
+        activeObjectiveId={null}
+        projectId={PROJECT_ID}
+        onSelectObjective={vi.fn()}
+      />,
+    );
+
+    const chip = screen.queryByTestId(`objective-surface-chip-${water.id}`);
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toContain('Shared resource');
+  });
+
+  it('does NOT promote the out-of-focus objective when nothing has diverged', () => {
+    seedScopedViewer();
+    // no divergence seeded -- the objective stays de-emphasized (never hidden).
+
+    render(
+      <ObjectiveColumn
+        stratum={WATER_STRATUM}
+        objectives={[water]}
+        objectiveStatuses={{ [water.id]: 'active' }}
+        activeObjectiveId={null}
+        projectId={PROJECT_ID}
+        onSelectObjective={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(`objective-surface-chip-${water.id}`),
     ).toBeNull();
   });
 });

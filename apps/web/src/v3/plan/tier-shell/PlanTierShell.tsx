@@ -149,6 +149,7 @@ import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { useViewScope } from '../../roles/useViewScope.js';
 import { objectiveInScope } from '../../roles/viewScope.js';
 import { collectAlwaysSurface, mustSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
 import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
@@ -328,6 +329,9 @@ export default function PlanTierShell() {
     () => new Set(Object.keys(openFlagCounts)),
     [openFlagCounts],
   );
+  // Domains carrying an ACTIVE Observe divergence this cycle (data points ∪
+  // feed), the shared-resource-divergence promotion signal.
+  const divergedDomains = useDivergedDomains(id);
   // Promotion map over the PROJECT-WIDE objective set so a cross-role
   // (`feedsInto`) dependency, an open review flag, or a shared-resource
   // divergence still surfaces an out-of-scope objective. Empty scope ⇒ empty map.
@@ -337,8 +341,9 @@ export default function PlanTierShell() {
         objectives,
         scope: viewScope.scope,
         openFlagObjectiveIds,
+        divergedDomains,
       }),
-    [objectives, viewScope.scope, openFlagObjectiveIds],
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
   );
   // Per-stratum "N in focus / M total" for the stratum switcher: an objective is
   // "in focus" when it is in the viewer's scope OR always-surfaced (promoted).

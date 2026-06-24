@@ -136,6 +136,7 @@ import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActSearchRail from './ActSearchRail.js';
 import { useViewScope } from '../../roles/useViewScope.js';
 import { collectAlwaysSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
 import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
@@ -587,18 +588,23 @@ export default function ActTierShell() {
     () => new Set(Object.keys(openFlagCounts)),
     [openFlagCounts],
   );
+  // Domains carrying an ACTIVE Observe divergence this cycle (data points ∪
+  // feed), the shared-resource-divergence promotion signal.
+  const divergedDomains = useDivergedDomains(id);
   // Promotion map over the PROJECT-WIDE objective set so a cross-role
-  // (`feedsInto`) dependency on an in-scope objective in another stratum still
-  // promotes its out-of-scope source. The rail looks up by id for whichever
-  // stratum it renders. Empty scope (full view / no role) ⇒ empty map.
+  // (`feedsInto`) dependency on an in-scope objective in another stratum, an
+  // open review flag, or a shared-resource divergence still promotes an
+  // out-of-scope objective. The rail looks up by id for whichever stratum it
+  // renders. Empty scope (full view / no role) ⇒ empty map.
   const surfaceMap = useMemo(
     () =>
       collectAlwaysSurface({
         objectives,
         scope: viewScope.scope,
         openFlagObjectiveIds,
+        divergedDomains,
       }),
-    [objectives, viewScope.scope, openFlagObjectiveIds],
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
   );
 
   // Real per-objective marker positions from field-action geometry. Objectives

@@ -24,6 +24,7 @@ import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore
 import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import { useViewScope } from '../../roles/useViewScope.js';
 import { collectAlwaysSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
 import {
   composeScopedRail,
   type ScopedRailEntry,
@@ -268,14 +269,19 @@ export default function ObjectiveColumn({
     () => new Set(Object.keys(reviewFlagByObjective)),
     [reviewFlagByObjective],
   );
+  // Shared-resource-divergence promotion channel: the union of Observe domains
+  // diverged this cycle (data points + feed), so an out-of-focus objective whose
+  // footprint touches a diverged shared resource (e.g. hydrology) surfaces.
+  const divergedDomains = useDivergedDomains(projectId);
   const surfaceMap = useMemo(
     () =>
       collectAlwaysSurface({
         objectives,
         scope: viewScope.scope,
         openFlagObjectiveIds,
+        divergedDomains,
       }),
-    [objectives, viewScope.scope, openFlagObjectiveIds],
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
   );
   const scopeByObjective = useMemo(() => {
     const map = new Map<string, ScopedRailEntry>();
