@@ -1,15 +1,18 @@
 // ObjectiveDetailPanel — right column of the Plan stratum shell, mounted when a
-// stratum objective is selected (Plan Navigation Spec v1, Slice 1.6). Hosts the
-// four spec sections: OBJECTIVE (ObjectiveHeader), MAP ACTIVATION
-// (MapActivationStrip + ObjectiveMap), YOUR DECISIONS (Slice 1.7), and
-// REFERENCE (Slice 1.8). LaunchActButton (Slice 1.9) anchors the bottom.
+// stratum objective is selected (Plan Navigation Spec v1, Slice 1.6). The
+// OBJECTIVE header, YOUR DECISIONS checklist + progress bar, and the REFERENCE
+// expander were removed (2026-06-22) — decision-working now lives on the center
+// workbench. The seeded-protocol pills and the LaunchActButton ("Continue in
+// Act") were removed (2026-06-23), so the panel hosts MAP ACTIVATION
+// (MapActivationStrip + ObjectiveMap) and the review/amendment sections. The
+// removed props (onBackToStratum, completedItemIds, visionDerivedMap) stay in
+// Props — still passed by callers, now unconsumed.
 //
 // activeOverlayIds is owned here so the strip and the map stay in lockstep.
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { useSearch } from '@tanstack/react-router';
 import type {
   OverlayId,
   PlanStratum,
@@ -26,7 +29,6 @@ import type { Project } from '../../types.js';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
-import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
 import Mode4DesignChrome from './Mode4DesignChrome.js';
@@ -35,11 +37,7 @@ import CapacityBridgePanel from './CapacityBridgePanel.js';
 import CoherenceObjectiveAmendments from '../threshold/CoherenceObjectiveAmendments.js';
 import ConcernAmendments from '../threshold/ConcernAmendments.js';
 import RaiseConcernAffordance from '../threshold/RaiseConcernAffordance.js';
-import DecisionProgressBar from './DecisionProgressBar.js';
-import DecisionChecklist from './DecisionChecklist.js';
 import FormulaResultSection from './FormulaResultSection.js';
-import DetailsExpander from './DetailsExpander.js';
-import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
 import ObserveUpdatesSection from './ObserveUpdatesSection.js';
@@ -48,7 +46,6 @@ import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js'
 import { findUpstreamSourceObjectives } from '../objectiveCatalog.js';
 import ParameterGroup from './ParameterGroup.js';
 import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
-import SeededProtocolPills from './SeededProtocolPills.js';
 // Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
 // 3-column spine shell (no longer a bordered BentoBox card). Its inner sections
 // (map body, reference placeholders) keep their existing CSS module, which
@@ -126,23 +123,12 @@ export default function ObjectiveDetailPanel({
   objective,
   status,
   project,
-  onBackToStratum,
-  completedItemIds,
-  visionDerivedMap,
   hideMap = false,
   readOnly,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
   ]);
-
-  // Deep-link intent (Act → "Open guild builder in Plan"): expand the
-  // REFERENCE section on arrival. Read loosely; the strict route validator
-  // drops `expandRef` on the next spine navigation, so it is one-shot — the
-  // panel remounts per objective (keyed by objective.id at the parent), so
-  // ordinary objective clicks land collapsed.
-  const search = useSearch({ strict: false }) as { expandRef?: '1' };
-  const expandReferenceOnMount = search.expandRef === '1';
 
   // §10.1 — approval overlay state. Shown when the S6 objective is complete and
   // the project has eligible animal enterprises.
@@ -197,11 +183,6 @@ export default function ObjectiveDetailPanel({
     objectiveInstantiated,
     markObjectiveInstantiated,
   ]);
-
-  // `completedItemIds` arrives as a prop (effective progress, computed once in
-  // PlanStratumShell). Phase B made the Plan checklist read-only ("decisions are
-  // worked through in Act"), so the panel only READS completion state — no
-  // toggling wiring.
 
   // Slice 1.11 — cyclical review wiring. Subscribe to this objective's
   // review record so the banner mounts/unmounts the moment the steward
@@ -368,13 +349,6 @@ export default function ObjectiveDetailPanel({
         background: C.bg,
       }}
     >
-      <ObjectiveHeader
-        stratum={stratum}
-        objective={objective}
-        status={status}
-        onBackToStratum={onBackToStratum}
-      />
-
       {/* Threshold-3 lock notice. Renders ONLY when this objective is locked
           (post Begin Act), so an unlocked panel is byte-identical. The objective
           stays viewable; edits are suppressed. Raise a concern (Stage 7) is the
@@ -403,14 +377,6 @@ export default function ObjectiveDetailPanel({
           </span>
         </div>
       )}
-
-      <SeededProtocolPills objective={objective} projectId={projectId} />
-
-      <DecisionProgressBar
-        objective={objective}
-        completedItemIds={completedItemIds}
-        derivedEvidence={visionDerivedMap}
-      />
 
       {reviewDue && !reviewDismissed && (
         <CyclicalReviewBanner
@@ -625,14 +591,6 @@ export default function ObjectiveDetailPanel({
         />
       )}
 
-      <DecisionChecklist
-        projectId={projectId}
-        objective={objective}
-        status={status}
-        completedItemIds={completedItemIds}
-        derivedEvidence={visionDerivedMap}
-      />
-
       {/* LIVE CALCULATIONS — reuses the legacy livestock formula engine via
           formulaCatalog. Renders nothing for objectives without bound
           checklist items, so non-livestock panels are untouched. */}
@@ -684,20 +642,6 @@ export default function ObjectiveDetailPanel({
           onClose={() => setApprovalOverlayOpen(false)}
         />
       )}
-
-      {objective.legacyCardSectionId && (
-        <DetailsExpander
-          projectId={projectId}
-          legacyCardSectionId={objective.legacyCardSectionId}
-          defaultOpen={expandReferenceOnMount}
-        />
-      )}
-
-      <LaunchActButton
-        projectId={projectId}
-        objective={objective}
-        status={status}
-      />
 
       {showConfirmModal && (
         <CyclicalReviewModal

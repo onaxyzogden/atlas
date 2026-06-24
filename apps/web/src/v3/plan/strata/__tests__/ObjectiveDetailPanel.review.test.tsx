@@ -114,8 +114,8 @@ vi.mock('../../../components/DesignMap.js', () => ({ default: () => null }));
 vi.mock('../../../components/DiagnoseMap.js', () => ({ default: () => null }));
 vi.mock('../../../components/OperateMap.js', () => ({ default: () => null }));
 
-// LaunchActButton and DecisionChecklist call useNavigate; ObjectiveDetailPanel
-// reads useSearch for the ?expandRef deep-link.
+// Surviving panel sections / children may touch the router; keep a tight mock so
+// the boundary stays hermetic even though the panel itself no longer reads it.
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
   useSearch: () => ({}),
