@@ -882,7 +882,7 @@ describe('catalogue conformance - Tier-0 restructure (s1-steward + Amanah)', () 
     expect(steward!.prerequisiteObjectiveIds).toEqual(['s1-vision']);
   });
 
-  it('s1-steward carries the canonical 8-item / 3-group Team Object surface', () => {
+  it('s1-steward carries the canonical 9-item / 3-group Team Object surface', () => {
     const steward = findPlanStratumObjectiveIn(objectives, 's1-steward');
     expect(steward!.checklist.map((i) => i.id)).toEqual([
       's1-steward-c1',
@@ -893,6 +893,9 @@ describe('catalogue conformance - Tier-0 restructure (s1-steward + Amanah)', () 
       's1-steward-c6',
       's1-steward-c7',
       's1-steward-c8',
+      // c9 (operational roles, ADR 2026-06-24) is optional - grouped in dg1 but
+      // excluded from the required-progress denominator.
+      's1-steward-c9',
     ]);
     expect(steward!.decisionGroups.map((g) => g.id)).toEqual([
       's1-steward-dg1',
