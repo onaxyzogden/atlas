@@ -74,6 +74,10 @@ const DEMO_MEMBERS: ProjectMemberRecord[] = [
     email: 'yousef@ogden.ag',
     displayName: 'Yousef Abdelsalam',
     role: 'owner',
+    // Demo viewer is the steward — left full-view ([]) so "Try OLOS" opens to
+    // the whole project, not a pre-filtered screen. Assign a role in the
+    // Members tab to see the operational-role layer engage.
+    operationalRoles: [],
     joinedAt: '2024-01-15T00:00:00.000Z',
   },
   {
@@ -81,6 +85,8 @@ const DEMO_MEMBERS: ProjectMemberRecord[] = [
     email: 'amina@ogden.ag',
     displayName: 'Amina Abdelsalam',
     role: 'designer',
+    // Demoable operational role: scopes Amina's default view to food systems.
+    operationalRoles: ['food_production'],
     joinedAt: '2024-02-01T00:00:00.000Z',
   },
 ];

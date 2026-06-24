@@ -28,6 +28,7 @@ import type {
   ProjectMemberRecord,
   InviteMemberInput,
   UpdateMemberRoleInput,
+  SetOperationalRolesInput,
   OrganizationRecord,
   OrgMemberRecord,
   ActivityRecord,
@@ -1040,6 +1041,17 @@ export const api = {
 
     updateRole: (projectId: string, userId: string, input: UpdateMemberRoleInput) =>
       request<ProjectMemberRecord>('PATCH', `/api/v1/projects/${projectId}/members/${userId}`, input),
+
+    setOperationalRoles: (
+      projectId: string,
+      userId: string,
+      input: SetOperationalRolesInput,
+    ) =>
+      request<ProjectMemberRecord>(
+        'PATCH',
+        `/api/v1/projects/${projectId}/members/${userId}/operational-roles`,
+        input,
+      ),
 
     remove: (projectId: string, userId: string) =>
       request<void>('DELETE', `/api/v1/projects/${projectId}/members/${userId}`),
