@@ -7,7 +7,7 @@
 import { useRef, useEffect, useMemo } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { useMaplibre } from './hooks/useMaplibre.js';
-import { maplibregl, MAP_STYLES, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, mapRenderable, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import MapLoadingIndicator from './MapLoadingIndicator.js';
 import MapCoordinateReadout from './MapCoordinateReadout.js';
@@ -655,7 +655,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   }, [map, isLoaded, address]);
 
   // Show helpful message if no token
-  if (!hasMapToken) {
+  if (!mapRenderable) {
     return <MapTokenMissing />;
   }
 

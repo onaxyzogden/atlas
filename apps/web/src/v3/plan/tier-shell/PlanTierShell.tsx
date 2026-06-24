@@ -37,7 +37,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutDashboard, Target } from 'lucide-react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import {
   PLAN_STRATA,
@@ -47,6 +46,7 @@ import {
   getObjectiveActTools,
   type PlanStratum,
   type PlanStratumObjective,
+  type ProjectTypeId,
 } from '@ogden/shared';
 import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
 import {
@@ -98,6 +98,7 @@ import ProtocolWiringPane from '../strata/ProtocolWiringPane.js';
 import ProtocolsEmptyCue from '../strata/ProtocolsEmptyCue.js';
 import { useProtocolLibrary } from '../strata/useProtocolLibrary.js';
 import StratumLockedPopover from '../strata/StratumLockedPopover.js';
+import PrimaryChangeModal from '../strata/PrimaryChangeModal.js';
 import { pushHabitatFeaturesToSpine } from '../../../features/biodiversity/habitatFeatureSpineSync.js';
 import {
   TREE_PLANTING_KINDS,
@@ -148,6 +149,10 @@ import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from '../../act/tier-shell/ActTierZeroWorkbench.js';
+// Tier-0 Declaration orientation (canonical-object cards + objective sequencing),
+// relocated from the DeclarationCenter header band into the right rail (2026-06-22)
+// so the center canvas stays focused on the decision list + working panel.
+import DeclarationOrientationRail from '../../act/tier-shell/DeclarationOrientationRail.js';
 import {
   isTierZeroObjective,
   isTierZeroObjectiveId,
@@ -265,6 +270,10 @@ export default function PlanTierShell() {
     // One-shot deep-link flag: "arm this tool on arrival" — set by the Act
     // search rail's "Open in Plan" control, consumed + stripped on mount below.
     armTool?: string;
+    // One-shot deep-link flag: "open the project-type change modal on arrival" —
+    // set by the Act purpose capture's "Edit in Plan" control, consumed +
+    // stripped on mount below.
+    changeType?: '1';
   };
   const railMode: RailMode =
     search.planMode === 'protocol' ? 'protocols' : 'objectives';
@@ -284,6 +293,14 @@ export default function PlanTierShell() {
   const project = useMemo(
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
+  );
+  // Project-type change (destructive re-derive). Same store actions the legacy
+  // PlanStratumShell uses; the modal is opened by the Act "Edit in Plan" deep
+  // link (?changeType=1) or the switcher's primary chip.
+  const changePrimaryType = useProjectStore((s) => s.changePrimaryType);
+  const duplicateProject = useProjectStore((s) => s.duplicateProject);
+  const cloneProgressForProject = usePlanStratumProgressStore(
+    (s) => s.cloneForProject,
   );
 
   // v3 Project (adapter seam) — drives the editable canvas geometry + the
@@ -399,6 +416,36 @@ export default function PlanTierShell() {
     }
     return chips;
   }, [primaryTypeId, secondaryTypeIds]);
+
+  // Mid-project PRIMARY-type change (destructive — re-derives the S1-S7
+  // catalogue). Opened by the Act "Edit in Plan" deep link (?changeType=1,
+  // consumed below) or the switcher's primary chip. Orchestration mirrors the
+  // legacy PlanStratumShell: optionally clone the project under the OLD type
+  // (with its progress) as a backup BEFORE changePrimaryType discards it, then
+  // switch in place. The modal owns no writes.
+  const [primaryChangeOpen, setPrimaryChangeOpen] = useState(false);
+  const handleConfirmPrimaryChange = useCallback(
+    (nextPrimaryId: ProjectTypeId, opts: { clone: boolean }) => {
+      if (opts.clone && primaryTypeId) {
+        const oldLabel = findProjectType(primaryTypeId)?.label ?? 'previous type';
+        const backup = duplicateProject(
+          id,
+          `${project?.name ?? 'Project'} — ${oldLabel} snapshot`,
+        );
+        if (backup) cloneProgressForProject(id, backup.id);
+      }
+      changePrimaryType(id, nextPrimaryId);
+      setPrimaryChangeOpen(false);
+    },
+    [
+      primaryTypeId,
+      duplicateProject,
+      id,
+      project?.name,
+      cloneProgressForProject,
+      changePrimaryType,
+    ],
+  );
 
   // Resolved standing-protocol library for this project's types — the same hook
   // the left rail's ProtocolLayerPanel calls internally (memoised on type
@@ -555,6 +602,17 @@ export default function PlanTierShell() {
   const workbenchMode: 'declaration' | 'reception' = isReceptionWorkbenchObjective
     ? 'reception'
     : 'declaration';
+  // Tier-0 orientation rail visibility. The canonical-object cards + objective
+  // sequencing are TIER-LEVEL (they describe all of Stratum 1 / Tier 0), not
+  // per-objective detail, so they ride the right rail across EVERY Project-
+  // Foundation objective -- including the spatial/map ones (e.g. the
+  // decision-makers/stakeholders objective) where the editable map, not the
+  // Declaration workbench, fills the center. Gated purely on the active stratum
+  // being S1; the takeover branches in the rail ternary still replace the whole
+  // rail when one is armed (this flag is only consulted in the final else, which
+  // those branches precede). Stratum 1 carries no Reception (S3) objectives, so
+  // the orientation is always the Declaration set here.
+  const showFoundationOrientation = selectedStratumId === S1_STRATUM_ID;
   // (receptionTier is computed above, ahead of the survey record-count read.)
   // Cross-tier reception progress (Tier 1 Land-Reading + Tier 2 Systems-Reading
   // completion + the assembled survey-record total). Derived from the FULL
@@ -1094,6 +1152,25 @@ export default function PlanTierShell() {
     navigate,
   ]);
 
+  // ── Open-type-modal-on-arrival (Act purpose capture → Plan handoff) ────────
+  // When the route carries ?changeType=1 (set by the Act "Edit in Plan"
+  // control), open PrimaryChangeModal then strip the param. Stripping makes the
+  // effect re-run as a no-op, so it fires exactly once. No objective-resolution
+  // gate — the type change is project-level, not tied to a canvas tool.
+  const changeTypeFlag = search.changeType ?? null;
+  useEffect(() => {
+    if (changeTypeFlag !== '1') return;
+    if (primaryTypeId) setPrimaryChangeOpen(true);
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => {
+        const { changeType: _drop, ...rest } = prev;
+        return rest;
+      },
+      replace: true,
+    } as never);
+  }, [changeTypeFlag, primaryTypeId, navigate]);
+
   return (
     <PlanViewProvider view={activeView}>
       <div className={styles.tierShell}>
@@ -1166,6 +1243,7 @@ export default function PlanTierShell() {
                     }
                     projectTitle={project.name}
                     typeChips={spineTypeChips}
+                    onEditPrimaryType={() => setPrimaryChangeOpen(true)}
                   />
                 }
                 // Protocols mode is LIVE in Plan: the toggle drives ?planMode,
@@ -1446,35 +1524,24 @@ export default function PlanTierShell() {
                 </div>
               ) : (
               <div className={styles.rightRail}>
-                <div
-                  className={styles.rightToggle}
-                  role="tablist"
-                  aria-label="Right rail mode"
-                >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={rightMode === 'dashboard'}
-                    className={styles.rightToggleBtn}
-                    data-active={rightMode === 'dashboard'}
-                    onClick={() => setRightMode('dashboard')}
-                  >
-                    <LayoutDashboard size={14} aria-hidden="true" />
-                    Dashboard
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={rightMode === 'detail'}
-                    className={styles.rightToggleBtn}
-                    data-active={rightMode === 'detail'}
-                    disabled={!objectiveId}
-                    onClick={() => objectiveId && setRightMode('detail')}
-                  >
-                    <Target size={14} aria-hidden="true" />
-                    Objective
-                  </button>
-                </div>
+                {/* Tier-0 orientation: the canonical-object cards + objective-
+                    sequencing diagram, relocated from the center header band
+                    (2026-06-22). Persistently at the TOP of the rail across
+                    EVERY Stratum-1 Project-Foundation objective -- including the
+                    spatial/map ones, where
+                    the center is the editable map rather than the Declaration
+                    workbench (operator decision 2026-06-22: tier-level orientation
+                    should not vanish when moving between foundation objectives).
+                    Fed the stratum slice + statuses; the sequencing nodes select
+                    objectives via handleSelectObjective. */}
+                {showFoundationOrientation ? (
+                  <DeclarationOrientationRail
+                    objectives={stratumObjectives}
+                    objectiveStatuses={objectiveStatuses}
+                    activeObjectiveId={selectedObjective?.id}
+                    onSelectObjective={handleSelectObjective}
+                  />
+                ) : null}
                 <div className={styles.rightBody}>
                   {rightMode === 'detail' &&
                   selectedObjective &&
@@ -1607,6 +1674,18 @@ export default function PlanTierShell() {
               goToObjective(obj.id, obj.stratumId);
             }}
             onDismiss={() => setLockedPopoverStratum(null)}
+          />
+        )}
+        {/* Project-type change (destructive re-derive). Opened by the Act "Edit
+            in Plan" deep link (?changeType=1) or the switcher's primary chip.
+            The modal is double-gated and owns no writes — it hands the choice to
+            handleConfirmPrimaryChange. */}
+        {primaryChangeOpen && primaryTypeId && (
+          <PrimaryChangeModal
+            projectId={id}
+            primaryTypeId={primaryTypeId}
+            onConfirm={handleConfirmPrimaryChange}
+            onDismiss={() => setPrimaryChangeOpen(false)}
           />
         )}
       </div>

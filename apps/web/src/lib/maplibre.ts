@@ -46,7 +46,12 @@ const key = resolveKey();
  */
 export const ESRI_WORLD_IMAGERY_STYLE: maplibregl.StyleSpecification = {
   version: 8,
-  glyphs: `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${key}`,
+  // Only point at MapTiler's font endpoint when a key exists. Keyless (offline
+  // demo) we omit `glyphs` entirely — a `key=undefined` URL would 404 and fire
+  // a map `'error'` event (which e.g. HeroMapCanvas treats as a hard failure).
+  // Trade-off: user-added text/label layers won't resolve fonts keyless; base
+  // imagery and drawn polygons render fine.
+  ...(key ? { glyphs: `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${key}` } : {}),
   sources: {
     'esri-world-imagery': {
       type: 'raster',
@@ -89,6 +94,16 @@ export const OPENMAPTILES_TILES_URL = `https://api.maptiler.com/tiles/v3/tiles.j
 
 /** Whether a MapTiler API key is configured */
 export const hasMapToken = !!key;
+
+const DEMO_OFFLINE = process.env.FEATURE_DEMO_OFFLINE === 'true';
+
+/**
+ * Map can render without a MapTiler key when the keyless Esri satellite basemap
+ * is the fallback — true in the offline demo build. In normal builds
+ * `FEATURE_DEMO_OFFLINE` is `define`-replaced with the literal `false`, so this
+ * collapses to `hasMapToken` and the demo branch is dead-code-eliminated.
+ */
+export const mapRenderable = hasMapToken || DEMO_OFFLINE;
 
 /** Raw key string for direct API calls (geocoding, etc.) */
 export const maptilerKey = key;

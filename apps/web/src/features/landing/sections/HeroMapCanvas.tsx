@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, mapRenderable, maptilerTransformRequest } from '../../../lib/maplibre.js';
 
 interface HeroMapCanvasProps {
   /** [lng, lat] center for the sample parcel. */
@@ -45,7 +45,7 @@ export default function HeroMapCanvas({
   // Initialize map once visible
   useEffect(() => {
     if (!visible || !containerRef.current || mapRef.current) return;
-    if (!hasMapToken) {
+    if (!mapRenderable) {
       setFailed(true);
       return;
     }

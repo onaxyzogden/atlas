@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { hasMapToken } from '../../../../lib/maplibre.js';
 
 /**
  * Map-tool ids — single source of truth for the active drawing/measure tool.
@@ -210,6 +211,15 @@ export const BASEMAP_OPTIONS: { key: BasemapKey; label: string }[] = [
   { key: 'street', label: 'Street' },
 ];
 
+/**
+ * Basemap options offered in the switcher UIs. Keyless (offline demo) only the
+ * Esri satellite basemap renders — the others are `key=...` MapTiler URLs that
+ * 403 without a token, so we hide them.
+ */
+export const AVAILABLE_BASEMAP_OPTIONS = hasMapToken
+  ? BASEMAP_OPTIONS
+  : BASEMAP_OPTIONS.filter((o) => o.key === 'satellite');
+
 export interface BasemapState {
   basemap: BasemapKey;
   setBasemap: (key: BasemapKey) => void;
@@ -218,7 +228,9 @@ export interface BasemapState {
 export const useBasemapStore = create<BasemapState>()(
   persist(
     (set) => ({
-      basemap: 'topographic',
+      // Keyless (offline demo) the only renderable basemap is Esri satellite;
+      // defaulting fresh profiles there keeps the switcher selection coherent.
+      basemap: hasMapToken ? 'topographic' : 'satellite',
       setBasemap: (key) => set({ basemap: key }),
     }),
     { name: 'ogden-atlas-basemap' },

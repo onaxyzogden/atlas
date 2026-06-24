@@ -28,9 +28,12 @@ export default function EditInPlanButton({ projectId, editRoute }: Props) {
         params: { projectId, step: editRoute.step },
       });
     } else {
+      // plan-type: land in Plan and open the project-type change modal directly
+      // (one-shot ?changeType=1, consumed + stripped by the Plan tier shell).
       void navigate({
         to: '/v3/project/$projectId/plan',
         params: { projectId },
+        search: { changeType: '1' },
       });
     }
   };

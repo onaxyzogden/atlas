@@ -48,23 +48,29 @@ vi.mock('lucide-react', async (importOriginal) => {
 });
 
 // Mock projectStore -- provide a fake project with homestead as primary and
-// market_garden as a chosen secondary.
+// market_garden as a chosen secondary. Mutable (vi.hoisted) so the empty-state
+// test can swap in a type-less project; reset to the default in afterEach.
+const DEFAULT_TYPE_RECORD = {
+  primaryTypeId: 'homestead' as string | null,
+  secondaryTypeIds: ['market_garden'] as readonly string[],
+};
+const mockState = vi.hoisted(() => ({
+  projects: [
+    {
+      id: 'proj-test',
+      serverId: undefined,
+      metadata: {
+        projectTypeRecord: {
+          primaryTypeId: 'homestead' as string | null,
+          secondaryTypeIds: ['market_garden'] as readonly string[],
+        } as { primaryTypeId: string | null; secondaryTypeIds: readonly string[] } | undefined,
+      },
+    },
+  ],
+}));
 vi.mock('../../../../store/projectStore.js', () => ({
   useProjectStore: (sel: (s: { projects: unknown[] }) => unknown) =>
-    sel({
-      projects: [
-        {
-          id: 'proj-test',
-          serverId: undefined,
-          metadata: {
-            projectTypeRecord: {
-              primaryTypeId: 'homestead',
-              secondaryTypeIds: ['market_garden'],
-            },
-          },
-        },
-      ],
-    }),
+    sel(mockState),
 }));
 
 // Mock EditInPlanButton to avoid useNavigate / router dependency in unit tests.
@@ -84,14 +90,20 @@ import type { FormValue } from '../actToolCatalog.js';
 
 afterEach(() => {
   cleanup();
+  // Restore the default (homestead + market_garden) project after any test that
+  // mutated the mock (e.g. the type-less empty-state case).
+  mockState.projects[0]!.metadata.projectTypeRecord = {
+    primaryTypeId: DEFAULT_TYPE_RECORD.primaryTypeId,
+    secondaryTypeIds: DEFAULT_TYPE_RECORD.secondaryTypeIds,
+  };
 });
 
 // ---------------------------------------------------------------------------
-// 1. Renders all 13 type cards and the 3 group headers
+// 1. Renders ONLY the chosen type cards (primary + secondary), not the full grid
 // ---------------------------------------------------------------------------
 
-describe('PurposeCapture -- renders all cards and groups', () => {
-  it('renders all 13 primary-type card names and 3 group headers', () => {
+describe('PurposeCapture -- renders only chosen type cards', () => {
+  it('renders exactly the chosen cards (homestead + market_garden) and no others', () => {
     render(
       <PurposeCapture
         itemId="s1-vision-c1"
@@ -101,18 +113,21 @@ describe('PurposeCapture -- renders all cards and groups', () => {
       />,
     );
 
-    // All 13 names from PURPOSE_GRID_CARDS
-    for (const card of PURPOSE_GRID_CARDS) {
-      expect(
-        screen.getAllByText(new RegExp(card.name.replace(/[/()]/g, '\\$&'), 'i'))
-          .length,
-      ).toBeGreaterThan(0);
-    }
+    // Only the two chosen cards are present in the grid.
+    const cards = document.querySelectorAll('[data-type-id]');
+    const ids = Array.from(cards).map((el) => el.getAttribute('data-type-id'));
+    expect(ids).toContain('homestead');
+    expect(ids).toContain('market_garden');
+    expect(cards.length).toBe(2);
 
-    // Group headers (uppercase in DOM, but text is the label)
-    expect(screen.getByText(/farm & homestead/i)).toBeTruthy();
-    expect(screen.getByText(/ecological systems/i)).toBeTruthy();
-    expect(screen.getByText(/community & experience/i)).toBeTruthy();
+    // A non-chosen primary type (e.g. regenerative_farm) is NOT rendered.
+    const nonChosen = PURPOSE_GRID_CARDS.find(
+      (c) => c.id !== 'homestead' && c.id !== 'market_garden',
+    );
+    expect(nonChosen).toBeTruthy();
+    expect(
+      document.querySelector(`[data-type-id="${nonChosen!.id}"]`),
+    ).toBeNull();
   });
 });
 
@@ -157,11 +172,11 @@ describe('PurposeCapture -- primary type selection', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 4. +2 capability badge on at least one canBeSecondary card that is not primary
+// 4. No +2 capability badge (only chosen cards render, so the hint is gone)
 // ---------------------------------------------------------------------------
 
-describe('PurposeCapture -- +2 capability badge', () => {
-  it('renders the +2 badge on at least one canBeSecondary card that is not the primary', () => {
+describe('PurposeCapture -- no capability badge', () => {
+  it('does not render any +2 capability badge', () => {
     render(
       <PurposeCapture
         itemId="s1-vision-c1"
@@ -170,11 +185,31 @@ describe('PurposeCapture -- +2 capability badge', () => {
         projectId="proj-test"
       />,
     );
-    // +2 badges appear on canBeSecondary cards that are not the primary
-    const badges = screen.getAllByText('+2');
-    expect(badges.length).toBeGreaterThan(0);
-    // None of the +2 badges should be on the primary card (homestead cannot be secondary)
-    // Homestead canBeSecondary === false so it won't have +2 anyway
+    expect(screen.queryByText('+2')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4b. Type-less project: muted fallback, no cards, Edit-in-Plan still present
+// ---------------------------------------------------------------------------
+
+describe('PurposeCapture -- type-less project fallback', () => {
+  it('shows the "No project type set yet" fallback and still renders Edit in Plan', () => {
+    mockState.projects[0]!.metadata.projectTypeRecord = undefined;
+    render(
+      <PurposeCapture
+        itemId="s1-vision-c1"
+        value={{}}
+        onChange={() => {}}
+        projectId="proj-test"
+      />,
+    );
+    expect(document.querySelectorAll('[data-type-id]').length).toBe(0);
+    expect(screen.getByText(/no project type set yet/i)).toBeTruthy();
+    // The read-only note's affordance still renders (stubbed EditInPlanButton).
+    expect(
+      screen.getByRole('button', { name: /edit in plan/i }),
+    ).toBeTruthy();
   });
 });
 

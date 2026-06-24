@@ -19,7 +19,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   maplibregl,
   MAP_STYLES,
+  ESRI_WORLD_IMAGERY_STYLE,
   hasMapToken,
+  mapRenderable,
   maptilerTransformRequest,
 } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
@@ -572,7 +574,9 @@ export default function PortfolioMap({
     if (!containerRef.current) return;
     const m = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES[initialBasemapRef.current] ?? MAP_STYLES['topographic'],
+      style: hasMapToken
+        ? (MAP_STYLES[initialBasemapRef.current] ?? MAP_STYLES['topographic'])
+        : ESRI_WORLD_IMAGERY_STYLE,
       center: [-79.7, 43.5],
       zoom: 9,
       attributionControl: { compact: true },
@@ -1093,7 +1097,7 @@ export default function PortfolioMap({
     if (b) map.fitBounds(b, { padding: FIT_PADDING, maxZoom: 15, duration: 700 });
   };
 
-  if (!hasMapToken) {
+  if (!mapRenderable) {
     return (
       <div className={css.wrap}>
         <MapTokenMissing />

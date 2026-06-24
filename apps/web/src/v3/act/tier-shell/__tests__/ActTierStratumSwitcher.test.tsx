@@ -214,4 +214,34 @@ describe('ActTierStratumSwitcher', () => {
     expect(screen.queryByTestId('switcher-threshold-threshold-2')).toBeNull();
     expect(screen.queryByTestId('switcher-threshold-threshold-3')).toBeNull();
   });
+
+  // Plan-only re-open affordance: when onEditPrimaryType is passed, the PRIMARY
+  // chip becomes a button that calls it; secondaries stay static spans. When the
+  // prop is omitted (Act), the primary chip is a static span (byte-identical).
+  it('primary chip is a button calling onEditPrimaryType when provided; secondaries stay spans', () => {
+    const onEditPrimaryType = vi.fn();
+    setup({
+      onEditPrimaryType,
+      typeChips: [
+        { label: 'Silvopasture', kind: 'primary' },
+        { label: 'Market Garden', kind: 'secondary' },
+      ],
+    });
+    expand();
+    const primaryChip = screen.getByTestId('switcher-edit-primary-type');
+    expect(primaryChip.tagName).toBe('BUTTON');
+    expect(primaryChip.textContent).toContain('Silvopasture');
+    fireEvent.click(primaryChip);
+    expect(onEditPrimaryType).toHaveBeenCalledTimes(1);
+    // The secondary chip is NOT a button.
+    const secondary = screen.getByText('Market Garden');
+    expect(secondary.tagName).toBe('SPAN');
+  });
+
+  it('primary chip is a static span when onEditPrimaryType is omitted (Act parity)', () => {
+    setup({ typeChips: [{ label: 'Silvopasture', kind: 'primary' }] });
+    expand();
+    expect(screen.queryByTestId('switcher-edit-primary-type')).toBeNull();
+    expect(screen.getByText('Silvopasture').tagName).toBe('SPAN');
+  });
 });

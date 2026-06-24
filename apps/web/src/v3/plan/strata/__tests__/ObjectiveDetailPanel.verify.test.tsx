@@ -89,6 +89,7 @@ vi.mock('../../../../lib/maplibre.js', () => ({
   CONTOUR_TILES_URL: '',
   OPENMAPTILES_TILES_URL: '',
   hasMapToken: false,
+  mapRenderable: false,
   maptilerKey: undefined,
   maptilerTransformRequest: (url: string) => ({ url }),
 }));

@@ -19,7 +19,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { PlanStratumObjective } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
@@ -131,12 +131,14 @@ describe('ActTierZeroWorkbench -- declaration mode', () => {
       onSelectObjective: vi.fn(),
     });
     expect(screen.getByTestId('declaration-center')).toBeTruthy();
-    // Active objective IS the team objective -> the reference panel mounts.
-    expect(screen.getByTestId('team-registry-panel')).toBeTruthy();
     // showActHandoff is true in declaration mode + the objective has an actHandoff.
     expect(screen.getByTestId('act-handoff')).toBeTruthy();
-    // The grid still renders beneath the chrome.
+    // The decision list still renders beneath the chrome.
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    // List-first: the TeamRegistryPanel lives in the per-decision workspace, so
+    // select a decision to surface it (active objective IS the team objective).
+    fireEvent.click(screen.getAllByTestId('decision-item')[0]!);
+    expect(screen.getByTestId('team-registry-panel')).toBeTruthy();
   });
 
   it('omits the TeamRegistryPanel when the active objective is NOT the team', () => {
@@ -153,8 +155,10 @@ describe('ActTierZeroWorkbench -- declaration mode', () => {
 describe('ActTierZeroWorkbench -- Act parity (declaration props omitted)', () => {
   it('renders the plain grid with NO declaration chrome', () => {
     renderWorkbench();
-    // Grid present...
+    // List present...
     expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    // List-first: select a decision to surface the working panel.
+    fireEvent.click(screen.getAllByTestId('decision-item')[0]!);
     expect(screen.getByText(/working on/i)).toBeTruthy();
     // ...but none of the Plan-only Declaration regions.
     expect(screen.queryByTestId('declaration-center')).toBeNull();

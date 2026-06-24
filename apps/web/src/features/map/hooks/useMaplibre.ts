@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, ESRI_WORLD_IMAGERY_STYLE, hasMapToken, mapRenderable, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import { useMapStore } from '../../../store/mapStore.js';
 import { map as mapTokens, group, neutral } from '../../../lib/tokens.js';
 
@@ -20,7 +20,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
   // Initialize map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    if (!hasMapToken) {
+    if (!mapRenderable) {
       console.warn('[OGDEN] No MapTiler key — map will not render. Set VITE_MAPTILER_KEY.');
       setMapError('Map unavailable — MapTiler API key is not configured.');
       return;
@@ -28,7 +28,9 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES[style] ?? MAP_STYLES['satellite']!,
+      // Keyless (offline demo) force the keyless Esri satellite style; a
+      // `key=...` MapTiler URL would 403.
+      style: hasMapToken ? (MAP_STYLES[style] ?? MAP_STYLES['satellite']!) : ESRI_WORLD_IMAGERY_STYLE,
       center: initialCenter ?? [-79.8, 43.5], // Default: Halton Region, Ontario
       zoom: initialZoom ?? 12,
       attributionControl: {},

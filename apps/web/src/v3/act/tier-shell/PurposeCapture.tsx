@@ -290,65 +290,69 @@ export default function PurposeCapture({
   const primaryTypeId: string | null = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds: readonly string[] = typeRecord?.secondaryTypeIds ?? [];
 
+  // This capture only ECHOES the project's chosen type(s) -- it never offers a
+  // pick from the full taxonomy (the grid is read-only; changing the type
+  // routes through Plan). So render only the cards the project actually IS:
+  // the primary + any secondaries. Empty (type-less project) shows a fallback.
+  const chosenIds = new Set<string>(
+    [primaryTypeId, ...secondaryTypeIds].filter(Boolean) as string[],
+  );
+
   return (
     <div className={css.root}>
-      {/* ---------- TYPE GRID ---------- */}
-      {GROUPS.map((group) => {
-        const cards = PURPOSE_GRID_CARDS.filter((c) => c.group === group);
-        return (
-          <div key={group} className={css.groupSection}>
-            <span className={css.secLabel}>{group}</span>
-            <div className={css.cardGrid}>
-              {cards.map((card) => {
-                const isPrimary = card.id === primaryTypeId;
-                const isSecondary =
-                  !isPrimary && secondaryTypeIds.includes(card.id);
-                // +2 badge: canBeSecondary === true, NOT the current primary,
-                // NOT already a chosen secondary. Sourced from PURPOSE_GRID_CARDS
-                // (baked at module-init from PROJECT_TYPES -- no per-render lookup).
-                const showCapabilityBadge =
-                  card.canBeSecondary && !isPrimary && !isSecondary;
+      {/* ---------- TYPE GRID (chosen types only) ---------- */}
+      {chosenIds.size === 0 ? (
+        <div className={css.groupSection}>
+          <span className={css.secLabel}>No project type set yet</span>
+        </div>
+      ) : (
+        GROUPS.map((group) => {
+          const cards = PURPOSE_GRID_CARDS.filter(
+            (c) => c.group === group && chosenIds.has(c.id),
+          );
+          if (cards.length === 0) return null;
+          return (
+            <div key={group} className={css.groupSection}>
+              <span className={css.secLabel}>{group}</span>
+              <div className={css.cardGrid}>
+                {cards.map((card) => {
+                  const isPrimary = card.id === primaryTypeId;
+                  const isSecondary =
+                    !isPrimary && secondaryTypeIds.includes(card.id);
 
-                return (
-                  <div
-                    key={card.id}
-                    className={css.typeCard}
-                    data-selected={isPrimary ? 'true' : undefined}
-                    data-secondary={isSecondary ? 'true' : undefined}
-                    data-type-id={card.id}
-                  >
-                    <div className={css.cardHeader}>
-                      <card.Icon
-                        size={13}
-                        className={css.cardIcon}
-                        aria-hidden="true"
-                      />
-                      <span className={css.cardName}>{card.name}</span>
+                  return (
+                    <div
+                      key={card.id}
+                      className={css.typeCard}
+                      data-selected={isPrimary ? 'true' : undefined}
+                      data-secondary={isSecondary ? 'true' : undefined}
+                      data-type-id={card.id}
+                    >
+                      <div className={css.cardHeader}>
+                        <card.Icon
+                          size={13}
+                          className={css.cardIcon}
+                          aria-hidden="true"
+                        />
+                        <span className={css.cardName}>{card.name}</span>
+                      </div>
+                      <p className={css.cardDesc}>{card.description}</p>
+                      <div className={css.badgeRow}>
+                        {isPrimary ? (
+                          <span className={css.primaryBadge}>Primary</span>
+                        ) : null}
+                        {isSecondary ? (
+                          <span className={css.secondaryBadge}>Secondary</span>
+                        ) : null}
+                      </div>
                     </div>
-                    <p className={css.cardDesc}>{card.description}</p>
-                    <div className={css.badgeRow}>
-                      {isPrimary ? (
-                        <span className={css.primaryBadge}>Primary</span>
-                      ) : null}
-                      {isSecondary ? (
-                        <span className={css.secondaryBadge}>Secondary</span>
-                      ) : null}
-                      {showCapabilityBadge ? (
-                        <span
-                          className={css.capabilityBadge}
-                          title="Can also be used as a secondary type"
-                        >
-                          +2
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })
+      )}
 
       <div className={css.divider} />
 

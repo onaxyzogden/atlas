@@ -621,6 +621,119 @@ describe('DecisionList -- groups + badge icons + feedHint (BR6)', () => {
   });
 });
 
+describe('DecisionList -- collapsed (stacked workbench) mode', () => {
+  it('renders ONLY the selected row when collapsed', () => {
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective()}
+        completedItemIds={[]}
+        selectedItemId="item-purpose"
+        onSelectItem={onSelectItem}
+        collapsed
+        onBack={vi.fn()}
+      />,
+    );
+    const rows = screen.getAllByTestId('decision-item');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.getAttribute('data-item-id')).toBe('item-purpose');
+  });
+
+  it('renders the back affordance when collapsed with a selection', () => {
+    render(
+      <DecisionList
+        objective={makeObjective()}
+        completedItemIds={[]}
+        selectedItemId="item-purpose"
+        onSelectItem={vi.fn()}
+        collapsed
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('decision-back')).toBeTruthy();
+  });
+
+  it('calls onBack (not onSelectItem) when the back affordance is clicked', () => {
+    const onSelectItem = vi.fn();
+    const onBack = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective()}
+        completedItemIds={[]}
+        selectedItemId="item-purpose"
+        onSelectItem={onSelectItem}
+        collapsed
+        onBack={onBack}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('decision-back'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(onSelectItem).not.toHaveBeenCalled();
+  });
+
+  it('calls onBack (not onSelectItem) when the collapsed tile itself is clicked', () => {
+    const onSelectItem = vi.fn();
+    const onBack = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective()}
+        completedItemIds={[]}
+        selectedItemId="item-purpose"
+        onSelectItem={onSelectItem}
+        collapsed
+        onBack={onBack}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('decision-item'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(onSelectItem).not.toHaveBeenCalled();
+  });
+
+  it('renders the full list and NO back affordance when not collapsed (default)', () => {
+    renderList({ selectedItemId: 'item-purpose' });
+    expect(screen.getAllByTestId('decision-item')).toHaveLength(4);
+    expect(screen.queryByTestId('decision-back')).toBeNull();
+  });
+
+  it('suppresses group dividers when collapsed', () => {
+    render(
+      <DecisionList
+        objective={makeObjective({
+          checklist: [
+            { id: 'i-a', label: 'A', feedsInto: [], optional: false },
+            { id: 'i-b', label: 'B', feedsInto: [], optional: false },
+          ],
+          decisionGroups: [
+            {
+              id: 'g1',
+              label: 'Group one',
+              itemIds: ['i-a'],
+              observeFeeds: [],
+              sourceSecondaryId: null,
+            },
+            {
+              id: 'g2',
+              label: 'Group two',
+              itemIds: ['i-b'],
+              observeFeeds: [],
+              sourceSecondaryId: null,
+            },
+          ],
+        } as Partial<PlanStratumObjective>)}
+        completedItemIds={[]}
+        selectedItemId="i-a"
+        onSelectItem={vi.fn()}
+        showGroups
+        collapsed
+        onBack={vi.fn()}
+      />,
+    );
+    // Collapsed to one tile -> no group dividers even with showGroups set.
+    expect(screen.queryAllByTestId('decision-group')).toHaveLength(0);
+    expect(screen.getAllByTestId('decision-item')).toHaveLength(1);
+  });
+});
+
 describe('DecisionList -- selection', () => {
   it('calls onSelectItem with the item id when a row is clicked', () => {
     const { onSelectItem } = renderList();

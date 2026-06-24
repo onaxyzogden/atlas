@@ -17,7 +17,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
@@ -157,11 +157,13 @@ describe('ActTierZeroWorkbench -- reception mode', () => {
     expect(screen.getByTestId('reception-center')).toBeTruthy();
     // showObserveOutput is true in reception mode + the objective has one.
     expect(screen.getByTestId('observe-output')).toBeTruthy();
-    // The working panel wires the survey's intent lens + builds-on line.
+    // The decision list still renders beneath the chrome.
+    expect(screen.getByText(/your decisions/i)).toBeTruthy();
+    // List-first: the working panel wires the survey's intent lens + builds-on
+    // line, so select a decision to surface them.
+    fireEvent.click(screen.getAllByTestId('decision-item')[0]!);
     expect(screen.getByTestId('intent-lens')).toBeTruthy();
     expect(screen.getByTestId('builds-on')).toBeTruthy();
-    // The grid still renders beneath the chrome.
-    expect(screen.getByText(/your decisions/i)).toBeTruthy();
     // Reception and Declaration chrome are mutually exclusive.
     expect(screen.queryByTestId('declaration-center')).toBeNull();
   });

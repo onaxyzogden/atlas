@@ -21,7 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import {
-  BASEMAP_OPTIONS,
+  AVAILABLE_BASEMAP_OPTIONS,
   useBasemapStore,
 } from '../../observe/components/measure/useMapToolStore.js';
 import css from './CommandCentreShell.module.css';
@@ -160,7 +160,7 @@ export default function CommandCentreMapSidebar<M extends string>({
       <section className={css.sideSection}>
         <p className={css.sideTitle}>Base map</p>
         <div className={css.basemapGrid}>
-          {BASEMAP_OPTIONS.map((opt) => (
+          {AVAILABLE_BASEMAP_OPTIONS.map((opt) => (
             <button
               key={opt.key}
               type="button"

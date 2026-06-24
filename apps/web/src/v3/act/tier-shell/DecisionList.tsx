@@ -25,6 +25,7 @@
 
 import { Fragment } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   Clock,
@@ -97,6 +98,20 @@ export interface DecisionListProps {
    * existing surface -- including Act and Plan Declaration -- is UNCHANGED.
    */
   showObserveOutput?: boolean;
+  /**
+   * OPTIONAL. When true, the list collapses to ONLY the selected row -- the
+   * "chosen tile" kept between the upper section and the workspace -- with a
+   * back affordance above it. The header (.ch) and count (.decLabel) still
+   * render in both states. Group dividers are suppressed while collapsed (a
+   * single tile needs no divider). Default false -> full flat/grouped list.
+   */
+  collapsed?: boolean;
+  /**
+   * OPTIONAL. Clears the selection and returns to the full list. Fired by the
+   * back button AND by clicking the collapsed tile itself. Expected to be set
+   * whenever `collapsed` can be true.
+   */
+  onBack?: () => void;
 }
 
 // Raw mode key -> human label. The keys cover three families: the LEGACY
@@ -424,6 +439,8 @@ export default function DecisionList({
   showGroups = false,
   showActHandoff = false,
   showObserveOutput = false,
+  collapsed = false,
+  onBack,
 }: DecisionListProps): JSX.Element {
   const completed = new Set(completedItemIds);
   const deferred = new Set(deferredItemIds);
@@ -448,21 +465,41 @@ export default function DecisionList({
         <span className={css.decCount}>{decisionCount(doneCount, total)}</span>
       </div>
 
+      {/* ---------- Back affordance (collapsed only) ---------- */}
+      {collapsed && selectedItemId ? (
+        <button
+          type="button"
+          className={css.backBtn}
+          data-testid="decision-back"
+          onClick={() => onBack?.()}
+        >
+          <ArrowLeft size={12} className={css.backBtnIcon} aria-hidden="true" />
+          <span>{ACT_COPY.decisionList.backToList}</span>
+        </button>
+      ) : null}
+
       {/* ---------- Decision rows ---------- */}
       <div className={css.rows}>
         {(() => {
+          // When collapsed, render ONLY the selected row (the "chosen tile")
+          // and suppress group dividers -- a single tile needs no header.
+          const collapsedToTile = collapsed && selectedItemId !== null;
+          const rowItems = collapsedToTile
+            ? items.filter((i) => i.id === selectedItemId)
+            : items;
+          const useGroups = showGroups && !collapsedToTile;
           // Build an itemId -> group-label map only when grouping is requested
           // and the objective carries groups; iterate items in checklist order
           // (the catalogue guarantees a full mutually-exclusive partition) and
           // emit a divider before the first row of each group.
           const groupLabelById = new Map<string, string>();
-          if (showGroups) {
+          if (useGroups) {
             for (const g of objective.decisionGroups) {
               for (const id of g.itemIds) groupLabelById.set(id, g.label);
             }
           }
           let lastGroup: string | null = null;
-          return items.map((item) => {
+          return rowItems.map((item) => {
             const complete = completed.has(item.id);
             // "Complete" wins over "deferred" visually -- a recorded item is
             // never shown on-hold even if a stale defer flag lingers.
@@ -474,7 +511,7 @@ export default function DecisionList({
             const rawMode = modeFor ? modeFor(item.id) : null;
             const modeLabel = rawMode ? (MODE_LABELS[rawMode] ?? rawMode) : null;
             const ModeIcon = rawMode ? MODE_ICONS[rawMode] : undefined;
-            const groupLabel = showGroups
+            const groupLabel = useGroups
               ? (groupLabelById.get(item.id) ?? null)
               : null;
             const showDivider = groupLabel !== null && groupLabel !== lastGroup;
@@ -496,11 +533,14 @@ export default function DecisionList({
                   role="button"
                   tabIndex={0}
                   aria-pressed={selected}
-                  onClick={() => onSelectItem(item.id)}
+                  onClick={() =>
+                    collapsedToTile ? onBack?.() : onSelectItem(item.id)
+                  }
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      onSelectItem(item.id);
+                      if (collapsedToTile) onBack?.();
+                      else onSelectItem(item.id);
                     }
                   }}
                 >

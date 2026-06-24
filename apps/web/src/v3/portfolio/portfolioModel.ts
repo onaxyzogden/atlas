@@ -12,6 +12,7 @@
 
 import { findProjectType, hasCapability, type ProjectRole } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
+import { parcelAreaValue } from '../../lib/geo.js';
 
 /**
  * Stage used to colour-code a project's boundary + label pin (§2.5/§2.6).
@@ -220,8 +221,13 @@ export function projectAreaLabel(p: LocalProject): string {
   if (typeof p.acreage !== 'number' || !Number.isFinite(p.acreage) || p.acreage <= 0) {
     return 'Area unknown';
   }
-  const unit = p.units === 'imperial' ? 'ac' : 'ha';
-  const rounded = p.acreage >= 10 ? Math.round(p.acreage) : Math.round(p.acreage * 10) / 10;
+  // `acreage` is stored canonically in acres (see lib/geo); convert to the
+  // project's display unit before rendering so a metric project shows hectares,
+  // not the raw acres value under a "ha" suffix.
+  const units = p.units === 'imperial' ? 'imperial' : 'metric';
+  const unit = units === 'imperial' ? 'ac' : 'ha';
+  const value = parcelAreaValue(p.acreage, units);
+  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
   return `${rounded} ${unit}`;
 }
 

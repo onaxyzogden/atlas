@@ -24,14 +24,14 @@
 /* ---------- Mode header ---------- */
 
 .modeHd {
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 
 .modeEyebrow {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .modePill {
@@ -57,11 +57,11 @@
 
 .modeTitle {
   font-family: var(--font-serif, 'Cormorant Garamond', serif);
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 400;
   color: var(--color-text, #1b1e22);
-  margin-bottom: 7px;
-  line-height: 1.3;
+  margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .modeTitleEm {
@@ -70,225 +70,13 @@
 }
 
 .modeDesc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-muted, #565c63);
-  line-height: 1.65;
-  max-width: 560px;
+  line-height: 1.45;
+  max-width: 640px;
 }
 
-/* ---------- Canonical objects ---------- */
-
-.coRow {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-
-.coCard {
-  flex: 1;
-  border-radius: 7px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-  background: var(--color-surface, #ffffff);
-}
-
-.coDone {
-  border-color: color-mix(
-    in srgb,
-    var(--color-success, #6b8f6b) 35%,
-    transparent
-  );
-  background: color-mix(in srgb, var(--color-success, #6b8f6b) 10%, transparent);
-}
-
-.coWip {
-  border-color: color-mix(
-    in srgb,
-    var(--color-gold-brand, #b08a3a) 40%,
-    transparent
-  );
-  background: color-mix(
-    in srgb,
-    var(--color-gold-brand, #b08a3a) 12%,
-    transparent
-  );
-}
-
-.coEyebrow {
-  margin-bottom: 5px;
-}
-
-.coTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 8px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 2px;
-}
-
-.coTagIcon {
-  flex: none;
-}
-
-.coTagDone {
-  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
-  color: var(--color-success, #6b8f6b);
-  border: 1px solid
-    color-mix(in srgb, var(--color-success, #6b8f6b) 35%, transparent);
-}
-
-.coTagWip {
-  background: color-mix(
-    in srgb,
-    var(--color-gold-brand, #b08a3a) 14%,
-    transparent
-  );
-  color: var(--color-gold-active, #9a771f);
-  border: 1px solid
-    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 40%, transparent);
-}
-
-.coTagIdle {
-  background: var(--color-surface-alt, #f3efe6);
-  color: var(--color-text-subtle, #7a808a);
-  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-}
-
-.coName {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text, #1b1e22);
-  margin-bottom: 3px;
-}
-
-.coDesc {
-  font-size: 10px;
-  color: var(--color-text-muted, #565c63);
-  line-height: 1.55;
-}
-
-/* ---------- Objective sequencing ---------- */
-
-.seqBlock {
-  margin-bottom: 22px;
-}
-
-.seqLabel {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle, #7a808a);
-  margin-bottom: 10px;
-}
-
-.seqRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.seqNode {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 10px;
-  font-weight: 500;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: default;
-  transition: opacity 0.15s ease;
-  white-space: nowrap;
-}
-
-/* A node is interactive (a <button>) only when not locked and a select handler
-   is provided; static nodes render as <span>. Hover dim mirrors the mockup. */
-button.seqNode {
-  cursor: pointer;
-}
-
-button.seqNode:hover {
-  opacity: 0.8;
-}
-
-button.seqNode:focus-visible {
-  outline: 2px solid var(--color-gold-active, #9a771f);
-  outline-offset: 1px;
-}
-
-.snDone {
-  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
-  color: var(--color-success, #6b8f6b);
-  border-color: color-mix(
-    in srgb,
-    var(--color-success, #6b8f6b) 35%,
-    transparent
-  );
-}
-
-.snActive {
-  background: color-mix(
-    in srgb,
-    var(--color-gold-brand, #b08a3a) 14%,
-    transparent
-  );
-  color: var(--color-gold-active, #9a771f);
-  border-color: color-mix(
-    in srgb,
-    var(--color-gold-brand, #b08a3a) 40%,
-    transparent
-  );
-}
-
-.snAvail {
-  background: var(--color-surface-alt, #f3efe6);
-  color: var(--color-text-muted, #565c63);
-  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
-}
-
-.snLocked {
-  background: transparent;
-  color: var(--color-text-subtle, #7a808a);
-  border-color: var(--color-border-subtle, rgba(84, 92, 100, 0.10));
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* Active node gets a subtle ring so the current objective stands out among its
-   parallel siblings (mockup marks the open objective amber). */
-.seqNode[data-active='true'] {
-  box-shadow: 0 0 0 1px
-    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 45%, transparent);
-}
-
-.seqArr {
-  color: var(--color-text-subtle, #7a808a);
-  flex-shrink: 0;
-}
-
-.seqGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.seqGroupLbl {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 8px;
-  color: var(--color-text-subtle, #7a808a);
-  letter-spacing: 0.04em;
-}
-
-.seqGroupNodes {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
+/* The canonical-object cards (.co* selectors) and objective-sequencing diagram
+ * (.seq* and .sn* selectors) that used to live here were relocated to
+ * DeclarationOrientationRail.module.css (2026-06-22) when those widgets moved
+ * to the right rail. */

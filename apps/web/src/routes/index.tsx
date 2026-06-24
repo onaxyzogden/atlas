@@ -575,15 +575,14 @@ type PlanSearch = {
   // chosen protocol (whose thresholds/lifecycle they're editing) survives in the
   // URL across stratum/objective navigation. Absent = no protocol selected.
   protocol?: string;
-  // Deep-link intent flag: when an objective detail is reached from Act's
-  // "Open guild builder in Plan" affordance, expand the REFERENCE section on
-  // arrival so the steward lands directly on the Plan designer rather than a
-  // collapsed toggle. Allowlisted here so the strict validator preserves it.
-  expandRef?: '1';
   // One-shot deep-link flag: arm a specific tool on arrival. Set by the Act
   // search rail's "Open in Plan" control (carries the catalogue tool id); the
   // Plan tier shell activates the tool then strips the param on mount.
   armTool?: string;
+  // One-shot deep-link flag: open the project-type change modal on arrival. Set
+  // by the Act purpose capture's "Edit in Plan" control (the type is read-only
+  // in Act); the Plan tier shell opens PrimaryChangeModal then strips the param.
+  changeType?: '1';
 };
 
 const validatePlanSearch = (
@@ -599,11 +598,14 @@ const validatePlanSearch = (
   if (typeof search.protocol === 'string' && search.protocol) {
     out.protocol = search.protocol;
   }
-  if (search.expandRef === '1') {
-    out.expandRef = '1';
-  }
   if (typeof search.armTool === 'string' && search.armTool) {
     out.armTool = search.armTool;
+  }
+  // TanStack's default search parser coerces a bare numeric value, so
+  // ?changeType=1 arrives as the NUMBER 1 (not the string '1'); accept both and
+  // normalize to the string sentinel the consumer compares against.
+  if (search.changeType === '1' || search.changeType === 1) {
+    out.changeType = '1';
   }
   return out;
 };

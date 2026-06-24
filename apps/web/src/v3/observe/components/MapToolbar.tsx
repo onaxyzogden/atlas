@@ -30,7 +30,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { polygonBounds } from '../../components/DiagnoseMap.js';
 import { parseGeoFile } from '../../../lib/geoParsers.js';
 import {
-  BASEMAP_OPTIONS,
+  AVAILABLE_BASEMAP_OPTIONS,
   useBasemapStore,
   useMapToolStore,
   type MapToolId,
@@ -265,7 +265,7 @@ export default function MapToolbar({
       {activeTool === 'basemap' && (
         <div className={css.popover} role="dialog" aria-label="Basemap">
           <span className={css.popoverTitle}>Basemap</span>
-          {BASEMAP_OPTIONS.map((opt) => (
+          {AVAILABLE_BASEMAP_OPTIONS.map((opt) => (
             <label key={opt.key} className={css.overlayRow}>
               <input
                 type="radio"
