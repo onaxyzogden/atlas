@@ -607,9 +607,6 @@ const validatePlanSearch = (
   if (search.changeType === '1' || search.changeType === 1) {
     out.changeType = '1';
   }
-  if (typeof search.armTool === 'string' && search.armTool) {
-    out.armTool = search.armTool;
-  }
   return out;
 };
 
