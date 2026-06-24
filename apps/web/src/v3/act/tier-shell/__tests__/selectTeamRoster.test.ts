@@ -96,6 +96,42 @@ describe('selectTeamRoster -- member rows', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Operational-role labels (ADR 2026-06-24 -- display-only)
+// ---------------------------------------------------------------------------
+
+describe('selectTeamRoster -- operationalRoleLabels', () => {
+  it('maps stored slugs to human labels in stored order', () => {
+    const model = selectTeamRoster(
+      [entry({}, { operationalRoles: ['livestock', 'food_production'] })],
+      {},
+    );
+    expect(model.members[0]?.operationalRoleLabels).toEqual([
+      'Livestock Lead',
+      'Food Production Lead',
+    ]);
+  });
+
+  it('emits an empty array when the member holds no operational roles', () => {
+    expect(selectTeamRoster([entry()], {}).members[0]?.operationalRoleLabels).toEqual(
+      [],
+    );
+  });
+
+  it('drops unknown / stale slugs rather than rendering a raw token', () => {
+    const model = selectTeamRoster(
+      [
+        entry({}, {
+          // `legacy_role` is not a known OperationalRole -- it must be dropped.
+          operationalRoles: ['legacy_role', 'finance_legal'] as never,
+        }),
+      ],
+      {},
+    );
+    expect(model.members[0]?.operationalRoleLabels).toEqual(['Finance & Legal Lead']);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Labour bars
 // ---------------------------------------------------------------------------
 
