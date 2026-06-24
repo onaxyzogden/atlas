@@ -126,6 +126,18 @@ export default function TeamRegistryPanel({
                 <span className={css.mBody}>
                   <span className={css.mName}>{m.name}</span>
                   <span className={css.mRole}>{m.roleLabel}</span>
+                  {m.operationalRoleLabels.length > 0 ? (
+                    <span
+                      className={css.opChips}
+                      data-testid={`op-roles-${m.userId}`}
+                    >
+                      {m.operationalRoleLabels.map((label) => (
+                        <span key={label} className={css.opChip}>
+                          {label}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                 </span>
                 {m.complete ? (
                   <span className={css.mDone}>

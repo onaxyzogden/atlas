@@ -11,9 +11,11 @@
 // and render NO pin (hide-until-real) — there is no synthetic fallback.
 
 import { useEffect, useRef } from 'react';
-import type { PlanStratumObjective } from '@ogden/shared';
+import type { PlanStratumObjective, UniversalDomain } from '@ogden/shared';
 import { maplibregl } from '../../../lib/maplibre.js';
 import type { ObjectiveProgress } from './objectiveProgress.js';
+import { objectiveInScope } from '../../roles/viewScope.js';
+import { mustSurface, type SurfaceReason } from '../../roles/alwaysSurface.js';
 
 interface Props {
   map: maplibregl.Map;
@@ -24,7 +26,18 @@ interface Props {
   progressByObjective: Readonly<Record<string, ObjectiveProgress>>;
   activeObjectiveId: string | null;
   onSelectObjective: (objectiveId: string) => void;
+  /**
+   * Operational Role Layer scope (additive). When present + non-empty, pins for
+   * out-of-scope objectives are DIMMED (never removed) so a role-filtered map
+   * still shows every objective's real location. Promoted objectives (open flag,
+   * cross-role dependency, shared-resource divergence) stay full opacity. Absent
+   * or empty ⇒ every pin renders at full opacity exactly as before.
+   */
+  scopedDomains?: ReadonlySet<UniversalDomain>;
+  surfaceMap?: ReadonlyMap<string, SurfaceReason[]>;
 }
+
+const EMPTY_SURFACE_MAP: ReadonlyMap<string, SurfaceReason[]> = new Map();
 
 // State -> pin colour. Literal hexes match the data-viz status colours used
 // across the v3 tier UI (complete green, gold active, neutral blue available).
@@ -55,6 +68,8 @@ export default function ActTierMapMarkers({
   progressByObjective,
   activeObjectiveId,
   onSelectObjective,
+  scopedDomains,
+  surfaceMap,
 }: Props) {
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const onSelectRef = useRef(onSelectObjective);
@@ -63,6 +78,9 @@ export default function ActTierMapMarkers({
   useEffect(() => {
     const known = markersRef.current;
     const seen = new Set<string>();
+    // Scope engaged only when a non-empty domain set is supplied (full view and
+    // unscoped callers leave scopedDomains undefined ⇒ every pin full opacity).
+    const scoped = scopedDomains !== undefined && scopedDomains.size > 0;
 
     objectives.forEach((objective) => {
       const pos = positionByObjective[objective.id];
@@ -75,6 +93,17 @@ export default function ActTierMapMarkers({
       known.get(objective.id)?.remove();
       const state = progressByObjective[objective.id]?.state ?? 'available';
       const el = buildPin(STATE_COLOR[state], objective.id === activeObjectiveId);
+      // Role-scope de-emphasis: out-of-scope pins dim to 0.4 but stay on the map
+      // (never hide, only de-emphasize). Promoted out-of-scope pins stay full.
+      const scopeState = !scoped
+        ? 'in'
+        : objectiveInScope(objective, scopedDomains)
+          ? 'in'
+          : mustSurface(objective.id, surfaceMap ?? EMPTY_SURFACE_MAP).surface
+            ? 'out-surfaced'
+            : 'out';
+      el.dataset.scope = scopeState;
+      el.style.opacity = scopeState === 'out' ? '0.4' : '1';
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat(pos)
         .addTo(map);
@@ -91,7 +120,15 @@ export default function ActTierMapMarkers({
         known.delete(id);
       }
     }
-  }, [map, positionByObjective, objectives, progressByObjective, activeObjectiveId]);
+  }, [
+    map,
+    positionByObjective,
+    objectives,
+    progressByObjective,
+    activeObjectiveId,
+    scopedDomains,
+    surfaceMap,
+  ]);
 
   useEffect(() => {
     const known = markersRef.current;

@@ -82,6 +82,7 @@ import {
   isObserveModule,
   type ObserveModule,
 } from './types.js';
+import { useViewScope } from '../roles/useViewScope.js';
 import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
@@ -333,6 +334,11 @@ function ObserveDualShellLayoutLegacy() {
     else navigateModuleSection(mod, sectionId);
   };
 
+  // Operational Role Layer: scope the bottom module navigator to the viewer's
+  // operational-role domains (additive; full view / solo / no-role ⇒ disengaged
+  // and the bar renders all 16 tiles exactly as before).
+  const viewScope = useViewScope(id);
+
   const moduleBar = (
     <ObserveModuleBar
       activeModule={validModule}
@@ -340,6 +346,10 @@ function ObserveDualShellLayoutLegacy() {
       slideUpOpen={slideUpOpen && validModule !== null}
       onOpenSlideUp={() => setSlideUpOpen(true)}
       onCloseSlideUp={() => setSlideUpOpen(false)}
+      scopedDomains={viewScope.isScoped ? viewScope.scope : undefined}
+      showFocusToggle={viewScope.layerActive}
+      focusMode={viewScope.focusMode}
+      onFocusModeChange={viewScope.setFocusMode}
     />
   );
 

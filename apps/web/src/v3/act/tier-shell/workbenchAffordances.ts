@@ -99,8 +99,10 @@ const VISION_ARTIFACT_BADGE: Record<string, string> = {
 // 2026-06-16). The armable form items keep the badges DecisionList already
 // renders: labour s1-steward-c5 -> vs-labour, capital s1-steward-c6 ->
 // vs-capital. The store-direct StewardTeamCapture items (roster/roles/rights/
-// capability/skill-gaps/governance) carry the sw-* badge family. (Note: the
-// st-* prefix is taken by ev-s4-settlement-strategy, hence sw-* here.)
+// capability/skill-gaps/governance/operational-roles) carry the sw-* badge
+// family. (Note: the st-* prefix is taken by ev-s4-settlement-strategy, hence
+// sw-* here.) s1-steward-c9 (operational roles, ADR 2026-06-24) is the optional
+// view-scoping item -- it carries sw-operational.
 const STEWARD_ARTIFACT_BADGE: Record<string, string> = {
   's1-steward-c1': 'sw-roster',
   's1-steward-c2': 'sw-roles',
@@ -110,6 +112,7 @@ const STEWARD_ARTIFACT_BADGE: Record<string, string> = {
   's1-steward-c6': 'vs-capital',
   's1-steward-c7': 'sw-gaps',
   's1-steward-c8': 'sw-governance',
+  's1-steward-c9': 'sw-operational',
 };
 
 const MAP: Record<string, WorkbenchObjectiveAffordances> = {

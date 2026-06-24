@@ -22,6 +22,13 @@ import {
 } from '../../../store/cyclicalReviewStore.js';
 import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
 import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import { collectAlwaysSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
+import {
+  composeScopedRail,
+  type ScopedRailEntry,
+} from '../../roles/railScope.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import DesignTensionBanner from './DesignTensionBanner.js';
@@ -249,6 +256,47 @@ export default function ObjectiveColumn({
   // The hook is already internally memoized + reactive; do NOT wrap in useMemo.
   const reviewFlagByObjective = useReviewFlagCountsByObjective(projectId ?? null);
 
+  // Operational Role Layer (Phase 6, legacy stratum-spine path) -- classify each
+  // visible card against the viewer's domain scope so out-of-focus objectives
+  // dim IN PLACE (never hidden, never reordered) and always-surfaced ones carry
+  // an amber promotion chip. The live default Plan shell (PlanTierShell) drives
+  // this through the shared ActTierObjectiveRail; this column is only mounted in
+  // the opt-in `stratum-spine` mode, so it scopes itself the same way. When the
+  // layer is disengaged (solo / no-role / full view / no projectId) the map is
+  // empty ⇒ every card renders with no scope props ⇒ byte-identical to before.
+  const viewScope = useViewScope(projectId ?? '');
+  const openFlagObjectiveIds = useMemo(
+    () => new Set(Object.keys(reviewFlagByObjective)),
+    [reviewFlagByObjective],
+  );
+  // Shared-resource-divergence promotion channel: the union of Observe domains
+  // diverged this cycle (data points + feed), so an out-of-focus objective whose
+  // footprint touches a diverged shared resource (e.g. hydrology) surfaces.
+  const divergedDomains = useDivergedDomains(projectId);
+  const surfaceMap = useMemo(
+    () =>
+      collectAlwaysSurface({
+        objectives,
+        scope: viewScope.scope,
+        openFlagObjectiveIds,
+        divergedDomains,
+      }),
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
+  );
+  const scopeByObjective = useMemo(() => {
+    const map = new Map<string, ScopedRailEntry>();
+    if (!viewScope.isScoped) return map;
+    const rail = composeScopedRail(
+      visibleObjectives,
+      viewScope.scope,
+      surfaceMap,
+    );
+    for (const entry of [...rail.mainList, ...rail.outsideList]) {
+      map.set(entry.objective.id, entry);
+    }
+    return map;
+  }, [viewScope.isScoped, visibleObjectives, viewScope.scope, surfaceMap]);
+
   // Plan Nav v1.1 §7 — per-card "review suggested" flag. Subscribes to this
   // project's cyclical-review map so a badge appears the moment a 90-day clock
   // elapses or `forceTrigger` fires (dev-tools / the Phase-4 Observe-revision
@@ -441,23 +489,29 @@ export default function ObjectiveColumn({
 
       {sortedObjectives.length > 0 && (
         <ul className={css.list}>
-          {sortedObjectives.map((obj) => (
-            <li key={obj.id} className={css.item}>
-              <ObjectiveCard
-                objective={obj}
-                status={objectiveStatuses[obj.id] ?? 'locked'}
-                isActive={obj.id === activeObjectiveId}
-                isHighlighting={highlightSet.has(obj.id)}
-                divergenceCount={divergenceByObjective[obj.id] ?? 0}
-                reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
-                reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
-                reviewCheckpoint={softReviewObjectiveIds?.has(obj.id) ?? false}
-                onHoldDecisionCount={onHoldByObjective[obj.id] ?? 0}
-                onSelect={onSelectObjective}
-                onDivergenceClick={onObjectiveDivergenceClick}
-              />
-            </li>
-          ))}
+          {sortedObjectives.map((obj) => {
+            const scopeEntry = scopeByObjective.get(obj.id);
+            return (
+              <li key={obj.id} className={css.item}>
+                <ObjectiveCard
+                  objective={obj}
+                  status={objectiveStatuses[obj.id] ?? 'locked'}
+                  isActive={obj.id === activeObjectiveId}
+                  isHighlighting={highlightSet.has(obj.id)}
+                  divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                  reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
+                  reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
+                  reviewCheckpoint={softReviewObjectiveIds?.has(obj.id) ?? false}
+                  onHoldDecisionCount={onHoldByObjective[obj.id] ?? 0}
+                  onSelect={onSelectObjective}
+                  onDivergenceClick={onObjectiveDivergenceClick}
+                  scopeState={scopeEntry?.scopeState}
+                  surfaceReasons={scopeEntry?.reasons}
+                  roleBadges={scopeEntry?.roleBadges}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -467,19 +521,25 @@ export default function ObjectiveColumn({
             Deferred ({deferredObjectives.length})
           </p>
           <ul className={css.list}>
-            {deferredObjectives.map((obj) => (
-              <li key={obj.id} className={css.item}>
-                <ObjectiveCard
-                  objective={obj}
-                  status="deferred"
-                  isActive={obj.id === activeObjectiveId}
-                  divergenceCount={divergenceByObjective[obj.id] ?? 0}
-                  reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
-                  onSelect={onSelectObjective}
-                  onRestore={onRestoreObjective}
-                />
-              </li>
-            ))}
+            {deferredObjectives.map((obj) => {
+              const scopeEntry = scopeByObjective.get(obj.id);
+              return (
+                <li key={obj.id} className={css.item}>
+                  <ObjectiveCard
+                    objective={obj}
+                    status="deferred"
+                    isActive={obj.id === activeObjectiveId}
+                    divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                    reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
+                    onSelect={onSelectObjective}
+                    onRestore={onRestoreObjective}
+                    scopeState={scopeEntry?.scopeState}
+                    surfaceReasons={scopeEntry?.reasons}
+                    roleBadges={scopeEntry?.roleBadges}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

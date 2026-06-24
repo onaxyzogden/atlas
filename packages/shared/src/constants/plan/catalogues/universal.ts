@@ -206,12 +206,26 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Note the governance principles and decision-making framework that will govern the team',
         { feeds: ['s4-direction'] },
       ),
+      // Operational roles (ADR 2026-06-24): each member's default domain focus
+      // across Plan / Act / Observe. View-scoping only - it never grants or
+      // removes capability (that stays with PROJECT_ROLE_CAPABILITIES) and feeds
+      // no downstream objective. `optional` so it is excluded from the steward
+      // objective's required-progress denominator (stratumObjectiveStatus filters
+      // !optional) - adding it never drags or gates completion.
+      {
+        ...ck(
+          's1-steward-c9',
+          'Assign operational roles - set the default domain focus for each member across Plan, Act, and Observe',
+        ),
+        optional: true,
+      },
     ],
     decisionGroups: [
       dg('s1-steward-dg1', 'People & roles', [
         's1-steward-c1',
         's1-steward-c2',
         's1-steward-c3',
+        's1-steward-c9',
       ]),
       dg('s1-steward-dg2', 'Capability & resources', [
         's1-steward-c4',

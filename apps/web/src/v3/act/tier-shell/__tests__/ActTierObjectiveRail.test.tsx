@@ -14,8 +14,10 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   findPlanStratum,
   findPlanStratumObjective,
+  scopeForRoles,
   type PlanStratumObjective,
 } from '@ogden/shared';
+import type { SurfaceReason } from '../../../roles/alwaysSurface.js';
 
 // lucide-react forwardRef icons spread [undefined] into <svg> children when
 // childless, which React 18 + happy-dom reject on re-render. Replace every
@@ -225,5 +227,94 @@ describe('ActTierObjectiveRail (headerSlot)', () => {
     expect(
       screen.getByText(OBJECTIVE.shortTitle ?? OBJECTIVE.title),
     ).toBeTruthy();
+  });
+});
+
+describe('ActTierObjectiveRail (operational role scope)', () => {
+  // Three real objectives across the FOOD scope boundary:
+  //   s6-yield-flows    -> [plants-food, ...]  IN focus
+  //   s5-water-strategy -> [hydrology, ...]    OUT (un-promoted -> collapsible)
+  //   s1-stewardship    -> [people-governance] OUT (promoted via open flag)
+  const FOOD_SCOPE = scopeForRoles(['food_production']); // { plants-food }
+  const IN_OBJ = findPlanStratumObjective('s6-yield-flows')!;
+  const OUT_WATER = findPlanStratumObjective('s5-water-strategy')!;
+  const OUT_STEWARD = findPlanStratumObjective('s1-stewardship')!;
+  const SCOPE_OBJECTIVES = [IN_OBJ, OUT_WATER, OUT_STEWARD];
+  const SCOPE_PROGRESS: Readonly<Record<string, ObjectiveProgress>> = {
+    [IN_OBJ.id]: { total: 2, verified: 1, state: 'active' },
+  };
+  const SURFACE_MAP = new Map<string, SurfaceReason[]>([
+    ['s1-stewardship', ['open-review-flag']],
+  ]);
+
+  function renderScoped(
+    focusMode: 'role' | 'full' = 'role',
+    onFocusModeChange: (mode: 'role' | 'full') => void = vi.fn(),
+  ) {
+    return render(
+      <ActTierObjectiveRail
+        stratum={STRATUM}
+        objectives={SCOPE_OBJECTIVES}
+        progressByObjective={SCOPE_PROGRESS}
+        activeObjectiveId={null}
+        onSelectObjective={vi.fn()}
+        mode="objectives"
+        onModeChange={vi.fn()}
+        triggeredCount={0}
+        projectId="proj-1"
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        activeStratumId="s6-integration-design"
+        selectedProtocolId={null}
+        onSelectProtocol={vi.fn()}
+        // role view ⇒ scope engaged; full view ⇒ scopedDomains omitted.
+        scopedDomains={focusMode === 'role' ? FOOD_SCOPE : undefined}
+        surfaceMap={SURFACE_MAP}
+        showFocusToggle
+        focusMode={focusMode}
+        onFocusModeChange={onFocusModeChange}
+      />,
+    );
+  }
+
+  it('renders the focus toggle with an in-focus count (in-scope + promoted of total)', () => {
+    renderScoped('role');
+    expect(screen.getByTestId('view-focus-toggle')).toBeTruthy();
+    // 2 in focus (s6 in-scope + s1 promoted) of 3 total.
+    expect(screen.getByTestId('view-focus-role').textContent).toContain('2 / 3');
+  });
+
+  it('promotes an out-of-scope objective carrying an open flag into the in-focus list', () => {
+    renderScoped('role');
+    expect(
+      screen.getByText(OUT_STEWARD.shortTitle ?? OUT_STEWARD.title),
+    ).toBeTruthy();
+    // Amber surfaced chip names the promotion reason.
+    expect(screen.getByText('Open review flag')).toBeTruthy();
+  });
+
+  it('buries an un-promoted out-of-scope objective behind the collapsible until expanded', () => {
+    renderScoped('role');
+    const outTitle = OUT_WATER.shortTitle ?? OUT_WATER.title;
+    // Collapsed by default -> not rendered, but the count advertises it exists.
+    expect(screen.queryByText(outTitle)).toBeNull();
+    const toggle = screen.getByTestId('rail-outside-focus-toggle');
+    expect(toggle.textContent).toContain('Outside your focus (1)');
+    fireEvent.click(toggle);
+    // Expanded -> the dimmed card is reachable (never hidden, only de-emphasized).
+    expect(screen.getByText(outTitle)).toBeTruthy();
+  });
+
+  it('full view renders every objective flat with no outside section', () => {
+    renderScoped('full');
+    expect(
+      screen.getByText(OUT_WATER.shortTitle ?? OUT_WATER.title),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(OUT_STEWARD.shortTitle ?? OUT_STEWARD.title),
+    ).toBeTruthy();
+    expect(screen.queryByTestId('rail-outside-focus-toggle')).toBeNull();
+    // The toggle stays so a steward can switch back to My focus.
+    expect(screen.getByTestId('view-focus-toggle')).toBeTruthy();
   });
 });

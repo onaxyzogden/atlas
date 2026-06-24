@@ -1,0 +1,42 @@
+/* ViewFocusToggle -- segmented "My focus / Full view" control for the
+   Operational Role Layer (ADR 2026-06-24). Parchment palette matches the
+   sibling collaboration surfaces (ScopePreview). */
+
+.root {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.03);
+}
+
+.segment {
+  appearance: none;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--color-text-subtle);
+  background: transparent;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.segment:hover {
+  color: var(--color-text);
+}
+
+.segment[data-active='true'] {
+  color: var(--color-text);
+  background: rgba(232, 220, 200, 0.1);
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--color-gold-active, rgba(212, 175, 110, 0.6));
+  outline-offset: 1px;
+}

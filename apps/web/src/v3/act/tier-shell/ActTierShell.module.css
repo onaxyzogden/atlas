@@ -649,6 +649,114 @@
   color: #c4a265;
 }
 
+/* ---- Operational Role Layer: view scope (additive) ---------------------- */
+/* The golden rule is "never hide, only de-emphasize": an out-of-focus card is
+   dimmed but stays fully interactive, and lifts back to full presence on hover
+   / focus so a steward can always read and open it. A promoted (out-surfaced)
+   card renders at full presence with an amber frame + chip. */
+
+.objCard[data-scope='out'] {
+  opacity: 0.55;
+}
+
+.objCard[data-scope='out']:hover,
+.objCard[data-scope='out']:focus-visible,
+.objCard[data-scope='out'][data-active='true'] {
+  opacity: 1;
+}
+
+.objCard[data-scope='out-surfaced'] {
+  border-color: color-mix(in srgb, #e8b964 55%, var(--color-border, rgba(242, 237, 227, 0.12)));
+  background: color-mix(in srgb, #e8b964 7%, var(--color-bg, #14191f));
+}
+
+/* Amber "surfaced from outside your focus" chip — shares the source-pill shape
+   but a distinct warm tone so it never reads as a primary/secondary provenance
+   badge. */
+.surfaceChip {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(232, 185, 100, 0.16);
+  color: #e8b964;
+}
+
+/* Owning-role context badges on an out-of-focus card ("belongs to ..."). */
+.roleBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  background: rgba(242, 237, 227, 0.08);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* "My focus / Full view" toggle row — sits between the rail header and the
+   source-filter / objective list. */
+.focusToggleBar {
+  padding: 8px 10px 0;
+}
+
+/* Collapsible "Outside your focus (N)" group below the in-focus list. */
+.outsideSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 10px 10px;
+}
+
+.outsideToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 4px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.outsideToggle:hover {
+  color: var(--color-text, #f2ede3);
+}
+
+.outsideToggle:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.outsideCaret {
+  font-size: 10px;
+  line-height: 1;
+}
+
 /* ---- Right rail: toggle + body ------------------------------------------ */
 
 .rightRail {

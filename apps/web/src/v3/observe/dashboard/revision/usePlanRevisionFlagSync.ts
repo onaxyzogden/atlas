@@ -8,15 +8,12 @@
  * `observeRevisionFlag` injection point. Slice 1.11 wired the dev-tools
  * `forceTrigger` entry; Slice 4.4 wires the REAL signal here:
  *
- *   1. Gather the set of universal domains that currently have at least
- *      one ACTIVE diverged ObserveDataPoint (`isSuperseded === false`
- *      and `statusOutput ∈ {needs_investigation | major_constraint |
- *      potential_disqualifier}`).
- *   2. Gather the set of universal domains that currently have at least
- *      one diverged ObserveFeedEntry (Phase 3 substrate, `sourceType ===
- *      'diverged'`), projected from `feedKey` (objective id) via
- *      `resolveDomainByObjectiveId`.
- *   3. Feed the UNION of those diverged domains to the shared
+ *   1. Derive the set of universal domains that currently carry an ACTIVE
+ *      divergence — from diverged ObserveDataPoints and diverged
+ *      ObserveFeedEntries. That derivation now lives in the shared
+ *      `useDivergedDomains` hook (also consumed by the Operational Role
+ *      Layer's always-surface engine), so both consumers read one source.
+ *   2. Feed the diverged domains to the shared
  *      `resolveReviewFlaggedObjectives` resolver, which returns the
  *      objectives to flag — the union of three `feedsInto`-derived
  *      signals (domain MEMBERSHIP, UPSTREAM feeders, DOWNSTREAM
@@ -36,67 +33,17 @@
  * Mount once per project at the V3 project layout level.
  */
 
-import { useEffect, useMemo } from 'react';
-import {
-  resolveReviewFlaggedObjectives,
-  type UniversalDomain,
-} from '@ogden/shared';
-import {
-  useObserveDataPointStore,
-  selectObserveDataPointsForProject,
-} from '../../../../store/observeDataPointStore.js';
-import {
-  useObserveFeedStore,
-  selectObserveFeedForProject,
-} from '../../../../store/observeFeedStore.js';
+import { useEffect } from 'react';
+import { resolveReviewFlaggedObjectives } from '@ogden/shared';
 import { useCyclicalReviewStore } from '../../../../store/cyclicalReviewStore.js';
-import { resolveDomainByObjectiveId } from './resolveDomainForObjective.js';
 import { useProjectObjectives } from '../../../plan/strata/useProjectObjectives.js';
-
-const DIVERGENT_STATUSES = new Set([
-  'needs_investigation',
-  'major_constraint',
-  'potential_disqualifier',
-]);
+import { useDivergedDomains } from './useDivergedDomains.js';
 
 export function usePlanRevisionFlagSync(projectId: string | undefined): void {
-  const dataPoints = useObserveDataPointStore((s) =>
-    projectId ? selectObserveDataPointsForProject(s, projectId) : [],
-  );
-  const feedEntries = useObserveFeedStore((s) =>
-    projectId ? selectObserveFeedForProject(s, projectId) : [],
-  );
   // Sub-slice D - flag-sync iterates THIS project's resolved objective set so a
   // divergence on a primary/secondary objective's domain can force its review.
   const { objectives } = useProjectObjectives(projectId ?? '');
-
-  const divergedDataPointDomains = useMemo<readonly UniversalDomain[]>(() => {
-    const set = new Set<UniversalDomain>();
-    for (const p of dataPoints) {
-      if (p.isSuperseded) continue;
-      if (!DIVERGENT_STATUSES.has(p.statusOutput)) continue;
-      set.add(p.domainId);
-    }
-    return Array.from(set);
-  }, [dataPoints]);
-
-  const divergedFeedDomains = useMemo<readonly UniversalDomain[]>(() => {
-    const set = new Set<UniversalDomain>();
-    for (const entry of feedEntries) {
-      if (entry.sourceType !== 'diverged') continue;
-      const domainId = resolveDomainByObjectiveId(entry.feedKey);
-      if (!domainId) continue;
-      set.add(domainId);
-    }
-    return Array.from(set);
-  }, [feedEntries]);
-
-  const divergedDomains = useMemo<readonly UniversalDomain[]>(() => {
-    const set = new Set<UniversalDomain>();
-    for (const d of divergedDataPointDomains) set.add(d);
-    for (const d of divergedFeedDomains) set.add(d);
-    return Array.from(set);
-  }, [divergedDataPointDomains, divergedFeedDomains]);
+  const divergedDomains = useDivergedDomains(projectId);
 
   useEffect(() => {
     if (!projectId) return;

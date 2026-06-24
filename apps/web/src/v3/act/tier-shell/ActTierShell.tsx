@@ -134,6 +134,9 @@ import { type SpineTypeChip } from './ActTierSpine.js';
 import ActTierStratumSwitcher from './ActTierStratumSwitcher.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActSearchRail from './ActSearchRail.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import { collectAlwaysSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
 import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
@@ -165,6 +168,7 @@ import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
+import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
 import { resolveActSearchMatches } from '../../search/useStageSearchResults.js';
 import type { ActToolMatch } from '../../search/useStageSearchResults.js';
@@ -568,6 +572,39 @@ export default function ActTierShell() {
   const stratumObjectives = useMemo(
     () => objectives.filter((o) => o.stratumId === selectedStratumId),
     [objectives, selectedStratumId],
+  );
+
+  // Operational Role Layer (ADR 2026-06-24): the per-shell view-scope gate.
+  // Solo / no-role viewers ⇒ inert (layerActive false, scopedDomains undefined),
+  // so the rail renders byte-identically to today. When engaged it scopes the
+  // objective rail to the viewer's operational domains — never hiding, only
+  // de-emphasizing — with a "My focus / Full view" toggle.
+  const viewScope = useViewScope(id);
+  // Objective ids carrying >=1 OPEN review flag (the counts hook keys). These
+  // always surface regardless of focus, so a live amber "Review" is never
+  // buried by the role filter.
+  const openFlagCounts = useReviewFlagCountsByObjective(id);
+  const openFlagObjectiveIds = useMemo(
+    () => new Set(Object.keys(openFlagCounts)),
+    [openFlagCounts],
+  );
+  // Domains carrying an ACTIVE Observe divergence this cycle (data points ∪
+  // feed), the shared-resource-divergence promotion signal.
+  const divergedDomains = useDivergedDomains(id);
+  // Promotion map over the PROJECT-WIDE objective set so a cross-role
+  // (`feedsInto`) dependency on an in-scope objective in another stratum, an
+  // open review flag, or a shared-resource divergence still promotes an
+  // out-of-scope objective. The rail looks up by id for whichever stratum it
+  // renders. Empty scope (full view / no role) ⇒ empty map.
+  const surfaceMap = useMemo(
+    () =>
+      collectAlwaysSurface({
+        objectives,
+        scope: viewScope.scope,
+        openFlagObjectiveIds,
+        divergedDomains,
+      }),
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
   );
 
   // Real per-objective marker positions from field-action geometry. Objectives
@@ -1140,6 +1177,14 @@ export default function ActTierShell() {
                 selectedProtocolId={selectedProtocolId}
                 onSelectProtocol={handleSelectProtocol}
                 bulkActivation={!showTierZeroWorkbench}
+                // Operational Role Layer: scope only when actually engaged
+                // (isScoped). The toggle shows whenever the layer is active so a
+                // scoped steward can flip to Full view (and back) at will.
+                scopedDomains={viewScope.isScoped ? viewScope.scope : undefined}
+                surfaceMap={surfaceMap}
+                showFocusToggle={viewScope.layerActive}
+                focusMode={viewScope.focusMode}
+                onFocusModeChange={viewScope.setFocusMode}
               />
             )
           }
@@ -1248,6 +1293,10 @@ export default function ActTierShell() {
                         progressByObjective={progressByObjective}
                         activeObjectiveId={objectiveId}
                         onSelectObjective={handleSelectObjective}
+                        scopedDomains={
+                          viewScope.isScoped ? viewScope.scope : undefined
+                        }
+                        surfaceMap={surfaceMap}
                       />
                       <ProtocolMapMarkers
                         map={map}

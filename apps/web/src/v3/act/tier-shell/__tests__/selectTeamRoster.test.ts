@@ -29,6 +29,7 @@ function member(over: Partial<ProjectMemberRecord> = {}): ProjectMemberRecord {
     email: 'ali@example.nz',
     displayName: 'Ali Rahman',
     role: 'primary_steward',
+    operationalRoles: [],
     joinedAt: '2026-01-01T00:00:00.000Z',
     ...over,
   };
@@ -91,6 +92,42 @@ describe('selectTeamRoster -- member rows', () => {
     expect(constituted.members[0]?.complete).toBe(true);
     expect(constituted.members[1]?.complete).toBe(false);
     expect(constituted.constitutedCount).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Operational-role labels (ADR 2026-06-24 -- display-only)
+// ---------------------------------------------------------------------------
+
+describe('selectTeamRoster -- operationalRoleLabels', () => {
+  it('maps stored slugs to human labels in stored order', () => {
+    const model = selectTeamRoster(
+      [entry({}, { operationalRoles: ['livestock', 'food_production'] })],
+      {},
+    );
+    expect(model.members[0]?.operationalRoleLabels).toEqual([
+      'Livestock Lead',
+      'Food Production Lead',
+    ]);
+  });
+
+  it('emits an empty array when the member holds no operational roles', () => {
+    expect(selectTeamRoster([entry()], {}).members[0]?.operationalRoleLabels).toEqual(
+      [],
+    );
+  });
+
+  it('drops unknown / stale slugs rather than rendering a raw token', () => {
+    const model = selectTeamRoster(
+      [
+        entry({}, {
+          // `legacy_role` is not a known OperationalRole -- it must be dropped.
+          operationalRoles: ['legacy_role', 'finance_legal'] as never,
+        }),
+      ],
+      {},
+    );
+    expect(model.members[0]?.operationalRoleLabels).toEqual(['Finance & Legal Lead']);
   });
 });
 

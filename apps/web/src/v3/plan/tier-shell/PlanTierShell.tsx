@@ -146,6 +146,11 @@ import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
 import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
 import { useObjectivePlanLock } from '../../../store/actMandateStore.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import { objectiveInScope } from '../../roles/viewScope.js';
+import { collectAlwaysSurface, mustSurface } from '../../roles/alwaysSurface.js';
+import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
+import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import { type RailMode } from '../../act/tier-shell/ActRailModeToggle.js';
 import VisionFormsTabsModal from '../../act/tier-shell/VisionFormsTabsModal.js';
 import ActTierZeroWorkbench from '../../act/tier-shell/ActTierZeroWorkbench.js';
@@ -311,6 +316,53 @@ export default function PlanTierShell() {
 
   // Resolved per-project objective set (universal + primary/secondary types).
   const { objectives } = useProjectObjectives(id);
+
+  // Operational Role Layer (ADR 2026-06-24): the per-shell view-scope gate,
+  // identical to Act. Solo / no-role viewers ⇒ inert (layerActive false,
+  // scopedDomains undefined) so the rail renders byte-identically. When engaged
+  // it scopes each stratum's objective rail to the viewer's operational domains
+  // — never hiding, only de-emphasizing — WITHOUT changing which stratum shows
+  // or reordering the strata (the rail dims/collapses within the stratum only).
+  const viewScope = useViewScope(id);
+  const openFlagCounts = useReviewFlagCountsByObjective(id);
+  const openFlagObjectiveIds = useMemo(
+    () => new Set(Object.keys(openFlagCounts)),
+    [openFlagCounts],
+  );
+  // Domains carrying an ACTIVE Observe divergence this cycle (data points ∪
+  // feed), the shared-resource-divergence promotion signal.
+  const divergedDomains = useDivergedDomains(id);
+  // Promotion map over the PROJECT-WIDE objective set so a cross-role
+  // (`feedsInto`) dependency, an open review flag, or a shared-resource
+  // divergence still surfaces an out-of-scope objective. Empty scope ⇒ empty map.
+  const surfaceMap = useMemo(
+    () =>
+      collectAlwaysSurface({
+        objectives,
+        scope: viewScope.scope,
+        openFlagObjectiveIds,
+        divergedDomains,
+      }),
+    [objectives, viewScope.scope, openFlagObjectiveIds, divergedDomains],
+  );
+  // Per-stratum "N in focus / M total" for the stratum switcher: an objective is
+  // "in focus" when it is in the viewer's scope OR always-surfaced (promoted).
+  // This matches the rail's main-list count exactly, so a steward sees that
+  // scoped-away work still exists in every stratum. Undefined when unscoped ⇒
+  // the switcher renders no badge (byte-identical for solo / no-role / full view).
+  const focusCountByStratum = useMemo(() => {
+    if (!viewScope.isScoped) return undefined;
+    const scope = viewScope.scope;
+    const acc: Record<string, { inFocus: number; total: number }> = {};
+    for (const o of objectives) {
+      const entry = (acc[o.stratumId] ??= { inFocus: 0, total: 0 });
+      entry.total += 1;
+      if (objectiveInScope(o, scope) || mustSurface(o.id, surfaceMap).surface) {
+        entry.inFocus += 1;
+      }
+    }
+    return acc;
+  }, [viewScope.isScoped, viewScope.scope, objectives, surfaceMap]);
 
   // Single source of truth: effective checklist progress = stored
   // planStratumStore progress UNIONED with wizard-derived S1 completion. The
@@ -1217,6 +1269,17 @@ export default function PlanTierShell() {
                 progressByObjective={checklistProgressByObjective}
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
+                // Operational Role Layer: scope this stratum's rail to the
+                // viewer's domains (additive; disengaged ⇒ byte-identical). The
+                // rail dims/collapses out-of-scope objectives in place and
+                // promotes always-surface ones; it never reorders strata.
+                scopedDomains={
+                  viewScope.isScoped ? viewScope.scope : undefined
+                }
+                surfaceMap={surfaceMap}
+                showFocusToggle={viewScope.layerActive}
+                focusMode={viewScope.focusMode}
+                onFocusModeChange={viewScope.setFocusMode}
                 // Plan-only: the rail header IS the stratum switcher (the
                 // horizontal spine is hidden). It absorbs everything the spine
                 // carried -- stratum tabs, the reachable threshold checkpoints,
@@ -1244,6 +1307,7 @@ export default function PlanTierShell() {
                     projectTitle={project.name}
                     typeChips={spineTypeChips}
                     onEditPrimaryType={() => setPrimaryChangeOpen(true)}
+                    focusCountByStratum={focusCountByStratum}
                   />
                 }
                 // Protocols mode is LIVE in Plan: the toggle drives ?planMode,

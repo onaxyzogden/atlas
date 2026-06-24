@@ -10,8 +10,18 @@
 import type { KeyboardEvent } from 'react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import type { ObjectiveProgress } from './objectiveProgress.js';
+import type { ScopeState } from '../../roles/railScope.js';
+import type { SurfaceReason } from '../../roles/alwaysSurface.js';
 import { getSourceTag } from '../../plan/strata/sourceTag.js';
 import styles from './ActTierShell.module.css';
+
+// Human label for each always-surface reason — the amber chip on a promoted
+// out-of-focus card. ASCII-only copy; reasons arrive pre-ordered by priority.
+const SURFACE_REASON_LABEL: Record<SurfaceReason, string> = {
+  'open-review-flag': 'Open review flag',
+  'cross-role-dependency': 'Feeds your work',
+  'shared-resource-divergence': 'Shared resource changed',
+};
 
 interface Props {
   objective: PlanStratumObjective;
@@ -23,6 +33,14 @@ interface Props {
   progress: ObjectiveProgress;
   isActive: boolean;
   onSelect: () => void;
+  // ---- Operational Role Layer (additive; all undefined ⇒ byte-identical) ----
+  // The viewer's scope classification for this card. Drives a `data-scope`
+  // attribute the rail CSS dims on; absent ⇒ no attribute ⇒ unscoped rail.
+  scopeState?: ScopeState;
+  // Promotion reasons — rendered as an amber chip only when out-surfaced.
+  surfaceReasons?: readonly SurfaceReason[];
+  // Owning-role labels for out-of-focus context ("belongs to Livestock Lead").
+  roleBadges?: readonly string[];
 }
 
 export default function ActTierObjectiveCard({
@@ -31,6 +49,9 @@ export default function ActTierObjectiveCard({
   progress,
   isActive,
   onSelect,
+  scopeState,
+  surfaceReasons,
+  roleBadges,
 }: Props) {
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -51,6 +72,12 @@ export default function ActTierObjectiveCard({
   // secondary) contributed the objective - parity with the Plan ObjectiveColumn.
   const source = getSourceTag(objective);
 
+  const hasRoleBadges = !!roleBadges && roleBadges.length > 0;
+  const promotionReasons =
+    scopeState === 'out-surfaced' && surfaceReasons && surfaceReasons.length > 0
+      ? surfaceReasons
+      : null;
+
   return (
     <div
       className={styles.objCard}
@@ -63,6 +90,10 @@ export default function ActTierObjectiveCard({
       aria-pressed={isActive}
       data-status={progress.state}
       data-active={isActive}
+      // Operational Role Layer: omitted when unscoped ⇒ no attribute ⇒ the rail
+      // renders exactly as today. 'out'/'out-surfaced' dim the card via CSS;
+      // the card stays fully interactive (never hide, only de-emphasize).
+      data-scope={scopeState}
       onClick={onSelect}
       onKeyDown={handleKeyDown}
     >
@@ -71,11 +102,28 @@ export default function ActTierObjectiveCard({
           {source.label}
         </span>
       )}
+      {promotionReasons && (
+        <span
+          className={styles.surfaceChip}
+          title="Outside your default focus — surfaced because it affects your work"
+        >
+          {promotionReasons.map((r) => SURFACE_REASON_LABEL[r]).join(' · ')}
+        </span>
+      )}
       {eyebrow ? (
         <span className={styles.objEyebrow}>{eyebrow}</span>
       ) : null}
       <span className={styles.objTitle}>{objective.shortTitle ?? objective.title}</span>
       <span className={styles.objDesc}>{objective.focusedQuestion}</span>
+      {hasRoleBadges && (
+        <div className={styles.roleBadgeRow}>
+          {roleBadges!.map((label) => (
+            <span key={label} className={styles.roleBadge}>
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
       <div className={styles.objFooter}>
         <span className={styles.objProgress} data-state={progress.state}>
           {progressLabel}

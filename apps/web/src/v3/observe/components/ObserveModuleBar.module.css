@@ -100,3 +100,60 @@
   letter-spacing: 0.06em;
   pointer-events: none;
 }
+
+/* --- Operational Role Layer: module scope (additive) ----------------------
+   Absent scope leaves data-scope="in" on every tile, so these rules are inert
+   until a role filter engages. Never hide, only de-emphasize. */
+
+.railHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Out-of-focus domain tiles dim but stay fully interactive; hovering or
+   focusing one lifts it back to full so it is never functionally hidden. */
+.tile[data-scope='out'] {
+  opacity: 0.5;
+}
+
+.tile[data-scope='out']:hover,
+.tile[data-scope='out']:focus-within {
+  opacity: 1;
+}
+
+/* The "+N more" expander: a tile-shaped, dashed affordance that reveals the
+   out-of-focus domains in place. */
+.moreTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 6px;
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.66));
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.moreTile:hover,
+.moreTile:focus-visible {
+  border-color: var(--color-gold-brand);
+  color: var(--color-text);
+}
+
+.custodianNote {
+  font-size: 9px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.6));
+  font-style: italic;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}

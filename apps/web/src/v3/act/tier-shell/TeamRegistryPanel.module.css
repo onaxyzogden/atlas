@@ -207,6 +207,28 @@
   color: var(--color-success, #6b8f6b);
 }
 
+/* Operational-role chips (ADR 2026-06-24) -- read-only domain-focus labels. */
+.opChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.opChip {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--color-gold-active, #9a771f);
+  background: color-mix(in srgb, var(--color-gold-brand, #b08a3a) 14%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 32%, transparent);
+  white-space: nowrap;
+}
+
 /* ---------- Labour availability bars ---------- */
 
 .capRow {

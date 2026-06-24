@@ -122,3 +122,31 @@
   font-weight: 500;
   line-height: 1.2;
 }
+
+/* --- Operational Role Layer: lens scope (additive) ------------------------
+   The lens dashboard is the all-domains overview, so it never collapses
+   out-of-focus lenses -- it rings in-focus ones and softly mutes the rest.
+   Inert until a non-empty scope sets data-scope. Never hide, only de-emphasize. */
+
+.focusToggleSlot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* In-focus lens: a gold halo that reads under the existing active/hover states
+   without competing with the data-active fill. */
+.tierInFocus {
+  box-shadow: 0 0 0 1px var(--color-gold-brand, #c4a265);
+}
+
+/* Out-of-focus lenses stay fully clickable but recede; hover/focus restores
+   them so nothing is functionally hidden. */
+.tier[data-scope='out'] {
+  opacity: 0.6;
+}
+
+.tier[data-scope='out']:hover,
+.tier[data-scope='out']:focus-visible {
+  opacity: 1;
+}

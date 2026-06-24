@@ -38,6 +38,7 @@ import {
   selectUpcomingCommunityMeetings,
 } from '../../../features/community/communityMeetingPlace.js';
 import StageShell from '../../_shell/StageShell.js';
+import { useViewScope } from '../../roles/useViewScope.js';
 import { C, F } from './tokens.js';
 import { LensDataProvider } from './lensData/LensDataContext.js';
 import { mockBundle } from './lensData/mockBundle.js';
@@ -74,6 +75,12 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
   const [activeLens, setActiveLens] = useState<string>('all');
   const [selectedObs, setSelectedObs] = useState<MockObservation | null>(null);
   const [detailLens, setDetailLens] = useState<ObserveLensId | null>(null);
+
+  // Operational Role Layer: ring the viewer's in-focus lenses (the lens
+  // dashboard is the all-domains overview, so it rings rather than collapses).
+  // Disengaged on the chrome-free debug route (no projectId) and for
+  // solo/no-role viewers ⇒ every lens renders exactly as before.
+  const viewScope = useViewScope(projectId ?? '');
 
   // Phase 5: resolve the bundle from the per-project data-source choice.
   // useLiveLensBundle is a hook, so it is called unconditionally (rules of
@@ -165,6 +172,10 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
         onSelectLens={handleLensChange}
         projectTitle={bundle.project.name}
         projectType={bundle.project.type}
+        scopedDomains={viewScope.isScoped ? viewScope.scope : undefined}
+        showFocusToggle={viewScope.layerActive}
+        focusMode={viewScope.focusMode}
+        onFocusModeChange={viewScope.setFocusMode}
       />
 
       <div className={css.shellWrap}>

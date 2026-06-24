@@ -77,6 +77,7 @@ const member: ProjectMemberRecord = {
   email: 'ali@example.nz',
   displayName: 'Ali Rahman',
   role: 'primary_steward',
+  operationalRoles: [],
   joinedAt: '2026-01-01T00:00:00.000Z',
 };
 

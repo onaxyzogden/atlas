@@ -79,6 +79,7 @@ function makeMember(over: Partial<ProjectMemberRecord> = {}): ProjectMemberRecor
     email: 'ali@example.nz',
     displayName: 'Ali Rahman',
     role: 'primary_steward',
+    operationalRoles: [],
     joinedAt: '2026-01-01T00:00:00.000Z',
     ...over,
   };
@@ -107,6 +108,7 @@ describe('stewardTeamModeFor', () => {
     ['s1-steward-c6', 'capital'],
     ['s1-steward-c7', 'gaps'],
     ['s1-steward-c8', 'governance'],
+    ['s1-steward-c9', 'operational'],
   ];
 
   it.each(cases)('maps %s -> %s', (itemId, mode) => {
@@ -148,6 +150,7 @@ describe('isStewardTeamValid', () => {
       's1-steward-c6',
       's1-steward-c7',
       's1-steward-c8',
+      's1-steward-c9',
     ]) {
       expect(isStewardTeamValid(id, [], EMPTY_STEWARD_TEAM, EMPTY_FORM)).toBe(true);
     }
@@ -249,6 +252,36 @@ describe('summariseStewardTeam', () => {
         EMPTY_FORM,
       ),
     ).toBe('Governance framework noted');
+  });
+
+  it('c9 counts assignable members with an operational focus', () => {
+    expect(
+      summariseStewardTeam('s1-steward-c9', [makeEntry()], EMPTY_STEWARD_TEAM, EMPTY_FORM),
+    ).toBe('No operational roles assigned');
+    expect(
+      summariseStewardTeam(
+        's1-steward-c9',
+        [
+          makeEntry({}, { operationalRoles: ['livestock'] }),
+          makeEntry({}, { userId: 'u2', operationalRoles: [] }),
+        ],
+        EMPTY_STEWARD_TEAM,
+        EMPTY_FORM,
+      ),
+    ).toBe('Operational focus set for 1 member');
+  });
+
+  it('c9 ignores members the operational layer does not apply to', () => {
+    // A reviewer holding roles in stale data must not be counted -- the layer
+    // only applies to stewards / team members.
+    expect(
+      summariseStewardTeam(
+        's1-steward-c9',
+        [makeEntry({}, { role: 'reviewer', operationalRoles: ['livestock'] })],
+        EMPTY_STEWARD_TEAM,
+        EMPTY_FORM,
+      ),
+    ).toBe('No operational roles assigned');
   });
 });
 
@@ -407,5 +440,68 @@ describe('StewardTeamCapture -- c8 governance', () => {
       { target: { value: 'Consensus with a steward quorum.' } },
     );
     expect(teamRecord().governance).toBe('Consensus with a steward quorum.');
+  });
+});
+
+describe('StewardTeamCapture -- c9 operational roles (membership writes)', () => {
+  function memberRow(userId = USER_ID): ProjectMemberRecord | undefined {
+    return useMemberStore.getState().members.find((m) => m.userId === userId);
+  }
+
+  it('toggling a role chip writes operationalRoles onto the member row', () => {
+    seedMember(); // primary_steward -> assignable
+    seedProject();
+    render(<StewardTeamCapture itemId="s1-steward-c9" projectId={PROJECT_ID} />);
+
+    // Empty roles => ScopePreview shows the full-view fallback.
+    expect(screen.getByTestId('scope-preview-summary').textContent).toMatch(
+      /full view/i,
+    );
+
+    const livestock = () =>
+      screen.getByRole('button', { name: 'Livestock Lead' });
+    fireEvent.click(livestock());
+    expect(memberRow()?.operationalRoles).toEqual(['livestock']);
+    // Scope preview now reflects the single livestock domain.
+    expect(screen.getByTestId('scope-preview-summary').textContent).toMatch(
+      /1 of 16/,
+    );
+    expect(screen.getByTestId('scope-chip-animals-livestock')).toBeTruthy();
+
+    // Re-clicking clears it (back to full view).
+    fireEvent.click(livestock());
+    expect(memberRow()?.operationalRoles).toEqual([]);
+  });
+
+  it('lists non-assignable members read-only and offers them no role chips', () => {
+    useMemberStore.setState({
+      members: [
+        makeMember(), // steward -> assignable
+        makeMember({
+          userId: 'u2',
+          displayName: 'Reviewer Sam',
+          role: 'reviewer',
+        }),
+      ],
+      myRole: null,
+      myRoles: {},
+      isLoading: false,
+    });
+    seedProject();
+    render(<StewardTeamCapture itemId="s1-steward-c9" projectId={PROJECT_ID} />);
+
+    expect(screen.getByText('Not role-scoped')).toBeTruthy();
+    expect(screen.getByText('Reviewer Sam')).toBeTruthy();
+    // Only the one assignable steward gets a chip set (6 roles); the reviewer
+    // gets none -- so exactly one "Livestock Lead" chip exists.
+    expect(screen.getAllByRole('button', { name: 'Livestock Lead' })).toHaveLength(
+      1,
+    );
+  });
+
+  it('shows the empty-roster note when there are no members', () => {
+    seedProject();
+    render(<StewardTeamCapture itemId="s1-steward-c9" projectId={PROJECT_ID} />);
+    expect(screen.getByText(/No stewards on the team yet/)).toBeTruthy();
   });
 });

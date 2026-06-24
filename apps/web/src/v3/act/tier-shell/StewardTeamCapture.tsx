@@ -35,13 +35,20 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { STEWARD_DOMAINS, STEWARD_DOMAIN_LABELS } from '@ogden/shared';
+import {
+  STEWARD_DOMAINS,
+  STEWARD_DOMAIN_LABELS,
+  OPERATIONAL_ROLES,
+  OPERATIONAL_ROLE_DEFS,
+  operationalRolesApplyTo,
+} from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
 import {
   useVisionStore,
   type StewardProfile,
   type StewardTeam,
 } from '../../../store/visionStore.js';
+import { useMemberStore } from '../../../store/memberStore.js';
 import {
   useStewardRoster,
   type StewardRosterEntry,
@@ -50,6 +57,7 @@ import {
   CAPITAL_CHANNEL_LIST,
   CAPITAL_SCOPE_NOTES,
 } from './EcovillageCapitalPlanCapture.js';
+import ScopePreview from '../../../features/collaboration/ScopePreview.js';
 import css from './StewardTeamCapture.module.css';
 
 // --------------------------------------------------------------------------
@@ -63,7 +71,8 @@ export type StewardTeamMode =
   | 'capability'
   | 'capital'
   | 'gaps'
-  | 'governance';
+  | 'governance'
+  | 'operational';
 
 /**
  * Returns the capture mode for an s1-steward item, or null when the item is not
@@ -85,6 +94,8 @@ export function stewardTeamModeFor(itemId: string): StewardTeamMode | null {
       return 'gaps';
     case 's1-steward-c8':
       return 'governance';
+    case 's1-steward-c9':
+      return 'operational';
     default:
       return null;
   }
@@ -225,6 +236,19 @@ export function summariseStewardTeam(
       return asString(team.governance).trim() !== ''
         ? 'Governance framework noted'
         : 'No governance framework recorded';
+    case 's1-steward-c9': {
+      // Count only members the layer applies to (steward / team_member); the
+      // others always keep the full view and are never "assigned".
+      const assignable = roster.filter((e) =>
+        operationalRolesApplyTo(e.member.role),
+      );
+      const n = assignable.filter(
+        (e) => (e.member.operationalRoles ?? []).length > 0,
+      ).length;
+      return n === 0
+        ? 'No operational roles assigned'
+        : `Operational focus set for ${n} member${n === 1 ? '' : 's'}`;
+    }
     default:
       return '';
   }
@@ -313,6 +337,8 @@ export default function StewardTeamCapture(
           updateStewardTeam={updateStewardTeam}
         />
       );
+    case 'operational':
+      return <OperationalRolesBody roster={roster} projectId={projectId} />;
     default:
       return (
         <div className={css.emptyNote}>
@@ -769,6 +795,106 @@ function GovernanceBody({
           }
         />
       </div>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// c9 -- operational roles (per-member default domain focus, ADR 2026-06-24)
+// --------------------------------------------------------------------------
+//
+// Orthogonal to the system role (which governs surfaces) and to decision rights
+// (c3). Writes the membership-level operationalRoles via memberStore -- NOT the
+// visionStore -- so it survives the same per-project member roster the rest of
+// the app reads. View-scoping only: it sets each member's DEFAULT focus and
+// never grants, removes, or gates anything. The layer applies only to stewards
+// and team members; everyone else keeps the full view and is listed read-only.
+
+function OperationalRolesBody({
+  roster,
+  projectId,
+}: {
+  roster: readonly StewardRosterEntry[];
+  projectId: string;
+}): JSX.Element {
+  const setOperationalRoles = useMemberStore((s) => s.setOperationalRoles);
+  const assignable = roster.filter((e) =>
+    operationalRolesApplyTo(e.member.role),
+  );
+  const blocked = roster.filter((e) => !operationalRolesApplyTo(e.member.role));
+
+  return (
+    <div className={css.root}>
+      <FeedsBlock text="Operational roles set each member's default domain focus across Plan, Act, and Observe. View-scoping only -- they never grant or remove a capability, and out-of-scope signals are de-emphasized, never hidden." />
+      {roster.length === 0 ? (
+        <EmptyRoster />
+      ) : (
+        <>
+          {assignable.map((e) => {
+            const current = e.member.operationalRoles ?? [];
+            return (
+              <div key={e.member.userId} className={css.personCard}>
+                <PersonHead entry={e} />
+                <div className={css.personBody}>
+                  <label className={css.fieldLbl}>Operational roles</label>
+                  <div className={css.chips}>
+                    {OPERATIONAL_ROLES.map((slug) => {
+                      const def = OPERATIONAL_ROLE_DEFS[slug];
+                      const active = current.includes(slug);
+                      return (
+                        <button
+                          key={slug}
+                          type="button"
+                          className={css.chip}
+                          data-active={active}
+                          title={def.description}
+                          onClick={() => {
+                            const next = active
+                              ? current.filter((r) => r !== slug)
+                              : [...current, slug];
+                            void setOperationalRoles(
+                              projectId,
+                              e.member.userId,
+                              next,
+                            );
+                          }}
+                        >
+                          {def.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <ScopePreview roles={current} emptyMeans="full" />
+                </div>
+              </div>
+            );
+          })}
+          {blocked.length > 0 ? (
+            <div className={css.section}>
+              <div className={css.secLbl}>
+                <Info size={13} /> Not role-scoped
+              </div>
+              <p className={css.modeHint}>
+                Contractors, landowners, reviewers and viewers keep the full
+                view -- the operational-role layer does not apply to them.
+              </p>
+              <div className={css.rowList}>
+                {blocked.map((e) => (
+                  <div key={e.member.userId} className={css.contactRow}>
+                    <span className={css.av}>{initialsOf(memberName(e))}</span>
+                    <div className={css.crInfo}>
+                      <span className={css.crName}>{memberName(e)}</span>
+                      <span className={css.crRole}>
+                        {roleLabel(e.member.role)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

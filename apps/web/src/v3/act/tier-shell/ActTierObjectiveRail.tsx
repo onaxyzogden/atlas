@@ -15,12 +15,17 @@ import type {
   PlanStratum,
   PlanStratumObjective,
   ProjectTypeId,
+  UniversalDomain,
 } from '@ogden/shared';
 import ActTierObjectiveCard from './ActTierObjectiveCard.js';
 import ActRailModeToggle, { type RailMode } from './ActRailModeToggle.js';
 import type { ObjectiveProgress } from './objectiveProgress.js';
 import { getSourceTag, type SourceTagKind } from '../../plan/strata/sourceTag.js';
 import ProtocolLayerPanel from '../../plan/strata/ProtocolLayerPanel.js';
+import ViewFocusToggle from '../../roles/ViewFocusToggle.js';
+import { composeScopedRail, type ScopedRailEntry } from '../../roles/railScope.js';
+import type { SurfaceReason } from '../../roles/alwaysSurface.js';
+import type { ViewFocusMode } from '../../../store/uiStore.js';
 import styles from './ActTierShell.module.css';
 
 // Source filter (All / Universal / Primary / Secondary) — parity with the Plan
@@ -45,6 +50,10 @@ const EMPTY_PROGRESS: ObjectiveProgress = {
  *  identity stable across renders when the rail is mounted without the prop
  *  (e.g. existing tests, or before the Act evaluation engine lands). */
 const EMPTY_TRIGGERED_IDS: readonly string[] = [];
+
+/** Stable empty surface map — the scoped path with no promotions still gets a
+ *  referentially-stable Map so the scopedRail useMemo dep doesn't churn. */
+const EMPTY_SURFACE_MAP: ReadonlyMap<string, SurfaceReason[]> = new Map();
 
 interface Props {
   stratum: PlanStratum | undefined;
@@ -92,6 +101,27 @@ interface Props {
    * byte-identical).
    */
   headerSlot?: ReactNode;
+
+  // ---- Operational Role Layer (additive; all undefined ⇒ byte-identical) ----
+  /**
+   * The viewer's domain scope when scoping is ENGAGED (`useViewScope().isScoped`).
+   * Omitted / empty ⇒ the rail renders exactly as today (no partition, no
+   * dimming). When present + non-empty the objectives split into an in-focus
+   * list (in-scope + promoted) and a collapsible "Outside your focus" group.
+   */
+  scopedDomains?: ReadonlySet<UniversalDomain>;
+  /**
+   * Always-surface promotions, keyed by objective id (built once in the shell
+   * via `collectAlwaysSurface`). An out-of-scope objective listed here is
+   * promoted into the in-focus list with an amber chip rather than buried.
+   */
+  surfaceMap?: ReadonlyMap<string, SurfaceReason[]>;
+  /** Render the "My focus / Full view" toggle (= `useViewScope().layerActive`). */
+  showFocusToggle?: boolean;
+  /** Current focus mode for the toggle. Required when `showFocusToggle`. */
+  focusMode?: ViewFocusMode;
+  /** Persist a focus choice (`useViewScope().setFocusMode`). */
+  onFocusModeChange?: (mode: ViewFocusMode) => void;
 }
 
 export default function ActTierObjectiveRail({
@@ -114,11 +144,21 @@ export default function ActTierObjectiveRail({
   bulkActivation = false,
   hideModeToggle = false,
   headerSlot,
+  scopedDomains,
+  surfaceMap,
+  showFocusToggle = false,
+  focusMode,
+  onFocusModeChange,
 }: Props) {
   // When the toggle is hidden (Plan tier shell), the rail is always the
   // objectives list regardless of the incoming `mode`.
   const effectiveMode: RailMode = hideModeToggle ? 'objectives' : mode;
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
+
+  // Collapsible "Outside your focus" group; collapsed by default so the rail
+  // opens on the viewer's own work. Toggling never hides anything — the
+  // out-of-focus cards are one click away (never hide, only de-emphasize).
+  const [outsideOpen, setOutsideOpen] = useState(false);
 
   // Source filter (parity with Plan ObjectiveColumn). The bar only shows when
   // this stratum mixes sources; on an all-universal stratum it would be inert
@@ -141,6 +181,37 @@ export default function ActTierObjectiveRail({
         ? objectives
         : objectives.filter((o) => getSourceTag(o).kind === effectiveFilter),
     [objectives, effectiveFilter],
+  );
+
+  // Operational Role Layer: when scoping is engaged, partition the (already
+  // source-filtered) objectives into the in-focus list (in-scope + promoted)
+  // and the collapsible out-of-focus group. `null` ⇒ render the flat list,
+  // byte-identical to the pre-layer rail.
+  const scopedRail = useMemo(
+    () =>
+      scopedDomains && scopedDomains.size > 0
+        ? composeScopedRail(
+            visibleObjectives,
+            scopedDomains,
+            surfaceMap ?? EMPTY_SURFACE_MAP,
+          )
+        : null,
+    [visibleObjectives, scopedDomains, surfaceMap],
+  );
+
+  // Shared card renderer for the scoped path — threads the per-entry scope
+  // state, promotion reasons, and owning-role badges into the pure card.
+  const renderScopedCard = (entry: ScopedRailEntry) => (
+    <ActTierObjectiveCard
+      key={entry.objective.id}
+      objective={entry.objective}
+      progress={progressByObjective[entry.objective.id] ?? EMPTY_PROGRESS}
+      isActive={entry.objective.id === activeObjectiveId}
+      onSelect={() => onSelectObjective(entry.objective.id)}
+      scopeState={entry.scopeState}
+      surfaceReasons={entry.reasons}
+      roleBadges={entry.roleBadges}
+    />
   );
 
   return (
@@ -193,6 +264,16 @@ export default function ActTierObjectiveRail({
               )}
             </div>
           )}
+          {showFocusToggle && focusMode && onFocusModeChange && (
+            <div className={styles.focusToggleBar}>
+              <ViewFocusToggle
+                focusMode={focusMode}
+                onChange={onFocusModeChange}
+                inFocusCount={scopedRail?.inFocusCount}
+                totalCount={scopedRail?.totalCount}
+              />
+            </div>
+          )}
           {sourceKinds.size > 1 && (
             <div
               role="group"
@@ -224,6 +305,44 @@ export default function ActTierObjectiveRail({
             <p className={styles.railEmpty}>
               No {effectiveFilter} objectives in this stratum.
             </p>
+          ) : scopedRail ? (
+            // Scoped: in-focus list (in-scope + promoted) then a collapsible
+            // "Outside your focus" group. Nothing is dropped — every objective
+            // is in exactly one of the two lists, both always reachable.
+            <>
+              {scopedRail.mainList.length > 0 ? (
+                <div className={styles.railList}>
+                  {scopedRail.mainList.map(renderScopedCard)}
+                </div>
+              ) : (
+                <p className={styles.railEmpty}>
+                  Nothing in your focus here — all {scopedRail.outsideList.length}{' '}
+                  objective{scopedRail.outsideList.length === 1 ? '' : 's'} are
+                  outside it.
+                </p>
+              )}
+              {scopedRail.outsideList.length > 0 && (
+                <div className={styles.outsideSection}>
+                  <button
+                    type="button"
+                    className={styles.outsideToggle}
+                    aria-expanded={outsideOpen}
+                    onClick={() => setOutsideOpen((open) => !open)}
+                    data-testid="rail-outside-focus-toggle"
+                  >
+                    <span className={styles.outsideCaret} aria-hidden="true">
+                      {outsideOpen ? '▾' : '▸'}
+                    </span>
+                    Outside your focus ({scopedRail.outsideList.length})
+                  </button>
+                  {outsideOpen && (
+                    <div className={styles.railList}>
+                      {scopedRail.outsideList.map(renderScopedCard)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           ) : (
             <div className={styles.railList}>
               {visibleObjectives.map((objective) => (

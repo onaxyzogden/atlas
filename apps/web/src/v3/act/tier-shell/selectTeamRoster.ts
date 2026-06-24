@@ -27,6 +27,7 @@
 import type { SharedVision } from '../../../store/visionStore.js';
 import type { StewardRosterEntry } from '../../observe/modules/human-context/roster.js';
 import { totalHoursPerWeek } from '../../observe/modules/human-context/derivations.js';
+import { OPERATIONAL_ROLE_DEFS } from '@ogden/shared';
 
 // ---------------------------------------------------------------------------
 // Read-model
@@ -42,6 +43,12 @@ export interface TeamMemberRow {
   roleLabel: string;
   /** True once the steward carries a functional team role (the c2 declaration). */
   complete: boolean;
+  /**
+   * Human labels for this member's operational roles (ADR 2026-06-24), in
+   * stored order, with unknown/stale slugs dropped. Empty => the member keeps
+   * the full default view. Display-only -- the panel renders chips, never gates.
+   */
+  operationalRoleLabels: string[];
 }
 
 export interface TeamLabourBar {
@@ -159,6 +166,9 @@ export function selectTeamRoster(
       initials: initialsOf(name),
       roleLabel: roleLabelOf(entry),
       complete: Boolean(teamRole && teamRole.length > 0),
+      operationalRoleLabels: (entry.member.operationalRoles ?? [])
+        .map((slug) => OPERATIONAL_ROLE_DEFS[slug]?.label)
+        .filter((label): label is string => Boolean(label)),
     };
   });
   const constitutedCount = members.filter((m) => m.complete).length;

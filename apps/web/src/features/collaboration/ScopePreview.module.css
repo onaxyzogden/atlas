@@ -1,0 +1,56 @@
+/* ScopePreview -- read-only operational-role domain-scope summary (ADR
+   2026-06-24 Operational Role Layer). Parchment palette matches the sibling
+   collaboration cards. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.02);
+}
+
+.summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-subtle);
+}
+
+.count {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.warn {
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text);
+  border: 1px solid rgba(220, 140, 110, 0.28);
+  background: rgba(220, 140, 110, 0.05);
+}
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+}

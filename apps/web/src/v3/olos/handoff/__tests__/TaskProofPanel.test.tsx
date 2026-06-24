@@ -105,6 +105,7 @@ const OWNER: ProjectMemberRecord = {
   email: 'owner@x.io',
   displayName: 'Owner',
   role: 'owner',
+  operationalRoles: [],
   joinedAt: '2026-01-01T00:00:00.000Z',
 };
 

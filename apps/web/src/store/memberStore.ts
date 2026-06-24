@@ -7,7 +7,14 @@
 import { create } from 'zustand';
 import { api } from '../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../app/demoSession.js';
-import type { ProjectMemberRecord, ProjectRole } from '@ogden/shared';
+import { useAuthStore } from './authStore.js';
+import { scopeForRoles } from '@ogden/shared';
+import type {
+  ProjectMemberRecord,
+  ProjectRole,
+  OperationalRole,
+  UniversalDomain,
+} from '@ogden/shared';
 
 interface MemberState {
   members: ProjectMemberRecord[];
@@ -26,6 +33,12 @@ interface MemberState {
   seedLocalMembers: (members: ProjectMemberRecord[]) => void;
   inviteMember: (projectId: string, email: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => Promise<ProjectMemberRecord | null>;
   updateRole: (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => Promise<void>;
+  /**
+   * Replace a member's operational roles (the domain-focus layer, ADR
+   * 2026-06-24) — orthogonal to the system role. Optimistic; reverts via
+   * re-fetch on failure. Empty array ⇒ full view.
+   */
+  setOperationalRoles: (projectId: string, userId: string, roles: OperationalRole[]) => Promise<void>;
   removeMember: (projectId: string, userId: string) => Promise<void>;
   reset: () => void;
 }
@@ -116,6 +129,25 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
+  setOperationalRoles: async (projectId: string, userId: string, roles: OperationalRole[]) => {
+    const deduped = [...new Set(roles)];
+    // Optimistic update
+    set((s) => ({
+      members: s.members.map((m) =>
+        m.userId === userId ? { ...m, operationalRoles: deduped } : m,
+      ),
+    }));
+    // Offline demo: no backend — the optimistic set is the source of truth.
+    if (DEMO_OFFLINE_ENABLED) return;
+    try {
+      await api.members.setOperationalRoles(projectId, userId, { operationalRoles: deduped });
+    } catch (err) {
+      console.warn('[OGDEN] Failed to set operational roles:', err);
+      // Re-fetch to revert optimistic update
+      get().fetchMembers(projectId);
+    }
+  },
+
   removeMember: async (projectId: string, userId: string) => {
     // Optimistic removal
     set((s) => ({
@@ -131,3 +163,32 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
 
   reset: () => set({ members: [], myRole: null, myRoles: {}, isLoading: false }),
 }));
+
+// ─── Operational-role selectors ──────────────────────────────────────────
+// Plain functions (not hooks): they read getState() once and never build a
+// reactive subscription, so the fresh-Set return is safe here. The reactive
+// layer (Phase 4 `useViewScope`) memoizes the scope Set in a `useMemo` keyed
+// on the stable raw role array — never returning a new Set from a Zustand
+// selector hook. `projectId` is intentionally not a parameter: the `members`
+// roster is already scoped to the active project.
+
+/**
+ * The viewer's own operational roles, read from their row in the active
+ * project's roster. Returns [] when logged out or when the viewer has no
+ * member row (⇒ caller falls back to the full, unfiltered view).
+ */
+export function selectMyOperationalRoles(): OperationalRole[] {
+  const userId = useAuthStore.getState().user?.id;
+  if (!userId) return [];
+  const me = useMemberStore.getState().members.find((m) => m.userId === userId);
+  return me?.operationalRoles ?? [];
+}
+
+/**
+ * The union of the viewer's operational-role domain scopes. Empty when the
+ * viewer holds no roles (⇒ full view). Builds a fresh Set each call — memoize
+ * at the consuming hook (see note above).
+ */
+export function selectMyOperationalScope(): Set<UniversalDomain> {
+  return scopeForRoles(selectMyOperationalRoles());
+}

@@ -64,6 +64,7 @@ function makeMember(over: Partial<ProjectMemberRecord> = {}): ProjectMemberRecor
     email: 'ali@example.nz',
     displayName: 'Ali Rahman',
     role: 'primary_steward',
+    operationalRoles: [],
     joinedAt: '2026-01-01T00:00:00.000Z',
     ...over,
   };
@@ -141,6 +142,27 @@ describe('TeamRegistryPanel -- member rows + constituted count', () => {
     expect(screen.getByTestId('registry-count').textContent).toMatch(
       /1 of 2 constituted/,
     );
+  });
+});
+
+describe('TeamRegistryPanel -- operational-role chips (ADR 2026-06-24)', () => {
+  it('renders read-only label chips for a member with operational roles', () => {
+    seedRoster([
+      makeMember({ operationalRoles: ['livestock', 'finance_legal'] }),
+    ]);
+    seedVision({ u1: {} });
+    render(<TeamRegistryPanel projectId={PROJECT_ID} />);
+
+    const chips = screen.getByTestId('op-roles-u1');
+    expect(chips.textContent).toMatch(/Livestock Lead/);
+    expect(chips.textContent).toMatch(/Finance & Legal Lead/);
+  });
+
+  it('renders no chip container when the member holds no operational roles', () => {
+    seedRoster([makeMember()]);
+    seedVision({ u1: {} });
+    render(<TeamRegistryPanel projectId={PROJECT_ID} />);
+    expect(screen.queryByTestId('op-roles-u1')).toBeNull();
   });
 });
 
