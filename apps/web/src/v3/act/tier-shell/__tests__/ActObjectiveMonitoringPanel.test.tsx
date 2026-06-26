@@ -56,6 +56,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
 import ActObjectiveMonitoringPanel from '../ActObjectiveMonitoringPanel.js';
+import { expectNoA11yViolations } from '../../../../test/a11y.js';
 
 const PID = 'project-act-monitoring-1';
 const OBJ_ID = 'res-s5-living-infrastructure';
@@ -179,5 +180,14 @@ describe('ActObjectiveMonitoringPanel', () => {
     expect(useObserveDataPointStore.getState().getByObjective(PID, OBJ_ID).length).toBe(
       0,
     );
+  });
+});
+
+describe('ActObjectiveMonitoringPanel (a11y)', () => {
+  it('has no axe violations rendering the monitoring protocol (allowlisted rules)', async () => {
+    const { container } = render(
+      <ActObjectiveMonitoringPanel projectId={PID} objective={OBJECTIVE} />,
+    );
+    await expectNoA11yViolations(container);
   });
 });
