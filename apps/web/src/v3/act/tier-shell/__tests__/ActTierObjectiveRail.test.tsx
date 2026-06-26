@@ -305,6 +305,47 @@ describe('ActTierObjectiveRail (operational role scope)', () => {
     expect(screen.getByText(outTitle)).toBeTruthy();
   });
 
+  it('auto-expands the outside group + directive copy when nothing is in focus', () => {
+    const outTitle = OUT_WATER.shortTitle ?? OUT_WATER.title;
+    // Only an out-of-scope, un-promoted objective -> mainList empty, so the
+    // rail must auto-expand the outside group instead of stranding the member
+    // on an empty pane behind a click.
+    render(
+      <ActTierObjectiveRail
+        stratum={STRATUM}
+        objectives={[OUT_WATER]}
+        progressByObjective={{}}
+        activeObjectiveId={null}
+        onSelectObjective={vi.fn()}
+        mode="objectives"
+        onModeChange={vi.fn()}
+        triggeredCount={0}
+        projectId="proj-1"
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        activeStratumId="s6-integration-design"
+        selectedProtocolId={null}
+        onSelectProtocol={vi.fn()}
+        scopedDomains={FOOD_SCOPE}
+        surfaceMap={new Map()}
+        showFocusToggle
+        focusMode="role"
+        onFocusModeChange={vi.fn()}
+      />,
+    );
+    // Directive empty-state copy names the count and points downward (not the
+    // old tautological "nothing in your focus" line).
+    expect(
+      screen.getByText(/None of the 1 objective in this stratum/i),
+    ).toBeTruthy();
+    // The out-of-focus card is reachable WITHOUT clicking the toggle.
+    expect(screen.getByText(outTitle)).toBeTruthy();
+    // The toggle still renders open so the member can collapse it back.
+    const toggle = screen.getByTestId('rail-outside-focus-toggle');
+    expect(toggle.textContent).toContain('Outside your focus (1)');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+  });
+
   it('full view renders every objective flat with no outside section', () => {
     renderScoped('full');
     expect(

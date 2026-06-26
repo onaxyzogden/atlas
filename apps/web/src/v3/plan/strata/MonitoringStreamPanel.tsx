@@ -75,7 +75,14 @@ export default function MonitoringStreamPanel({
       <p className={css.feeds} data-testid="monitoring-stream-feeds">
         <Telescope size={13} aria-hidden="true" className={css.icon} />
         <span className={css.feedsLabel}>Feeds</span>
-        <span>{UNIVERSAL_DOMAIN_LABELS[feeds]}</span>
+        {/* feeds is type- and Zod-schema-constrained to a known UniversalDomain,
+            so the label resolves; the widened lookup + ?? is a defensive guard
+            against un-validated/legacy protocol data so this can't render blank. */}
+        <span>
+          {(UNIVERSAL_DOMAIN_LABELS as Record<string, string | undefined>)[
+            feeds
+          ] ?? feeds}
+        </span>
       </p>
     </section>
   );
