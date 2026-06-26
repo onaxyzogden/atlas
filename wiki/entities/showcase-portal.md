@@ -1,6 +1,6 @@
 # Showcase Portal
 **Type:** app surface (public, static-prerendered)
-**Status:** shipped (Phase 3, 2026-05-21); bundle-split landed (Phase 3.5, 2026-05-21); observation loop landed (Phase 5, 2026-05-21) — followups open
+**Status:** shipped (Phase 3, 2026-05-21); bundle-split landed (Phase 3.5, 2026-05-21); observation loop landed (Phase 5, 2026-05-21); first-paint isolated + budget-guarded (2026-06-26) — Lighthouse re-measure still open
 **Path:** `apps/web/src/showcase/`, `apps/web/public/showcase/`, `scripts/snapshot-three-streams.ts`, `scripts/snapshot-scene-images.ts`, `scripts/prerender-showcase.ts`
 
 ## Purpose
@@ -87,6 +87,11 @@ on the same Vite app.
 - `vite build` target bumped to **`es2022`** to handle top-level-await
   in transitively-bundled deps required by the prerender chain
   (commit `900079e4`).
+- `pnpm bundlesize` (`apps/web`) — zero-dep gzip first-paint guard over the
+  built `dist/showcase.html`; fails CI if a heavy chunk re-leaks past the
+  115.0 kB `showcase-initial` ceiling. `bundlesize:update` re-locks (the
+  ratchet escape hatch). See
+  [[decisions/2026-06-26-atlas-bundle-budget-guard]].
 - Lighthouse + covenant ratchets run CI-side; vitest covers MDX
   frontmatter parsing, snapshot loader, `<ShowcaseMap>`, `<MetricChart>`,
   `<ProjectedChart>`, and the covenant copy ratchet
@@ -144,7 +149,7 @@ privacy posture in [[decisions/2026-05-21-atlas-showcase-observation-loop]].
 The portal ships functional + SEO-honest, but the followups below remain
 open and are tracked here as the headline outstanding work:
 
-1. **Bundle-split (Addressed in Phase 3.5, 2026-05-21).** Phase 3.5
+1. **Bundle-split (RESOLVED 2026-06-26; landed Phase 3.5, 2026-05-21).** Phase 3.5
    shipped both prongs: route-aware bootstrap gating in `main.tsx`
    (Prong A, commit `26228a53`) and a second Vite rollup input
    (`apps/web/showcase.html` → `src/showcase-entry.tsx` →
@@ -154,13 +159,21 @@ open and are tracked here as the headline outstanding work:
    `showcase-app` 12 = **~697 KB gzip**. **`cesium` (1098 KB gzip)
    absent. `main` (557 KB gzip) absent.** Both marquee Phase 3 leaks
    eliminated. See [[decisions/2026-05-21-atlas-showcase-bundle-split]].
-   Remaining: `panel-compute`/`panel-sections`/`ecocrop-db` (~220 KB
-   gzip combined) are reachable transitively through `@ogden/shared`
-   barrel re-exports and not used by any showcase scene — tuning
-   `manualChunks` or splitting the shared barrel into deeper subpath
-   exports would drop the entry below the 600 KB target. Tracked as
-   Phase 3.5+; Cesium absence is the primary win. Lighthouse not yet
-   re-measured — deferred to a session with the preview server bootable.
+   **Resolved 2026-06-26:** the residue was not the `@ogden/shared`
+   barrel but `src/lib/tokens.ts` being Rollup-co-located into
+   `panel-sections` (plus a static `ShowcaseMap` import pinning maplibre).
+   Pinning `tokens.ts → foundation` and `ShowcaseMap → showcase-map` in
+   `manualChunks`, lazy-loading the showcase routes, and making
+   `<ShowcaseMap>` dynamic drop first paint to `framework` 83.9 +
+   `showcase-app` 12.7 + `showcase-app.css` 10.6 + `foundation` 1.1 +
+   polyfill 0.4 = **108.7 kB gz** — `maplibre`/`turf`/`ecocrop-db`/
+   `panel-compute`/`panel-sections` all absent. **~697 KB → ~109 KB gz.**
+   Locked by a bundle-budget guard (`scripts/check-bundle-budget.mjs` +
+   `bundle-budget.json`, ceiling 115.0 kB; npm `bundlesize`;
+   `BUNDLE_BUDGET.md`), commit `04cd3489`. See
+   [[decisions/2026-06-26-atlas-bundle-budget-guard]] and
+   [[log/2026-06-26-atlas-showcase-bundle-budget-guard]]. Lighthouse
+   re-measure (Followup, deferred) still needs a bootable preview server.
 
 2. **FOUC on body-class scroll override (likely collapsed with #1).**
    Authed-app shell set `body { overflow: hidden; }`; showcase routes
@@ -228,6 +241,10 @@ register-time default org without a prelude step. See
   [[decisions/2026-05-21-atlas-showcase-bundle-split]].
 - Phase 3.5 session log:
   [[log/2026-05-21-atlas-phase-3.5-bundle-split]].
+- Phase 3.5+ first-paint isolation + budget-guard ADR:
+  [[decisions/2026-06-26-atlas-bundle-budget-guard]].
+- Phase 3.5+ session log:
+  [[log/2026-06-26-atlas-showcase-bundle-budget-guard]].
 - Phase 4 template-extraction ADR:
   [[decisions/2026-05-21-atlas-ecosystem-farm-template-extraction]].
 - Phase 4 session log:
