@@ -73,7 +73,7 @@ function BuiltInMonitorBanner({ kind }: { kind: 'regeneration' | 'biodiversity' 
   const label = kind === 'regeneration' ? 'Regeneration monitor' : 'Biodiversity monitor';
   return (
     <div className={styles.page}>
-      <header className={styles.hero} data-stage="plan">
+      <header className={styles.hero} data-stage="plan" data-tour="regen-monitor">
         <span className={styles.heroTag}>Plan · {label}</span>
         <h1 className={styles.title}>{label}</h1>
       </header>
@@ -130,7 +130,7 @@ function RegenerationMonitorCardInner({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero} data-stage="plan">
+      <header className={styles.hero} data-stage="plan" data-tour="regen-monitor">
         <span className={styles.heroTag}>Plan · Regeneration Monitor</span>
         <h1 className={styles.title}>Regeneration monitor</h1>
         <p className={styles.lede}>

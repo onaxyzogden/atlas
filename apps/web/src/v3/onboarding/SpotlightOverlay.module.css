@@ -1,0 +1,26 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-tooltip, 600);
+  /* Capture clicks so the app behind the scrim is inert during the tour; the
+     callout sits one layer above and stays interactive. */
+  pointer-events: auto;
+}
+
+.scrim {
+  fill: rgba(10, 16, 20, 0.62);
+}
+
+.cutout {
+  /* SVG2 geometry properties animate in Chromium/WebKit (the demo targets);
+     Firefox snaps instantly -- acceptable graceful degradation. */
+  transition: x 0.28s ease, y 0.28s ease, width 0.28s ease, height 0.28s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cutout {
+    transition: none;
+  }
+}
