@@ -312,7 +312,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
             <div style={{ fontSize: 10, letterSpacing: '0.12em', color: warning.DEFAULT, textTransform: 'uppercase', marginBottom: 4, fontWeight: 600 }}>
               OGDEN Land Design Atlas — Capital Partner Summary (Estimate)
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0, fontFamily: "'Fira Code', monospace", color: sage[900] }}>{project.name}</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0, fontFamily: "'Inter', system-ui, sans-serif", color: sage[900] }}>{project.name}</h1>
             {project.address && <p style={{ fontSize: 12, color: group.reporting, marginTop: 4 }}>{project.address}</p>}
             {visionData?.phaseNotes?.[0]?.notes && (
               <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4, fontStyle: 'italic' }}>
@@ -349,7 +349,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
           {/* Mission Scores */}
           {model && (
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 10, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Fira Code', monospace" }}>
+              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 10, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Inter', system-ui, sans-serif" }}>
                 Mission Alignment Scores
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -386,7 +386,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
           {/* Costs */}
           {model && model.costLineItems.length > 0 && (
             <>
-              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 8, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Fira Code', monospace" }}>
+              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 8, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Inter', system-ui, sans-serif" }}>
                 Capital Costs (Estimates)
               </h3>
               <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse', marginBottom: 24 }}>
@@ -404,7 +404,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
                       <td style={{ padding: '4px 8px', fontWeight: 500 }}>{item.name}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.phaseName}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.category}</td>
-                      <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
+                      <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Inter', system-ui, sans-serif" }}>
                         {formatKRange(item.cost.low, item.cost.high)}
                       </td>
                     </tr>
@@ -417,7 +417,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
           {/* Revenue */}
           {model && model.revenueStreams.length > 0 && (
             <>
-              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 8, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Fira Code', monospace" }}>
+              <h3 style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: warning.DEFAULT, marginBottom: 8, borderBottom: '1px solid rgba(21,128,61,0.15)', paddingBottom: 4, fontFamily: "'Inter', system-ui, sans-serif" }}>
                 Revenue Streams (Estimates)
               </h3>
               <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse', marginBottom: 24 }}>
@@ -433,7 +433,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
                     <tr key={stream.id} style={{ borderBottom: '1px solid rgba(21,128,61,0.06)' }}>
                       <td style={{ padding: '4px 8px', fontWeight: 500 }}>{stream.name}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>Year {stream.startYear}</td>
-                      <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
+                      <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Inter', system-ui, sans-serif" }}>
                         {formatKRange(stream.annualRevenue.low, stream.annualRevenue.high)}
                       </td>
                     </tr>
@@ -501,7 +501,7 @@ function MetricCard({ label, value, color }: { label: string; value: string; col
   return (
     <div style={{ padding: 12, border: '1px solid rgba(21,128,61,0.15)', borderRadius: 10, textAlign: 'center', background: success[50] }}>
       <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 600, color, fontFamily: "'Fira Code', monospace" }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color, fontFamily: "'Inter', system-ui, sans-serif" }}>{value}</div>
     </div>
   );
 }

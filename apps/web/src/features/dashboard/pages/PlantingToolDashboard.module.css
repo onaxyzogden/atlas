@@ -386,7 +386,7 @@
 }
 .speciesName {
   display: block;
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 500;
   color: var(--color-success-50);
@@ -429,7 +429,7 @@
 }
 .metricValue {
   display: block;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 30px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -464,7 +464,7 @@
   color: rgba(var(--color-group-reporting-rgb),0.5);
 }
 .spacingValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 18px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -501,7 +501,7 @@
   margin-bottom: 8px;
 }
 .windowTitle {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   color: var(--color-group-reporting);
@@ -510,7 +510,7 @@
   margin-bottom: 4px;
 }
 .windowDates {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   color: var(--color-success-50);
 }
@@ -532,7 +532,7 @@
   background: rgba(var(--color-warning-rgb),0.04);
 }
 .validationTitle {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -581,12 +581,12 @@
   border-bottom: 1px solid var(--color-hairline);
 }
 .yieldSpecies {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--color-success-50);
 }
 .yieldValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--color-group-reporting);
@@ -632,7 +632,7 @@
   color: rgba(var(--color-group-reporting-rgb),0.55);
 }
 .aiQuote {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-style: italic;
   line-height: 1.6;

@@ -5,7 +5,7 @@
   padding: var(--space-4);
   box-shadow: var(--shadow-lg);
   min-width: 260px;
-  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-family: var(--font-sans);
   color: var(--color-text);
 }
 

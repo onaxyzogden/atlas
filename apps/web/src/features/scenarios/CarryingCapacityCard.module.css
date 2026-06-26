@@ -150,7 +150,7 @@
   font-size: 28px;
   font-weight: 600;
   color: var(--color-text);
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   display: flex;
   align-items: baseline;
