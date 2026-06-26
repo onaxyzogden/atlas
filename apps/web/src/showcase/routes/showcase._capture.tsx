@@ -1,5 +1,10 @@
-import { useEffect, useState } from 'react';
-import { ShowcaseMap } from '../components/ShowcaseMap.js';
+import { useEffect, useState, lazy, Suspense } from 'react';
+
+// ShowcaseMap is loaded dynamically so its maplibre-gl import doesn't pull the
+// map renderer into the showcase entry's eager closure. This dev-only capture
+// route only mounts it under import.meta.env.DEV. Lives in the async
+// `showcase-map` chunk (see vite.config manualChunks).
+const ShowcaseMap = lazy(() => import('../components/ShowcaseMap.js').then((m) => ({ default: m.ShowcaseMap })));
 import { loadSnapshot, type ShowcaseSnapshot } from '../data/snapshot.js';
 import type { SceneId } from '../data/sceneManifest.js';
 import { getSharedSceneMapState } from '../data/sharedSceneFrontmatter.js';
@@ -66,14 +71,16 @@ export function ShowcaseCapturePage() {
   // the captured WebP is a clean map frame.
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <ShowcaseMap
-        boundary={snap.project.parcel_boundary}
-        layers={snap.layers}
-        features={snap.designFeatures}
-        activeLayerIds={mapState.activeLayers}
-        initialView={mapState.view}
-        interactive={false}
-      />
+      <Suspense fallback={<div style={{ padding: 48 }}>Loading map…</div>}>
+        <ShowcaseMap
+          boundary={snap.project.parcel_boundary}
+          layers={snap.layers}
+          features={snap.designFeatures}
+          activeLayerIds={mapState.activeLayers}
+          initialView={mapState.view}
+          interactive={false}
+        />
+      </Suspense>
     </div>
   );
 }
