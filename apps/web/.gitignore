@@ -1,0 +1,5 @@
+# Playwright (offline-demo E2E smoke suite)
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
