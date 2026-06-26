@@ -23,6 +23,7 @@ import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
+import type { BreakEvenResult } from '../financial/engine/types.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import css from './PresentationDeckCard.module.css';
 
@@ -55,6 +56,29 @@ const ZONE_LABEL: Partial<Record<ZoneCategory, string>> = {
 
 interface ClimateNotes { hardiness_zone?: string; annual_precip_mm?: number; annual_temp_mean_c?: number; }
 
+/**
+ * COVENANT — cost-recovery only, never return-on-investment. The meeting deck
+ * may present break-even TIMING and downside exposure (peak negative cashflow),
+ * but never an ROI figure: framing the land as a yield-on-capital vehicle is the
+ * very framing the financial covenant strips. `model.breakEven` is the raw
+ * engine result and still carries `tenYearROI` (the engine keeps it internally
+ * for mission-scoring); this projection drops it so the Financial-Outlook and
+ * Ask slides physically cannot read it. Mirrors the cost-recovery contract that
+ * `computeProjectBreakEven` enforces (see computeProjectBreakEven.test.ts
+ * "never exposes tenYearROI"). Guarded here by PresentationDeckCard.covenant.test.ts.
+ */
+export interface DeckCostRecovery {
+  breakEvenYear: BreakEvenResult['breakEvenYear'];
+  peakNegativeCashflow: BreakEvenResult['peakNegativeCashflow'];
+}
+
+export function deckCostRecovery(breakEven: BreakEvenResult): DeckCostRecovery {
+  return {
+    breakEvenYear: breakEven.breakEvenYear,
+    peakNegativeCashflow: breakEven.peakNegativeCashflow,
+  };
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface PresentationDeckCardProps {
@@ -70,6 +94,9 @@ export default function PresentationDeckCard({ project }: PresentationDeckCardPr
   const allPaths = usePathStore((s) => s.paths);
   const getProjectPhases = usePhaseStore((s) => s.getProjectPhases);
   const model = useFinancialModel(project.id);
+  // COVENANT: route every break-even read through the cost-recovery projection
+  // so the deck can never surface an ROI figure (see deckCostRecovery above).
+  const costRecovery = model ? deckCostRecovery(model.breakEven) : null;
   const siteData = useSiteData(project.id);
 
   const slideData = useMemo(() => {
@@ -191,17 +218,16 @@ export default function PresentationDeckCard({ project }: PresentationDeckCardPr
 
           {/* Slide 5 — Financial Outlook */}
           <Slide num={5} title="Financial Outlook">
-            {model ? (
+            {model && costRecovery ? (
               <dl className={css.kvGrid}>
                 <KV label="Total investment" value={fmtRange(model.totalInvestment.low, model.totalInvestment.high)} />
                 <KV label="Annual revenue (mature)" value={fmtRange(model.annualRevenueAtMaturity.low, model.annualRevenueAtMaturity.high)} />
                 <KV label="Break-even" value={
-                  model.breakEven.breakEvenYear.mid != null
-                    ? `Year ${model.breakEven.breakEvenYear.mid}`
+                  costRecovery.breakEvenYear.mid != null
+                    ? `Year ${costRecovery.breakEvenYear.mid}`
                     : 'Not within 10 years'
                 } />
-                <KV label="10-year ROI" value={`${(model.breakEven.tenYearROI.mid * 100).toFixed(0)}%`} />
-                <KV label="Peak negative cashflow" value={fmtCurrency(Math.abs(model.breakEven.peakNegativeCashflow.mid))} />
+                <KV label="Peak negative cashflow" value={fmtCurrency(Math.abs(costRecovery.peakNegativeCashflow.mid))} />
                 <KV label="Enterprises" value={model.enterprises.length > 0 ? model.enterprises.map((e) => e.replace(/_/g, ' ')).join(', ') : '\u2014'} />
               </dl>
             ) : (
@@ -231,13 +257,13 @@ export default function PresentationDeckCard({ project }: PresentationDeckCardPr
 
           {/* Slide 7 — The Ask */}
           <Slide num={7} kind="ask" title="The Ask">
-            {model ? (
+            {model && costRecovery ? (
               <>
                 <p className={css.askLead}>
                   {fmtRange(model.totalInvestment.low, model.totalInvestment.high)} of capital across{' '}
                   {slideData.phases.length || 1} phase{slideData.phases.length === 1 ? '' : 's'}
-                  {model.breakEven.breakEvenYear.mid != null
-                    ? `, break-even projected in year ${model.breakEven.breakEvenYear.mid}.`
+                  {costRecovery.breakEvenYear.mid != null
+                    ? `, break-even projected in year ${costRecovery.breakEvenYear.mid}.`
                     : '.'}
                 </p>
                 <ul className={css.bullets}>
