@@ -147,6 +147,64 @@ describe('collectAlwaysSurface -- shared-resource-divergence', () => {
   });
 });
 
+// Inline fixture variant: `obj()` cannot set scopeNotes, so build the objective
+// directly. The thin cast keeps fixtures honest (collectAlwaysSurface reads only
+// id + stratumId + checklist + scopeNotes).
+function objWithScopeNote(
+  id: string,
+  stratumId: string,
+  scopeNotes: string,
+  feedsInto: string[] = [],
+): PlanStratumObjective {
+  return {
+    id,
+    stratumId,
+    checklist: feedsInto.length > 0 ? [{ feedsInto }] : [],
+    scopeNotes,
+  } as unknown as PlanStratumObjective;
+}
+
+describe('collectAlwaysSurface -- carries-scope-note', () => {
+  it('promotes an OUT-of-scope objective carrying a non-empty scopeNotes', () => {
+    const result = collectAlwaysSurface({
+      objectives: [
+        obj('s6-yield-flows', 's6-integration-design'), // in scope
+        objWithScopeNote(
+          's1-vision',
+          's1-project-foundation',
+          'Amanah: no advance-sale (bayʿ mā laysa ʿindak).',
+        ), // out of scope, carries a covenant caution
+      ],
+      scope: FOOD,
+      openFlagObjectiveIds: NO_FLAGS,
+    });
+    expect(result.get('s1-vision')).toEqual(['carries-scope-note']);
+  });
+
+  it('does NOT promote when scopeNotes is whitespace-only', () => {
+    const result = collectAlwaysSurface({
+      objectives: [
+        obj('s6-yield-flows', 's6-integration-design'),
+        objWithScopeNote('s1-vision', 's1-project-foundation', '   '),
+      ],
+      scope: FOOD,
+      openFlagObjectiveIds: NO_FLAGS,
+    });
+    expect(result.size).toBe(0);
+  });
+
+  it('does NOT promote an IN-scope objective even with a scopeNotes', () => {
+    const result = collectAlwaysSurface({
+      objectives: [
+        objWithScopeNote('s6-yield-flows', 's6-integration-design', 'note'),
+      ],
+      scope: FOOD,
+      openFlagObjectiveIds: NO_FLAGS,
+    });
+    expect(result.size).toBe(0);
+  });
+});
+
 describe('collectAlwaysSurface -- multiple reasons', () => {
   it('dedups and orders reasons canonically', () => {
     const result = collectAlwaysSurface({
@@ -160,6 +218,30 @@ describe('collectAlwaysSurface -- multiple reasons', () => {
       divergedDomains: ['hydrology'],
     });
     expect(result.get('s5-water-strategy')).toEqual([
+      'open-review-flag',
+      'cross-role-dependency',
+      'shared-resource-divergence',
+    ]);
+  });
+
+  it('orders all four reasons canonically with scope-note leading', () => {
+    const result = collectAlwaysSurface({
+      objectives: [
+        obj('s6-yield-flows', 's6-integration-design'), // in scope
+        // out: scopeNotes + open flag + feeds in-scope + hydrology diverged
+        objWithScopeNote(
+          's5-water-strategy',
+          's5-system-design',
+          'CSA advance-sale limit.',
+          ['s6-yield-flows'],
+        ),
+      ],
+      scope: FOOD,
+      openFlagObjectiveIds: new Set(['s5-water-strategy']),
+      divergedDomains: ['hydrology'],
+    });
+    expect(result.get('s5-water-strategy')).toEqual([
+      'carries-scope-note',
       'open-review-flag',
       'cross-role-dependency',
       'shared-resource-divergence',

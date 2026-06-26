@@ -50,7 +50,7 @@ import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
 // 3-column spine shell (no longer a bordered BentoBox card). Its inner sections
 // (map body, reference placeholders) keep their existing CSS module, which
 // already resolves against the app's dark `--color-*` theme.
-import { C } from '../spine/tokens.js';
+import { C, F, CA } from '../spine/tokens.js';
 import {
   useReviewFlagsForObjective,
   useReviewFlagStore,
@@ -376,6 +376,57 @@ export default function ObjectiveDetailPanel({
             to propose an amendment.
           </span>
         </div>
+      )}
+
+      {/* SCOPE NOTE (amanah-1) — the catalogue's verbatim scope / fiqh caution
+          for this objective (e.g. bayʿ mā laysa ʿindak advance-sale, CSA limits,
+          or a plain "omit if …" scoping rule), shown here at PLAN DECISION TIME,
+          not only at the Act work gate. Mirrors the Act-side WorkBulkConfirmOverlay
+          Amanah block exactly (same gold caution frame, same `pre-wrap` verbatim
+          render — nothing reworded or truncated) so the steward sees the SAME
+          constraint while deciding. Self-gates to null when the objective carries
+          no scopeNotes, so unflagged panels are byte-identical. */}
+      {objective.scopeNotes && objective.scopeNotes.trim().length > 0 && (
+        <section
+          aria-label="Scope note"
+          data-testid="objective-scope-note"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            margin: '8px 12px',
+            padding: '8px 12px',
+            background: CA('gold', 0.08),
+            border: `1px solid ${CA('gold', 0.4)}`,
+            borderLeft: `3px solid ${C.gold}`,
+            borderRadius: 8,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: C.gold,
+              fontFamily: F.sans,
+            }}
+          >
+            Scope note
+          </div>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              color: C.textSecondary,
+              fontFamily: F.sans,
+              lineHeight: 1.5,
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {objective.scopeNotes}
+          </p>
+        </section>
       )}
 
       {reviewDue && !reviewDismissed && (

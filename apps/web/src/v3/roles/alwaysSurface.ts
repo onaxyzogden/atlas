@@ -5,15 +5,19 @@
  * can never bury something the steward must act on. It is the safety valve that
  * makes "never hide, only de-emphasize" safe to default ON.
  *
- * Three promotion signals, all drawn from EXISTING substrate (no new data):
+ * Four promotion signals, all drawn from EXISTING substrate (no new data):
  *
- *   1. open-review-flag        -- the objective carries >=1 open ObjectiveReviewFlag
+ *   1. carries-scope-note      -- the objective carries a non-empty `scopeNotes`
+ *      (the catalogue's verbatim scope / fiqh caution, e.g. bayʿ mā laysa ʿindak
+ *      advance-sale limits). A covenant constraint must never sit buried in the
+ *      collapsed out-of-focus section, so it is the LEADING surface reason.
+ *   2. open-review-flag        -- the objective carries >=1 open ObjectiveReviewFlag
  *      (reviewFlagStore). A live amber "Review" marker must be seen regardless
  *      of domain focus.
- *   2. cross-role-dependency   -- the objective FEEDS INTO an in-scope objective
+ *   3. cross-role-dependency   -- the objective FEEDS INTO an in-scope objective
  *      (`feedsInto`): an in-focus decision structurally depends on this
  *      out-of-focus output, so hiding it would hide a blocker.
- *   3. shared-resource-divergence -- the objective's footprint touches a diverged
+ *   4. shared-resource-divergence -- the objective's footprint touches a diverged
  *      domain that is SHARED across operational roles (a resource no single role
  *      owns, e.g. hydrology). Shared resources affect everyone, so a divergence
  *      there surfaces even outside your focus.
@@ -34,12 +38,18 @@ import {
 import { objectiveInScope } from './viewScope.js';
 
 export type SurfaceReason =
+  | 'carries-scope-note'
   | 'open-review-flag'
   | 'cross-role-dependency'
   | 'shared-resource-divergence';
 
-/** Canonical, stable ordering for a promoted objective's reasons. */
+/**
+ * Canonical, stable ordering for a promoted objective's reasons.
+ * `carries-scope-note` leads: a covenant / scope caution is the most important
+ * reason never to bury behind a role filter.
+ */
 const REASON_ORDER: readonly SurfaceReason[] = [
+  'carries-scope-note',
   'open-review-flag',
   'cross-role-dependency',
   'shared-resource-divergence',
@@ -123,16 +133,23 @@ export function collectAlwaysSurface(
   };
 
   for (const obj of outOfScope) {
-    // 1. open review flag on this objective.
+    // 1. carries a scope / covenant note: a verbatim fiqh or scoping caution
+    //    (catalogue `scopeNotes`) must never be buried out of focus. Display-only
+    //    -- promotion never gates; the steward still chooses what to act on.
+    if (obj.scopeNotes && obj.scopeNotes.trim().length > 0) {
+      add(obj.id, 'carries-scope-note');
+    }
+
+    // 2. open review flag on this objective.
     if (openFlagObjectiveIds.has(obj.id)) add(obj.id, 'open-review-flag');
 
-    // 2. cross-role dependency: this out-of-scope objective feeds an in-scope one.
+    // 3. cross-role dependency: this out-of-scope objective feeds an in-scope one.
     const feedsInScope = obj.checklist.some((item) =>
       item.feedsInto.some((targetId) => inScopeIds.has(targetId)),
     );
     if (feedsInScope) add(obj.id, 'cross-role-dependency');
 
-    // 3. shared-resource divergence: footprint touches a diverged shared domain.
+    // 4. shared-resource divergence: footprint touches a diverged shared domain.
     if (divergedShared.size > 0) {
       const domains = getObjectiveObserveDomains(obj);
       if (domains.some((d) => divergedShared.has(d))) {
