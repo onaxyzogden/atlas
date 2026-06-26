@@ -99,7 +99,7 @@
   font-size: 22px;
   font-weight: 600;
   color: var(--color-text);
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
   margin-top: 2px;
@@ -269,7 +269,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text);
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 

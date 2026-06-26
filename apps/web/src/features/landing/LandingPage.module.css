@@ -6,7 +6,7 @@
   height: 100%;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-family: var(--font-sans);
   overflow-y: auto;
   overflow-x: hidden;
 }

@@ -98,7 +98,7 @@ export default function TriggerRecognitionSheet({
           <TierBadge tier={tier} />
           <div
             style={{
-              fontFamily: 'Georgia, serif',
+              fontFamily: "'Inter', system-ui, sans-serif",
               fontSize: 18,
               fontWeight: 600,
               color: C.textPrimary,

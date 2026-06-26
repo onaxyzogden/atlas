@@ -47,9 +47,9 @@ export const C = {
 } as const;
 
 export const F = {
-  serif: "'DM Sans', 'system-ui', sans-serif",
-  sans: "'DM Sans', 'system-ui', sans-serif",
-  mono: "'DM Sans', 'system-ui', sans-serif",
+  serif: 'var(--font-sans)',
+  sans: 'var(--font-sans)',
+  mono: 'var(--font-sans)',
 } as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────

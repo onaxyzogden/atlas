@@ -30,7 +30,7 @@
 }
 
 .headline {
-  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: clamp(40px, 6vw, 68px);
   line-height: 1.05;

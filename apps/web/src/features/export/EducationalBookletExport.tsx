@@ -170,7 +170,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             <div style={{ fontSize: 10, letterSpacing: '0.15em', color: warning.DEFAULT, textTransform: 'uppercase', marginBottom: 8 }}>
               OGDEN Land Design Atlas
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 300, margin: '0 0 8px', color: sage[900], fontFamily: "'Fira Code', monospace" }}>
+            <h1 style={{ fontSize: 24, fontWeight: 300, margin: '0 0 8px', color: sage[900], fontFamily: "'Inter', system-ui, sans-serif" }}>
               {project.name}
             </h1>
             <p style={{ fontSize: 13, color: group.reporting, fontStyle: 'italic' }}>
@@ -186,7 +186,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
                   background: success[50], border: '1px solid rgba(21,128,61,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 13, fontWeight: 700, color: group.reporting, flexShrink: 0,
-                  fontFamily: "'Fira Code', monospace",
+                  fontFamily: "'Inter', system-ui, sans-serif",
                 }}>
                   {i + 1}
                 </div>
@@ -194,7 +194,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
                   <div style={{ fontSize: 9, color: warning.DEFAULT, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
                     {chapter.category}
                   </div>
-                  <h2 style={{ fontSize: 16, fontWeight: 500, margin: 0, color: sage[900], fontFamily: "'Fira Code', monospace" }}>
+                  <h2 style={{ fontSize: 16, fontWeight: 500, margin: 0, color: sage[900], fontFamily: "'Inter', system-ui, sans-serif" }}>
                     {chapter.title}
                   </h2>
                 </div>

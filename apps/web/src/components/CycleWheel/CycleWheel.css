@@ -49,7 +49,7 @@
 }
 
 .cw-tooltip-label {
-  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -210,7 +210,7 @@
 
 .cw-hub-label {
   fill: var(--cw-level-aura, #c9d6c0);
-  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 400;
   letter-spacing: 0.18em;

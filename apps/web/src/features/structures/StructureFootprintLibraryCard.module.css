@@ -294,7 +294,7 @@
 }
 
 .footnote code {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-sans);
   font-style: normal;
   font-size: 10.5px;
   padding: 1px 5px;

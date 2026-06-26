@@ -23,7 +23,7 @@
   line-height: 1.2;
 }
 .sectorSub {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   color: rgba(var(--color-group-reporting-rgb),0.6);
 }
@@ -72,7 +72,7 @@
   justify-content: center;
 }
 .gaugeValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 28px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -99,12 +99,12 @@
 }
 .vegRow:last-child { border-bottom: none; }
 .vegLabel {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--color-success-50);
 }
 .vegPct {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--color-group-reporting);
@@ -130,12 +130,12 @@
 }
 .dataRow:last-child { border-bottom: none; }
 .dataLabel {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: rgba(var(--color-success-50-rgb),0.7);
 }
 .dataValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 700;
   color: var(--color-success-50);
@@ -179,7 +179,7 @@
 }
 .carbonValue {
   display: block;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -203,7 +203,7 @@
 }
 .projectionLabel { color: rgba(var(--color-success-50-rgb),0.5); }
 .projectionValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-weight: 600;
   color: var(--color-group-reporting);
 }
@@ -217,7 +217,7 @@
   margin-bottom: 6px;
 }
 .zoneName {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -247,7 +247,7 @@
   color: var(--color-success-50);
 }
 .silvoScore {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 12px;
   color: var(--color-warning);
 }
@@ -272,7 +272,7 @@
   flex-shrink: 0;
 }
 .canopyLayer {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-success-50);
