@@ -2,6 +2,13 @@
 -- 2026-06-24 — Operational Role Layer
 -- ADR: wiki/decisions/2026-06-24-atlas-spec-operational-role-layer.md
 --
+-- DEPENDS ON migration 012 (projects.metadata jsonb). The owner's operational
+-- roles live in projects.metadata.operationalRoles (see note below); this file
+-- adds project_members.operational_roles. The numeric runner applies migrations
+-- in ascending order, so 012 is always present before this runs — but the
+-- dependency is called out here so a future reorder/squash can't silently break
+-- the owner path.
+--
 -- Adds the per-membership "operational role" layer: a domain-scoped role that
 -- is ORTHOGONAL to project_members.role (the system / capability role). A
 -- member may hold zero or more of the six built-in operational roles; they set
