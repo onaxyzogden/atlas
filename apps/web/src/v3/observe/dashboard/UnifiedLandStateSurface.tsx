@@ -70,7 +70,9 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
 
   return (
     <div className={css.surface}>
-      <div className={css.header}>
+      {/* data-tour anchor: the offline-demo onboarding tour spotlights this
+          land-state synthesis header as the Observe step (inert in authed builds). */}
+      <div className={css.header} data-tour="observe-surface">
         <PlanRevisionBanner projectId={projectId} />
         <ChronicSynthesisCard projectId={projectId} />
         <CoOccurrenceSynthesisCard projectId={projectId} />

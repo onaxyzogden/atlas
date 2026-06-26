@@ -232,7 +232,13 @@ export default function DesignToolRail({
   const canDuplicate = selected != null;
 
   return (
-    <div ref={railRef} className={css.rail} role="toolbar" aria-label="Design tools">
+    <div
+      ref={railRef}
+      className={css.rail}
+      role="toolbar"
+      aria-label="Design tools"
+      data-tour="plan-tools"
+    >
       <DelayedTooltip
         label={
           mode === 'select'
