@@ -88,6 +88,16 @@ Docs in `apps/web/BUNDLE_BUDGET.md`. Full rationale in
   restored the ceiling. Bite and pass both proven.
 - No visual pass needed — a build-graph change only; the rendered showcase DOM
   is byte-identical (same `showcase-app` / `showcase-app.css`).
+  > **Correction (2026-06-26, via PR #53 CI).** This "DOM byte-identical"
+  > claim was **wrong for the MapThumbnail click path**, and the affected unit
+  > tests were not run. Making `<ShowcaseMap>` a `React.lazy` import (commit
+  > `04cd3489`, above) moved it behind a `Suspense` "Loading map…" fallback, so
+  > on click the live map now resolves on a **microtask** rather than
+  > synchronously. `showcase/__tests__/MapThumbnail.test.tsx` asserted
+  > synchronously (`getByTestId`) and broke — caught not here but by CI on
+  > PR #53, and fixed in `97c815e6` (`await findByTestId`). The vitest suite
+  > should have been run after the lazy edit, not inferred green from tsc +
+  > build. Full account: [[log/2026-06-26-atlas-pr53-merge-conflict-resolution]].
 
 ## Remaining followups
 
