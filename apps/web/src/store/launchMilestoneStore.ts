@@ -167,6 +167,10 @@ export const useLaunchMilestoneStore = create<LaunchMilestoneState>()(
       version: 1,
       // Synced project data lives in IndexedDB like every other byProject store
       // (Node-safe; degrades to localStorage/null). No schema migrate at v1.
+      // TRIP-WIRE: the next change to the persisted shape (the byProject
+      // milestone map) MUST bump `version` AND add a `migrate(persisted, from)`.
+      // persist drops any stored state whose version != current when no migrate
+      // is supplied, so a silent shape change would discard recorded milestones.
       storage: idbPersistStorage,
       partialize: (state) => ({ byProject: state.byProject }),
     },

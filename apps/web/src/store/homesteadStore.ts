@@ -5,8 +5,10 @@
  * Mollison's Zone 0 is the home, not the parcel centroid. When set, sectors
  * and concentric zones radiate from this point instead.
  *
- * Persistence: localStorage. Pure UI/local state — no server sync yet.
- * Pattern mirrors matrixTogglesStore.ts.
+ * Persistence: durable IndexedDB (idbPersistStorage; Node-safe, degrades to
+ * localStorage/null). Pure UI/local state — no server sync yet (intentionally
+ * NOT registered in syncManifest; the [lng,lat] anchor is a device-local
+ * preference). Pattern mirrors matrixTogglesStore.ts.
  */
 
 import { create } from 'zustand';
@@ -40,6 +42,13 @@ export const useHomesteadStore = create<HomesteadState>()(
       // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
       storage: idbPersistStorage,
       version: 1,
+      // Versioning contract: v1 is the only shape so far (a flat
+      // byProject<[lng,lat]> map), so `migrate` is an identity pass-through.
+      // TRIP-WIRE: the NEXT change to the persisted shape MUST bump `version`
+      // AND replace this with a real `migrate(persisted, from)` that reshapes
+      // the old payload -- persist keeps stored state across a version bump only
+      // when migrate returns the new shape, so a silent shape change here would
+      // discard every project's saved homestead anchor.
       migrate: (persisted) => persisted as HomesteadState,
     },
   ),
