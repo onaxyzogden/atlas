@@ -52,7 +52,7 @@
 }
 
 .rowName {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--color-success-50);
   font-weight: 500;
@@ -77,7 +77,7 @@
 }
 
 .monthLabel {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 8.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -105,7 +105,7 @@
 }
 
 .gapMonths {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   color: rgba(var(--color-success-50-rgb), 0.85);

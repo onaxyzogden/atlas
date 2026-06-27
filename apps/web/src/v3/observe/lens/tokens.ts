@@ -27,7 +27,7 @@ export const C = {
 } as const;
 
 export const F = {
-  serif: "'Playfair Display','Georgia',serif",
-  sans: "'DM Sans','system-ui',sans-serif",
-  mono: "'DM Mono','Courier New',monospace",
+  serif: 'var(--font-sans)',
+  sans: 'var(--font-sans)',
+  mono: 'var(--font-sans)',
 } as const;

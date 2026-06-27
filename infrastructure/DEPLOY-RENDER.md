@@ -135,6 +135,31 @@ Once `atlas-web` is live with its cert:
 7. **atlas-api → Logs** show the BullMQ workers and WS subscriber started
    (confirms Redis is wired).
 
+## 9. Verify per-IP rate limiting (TRUST_PROXY)
+
+The unauthenticated portal routes are capped per **client IP**
+(`PORTAL_PUBLIC_RATE_LIMIT_MAX` = 60/min, `PORTAL_PDF_RATE_LIMIT_MAX` = 10/min).
+Those caps are only real if Fastify recovers the true client IP from
+`X-Forwarded-For` — which depends on `TRUST_PROXY` matching the actual proxy hop
+count (`render.yaml` sets it to `"2"` for `client → Render edge → nginx → api`).
+**If the hop count is wrong, every visitor collapses into one shared bucket — an
+ineffective limit AND a self-DoS vector.** Verify it post-deploy, before relying
+on the limit:
+
+1. From **two distinct client IPs** (e.g. your machine + a phone on cellular, or
+   two different networks), hit the same public portal endpoint:
+   `GET https://atlas.ogden.ag/api/v1/portal/{shareToken}`.
+2. Hammer it past 60 requests/min from **one** IP — that IP should start getting
+   `429 Too Many Requests` while the **other** IP still succeeds. Two independent
+   buckets ⇒ `TRUST_PROXY` is correct.
+3. If the second IP is **also** throttled (one shared bucket) the real client IP
+   is masked: adjust `TRUST_PROXY` on **atlas-api** (try `"1"` or `"3"`, no code
+   change — see the note in `render.yaml`) and redeploy, then re-test.
+
+> Confirm the hop count against live request logs rather than assuming "2": too
+> few hops → everyone shares the proxy bucket; too many → a client can spoof
+> `X-Forwarded-For` to dodge the limit.
+
 ---
 
 ## Troubleshooting

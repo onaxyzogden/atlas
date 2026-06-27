@@ -158,7 +158,6 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
       style={{ color: C.textPrimary, fontFamily: F.sans }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         *::-webkit-scrollbar { width: 7px; height: 7px; }
         *::-webkit-scrollbar-track { background: ${C.bg}; }
         *::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }

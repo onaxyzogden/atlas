@@ -13,6 +13,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Check, GitCompare, Plus, Search } from 'lucide-react';
+import { HOMESTEAD_SAMPLE_PROJECT_ID } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
 import { DEMO_OFFLINE_ENABLED } from '../../app/demoSession.js';
 import {
@@ -92,7 +93,7 @@ export default function PortfolioProjectList({
   }, [projects, query, stageFilter, stageById]);
 
   return (
-    <div className={css.root}>
+    <div className={css.root} data-tour="portfolio-list">
       <header className={css.header}>
         <div className={css.titleRow}>
           <h2 className={css.title}>My Projects</h2>
@@ -148,8 +149,20 @@ export default function PortfolioProjectList({
             const selectable = selectMode && !p.isBuiltin;
             const isChecked = selectedIds?.has(p.id) ?? false;
             const isSelected = selectable ? isChecked : p.id === selectedId;
+            // Demo onboarding anchor: the visitor's worked Homestead CLONE (it
+            // carries the template flag but is not the canonical builtin — the
+            // builtin shares the flag because duplicateProject copies metadata).
+            // Inert outside the offline demo (no consumer mounts the tour there).
+            const isSampleCloneRow =
+              p.id !== HOMESTEAD_SAMPLE_PROJECT_ID &&
+              (p.metadata as Record<string, unknown> | undefined)
+                ?.instantiatedFromTemplate === 'homestead-sample';
             return (
-              <li key={p.id} className={css.row}>
+              <li
+                key={p.id}
+                className={css.row}
+                data-tour={isSampleCloneRow ? 'portfolio-sample-row' : undefined}
+              >
                 <button
                   type="button"
                   className={css.item}

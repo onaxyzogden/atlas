@@ -11,7 +11,7 @@
   margin: 0 0 6px;
 }
 .desc {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   line-height: 1.6;
   color: rgba(var(--color-success-50-rgb),0.5);
@@ -46,7 +46,7 @@
 }
 .summaryValue {
   display: block;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 26px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -76,7 +76,7 @@
   margin-bottom: 8px;
 }
 .stockName {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -88,7 +88,7 @@
   align-items: baseline;
 }
 .stockValue {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 600;
   color: var(--color-success-50);
@@ -198,7 +198,7 @@
 }
 .readinessLeft { flex: 1; }
 .readinessSpecies {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-success-50);
@@ -209,7 +209,7 @@
   margin-top: 2px;
 }
 .readinessDays {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-group-reporting);

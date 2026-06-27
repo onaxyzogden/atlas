@@ -16,7 +16,7 @@
 }
 
 .heading {
-  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: clamp(32px, 5vw, 56px);
   line-height: 1.05;

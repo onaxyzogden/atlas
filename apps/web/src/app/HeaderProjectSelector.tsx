@@ -22,6 +22,18 @@ export default function HeaderProjectSelector({ projectId, currentStage }: Props
 
   const stage = currentStage ?? 'plan';
 
+  // Distinguish a still-hydrating store (no projects loaded yet) from a
+  // resolved-but-missing project (the id points at a deleted/inaccessible
+  // project). Both leave `current` undefined, but "Loading" is wrong — and
+  // indefinitely misleading — for the second case.
+  const isLoading = projects.length === 0;
+  const displayName = current?.name ?? (isLoading ? '…' : 'Project unavailable');
+  const triggerAriaLabel = current
+    ? `Project: ${current.name}. Click to switch project.`
+    : isLoading
+      ? 'Loading project. Click to switch project.'
+      : 'Project unavailable — it may have been removed. Click to switch project.';
+
   // Close on pointer-down outside
   useEffect(() => {
     if (!open) return;
@@ -52,9 +64,9 @@ export default function HeaderProjectSelector({ projectId, currentStage }: Props
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Project: ${current?.name ?? 'Loading'}. Click to switch project.`}
+        aria-label={triggerAriaLabel}
       >
-        <span className={css.name}>{current?.name ?? '…'}</span>
+        <span className={css.name}>{displayName}</span>
         <ChevronDown size={12} className={css.caret} aria-hidden="true" />
       </button>
 
@@ -62,7 +74,7 @@ export default function HeaderProjectSelector({ projectId, currentStage }: Props
         <div className={css.popover} role="listbox" aria-label="Switch project">
           <div className={css.currentRow} role="option" aria-selected="true">
             <Check size={12} aria-hidden="true" />
-            <span>{current?.name}</span>
+            <span>{displayName}</span>
           </div>
 
           {others.length > 0 && (
@@ -84,7 +96,10 @@ export default function HeaderProjectSelector({ projectId, currentStage }: Props
             </>
           )}
 
-          <div className={css.divider} />
+          {/* Divider above the footer only when there's an others-list above it
+              to separate from — otherwise it floats orphaned between the single
+              current row and the footer link. */}
+          {others.length > 0 && <div className={css.divider} />}
           <div className={css.footer}>
             <Link to="/v3/portfolio" onClick={() => setOpen(false)}>
               All projects →

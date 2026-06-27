@@ -129,6 +129,11 @@ export default function ActTierStratumSwitcher({
   const activeThreshold = thresholdActiveId
     ? thresholds.find((t) => t.id === thresholdActiveId)
     : undefined;
+  // The stratum a live threshold sits after. While a threshold surface is open
+  // the shell passes activeStratumId='' (no stratum is the nav target), which
+  // would leave every row un-highlighted; we instead anchor the highlight on
+  // this originating stratum so the member keeps a "where am I" reference.
+  const originStratumId = activeThreshold?.afterStratumId;
 
   // Collapsed header reflects the active context: a threshold when one is open,
   // otherwise the active stratum (mirrors the spine's activeStratumId='' rule).
@@ -223,7 +228,15 @@ export default function ActTierStratumSwitcher({
               const status = stratumStates[stratum.id] ?? 'available';
               const isLocked = lockedStratumIds.has(stratum.id);
               const focus = focusCountByStratum?.[stratum.id];
-              const isActive =
+              // Visual highlight: the active stratum normally, or the
+              // threshold's originating stratum while a threshold is open.
+              const isActive = activeThreshold
+                ? stratum.id === originStratumId
+                : stratum.id === activeStratumId;
+              // aria-current marks only a genuine nav target (a selected
+              // stratum) -- not the origin anchor, since the active step during
+              // a threshold is the threshold row (aria-current="step" below).
+              const isCurrent =
                 !activeThreshold && stratum.id === activeStratumId;
               const threshold = thresholdAfter.get(stratum.id);
               const thresholdClickable =
@@ -239,7 +252,7 @@ export default function ActTierStratumSwitcher({
                     data-status={status}
                     data-active={isActive || undefined}
                     data-locked={isLocked || undefined}
-                    aria-current={isActive ? 'true' : undefined}
+                    aria-current={isCurrent ? 'true' : undefined}
                     onClick={() => choose(() => onSelectStratum(stratum.id))}
                   >
                     <span className={css.ordinal}>S{stratum.ordinal}</span>

@@ -155,6 +155,34 @@ describe('ActTierStratumSwitcher', () => {
     expect(screen.queryByText(`Stratum S${S1.ordinal}`)).toBeNull();
   });
 
+  it('anchors the highlight on the threshold-origin stratum while a threshold is open', () => {
+    // While a threshold is open the shell passes activeStratumId='' -- the
+    // switcher must still visually anchor the originating stratum so the member
+    // keeps a "where am I" reference, without claiming it as the aria-current
+    // step (that belongs to the threshold row).
+    setup({ activeStratumId: '', thresholdActiveId: 'threshold-1' });
+    expand();
+    const originId = THRESHOLDS.find((t) => t.id === 'threshold-1')!
+      .afterStratumId;
+    const originRow = screen.getByTestId(`switcher-stratum-${originId}`);
+    expect(originRow.getAttribute('data-active')).toBe('true');
+    expect(originRow.getAttribute('aria-current')).toBeNull();
+    // The active threshold row carries the step semantics instead.
+    expect(
+      screen
+        .getByTestId('switcher-threshold-threshold-1')
+        .getAttribute('aria-current'),
+    ).toBe('step');
+    // No stratum row is aria-current while a threshold is active.
+    for (const s of PLAN_STRATA) {
+      expect(
+        screen
+          .getByTestId(`switcher-stratum-${s.id}`)
+          .getAttribute('aria-current'),
+      ).toBeNull();
+    }
+  });
+
   it('dismisses the panel on Escape and on click-outside; trigger is ARIA-wired', () => {
     setup();
     const trigger = screen.getByTestId('switcher-header');

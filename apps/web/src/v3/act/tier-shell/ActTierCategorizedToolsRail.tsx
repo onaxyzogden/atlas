@@ -122,7 +122,7 @@ export default function ActTierCategorizedToolsRail({
 
   if (!objective) {
     return (
-      <div className={styles.toolsPanel} aria-label="Objective tools">
+      <div className={styles.toolsPanel} aria-label="Objective tools" data-tour="act-tools">
         <p className={styles.toolsEmpty}>
           Select an objective to see its tools
         </p>
@@ -132,7 +132,7 @@ export default function ActTierCategorizedToolsRail({
 
   if (visibleCats.length === 0) {
     return (
-      <div className={styles.toolsPanel} aria-label="Objective tools">
+      <div className={styles.toolsPanel} aria-label="Objective tools" data-tour="act-tools">
         <div className={styles.toolsHeader}>
           <span className={styles.toolsLabel}>{objective.title}</span>
         </div>
@@ -142,7 +142,7 @@ export default function ActTierCategorizedToolsRail({
   }
 
   return (
-    <div className={styles.toolsPanel} aria-label="Objective tools">
+    <div className={styles.toolsPanel} aria-label="Objective tools" data-tour="act-tools">
       <div className={styles.toolsHeader}>
         <span className={styles.toolsLabel}>Tools for this objective</span>
         <span className={styles.toolsHint}>

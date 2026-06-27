@@ -53,7 +53,7 @@ export default function PublicPortalShell({ config, project }: Props) {
         minHeight: '100vh',
         background: 'var(--color-bg, #1a1611)',
         color: neutral[100],
-        fontFamily: "'Inter', 'Georgia', system-ui, serif",
+        fontFamily: "'Inter', system-ui, sans-serif",
         overflowX: 'hidden',
       }}
     >

@@ -119,7 +119,7 @@
 
 .signRef {
   font-size: 11px;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
   color: rgba(var(--color-gold-rgb), 0.78);
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
