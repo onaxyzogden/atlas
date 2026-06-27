@@ -15,6 +15,8 @@
     "test": "node scripts/check-react-resolution.mjs && vitest run",
     "test:watch": "vitest",
     "test:coverage": "node scripts/check-react-resolution.mjs && vitest run --coverage",
+    "test:e2e": "node ../../node_modules/@playwright/test/cli.js test",
+    "test:e2e:install": "node ../../node_modules/@playwright/test/cli.js install chromium",
     "gen:models": "node scripts/gen-generic-box-glb.mjs && node scripts/gen-structure-glbs.mjs && node scripts/gen-vegetation-glbs.mjs && node scripts/gen-earthworks-glbs.mjs",
     "anti-gis:snapshot": "tsx scripts/anti-gis-snapshot.ts"
   },
@@ -54,6 +56,7 @@
     "@axe-core/react": "^4.11.2",
     "@mdx-js/react": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.0.0",
     "@types/mapbox__mapbox-gl-draw": "^1.4.0",
