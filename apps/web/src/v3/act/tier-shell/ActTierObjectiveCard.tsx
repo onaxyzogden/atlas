@@ -18,6 +18,7 @@ import styles from './ActTierShell.module.css';
 // Human label for each always-surface reason — the amber chip on a promoted
 // out-of-focus card. ASCII-only copy; reasons arrive pre-ordered by priority.
 const SURFACE_REASON_LABEL: Record<SurfaceReason, string> = {
+  'carries-scope-note': 'Scope note',
   'open-review-flag': 'Open review flag',
   'cross-role-dependency': 'Feeds your work',
   'shared-resource-divergence': 'Shared resource changed',

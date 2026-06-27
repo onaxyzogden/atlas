@@ -1300,7 +1300,12 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
 ];
 
 // ===========================================================================
-// LIVESTOCK OPERATION SECONDARY LAYER
+// LIVESTOCK OPERATION SECONDARY LAYER (ratified 2026-06-03)
+//
+// Authored to Catalogue Authoring Standards v1.4 under the hybrid "draft ->
+// operator ratify -> encode" authorization; the ratified markdown source lives
+// at atlas/docs/catalogues/livestock-operation-secondary-draft.md (RATIFIED Rev
+// 3 final, 2026-06-03 - shape: 7 additive objectives + 3 universal patches).
 //
 // livestock_operation as a SECONDARY: a standalone animal enterprise folded onto
 // a host primary (regenerative farm, orchard/food forest, homestead, ecovillage).

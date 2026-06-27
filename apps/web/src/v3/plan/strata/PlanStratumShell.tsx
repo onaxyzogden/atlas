@@ -1140,6 +1140,12 @@ export default function PlanStratumShell() {
           onSelectObjective={handleSelectSearchResult}
         />
       ) : activeStratum ? (
+        // Operational Role Layer (implicit): ObjectiveColumn reads useViewScope
+        // internally, so mounting it here engages role-scoped de-emphasis +
+        // always-surface promotion for this legacy Plan shell WITHOUT this shell
+        // passing any scope prop. The engagement is invisible at this call site
+        // -- flagged so a future reader doesn't assume the legacy shell is
+        // role-blind. (ObjectiveColumn.tsx:25,267 — useViewScope(projectId).)
         <ObjectiveColumn
           stratum={activeStratum}
           objectives={objectives}

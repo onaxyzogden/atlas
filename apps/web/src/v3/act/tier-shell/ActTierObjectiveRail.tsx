@@ -9,7 +9,7 @@
 // standing-protocol library (ProtocolLayerPanel, reused from the Plan spine).
 // An aggregate amber badge on the Protocols segment flags triggered protocols.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type {
   PlanStratum,
@@ -155,10 +155,18 @@ export default function ActTierObjectiveRail({
   const effectiveMode: RailMode = hideModeToggle ? 'objectives' : mode;
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
 
-  // Collapsible "Outside your focus" group; collapsed by default so the rail
-  // opens on the viewer's own work. Toggling never hides anything — the
+  // Collapsible "Outside your focus" group. The open state is DERIVED (see
+  // `outsideOpen` below the scopedRail memo): collapsed when the viewer has work
+  // in focus, but auto-expanded when NOTHING is in focus so the rail lands on
+  // actionable work instead of an empty pane + a forced click. `outsideOverride`
+  // holds an explicit user toggle; it resets to null (back to the derived
+  // default) whenever the stratum changes, so a section opened on one stratum
+  // doesn't stay stuck open on the next. Nothing is ever hidden — the
   // out-of-focus cards are one click away (never hide, only de-emphasize).
-  const [outsideOpen, setOutsideOpen] = useState(false);
+  const [outsideOverride, setOutsideOverride] = useState<boolean | null>(null);
+  useEffect(() => {
+    setOutsideOverride(null);
+  }, [activeStratumId]);
 
   // Source filter (parity with Plan ObjectiveColumn). The bar only shows when
   // this stratum mixes sources; on an all-universal stratum it would be inert
@@ -198,6 +206,15 @@ export default function ActTierObjectiveRail({
         : null,
     [visibleObjectives, scopedDomains, surfaceMap],
   );
+
+  // Effective open state for the out-of-focus group: an explicit user toggle
+  // when present, otherwise auto-expand when nothing is in focus (mainList
+  // empty) so the member lands on actionable work rather than an empty pane.
+  const outsideDefaultOpen =
+    scopedRail != null &&
+    scopedRail.mainList.length === 0 &&
+    scopedRail.outsideList.length > 0;
+  const outsideOpen = outsideOverride ?? outsideDefaultOpen;
 
   // Shared card renderer for the scoped path — threads the per-entry scope
   // state, promotion reasons, and owning-role badges into the pure card.
@@ -316,9 +333,10 @@ export default function ActTierObjectiveRail({
                 </div>
               ) : (
                 <p className={styles.railEmpty}>
-                  Nothing in your focus here — all {scopedRail.outsideList.length}{' '}
-                  objective{scopedRail.outsideList.length === 1 ? '' : 's'} are
-                  outside it.
+                  None of the {scopedRail.outsideList.length} objective
+                  {scopedRail.outsideList.length === 1 ? '' : 's'} in this stratum
+                  fall in your focus — they are expanded below so you can still act
+                  on them.
                 </p>
               )}
               {scopedRail.outsideList.length > 0 && (
@@ -327,7 +345,7 @@ export default function ActTierObjectiveRail({
                     type="button"
                     className={styles.outsideToggle}
                     aria-expanded={outsideOpen}
-                    onClick={() => setOutsideOpen((open) => !open)}
+                    onClick={() => setOutsideOverride(!outsideOpen)}
                     data-testid="rail-outside-focus-toggle"
                   >
                     <span className={styles.outsideCaret} aria-hidden="true">

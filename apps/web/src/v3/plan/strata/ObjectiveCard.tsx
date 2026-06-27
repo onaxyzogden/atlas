@@ -25,6 +25,7 @@ import css from './ObjectiveCard.module.css';
 // out-of-focus card. Mirrors ActTierObjectiveCard's map (shared visual
 // contract); reasons arrive pre-ordered by priority. ASCII-only copy.
 const SURFACE_REASON_LABEL: Record<SurfaceReason, string> = {
+  'carries-scope-note': 'Scope note',
   'open-review-flag': 'Open review flag',
   'cross-role-dependency': 'Feeds your work',
   'shared-resource-divergence': 'Shared resource changed',

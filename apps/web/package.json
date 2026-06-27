@@ -8,6 +8,8 @@
     "build": "tsc && vite build",
     "postbuild": "pnpm prerender:showcase",
     "prerender:showcase": "tsx ../../scripts/prerender-showcase.ts",
+    "bundlesize": "node scripts/check-bundle-budget.mjs",
+    "bundlesize:update": "node scripts/check-bundle-budget.mjs --update",
     "preview": "vite preview",
     "lint": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",

@@ -24,7 +24,7 @@
 }
 
 .wordmark {
-  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-weight: 600;
   font-size: var(--text-xl);
   letter-spacing: 0.08em;
@@ -85,7 +85,7 @@
 }
 
 .arabic {
-  font-family: system-ui, serif;
+  font-family: var(--font-sans);
 }
 
 @media (max-width: 900px) {

@@ -176,8 +176,15 @@ export function isSoloProject(
  * Whether the operational-role layer applies to a member with this system
  * role at all (ADR §Two-Layer Role Model: "Team Member / Steward or
  * Primary Steward" only). Contractors, landowners, reviewers and viewers
- * are unaffected. Includes the legacy aliases: `owner` ≈ primary_steward,
- * `designer` ≈ team_member.
+ * are unaffected.
+ *
+ * Back-compat: the legacy aliases `owner` (≈ primary_steward) and `designer`
+ * (≈ team_member) predate the role rename and can still tag older persisted
+ * memberships / pre-migration rows, so they are accepted here to keep those
+ * members in scope rather than silently dropping the layer for them. Safe
+ * degradation: any unknown / null / undefined role falls through to `false`
+ * (the layer simply does not engage) — an unrecognised role is never treated
+ * as in-scope by default.
  */
 export function operationalRolesApplyTo(
   systemRole: ProjectRole | null | undefined,

@@ -181,7 +181,14 @@ export default function ActObjectiveMonitoringPanel({
       <p className={styles.feeds} data-testid="monitoring-feeds">
         <Telescope size={13} aria-hidden="true" className={styles.icon} />
         <span className={styles.feedsLabel}>Feeds</span>
-        <span>{UNIVERSAL_DOMAIN_LABELS[protocol.feeds]}</span>
+        {/* feeds is type- and Zod-schema-constrained to a known UniversalDomain,
+            so the label resolves; the widened lookup + ?? is a defensive guard
+            against un-validated/legacy protocol data so this can't render blank. */}
+        <span>
+          {(UNIVERSAL_DOMAIN_LABELS as Record<string, string | undefined>)[
+            protocol.feeds
+          ] ?? protocol.feeds}
+        </span>
       </p>
 
       {/* Record a reading: writes a real ObserveDataPoint for the chosen

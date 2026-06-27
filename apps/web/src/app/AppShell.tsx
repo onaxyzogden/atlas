@@ -14,11 +14,14 @@ import { DEMO_MODE_ENABLED, DEMO_OFFLINE_ENABLED, isDemoUser } from './demoSessi
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import HeaderProjectSelector from './HeaderProjectSelector.js';
+import { matchV3ProjectRoute } from './v3ProjectRoute.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
 import OfflineBanner from '../components/OfflineBanner.js';
 import DemoBanner from '../components/DemoBanner.js';
+import OnboardingTourController from '../v3/onboarding/OnboardingTourController.js';
+import TourReplayButton from '../v3/onboarding/TourReplayButton.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -28,10 +31,9 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isProjectPage = pathname.startsWith('/project/');
-  const V3_PROJ_RE = /^\/v3\/project\/([^/]+)\/(observe|plan|act|report)/;
-  const v3Match = V3_PROJ_RE.exec(pathname);
-  const v3ProjectId = v3Match?.[1] ?? null;
-  const v3Stage = (v3Match?.[2] ?? null) as 'observe' | 'plan' | 'act' | 'report' | null;
+  // Renders the project switcher on every project sub-route (incl. /home,
+  // /wizard, /protocols, /olos), with the active ceremony stage when on one.
+  const { projectId: v3ProjectId, stage: v3Stage } = matchV3ProjectRoute(pathname);
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
 
@@ -108,6 +110,10 @@ export default function AppShell({ children }: AppShellProps) {
           )}
         </button>
 
+        {/* Demo-only: replay the onboarding tour. Self-gates — renders null
+            outside the offline demo and for non-guest users. */}
+        <TourReplayButton />
+
         {/* Auth. Three cases, in order:
             1. Offline demo (FEATURE_DEMO_OFFLINE): a "Demo" badge only — NO
                sign-in link (the real atlas.ogden.ag login is currently broken,
@@ -151,6 +157,10 @@ export default function AppShell({ children }: AppShellProps) {
       </main>
 
       <CommandPalette />
+      {/* Offline-demo onboarding tour. Mounted above the route outlet so it
+          survives the navigations it drives (portfolio → Observe → Plan → Act).
+          Self-gates to a no-op outside the offline demo. */}
+      <OnboardingTourController />
     </div>
     </V3LevelNavBridge>
   );

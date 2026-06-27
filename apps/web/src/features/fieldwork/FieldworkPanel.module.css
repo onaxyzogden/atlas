@@ -101,7 +101,7 @@
   gap: 8px;
 }
 .entryNotes {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-success-50);
@@ -192,7 +192,7 @@
   border-radius: 8px;
   color: var(--color-success-50);
   outline: none;
-  font-family: 'Fira Sans', sans-serif;
+  font-family: var(--font-sans);
   resize: vertical;
   margin-bottom: 8px;
   box-sizing: border-box;
@@ -332,7 +332,7 @@
   font-size: 9px;
   color: rgba(var(--color-group-reporting-rgb),0.5);
   margin-top: 4px;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--font-sans);
 }
 
 /* ── Empty State ─────────────────────────────────────────────────── */

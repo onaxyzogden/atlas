@@ -11,7 +11,7 @@
   display: flex;
   flex-direction: column;
   background: #0f0f0d;
-  font-family: 'DM Sans', 'system-ui', sans-serif;
+  font-family: var(--font-sans);
   color: #ede9e0;
   overflow: hidden;
 }
