@@ -72,6 +72,7 @@ import {
   clip,
   type PolyFeature,
 } from '../engine/zoneGenerators/parcelGeometry.js';
+import { parcelAcres } from '../../../lib/geo.js';
 import { toast } from '../../../components/Toast.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../strata/useProjectObjectives.js';
@@ -144,7 +145,7 @@ import { deriveCoherenceProgress } from '../threshold/coherenceCheckModel.js';
 import ActMandateSurface from '../threshold/ActMandateSurface.js';
 import ActMandateReferenceRail from '../threshold/ActMandateReferenceRail.js';
 import ActMandateEntryCue from '../threshold/ActMandateEntryCue.js';
-import { useObjectivePlanLock } from '../../../store/actMandateStore.js';
+import { useObjectivePlanLock, usePlanReadOnly } from '../../../store/actMandateStore.js';
 import ActTierObjectiveRail from '../../act/tier-shell/ActTierObjectiveRail.js';
 import { useViewScope } from '../../roles/useViewScope.js';
 import { objectiveInScope } from '../../roles/viewScope.js';
@@ -158,6 +159,9 @@ import ActTierZeroWorkbench from '../../act/tier-shell/ActTierZeroWorkbench.js';
 // relocated from the DeclarationCenter header band into the right rail (2026-06-22)
 // so the center canvas stays focused on the decision list + working panel.
 import DeclarationOrientationRail from '../../act/tier-shell/DeclarationOrientationRail.js';
+// The same sequencing stepper, standalone for Strata 2-7 (S1 gets it via the
+// orientation rail above, beneath its Intent/Team canonical cards).
+import StratumSequencingRail from '../../act/tier-shell/StratumSequencingRail.js';
 import {
   isTierZeroObjective,
   isTierZeroObjectiveId,
@@ -304,6 +308,10 @@ export default function PlanTierShell() {
   // link (?changeType=1) or the switcher's primary chip.
   const changePrimaryType = useProjectStore((s) => s.changePrimaryType);
   const duplicateProject = useProjectStore((s) => s.duplicateProject);
+  // Boundary persistence: the Plan steward can now re-trace / import / clear the
+  // parcel outline in-canvas; the writes land via the same updateProject the
+  // creation wizard + Observe use (so store writes stay out of the canvas).
+  const updateProject = useProjectStore((s) => s.updateProject);
   const cloneProgressForProject = usePlanStratumProgressStore(
     (s) => s.cloneForProject,
   );
@@ -313,6 +321,11 @@ export default function PlanTierShell() {
   const v3Project = useV3Project(params.projectId);
   const boundary = v3Project?.location.boundary;
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
+  // Project-global Plan seal (Threshold-3 "Begin Act"). The parcel boundary is a
+  // project-level entity, so it gates on the whole-plan seal, not a per-objective
+  // lock: once sealed, every boundary edit affordance disappears while the
+  // read-only painted outline keeps rendering.
+  const planReadOnly = usePlanReadOnly(id);
 
   // Resolved per-project objective set (universal + primary/secondary types).
   const { objectives } = useProjectObjectives(id);
@@ -1170,6 +1183,29 @@ export default function PlanTierShell() {
     [setActiveTool, selectedObjective, id],
   );
 
+  // Persist a boundary edit/import (a one-feature or pass-through FeatureCollection)
+  // or a clear (null). Acreage is recomputed locally so it agrees with the server's
+  // ST_Area recompute on the next sync; clearing zeroes it. Mirrors the wizard +
+  // Observe write path — the canvas stays store-agnostic, the shell owns the write.
+  const handleBoundaryChanged = useCallback(
+    (fc: GeoJSON.FeatureCollection | null) => {
+      if (fc === null) {
+        updateProject(id, {
+          parcelBoundaryGeojson: null,
+          hasParcelBoundary: false,
+          acreage: null,
+        });
+        return;
+      }
+      updateProject(id, {
+        parcelBoundaryGeojson: fc,
+        hasParcelBoundary: true,
+        acreage: parcelAcres(fc),
+      });
+    },
+    [id, updateProject],
+  );
+
   // ── Arm-on-arrival (Act → Plan "Open in Plan" handoff) ────────────────────
   // When the route carries ?armTool=<id> and the matching objective has resolved
   // on the Plan canvas (not the Tier-0 decision workbench, which suppresses the
@@ -1429,6 +1465,8 @@ export default function PlanTierShell() {
                     projectId={id}
                     centroid={fallbackCenter}
                     boundary={boundary}
+                    onBoundaryChanged={handleBoundaryChanged}
+                    planReadOnly={planReadOnly}
                     view={activeView}
                     surveyActive={surveyActive}
                     slopeActive={slopeActive}
@@ -1605,6 +1643,14 @@ export default function PlanTierShell() {
                     activeObjectiveId={selectedObjective?.id}
                     onSelectObjective={handleSelectObjective}
                   />
+                ) : selectedStratum ? (
+                  <StratumSequencingRail
+                    stratum={selectedStratum}
+                    objectives={stratumObjectives}
+                    objectiveStatuses={objectiveStatuses}
+                    activeObjectiveId={selectedObjective?.id}
+                    onSelectObjective={handleSelectObjective}
+                  />
                 ) : null}
                 <div className={styles.rightBody}>
                   {rightMode === 'detail' &&
@@ -1690,6 +1736,7 @@ export default function PlanTierShell() {
                   disabled={!params.projectId}
                   onActivate={handleActivateTool}
                   activeFormId={openFormGroup?.activeFormId ?? null}
+                  planReadOnly={planReadOnly}
                 />
               )
             }
