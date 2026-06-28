@@ -162,3 +162,65 @@ describe('DELETE /api/v1/projects/:id', () => {
     expect(res.statusCode).toBeLessThan(300);
   });
 });
+
+// ── PATCH /projects/:id/operational-role-defs (Option C — rename + re-scope) ──
+
+describe('PATCH /api/v1/projects/:id/operational-role-defs', () => {
+  it('persists a per-project role override and echoes metadata (owner)', async () => {
+    enqueue(projectRow()); // resolveProjectRole → owner shortcut
+    enqueue(projectRow()); // refuseIfBuiltin → not builtin
+    enqueue(
+      projectRow({
+        metadata: {
+          operationalRoleDefs: [{ slug: 'food_production', label: 'Grower' }],
+        },
+      }),
+    ); // UPDATE … RETURNING
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/operational-role-defs`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        operationalRoleDefs: [
+          { slug: 'food_production', label: 'Grower', domains: ['plants-food', 'soil'] },
+        ],
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    // slug survives toCamelCase because it is a VALUE, not a key
+    expect(body.data.metadata.operationalRoleDefs[0].slug).toBe('food_production');
+    expect(body.data.metadata.operationalRoleDefs[0].label).toBe('Grower');
+  });
+
+  it('rejects a vision-intent domain override with 422 (steward-only)', async () => {
+    enqueue(projectRow()); // resolveProjectRole → owner
+    enqueue(projectRow()); // refuseIfBuiltin
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/operational-role-defs`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        operationalRoleDefs: [{ slug: 'food_production', domains: ['vision-intent'] }],
+      },
+    });
+
+    // The override schema's superRefine raises a ZodError, which the global
+    // handler maps to 422 VALIDATION_ERROR (app.ts:191-192) — the same contract
+    // as any other malformed body on this API.
+    expect(res.statusCode).toBe(422);
+  });
+
+  it('returns 401 without auth', async () => {
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/operational-role-defs`,
+      payload: { operationalRoleDefs: [] },
+    });
+
+    expect(res.statusCode).toBe(401);
+  });
+});

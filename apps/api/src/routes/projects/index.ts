@@ -7,6 +7,7 @@ import {
   ParcelBoundaryGeojson,
   extractPolygonalGeometry,
   toCamelCase,
+  SetOperationalRoleDefsInput,
 } from '@ogden/shared';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../lib/errors.js';
 import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.js';
@@ -351,6 +352,42 @@ export default async function projectRoutes(fastify: FastifyInstance) {
                   created_at, updated_at
       `;
       return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
+    },
+  );
+
+  // PATCH /projects/:id/operational-role-defs — rename + re-scope the six
+  // built-in operational roles for THIS project (ADR 2026-06-24 Option C). A
+  // governance act: gated to owner / primary_steward (requireRole('owner')
+  // admits primary_steward via the role alias), distinct from manage_members
+  // (which governs ASSIGNING people to roles). Overrides ride projects.metadata
+  // (open jsonb); members still store only the six built-in slugs, so no
+  // migration / enum / CHECK change. The full desired set is sent each time
+  // (idempotent replace); an empty array resets every role to its built-in def.
+  fastify.patch<{ Params: { id: string } }>(
+    '/:id/operational-role-defs',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
+    async (req) => {
+      await refuseIfBuiltin(req.projectId);
+      const { operationalRoleDefs } = SetOperationalRoleDefsInput.parse(req.body);
+
+      // Shallow jsonb merge replaces the operationalRoleDefs key wholesale —
+      // same idempotent-replace pattern as members operational-roles.
+      const [updated] = await db`
+        UPDATE projects
+        SET metadata = metadata || ${db.json({ operationalRoleDefs })}::jsonb
+        WHERE id = ${req.projectId}
+        RETURNING id, name, description, status, project_type, country, province_state,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  metadata,
+                  created_at, updated_at
+      `;
+      // Return raw (camelCased) row incl. metadata — like GET /:id, NOT
+      // ProjectSummary.parse (which strips metadata). The slug survives
+      // toCamelCase because it is a string value, not an object key.
+      return { data: toCamelCase(updated), meta: undefined, error: null };
     },
   );
 
