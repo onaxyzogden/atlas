@@ -18,6 +18,7 @@ import { role as roleToken, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import UserManagementReadinessCard from './UserManagementReadinessCard.js';
 import MyOperationalRoleCard from './MyOperationalRoleCard.js';
+import OperationalRoleEditor from './OperationalRoleEditor.js';
 import FirstMemberRolePrompt from './FirstMemberRolePrompt.js';
 import { useIsSoloProject } from './useIsSoloProject.js';
 
@@ -137,6 +138,10 @@ export default function MembersTab({ project }: MembersTabProps) {
           <MyOperationalRoleCard projectId={projectId} />
         </>
       )}
+
+      {/* Option C (ADR 2026-06-24): owner / primary-steward renames + re-scopes
+          the project's six operational roles. Self-gated (admin + non-solo). */}
+      <OperationalRoleEditor projectId={projectId} />
 
       {/* Invite form (owner only) */}
       {isOwner && (
