@@ -46,6 +46,7 @@ import DecisionWorkingPanel, {
   type DecisionPanelTarget,
 } from './DecisionWorkingPanel.js';
 import { stewardTeamModeFor } from './StewardTeamCapture.js';
+import WorkspacePopup from './WorkspacePopup.js';
 import { ACT_TOOL_CATALOG, type FormValue } from './actToolCatalog.js';
 import {
   workbenchAffordancesFor,
@@ -674,50 +675,60 @@ export default function ActTierZeroWorkbench({
         modeFor={affordances.modeFor ?? undefined}
         showActHandoff={isDeclaration || isReception}
         showObserveOutput={isReception}
-        collapsed={Boolean(selectedItem)}
+        // The popup is now the working surface, so the list stays full behind
+        // the scrim with the chosen row highlighted; the collapse-to-tile + back
+        // affordance is retired in favour of the popup's close controls.
+        collapsed={false}
         onBack={() => setSelectedItemId(null)}
       />
 
-      {/* ---------- Workspace: only when a decision is selected ---------- */}
-      {selectedItem ? (
-        <section className={css.workspace}>
-          {/* Declaration-only reference block: the canonical Team Object registry
-              sits ABOVE the working panel and only for the team objective (0.2).
-              Read-only -- the actual capture is the working panel below. */}
-          {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
-            <TeamRegistryPanel projectId={projectId} />
-          ) : null}
-          <DecisionWorkingPanel
-            decision={target}
-            projectId={projectId}
-            resolveOptions={resolveOptions}
-            successCriteriaOptions={scOptions}
-            labourSkillSuggestions={labourSkills}
-            visionClassifySuggestions={vcSuggestions}
-            initialValue={formValues[selectedItem.id] ?? {}}
-            siblingValues={formValues}
-            initialRationale={rationales[selectedItem.id] ?? ''}
-            deferred={Boolean(deferredItems[selectedItem.id])}
-            recorded={completedForActive.includes(selectedItem.id)}
-            // Reception (Tier-2) only: the survey objective's per-type intent lens
-            // + display-only builds-on line. Same value for every item of the
-            // survey (they belong to the objective, not the item). Act/Declaration
-            // omit both -> the panel renders byte-identical there.
-            buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
-            intentLens={isReception ? readIntentLens(activeObjective) : undefined}
-            readOnly={readOnly}
-            onRecord={(value, summary) => {
-              onRecord(selectedItem.id, value, summary);
-            }}
-            onSaveRationale={(text) => {
-              onSaveRationale(selectedItem.id, text);
-            }}
-            onToggleDefer={(deferred) => {
-              onToggleDefer(selectedItem.id, deferred);
-            }}
-          />
-        </section>
-      ) : null}
+      {/* ---------- Workspace: centered-modal popup over the list ---------- */}
+      <WorkspacePopup
+        open={Boolean(selectedItem)}
+        onClose={() => setSelectedItemId(null)}
+      >
+        {selectedItem && target ? (
+          <>
+            {/* Declaration-only reference block: the canonical Team Object
+                registry sits ABOVE the working panel and only for the team
+                objective (0.2). Read-only -- the actual capture is below. */}
+            {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
+              <TeamRegistryPanel projectId={projectId} />
+            ) : null}
+            <DecisionWorkingPanel
+              decision={target}
+              projectId={projectId}
+              resolveOptions={resolveOptions}
+              successCriteriaOptions={scOptions}
+              labourSkillSuggestions={labourSkills}
+              visionClassifySuggestions={vcSuggestions}
+              initialValue={formValues[selectedItem.id] ?? {}}
+              siblingValues={formValues}
+              initialRationale={rationales[selectedItem.id] ?? ''}
+              deferred={Boolean(deferredItems[selectedItem.id])}
+              recorded={completedForActive.includes(selectedItem.id)}
+              // Reception (Tier-2) only: the survey objective's per-type intent
+              // lens + display-only builds-on line. Same value for every item of
+              // the survey (they belong to the objective, not the item).
+              // Act/Declaration omit both -> the panel renders byte-identical.
+              buildsOn={isReception ? readBuildsOn(activeObjective) : undefined}
+              intentLens={
+                isReception ? readIntentLens(activeObjective) : undefined
+              }
+              readOnly={readOnly}
+              onRecord={(value, summary) => {
+                onRecord(selectedItem.id, value, summary);
+              }}
+              onSaveRationale={(text) => {
+                onSaveRationale(selectedItem.id, text);
+              }}
+              onToggleDefer={(deferred) => {
+                onToggleDefer(selectedItem.id, deferred);
+              }}
+            />
+          </>
+        ) : null}
+      </WorkspacePopup>
     </div>
   );
 
