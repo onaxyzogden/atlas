@@ -11,6 +11,7 @@ import {
   resolveOperationalRoleDefs,
   resolveOperationalRoleDomains,
   OperationalRoleDefsOverride,
+  SetOperationalRoleDefsInput,
 } from '../operationalRoles.js';
 import {
   ProjectMemberRecord,
@@ -18,6 +19,7 @@ import {
   type ProjectRole,
 } from '../../../schemas/collaboration.schema.js';
 import { UniversalDomain } from '../../../schemas/universalDomain.schema.js';
+import { toCamelCase } from '../../../lib/caseTransform.js';
 
 const ALL_DOMAINS = new Set<string>(UniversalDomain.options);
 
@@ -145,9 +147,9 @@ describe('resolveOperationalRoleDefs (Option-C, project-aware)', () => {
   });
 
   it('merges a per-project label/description override over the built-in', () => {
-    const overrides = OperationalRoleDefsOverride.parse({
-      food_production: { label: 'Grower', description: 'Runs the market garden.' },
-    });
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', label: 'Grower', description: 'Runs the market garden.' },
+    ]);
     const defs = resolveOperationalRoleDefs(overrides);
     const grower = defs.find((d) => d.slug === 'food_production')!;
     expect(grower.label).toBe('Grower');
@@ -159,9 +161,9 @@ describe('resolveOperationalRoleDefs (Option-C, project-aware)', () => {
   });
 
   it('keeps the built-in label when only domains are overridden', () => {
-    const overrides = OperationalRoleDefsOverride.parse({
-      food_production: { domains: ['plants-food', 'soil'] },
-    });
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', domains: ['plants-food', 'soil'] },
+    ]);
     const grower = resolveOperationalRoleDefs(overrides).find(
       (d) => d.slug === 'food_production',
     )!;
@@ -178,9 +180,9 @@ describe('resolveOperationalRoleDomains + project-aware scope', () => {
   });
 
   it('a domains override drives scopeForRoles and roleForDomain', () => {
-    const overrides = OperationalRoleDefsOverride.parse({
-      food_production: { domains: ['plants-food', 'soil'] },
-    });
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', domains: ['plants-food', 'soil'] },
+    ]);
     const map = resolveOperationalRoleDomains(overrides);
     expect(map.food_production.has('soil')).toBe(true);
     // scopeForRoles reads the supplied project map
@@ -200,32 +202,67 @@ describe('resolveOperationalRoleDomains + project-aware scope', () => {
 describe('OperationalRoleDefsOverride schema', () => {
   it('rejects a vision-intent domain (primary-steward-only)', () => {
     expect(() =>
-      OperationalRoleDefsOverride.parse({
-        food_production: { domains: ['vision-intent'] },
-      }),
+      OperationalRoleDefsOverride.parse([
+        { slug: 'food_production', domains: ['vision-intent'] },
+      ]),
     ).toThrow();
   });
 
-  it('rejects an unknown role slug key', () => {
+  it('rejects an unknown role slug', () => {
     expect(() =>
-      OperationalRoleDefsOverride.parse({ nope: { label: 'x' } }),
+      OperationalRoleDefsOverride.parse([{ slug: 'nope', label: 'x' }]),
     ).toThrow();
   });
 
   it('rejects an unknown field on a role override (strict)', () => {
     expect(() =>
-      OperationalRoleDefsOverride.parse({
-        food_production: { colour: 'green' },
-      }),
+      OperationalRoleDefsOverride.parse([
+        { slug: 'food_production', colour: 'green' },
+      ]),
+    ).toThrow();
+  });
+
+  it('rejects a duplicate slug', () => {
+    expect(() =>
+      OperationalRoleDefsOverride.parse([
+        { slug: 'livestock', label: 'A' },
+        { slug: 'livestock', label: 'B' },
+      ]),
     ).toThrow();
   });
 
   it('accepts a partial override (only some roles present)', () => {
-    const parsed = OperationalRoleDefsOverride.parse({
-      livestock: { label: 'Shepherd' },
+    const parsed = OperationalRoleDefsOverride.parse([
+      { slug: 'livestock', label: 'Shepherd' },
+    ]);
+    expect(parsed.find((d) => d.slug === 'livestock')?.label).toBe('Shepherd');
+    expect(parsed.find((d) => d.slug === 'food_production')).toBeUndefined();
+  });
+
+  it('survives the API toCamelCase round-trip (slug is a value, not a key)', () => {
+    const stored = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', label: 'Grower', domains: ['plants-food'] },
+    ]);
+    // GET /projects/:id runs metadata through toCamelCase; a slug-KEYED map
+    // would be mangled (food_production -> foodProduction). The array shape
+    // keeps the slug as a string value, so it round-trips intact and re-parses.
+    const roundTripped = toCamelCase<typeof stored>(stored);
+    expect(roundTripped[0]!.slug).toBe('food_production');
+    expect(() => OperationalRoleDefsOverride.parse(roundTripped)).not.toThrow();
+  });
+});
+
+describe('SetOperationalRoleDefsInput (route DTO)', () => {
+  it('wraps the override array under operationalRoleDefs', () => {
+    const parsed = SetOperationalRoleDefsInput.parse({
+      operationalRoleDefs: [{ slug: 'food_production', label: 'Grower' }],
     });
-    expect(parsed.livestock?.label).toBe('Shepherd');
-    expect(parsed.food_production).toBeUndefined();
+    expect(parsed.operationalRoleDefs[0]!.slug).toBe('food_production');
+  });
+
+  it('accepts an empty array (reset to built-ins)', () => {
+    const parsed = SetOperationalRoleDefsInput.parse({ operationalRoleDefs: [] });
+    expect(parsed.operationalRoleDefs).toEqual([]);
   });
 });
 

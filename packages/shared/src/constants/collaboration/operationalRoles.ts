@@ -88,14 +88,19 @@ export const PRIMARY_STEWARD_ONLY_DOMAINS: ReadonlySet<UniversalDomain> =
 
 /**
  * Per-project override of ONE built-in role's presentation + default scope
- * (ADR Option C — rename + re-scope). Every field is optional: an absent
- * field falls back to the built-in. Stored (per slug) in
- * `projects.metadata.operationalRoleDefs`, which is open jsonb — the member's
- * stored slug never changes, so migration 055's CHECK and the closed
- * `OperationalRole` enum stay untouched. `.strict()` rejects typo fields.
+ * (ADR Option C — rename + re-scope). `slug` names which built-in role this
+ * overrides; every other field is optional and falls back to the built-in
+ * when absent. `.strict()` rejects typo fields.
+ *
+ * The override is an ARRAY ELEMENT keyed by a `slug` VALUE — deliberately NOT
+ * a slug-keyed map — because the persisted blob (`projects.metadata`) is read
+ * back through the API's `toCamelCase` (`GET /projects/:id`), which rewrites
+ * object KEYS (`food_production` -> `foodProduction`) but leaves string VALUES
+ * untouched. Keeping the slug as a value makes the override round-trip intact.
  */
 export const OperationalRoleDefOverride = z
   .object({
+    slug: OperationalRole,
     label: z.string().min(1).max(40).optional(),
     description: z.string().max(160).optional(),
     domains: z.array(UniversalDomain).optional(),
@@ -104,29 +109,60 @@ export const OperationalRoleDefOverride = z
 export type OperationalRoleDefOverride = z.infer<typeof OperationalRoleDefOverride>;
 
 /**
- * A project's full set of role overrides — a partial map keyed by the six
- * built-in slugs (unknown keys rejected). `vision-intent` can never be added
- * to a role's `domains`: it is permanently reserved to the Primary Steward
- * (`PRIMARY_STEWARD_ONLY_DOMAINS`). This is the shape persisted at
- * `projects.metadata.operationalRoleDefs` and validated by the
- * `PATCH /projects/:id/operational-role-defs` route.
+ * A project's full set of role overrides — a partial array (only the
+ * overridden roles appear; at most one entry per slug). `vision-intent` can
+ * never be added to a role's `domains`: it is permanently reserved to the
+ * Primary Steward (`PRIMARY_STEWARD_ONLY_DOMAINS`). This is the shape persisted
+ * at `projects.metadata.operationalRoleDefs`, kept slug-keyed-by-VALUE so it
+ * survives the API's `toCamelCase` round-trip (see `OperationalRoleDefOverride`).
+ * The member's stored slug never changes, so migration 055's CHECK and the
+ * closed `OperationalRole` enum stay untouched.
  */
 export const OperationalRoleDefsOverride = z
-  .record(OperationalRole, OperationalRoleDefOverride)
+  .array(OperationalRoleDefOverride)
   .superRefine((defs, ctx) => {
-    for (const [slug, def] of Object.entries(defs)) {
-      for (const domain of def?.domains ?? []) {
+    const seen = new Set<string>();
+    defs.forEach((def, i) => {
+      if (seen.has(def.slug)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [i, 'slug'],
+          message: `Duplicate override for "${def.slug}" — each role may appear at most once.`,
+        });
+      }
+      seen.add(def.slug);
+      for (const domain of def.domains ?? []) {
         if (PRIMARY_STEWARD_ONLY_DOMAINS.has(domain)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: [slug, 'domains'],
+            path: [i, 'domains'],
             message: `"${domain}" is reserved to the Primary Steward and cannot be assigned to an operational role.`,
           });
         }
       }
-    }
+    });
   });
 export type OperationalRoleDefsOverride = z.infer<typeof OperationalRoleDefsOverride>;
+
+/**
+ * Request body for `PATCH /projects/:id/operational-role-defs`. Wraps the
+ * override array (mirroring `SetOperationalRolesInput`'s envelope shape). The
+ * full desired set is sent each time — idempotent replace; an empty array
+ * resets every role to its built-in def.
+ */
+export const SetOperationalRoleDefsInput = z.object({
+  operationalRoleDefs: OperationalRoleDefsOverride,
+});
+export type SetOperationalRoleDefsInput = z.infer<typeof SetOperationalRoleDefsInput>;
+
+/** Index an override array by slug (last write wins; dups already rejected). */
+function indexOverridesBySlug(
+  overrides?: OperationalRoleDefsOverride,
+): Partial<Record<OperationalRole, OperationalRoleDefOverride>> {
+  const bySlug: Partial<Record<OperationalRole, OperationalRoleDefOverride>> = {};
+  for (const def of overrides ?? []) bySlug[def.slug] = def;
+  return bySlug;
+}
 
 /**
  * Default domain scope per operational role. Source of truth for the
@@ -264,9 +300,10 @@ export function operationalRolesApplyTo(
 export function resolveOperationalRoleDefs(
   overrides?: OperationalRoleDefsOverride,
 ): readonly OperationalRoleDef[] {
+  const bySlug = indexOverridesBySlug(overrides);
   return OPERATIONAL_ROLES.map((slug) => {
     const base = OPERATIONAL_ROLE_DEFS[slug];
-    const override = overrides?.[slug];
+    const override = bySlug[slug];
     if (!override) return base;
     return {
       slug,
@@ -287,9 +324,10 @@ export function resolveOperationalRoleDefs(
 export function resolveOperationalRoleDomains(
   overrides?: OperationalRoleDefsOverride,
 ): Record<OperationalRole, ReadonlySet<UniversalDomain>> {
+  const bySlug = indexOverridesBySlug(overrides);
   const resolved = {} as Record<OperationalRole, ReadonlySet<UniversalDomain>>;
   for (const slug of OPERATIONAL_ROLES) {
-    const override = overrides?.[slug];
+    const override = bySlug[slug];
     resolved[slug] = override?.domains
       ? new Set<UniversalDomain>(
           override.domains.filter((d) => !PRIMARY_STEWARD_ONLY_DOMAINS.has(d)),
