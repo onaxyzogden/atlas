@@ -58,7 +58,7 @@ import { useMemberStore } from '../../../../store/memberStore.js';
 
 const PROJECT_ID = 'proj-decl';
 
-// The team objective (0.2 / s1-steward): mounting it active in declaration mode
+// The team objective (1.2 / s1-steward): mounting it active in declaration mode
 // is what surfaces TeamRegistryPanel; its actHandoff feeds the handoff chip.
 const STEWARD_OBJECTIVE: PlanStratumObjective = {
   id: 's1-steward',

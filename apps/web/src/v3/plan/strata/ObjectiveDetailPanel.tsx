@@ -561,8 +561,8 @@ export default function ObjectiveDetailPanel({
           this panel). */}
       <Mode5LaunchChrome objective={objective} />
 
-      {/* TIER 0 CAPACITY BRIDGE -- arms ONLY on s7-resource-plan: declared
-          steward supply (from Tier 0 / Obj 0.2) read against the Phase-1 demand
+      {/* STRATUM 1 CAPACITY BRIDGE -- arms ONLY on s7-resource-plan: declared
+          steward supply (from Stratum 1 / Obj 1.2) read against the Phase-1 demand
           captured in this resource plan. Display-only; demand absent -> honest
           "not yet captured" reading. Plan-only by construction. */}
       <CapacityBridgePanel objective={objective} projectId={projectId} />

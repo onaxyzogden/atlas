@@ -50,13 +50,13 @@ function statuses(
 }
 
 describe('TIER_ZERO_DISPLAY', () => {
-  it('numbers the six declaration objectives 0.1..0.6', () => {
-    expect(TIER_ZERO_DISPLAY['s1-vision']?.display).toBe('0.1');
-    expect(TIER_ZERO_DISPLAY['s1-steward']?.display).toBe('0.2');
-    expect(TIER_ZERO_DISPLAY['s1-boundaries']?.display).toBe('0.3');
-    expect(TIER_ZERO_DISPLAY['s1-stakeholders']?.display).toBe('0.4');
-    expect(TIER_ZERO_DISPLAY['rf-s1-enterprise-mix']?.display).toBe('0.5');
-    expect(TIER_ZERO_DISPLAY['res-s1-household-needs']?.display).toBe('0.6');
+  it('numbers the six declaration objectives 1.1..1.6', () => {
+    expect(TIER_ZERO_DISPLAY['s1-vision']?.display).toBe('1.1');
+    expect(TIER_ZERO_DISPLAY['s1-steward']?.display).toBe('1.2');
+    expect(TIER_ZERO_DISPLAY['s1-boundaries']?.display).toBe('1.3');
+    expect(TIER_ZERO_DISPLAY['s1-stakeholders']?.display).toBe('1.4');
+    expect(TIER_ZERO_DISPLAY['rf-s1-enterprise-mix']?.display).toBe('1.5');
+    expect(TIER_ZERO_DISPLAY['res-s1-household-needs']?.display).toBe('1.6');
   });
 
   it('marks the canonical objects and the new objectives', () => {
@@ -64,13 +64,13 @@ describe('TIER_ZERO_DISPLAY', () => {
     expect(TIER_ZERO_DISPLAY['s1-steward']?.canonical).toBe('team');
     expect(TIER_ZERO_DISPLAY['s1-steward']?.isNew).toBe(true);
     expect(TIER_ZERO_DISPLAY['res-s1-household-needs']?.isNew).toBe(true);
-    // 0.3 / 0.4 carry no canonical membership.
+    // 1.3 / 1.4 carry no canonical membership.
     expect(TIER_ZERO_DISPLAY['s1-boundaries']?.canonical).toBeUndefined();
   });
 
   it('tierZeroDisplayFor returns undefined for a non-declaration id', () => {
     expect(tierZeroDisplayFor('s2-terrain')).toBeUndefined();
-    expect(tierZeroDisplayFor('s1-vision')?.display).toBe('0.1');
+    expect(tierZeroDisplayFor('s1-vision')?.display).toBe('1.1');
   });
 });
 

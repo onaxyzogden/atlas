@@ -294,14 +294,14 @@ describe('catalogue invariant -- s7-resource-plan unchanged by the in-place upgr
 });
 
 describe('render -- mode bodies', () => {
-  it('labourDemand renders its eyebrow, add control, and the 0.2 bridge feeds note', () => {
+  it('labourDemand renders its eyebrow, add control, and the 1.2 bridge feeds note', () => {
     render(
       <DemandCapture mode="labourDemand" value={{}} onChange={() => {}} itemId="s7-resource-plan-c1" />,
     );
     // "by task and season" is the eyebrow hint, unique to the labour body
     expect(screen.getByText(/by task and season/i)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Add labour line/i })).toBeTruthy();
-    expect(screen.getByText(/Objective 0\.2/i)).toBeTruthy();
+    expect(screen.getByText(/Objective 1\.2/i)).toBeTruthy();
   });
 
   it('capitalDemand surfaces the verbatim Amanah scope note and only permitted channels', () => {
