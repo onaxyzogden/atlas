@@ -52,6 +52,21 @@ vi.mock('lucide-react', async (importOriginal) => {
   return stubbed;
 });
 
+// The c9 operational-roles body resolves its pills via
+// useResolvedOperationalRoles (React Query). This suite is store-direct (no
+// QueryClientProvider) and asserts the built-in labels/domains, so we stub the
+// resolver to the real built-ins -- pills + ScopePreview stay byte-identical.
+vi.mock('../../../roles/useResolvedOperationalRoles.js', async () => {
+  const shared =
+    await vi.importActual<typeof import('@ogden/shared')>('@ogden/shared');
+  return {
+    useResolvedOperationalRoles: () => ({
+      defs: shared.resolveOperationalRoleDefs(),
+      domainsMap: shared.resolveOperationalRoleDomains(),
+    }),
+  };
+});
+
 import StewardTeamCapture, {
   stewardTeamModeFor,
   isStewardTeamValid,
