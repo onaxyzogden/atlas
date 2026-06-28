@@ -434,6 +434,10 @@ export function buildDecisionTarget(
   const isDemandCapture =
     item.id === 's7-resource-plan-c1' || item.id === 's7-resource-plan-c4';
 
+  // s1-vision-c3 (universal) / s1-steward-c6 (typed-project catalogue, post-2026-06-16
+  // Tier-0 restructure): two-slider UX for stewardship time + annual budget bands.
+  const isCapacityBand = item.id === 's1-vision-c3' || item.id === 's1-steward-c6';
+
   // The steward item carries a custom defer label (it stays deferrable -- only
   // s1-stakeholders-c3 sets deferrable:false). undefined => default defer copy.
   const deferLabel =
@@ -502,6 +506,7 @@ export function buildDecisionTarget(
     isOnboarding,
     isCapitalPlan,
     isDemandCapture,
+    isCapacityBand,
     deferLabel,
     deferrable,
   };
