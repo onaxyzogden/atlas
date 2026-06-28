@@ -370,16 +370,16 @@ const MODE_LABELS: Record<string, string> = {
 
   // Steward / Team Object artifact badges (universal U-S1.4; Tier-0 restructure
   // 2026-06-16). The "sw-" namespace keeps them clear of the vs-* vision badges
-  // and the st-* settlement-strategy badges. 7 store-direct items (the other two
-  // steward items keep vs-labour / vs-capital). sw-operational is the optional
-  // operational-roles item (ADR 2026-06-24).
+  // and the st-* settlement-strategy badges. 6 store-direct items (the other two
+  // steward items keep vs-labour / vs-capital). The sw-operational badge was
+  // retired 2026-06-28 with its standalone c9 item -- the operational-role pills
+  // now live under c2's sw-roles capture.
   'sw-roster': 'Team roster',
   'sw-roles': 'Roles',
   'sw-rights': 'Decision rights',
   'sw-capability': 'Capabilities',
   'sw-gaps': 'Skill gaps',
   'sw-governance': 'Governance',
-  'sw-operational': 'Operational roles',
 };
 
 // Raw mode key -> badge icon. Covers the mixed BoundaryCaptureLegacy modes (the
@@ -406,7 +406,6 @@ const MODE_ICONS: Record<string, typeof Check> = {
   'sw-capability': Wrench,
   'sw-gaps': AlertTriangle,
   'sw-governance': Landmark,
-  'sw-operational': Target,
 };
 
 // Raw mode key -> badge color "kind", surfaced as a data-kind attribute on the
@@ -430,7 +429,6 @@ const MODE_BADGE_KIND: Record<string, string> = {
   'sw-capability': 'assess',
   'sw-gaps': 'assess',
   'sw-governance': 'decision',
-  'sw-operational': 'neutral',
 };
 
 export default function DecisionList({

@@ -164,9 +164,16 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         ),
         optional: true,
       },
+      // People & roles (Phase-4 consolidation 2026-06-28): the free-text "team
+      // role" input was replaced by the standardized operational-role pills (each
+      // member's default domain focus across Plan / Act / Observe) plus on-site
+      // presence, absorbing the retired standalone c9 item. The pills write to
+      // the *membership* (project_members.operational_roles), so this item stays
+      // always-recordable (residency / presence satisfy it) and never gates the
+      // objective -- preserving the ADR 2026-06-24 "never gates" guarantee.
       ck(
         's1-steward-c2',
-        'Define the role of each person - what they are responsible for on this land',
+        'Assign each person an operational role - the default domain focus carried across Plan, Act, and Observe - plus on-site presence',
         { feeds: ['s4-direction'] },
       ),
       ck(
@@ -206,26 +213,16 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Note the governance principles and decision-making framework that will govern the team',
         { feeds: ['s4-direction'] },
       ),
-      // Operational roles (ADR 2026-06-24): each member's default domain focus
-      // across Plan / Act / Observe. View-scoping only - it never grants or
-      // removes capability (that stays with PROJECT_ROLE_CAPABILITIES) and feeds
-      // no downstream objective. `optional` so it is excluded from the steward
-      // objective's required-progress denominator (stratumObjectiveStatus filters
-      // !optional) - adding it never drags or gates completion.
-      {
-        ...ck(
-          's1-steward-c9',
-          'Assign operational roles - set the default domain focus for each member across Plan, Act, and Observe',
-        ),
-        optional: true,
-      },
+      // (The standalone operational-roles item c9 from ADR 2026-06-24 was retired
+      // on 2026-06-28: its pills were folded into the People & roles capture c2
+      // above, so the duplicate item is gone. Operational roles remain
+      // non-gating -- they live on the membership, not this checklist.)
     ],
     decisionGroups: [
       dg('s1-steward-dg1', 'People & roles', [
         's1-steward-c1',
         's1-steward-c2',
         's1-steward-c3',
-        's1-steward-c9',
       ]),
       dg('s1-steward-dg2', 'Capability & resources', [
         's1-steward-c4',

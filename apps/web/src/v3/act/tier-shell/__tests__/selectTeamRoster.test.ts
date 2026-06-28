@@ -69,7 +69,16 @@ describe('selectTeamRoster -- member rows', () => {
     expect(blank.members[0]?.name).toBe('Steward');
   });
 
-  it('prefers teamRole, then humanized relationship, then humanized app role', () => {
+  it('prefers operational-role labels, then teamRole, then relationship, then app role', () => {
+    // Operational-role labels win (joined) -- the standardized "what they do"
+    // that replaced the free-text team role (Phase-4 consolidation 2026-06-28).
+    expect(
+      selectTeamRoster(
+        [entry({ teamRole: 'Land manager' }, { operationalRoles: ['food_production'] })],
+        {},
+      ).members[0]?.roleLabel,
+    ).toBe('Food Production Lead');
+    // Legacy free-text still displays when no operational role is set.
     expect(
       selectTeamRoster([entry({ teamRole: 'Land manager' })], {}).members[0]
         ?.roleLabel,
@@ -78,20 +87,44 @@ describe('selectTeamRoster -- member rows', () => {
       selectTeamRoster([entry({ relationship: 'co-steward' })], {})
         .members[0]?.roleLabel,
     ).toBe('Co Steward');
-    // No teamRole / relationship -> humanize the app role token.
+    // No operational role / teamRole / relationship -> humanize the app role.
     expect(selectTeamRoster([entry()], {}).members[0]?.roleLabel).toBe(
       'Primary Steward',
     );
   });
 
-  it('marks a steward complete only once a functional team role is set', () => {
-    const constituted = selectTeamRoster(
-      [entry({ teamRole: 'Land manager' }), entry({}, { userId: 'u2' })],
+  it('uses the project roleLabelMap override for the roster label', () => {
+    expect(
+      selectTeamRoster(
+        [entry({}, { operationalRoles: ['food_production'] })],
+        {},
+        { food_production: 'Grower' },
+      ).members[0]?.roleLabel,
+    ).toBe('Grower');
+  });
+
+  it('marks an assignable member constituted once they carry an operational role (or legacy team role)', () => {
+    const model = selectTeamRoster(
+      [
+        entry({}, { userId: 'u1', operationalRoles: ['food_production'] }), // op role -> constituted
+        entry({ teamRole: 'Land manager' }, { userId: 'u2' }), // legacy free-text still counts
+        entry({}, { userId: 'u3' }), // assignable, nothing set -> not yet
+      ],
       {},
     );
-    expect(constituted.members[0]?.complete).toBe(true);
-    expect(constituted.members[1]?.complete).toBe(false);
-    expect(constituted.constitutedCount).toBe(1);
+    expect(model.members[0]?.complete).toBe(true);
+    expect(model.members[1]?.complete).toBe(true);
+    expect(model.members[2]?.complete).toBe(false);
+    expect(model.constitutedCount).toBe(2);
+  });
+
+  it('counts a non-assignable member as constituted by presence (layer does not apply)', () => {
+    const model = selectTeamRoster(
+      [entry({}, { userId: 'v1', role: 'reviewer' })],
+      {},
+    );
+    expect(model.members[0]?.complete).toBe(true);
+    expect(model.constitutedCount).toBe(1);
   });
 });
 
@@ -128,6 +161,18 @@ describe('selectTeamRoster -- operationalRoleLabels', () => {
       {},
     );
     expect(model.members[0]?.operationalRoleLabels).toEqual(['Finance & Legal Lead']);
+  });
+
+  it('applies the project roleLabelMap override to the chips, built-ins for the rest', () => {
+    const model = selectTeamRoster(
+      [entry({}, { operationalRoles: ['food_production', 'livestock'] })],
+      {},
+      { food_production: 'Grower' },
+    );
+    expect(model.members[0]?.operationalRoleLabels).toEqual([
+      'Grower',
+      'Livestock Lead',
+    ]);
   });
 });
 

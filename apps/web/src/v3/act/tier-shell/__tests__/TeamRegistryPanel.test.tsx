@@ -20,6 +20,23 @@ import * as React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { ProjectMemberRecord } from '@ogden/shared';
 
+// The panel reads project-resolved operational-role labels via
+// useResolvedOperationalRoles, which wraps the React-Query `useProject` hook.
+// This is a store-direct render (no QueryClientProvider), so stub the resolver
+// with the built-in defs -- exercising the default (no-override) path that the
+// overwhelming majority of projects use.
+vi.mock('../../../roles/useResolvedOperationalRoles.js', async () => {
+  const shared = await vi.importActual<typeof import('@ogden/shared')>(
+    '@ogden/shared',
+  );
+  return {
+    useResolvedOperationalRoles: () => ({
+      defs: shared.resolveOperationalRoleDefs(),
+      domainsMap: shared.resolveOperationalRoleDomains(),
+    }),
+  };
+});
+
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   const stubbed: Record<string, unknown> = {};

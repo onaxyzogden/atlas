@@ -1,6 +1,6 @@
 /**
  * TeamRegistryPanel -- the Declaration right-pane REFERENCE block for the
- * Steward/Team Object (0.2 / s1-steward). It sits ABOVE the DecisionWorkingPanel
+ * Steward/Team Object (1.2 / s1-steward). It sits ABOVE the DecisionWorkingPanel
  * in the workbench right pane and is read-only: the actual capture happens in the
  * working panel below (StewardTeamCapture). This panel renders the mockup's
  * right-column reference sections, themed with project tokens:
@@ -31,10 +31,12 @@ import { useMemo } from 'react';
 import { Check, Compass, Database, Lock, Network, Sprout, Users } from 'lucide-react';
 import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import { useVisionStore, type SharedVision } from '../../../store/visionStore.js';
+import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import { tierZeroDisplayFor } from './declarationModel.js';
 import {
   selectTeamRoster,
   type IntentReferenceKind,
+  type OperationalRoleLabelMap,
 } from './selectTeamRoster.js';
 import css from './TeamRegistryPanel.module.css';
 
@@ -68,12 +70,21 @@ export default function TeamRegistryPanel({
   const sharedVision = useVisionStore(
     (s) => s.getVisionData(projectId)?.sharedVision ?? EMPTY_SHARED_VISION,
   );
+  // Project-resolved operational-role labels (Option C rename) so the roster
+  // label + chips read this project's vocabulary. Built from the resolved defs,
+  // memoized off them so selectTeamRoster's memo stays stable across renders.
+  const { defs } = useResolvedOperationalRoles(projectId);
+  const roleLabelMap = useMemo<OperationalRoleLabelMap>(() => {
+    const map: OperationalRoleLabelMap = {};
+    for (const def of defs) map[def.slug] = def.label;
+    return map;
+  }, [defs]);
   const model = useMemo(
-    () => selectTeamRoster(entries, sharedVision),
-    [entries, sharedVision],
+    () => selectTeamRoster(entries, sharedVision, roleLabelMap),
+    [entries, sharedVision, roleLabelMap],
   );
 
-  const display = tierZeroDisplayFor(TEAM_OBJECTIVE_ID)?.display ?? '0.2';
+  const display = tierZeroDisplayFor(TEAM_OBJECTIVE_ID)?.display ?? '1.2';
 
   return (
     <aside className={css.panel} data-testid="team-registry-panel">
