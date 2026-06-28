@@ -57,6 +57,7 @@ import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
 import PlanSelectionFloater from '../PlanSelectionFloater.js';
+import ParcelBoundaryFloater from './ParcelBoundaryFloater.js';
 // s2-ecology / s2-terrain survey map takeover (mirrors ActTierShell). These four
 // hosts are the Act survey components, reused unchanged — they only need the
 // MapLibre `map` this canvas owns privately, so they mount inside the DiagnoseMap
@@ -108,6 +109,17 @@ interface Props {
    * read-only there (parity with Act, where only ActTierShell wires edit).
    */
   onOpenSectorsEditor?: () => void;
+  /**
+   * Plan tier-shell only: makes the parcel boundary EDITABLE in-canvas (reshape /
+   * redraw / import via the dock + BoundaryTool, plus the click-to-edit
+   * ParcelBoundaryFloater). `onBoundaryChanged` persists an edited/imported
+   * boundary (one-feature FeatureCollection) or clears it (null). Boundary editing
+   * is gated on this callback being present, so the legacy PlanLayout mount (which
+   * omits it) keeps the boundary a read-only backdrop. `planReadOnly` additionally
+   * suppresses every boundary affordance once the plan is sealed.
+   */
+  onBoundaryChanged?: (fc: GeoJSON.FeatureCollection | null) => void;
+  planReadOnly?: boolean;
 }
 
 interface DrawHostProps {
@@ -145,6 +157,8 @@ export default function VisionLayoutCanvas({
   receptionActive = false,
   sourceObjectiveId = null,
   onOpenSectorsEditor,
+  onBoundaryChanged,
+  planReadOnly = false,
 }: Props) {
   // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
   // Vision draw lifecycle mounts only when the mapped kind is non-null.
@@ -231,12 +245,26 @@ export default function VisionLayoutCanvas({
               available on both the Current and Vision canvases. */}
           <SilvopasturePopover projectId={projectId} />
           <SilvopastureMemberOutline map={map} projectId={projectId} />
+          {/* Parcel-boundary editing. `showBoundary` BOTH reveals the dock's
+              draw/import buttons AND mounts BoundaryTool (reshape/redraw), so it
+              is the master switch: editing turns on only for the Plan tier-shell
+              (which supplies onBoundaryChanged) and only while the plan is
+              unsealed. The legacy PlanLayout mount omits onBoundaryChanged, so it
+              keeps the read-only backdrop it has today. A drawn polygon is wrapped
+              into a one-feature FeatureCollection (the stored shape); an imported
+              FC passes straight through. */}
           <MapToolbar
             map={map}
             projectId={projectId}
             boundary={boundary ?? null}
-            onBoundaryDrawn={() => {}}
-            showBoundary={false}
+            showBoundary={!planReadOnly && !!onBoundaryChanged}
+            onBoundaryDrawn={(poly) =>
+              onBoundaryChanged?.({
+                type: 'FeatureCollection',
+                features: [{ type: 'Feature', properties: {}, geometry: poly }],
+              })
+            }
+            onBoundaryImported={(fc) => onBoundaryChanged?.(fc)}
           />
           {/* Phase 2: Observe annotations + inline-edit + link popover
               mounted across vision / phase / terrain3d views, so the
@@ -266,6 +294,17 @@ export default function VisionLayoutCanvas({
           <Plan3DSelectionHandler map={map} />
           <PlanVertexEditHandler map={map} />
           <PlanSelectionFloater />
+          {/* Click-to-edit affordance for the parcel boundary (invocation "a").
+              Mounted only when boundary editing is wired (Plan tier-shell); it
+              self-gates on planReadOnly and while the boundary tool is armed. */}
+          {onBoundaryChanged && (
+            <ParcelBoundaryFloater
+              map={map}
+              boundary={boundary ?? null}
+              onBoundaryChanged={onBoundaryChanged}
+              planReadOnly={planReadOnly}
+            />
+          )}
           {/* Dedicated-store draw tools (zone / buffer-ring / water /
               fence-line / fertility / flow-connector / note / transect /
               schedule-move / zone-seed-anchor — the ~16 ids that

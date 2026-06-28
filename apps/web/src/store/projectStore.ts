@@ -634,6 +634,11 @@ export const useProjectStore = create<ProjectState>()(
           const allowedKeys: (keyof LocalProject)[] = [
             'parcelBoundaryGeojson',
             'hasParcelBoundary',
+            // Re-tracing the boundary recomputes acres; without this the builtin
+            // filter would drop the acreage write and the displayed area would go
+            // stale against the new outline. Rides alongside the boundary fields
+            // for the same reason — it is a map customization, not narrative.
+            'acreage',
             'metadata',
             // UI preference, not narrative content — must be settable
             // on builtin samples too so the steward can flip between

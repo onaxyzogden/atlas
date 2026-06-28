@@ -41,6 +41,7 @@ import {
   Zap,
   Users,
   ClipboardList,
+  Square,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -68,7 +69,7 @@ export interface PlanModuleArm {
 
 export type PlanToolArm = ActToolArm | PlanModuleArm;
 
-export type PlanToolCategoryId = ActToolCategoryId | 'modules';
+export type PlanToolCategoryId = ActToolCategoryId | 'modules' | 'site';
 
 export interface PlanToolCategoryMeta {
   id: PlanToolCategoryId;
@@ -87,11 +88,14 @@ export interface PlanTool {
  * Display order + labels for the Plan rail. The Act categories come first (so
  * the per-objective design/capture tools group exactly as they do in Act), then
  * the Plan-only `Modules` category — the always-present entry point into the
- * legacy module panels.
+ * legacy module panels — and finally the `Site` category (parcel-level edits,
+ * not objective-scoped). `Site` sorts LAST so the per-objective design/capture
+ * tools keep first billing.
  */
 export const PLAN_TOOL_CATEGORIES: readonly PlanToolCategoryMeta[] = [
   ...ACT_TOOL_CATEGORIES,
   { id: 'modules', label: 'Modules' },
+  { id: 'site', label: 'Site' },
 ] as const;
 
 /** One lucide glyph per Plan module (every UniversalDomain id). */
@@ -133,6 +137,26 @@ export const PLAN_MODULE_TOOLS: readonly PlanTool[] = PLAN_MODULES.filter(
   category: 'modules' as const,
   arm: { kind: 'module', module: m, sectionId: MODULE_CARDS[m][0]?.sectionId },
 }));
+
+/**
+ * The Site-category tools — parcel-level edits that belong to the project, not
+ * to any one objective. Today this is the single "Edit Property Boundary" tile:
+ * its `{ kind: 'map', mapToolId: 'boundary' }` arm rides the existing
+ * handleActivateTool 'map' branch → setActiveTool('boundary'), which mounts the
+ * (already-present) MapToolbar/BoundaryTool reshape+redraw editor. Appended by
+ * the rail UNCONDITIONALLY while planning and dropped once the plan is sealed
+ * (the rail filters it on `planReadOnly`), mirroring how the dock's own boundary
+ * affordances gate on the project-global seal.
+ */
+export const PLAN_PROPERTY_TOOLS: readonly PlanTool[] = [
+  {
+    id: 'plan-property-boundary',
+    label: 'Edit Property Boundary',
+    icon: Square,
+    category: 'site' as const,
+    arm: { kind: 'map', mapToolId: 'boundary' },
+  },
+];
 
 /**
  * Resolve catalogue ids to PlanTool objects, dropping any unknown id. The ids

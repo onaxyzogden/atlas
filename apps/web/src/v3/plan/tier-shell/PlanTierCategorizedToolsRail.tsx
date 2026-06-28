@@ -26,6 +26,7 @@ import { QUICK_LOGS } from '../../act/quickLogs.js';
 import {
   PLAN_TOOL_CATEGORIES,
   PLAN_MODULE_TOOLS,
+  PLAN_PROPERTY_TOOLS,
   resolvePlanTools,
   type PlanTool,
 } from './planToolCatalog.js';
@@ -42,6 +43,10 @@ interface Props {
    *  dock collapse handle), so it shares the MODULES header instead of needing
    *  its own strip above the rail. */
   headerAccessory?: ReactNode;
+  /** When the plan is sealed (project-global `planReadOnly`), the parcel-level
+   *  Site tools (Edit Property Boundary) are dropped — the read-only painted
+   *  boundary stays, but the editing tile disappears. Defaults to false. */
+  planReadOnly?: boolean;
 }
 
 /** Return true if the tool should show as "armed" / active. */
@@ -74,6 +79,7 @@ export default function PlanTierCategorizedToolsRail({
   onActivate,
   activeFormId,
   headerAccessory,
+  planReadOnly,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
 
@@ -89,7 +95,14 @@ export default function PlanTierCategorizedToolsRail({
   const objectiveTools = objective
     ? resolvePlanTools(getObjectiveActTools(objective))
     : [];
-  const tools: PlanTool[] = [...objectiveTools, ...PLAN_MODULE_TOOLS];
+  // Site tools (Edit Property Boundary) ride alongside the always-present Modules
+  // group but are dropped once the plan is sealed — boundary edits are forbidden
+  // under planReadOnly, same as every other Plan edit.
+  const tools: PlanTool[] = [
+    ...objectiveTools,
+    ...PLAN_MODULE_TOOLS,
+    ...(planReadOnly ? [] : PLAN_PROPERTY_TOOLS),
+  ];
   const visibleCats = PLAN_TOOL_CATEGORIES.map((category) => ({
     category,
     catTools: tools.filter((t) => t.category === category.id),

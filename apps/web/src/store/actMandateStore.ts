@@ -255,3 +255,16 @@ export function useObjectivePlanLock(
     isObjectiveLocked(readRecord(s.byProject, projectId), objectiveId),
   );
 }
+
+/**
+ * Subscribe to whether the WHOLE Plan stage is sealed (project-global). Mirrors
+ * `useObjectivePlanLock` but reads the mandate's `planReadOnly` flag directly, so
+ * it gates project-level edits (e.g. the parcel boundary) rather than a single
+ * objective. Primitive boolean -> referentially stable, no memoisation needed.
+ * Absent project record -> false (no mandate, unsealed).
+ */
+export function usePlanReadOnly(projectId: string): boolean {
+  return useActMandateStore((s) =>
+    selectPlanReadOnly(readRecord(s.byProject, projectId)),
+  );
+}

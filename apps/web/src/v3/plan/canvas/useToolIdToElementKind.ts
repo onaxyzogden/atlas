@@ -107,6 +107,7 @@ export function computeVisionDrawArmed(args: {
     toolIdToElementKind(activeTool as MapToolId | null) !== null || // elementCatalog kinds
     (activeTool?.startsWith('plan.') ?? false) ||                   // plan.* (incl. BE + dedicated-store + reception)
     (activeTool?.startsWith('observe.') ?? false) ||                // observe.* draw tools
+    activeTool === 'boundary' ||                                    // parcel-boundary edit (legacy non-prefixed id)
     surveyActive ||                                                 // veg-survey takeover
     slopeActive ||                                                  // slope-survey takeover
     receptionActive                                                 // reception-survey takeover
