@@ -21,6 +21,8 @@ import {
   buildPlanningDirectionPackage,
   buildCoherenceRecordPackage,
   buildKeyDocuments,
+  buildKeyDocumentBriefs,
+  groupAllObjectives,
   assembleActMandate,
   ACT_MANDATE_COPY,
   ACT_MANDATE_PALETTE,
@@ -362,5 +364,188 @@ describe('actMandateModel -- copy + palette', () => {
     expect(ACT_MANDATE_PALETTE.accent).toBe('#4F9D69');
     expect(ACT_MANDATE_PALETTE.accentDark).toBe('#3C7E52');
     expect(ACT_MANDATE_PALETTE.accentLight).toBe('#7FBF95');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// groupAllObjectives -- the integrated-design grouping (ALL objectives)
+// ---------------------------------------------------------------------------
+
+describe('actMandateModel -- groupAllObjectives', () => {
+  it('keeps EVERY resolved objective from the reference set', () => {
+    const groups = groupAllObjectives(OBJECTIVES, idTitle);
+    const total = groups.reduce((n, g) => n + g.objectives.length, 0);
+    expect(total).toBe(OBJECTIVES.length);
+  });
+
+  it('keeps handoff-LESS objectives that groupDerivedHandoffs drops', () => {
+    // Synthetic fixture: one objective carries a handoff, one does not.
+    const fixture = [
+      {
+        id: 'x1',
+        stratumId: 's1',
+        title: 'Carries a handoff',
+        actHandoff: 'Hand x1 to Act.',
+      },
+      { id: 'x2', stratumId: 's1', title: 'Carries no handoff' },
+    ] as unknown as PlanStratumObjective[];
+    const all = groupAllObjectives(fixture, idTitle).flatMap((g) => g.objectives);
+    const derived = groupDerivedHandoffs(fixture, idTitle).flatMap(
+      (g) => g.packages,
+    );
+    // groupAllObjectives keeps both; the derived inventory keeps only x1.
+    expect(all.map((o) => o.id).sort()).toEqual(['x1', 'x2']);
+    expect(derived.length).toBe(1);
+    // x2 is retained with no handoff attached.
+    expect(all.find((o) => o.id === 'x2')?.handoff).toBeUndefined();
+  });
+
+  it('groups in stratum order and labels via the supplied lookup', () => {
+    const groups = groupAllObjectives(OBJECTIVES, (id) => `LABEL:${id}`);
+    expect(groups.length).toBe(7);
+    expect(groups.every((g) => g.label === `LABEL:${g.stratumId}`)).toBe(true);
+  });
+
+  it('attaches the Act handoff only where the objective names one', () => {
+    const lines = groupAllObjectives(OBJECTIVES, idTitle).flatMap(
+      (g) => g.objectives,
+    );
+    const withHandoff = lines.filter((l) => l.handoff != null);
+    // Matches the handoff-bearing tally and every attached handoff is non-empty.
+    expect(withHandoff.length).toBe(selectHandoffObjectives(OBJECTIVES).length);
+    expect(withHandoff.every((l) => (l.handoff ?? '').trim().length > 0)).toBe(
+      true,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildKeyDocumentBriefs -- the full content behind each card
+// ---------------------------------------------------------------------------
+
+describe('actMandateModel -- buildKeyDocumentBriefs', () => {
+  const objectiveTitleFor = (id: string): string =>
+    OBJECTIVES.find((o) => o.id === id)?.title ?? id;
+
+  const buildBriefs = (
+    planningDirection: PlanningDirectionSource,
+    coherenceRecord: CoherenceRecordSource,
+  ) =>
+    buildKeyDocumentBriefs({
+      objectives: OBJECTIVES,
+      planningDirection,
+      coherenceRecord,
+      stratumTitleFor: idTitle,
+      objectiveTitleFor,
+    });
+
+  it('returns the full direction text when approved with text', () => {
+    const briefs = buildBriefs(
+      { planningDirectionText: '  Build for resilience.  ', approvedAt: TS },
+      {},
+    );
+    const pd = briefs['planning-direction'];
+    expect(pd.kind).toBe('planning-direction');
+    expect(pd.present).toBe(true);
+    expect(pd.approvedAt).toBe(TS);
+    expect(pd.text).toBe('Build for resilience.');
+  });
+
+  it('leaves the direction text null when not yet approved', () => {
+    // Text present in the record but never approved -> nothing in hand yet.
+    const pd = buildBriefs({ planningDirectionText: 'ignored' }, {})[
+      'planning-direction'
+    ];
+    expect(pd.present).toBe(false);
+    expect(pd.text).toBeNull();
+  });
+
+  it('leaves the direction text null when approved but blank (present stays true)', () => {
+    const pd = buildBriefs(
+      { planningDirectionText: '   ', approvedAt: TS },
+      {},
+    )['planning-direction'];
+    expect(pd.present).toBe(true);
+    expect(pd.text).toBeNull();
+  });
+
+  it('maps each recorded amendment to its objective title when sealed', () => {
+    const targetId = selectHandoffObjectives(OBJECTIVES)[0]!.id;
+    const cr = buildBriefs(
+      {},
+      {
+        sealedAt: TS,
+        amendments: [
+          { itemId: targetId, amendmentText: 'Shift the timeline.', resolvedAt: TS },
+        ],
+      },
+    )['coherence-record'];
+    expect(cr.kind).toBe('coherence-record');
+    expect(cr.present).toBe(true);
+    expect(cr.sealedAt).toBe(TS);
+    expect(cr.amendments.length).toBe(1);
+    expect(cr.amendments[0]!.itemId).toBe(targetId);
+    expect(cr.amendments[0]!.title).toBe(objectiveTitleFor(targetId));
+    expect(cr.amendments[0]!.amendmentText).toBe('Shift the timeline.');
+  });
+
+  it('reports the coherence record as pending with no amendments until sealed', () => {
+    const cr = buildBriefs({}, { amendments: [] })['coherence-record'];
+    expect(cr.present).toBe(false);
+    expect(cr.amendments).toEqual([]);
+    expect(cr.sealedAt).toBeUndefined();
+  });
+
+  it('builds the integrated design over the whole resolved set', () => {
+    const id = buildBriefs({}, {})['integrated-design'];
+    expect(id.kind).toBe('integrated-design');
+    expect(id.present).toBe(true);
+    expect(id.objectiveCount).toBe(OBJECTIVES.length);
+    expect(id.stratumCount).toBe(7);
+    const grouped = id.groups.reduce((n, g) => n + g.objectives.length, 0);
+    expect(grouped).toBe(OBJECTIVES.length);
+  });
+
+  it('reports the integrated design absent when no objectives resolve', () => {
+    const id = buildKeyDocumentBriefs({
+      objectives: [],
+      planningDirection: {},
+      coherenceRecord: {},
+      stratumTitleFor: idTitle,
+      objectiveTitleFor,
+    })['integrated-design'];
+    expect(id.present).toBe(false);
+    expect(id.objectiveCount).toBe(0);
+    expect(id.groups).toEqual([]);
+  });
+
+  it('reuses each card identity so the brief header never drifts from the card', () => {
+    const planningDirection: PlanningDirectionSource = {
+      planningDirectionText: 'Direction.',
+      approvedAt: TS,
+    };
+    const coherenceRecord: CoherenceRecordSource = { sealedAt: TS };
+    const briefs = buildBriefs(planningDirection, coherenceRecord);
+    const docs = buildKeyDocuments({
+      objectives: OBJECTIVES,
+      planningDirection,
+      coherenceRecord,
+    });
+    for (const doc of docs) {
+      expect(briefs[doc.kind].name).toBe(doc.name);
+      expect(briefs[doc.kind].present).toBe(doc.present);
+      expect(briefs[doc.kind].stateLine).toBe(doc.stateLine);
+    }
+  });
+
+  it('carries a non-empty brief intro for every kind (covenant-clean copy)', () => {
+    const briefs = buildBriefs({}, {});
+    for (const kind of [
+      'planning-direction',
+      'coherence-record',
+      'integrated-design',
+    ] as const) {
+      expect(briefs[kind].intro.length).toBeGreaterThan(0);
+    }
   });
 });

@@ -209,6 +209,37 @@
   border-left-color: var(--am-accent);
 }
 
+/* The whole card is a button -- it opens the document's full brief. The trigger
+ * is a flex column so its (phrasing-level) children stack like the original
+ * block layout and keep their margins. */
+.docTrigger {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.docTrigger:focus-visible {
+  outline: 2px solid var(--am-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.docCard:hover {
+  border-color: var(--am-accent-light);
+}
+
+.docCard:hover[data-present] {
+  border-left-color: var(--am-accent-strong);
+}
+
 .docHead {
   display: flex;
   align-items: flex-start;
