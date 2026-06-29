@@ -18,7 +18,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within, act, fireEvent } from '@testing-library/react';
 import type { PlanStratumObjective } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
@@ -52,6 +52,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 import { useActMandateStore } from '../../../../store/actMandateStore.js';
 import { useRealityCheckStore } from '../../../../store/realityCheckStore.js';
 import { useCoherenceCheckStore } from '../../../../store/coherenceCheckStore.js';
+import { ACT_MANDATE_COPY } from '../../../plan/threshold/actMandateModel.js';
 import ActMandateBriefingCard from '../ActMandateBriefingCard.js';
 
 const PID = 'project-act-briefing-1';
@@ -156,5 +157,73 @@ describe('ActMandateBriefingCard', () => {
         /No objective in the resolved design names an Act handoff yet\./,
       ),
     ).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Key-document brief popups (parity with the Plan surface, read-only side).
+// ---------------------------------------------------------------------------
+
+const PD = ACT_MANDATE_COPY.documents.planningDirection;
+const ID = ACT_MANDATE_COPY.documents.integratedDesign;
+
+function renderMandated(objectives: readonly PlanStratumObjective[] = OBJECTIVES) {
+  useActMandateStore.getState().beginAct(PID, TS);
+  return render(
+    <ActMandateBriefingCard
+      projectId={PID}
+      objectives={objectives}
+      objectiveStatuses={STATUSES}
+    />,
+  );
+}
+
+function openDoc(name: RegExp) {
+  const docs = screen.getByLabelText('Key documents');
+  const trigger = within(docs).getByRole('button', { name });
+  act(() => {
+    fireEvent.click(trigger);
+  });
+  return screen.getByRole('dialog');
+}
+
+describe('ActMandateBriefingCard -- key-document brief popups', () => {
+  it('opens the approved Planning Direction brief from its card', () => {
+    seedThresholdRecords();
+    renderMandated();
+    const dialog = openDoc(new RegExp(PD.name));
+    expect(
+      within(dialog).getByText(
+        'Build the residential homestead and silvopasture.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('opens the Planning Direction brief with its pending note when unapproved', () => {
+    renderMandated();
+    const dialog = openDoc(new RegExp(PD.name));
+    expect(within(dialog).getByText(PD.brief.pendingNote)).toBeTruthy();
+  });
+
+  it('opens the Integrated Design brief listing the resolved objective by stratum', () => {
+    renderMandated();
+    const dialog = openDoc(new RegExp(ID.name));
+    expect(within(dialog).getByText(ID.brief.objectivesHeading)).toBeTruthy();
+    expect(within(dialog).getByText('Living infrastructure')).toBeTruthy();
+  });
+
+  it('closes the brief popup via the close button (deferred to animationend)', () => {
+    renderMandated();
+    const dialog = openDoc(new RegExp(PD.name));
+    act(() => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: /close workspace/i }),
+      );
+    });
+    expect(dialog.getAttribute('data-state')).toBe('closing');
+    act(() => {
+      fireEvent.animationEnd(dialog);
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
