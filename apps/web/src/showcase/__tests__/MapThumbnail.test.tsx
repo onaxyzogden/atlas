@@ -6,7 +6,7 @@ import { MapThumbnail } from '../components/MapThumbnail';
 vi.mock('../components/ShowcaseMap', () => ({ ShowcaseMap: () => <div data-testid="showcase-map-live" /> }));
 
 describe('MapThumbnail', () => {
-  it('renders <img> by default and hydrates ShowcaseMap on click', () => {
+  it('renders <img> by default and hydrates ShowcaseMap on click', async () => {
     render(
       <MapThumbnail
         sceneId="y2-current"
@@ -17,6 +17,9 @@ describe('MapThumbnail', () => {
     const img = screen.getByRole('button', { name: /Year 2/i });
     expect(img).toBeTruthy();
     fireEvent.click(img);
-    expect(screen.getByTestId('showcase-map-live')).toBeTruthy();
+    // ShowcaseMap loads via React.lazy (own `showcase-map` chunk), so the live
+    // map resolves on a microtask behind a Suspense fallback — await it rather
+    // than asserting synchronously against the "Loading map…" fallback.
+    expect(await screen.findByTestId('showcase-map-live')).toBeTruthy();
   });
 });
