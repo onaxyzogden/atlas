@@ -644,7 +644,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Hydrology Survey Package',
     observeOutput: 'Hydrology Survey Record',
     buildsOnDisplay:
-      'Tier 1.1 Terrain & topography (terrain map guides water flow interpretation); Tier 1.5 Land health (degradation zones indicate altered water movement)',
+      'Stratum 2.1 Terrain & topography (terrain map guides water flow interpretation); Stratum 2.5 Land health (degradation zones indicate altered water movement)',
     intentLens: [
       {
         typeId: 'regenerative_farm',
@@ -708,7 +708,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Soil Survey Package',
     observeOutput: 'Soil Survey Record',
     buildsOnDisplay:
-      'Tier 1.5 Land health & degradation (degradation zones identify where soil profiling is most critical); Tier 1.1 Terrain (slope and drainage class inform soil type distribution)',
+      'Stratum 2.5 Land health & degradation (degradation zones identify where soil profiling is most critical); Stratum 2.1 Terrain (slope and drainage class inform soil type distribution)',
     intentLens: [
       {
         typeId: 'regenerative_farm',

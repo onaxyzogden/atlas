@@ -1723,7 +1723,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     actHandoff: 'Livestock Water Availability Report',
     observeOutput: 'Livestock Water Availability Record',
     buildsOnDisplay:
-      'Tier 2.1 Water movement (water source locations, seasonal yields, and distribution infrastructure identified there)',
+      'Stratum 3.1 Water movement (water source locations, seasonal yields, and distribution infrastructure identified there)',
     intentLens: [
       {
         typeId: 'silvopasture',

@@ -1,21 +1,21 @@
 /**
- * ReceptionCenter -- the Plan-stage Tier-2 / Reception (Systems Reading) header
+ * ReceptionCenter -- the Plan-stage Stratum-3 / Reception (Systems Reading) header
  * that sits ABOVE the existing 2-pane workbench grid (DecisionList +
  * DecisionWorkingPanel). It renders, from the supplied systems-reading mockup:
  *
- *   1. Mode header   -- "Mode 2 -- Reception" eyebrow + Tier-2 + serif title +
+ *   1. Mode header   -- "Mode 2 -- Reception" eyebrow + Stratum 3 + serif title +
  *                       framing paragraph.
  *   2. Reception rule -- the "still no decisions" Ear callout.
- *   3. Sequencing     -- the flat "2.1 | 2.2 | 2.3 | 2.4 | 2.5 -> Threshold 1"
+ *   3. Sequencing     -- the flat "3.1 | 3.2 | 3.3 | 3.4 | 3.5 -> Threshold 1"
  *                       survey strip, status driven; nodes select their survey
  *                       when an onSelectObjective handler is provided.
- *   4. Tier-2 gate    -- the "N / 5" Systems-Reading progress card.
- *   5. Threshold-1 gate -- the Reality-Check covenant gate (locked until Tier 1
- *                       and Tier 2 are both complete).
+ *   4. Stratum 3 gate -- the "N / 5" Systems-Reading progress card.
+ *   5. Threshold-1 gate -- the Reality-Check covenant gate (locked until Stratum 2
+ *                       and Stratum 3 are both complete).
  *
  * Plan-only: it is mounted by ActTierZeroWorkbench solely when `mode ===
  * "reception"` is passed (the Act surface never sets it). All derivations come
- * from the pure receptionModel; this file owns presentation only. The cross-tier
+ * from the pure receptionModel; this file owns presentation only. The cross-stratum
  * progress is derived by the parent (which holds the FULL objective list, not
  * just this stratum slice) and passed in as `progress`.
  *
@@ -49,7 +49,7 @@ export interface ReceptionCenterProps {
   /** Currently active objective id (marks the matching sequencing node). */
   activeObjectiveId?: string;
   /**
-   * Which reception tier this header renders (Tier 1 Land Reading vs Tier 2
+   * Which reception tier this header renders (Stratum 2 Land Reading vs Stratum 3
    * Systems Reading). Defaults to 'tier2' so the existing S3 mount is unchanged.
    */
   tier?: ReceptionTier;
@@ -86,8 +86,8 @@ export default function ReceptionCenter({
   const rule = receptionRuleCopy(tier);
   const gates = receptionGatesCopy(tier);
   const seq = deriveReceptionSequencing(objectives, objectiveStatuses, tier);
-  // The first gate card tracks the CURRENT tier's completion (Tier 1 reads "N / 6"
-  // toward the Tier-2 unlock; Tier 2 reads "N / 5" toward closing Reception).
+  // The first gate card tracks the CURRENT tier's completion (Stratum 2 reads "N / 6"
+  // toward the Stratum 3 unlock; Stratum 3 reads "N / 5" toward closing Reception).
   const tierGateProgress = tier === 'tier1' ? progress.tierOne : progress.tierTwo;
 
   const renderNode = (node: ReceptionSeqNode) => {
@@ -171,7 +171,7 @@ export default function ReceptionCenter({
         {seq.note ? <div className={css.seqNote}>{seq.note}</div> : null}
       </div>
 
-      {/* ---------- Tier progress gate (Tier-2 unlock) ---------- */}
+      {/* ---------- Stratum progress gate (Stratum 3 unlock) ---------- */}
       <div className={css.tierGate} data-testid="reception-tier-gate">
         <div className={css.tierGateIcon}>
           <Waves size={16} aria-hidden="true" />

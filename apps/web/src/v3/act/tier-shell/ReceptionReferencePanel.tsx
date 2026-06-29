@@ -1,18 +1,18 @@
 /**
- * ReceptionReferencePanel -- the Plan-stage Tier-2 RIGHT rail for a selected
+ * ReceptionReferencePanel -- the Plan-stage Stratum-3 RIGHT rail for a selected
  * systems-reading survey. It is the reception sibling of the dashboard/objective
  * toggle: a read-only reference surface (no capture; the capture is the center
  * working panel). Transcribed from the olos_tier2_systems mockup right column:
  *
- *   1. Header        -- "Objective 2.x - <status>" eyebrow + survey title +
- *                       "Mode 2 -- Reception - Tier 2" subtitle.
+ *   1. Header        -- "Objective 3.x - <status>" eyebrow + survey title +
+ *                       "Mode 2 -- Reception - Stratum 3" subtitle.
  *   2. Reception mode -- the "Still listening" sky callout (record evidence here,
  *                       defer solutions to Mode 4 Design).
  *   3. Intent lens    -- the per-project-type "what to look for" rows (same
  *                       `intentLens` data the center accordion shows, expanded).
  *   4. Where this feeds -- the dual outputs: Observe Output (teal, -> Threshold 1
  *                       evidence base) + Act Handoff (amber).
- *   5. Both-tier progress -- Tier 1 (Land Reading) + Tier 2 (Systems Reading)
+ *   5. Both-stratum progress -- Stratum 2 (Land Reading) + Stratum 3 (Systems Reading)
  *                       bars + the "NN survey records" caption.
  *
  * Plan-only: mounted by PlanTierShell solely for a selected reception objective.
@@ -52,7 +52,7 @@ export interface ReceptionReferencePanelProps {
   /** Cross-tier progress, derived by the parent from the FULL objective list. */
   progress: ReceptionProgressModel;
   /**
-   * Which reception tier the selected survey is in (Tier 1 Land Reading vs Tier 2
+   * Which reception tier the selected survey is in (Stratum 2 Land Reading vs Stratum 3
    * Systems Reading). Defaults to 'tier2' so the existing S3 mount is unchanged.
    */
   tier?: ReceptionTier;

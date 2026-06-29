@@ -204,7 +204,7 @@ const ASSUMP_CHIPS: SuggestionChip[] = [
   },
   {
     display: 'Capital sufficiency',
-    full: 'Initial capital budget will be sufficient for Tier 0-2 establishment',
+    full: 'Initial capital budget will be sufficient for Strata 1-3 establishment',
     category: 'Financial',
   },
   {

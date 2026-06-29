@@ -3,18 +3,19 @@
  * "Reception (Systems Reading)" workbench chrome (2026-06-16 restructure).
  *
  * The Plan-stage Reception phase presents the five resolved Stratum-3 surveys
- * under a "Tier 2 / 2.1..2.5" numbering that is a PRESENTATION layer over the
- * real S3 objective ids (the strata model is NOT renamed) -- exactly as
- * declarationModel maps the S1 set onto "Tier 0 / 0.1..0.6". This module owns
- * that mapping plus the read-models the Reception center + reference panel
+ * under a "Stratum 3 / 3.1..3.5" numbering -- a presentation layer over the real
+ * S3 objective ids that now matches the strata model (it previously read
+ * "Tier 2 / 2.1..2.5"; the steward retired the off-by-one "Tier" labels), exactly
+ * as declarationModel maps the S1 set onto "Stratum 1 / 1.1..1.6". This module
+ * owns that mapping plus the read-models the Reception center + reference panel
  * render:
  *
- *   - deriveReceptionSequencing -> the flat "2.1 | 2.2 | 2.3 | 2.4 | 2.5 ->
+ *   - deriveReceptionSequencing -> the flat "3.1 | 3.2 | 3.3 | 3.4 | 3.5 ->
  *                                  Threshold 1" survey-sequencing strip with
  *                                  live status and a terminal Reality-Check node.
- *   - deriveReceptionProgress   -> the cross-tier (Tier 1 + Tier 2) completion
- *                                  fractions + evidence-base record count for the
- *                                  two gate cards and the reference panel.
+ *   - deriveReceptionProgress   -> the cross-stratum (Stratum 2 + Stratum 3)
+ *                                  completion fractions + evidence-base record
+ *                                  count for the two gate cards + reference panel.
  *   - readIntentLens / readObserveOutput / readBuildsOn -> thin adapters over the
  *                                  new schema fields the surveys carry.
  *
@@ -45,28 +46,28 @@ export const RECEPTION_TIER_ONE_STRATUM = 's2-land-reading';
 export const RECEPTION_TIER_TWO_STRATUM = 's3-systems-reading';
 
 // ---------------------------------------------------------------------------
-// Display mapping: real S3 objective id -> "2.x" presentation + short sequencing
+// Display mapping: real S3 objective id -> "3.x" presentation + short sequencing
 // label. Membership in this record IS the definition of the Reception set (the
 // five resolved surveys for the regen + residential + silvopasture config); any
-// other S3 objective renders without a "2.x".
+// other S3 objective renders without a "3.x".
 // ---------------------------------------------------------------------------
 
 export interface TierTwoDisplayEntry {
-  /** Presentation number shown in the chrome, e.g. "2.1". */
+  /** Presentation number shown in the chrome, e.g. "3.1". */
   display: string;
-  /** Short name used in the sequencing strip, e.g. "Water" -> "2.1 Water". */
+  /** Short name used in the sequencing strip, e.g. "Water" -> "3.1 Water". */
   shortLabel: string;
   /** True for surveys introduced/added by the 2026-06-16 restructure. */
   isNew?: boolean;
 }
 
 export const TIER_TWO_DISPLAY: Readonly<Record<string, TierTwoDisplayEntry>> = {
-  's3-hydrology': { display: '2.1', shortLabel: 'Water' },
-  's3-soil': { display: '2.2', shortLabel: 'Soil' },
-  'rf-s3-nutrient-cycling': { display: '2.3', shortLabel: 'Nutrients' },
-  'rf-s3-pest-pressure': { display: '2.4', shortLabel: 'Pest & Disease' },
+  's3-hydrology': { display: '3.1', shortLabel: 'Water' },
+  's3-soil': { display: '3.2', shortLabel: 'Soil' },
+  'rf-s3-nutrient-cycling': { display: '3.3', shortLabel: 'Nutrients' },
+  'rf-s3-pest-pressure': { display: '3.4', shortLabel: 'Pest & Disease' },
   'silv-sec-s3-stock-water': {
-    display: '2.5',
+    display: '3.5',
     shortLabel: 'Livestock Water',
     isNew: true,
   },
@@ -80,20 +81,20 @@ export function tierTwoDisplayFor(
 }
 
 // ---------------------------------------------------------------------------
-// Display mapping: real S2 objective id -> "1.x" presentation + short sequencing
+// Display mapping: real S2 objective id -> "2.x" presentation + short sequencing
 // label (doc "Tier 1 -- Land Reading", the six resolved surveys for the regen +
 // residential + silvopasture config). Parallel to TIER_TWO_DISPLAY; together the
-// two maps define the full Reception set across both tiers. No isNew flags -- the
+// two maps define the full Reception set across both strata. No isNew flags -- the
 // 2026-06-16 restructure reframes these surveys, it does not add new ones.
 // ---------------------------------------------------------------------------
 
 export const TIER_ONE_DISPLAY: Readonly<Record<string, TierTwoDisplayEntry>> = {
-  's2-terrain': { display: '1.1', shortLabel: 'Terrain' },
-  's2-climate': { display: '1.2', shortLabel: 'Climate' },
-  's2-ecology': { display: '1.3', shortLabel: 'Ecology' },
-  's2-infrastructure': { display: '1.4', shortLabel: 'Infrastructure' },
-  'rf-s2-land-health': { display: '1.5', shortLabel: 'Land Health' },
-  'rf-s2-landscape-context': { display: '1.6', shortLabel: 'Landscape' },
+  's2-terrain': { display: '2.1', shortLabel: 'Terrain' },
+  's2-climate': { display: '2.2', shortLabel: 'Climate' },
+  's2-ecology': { display: '2.3', shortLabel: 'Ecology' },
+  's2-infrastructure': { display: '2.4', shortLabel: 'Infrastructure' },
+  'rf-s2-land-health': { display: '2.5', shortLabel: 'Land Health' },
+  'rf-s2-landscape-context': { display: '2.6', shortLabel: 'Landscape' },
 };
 
 /**
@@ -152,16 +153,16 @@ export function isReceptionObjective(
 
 export const RECEPTION_MODE = {
   pill: 'Mode 2 -- Reception',
-  tier: 'Tier 2',
+  tier: 'Stratum 3',
   titleLead: 'Read what flows ',
   titleEm: 'beneath the surface',
   titleTail: '',
   desc:
-    'Tier 1 mapped what can be seen. Tier 2 reads what is moving and cycling ' +
-    'underneath -- water dynamics, soil biology, nutrient flows, biological ' +
-    'pressure patterns. Every survey here builds on the Tier 1 evidence and ' +
-    'contributes to the Threshold 1 evidence base.',
-  sequencingLabel: 'Tier 2 -- Sequencing',
+    'Stratum 2 mapped what can be seen. Stratum 3 reads what is moving and ' +
+    'cycling underneath -- water dynamics, soil biology, nutrient flows, ' +
+    'biological pressure patterns. Every survey here builds on the Stratum 2 ' +
+    'evidence and contributes to the Threshold 1 evidence base.',
+  sequencingLabel: 'Stratum 3 -- Sequencing',
 } as const;
 
 /**
@@ -172,16 +173,16 @@ export const RECEPTION_MODE = {
  */
 export const RECEPTION_MODE_TIER_ONE = {
   pill: 'Mode 2 -- Reception',
-  tier: 'Tier 1',
+  tier: 'Stratum 2',
   titleLead: 'Read what is ',
   titleEm: 'actually here',
   titleTail: ' before deciding what to do',
   desc:
     'The Intent and Team objects are established. Now the land speaks. Every ' +
-    'survey in Tier 1 is conducted through the lens of declared intent -- but ' +
+    'survey in Stratum 2 is conducted through the lens of declared intent -- but ' +
     'nothing is decided here. Observations that challenge the intent are ' +
     'recorded, not resolved. Resolution happens at Threshold 1.',
-  sequencingLabel: 'Tier 1 -- All objectives available in parallel',
+  sequencingLabel: 'Stratum 2 -- All objectives available in parallel',
 } as const;
 
 /** Tier-keyed mode-header copy (default Tier 2 keeps the S3 consumers unchanged). */
@@ -203,7 +204,7 @@ export const RECEPTION_RULE = {
 export const RECEPTION_RULE_TIER_ONE = {
   lead: 'Reception rule:',
   body:
-    'No decisions are made in Tier 1. When you find something that challenges ' +
+    'No decisions are made in Stratum 2. When you find something that challenges ' +
     'your declared intent, record it accurately. Do not adjust the intent ' +
     'here. Do not problem-solve. The Reality Check at Threshold 1 is where ' +
     'evidence meets intent -- not here.',
@@ -252,13 +253,13 @@ export function receptionStillListeningCopy(tier: ReceptionTier = 'tier2') {
 
 /** Static section labels for the reception reference panel (right pane). */
 export const RECEPTION_REFERENCE = {
-  modeSubtitle: 'Mode 2 -- Reception - Tier 2',
+  modeSubtitle: 'Mode 2 -- Reception - Stratum 3',
   receptionModeLabel: 'Reception mode',
   intentLensLabel: 'Intent lens -- what to look for',
   feedsLabel: 'Where this survey feeds',
-  progressLabel: 'Reception progress across both tiers',
-  tierOneRow: 'Tier 1 -- Land Reading',
-  tierTwoRow: 'Tier 2 -- Systems Reading',
+  progressLabel: 'Reception progress across both strata',
+  tierOneRow: 'Stratum 2 -- Land Reading',
+  tierTwoRow: 'Stratum 3 -- Systems Reading',
   observeFeed: 'Observe output -- Threshold 1',
   actFeed: 'Act handoff',
 } as const;
@@ -268,7 +269,7 @@ export function receptionReferenceSubtitle(
   tier: ReceptionTier = 'tier2',
 ): string {
   return tier === 'tier1'
-    ? 'Mode 2 -- Reception - Tier 1'
+    ? 'Mode 2 -- Reception - Stratum 2'
     : RECEPTION_REFERENCE.modeSubtitle;
 }
 
@@ -304,7 +305,7 @@ export function receptionStatusLabel(
 /** Static copy for the two bottom gate cards (counts are derived, not authored). */
 export const RECEPTION_GATES = {
   tierTwo: {
-    title: 'Tier 2 -- Systems Reading',
+    title: 'Stratum 3 -- Systems Reading',
     desc:
       'All five objectives complete to close Mode 2 Reception and open ' +
       'Threshold 1.',
@@ -318,17 +319,17 @@ export const RECEPTION_GATES = {
 } as const;
 
 /**
- * Tier-1 gate copy: the first gate card reframes as the "Tier 2 unlocks" gate
- * (gated on all six Tier-1 surveys; its fraction is Tier-1 progress, selected in
- * ReceptionCenter). The Threshold-1 card is identical to Tier 2 -- the covenant
- * Reality Check still opens only after BOTH tiers complete.
+ * Tier-1 gate copy: the first gate card reframes as the "Stratum 3 unlocks" gate
+ * (gated on all six Land-Reading surveys; its fraction is Stratum-2 progress,
+ * selected in ReceptionCenter). The Threshold-1 card is identical to Stratum 3 --
+ * the covenant Reality Check still opens only after BOTH strata complete.
  */
 export const RECEPTION_GATES_TIER_ONE = {
   tierTwo: {
-    title: 'Tier 2 -- Systems Reading',
+    title: 'Stratum 3 -- Systems Reading',
     desc:
-      'Unlocks when all six Tier 1 objectives are complete. Tier 1 reads the ' +
-      'surface. Tier 2 reads what flows beneath it.',
+      'Unlocks when all six Stratum 2 objectives are complete. Stratum 2 reads ' +
+      'the surface. Stratum 3 reads what flows beneath it.',
   },
   thresholdOne: RECEPTION_GATES.thresholdOne,
 } as const;
@@ -350,10 +351,10 @@ export function receptionThresholdDesc(
 ): string {
   const total = tierOneTotal + tierTwoTotal;
   return (
-    `Opens when Tier 1 (${tierOneTotal}/${tierOneTotal}) and Tier 2 ` +
+    `Opens when Stratum 2 (${tierOneTotal}/${tierOneTotal}) and Stratum 3 ` +
     `(${tierTwoTotal}/${tierTwoTotal}) are both complete. The full evidence ` +
-    'base is assembled. Intent declared in Tier 0 now meets what the land has ' +
-    `revealed across ${total} survey objectives.`
+    'base is assembled. Intent declared in Stratum 1 now meets what the land ' +
+    `has revealed across ${total} survey objectives.`
   );
 }
 
@@ -363,7 +364,7 @@ export function receptionThresholdDesc(
 
 export interface ReceptionSeqNode {
   id: string;
-  /** "2.x" presentation number. */
+  /** "N.x" presentation number. */
   display: string;
   /** Short name, e.g. "Water". The strip renders `${display} ${shortLabel}`. */
   shortLabel: string;
@@ -382,7 +383,7 @@ export interface ReceptionSeqThreshold {
 export interface ReceptionSequencingModel {
   nodes: ReceptionSeqNode[];
   threshold: ReceptionSeqThreshold;
-  /** A single soft-sequencing note (mockup shows the 2.5-benefits-from-2.1 one). */
+  /** A single soft-sequencing note (mockup shows the 3.5-benefits-from-3.1 one). */
   note?: string;
 }
 
@@ -390,21 +391,21 @@ type StatusMap = Readonly<Record<string, PlanStratumObjectiveStatus>>;
 
 /** Soft sequencing note surfaced beneath the strip (present only when 2.5 is). */
 const STOCK_WATER_NOTE =
-  'Note: 2.5 Livestock Water benefits from 2.1 being substantially complete ' +
+  'Note: 3.5 Livestock Water benefits from 3.1 being substantially complete ' +
   '-- stock water viability depends on water movement data';
 
 /**
- * Build the survey-sequencing model for a tier: the resolved reception surveys
- * laid out flat (1.1..1.6 for Tier 1, 2.1..2.5 for Tier 2) with live status
- * overlaid, then a terminal node. Surveys absent from the resolved `objectives`
- * set drop out gracefully; the terminal unlocks only once every present survey
- * in the tier is complete.
+ * Build the survey-sequencing model for a stratum: the resolved reception
+ * surveys laid out flat (2.1..2.6 for Stratum 2, 3.1..3.5 for Stratum 3) with
+ * live status overlaid, then a terminal node. Surveys absent from the resolved
+ * `objectives` set drop out gracefully; the terminal unlocks only once every
+ * present survey in the stratum is complete.
  *
- *   - Tier 2 (default): terminal = the covenant Threshold-1 Reality Check node;
- *     the stock-water soft-sequencing note may surface beneath the strip.
- *   - Tier 1: terminal = the "Tier 2" unlock node (Tier 2 -- Systems Reading
- *     opens once all six Land-Reading surveys complete; NOT a covenant
- *     threshold). The stock-water note is Tier-2-only.
+ *   - Stratum 3 (default): terminal = the covenant Threshold-1 Reality Check
+ *     node; the stock-water soft-sequencing note may surface beneath the strip.
+ *   - Stratum 2: terminal = the "Stratum 3" unlock node (Stratum 3 -- Systems
+ *     Reading opens once all six Land-Reading surveys complete; NOT a covenant
+ *     threshold). The stock-water note is Stratum-3-only.
  */
 export function deriveReceptionSequencing(
   objectives: readonly PlanStratumObjective[],
@@ -431,8 +432,8 @@ export function deriveReceptionSequencing(
   const threshold: ReceptionSeqThreshold =
     tier === 'tier1'
       ? {
-          label: 'Tier 2',
-          name: 'Tier 2 -- Systems Reading',
+          label: 'Stratum 3',
+          name: 'Stratum 3 -- Systems Reading',
           status: allComplete ? 'available' : 'locked',
         }
       : {
