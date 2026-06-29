@@ -21,6 +21,7 @@ import MyOperationalRoleCard from './MyOperationalRoleCard.js';
 import OperationalRoleEditor from './OperationalRoleEditor.js';
 import FirstMemberRolePrompt from './FirstMemberRolePrompt.js';
 import { useIsSoloProject } from './useIsSoloProject.js';
+import { useResolvedOperationalRoles } from '../../v3/roles/useResolvedOperationalRoles.js';
 
 interface MembersTabProps {
   project: LocalProject;
@@ -71,6 +72,9 @@ export default function MembersTab({ project }: MembersTabProps) {
   const [isInviting, setIsInviting] = useState(false);
 
   const projectId = project.serverId ?? project.id;
+  // Resolve role chips through THIS project's vocabulary (Option C rename), so a
+  // member's chip reads the project-natural label, not the static built-in.
+  const { labelFor } = useResolvedOperationalRoles(projectId);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -248,8 +252,9 @@ export default function MembersTab({ project }: MembersTabProps) {
                 {!solo && (m.operationalRoles?.length ?? 0) > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                     {m.operationalRoles!.map((slug) => {
-                      const def = OPERATIONAL_ROLE_DEFS[slug];
-                      if (!def) return null;
+                      // Guard a stale slug (member carries a role no longer in
+                      // the closed enum); the label itself comes project-resolved.
+                      if (!OPERATIONAL_ROLE_DEFS[slug]) return null;
                       return (
                         <span
                           key={slug}
@@ -259,7 +264,7 @@ export default function MembersTab({ project }: MembersTabProps) {
                             borderRadius: 4, whiteSpace: 'nowrap',
                           }}
                         >
-                          {def.label}
+                          {labelFor(slug)}
                         </span>
                       );
                     })}

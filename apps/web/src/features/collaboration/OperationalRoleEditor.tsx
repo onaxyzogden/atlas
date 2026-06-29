@@ -17,7 +17,7 @@
  * repaints. Reset-to-default (per role / all) clears back to the built-ins.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   resolveOperationalRoleDefs,
   resolveOperationalRoleDomains,
@@ -53,14 +53,33 @@ export default function OperationalRoleEditor({
 }: OperationalRoleEditorProps): JSX.Element | null {
   const myRole = useMemberStore((s) => s.myRole);
   const isSolo = useIsSoloProject(projectId);
-  const { defs, domainsMap } = useResolvedOperationalRoles(projectId);
+  const { defs, domainsMap, overrides, isLoading } =
+    useResolvedOperationalRoles(projectId);
   const setDefs = useSetOperationalRoleDefs();
 
-  // Seed once from the project-resolved defs; edits survive the resolver's
-  // identity churn (a fresh defs/domainsMap each render). Reset re-seeds.
+  // Seed from the project-resolved defs. The resolver is a React-Query adapter:
+  // while `useProject` is pending it returns the BUILT-INS, then re-renders with
+  // the project's stored overrides. A lazy `useState` initializer would snapshot
+  // those built-ins before the query resolves and never update -- so an
+  // unmodified Save would diff built-ins against built-ins and clobber the stored
+  // overrides with `[]`. Instead, re-seed whenever the PERSISTED overrides change
+  // identity (keyed on their serialized signature), which fires on the initial
+  // load -> overrides transition and after a save's refetch, but never on the
+  // user's own draft edits (those leave `overrides` untouched).
   const [drafts, setDrafts] = useState<RoleDraft[]>(() =>
     seedRoleDrafts(defs, domainsMap),
   );
+
+  const overridesSig = useMemo(
+    () => JSON.stringify(overrides ?? null),
+    [overrides],
+  );
+  const seededSig = useRef<string | null>(null);
+  useEffect(() => {
+    if (seededSig.current === overridesSig) return;
+    seededSig.current = overridesSig;
+    setDrafts(seedRoleDrafts(defs, domainsMap));
+  }, [overridesSig, defs, domainsMap]);
 
   const updateDraft = useCallback(
     (slug: OperationalRole, patch: Partial<RoleDraft>) => {
@@ -116,6 +135,10 @@ export default function OperationalRoleEditor({
   // and never on a solo project. All hooks run above, so the gate is render-safe.
   const isAdmin = myRole === 'owner' || myRole === 'primary_steward';
   if (!isAdmin || isSolo) return null;
+  // Wait for the project query before exposing the editable surface, so we never
+  // render (or let an admin Save) the built-in placeholders the resolver returns
+  // during the pending window -- which would clobber stored overrides.
+  if (isLoading) return null;
 
   return (
     <section className={css.root} data-testid="operational-role-editor">
