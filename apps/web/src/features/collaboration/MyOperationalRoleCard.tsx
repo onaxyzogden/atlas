@@ -14,11 +14,8 @@
 
 import { useMemberStore } from '../../store/memberStore.js';
 import { useAuthStore } from '../../store/authStore.js';
-import {
-  OPERATIONAL_ROLES,
-  OPERATIONAL_ROLE_DEFS,
-  type OperationalRole,
-} from '@ogden/shared';
+import { type OperationalRole } from '@ogden/shared';
+import { useResolvedOperationalRoles } from '../../v3/roles/useResolvedOperationalRoles.js';
 import p from '../../styles/panel.module.css';
 import css from './MyOperationalRoleCard.module.css';
 import ScopePreview from './ScopePreview.js';
@@ -32,6 +29,10 @@ export default function MyOperationalRoleCard({
 }: MyOperationalRoleCardProps): JSX.Element | null {
   const userId = useAuthStore((s) => s.user?.id);
   const setOperationalRoles = useMemberStore((s) => s.setOperationalRoles);
+  // Option C: project-resolved defs (label/description) + domain map so the
+  // pills carry this project's natural role names and the ScopePreview reflects
+  // any re-scope. No override ⇒ the six built-ins ⇒ byte-identical.
+  const { defs, domainsMap } = useResolvedOperationalRoles(projectId);
   // The viewer's own role array, read straight off their roster row. Returns
   // the stable stored reference (never a fresh array) so the selector is
   // re-render-safe. `undefined` => the viewer has no member row yet.
@@ -58,24 +59,23 @@ export default function MyOperationalRoleCard({
         de-emphasized, never hidden.
       </p>
       <div className={css.chips}>
-        {OPERATIONAL_ROLES.map((slug) => {
-          const def = OPERATIONAL_ROLE_DEFS[slug];
-          const active = current.includes(slug);
+        {defs.map((def) => {
+          const active = current.includes(def.slug);
           return (
             <button
-              key={slug}
+              key={def.slug}
               type="button"
               className={css.chip}
               data-active={active}
               title={def.description}
-              onClick={() => toggle(slug)}
+              onClick={() => toggle(def.slug)}
             >
               {def.label}
             </button>
           );
         })}
       </div>
-      <ScopePreview roles={current} emptyMeans="full" />
+      <ScopePreview roles={current} emptyMeans="full" domainsMap={domainsMap} />
     </div>
   );
 }

@@ -8,7 +8,10 @@ import {
   roleForDomain,
   isSoloProject,
   operationalRolesApplyTo,
-  resolveOperationalRoles,
+  resolveOperationalRoleDefs,
+  resolveOperationalRoleDomains,
+  OperationalRoleDefsOverride,
+  SetOperationalRoleDefsInput,
 } from '../operationalRoles.js';
 import {
   ProjectMemberRecord,
@@ -16,6 +19,7 @@ import {
   type ProjectRole,
 } from '../../../schemas/collaboration.schema.js';
 import { UniversalDomain } from '../../../schemas/universalDomain.schema.js';
+import { toCamelCase } from '../../../lib/caseTransform.js';
 
 const ALL_DOMAINS = new Set<string>(UniversalDomain.options);
 
@@ -131,10 +135,134 @@ describe('operationalRolesApplyTo', () => {
   });
 });
 
-describe('resolveOperationalRoles (Option-C seam)', () => {
-  it('returns the six built-in defs for any project', () => {
-    const defs = resolveOperationalRoles('any-project-id');
+describe('resolveOperationalRoleDefs (Option-C, project-aware)', () => {
+  it('returns the six built-in defs when no overrides are given', () => {
+    const defs = resolveOperationalRoleDefs();
     expect(defs.map((d) => d.slug)).toEqual(OPERATIONAL_ROLES);
+    for (const role of OPERATIONAL_ROLES) {
+      const def = defs.find((d) => d.slug === role)!;
+      expect(def.label).toBe(OPERATIONAL_ROLE_DEFS[role].label);
+      expect(def.description).toBe(OPERATIONAL_ROLE_DEFS[role].description);
+    }
+  });
+
+  it('merges a per-project label/description override over the built-in', () => {
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', label: 'Grower', description: 'Runs the market garden.' },
+    ]);
+    const defs = resolveOperationalRoleDefs(overrides);
+    const grower = defs.find((d) => d.slug === 'food_production')!;
+    expect(grower.label).toBe('Grower');
+    expect(grower.description).toBe('Runs the market garden.');
+    // untouched roles keep their built-in label
+    expect(defs.find((d) => d.slug === 'livestock')!.label).toBe(
+      OPERATIONAL_ROLE_DEFS.livestock.label,
+    );
+  });
+
+  it('keeps the built-in label when only domains are overridden', () => {
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', domains: ['plants-food', 'soil'] },
+    ]);
+    const grower = resolveOperationalRoleDefs(overrides).find(
+      (d) => d.slug === 'food_production',
+    )!;
+    expect(grower.label).toBe(OPERATIONAL_ROLE_DEFS.food_production.label);
+  });
+});
+
+describe('resolveOperationalRoleDomains + project-aware scope', () => {
+  it('returns the built-in map when no overrides are given', () => {
+    const map = resolveOperationalRoleDomains();
+    for (const role of OPERATIONAL_ROLES) {
+      expect([...map[role]].sort()).toEqual([...OPERATIONAL_ROLE_DOMAINS[role]].sort());
+    }
+  });
+
+  it('a domains override drives scopeForRoles and roleForDomain', () => {
+    const overrides = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', domains: ['plants-food', 'soil'] },
+    ]);
+    const map = resolveOperationalRoleDomains(overrides);
+    expect(map.food_production.has('soil')).toBe(true);
+    // scopeForRoles reads the supplied project map
+    const scope = scopeForRoles(['food_production'], map);
+    expect(scope.has('soil')).toBe(true);
+    expect(scope.has('plants-food')).toBe(true);
+    // roleForDomain reflects the re-scope: soil now owned by food_production too
+    expect(roleForDomain('soil', map)).toContain('food_production');
+  });
+
+  it('defaults (no map arg) keep the built-in behavior', () => {
+    expect(scopeForRoles(['food_production']).has('soil')).toBe(false);
+    expect(roleForDomain('plants-food')).toEqual(['food_production']);
+  });
+});
+
+describe('OperationalRoleDefsOverride schema', () => {
+  it('rejects a vision-intent domain (primary-steward-only)', () => {
+    expect(() =>
+      OperationalRoleDefsOverride.parse([
+        { slug: 'food_production', domains: ['vision-intent'] },
+      ]),
+    ).toThrow();
+  });
+
+  it('rejects an unknown role slug', () => {
+    expect(() =>
+      OperationalRoleDefsOverride.parse([{ slug: 'nope', label: 'x' }]),
+    ).toThrow();
+  });
+
+  it('rejects an unknown field on a role override (strict)', () => {
+    expect(() =>
+      OperationalRoleDefsOverride.parse([
+        { slug: 'food_production', colour: 'green' },
+      ]),
+    ).toThrow();
+  });
+
+  it('rejects a duplicate slug', () => {
+    expect(() =>
+      OperationalRoleDefsOverride.parse([
+        { slug: 'livestock', label: 'A' },
+        { slug: 'livestock', label: 'B' },
+      ]),
+    ).toThrow();
+  });
+
+  it('accepts a partial override (only some roles present)', () => {
+    const parsed = OperationalRoleDefsOverride.parse([
+      { slug: 'livestock', label: 'Shepherd' },
+    ]);
+    expect(parsed.find((d) => d.slug === 'livestock')?.label).toBe('Shepherd');
+    expect(parsed.find((d) => d.slug === 'food_production')).toBeUndefined();
+  });
+
+  it('survives the API toCamelCase round-trip (slug is a value, not a key)', () => {
+    const stored = OperationalRoleDefsOverride.parse([
+      { slug: 'food_production', label: 'Grower', domains: ['plants-food'] },
+    ]);
+    // GET /projects/:id runs metadata through toCamelCase; a slug-KEYED map
+    // would be mangled (food_production -> foodProduction). The array shape
+    // keeps the slug as a string value, so it round-trips intact and re-parses.
+    const roundTripped = toCamelCase<typeof stored>(stored);
+    expect(roundTripped[0]!.slug).toBe('food_production');
+    expect(() => OperationalRoleDefsOverride.parse(roundTripped)).not.toThrow();
+  });
+});
+
+describe('SetOperationalRoleDefsInput (route DTO)', () => {
+  it('wraps the override array under operationalRoleDefs', () => {
+    const parsed = SetOperationalRoleDefsInput.parse({
+      operationalRoleDefs: [{ slug: 'food_production', label: 'Grower' }],
+    });
+    expect(parsed.operationalRoleDefs[0]!.slug).toBe('food_production');
+  });
+
+  it('accepts an empty array (reset to built-ins)', () => {
+    const parsed = SetOperationalRoleDefsInput.parse({ operationalRoleDefs: [] });
+    expect(parsed.operationalRoleDefs).toEqual([]);
   });
 });
 

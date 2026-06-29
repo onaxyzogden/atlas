@@ -23,6 +23,7 @@ import {
 import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
 import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import { useViewScope } from '../../roles/useViewScope.js';
+import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import { collectAlwaysSurface } from '../../roles/alwaysSurface.js';
 import { useDivergedDomains } from '../../observe/dashboard/revision/useDivergedDomains.js';
 import {
@@ -265,6 +266,11 @@ export default function ObjectiveColumn({
   // layer is disengaged (solo / no-role / full view / no projectId) the map is
   // empty ⇒ every card renders with no scope props ⇒ byte-identical to before.
   const viewScope = useViewScope(projectId ?? '');
+  // Option C: this project's resolved domain map + label resolver, so the rail's
+  // out-of-focus role badges reflect any per-project re-scope/rename. No override
+  // ⇒ built-in map + labels ⇒ byte-identical badges.
+  const { domainsMap: roleDomainsMap, labelFor: roleLabelFor } =
+    useResolvedOperationalRoles(projectId ?? '');
   const openFlagObjectiveIds = useMemo(
     () => new Set(Object.keys(reviewFlagByObjective)),
     [reviewFlagByObjective],
@@ -286,16 +292,22 @@ export default function ObjectiveColumn({
   const scopeByObjective = useMemo(() => {
     const map = new Map<string, ScopedRailEntry>();
     if (!viewScope.isScoped) return map;
-    const rail = composeScopedRail(
-      visibleObjectives,
-      viewScope.scope,
-      surfaceMap,
-    );
+    const rail = composeScopedRail(visibleObjectives, viewScope.scope, surfaceMap, {
+      domainsMap: roleDomainsMap,
+      labelFor: roleLabelFor,
+    });
     for (const entry of [...rail.mainList, ...rail.outsideList]) {
       map.set(entry.objective.id, entry);
     }
     return map;
-  }, [viewScope.isScoped, visibleObjectives, viewScope.scope, surfaceMap]);
+  }, [
+    viewScope.isScoped,
+    visibleObjectives,
+    viewScope.scope,
+    surfaceMap,
+    roleDomainsMap,
+    roleLabelFor,
+  ]);
 
   // Plan Nav v1.1 §7 — per-card "review suggested" flag. Subscribes to this
   // project's cyclical-review map so a badge appears the moment a 90-day clock

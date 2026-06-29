@@ -49,8 +49,8 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 import DeclarationCenter from '../DeclarationCenter.js';
 
-// deriveSequencing / deriveCanonicalObjects only read `o.id`, so a minimal stub
-// suffices (mirrors declarationModel.test.ts).
+// deriveStratumSequencing / deriveCanonicalObjects only read `o.id`, so a minimal
+// stub suffices (mirrors declarationModel.test.ts).
 function obj(id: string): PlanStratumObjective {
   return { id } as PlanStratumObjective;
 }
@@ -80,7 +80,7 @@ describe('DeclarationCenter -- header band', () => {
     );
     const center = screen.getByTestId('declaration-center');
     expect(center.textContent).toMatch(/Mode 1 -- Declaration/);
-    expect(center.textContent).toMatch(/Tier 0/);
+    expect(center.textContent).toMatch(/Stratum 1/);
     expect(center.textContent).toMatch(/before the land is read/);
   });
 
@@ -91,7 +91,7 @@ describe('DeclarationCenter -- header band', () => {
     // These widgets moved to DeclarationOrientationRail (right rail).
     expect(screen.queryByTestId('canonical-intent')).toBeNull();
     expect(screen.queryByTestId('canonical-team')).toBeNull();
-    expect(screen.queryByTestId('seq-node-0.1')).toBeNull();
+    expect(screen.queryByTestId('seq-node-1.1')).toBeNull();
     expect(screen.queryByTestId('seq-node-next')).toBeNull();
   });
 });

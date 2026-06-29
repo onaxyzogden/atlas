@@ -135,7 +135,7 @@ const MTC_ACTIONS: ReadonlyArray<{
   // ---------- S4 — Foundation Decisions ----------
   {
     suffix: 'setback-stake',
-    planObjectiveId: 's4-zones-sectors',
+    planObjectiveId: 's4-zones',
     stratumId: 's4-foundation-decisions',
     title: 'Stake the 30m watercourse setback buffer along the creek',
     taskType: 'implementation_task',
@@ -145,7 +145,7 @@ const MTC_ACTIONS: ReadonlyArray<{
   },
   {
     suffix: 'sector-confirm',
-    planObjectiveId: 's4-zones-sectors',
+    planObjectiveId: 's4-zones',
     stratumId: 's4-foundation-decisions',
     title: 'Confirm prevailing wind and sun sectors from the field centre',
     taskType: 'field_survey',

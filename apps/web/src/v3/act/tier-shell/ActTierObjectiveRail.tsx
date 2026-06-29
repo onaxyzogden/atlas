@@ -24,6 +24,7 @@ import { getSourceTag, type SourceTagKind } from '../../plan/strata/sourceTag.js
 import ProtocolLayerPanel from '../../plan/strata/ProtocolLayerPanel.js';
 import ViewFocusToggle from '../../roles/ViewFocusToggle.js';
 import { composeScopedRail, type ScopedRailEntry } from '../../roles/railScope.js';
+import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import type { SurfaceReason } from '../../roles/alwaysSurface.js';
 import type { ViewFocusMode } from '../../../store/uiStore.js';
 import styles from './ActTierShell.module.css';
@@ -191,6 +192,12 @@ export default function ActTierObjectiveRail({
     [objectives, effectiveFilter],
   );
 
+  // Option C: this project's resolved domain map + label resolver so the
+  // out-of-focus role badges reflect any per-project re-scope/rename. No
+  // override ⇒ built-in map + labels ⇒ byte-identical badges.
+  const { domainsMap: roleDomainsMap, labelFor: roleLabelFor } =
+    useResolvedOperationalRoles(projectId);
+
   // Operational Role Layer: when scoping is engaged, partition the (already
   // source-filtered) objectives into the in-focus list (in-scope + promoted)
   // and the collapsible out-of-focus group. `null` ⇒ render the flat list,
@@ -202,9 +209,10 @@ export default function ActTierObjectiveRail({
             visibleObjectives,
             scopedDomains,
             surfaceMap ?? EMPTY_SURFACE_MAP,
+            { domainsMap: roleDomainsMap, labelFor: roleLabelFor },
           )
         : null,
-    [visibleObjectives, scopedDomains, surfaceMap],
+    [visibleObjectives, scopedDomains, surfaceMap, roleDomainsMap, roleLabelFor],
   );
 
   // Effective open state for the out-of-focus group: an explicit user toggle

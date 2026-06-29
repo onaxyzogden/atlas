@@ -38,8 +38,6 @@ import {
 import {
   STEWARD_DOMAINS,
   STEWARD_DOMAIN_LABELS,
-  OPERATIONAL_ROLES,
-  OPERATIONAL_ROLE_DEFS,
   operationalRolesApplyTo,
 } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
@@ -58,6 +56,7 @@ import {
   CAPITAL_SCOPE_NOTES,
 } from './EcovillageCapitalPlanCapture.js';
 import ScopePreview from '../../../features/collaboration/ScopePreview.js';
+import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import css from './StewardTeamCapture.module.css';
 
 // --------------------------------------------------------------------------
@@ -818,6 +817,10 @@ function OperationalRolesBody({
   projectId: string;
 }): JSX.Element {
   const setOperationalRoles = useMemberStore((s) => s.setOperationalRoles);
+  // Option C: project-resolved defs (label/description) + domain map so each
+  // member's pills carry this project's natural role names and the ScopePreview
+  // reflects any re-scope. No override ⇒ the six built-ins ⇒ byte-identical.
+  const { defs, domainsMap } = useResolvedOperationalRoles(projectId);
   const assignable = roster.filter((e) =>
     operationalRolesApplyTo(e.member.role),
   );
@@ -838,20 +841,19 @@ function OperationalRolesBody({
                 <div className={css.personBody}>
                   <label className={css.fieldLbl}>Operational roles</label>
                   <div className={css.chips}>
-                    {OPERATIONAL_ROLES.map((slug) => {
-                      const def = OPERATIONAL_ROLE_DEFS[slug];
-                      const active = current.includes(slug);
+                    {defs.map((def) => {
+                      const active = current.includes(def.slug);
                       return (
                         <button
-                          key={slug}
+                          key={def.slug}
                           type="button"
                           className={css.chip}
                           data-active={active}
                           title={def.description}
                           onClick={() => {
                             const next = active
-                              ? current.filter((r) => r !== slug)
-                              : [...current, slug];
+                              ? current.filter((r) => r !== def.slug)
+                              : [...current, def.slug];
                             void setOperationalRoles(
                               projectId,
                               e.member.userId,
@@ -864,7 +866,7 @@ function OperationalRolesBody({
                       );
                     })}
                   </div>
-                  <ScopePreview roles={current} emptyMeans="full" />
+                  <ScopePreview roles={current} emptyMeans="full" domainsMap={domainsMap} />
                 </div>
               </div>
             );

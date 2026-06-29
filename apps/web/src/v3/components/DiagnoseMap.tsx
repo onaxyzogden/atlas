@@ -192,7 +192,22 @@ export default function DiagnoseMap({
   // every style.load so the polygon survives basemap switches (setStyle wipes
   // app-added sources/layers).
   useEffect(() => {
-    if (!map || !boundary) return;
+    if (!map) return;
+    // Boundary cleared (e.g. the Plan "Clear" action nulls parcelBoundaryGeojson)
+    // → tear down the painted source/layers so the stale outline does not linger
+    // until the next style reload. The rest of this effect only ever *adds*
+    // layers, so without this branch an emptied boundary stays on-screen.
+    if (!boundary) {
+      for (const id of [
+        BOUNDARY_LINE_LAYER,
+        BOUNDARY_LINE_CASING_LAYER,
+        BOUNDARY_FILL_LAYER,
+      ]) {
+        if (map.getLayer(id)) map.removeLayer(id);
+      }
+      if (map.getSource(BOUNDARY_SOURCE_ID)) map.removeSource(BOUNDARY_SOURCE_ID);
+      return;
+    }
     const data: GeoJSON.Feature<GeoJSON.Polygon> = {
       type: "Feature",
       properties: {},

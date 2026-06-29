@@ -65,16 +65,39 @@ export interface ScopedRail {
 }
 
 /**
+ * Per-project resolution for the rail (Option C, ADR 2026-06-24). Both fields
+ * are optional and default to the built-in behavior, so every existing caller
+ * (and the unit tests) stay byte-identical. A shell passes these from
+ * `useResolvedOperationalRoles` so re-scoped domains drive the partition badges
+ * and renamed roles show their project-natural label.
+ */
+export interface ScopeRailOptions {
+  /** Per-project domain map. Omit for the built-in `OPERATIONAL_ROLE_DOMAINS`. */
+  domainsMap?: Record<OperationalRole, ReadonlySet<UniversalDomain>>;
+  /** Per-project label resolver. Omit for the built-in def label. */
+  labelFor?: (slug: OperationalRole) => string;
+}
+
+/** Built-in label resolver — the default when a project has no override. */
+const builtinLabelFor = (slug: OperationalRole): string =>
+  OPERATIONAL_ROLE_DEFS[slug].label;
+
+/**
  * Owning-role labels for an objective's domains, in canonical
  * `OPERATIONAL_ROLES` order, de-duplicated. Drives the out-of-focus context
- * badges. `[]` for an unmapped objective or a steward-only domain.
+ * badges. `[]` for an unmapped objective or a steward-only domain. `domainsMap`
+ * / `labelFor` apply the project's Option-C re-scope + rename when supplied.
  */
-function roleBadgesFor(objective: PlanStratumObjective): string[] {
+function roleBadgesFor(
+  objective: PlanStratumObjective,
+  domainsMap?: Record<OperationalRole, ReadonlySet<UniversalDomain>>,
+  labelFor: (slug: OperationalRole) => string = builtinLabelFor,
+): string[] {
   const roles = new Set<OperationalRole>();
   for (const domain of getObjectiveObserveDomains(objective)) {
-    for (const role of roleForDomain(domain)) roles.add(role);
+    for (const role of roleForDomain(domain, domainsMap)) roles.add(role);
   }
-  return [...roles].map((role) => OPERATIONAL_ROLE_DEFS[role].label);
+  return [...roles].map((role) => labelFor(role));
 }
 
 /**
@@ -88,6 +111,7 @@ export function composeScopedRail(
   objectives: readonly PlanStratumObjective[],
   scope: ReadonlySet<UniversalDomain>,
   surfaceMap: ReadonlyMap<string, SurfaceReason[]>,
+  opts?: ScopeRailOptions,
 ): ScopedRail {
   const { inScope, outScope } = partitionByScope(
     objectives,
@@ -109,7 +133,7 @@ export function composeScopedRail(
       objective,
       scopeState: verdict.surface ? 'out-surfaced' : 'out',
       reasons: verdict.reasons,
-      roleBadges: roleBadgesFor(objective),
+      roleBadges: roleBadgesFor(objective, opts?.domainsMap, opts?.labelFor),
     };
     if (verdict.surface) mainList.push(entry);
     else outsideList.push(entry);

@@ -29,6 +29,7 @@ import type {
   InviteMemberInput,
   UpdateMemberRoleInput,
   SetOperationalRolesInput,
+  SetOperationalRoleDefsInput,
   OrganizationRecord,
   OrgMemberRecord,
   ActivityRecord,
@@ -398,6 +399,16 @@ export const api = {
 
     update: (id: string, input: Partial<UpdateProjectInput>) =>
       request<ProjectSummary>('PATCH', `/api/v1/projects/${id}`, input),
+
+    // Option C — rename + re-scope the six operational roles for this project
+    // (owner / primary_steward). Sends the full desired override set each time;
+    // an empty array resets to built-ins. Returns the project incl. metadata.
+    setOperationalRoleDefs: (id: string, input: SetOperationalRoleDefsInput) =>
+      request<ProjectSummary>(
+        'PATCH',
+        `/api/v1/projects/${id}/operational-role-defs`,
+        input,
+      ),
 
     setBoundary: (id: string, geojson: unknown) =>
       request<{ id: string; acreage: number }>('POST', `/api/v1/projects/${id}/boundary`, { geojson }),

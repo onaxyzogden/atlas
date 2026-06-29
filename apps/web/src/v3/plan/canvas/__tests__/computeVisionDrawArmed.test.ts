@@ -39,6 +39,12 @@ describe('computeVisionDrawArmed', () => {
     ).toBe(true);
   });
 
+  it('parcel-boundary edit tool armed → true', () => {
+    expect(
+      computeVisionDrawArmed({ activeTool: 'boundary', ...NO_SURVEY }),
+    ).toBe(true);
+  });
+
   it('slope-survey takeover (no tool id) → true', () => {
     expect(
       computeVisionDrawArmed({ activeTool: null, surveyActive: false, slopeActive: true }),

@@ -1,0 +1,141 @@
+/* StratumSequencingRail.module.css
+ *
+ * The objective-sequencing stepper, lifted out of DeclarationOrientationRail so
+ * it can be reused on every stratum (CSS-module classes are file-scoped, so the
+ * rules must travel with the component). Same design tokens and status palette as
+ * the sibling DeclarationCenter; the layout is a narrow-rail vertical stepper --
+ * nodes flow top-to-bottom with down-pointing arrows instead of one wide row.
+ *
+ * Token substitution mirrors DeclarationCenter.module.css:
+ *   --green     -> --color-success      --amber -> --color-gold-active
+ *   --green-dim -> success @ ~12% fill   gold borders -> --color-gold-brand
+ *   --text / -2 / -3 -> --color-text / --color-text-muted / --color-text-subtle
+ * ASCII-only: the sequencing arrows are lucide icons (no glyphs).
+ */
+
+/* ---------- Objective sequencing (vertical stepper) ---------- */
+
+.seqBlock {
+  display: block;
+}
+
+.seqLabel {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #7a808a);
+  margin-bottom: 8px;
+}
+
+.seqRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.seqNode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: default;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+/* A node is interactive (a <button>) only when not locked and a select handler
+   is provided; static nodes render as <span>. Hover dim mirrors the band. */
+button.seqNode {
+  cursor: pointer;
+}
+
+button.seqNode:hover {
+  opacity: 0.8;
+}
+
+button.seqNode:focus-visible {
+  outline: 2px solid var(--color-gold-active, #9a771f);
+  outline-offset: 1px;
+}
+
+.snDone {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 12%, transparent);
+  color: var(--color-success, #6b8f6b);
+  border-color: color-mix(
+    in srgb,
+    var(--color-success, #6b8f6b) 35%,
+    transparent
+  );
+}
+
+.snActive {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #b08a3a) 14%,
+    transparent
+  );
+  color: var(--color-gold-active, #9a771f);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #b08a3a) 40%,
+    transparent
+  );
+}
+
+.snAvail {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text-muted, #565c63);
+  border-color: var(--color-border, rgba(84, 92, 100, 0.16));
+}
+
+.snLocked {
+  background: transparent;
+  color: var(--color-text-subtle, #7a808a);
+  border-color: var(--color-border-subtle, rgba(84, 92, 100, 0.1));
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Active node gets a subtle ring so the current objective stands out among its
+   parallel siblings (the open objective is marked amber). */
+.seqNode[data-active='true'] {
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--color-gold-brand, #b08a3a) 45%, transparent);
+}
+
+/* Arrows point DOWN in the vertical stepper (the icon is a right-arrow rotated). */
+.seqArr {
+  color: var(--color-text-subtle, #7a808a);
+  flex-shrink: 0;
+  transform: rotate(90deg);
+}
+
+.seqGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.seqGroupLbl {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 8px;
+  color: var(--color-text-subtle, #7a808a);
+  letter-spacing: 0.04em;
+}
+
+.seqGroupNodes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+}

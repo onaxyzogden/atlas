@@ -1,0 +1,153 @@
+/* -------------------------------------------------------------------------- */
+/*  WorkspacePopup -- centered modal that animates IN and OUT                  */
+/*  Mirrors the shared Modal vocabulary (scrim blur + --ease-bounce panel)     */
+/*  but adds an exit animation keyed off data-state="open|closing".            */
+/* -------------------------------------------------------------------------- */
+
+/* --- Overlay / scrim ------------------------------------------------------ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6, 24px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.overlay[data-state='open'] {
+  animation: scrimIn var(--duration-base, 200ms) var(--ease-out, ease-out)
+    forwards;
+}
+
+.overlay[data-state='closing'] {
+  animation: scrimOut var(--duration-base, 200ms) var(--ease-out, ease-out)
+    forwards;
+}
+
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scrimOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* --- Panel ---------------------------------------------------------------- */
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: min(720px, 94vw);
+  max-height: 85vh;
+  background: var(--color-surface-raised, #f3efe6);
+  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.2));
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl);
+  overflow-y: auto;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel[data-state='open'] {
+  animation: panelIn var(--duration-slow, 400ms)
+    var(--ease-bounce, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards;
+}
+
+.panel[data-state='closing'] {
+  animation: panelOut var(--duration-base, 200ms) var(--ease-in, ease-in)
+    forwards;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes panelOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+}
+
+/* --- Close button --------------------------------------------------------- */
+
+.closeButton {
+  position: absolute;
+  top: var(--space-3, 12px);
+  right: var(--space-3, 12px);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--color-text-muted, #5a5443);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast, 100ms) ease,
+    color var(--duration-fast, 100ms) ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: var(--color-text, #1f231e);
+}
+
+.closeButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring, rgba(82, 120, 82, 0.45));
+}
+
+/* --- Body ----------------------------------------------------------------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5, 20px) var(--space-6, 24px);
+  flex: 1 1 auto;
+}
+
+/* --- Reduced motion ------------------------------------------------------- */
+/* Keep the same keyframes (so onAnimationEnd still fires and the close path
+ * never stalls) but collapse their duration to ~instant. */
+@media (prefers-reduced-motion: reduce) {
+  .overlay[data-state='open'],
+  .overlay[data-state='closing'],
+  .panel[data-state='open'],
+  .panel[data-state='closing'] {
+    animation-duration: 0.01ms;
+  }
+}

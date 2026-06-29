@@ -66,10 +66,20 @@ const NO_SURFACE: SurfaceVerdict = { surface: false, reasons: [] };
 
 /**
  * A "shared resource" is any Observe domain owned by 2+ operational roles --
- * derived from the role->domain map so it stays correct if the map changes
- * (today this is `hydrology`, shared by ecology_soils + infrastructure). A
- * divergence in a shared resource is everyone's concern, so it surfaces across
+ * derived from the role->domain map so it stays correct if the built-in map
+ * changes (today this is `hydrology`, shared by ecology_soils + infrastructure).
+ * A divergence in a shared resource is everyone's concern, so it surfaces across
  * role focus.
+ *
+ * OPTION C NOTE (ADR 2026-06-24): this set is intentionally computed from the
+ * BUILT-IN `OPERATIONAL_ROLE_DOMAINS`, NOT a project's re-scoped map. The
+ * always-surface engine is a safety net (promote an out-of-focus card that the
+ * whole team should still see); keeping its trigger on the stable built-in
+ * contention set means the promotion floor never narrows just because one
+ * project re-scoped a role. Re-scoping changes a member's DEFAULT focus (handled
+ * by `useResolvedOperationalRoles` -> `scopeForRoles`), not what counts as a
+ * shared resource. So this module deliberately does not consume the project
+ * `domainsMap`.
  */
 export const SHARED_RESOURCE_DOMAINS: ReadonlySet<UniversalDomain> =
   computeSharedResourceDomains();

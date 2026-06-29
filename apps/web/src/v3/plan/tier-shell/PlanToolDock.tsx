@@ -24,6 +24,9 @@ interface Props {
   disabled?: boolean;
   onActivate: (tool: PlanTool) => void;
   activeFormId?: string | null;
+  /** Project-global plan seal — forwarded to the rail so the Site (Edit Property
+   *  Boundary) tile drops once "Begin Act" arms planReadOnly. */
+  planReadOnly?: boolean;
 }
 
 export default function PlanToolDock({
@@ -31,6 +34,7 @@ export default function PlanToolDock({
   disabled,
   onActivate,
   activeFormId,
+  planReadOnly,
 }: Props) {
   const collapsed = useUIStore((s) => s.planToolDockCollapsed);
   const toggle = useUIStore((s) => s.togglePlanToolDockCollapsed);
@@ -59,6 +63,7 @@ export default function PlanToolDock({
         disabled={disabled}
         onActivate={onActivate}
         activeFormId={activeFormId}
+        planReadOnly={planReadOnly}
         headerAccessory={
           <button
             type="button"

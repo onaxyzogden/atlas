@@ -1,46 +1,58 @@
 /**
- * declarationModel -- pure, React-free derivations for the Tier-0 / Stratum-1
- * "Declaration" workbench chrome (2026-06-16 restructure).
+ * declarationModel -- pure, React-free derivations for the Plan tier-shell's
+ * objective-sequencing rail + the Stratum-1 "Declaration" workbench chrome
+ * (2026-06-16 restructure; sequencing generalized to every stratum 2026-06-28).
  *
- * The Plan-stage Declaration phase presents the six Stratum-1 objectives under a
- * "Tier 0 / 0.1..0.6" numbering that is a PRESENTATION layer over the real S1
- * objective ids (the strata model is NOT renamed). This module owns that mapping
- * plus the two derived read-models the Declaration center renders:
+ * The Plan stage presents each stratum's objectives as a sequencing stepper
+ * numbered "{ordinal}.{n}" (Stratum 1 -> 1.1..1.6, Stratum 2 -> 2.1.., ...) -- a
+ * PRESENTATION layer over the real objective ids (the strata model is NOT
+ * renamed; there is no "Tier 0" -- the foundation stratum is Stratum 1). This
+ * module owns:
  *
- *   - deriveSequencing      -> the "0.1 -> [0.2 | 0.3 | 0.4] -> [0.5 | 0.6] -> Tier 1"
- *                              objective-sequencing diagram, with live status.
- *   - deriveCanonicalObjects -> the two canonical-object cards (Intent + Team).
+ *   - deriveStratumSequencing -> the per-stratum "1.1 -> [1.2 | 1.3 | 1.4] -> ...
+ *                                -> <next stratum>" diagram, with live status.
+ *   - deriveCanonicalObjects   -> the two Stratum-1 canonical-object cards
+ *                                 (Intent + Team).
  *
  * Kept dependency-free (types only from @ogden/shared) so it unit-tests fast and
  * has no React/store coupling. ASCII-only copy; em/en dashes are written as
  * " -- " / "-" per the project string-escaping rule.
  *
- * On the sequencing GROUPING: no universal S1 objective carries a
- * `parallelGroupId`, and a pure prerequisite-depth layering does NOT match the
- * authored mockup (s1-boundaries / s1-stakeholders have no prereqs, so they would
- * land in the same rank as s1-vision). The grouping is therefore an editorial
- * presentation encoded here as SEQUENCE_LAYOUT -- an app-layer constant, so the
- * committed shared catalogue stays closed -- onto which live status is overlaid.
- * Objectives absent from the resolved set (e.g. 0.6 for a non-residential
- * project) drop out gracefully.
+ * On the sequencing GROUPING: Stratum 1 has an AUTHORED shape (vision first, then
+ * the rest in parallel) that a pure prerequisite-depth layering does NOT match
+ * (s1-boundaries / s1-stakeholders have no prereqs, so they would land in the
+ * same rank as s1-vision). It is therefore an editorial override encoded here as
+ * SEQUENCE_LAYOUT (registered in STRATUM_SEQUENCE_OVERRIDES) -- an app-layer
+ * constant, so the committed shared catalogue stays closed. Every other stratum
+ * derives its waves from intra-stratum prerequisites (deriveWaves); in practice
+ * S2-S7 carry none, so each yields a single parallel wave. Objectives absent from
+ * the resolved set (e.g. the residential 1.6 for a non-residential project) drop
+ * out gracefully.
  */
 
 import type {
+  PlanStratum,
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 
 // ---------------------------------------------------------------------------
-// Display mapping: real S1 objective id -> "0.x" presentation + canonical-object
-// membership. Membership in this record IS the definition of the Declaration set
-// (the six curated objectives); any other S1 objective renders without a "0.x".
+// Canonical-object membership for the Stratum-1 Declaration set. Membership in
+// this record IS the definition of the Declaration set (the six curated
+// objectives); the `canonical` field drives the Intent/Team cards. The `display`
+// field is LEGACY -- the live sequencing number is now derived from the stratum
+// ordinal (see deriveStratumSequencing), not read from here.
 // ---------------------------------------------------------------------------
 
 /** Canonical never-re-asked objects constituted in the Declaration phase. */
 export type CanonicalKind = 'intent' | 'team';
 
 export interface TierZeroDisplayEntry {
-  /** Presentation number shown in the chrome, e.g. "0.1". */
+  /**
+   * LEGACY presentation number (e.g. "0.1"). No longer rendered -- the live
+   * stepper numbers objectives "{ordinal}.{n}" from deriveStratumSequencing.
+   * Retained for back-compat with tierZeroDisplayFor + its tests.
+   */
   display: string;
   /** Set when this objective constitutes a canonical object. */
   canonical?: CanonicalKind;
@@ -156,16 +168,16 @@ export function isThresholdReachable(id: string): boolean {
 
 export const DECLARATION_MODE = {
   pill: 'Mode 1 -- Declaration',
-  tier: 'Tier 0',
+  tier: 'Stratum 1',
   titleLead: 'Establish ',
   titleEm: 'intent',
   titleTail: ' and team before the land is read',
   desc:
-    'Two canonical objects are built here and referenced throughout every tier ' +
-    'that follows. The Intent Object becomes the lens for all land reading in ' +
-    'Tiers 1 and 2. The Steward/Team Object is the single source of truth for ' +
-    'who is doing this work and what they can contribute -- it is never re-asked.',
-  sequencingLabel: 'Tier 0 -- Objective Sequencing',
+    'Two canonical objects are built here and referenced throughout every ' +
+    'stratum that follows. The Intent Object becomes the lens for all land ' +
+    'reading in Strata 2 and 3. The Steward/Team Object is the single source of ' +
+    'truth for who is doing this work and what they can contribute -- it is ' +
+    'never re-asked.',
 } as const;
 
 const CANONICAL_COPY: Readonly<
@@ -175,7 +187,7 @@ const CANONICAL_COPY: Readonly<
     name: 'Intent Object',
     desc:
       'Vision, purpose, success criteria, and non-negotiables. The lens through ' +
-      'which all Tier 1-2 land reading is conducted.',
+      'which all Strata 2-3 land reading is conducted.',
   },
   team: {
     name: 'Steward / Team Object',
@@ -189,7 +201,7 @@ const CANONICAL_COPY: Readonly<
 // Objective sequencing diagram.
 // ---------------------------------------------------------------------------
 
-/** Curated presentation layout of the Declaration set (see module header). */
+/** Curated presentation layout of the Stratum-1 Declaration set (module header). */
 const SEQUENCE_LAYOUT: ReadonlyArray<{
   kind: 'single' | 'parallel';
   ids: readonly string[];
@@ -199,9 +211,23 @@ const SEQUENCE_LAYOUT: ReadonlyArray<{
   { kind: 'parallel', ids: ['rf-s1-enterprise-mix', 'res-s1-household-needs'] },
 ];
 
+/**
+ * Per-stratum curated wave layout, keyed by PlanStratum.id. Only Stratum 1 has
+ * an authored shape; every other stratum derives its waves from intra-stratum
+ * prerequisites (deriveWaves).
+ */
+const STRATUM_SEQUENCE_OVERRIDES: Readonly<
+  Record<
+    string,
+    ReadonlyArray<{ kind: 'single' | 'parallel'; ids: readonly string[] }>
+  >
+> = {
+  's1-project-foundation': SEQUENCE_LAYOUT,
+};
+
 export interface SequencingNode {
   id: string;
-  /** "0.x" presentation number. */
+  /** "{ordinal}.{n}" presentation number, e.g. "1.1" on Stratum 1. */
   display: string;
   status: PlanStratumObjectiveStatus;
 }
@@ -213,9 +239,9 @@ export interface SequencingGroup {
 }
 
 export interface SequencingNext {
-  /** Terminal node label (the next tier). */
+  /** Terminal node label: the next stratum's name, or "Plan complete". */
   label: string;
-  /** 'available' once every present declaration objective is complete. */
+  /** 'available' once every present objective in the stratum is complete. */
   status: 'available' | 'locked';
 }
 
@@ -227,39 +253,88 @@ export interface SequencingModel {
 type StatusMap = Readonly<Record<string, PlanStratumObjectiveStatus>>;
 
 /**
- * Build the objective-sequencing model: overlay live statuses onto the curated
- * layout, dropping objectives absent from the resolved `objectives` set. A
- * parallel group left with a single surviving node collapses to 'single' so no
- * lone "parallel" label renders. The terminal "Tier 1" node unlocks only once
- * every present declaration objective is complete.
+ * Layer a stratum's objectives into sequencing "waves" by INTRA-stratum
+ * prerequisites: an objective whose every same-stratum prerequisite is already
+ * placed joins the current wave. Prereqs pointing at other strata are ignored
+ * here -- they gate the whole stratum, not the order within it. A bounded loop
+ * with a cycle-fallback (dump the unresolved remainder into one wave) guarantees
+ * termination. In practice S2-S7 carry no intra-stratum prereqs, so this yields
+ * a single wave of every objective.
  */
-export function deriveSequencing(
+function deriveWaves(
+  objectives: readonly PlanStratumObjective[],
+): Array<{ kind: 'single' | 'parallel'; ids: string[] }> {
+  const ownIds = new Set(objectives.map((o) => o.id));
+  const placed = new Set<string>();
+  let remaining = [...objectives];
+  const waves: Array<{ kind: 'single' | 'parallel'; ids: string[] }> = [];
+  // Bound: each pass places >= 1 objective (the fallback places ALL remaining
+  // when nothing is ready), so length+1 passes always drains it.
+  let guard = remaining.length + 1;
+  while (remaining.length > 0 && guard > 0) {
+    guard -= 1;
+    const ready = remaining.filter((o) =>
+      (o.prerequisiteObjectiveIds ?? [])
+        .filter((p) => ownIds.has(p))
+        .every((p) => placed.has(p)),
+    );
+    // Cycle / unsatisfiable fallback: place the remainder together rather than
+    // looping forever.
+    const wave = ready.length > 0 ? ready : remaining;
+    for (const o of wave) placed.add(o.id);
+    waves.push({
+      kind: wave.length > 1 ? 'parallel' : 'single',
+      ids: wave.map((o) => o.id),
+    });
+    remaining = remaining.filter((o) => !placed.has(o.id));
+  }
+  return waves;
+}
+
+/**
+ * Build a stratum's objective-sequencing model: resolve the wave layout (a
+ * curated override for Stratum 1, else prereq-derived waves), number the present
+ * objectives "{ordinal}.{n}" in wave order, and overlay live statuses. Objectives
+ * absent from the resolved `objectives` set drop out; a parallel wave left with a
+ * single surviving node collapses to 'single' so no lone "parallel" label
+ * renders. The terminal node carries the caller-supplied `nextLabel` (the next
+ * stratum's name, or "Plan complete") and unlocks only once every present
+ * objective in the stratum is complete.
+ */
+export function deriveStratumSequencing(
+  stratum: Pick<PlanStratum, 'id' | 'ordinal'>,
   objectives: readonly PlanStratumObjective[],
   statuses: StatusMap,
+  nextLabel: string,
 ): SequencingModel {
   const present = new Set(objectives.map((o) => o.id));
+  const override = STRATUM_SEQUENCE_OVERRIDES[stratum.id];
+  const layout = override
+    ? override.map((w) => ({
+        kind: w.kind,
+        ids: w.ids.filter((id) => present.has(id)),
+      }))
+    : deriveWaves(objectives);
+
   const groups: SequencingGroup[] = [];
   const presentNodes: SequencingNode[] = [];
+  let counter = 0;
 
-  for (const layout of SEQUENCE_LAYOUT) {
+  for (const wave of layout) {
     const nodes: SequencingNode[] = [];
-    for (const id of layout.ids) {
+    for (const id of wave.ids) {
       if (!present.has(id)) continue;
-      const entry = TIER_ZERO_DISPLAY[id];
-      if (!entry) continue;
+      counter += 1;
       const node: SequencingNode = {
         id,
-        display: entry.display,
+        display: `${stratum.ordinal}.${counter}`,
         status: statuses[id] ?? 'locked',
       };
       nodes.push(node);
       presentNodes.push(node);
     }
     if (nodes.length === 0) continue;
-    groups.push({
-      kind: nodes.length > 1 ? layout.kind : 'single',
-      nodes,
-    });
+    groups.push({ kind: nodes.length > 1 ? wave.kind : 'single', nodes });
   }
 
   const allComplete =
@@ -268,7 +343,7 @@ export function deriveSequencing(
 
   return {
     groups,
-    next: { label: 'Tier 1', status: allComplete ? 'available' : 'locked' },
+    next: { label: nextLabel, status: allComplete ? 'available' : 'locked' },
   };
 }
 

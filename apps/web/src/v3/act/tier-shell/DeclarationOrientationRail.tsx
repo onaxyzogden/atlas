@@ -1,19 +1,20 @@
 /**
- * DeclarationOrientationRail -- the Plan-stage Tier-0 / Declaration orientation
- * surface, hosted in the right rail of PlanTierShell. It carries the two
- * tier-level widgets relocated out of the DeclarationCenter header band (so the
- * center canvas is dominated by the decision list + working panel):
+ * DeclarationOrientationRail -- the Plan-stage Stratum-1 / Declaration
+ * orientation surface, hosted in the right rail of PlanTierShell. It carries the
+ * two Stratum-1 widgets relocated out of the DeclarationCenter header band (so
+ * the center canvas is dominated by the decision list + working panel):
  *
  *   1. Canonical-object cards -- the Intent Object + Steward/Team Object, status
  *      driven (Established / In Progress / Not started), STACKED vertically for
  *      the narrow rail.
- *   2. Objective sequencing -- the "0.1 -> [0.2 | 0.3 | 0.4] -> [0.5 | 0.6] ->
- *      Tier 1" diagram, status driven, laid out top-to-bottom for the rail.
- *      Nodes select their objective when an onSelectObjective handler is given.
+ *   2. Objective sequencing -- the shared StratumSequencingRail stepper, here for
+ *      Stratum 1 ("1.1 -> [1.2 | 1.3 | 1.4] -> [1.5 | 1.6] -> Land Reading"). The
+ *      identical stepper renders standalone on Strata 2-7; this rail only adds the
+ *      Stratum-1 canonical cards above it.
  *
  * Plan-only orientation: mounted by PlanTierShell across every Stratum-1
  * Project-Foundation objective -- both the non-spatial Declaration workbench
- * objectives AND the spatial/map ones (the orientation is tier-level, so it
+ * objectives AND the spatial/map ones (the orientation is stratum-level, so it
  * stays put as the steward moves between foundation objectives). The Act surface
  * and Reception (Stratum 3) never mount it. All derivations come from the pure
  * declarationModel; this file owns presentation only. Same data-testids as the
@@ -23,18 +24,14 @@
  * ASCII-only: every glyph is a lucide icon.
  */
 
-import { Fragment } from 'react';
-import { ArrowRight, Check } from 'lucide-react';
-import type {
-  PlanStratumObjective,
-  PlanStratumObjectiveStatus,
-} from '@ogden/shared';
+import { Check } from 'lucide-react';
 import {
-  DECLARATION_MODE,
-  deriveCanonicalObjects,
-  deriveSequencing,
-  type SequencingNode,
-} from './declarationModel.js';
+  PLAN_STRATA,
+  type PlanStratumObjective,
+  type PlanStratumObjectiveStatus,
+} from '@ogden/shared';
+import { deriveCanonicalObjects } from './declarationModel.js';
+import StratumSequencingRail from './StratumSequencingRail.js';
 import css from './DeclarationOrientationRail.module.css';
 
 export interface DeclarationOrientationRailProps {
@@ -49,19 +46,8 @@ export interface DeclarationOrientationRailProps {
   onSelectObjective?: (objectiveId: string) => void;
 }
 
-/** Status -> sequencing-node style class. */
-function seqNodeClass(status: PlanStratumObjectiveStatus): string {
-  switch (status) {
-    case 'complete':
-      return css.snDone ?? '';
-    case 'active':
-      return css.snActive ?? '';
-    case 'available':
-      return css.snAvail ?? '';
-    default:
-      return css.snLocked ?? '';
-  }
-}
+/** Stratum 1 (Project Foundation) -- the stratum whose stepper this rail hosts. */
+const FOUNDATION_STRATUM = PLAN_STRATA[0];
 
 export default function DeclarationOrientationRail({
   objectives,
@@ -70,44 +56,10 @@ export default function DeclarationOrientationRail({
   onSelectObjective,
 }: DeclarationOrientationRailProps): JSX.Element {
   const cards = deriveCanonicalObjects(objectives, objectiveStatuses);
-  const seq = deriveSequencing(objectives, objectiveStatuses);
-
-  const renderNode = (node: SequencingNode) => {
-    const locked = node.status === 'locked' || node.status === 'deferred';
-    const interactive = Boolean(onSelectObjective) && !locked;
-    const isActive = node.id === activeObjectiveId;
-    const className = `${css.seqNode} ${seqNodeClass(node.status)}`;
-    if (interactive) {
-      return (
-        <button
-          key={node.id}
-          type="button"
-          className={className}
-          data-testid={`seq-node-${node.display}`}
-          data-status={node.status}
-          data-active={isActive || undefined}
-          onClick={() => onSelectObjective?.(node.id)}
-        >
-          {node.display}
-        </button>
-      );
-    }
-    return (
-      <span
-        key={node.id}
-        className={className}
-        data-testid={`seq-node-${node.display}`}
-        data-status={node.status}
-        data-active={isActive || undefined}
-      >
-        {node.display}
-      </span>
-    );
-  };
 
   return (
     <div className={css.root} data-testid="declaration-orientation-rail">
-      <div className={css.railLabel}>Tier 0 -- Orientation</div>
+      <div className={css.railLabel}>Stratum 1 -- Orientation</div>
 
       {/* ---------- Canonical-object cards ---------- */}
       {cards.length > 0 ? (
@@ -148,45 +100,16 @@ export default function DeclarationOrientationRail({
         </div>
       ) : null}
 
-      {/* ---------- Objective sequencing ---------- */}
-      <div className={css.seqBlock}>
-        <div className={css.seqLabel}>{DECLARATION_MODE.sequencingLabel}</div>
-        <div className={css.seqRow}>
-          {seq.groups.map((group, gi) => (
-            <Fragment key={gi}>
-              {gi > 0 ? (
-                <ArrowRight
-                  size={14}
-                  className={css.seqArr}
-                  aria-hidden="true"
-                />
-              ) : null}
-              {group.kind === 'single' ? (
-                group.nodes.map(renderNode)
-              ) : (
-                <div className={css.seqGroup}>
-                  <span className={css.seqGroupLbl}>parallel</span>
-                  <div className={css.seqGroupNodes}>
-                    {group.nodes.map(renderNode)}
-                  </div>
-                </div>
-              )}
-            </Fragment>
-          ))}
-          {seq.groups.length > 0 ? (
-            <ArrowRight size={14} className={css.seqArr} aria-hidden="true" />
-          ) : null}
-          <span
-            className={`${css.seqNode} ${
-              seq.next.status === 'available' ? css.snAvail : css.snLocked
-            }`}
-            data-testid="seq-node-next"
-            data-status={seq.next.status}
-          >
-            {seq.next.label}
-          </span>
-        </div>
-      </div>
+      {/* ---------- Objective sequencing (shared stepper) ---------- */}
+      {FOUNDATION_STRATUM ? (
+        <StratumSequencingRail
+          stratum={FOUNDATION_STRATUM}
+          objectives={objectives}
+          objectiveStatuses={objectiveStatuses}
+          activeObjectiveId={activeObjectiveId}
+          onSelectObjective={onSelectObjective}
+        />
+      ) : null}
     </div>
   );
 }
