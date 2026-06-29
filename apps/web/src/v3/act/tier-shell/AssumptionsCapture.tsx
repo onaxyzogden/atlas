@@ -27,7 +27,7 @@
  *
  * ASCII-only: every non-ASCII glyph from the mockup is converted:
  *   em-dash (--) -> " -- " (space-hyphen-hyphen-space)
- *   en-dash in "Tier 1-2", "Tier 3" -> hyphen
+ *   en-dash in "Strata 2-3", "Stratum 4" -> hyphen
  *   middot -> CSS dot span (NOT literal U+00B7)
  * All icons are lucide-react; no Unicode shapes in JSX.
  *
@@ -680,9 +680,9 @@ export default function AssumptionsCapture({
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
-          <strong>Blocking unknowns</strong> are surfaced in the Tier 1-2
+          <strong>Blocking unknowns</strong> are surfaced in the Strata 2-3
           survey objectives as investigation priorities.{' '}
-          <strong>Critical assumptions</strong> are re-checked at the Tier 3
+          <strong>Critical assumptions</strong> are re-checked at the Stratum 4
           project direction review.
         </div>
       </div>

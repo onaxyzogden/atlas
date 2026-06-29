@@ -303,7 +303,7 @@ describe('SoilImprovementCapture baseline (c5)', () => {
     expect(screen.getByText(/Organic matter %/)).toBeTruthy();
     expect(screen.getByText(/Soil pH/)).toBeTruthy();
     expect(screen.getByText(/Ground cover %/)).toBeTruthy();
-    expect(screen.getByText(/Year 0 data from: soil profile survey \(Tier 2\)/)).toBeTruthy();
+    expect(screen.getByText(/Year 0 data from: soil profile survey \(Stratum 3\)/)).toBeTruthy();
     expect(screen.getByText(/spot soil test \(3 composite samples per zone\)/)).toBeTruthy();
   });
 });

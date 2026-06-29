@@ -230,7 +230,7 @@ const STORAGE_RESULT_NOTE =
 const STORAGE_EXISTING = '150,000 L';
 const STORAGE_GAP = '~146,000 L';
 const STORAGE_GAP_NOTE =
-  '~146 kL of additional storage needed. Options: 2 x 75,000 L poly tanks (concrete pad required), expanded dam capacity (earthworks in wet season), or combination. Tier 4 infrastructure design.';
+  '~146 kL of additional storage needed. Options: 2 x 75,000 L poly tanks (concrete pad required), expanded dam capacity (earthworks in wet season), or combination. Stratum 5 infrastructure design.';
 
 interface HarvestCard {
   title: string;
@@ -249,7 +249,7 @@ const HARVEST_CARDS: readonly HarvestCard[] = [
   {
     title: 'Swales on contour',
     desc:
-      'Level-sill earthwork channels across slope. Appropriate in orchard and food forest zones to direct and slow water movement. Design in Tier 4 with survey-accurate contour mapping.',
+      'Level-sill earthwork channels across slope. Appropriate in orchard and food forest zones to direct and slow water movement. Design in Stratum 5 with survey-accurate contour mapping.',
     selected: true,
   },
   {
@@ -622,7 +622,7 @@ export function WaterSystemsCapture({
         </div>
         <InterpretationBlock tone="warn">{STORAGE_GAP_NOTE}</InterpretationBlock>
         <FeedsNote>
-          Storage shortfall becomes a <strong>Tier 4 infrastructure Act task</strong>. The
+          Storage shortfall becomes a <strong>Stratum 5 infrastructure Act task</strong>. The
           peak daily demand figure here uses the secondary-inclusive total (3,941 L/day) -
           this is only accurate after items 7 and 9 are completed.
         </FeedsNote>
@@ -659,9 +659,9 @@ export function WaterSystemsCapture({
           </div>
         </div>
         <FeedsNote>
-          Selected harvesting approaches feed <strong>Tier 3 spatial design</strong>{' '}
+          Selected harvesting approaches feed <strong>Stratum 4 spatial design</strong>{' '}
           (swale placement, keyline ripping schedule) and{' '}
-          <strong>Tier 4 infrastructure design</strong> (tank specifications, dam works).
+          <strong>Stratum 5 infrastructure design</strong> (tank specifications, dam works).
         </FeedsNote>
         <NotesField
           id="wt-harvesting-notes"

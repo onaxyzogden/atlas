@@ -1127,7 +1127,7 @@ export function ForageCapture({
         </div>
         <FeedsNote>
           Effective grazeable area feeds{' '}
-          <strong>Tier 3: Grazing system design</strong>. Exclusion zones are
+          <strong>Stratum 4: Grazing system design</strong>. Exclusion zones are
           fixed constraints; tree rows are progressive exclusions.
         </FeedsNote>
       </div>

@@ -949,7 +949,7 @@ export function SocialFabricCapture({
         </div>
 
         <FeedsNote>
-          Relationship map feeds <strong>Tier 3: Confirm project direction & feasibility</strong>.
+          Relationship map feeds <strong>Stratum 4: Confirm project direction & feasibility</strong>.
           Groups where most members have known each other less than 2 years are flagged for
           additional trust-building activities before legal commitments are made.
         </FeedsNote>
@@ -1015,8 +1015,8 @@ export function SocialFabricCapture({
         </div>
 
         <FeedsNote>
-          Experience register feeds <strong>Tier 3: Confirm project direction & feasibility</strong>{' '}
-          and shapes the onboarding and support requirements in Tier 6 phasing.
+          Experience register feeds <strong>Stratum 4: Confirm project direction & feasibility</strong>{' '}
+          and shapes the onboarding and support requirements in Stratum 7 phasing.
         </FeedsNote>
       </div>
     );
@@ -1158,7 +1158,7 @@ export function SocialFabricCapture({
         </div>
 
         <FeedsNote>
-          Prior attempts feed <strong>Tier 3: Feasibility assessment</strong>. Interpersonal
+          Prior attempts feed <strong>Stratum 4: Feasibility assessment</strong>. Interpersonal
           breakdown as a cause generates a flagged review item in the governance design objective.
         </FeedsNote>
       </div>
@@ -1276,7 +1276,7 @@ export function SocialFabricCapture({
         </div>
 
         <FeedsNote>
-          Critical gaps feed <strong>Tier 6: Phasing & resourcing</strong> as required external
+          Critical gaps feed <strong>Stratum 7: Phasing & resourcing</strong> as required external
           support line items. Legal gap generates an automatic flag requiring professional
           engagement before entity registration.
         </FeedsNote>
@@ -1331,7 +1331,7 @@ export function SocialFabricCapture({
       </div>
 
       <FeedsNote>
-        External networks feed <strong>Tier 6: Phasing & resourcing</strong>. Accessible CLT or
+        External networks feed <strong>Stratum 7: Phasing & resourcing</strong>. Accessible CLT or
         legal networks offset the critical legal gap flagged in the skills matrix.
       </FeedsNote>
     </div>

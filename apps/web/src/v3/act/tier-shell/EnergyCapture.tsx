@@ -164,7 +164,7 @@ const SOLAR_ZONES: readonly SolarZone[] = [
 ];
 const SOLAR_PEAK_SUN = '4.5 h/day';
 const SOLAR_PEAK_SUN_NOTE =
-  'From climate sectors survey (Tier 1). Temperate southern Australia: 4.0-5.0 h/day typical.';
+  'From climate sectors survey (Stratum 2). Temperate southern Australia: 4.0-5.0 h/day typical.';
 const SOLAR_TOTAL_KW = '74.8 kW installed';
 const SOLAR_TOTAL_GEN = '95,900 kWh/yr';
 
@@ -753,9 +753,9 @@ export function EnergyCapture({
         </div>
       </div>
       <FeedsNote>
-        Distribution architecture feeds <strong>Tier 3: Infrastructure siting</strong>{' '}
+        Distribution architecture feeds <strong>Stratum 4: Infrastructure siting</strong>{' '}
         (inverter room, battery bank, distribution switchgear) and{' '}
-        <strong>Tier 4: Connection design</strong> for each household.
+        <strong>Stratum 5: Connection design</strong> for each household.
       </FeedsNote>
       <NotesField
         id="en-distribution-notes"

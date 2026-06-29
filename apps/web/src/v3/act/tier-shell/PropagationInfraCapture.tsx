@@ -686,7 +686,7 @@ export function PropagationInfraCapture({
 
         <FeedsNote>
           This register feeds directly into item 2 (condition assessment) and{' '}
-          <strong>Tier 3: propagation capacity design</strong>.
+          <strong>Stratum 4: propagation capacity design</strong>.
         </FeedsNote>
       </div>
     );
@@ -781,8 +781,8 @@ export function PropagationInfraCapture({
         </div>
 
         <FeedsNote>
-          Usable capacity feeds <strong>Tier 3: propagation system design</strong>.
-          Fair/Poor structures generate capital requirement flags in the Tier 4
+          Usable capacity feeds <strong>Stratum 4: propagation system design</strong>.
+          Fair/Poor structures generate capital requirement flags in the Stratum 5
           infrastructure plan.
         </FeedsNote>
       </div>
@@ -845,7 +845,7 @@ export function PropagationInfraCapture({
         </div>
 
         <FeedsNote>
-          On-site inputs feed <strong>Tier 3: growing media specification</strong>.
+          On-site inputs feed <strong>Stratum 4: growing media specification</strong>.
           Higher on-site availability reduces reliance on purchased components.
         </FeedsNote>
       </div>
@@ -922,7 +922,7 @@ export function PropagationInfraCapture({
 
         <FeedsNote>
           Annual production feeds{' '}
-          <strong>Tier 3: growing media mix specification</strong> and determines
+          <strong>Stratum 4: growing media mix specification</strong> and determines
           how much perlite, coir, or other purchased components are needed to
           supplement.
         </FeedsNote>
@@ -979,7 +979,7 @@ export function PropagationInfraCapture({
 
       <FeedsNote>
         Sourcing data feeds{' '}
-        <strong>Tier 3: growing media mix specification</strong> and the cost
+        <strong>Stratum 4: growing media mix specification</strong> and the cost
         model for media production. High-cost or order-required components become
         substitution priorities in mix design.
       </FeedsNote>

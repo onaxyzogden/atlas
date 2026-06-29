@@ -126,7 +126,7 @@ export const TITLE_CATEGORIES: readonly TitleCategory[] = [
     consequence:
       'A conservation covenant may apply to part of the title. Restrictions can include no clearing of native vegetation, no structures within the covenant area, and no introduction of feral animals. A covenant runs with the land permanently and cannot be removed.',
     actNote:
-      'Covenant boundary must be mapped and applied as a design exclusion zone before Tier 3 spatial framework',
+      'Covenant boundary must be mapped and applied as a design exclusion zone before Stratum 4 spatial framework',
   },
   {
     label: 'Title deed covenant restricting dwelling count',

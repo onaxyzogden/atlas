@@ -136,7 +136,7 @@ describe('CoherenceCheckSurface', () => {
     expect(screen.getByText(COHERENCE_COPY.title)).toBeTruthy();
   });
 
-  it('shows the honest readiness banner (with tally) when Tier 3/4 design is unfinished', () => {
+  it('shows the honest readiness banner (with tally) when Stratum 4/5 design is unfinished', () => {
     // 3 of the 15 design objectives are not yet complete -> threshold is still
     // reachable (op decision) but the surface must NOT claim the design is done.
     const mostlyComplete: Record<string, PlanStratumObjectiveStatus> = {
@@ -150,13 +150,13 @@ describe('CoherenceCheckSurface', () => {
     expect(
       within(banner).getByText(COHERENCE_COPY.readiness.incompleteTitle),
     ).toBeTruthy();
-    // Honest 12/15 tally -- not a "completed across Tiers 3 and 4" assertion.
+    // Honest 12/15 tally -- not a "completed across Strata 4 and 5" assertion.
     expect(banner.textContent).toContain(
       `12/15 ${COHERENCE_COPY.readiness.tallyLabel}`,
     );
   });
 
-  it('hides the readiness banner once all Tier 3/4 design objectives are complete', () => {
+  it('hides the readiness banner once all Stratum 4/5 design objectives are complete', () => {
     renderSurface(); // allComplete -> coherenceOpen
     expect(screen.queryByTestId('coherence-readiness')).toBeNull();
   });

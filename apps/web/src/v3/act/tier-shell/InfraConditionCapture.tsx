@@ -1142,7 +1142,7 @@ export function InfraConditionCapture({
       ) : null}
 
       <FeedsNote>
-        Reuse decisions feed <strong>Tier 3: Spatial framework</strong> (which elements can
+        Reuse decisions feed <strong>Stratum 4: Spatial framework</strong> (which elements can
         be assumed as existing usable infrastructure) and generate <strong>Act tasks</strong>{' '}
         for all renovation and upgrade work that must precede community occupation.
       </FeedsNote>
