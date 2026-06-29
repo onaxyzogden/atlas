@@ -125,7 +125,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ]),
     ],
     completionGate:
-      'A bounded, evidence-grounded vision is approved with clear success criteria and constraints documented. This declaration becomes the lens for all land reading in Tiers 1-2.',
+      'A bounded, evidence-grounded vision is approved with clear success criteria and constraints documented. This declaration becomes the lens for all land reading in Strata 2-3.',
     actHandoff: 'Vision & Intent Brief',
   }),
   // 0.2 - The canonical Steward/Team Object (Tier-0 restructure 2026-06-16).
@@ -276,13 +276,13 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         feeds: ['s4-direction', 's7-risk-register'],
         feedHint: 'Feeds Plan: Risk / Compliance overlay',
         feedNote:
-          'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Tier 0.',
+          'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Stratum 1.',
       }),
       ck('s1-boundaries-c5', 'Identify water rights and entitlements', {
         feeds: ['s4-water-strategy', 's5-water-infrastructure'],
-        feedHint: 'Feeds Tier 2: Water strategy',
+        feedHint: 'Feeds Stratum 3: Water strategy',
         feedNote:
-          'Water entitlements feed Tier 2: Water strategy and constrain all water harvesting and storage design.',
+          'Water entitlements feed Stratum 3: Water strategy and constrain all water harvesting and storage design.',
       }),
       ck(
         's1-boundaries-c6',
@@ -299,7 +299,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         {
           feeds: ['s7-phase1', 's7-risk-register'],
           feedNote:
-            'Permit requirements become prerequisites on Act handoff packages in Tiers 3-6.',
+            'Permit requirements become prerequisites on Act handoff packages in Strata 4-7.',
         },
       ),
     ],
@@ -1036,7 +1036,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     buildsOnDisplay:
       'Builds on 3.1 -- Water strategy (source, storage approach, and distribution strategy are pre-decided).',
     planningDirectionMandate:
-      'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 2.5 Livestock Water Availability demand assessment, the conditional requirement raised at Tier 3 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
+      'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 3.5 Livestock Water Availability demand assessment, the conditional requirement raised at Stratum 4 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
     monitoringProtocol: {
       indicators: [
         {

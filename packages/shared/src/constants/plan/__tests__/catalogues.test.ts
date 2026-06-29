@@ -327,7 +327,7 @@ describe('catalogue conformance - Mode-4 design fields (s5 / Tier 4)', () => {
     const mandate = water!.planningDirectionMandate;
     expect(typeof mandate).toBe('string');
     expect(mandate!.trim().length).toBeGreaterThan(0);
-    // The copy narrates closure of the conditional raised at Tier 3.
+    // The copy narrates closure of the conditional raised at Stratum 4.
     expect(/clos/i.test(mandate!), mandate).toBe(true);
     // Display-only: the conditional source must NOT have become a hard prereq.
     expect(water!.prerequisiteObjectiveIds ?? []).not.toContain(
@@ -1839,7 +1839,7 @@ describe('s1-boundaries 7-item mixed-mode surface', () => {
       'Feeds Plan: Risk / Compliance overlay',
     );
     expect(byId.get('s1-boundaries-c5')!.feedHint).toBe(
-      'Feeds Tier 2: Water strategy',
+      'Feeds Stratum 3: Water strategy',
     );
     // The map item carries no feed caption.
     expect(byId.get('s1-boundaries-c2')!.feedHint).toBeUndefined();
