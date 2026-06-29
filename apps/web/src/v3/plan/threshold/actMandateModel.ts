@@ -118,6 +118,88 @@ export interface KeyDocument {
 }
 
 // ---------------------------------------------------------------------------
+// Key-document BRIEFS -- the full content behind each card, shown when the card
+// is opened. Built purely from the same sources the cards read; carries raw
+// epoch numbers (the surface formats dates so this model stays pure).
+// ---------------------------------------------------------------------------
+
+/** Fields shared by every brief: the card identity plus the brief intro line. */
+interface KeyDocumentBriefBase {
+  kind: KeyDocumentKind;
+  name: string;
+  present: boolean;
+  stateLine: string;
+  /** The opening framing line for the brief body. */
+  intro: string;
+}
+
+/** The Planning Direction brief -- the full approved direction text. */
+export interface PlanningDirectionBrief extends KeyDocumentBriefBase {
+  kind: 'planning-direction';
+  /** The approved statement text; null when unapproved OR approved with no text. */
+  text: string | null;
+  /** Epoch ms the direction was approved; absent until approved. */
+  approvedAt?: number;
+}
+
+/** One resolved amendment, with its objective title looked up for display. */
+export interface BriefAmendment {
+  itemId: string;
+  title: string;
+  amendmentText: string;
+  resolvedAt: number;
+}
+
+/** The Coherence Record brief -- the sealed record plus any recorded amendments. */
+export interface CoherenceRecordBrief extends KeyDocumentBriefBase {
+  kind: 'coherence-record';
+  /** Epoch ms the record was sealed; absent until sealed. */
+  sealedAt?: number;
+  amendments: BriefAmendment[];
+}
+
+/** One objective line in the integrated-design brief. */
+export interface DesignObjectiveLine {
+  id: string;
+  ref?: string;
+  title: string;
+  /** The objective's Act handoff, when it names one. */
+  handoff?: string;
+}
+
+/** Objective lines for one stratum, in stratum order. */
+export interface DesignStratumGroup {
+  stratumId: string;
+  label: string;
+  objectives: DesignObjectiveLine[];
+}
+
+/** The Integrated Design brief -- every resolved objective grouped by stratum. */
+export interface IntegratedDesignBrief extends KeyDocumentBriefBase {
+  kind: 'integrated-design';
+  objectiveCount: number;
+  stratumCount: number;
+  groups: DesignStratumGroup[];
+}
+
+/** The full brief behind one of the three key-document cards. */
+export type KeyDocumentBrief =
+  | PlanningDirectionBrief
+  | CoherenceRecordBrief
+  | IntegratedDesignBrief;
+
+/**
+ * Precise per-kind brief map: each key resolves to its specific brief subtype
+ * (not the bare `KeyDocumentBrief` union), so consumers indexing by a known
+ * kind get a narrowed type without a runtime `kind` guard.
+ */
+export interface KeyDocumentBriefs {
+  'planning-direction': PlanningDirectionBrief;
+  'coherence-record': CoherenceRecordBrief;
+  'integrated-design': IntegratedDesignBrief;
+}
+
+// ---------------------------------------------------------------------------
 // Readiness (advisory only -- never blocks)
 // ---------------------------------------------------------------------------
 
@@ -312,6 +394,138 @@ export function buildKeyDocuments(input: {
 }
 
 // ---------------------------------------------------------------------------
+// Key-document BRIEF assembly (pure)
+// ---------------------------------------------------------------------------
+
+/**
+ * Group EVERY resolved objective by stratum in first-appearance order (the
+ * resolved set is already stratum-ordered). Unlike `groupDerivedHandoffs` this
+ * keeps objectives that name no Act handoff -- the integrated-design brief shows
+ * the WHOLE committed design, with the handoff line attached where present.
+ * `stratumTitleFor` supplies the label, keeping this pure + catalogue-decoupled.
+ */
+export function groupAllObjectives(
+  objectives: readonly PlanStratumObjective[],
+  stratumTitleFor: (stratumId: string) => string,
+): DesignStratumGroup[] {
+  const order: string[] = [];
+  const byStratum = new Map<string, DesignObjectiveLine[]>();
+  for (const o of objectives) {
+    let bucket = byStratum.get(o.stratumId);
+    if (!bucket) {
+      bucket = [];
+      byStratum.set(o.stratumId, bucket);
+      order.push(o.stratumId);
+    }
+    const handoff =
+      typeof o.actHandoff === 'string' && o.actHandoff.trim().length > 0
+        ? o.actHandoff.trim()
+        : undefined;
+    bucket.push({
+      id: o.id,
+      title: o.title,
+      ...(o.ref ? { ref: o.ref } : {}),
+      ...(handoff ? { handoff } : {}),
+    });
+  }
+  return order.map((stratumId) => ({
+    stratumId,
+    label: stratumTitleFor(stratumId),
+    objectives: byStratum.get(stratumId) ?? [],
+  }));
+}
+
+export interface BuildKeyDocumentBriefsInput {
+  /** The full resolved objective set (all strata). */
+  objectives: readonly PlanStratumObjective[];
+  /** The T1 Reality Check record (structural). */
+  planningDirection: PlanningDirectionSource;
+  /** The T2 Coherence Check record (structural). */
+  coherenceRecord: CoherenceRecordSource;
+  /** Stratum-id -> display label (the surface passes a catalogue lookup). */
+  stratumTitleFor: (stratumId: string) => string;
+  /** Objective-id -> display title, for amendment rows (keeps this pure). */
+  objectiveTitleFor: (itemId: string) => string;
+}
+
+/**
+ * Build the full brief behind each of the three key-document cards, keyed by
+ * kind. Reuses `buildKeyDocuments` for the card identity (name / present /
+ * stateLine) so the brief header never drifts from the card, then attaches the
+ * full body content from the same sources. Pure + deterministic; carries raw
+ * epoch numbers (the surface formats dates).
+ */
+export function buildKeyDocumentBriefs(
+  input: BuildKeyDocumentBriefsInput,
+): KeyDocumentBriefs {
+  const {
+    objectives,
+    planningDirection,
+    coherenceRecord,
+    stratumTitleFor,
+    objectiveTitleFor,
+  } = input;
+  const docs = ACT_MANDATE_COPY.documents;
+  const byKind = new Map(
+    buildKeyDocuments({ objectives, planningDirection, coherenceRecord }).map(
+      (d) => [d.kind, d] as const,
+    ),
+  );
+
+  const pdDoc = byKind.get('planning-direction')!;
+  const pdText = (planningDirection.planningDirectionText ?? '').trim();
+  const planningDirectionBrief: PlanningDirectionBrief = {
+    kind: 'planning-direction',
+    name: pdDoc.name,
+    present: pdDoc.present,
+    stateLine: pdDoc.stateLine,
+    intro: docs.planningDirection.brief.intro,
+    // Only the APPROVED direction is shown -- an unapproved draft never leaks
+    // (the popup falls back to the pending note when text is null).
+    text: pdDoc.present && pdText.length > 0 ? pdText : null,
+    ...(planningDirection.approvedAt != null
+      ? { approvedAt: planningDirection.approvedAt }
+      : {}),
+  };
+
+  const crDoc = byKind.get('coherence-record')!;
+  const coherenceRecordBrief: CoherenceRecordBrief = {
+    kind: 'coherence-record',
+    name: crDoc.name,
+    present: crDoc.present,
+    stateLine: crDoc.stateLine,
+    intro: docs.coherenceRecord.brief.intro,
+    ...(coherenceRecord.sealedAt != null
+      ? { sealedAt: coherenceRecord.sealedAt }
+      : {}),
+    amendments: (coherenceRecord.amendments ?? []).map((a) => ({
+      itemId: a.itemId,
+      title: objectiveTitleFor(a.itemId),
+      amendmentText: a.amendmentText,
+      resolvedAt: a.resolvedAt,
+    })),
+  };
+
+  const idDoc = byKind.get('integrated-design')!;
+  const integratedDesignBrief: IntegratedDesignBrief = {
+    kind: 'integrated-design',
+    name: idDoc.name,
+    present: idDoc.present,
+    stateLine: idDoc.stateLine,
+    intro: docs.integratedDesign.brief.intro,
+    objectiveCount: objectives.length,
+    stratumCount: new Set(objectives.map((o) => o.stratumId)).size,
+    groups: groupAllObjectives(objectives, stratumTitleFor),
+  };
+
+  return {
+    'planning-direction': planningDirectionBrief,
+    'coherence-record': coherenceRecordBrief,
+    'integrated-design': integratedDesignBrief,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Launch-Preparation (s7) completion (pure)
 // ---------------------------------------------------------------------------
 
@@ -426,6 +640,15 @@ export const ACT_MANDATE_COPY = {
       presentLine: 'Approved at the Reality Check.',
       absentLine: 'Not yet approved at the Reality Check.',
       emptyHandoff: 'Approved at the Reality Check.',
+      // The full brief shown when this card is opened.
+      brief: {
+        intro:
+          'The full direction approved at the Reality Check -- the intent the whole plan was built to serve.',
+        pendingNote:
+          'The Planning Direction has not been approved at the Reality Check yet. Once it is approved, the full statement appears here.',
+        approvedNoText:
+          'The direction was approved at the Reality Check, but no statement text was recorded.',
+      },
     },
     coherenceRecord: {
       name: 'Coherence Record',
@@ -433,11 +656,30 @@ export const ACT_MANDATE_COPY = {
       sealedCleanLine: 'Sealed at the Coherence Check with no amendments.',
       absentLine: 'Not yet sealed at the Coherence Check.',
       cleanHandoff: 'Sealed at the Coherence Check.',
+      // The full brief shown when this card is opened.
+      brief: {
+        intro:
+          'The quality record sealed at the Coherence Check, with every amendment recorded against the design.',
+        pendingNote:
+          'The Coherence Record has not been sealed at the Coherence Check yet. Once it is sealed, the record and any amendments appear here.',
+        cleanNote:
+          'Sealed at the Coherence Check with no amendments recorded -- the design connected as planned.',
+        amendmentsHeading: 'Recorded amendments',
+      },
     },
     integratedDesign: {
       name: 'Resolved Integrated Design',
       desc: 'Every resolved objective across all seven strata -- the whole design the project commits to.',
       absentLine: 'No resolved objectives yet.',
+      // The full brief shown when this card is opened.
+      brief: {
+        intro:
+          'Every resolved objective across all seven strata -- the whole design the project commits to, grouped by stratum.',
+        emptyNote:
+          'No objectives have been resolved yet, so there is no integrated design to show.',
+        objectivesHeading: 'Resolved objectives by stratum',
+        handoffLabel: 'Hands to Act',
+      },
     },
   },
   handoffs: {

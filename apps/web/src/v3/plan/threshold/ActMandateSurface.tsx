@@ -25,6 +25,7 @@
  * a locked objective (planConcernsStore), not here.
  */
 
+import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
   findPlanStratum,
@@ -44,9 +45,12 @@ import { useActMandateStore } from '../../../store/actMandateStore.js';
 import {
   ACT_MANDATE_COPY,
   assembleActMandate,
+  buildKeyDocumentBriefs,
   type HandoffPackage,
-  type KeyDocument,
+  type KeyDocumentKind,
 } from './actMandateModel.js';
+import KeyDocumentCard from './KeyDocumentCard.js';
+import KeyDocumentBriefPopup from './KeyDocumentBriefPopup.js';
 import ConcernGovernancePanel from './ConcernGovernancePanel.js';
 import styles from './ActMandate.module.css';
 
@@ -55,34 +59,6 @@ export interface ActMandateSurfaceProps {
   projectName: string;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
-}
-
-function PresenceBadge({ present }: { present: boolean }) {
-  return (
-    <span className={styles.presence} data-present={present || undefined}>
-      {present ? (
-        <CheckCircle2 size={12} aria-hidden="true" />
-      ) : (
-        <Circle size={12} aria-hidden="true" />
-      )}
-      {present ? 'In hand' : 'Pending'}
-    </span>
-  );
-}
-
-function DocumentCard({ doc }: { doc: KeyDocument }) {
-  return (
-    <li className={styles.docCard} data-present={doc.present || undefined}>
-      <div className={styles.docHead}>
-        <PresenceBadge present={doc.present} />
-        <div className={styles.docTitleWrap}>
-          <span className={styles.docName}>{doc.name}</span>
-        </div>
-      </div>
-      <p className={styles.docDesc}>{doc.desc}</p>
-      <p className={styles.docState}>{doc.stateLine}</p>
-    </li>
-  );
 }
 
 function HandoffCard({ pkg }: { pkg: HandoffPackage }) {
@@ -127,16 +103,32 @@ export default function ActMandateSurface({
   );
   const beginAct = useActMandateStore((s) => s.beginAct);
 
+  // The key-document card whose full brief is open in the popup (null = closed).
+  const [selectedDoc, setSelectedDoc] = useState<KeyDocumentKind | null>(null);
+
+  const stratumTitleFor = (stratumId: string) =>
+    findPlanStratum(stratumId)?.title ?? stratumId;
+  const objectiveTitleFor = (id: string) =>
+    objectives.find((o) => o.id === id)?.title ?? id;
+
   const model = assembleActMandate({
     objectives,
     statuses: objectiveStatuses,
     planningDirection: realityRecord,
     coherenceRecord,
-    stratumTitleFor: (stratumId) => findPlanStratum(stratumId)?.title ?? stratumId,
+    stratumTitleFor,
   });
 
   const { keyDocuments, handoffGroups, planningDirectionPackage, coherenceRecordPackage, readiness } =
     model;
+
+  const briefs = buildKeyDocumentBriefs({
+    objectives,
+    planningDirection: realityRecord,
+    coherenceRecord,
+    stratumTitleFor,
+    objectiveTitleFor,
+  });
 
   // The two synthetic threshold records lead the handoff inventory (they carry
   // the whole project's direction + quality record), then the derived
@@ -224,7 +216,12 @@ export default function ActMandateSurface({
           </p>
           <ul className={styles.docList}>
             {keyDocuments.map((doc) => (
-              <DocumentCard key={doc.kind} doc={doc} />
+              <KeyDocumentCard
+                key={doc.kind}
+                doc={doc}
+                styles={styles}
+                onOpen={() => setSelectedDoc(doc.kind)}
+              />
             ))}
           </ul>
         </section>
@@ -351,9 +348,7 @@ export default function ActMandateSurface({
          */}
         <ConcernGovernancePanel
           projectId={projectId}
-          objectiveTitleFor={(id) =>
-            objectives.find((o) => o.id === id)?.title ?? id
-          }
+          objectiveTitleFor={objectiveTitleFor}
         />
 
         <ul className={styles.notList} aria-label="What this threshold does not do">
@@ -365,6 +360,12 @@ export default function ActMandateSurface({
           ))}
         </ul>
       </div>
+
+      <KeyDocumentBriefPopup
+        open={selectedDoc != null}
+        brief={selectedDoc ? briefs[selectedDoc] : null}
+        onClose={() => setSelectedDoc(null)}
+      />
     </div>
   );
 }
