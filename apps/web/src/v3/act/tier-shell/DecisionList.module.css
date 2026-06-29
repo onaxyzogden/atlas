@@ -194,7 +194,7 @@
   padding: 11px 12px;
   border-radius: var(--radius-lg, 12px);
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface-raised, #faf7ef);
   box-shadow: var(--shadow-xs, 0 1px 2px rgba(24, 27, 30, 0.05));
   cursor: pointer;
   text-align: left;
@@ -202,26 +202,12 @@
     box-shadow 120ms ease;
 }
 
-/* Left accent bar (hover/selected/done states drive its colour). */
-.ditem::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  border-top-left-radius: var(--radius-lg, 12px);
-  border-bottom-left-radius: var(--radius-lg, 12px);
-  background: transparent;
-  transition: background 120ms ease;
-}
-
 .ditem:hover {
-  background: var(--color-surface-raised, #faf7ef);
-}
-
-.ditem:hover::before {
-  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  background: color-mix(
+    in srgb,
+    var(--color-text, #181b1e) 7%,
+    var(--color-surface-raised, #faf7ef)
+  );
 }
 
 .ditem:focus-visible {
@@ -229,7 +215,7 @@
   outline-offset: 1px;
 }
 
-/* Selected: amber left bar + raised bg + amber title. */
+/* Selected: raised amber bg + amber border + amber title. */
 .ditem[data-selected='true'] {
   background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
   border-color: color-mix(
@@ -239,15 +225,11 @@
   );
 }
 
-.ditem[data-selected='true']::before {
-  background: var(--color-stage-act, #d9a036);
-}
-
 .ditem[data-selected='true'] .dTxt {
   color: var(--color-stage-act, #d9a036);
 }
 
-/* Done: dimmed + green left bar + strikethrough label + faint green wash.
+/* Done: dimmed + strikethrough label + faint green wash.
    The wash is scoped :not([data-selected]) so a selected-and-done row keeps its
    amber selection bg (that rule appears earlier in source order). */
 .ditem[data-complete='true'] {
@@ -258,12 +240,8 @@
   background: color-mix(
     in srgb,
     var(--color-success, #6b8f6b) 8%,
-    var(--color-surface, #ffffff)
+    var(--color-surface-raised, #faf7ef)
   );
-}
-
-.ditem[data-complete='true']::before {
-  background: var(--color-success, #6b8f6b);
 }
 
 .ditem[data-complete='true'] .dTxt {
@@ -271,13 +249,9 @@
   color: var(--color-text-muted, #565c63);
 }
 
-/* On hold: clock-marked circle + muted (not struck-through) italic title +
-   slate left bar. No opacity dim -- that stays unique to the recorded state so
-   the two never read the same. Scoped so a selected row keeps its amber bar. */
-.ditem[data-deferred='true']:not([data-selected='true'])::before {
-  background: var(--color-text-subtle, #7a808a);
-}
-
+/* On hold: clock-marked circle + muted (not struck-through) italic title.
+   No opacity dim -- that stays unique to the recorded state so the two never
+   read the same. */
 .ditem[data-deferred='true'] .dTxt {
   color: var(--color-text-muted, #565c63);
   font-style: italic;

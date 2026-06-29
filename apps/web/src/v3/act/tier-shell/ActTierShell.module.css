@@ -537,14 +537,6 @@
   );
 }
 
-.objCard[data-status='complete'] {
-  border-left: 3px solid #5dd39e;
-}
-
-.objCard[data-status='active'] {
-  border-left: 3px solid var(--color-gold-brand, #c4a265);
-}
-
 /* Status-tinted card background (mirrors the MILOS dashboard task card: green
    wash on done, amber wash on in-progress). Guarded with :not([data-active])
    so a SELECTED card keeps its gold selection tint (that rule appears earlier
