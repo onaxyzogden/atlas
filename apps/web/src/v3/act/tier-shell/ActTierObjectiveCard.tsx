@@ -24,6 +24,15 @@ const SURFACE_REASON_LABEL: Record<SurfaceReason, string> = {
   'shared-resource-divergence': 'Shared resource changed',
 };
 
+// Status chip copy, keyed by the live objective-progress state. Mirrors the
+// MILOS dashboard task card's status chip (Done / In progress / To do), mapped
+// onto this rail's three progress states. ASCII-only.
+const STATUS_CHIP_LABEL: Record<ObjectiveProgress['state'], string> = {
+  complete: 'Done',
+  active: 'In progress',
+  available: 'To do',
+};
+
 interface Props {
   objective: PlanStratumObjective;
   // Optional context line above the title. The stratum objective rail omits it
@@ -31,6 +40,10 @@ interface Props {
   // renders only when a caller supplies it — e.g. the search rail, where results
   // span strata and the eyebrow ("S2 · ...") disambiguates each match.
   eyebrow?: string;
+  // 1-based position in the rendered list — drives the numbered badge
+  // (01, 02, ...). The scoped rail numbers its in-focus and out-of-focus groups
+  // independently, so this restarts per rendered sub-list. Omitted ⇒ no badge.
+  index?: number;
   progress: ObjectiveProgress;
   isActive: boolean;
   onSelect: () => void;
@@ -47,6 +60,7 @@ interface Props {
 export default function ActTierObjectiveCard({
   objective,
   eyebrow,
+  index,
   progress,
   isActive,
   onSelect,
@@ -65,6 +79,12 @@ export default function ActTierObjectiveCard({
     progress.total === 0
       ? 'No tasks yet'
       : `${progress.verified}/${progress.total} done`;
+
+  // Completion percentage for the mini progress bar (rounded; 0 when no tasks).
+  const pct =
+    progress.total === 0
+      ? 0
+      : Math.round((progress.verified / progress.total) * 100);
 
   // Source provenance (Universal / Primary / Secondary - <Type>). Universal is
   // the baseline and carries no badge to keep the rail uncluttered; primary and
@@ -111,10 +131,24 @@ export default function ActTierObjectiveCard({
           {promotionReasons.map((r) => SURFACE_REASON_LABEL[r]).join(' · ')}
         </span>
       )}
-      {eyebrow ? (
-        <span className={styles.objEyebrow}>{eyebrow}</span>
-      ) : null}
-      <span className={styles.objTitle}>{objective.shortTitle ?? objective.title}</span>
+      <div className={styles.objHead}>
+        {typeof index === 'number' ? (
+          <span className={styles.objNum} aria-hidden="true">
+            {String(index).padStart(2, '0')}
+          </span>
+        ) : null}
+        <div className={styles.objHeadMain}>
+          {eyebrow ? (
+            <span className={styles.objEyebrow}>{eyebrow}</span>
+          ) : null}
+          <span className={styles.objTitle}>
+            {objective.shortTitle ?? objective.title}
+          </span>
+          <span className={styles.objStatusChip} data-state={progress.state}>
+            {STATUS_CHIP_LABEL[progress.state]}
+          </span>
+        </div>
+      </div>
       <span className={styles.objDesc}>{objective.focusedQuestion}</span>
       {hasRoleBadges && (
         <div className={styles.roleBadgeRow}>
@@ -126,9 +160,33 @@ export default function ActTierObjectiveCard({
         </div>
       )}
       <div className={styles.objFooter}>
-        <span className={styles.objProgress} data-state={progress.state}>
-          {progressLabel}
-        </span>
+        {progress.total === 0 ? (
+          // No checklist yet — keep the original muted "No tasks yet" pill.
+          <span className={styles.objProgress} data-state={progress.state}>
+            {progressLabel}
+          </span>
+        ) : (
+          // Live checklist progress as a mini bar ("3/5 ████░ 60%"), mirroring
+          // the MILOS dashboard card's subtask bar. The fill reflects the
+          // progress state (complete = green, in-flight/available = gold).
+          <div
+            className={styles.objBar}
+            role="img"
+            aria-label={`${progress.verified} of ${progress.total} decisions recorded`}
+          >
+            <span className={styles.objBarLabel}>
+              {progress.verified}/{progress.total}
+            </span>
+            <span className={styles.objBarTrack}>
+              <span
+                className={styles.objBarFill}
+                data-state={progress.state}
+                style={{ width: `${pct}%` }}
+              />
+            </span>
+            <span className={styles.objBarPct}>{pct}%</span>
+          </div>
+        )}
       </div>
     </div>
   );

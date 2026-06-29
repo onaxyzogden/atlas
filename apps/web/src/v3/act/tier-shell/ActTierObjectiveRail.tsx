@@ -225,11 +225,14 @@ export default function ActTierObjectiveRail({
   const outsideOpen = outsideOverride ?? outsideDefaultOpen;
 
   // Shared card renderer for the scoped path — threads the per-entry scope
-  // state, promotion reasons, and owning-role badges into the pure card.
-  const renderScopedCard = (entry: ScopedRailEntry) => (
+  // state, promotion reasons, and owning-role badges into the pure card. The
+  // 1-based `index` (numbered badge) restarts per rendered sub-list: it is the
+  // map index of whichever list (in-focus or out-of-focus) this card belongs to.
+  const renderScopedCard = (entry: ScopedRailEntry, index: number) => (
     <ActTierObjectiveCard
       key={entry.objective.id}
       objective={entry.objective}
+      index={index + 1}
       progress={progressByObjective[entry.objective.id] ?? EMPTY_PROGRESS}
       isActive={entry.objective.id === activeObjectiveId}
       onSelect={() => onSelectObjective(entry.objective.id)}
@@ -371,10 +374,11 @@ export default function ActTierObjectiveRail({
             </>
           ) : (
             <div className={styles.railList}>
-              {visibleObjectives.map((objective) => (
+              {visibleObjectives.map((objective, i) => (
                 <ActTierObjectiveCard
                   key={objective.id}
                   objective={objective}
+                  index={i + 1}
                   // No eyebrow here: every card in this list belongs to the
                   // selected stratum, which the rail header already names, so the
                   // per-card stratum title was redundant. (The search rail still

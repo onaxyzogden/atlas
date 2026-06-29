@@ -449,6 +449,8 @@ export default function DecisionList({
   const items = objective.checklist;
   const total = items.length;
   const doneCount = items.filter((i) => completed.has(i.id)).length;
+  // Share of decisions recorded, for the header progress bar (0 when empty).
+  const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
 
   return (
     <div className={css.root}>
@@ -466,6 +468,27 @@ export default function DecisionList({
         <span>{ACT_COPY.decisionList.yourDecisions}</span>
         <span className={css.decCount}>{decisionCount(doneCount, total)}</span>
       </div>
+
+      {/* ---------- Header progress bar ---------- */}
+      {/* Share of decisions recorded, mirroring the MILOS dashboard card's
+          subtask bar. A decision is atomic (no sub-items), so the bar lives on
+          the list header rather than per row. Hidden for an empty checklist. */}
+      {total > 0 ? (
+        <div
+          className={css.decBar}
+          role="img"
+          aria-label={`${doneCount} of ${total} decisions made`}
+        >
+          <span className={css.decBarTrack}>
+            <span
+              className={css.decBarFill}
+              data-complete={doneCount === total ? 'true' : 'false'}
+              style={{ width: `${pct}%` }}
+            />
+          </span>
+          <span className={css.decBarPct}>{pct}%</span>
+        </div>
+      ) : null}
 
       {/* ---------- Back affordance (collapsed only) ---------- */}
       {collapsed && selectedItemId ? (
@@ -501,12 +524,20 @@ export default function DecisionList({
             }
           }
           let lastGroup: string | null = null;
-          return rowItems.map((item) => {
+          return rowItems.map((item, i) => {
             const complete = completed.has(item.id);
             // "Complete" wins over "deferred" visually -- a recorded item is
             // never shown on-hold even if a stale defer flag lingers.
             const onHold = !complete && deferred.has(item.id);
             const selected = item.id === selectedItemId;
+            // Per-row status chip state/label (Done / On hold / To do), keyed by
+            // the same complete/on-hold precedence as the completion circle.
+            const decState = complete ? 'complete' : onHold ? 'on-hold' : 'todo';
+            const decStateLabel = complete
+              ? 'Done'
+              : onHold
+                ? 'On hold'
+                : 'To do';
             const feedNames = item.feedsInto.map(
               (targetId) => findObjectiveGlobally(targetId)?.title ?? targetId,
             );
@@ -546,6 +577,9 @@ export default function DecisionList({
                     }
                   }}
                 >
+                  <span className={css.dNum} aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
                   <span
                     className={css.dCirc}
                     data-complete={complete ? 'true' : 'false'}
@@ -583,6 +617,9 @@ export default function DecisionList({
                           {modeLabel}
                         </span>
                       ) : null}
+                      <span className={css.dStatusChip} data-state={decState}>
+                        {decStateLabel}
+                      </span>
                     </div>
                     {item.feedHint ? (
                       <div className={css.dFeed}>
