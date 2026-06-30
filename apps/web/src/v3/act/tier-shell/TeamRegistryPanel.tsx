@@ -52,9 +52,9 @@ const EMPTY_SHARED_VISION: SharedVision = {};
 
 /** Static, Amanah-neutral downstream-reference note (no sale/CSA framing). */
 const DOWNSTREAM_NOTE =
-  'Referenced downstream by role and decision-rights (Tier 4 direction), by ' +
-  'capacity-matching against plan-derived demand (Tier 6), and by resource ' +
-  'planning (Tier 7). Built once here -- never re-asked.';
+  'Referenced downstream by role and decision-rights (Stratum 4 direction), ' +
+  'and by capacity-matching against plan-derived demand and resource ' +
+  'planning (Stratum 7). Built once here -- never re-asked.';
 
 /** Per-intent-row leading icon (kind -> lucide component). */
 const INTENT_ICON: Readonly<Record<IntentReferenceKind, typeof Compass>> = {
@@ -96,7 +96,7 @@ export default function TeamRegistryPanel({
         </div>
         <div className={css.title}>Constitute the steward team</div>
         <div className={css.sub}>
-          Built once here, then referenced by every later tier -- never re-asked.
+          Built once here, then referenced by every later stratum -- never re-asked.
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export default function TeamRegistryPanel({
         </div>
         <div className={css.calloutBody}>
           The single source of truth for who is doing this work and what they can
-          contribute. The capacity baseline that Tier 6 matches plan-derived
+          contribute. The capacity baseline that Stratum 7 matches plan-derived
           demand against.
         </div>
       </div>

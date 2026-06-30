@@ -402,7 +402,7 @@ function RosterBody({
         </span>
         <div className={css.guidanceTxt}>
           This is the canonical steward team. Everyone here is referenced across
-          every later tier and is never re-asked. Manage who belongs in the
+          every later stratum and is never re-asked. Manage who belongs in the
           project members roster; record each role and capacity in the items
           below.
         </div>
@@ -478,7 +478,7 @@ function RolesBody({
 
   return (
     <div className={css.root}>
-      <FeedsBlock text="Operational roles set each member's default domain focus across Plan, Act, and Observe, and feed Tier 1 direction-setting. View-scoping only -- they never grant or remove a capability, and out-of-scope signals are de-emphasized, never hidden." />
+      <FeedsBlock text="Operational roles set each member's default domain focus across Plan, Act, and Observe, and feed Stratum 4 direction-setting. View-scoping only -- they never grant or remove a capability, and out-of-scope signals are de-emphasized, never hidden." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
@@ -603,7 +603,7 @@ function RightsBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Decision rights feed Tier 1 direction-setting." />
+      <FeedsBlock text="Decision rights feed Stratum 4 direction-setting." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
@@ -667,7 +667,7 @@ function CapabilityBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Capabilities feed Tier 1 direction-setting and Tier 6 resource planning." />
+      <FeedsBlock text="Capabilities feed Stratum 4 direction-setting and Stratum 7 resource planning." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
@@ -789,7 +789,7 @@ function GapsBody({
   };
   return (
     <div className={css.root}>
-      <FeedsBlock text="Skill gaps feed Tier 6 resource planning and the risk register." />
+      <FeedsBlock text="Skill gaps feed Stratum 7 resource planning and the risk register." />
       <div className={css.section}>
         <div className={css.secLbl}>
           <AlertTriangle size={13} /> Identified skill gaps
@@ -855,7 +855,7 @@ function GovernanceBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Governance principles feed Tier 1 direction-setting." />
+      <FeedsBlock text="Governance principles feed Stratum 4 direction-setting." />
       <div className={css.section}>
         <div className={css.secLbl}>
           <Landmark size={13} /> Governance framework
