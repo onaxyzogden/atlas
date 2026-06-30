@@ -112,7 +112,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       {
         id: 's1-vision-c2',
         label: 'List the primary land-use goals (max 3).',
-        feedsInto: ['s4-zones-sectors'],
+        feedsInto: ['s4-zones'],
         optional: false,
       },
       {
@@ -186,7 +186,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       {
         id: 's2-land-baseline-c1',
         label: 'Capture the contour/landform overview.',
-        feedsInto: ['s4-zones-sectors'],
+        feedsInto: ['s4-zones'],
         optional: false,
       },
       {
@@ -198,7 +198,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       {
         id: 's2-land-baseline-c3',
         label: 'Record dominant soils + ecology observations.',
-        feedsInto: ['s4-zones-sectors'],
+        feedsInto: ['s4-zones'],
         optional: false,
       },
     ],
@@ -246,7 +246,13 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
 
   // ---------- S4 ----------
   {
-    id: 's4-zones-sectors',
+    // Canonical objective id — aligned to the universal catalogue's `s4-zones`
+    // (universal.ts) so the per-objective Act-tool and Observe-domain override
+    // maps resolve identically whether this objective comes from catalogue
+    // resolution (typed projects) or this legacy skeleton (null-type / MTC).
+    // Child ids keep their `-sectors-` slug to stay disjoint from the universal
+    // `s4-zones-c1..c6` checklist namespace.
+    id: 's4-zones',
     stratumId: 's4-foundation-decisions',
     title: 'Set zones and sectors',
     shortTitle: 'Zones and sectors',
@@ -289,7 +295,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     shortTitle: 'Water strategy',
     focusedQuestion:
       'How does water move, slow, sink, and spread across the design?',
-    prerequisiteObjectiveIds: ['s4-zones-sectors'],
+    prerequisiteObjectiveIds: ['s4-zones'],
     defaultOverlayBundle: [],
     decisionGroups: [],
     checklist: [

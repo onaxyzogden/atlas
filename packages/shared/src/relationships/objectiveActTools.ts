@@ -190,11 +190,15 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // + buffer/transition rings. 'zone-seed' arms the placement tool; 'zone-trim'
   // / 'zone-clear' are imperative post-seed actions (see ACT_TOOL_CATALOG).
   // gap: c4 conflict resolution, c6 confirmation (decisions).
-  // Key MUST match the canonical universal objective id `s4-zones-sectors`
-  // (stratumObjectives.ts) — `getObjectiveActTools` looks up by `objective.id`,
-  // so a stale `s4-zones` key silently fell through to the stratum default and
-  // the seed/trim/clear tools never surfaced on the tier-shell objective rail.
-  's4-zones-sectors': ['zone-seed', 'zone-trim', 'zone-clear', 'zone', 'buffer-ring'],
+  // Key MUST match the canonical objective id `s4-zones` — the id the universal
+  // catalogue (universal.ts) ships and that `resolveProjectObjectives` surfaces
+  // at runtime for every typed project, and the id the legacy skeleton
+  // (stratumObjectives.ts) now carries for null-type / MTC projects.
+  // `getObjectiveActTools` looks up by `objective.id`; keying this
+  // `s4-zones-sectors` made the override miss for catalogue-resolved objectives,
+  // silently falling through to the stratum default so the seed/trim/clear tools
+  // never surfaced on the tier-shell objective rail.
+  's4-zones': ['zone-seed', 'zone-trim', 'zone-clear', 'zone', 'buffer-ring'],
 
   // ---------- S5 — System Design ----------
   // Access & circulation: vehicle roads + pedestrian paths. gap: c4 movement

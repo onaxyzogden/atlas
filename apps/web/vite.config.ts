@@ -246,6 +246,26 @@ export default defineConfig({
             return undefined;
           }
           const norm = id.replace(/\\/g, '/');
+          // Foundation — pin the shared design-tokens leaf (`src/lib/tokens.ts`)
+          // to its own tiny chunk. It is imported by BOTH entries' app shell
+          // (ErrorBoundary + Toast, which `showcase-entry.tsx` mounts) AND by the
+          // authed Site-Intelligence panels. With no explicit home Rollup
+          // co-located it into the lazy `panel-sections` chunk, so `showcase-app`
+          // statically imported panel-sections -> panel-compute -> turf/ecocrop-db
+          // and the entire authed graph rode into the showcase first paint
+          // (Prong B regression). Giving tokens a deterministic neutral home
+          // severs that static bridge — the showcase entry now reaches the heavy
+          // panel chunks only via dynamic import. See ADR
+          // 2026-05-21-atlas-showcase-bundle-split.
+          if (/\/src\/lib\/tokens\.ts$/.test(norm)) return 'foundation';
+          // ShowcaseMap is the only maplibre-backed module in the showcase tree
+          // and it loads on demand (click-to-explore thumbnail + dev capture
+          // route), never at first paint. Give it its own async chunk so it is
+          // NOT glued into `showcase-app`'s body — otherwise its static
+          // `maplibre-gl` import rides into the showcase entry's eager closure
+          // even though both call sites import it dynamically. Must precede the
+          // `/src/showcase/` rule below.
+          if (norm.endsWith('/src/showcase/components/ShowcaseMap.tsx')) return 'showcase-map';
           // Phase 3.5 Prong B — all `src/showcase/**` + the showcase entry
           // module land in a dedicated chunk for the showcase HTML.
           if (

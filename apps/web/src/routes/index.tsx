@@ -22,6 +22,7 @@ import {
   useParams,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
+import { lazy, Suspense, type ComponentType } from 'react';
 import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
 import ArchivePage from '../pages/ArchivePage.js';
@@ -89,9 +90,11 @@ import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import OLOSWorkspacePage from '../v3/olos/OLOSWorkspacePage.js';
 import OLOSObjectivePage from '../v3/olos/OLOSObjectivePage.js';
-import { ShowcasePage } from '../showcase/routes/showcase.js';
-import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
-import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
+// Showcase pages are lazy-loaded — see the `lazyRoute` declarations just above
+// the showcase route block below. They are a separate Vite entry
+// (showcase.html) with a heavy graph (maplibre, turf, EcoCrop, scrollytelling);
+// importing them statically here would pull `showcase-app` into the authed
+// app's first-paint closure.
 import WizardStep1Site from '../v3/project-wizard/WizardStep1Site.js';
 import WizardStepRouter from '../v3/project-wizard/WizardStepRouter.js';
 import { useProjectStore } from '../store/projectStore.js';
@@ -1201,6 +1204,27 @@ const observeShareRoute = createRoute({
 });
 
 // ─── Showcase (public scrollytelling — outside AppShell, no auth) ────────
+//
+// Lazy-loaded so the showcase chunk (`showcase-app` + its maplibre/turf/EcoCrop
+// graph) stays a *dynamic* import in the authed router and never enters the
+// authed app's static first-paint closure. Each page is wrapped in its own
+// Suspense boundary so a raw React.lazy component can be handed straight to
+// TanStack Router's `component` slot. See ADR
+// 2026-05-21-atlas-showcase-bundle-split.
+function lazyRoute(factory: () => Promise<{ default: ComponentType }>) {
+  const Loaded = lazy(factory);
+  return function LazyShowcaseRoute() {
+    return (
+      <Suspense fallback={null}>
+        <Loaded />
+      </Suspense>
+    );
+  };
+}
+const ShowcasePage = lazyRoute(() => import('../showcase/routes/showcase.js'));
+const ShowcaseTierPage = lazyRoute(() => import('../showcase/routes/showcase.$tier.js'));
+const ShowcaseCapturePage = lazyRoute(() => import('../showcase/routes/showcase._capture.js'));
+
 const showcaseRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/showcase/three-streams',
