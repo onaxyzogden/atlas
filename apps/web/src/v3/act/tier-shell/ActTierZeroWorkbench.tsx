@@ -552,7 +552,7 @@ export default function ActTierZeroWorkbench({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   // Reset to the list whenever the active objective changes, so switching
-  // objectives (0.1 -> 0.2) returns to the full list rather than carrying a
+  // objectives (1.1 -> 1.2) returns to the full list rather than carrying a
   // stale selection into the new objective.
   useEffect(() => {
     setSelectedItemId(null);
@@ -696,7 +696,7 @@ export default function ActTierZeroWorkbench({
           <>
             {/* Declaration-only reference block: the canonical Team Object
                 registry sits ABOVE the working panel and only for the team
-                objective (0.2). Read-only -- the actual capture is below. */}
+                objective (1.2). Read-only -- the actual capture is below. */}
             {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
               <TeamRegistryPanel projectId={projectId} />
             ) : null}

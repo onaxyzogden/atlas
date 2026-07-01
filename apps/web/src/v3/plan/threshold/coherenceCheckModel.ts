@@ -671,7 +671,7 @@ export const COHERENCE_COPY = {
   title: 'The Coherence Check',
   /** The one-line framing of the moment (synthesis, not confrontation). */
   tagline:
-    'Where the designs from Tiers 3 and 4 are verified to connect into a coherent whole -- nothing new is designed here.',
+    'Where the designs from Strata 4 and 5 are verified to connect into a coherent whole -- nothing new is designed here.',
   /**
    * The header description. Adapted from the spec (covenant-clean) but corrected
    * for honesty: Threshold 2 is always reachable (a deliberate operator decision
@@ -682,7 +682,7 @@ export const COHERENCE_COPY = {
    * readiness banner below carries the actual completion state.
    */
   intro:
-    'This threshold verifies that the designs from Tiers 3 and 4 connect into a coherent whole: that all systems connect, all enterprises close at least one waste-to-input loop, and all monitoring protocols are complete. Nothing is designed here. Gaps are resolved inline -- no navigation back to tiers.',
+    'This threshold verifies that the designs from Strata 4 and 5 connect into a coherent whole: that all systems connect, all enterprises close at least one waste-to-input loop, and all monitoring protocols are complete. Nothing is designed here. Gaps are resolved inline -- no navigation back to strata.',
   /**
    * Honest readiness banner copy. Because the threshold can open before the
    * design is finished, the surface shows this when Tier 3/4 is incomplete --
@@ -693,9 +693,9 @@ export const COHERENCE_COPY = {
   readiness: {
     incompleteTitle: 'Design still in progress',
     incompleteBody:
-      'Some Tier 3 and Tier 4 design objectives are not yet complete. You can run the Coherence Check now, but it audits the design exactly as it stands -- incomplete objectives surface below as open gaps. Finish the remaining design work for a complete verdict.',
+      'Some Stratum 4 and Stratum 5 design objectives are not yet complete. You can run the Coherence Check now, but it audits the design exactly as it stands -- incomplete objectives surface below as open gaps. Finish the remaining design work for a complete verdict.',
     completeNote:
-      'All Tier 3 and Tier 4 design objectives are complete -- this audit reads a finished design.',
+      'All Stratum 4 and Stratum 5 design objectives are complete -- this audit reads a finished design.',
     tallyLabel: 'design objectives complete',
   },
   sectionA: {
@@ -703,7 +703,7 @@ export const COHERENCE_COPY = {
     label: 'System Integration',
     heading: 'Do the designs connect?',
     blurb:
-      'Checks that the designs produced in Tiers 3 and 4 connect to each other at the integration points specific to this configuration.',
+      'Checks that the designs produced in Strata 4 and 5 connect to each other at the integration points specific to this configuration.',
   },
   sectionB: {
     key: 'B' as const,
@@ -751,7 +751,7 @@ export const COHERENCE_COPY = {
   /** What Threshold 2 does NOT do (spec) -- a reassurance block. */
   notList: [
     'It does not design anything new -- it verifies completeness.',
-    'It does not send you back to Tier 3 or Tier 4 to re-do design work.',
+    'It does not send you back to Stratum 4 or Stratum 5 to re-do design work.',
     'It does not evaluate whether the designs are good -- only that they are complete and connected.',
     'It does not gate on quality; it gates on completeness and integration.',
     'It does not require a new document -- the Coherence Record assembles automatically.',
@@ -767,7 +767,7 @@ export const COHERENCE_GATE_COPY = {
   pending: {
     pill: 'Threshold 2',
     title: 'Coherence Check not yet sealed',
-    body: 'These strata carry the integrated, phased design forward. The Coherence Check that verifies your Tier 3-4 designs connect is not sealed yet. You can work here, but the coherence verdict that grounds this work is not set.',
+    body: 'These strata carry the integrated, phased design forward. The Coherence Check that verifies your Strata 4-5 designs connect is not sealed yet. You can work here, but the coherence verdict that grounds this work is not set.',
     action: 'Open Threshold 2',
   },
   sealed: {

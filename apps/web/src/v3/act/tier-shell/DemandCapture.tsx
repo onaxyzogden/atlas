@@ -27,7 +27,7 @@
  * values, NO projectId, writes NOTHING to any store. The captured demand is read
  * back by the Plan-only Capacity Bridge (Stage 6) via the pure selector
  * `phase1DemandBaseline(labourValue, capitalValue)`, joined display-only against the
- * steward team's declared SUPPLY from Tier 0 Objective 0.2.
+ * steward team's declared SUPPLY from Stratum 1 Objective 1.2.
  *
  * decode is TOTAL / defensive: never throws, never fabricates seed/demo data. An
  * empty FormValue yields empty registers. Register entries are JSON rows
@@ -445,7 +445,7 @@ export function DemandCapture({
         <p className={css.modeHint}>
           Record each Phase 1 task with the season it falls in, the headcount and
           weekly labour-hours it needs, and where that labour comes from. This is
-          the demand side of the Tier 0 Capacity Bridge.
+          the demand side of the Stratum 1 Capacity Bridge.
         </p>
         <RegisterList<LabourDemandRow>
           items={model.rows}
@@ -532,7 +532,7 @@ export function DemandCapture({
 
         <FeedsNote>
           Phase 1 labour demand is joined against the steward team{"'"}s declared
-          capacity (<strong>Tier 0, Objective 0.2</strong>) in the Capacity Bridge.
+          capacity (<strong>Stratum 1, Objective 1.2</strong>) in the Capacity Bridge.
         </FeedsNote>
       </div>
     );
@@ -620,7 +620,7 @@ export function DemandCapture({
       <FeedsNote>
         Capital demand by category and funding channel feeds the{' '}
         <strong>Capacity Bridge</strong> alongside the labour demand and the
-        steward team{"'"}s declared resources (Tier 0, Objective 0.2).
+        steward team{"'"}s declared resources (Stratum 1, Objective 1.2).
       </FeedsNote>
     </div>
   );

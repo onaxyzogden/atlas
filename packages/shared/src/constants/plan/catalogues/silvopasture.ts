@@ -146,7 +146,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ),
       ck(
         'silv-s1-land-improvement-philosophy-c4',
-        'Document philosophy as design constraint - all Tier 3-4 decisions evaluated against it',
+        'Document philosophy as design constraint - all Stratum 4-5 decisions evaluated against it',
         { feeds: ['s4-direction'] },
       ),
       ck(
@@ -944,7 +944,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Fencing and paddock design approved. All paddocks accessible without cross-paddock movement.',
     actHandoff: 'Fencing & Paddock Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
+      'Builds on the Stratum 4 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Share of paddocks reachable from the laneway without crossing another paddock', frequency: 'per rotation' },
@@ -1009,7 +1009,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Stock water distribution network design approved. All paddocks confirmed with welfare-standard water access.',
     actHandoff: 'Stock Water Distribution Network Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 stock water infrastructure strategy (silv-s4-stock-water-strategy).',
+      'Builds on the Stratum 4 stock water infrastructure strategy (silv-s4-stock-water-strategy).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Share of paddock troughs delivering water within the welfare access standard', frequency: 'monthly' },
@@ -1056,7 +1056,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       ),
       ck(
         'silv-s5-shelters-handling-c5',
-        'Confirm all facilities meet animal welfare standards defined in Tier 0',
+        'Confirm all facilities meet animal welfare standards defined in Stratum 1',
         { feeds: ['silv-s7-livestock-establishment'] },
       ),
     ],
@@ -1069,7 +1069,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Livestock shelters and handling facilities design approved. Welfare standard compliance confirmed.',
     actHandoff: 'Livestock Shelters & Handling Facilities Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
+      'Builds on the Stratum 4 paddock layout and rotational grazing framework (silv-s4-paddock-layout).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Yard and race throughput against design capacity during handling events (animals per session, hold-ups logged)', frequency: 'per handling event' },
@@ -1096,7 +1096,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     checklist: [
       ck(
         'silv-s5-tree-planting-c1',
-        'Map tree planting locations within paddock framework per Tier 3 strategy',
+        'Map tree planting locations within paddock framework per Stratum 4 strategy',
         { feeds: ['s7-phase1'] },
       ),
       ck(
@@ -1134,7 +1134,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
       'Tree planting and protection plan approved. Establishment sequence aligned with paddock rotation.',
     actHandoff: 'Silvopasture Tree Planting & Protection Plan',
     buildsOnDisplay:
-      'Builds on the Tier 3 tree integration strategy (silv-s4-tree-integration).',
+      'Builds on the Stratum 4 tree integration strategy (silv-s4-tree-integration).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Tree establishment and survival rate per planting zone', frequency: 'at 6 and 12 months' },
@@ -1723,7 +1723,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     actHandoff: 'Livestock Water Availability Report',
     observeOutput: 'Livestock Water Availability Record',
     buildsOnDisplay:
-      'Tier 2.1 Water movement (water source locations, seasonal yields, and distribution infrastructure identified there)',
+      'Stratum 3.1 Water movement (water source locations, seasonal yields, and distribution infrastructure identified there)',
     intentLens: [
       {
         typeId: 'silvopasture',

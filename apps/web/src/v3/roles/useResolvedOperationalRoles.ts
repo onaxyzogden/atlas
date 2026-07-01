@@ -50,6 +50,14 @@ import {
 import { useProject } from '../../hooks/useProjectQueries.js';
 
 export interface ResolvedOperationalRoles {
+  /**
+   * True while the underlying project query is still loading. The pure core
+   * (which has no async) always reports `false`; only the hook sets it. Editors
+   * that snapshot the resolved defs into local state MUST wait for this to be
+   * `false` before seeding, or they capture the built-in placeholder values the
+   * resolver returns during the pending window.
+   */
+  isLoading: boolean;
   /** Validated per-project override array, or `undefined` when none/invalid. */
   overrides: OperationalRoleDefsOverrideType | undefined;
   /** True when this project stores at least one (valid) override. */
@@ -92,6 +100,9 @@ export function resolveOperationalRolesFromMetadata(
   for (const def of defs) defBySlug[def.slug] = def;
 
   return {
+    // Pure resolution is synchronous; the hook overrides this with the real
+    // query state. Direct callers of the pure core are never "loading".
+    isLoading: false,
     overrides,
     hasOverrides,
     defs,
@@ -112,11 +123,17 @@ export function resolveOperationalRolesFromMetadata(
 export function useResolvedOperationalRoles(
   projectId: string,
 ): ResolvedOperationalRoles {
-  const { data: project } = useProject(projectId);
+  const { data: project, isLoading } = useProject(projectId);
   const metadata = project?.metadata ?? null;
-  return useMemo(
+  // Resolve off the (stable) metadata so the Set-bearing `domainsMap` keeps a
+  // stable identity; fold in the live `isLoading` without churning that map.
+  const resolved = useMemo(
     () => resolveOperationalRolesFromMetadata(metadata),
     [metadata],
+  );
+  return useMemo(
+    () => ({ ...resolved, isLoading }),
+    [resolved, isLoading],
   );
 }
 

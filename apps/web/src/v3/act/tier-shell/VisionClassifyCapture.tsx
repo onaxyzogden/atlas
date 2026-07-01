@@ -279,7 +279,7 @@ export default function VisionClassifyCapture({
           <ArrowRight size={13} aria-hidden="true" />
         </span>
         <p className={css.tier3Text}>
-          At <strong>Tier 3</strong>, each element gets reclassified against
+          At <strong>Stratum 4</strong>, each element gets reclassified against
           observed land conditions -- feasible, conditional, deferred, or
           rejected. This is your intent. The land has its own answer.
         </p>

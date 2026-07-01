@@ -10,7 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/apiClient.js';
 import { toast } from '../components/Toast.js';
-import type { AssessmentResponse, BasemapTerrainResponse, CreateProjectInput, HydrologyWaterResponse, LayerType, UpdateProjectInput } from '@ogden/shared';
+import type { AssessmentResponse, BasemapTerrainResponse, CreateProjectInput, HydrologyWaterResponse, LayerType, SetOperationalRoleDefsInput, UpdateProjectInput } from '@ogden/shared';
 
 export interface ProjectLayerRow {
   id: string;
@@ -210,6 +210,28 @@ export function useUpdateProject() {
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: projectKeys.list() });
       toast.success('Project updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+}
+
+/**
+ * Owner / primary-steward edit of the project's operational-role definitions
+ * (ADR 2026-06-24 Operational Role Layer, Option C -- rename + re-scope). Sends
+ * the full desired override set; an empty array resets to the six built-ins.
+ * Invalidates the project detail so useResolvedOperationalRoles repaints labels,
+ * scoped views, badges, and the roster everywhere.
+ */
+export function useSetOperationalRoleDefs() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: SetOperationalRoleDefsInput }) =>
+      api.projects.setOperationalRoleDefs(id, input),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
+      toast.success('Operational roles updated');
     },
     onError: (err: Error) => {
       toast.error(err.message);

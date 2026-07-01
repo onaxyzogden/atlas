@@ -1,13 +1,13 @@
 /**
  * @vitest-environment happy-dom
  *
- * ReceptionCenter -- the Plan-stage Tier-2 / Reception (Systems Reading) header
+ * ReceptionCenter -- the Plan-stage Stratum-3 / Reception (Systems Reading) header
  * that sits above the 2-pane workbench grid. Pure presentation over
  * receptionModel; these tests pin the rendered DOM:
  *   1. mode header copy + reception-rule callout.
- *   2. sequencing strip -- one node per present survey with its "2.x" + status,
+ *   2. sequencing strip -- one node per present survey with its "3.x" + status,
  *      plus a terminal Threshold-1 node that tracks completion.
- *   3. the two gate cards (Tier-2 fraction + Threshold-1 open/locked).
+ *   3. the two gate cards (Stratum 3 fraction + Threshold-1 open/locked).
  *   4. interactivity -- a non-locked node selects its survey; locked is static.
  *   5. Amanah -- the rendered center copy carries no advance-sale / CSA framing.
  */
@@ -107,7 +107,7 @@ describe('ReceptionCenter -- header + rule', () => {
     );
     const center = screen.getByTestId('reception-center');
     expect(center.textContent).toMatch(/Mode 2 -- Reception/);
-    expect(center.textContent).toMatch(/Tier 2/);
+    expect(center.textContent).toMatch(/Stratum 3/);
     expect(center.textContent).toMatch(/beneath the surface/);
   });
 
@@ -126,7 +126,7 @@ describe('ReceptionCenter -- header + rule', () => {
 });
 
 describe('ReceptionCenter -- sequencing strip', () => {
-  it('renders one node per present survey with its 2.x + status', () => {
+  it('renders one node per present survey with its 3.x + status', () => {
     render(
       <ReceptionCenter
         objectives={FIVE}
@@ -135,17 +135,17 @@ describe('ReceptionCenter -- sequencing strip', () => {
       />,
     );
     expect(
-      screen.getByTestId('seq-node-2.1').getAttribute('data-status'),
+      screen.getByTestId('seq-node-3.1').getAttribute('data-status'),
     ).toBe('complete');
     expect(
-      screen.getByTestId('seq-node-2.2').getAttribute('data-status'),
+      screen.getByTestId('seq-node-3.2').getAttribute('data-status'),
     ).toBe('active');
     expect(
-      screen.getByTestId('seq-node-2.4').getAttribute('data-status'),
+      screen.getByTestId('seq-node-3.4').getAttribute('data-status'),
     ).toBe('locked');
-    // The new livestock-water survey is present at 2.5.
-    expect(screen.getByTestId('seq-node-2.5').textContent).toMatch(
-      /2\.5 Livestock Water/,
+    // The new livestock-water survey is present at 3.5.
+    expect(screen.getByTestId('seq-node-3.5').textContent).toMatch(
+      /3\.5 Livestock Water/,
     );
   });
 
@@ -174,7 +174,7 @@ describe('ReceptionCenter -- sequencing strip', () => {
     ).toBe('available');
   });
 
-  it('shows the 2.5-benefits-from-2.1 note when the livestock survey is present', () => {
+  it('shows the 3.5-benefits-from-3.1 note when the livestock survey is present', () => {
     render(
       <ReceptionCenter
         objectives={FIVE}
@@ -183,13 +183,13 @@ describe('ReceptionCenter -- sequencing strip', () => {
       />,
     );
     expect(screen.getByTestId('reception-center').textContent).toMatch(
-      /2\.5 Livestock Water benefits from 2\.1/,
+      /3\.5 Livestock Water benefits from 3\.1/,
     );
   });
 });
 
 describe('ReceptionCenter -- gate cards', () => {
-  it('renders the Tier-2 progress fraction', () => {
+  it('renders the Stratum 3 progress fraction', () => {
     render(
       <ReceptionCenter
         objectives={FIVE}
@@ -240,8 +240,8 @@ describe('ReceptionCenter -- interactivity', () => {
         onSelectObjective={onSelectObjective}
       />,
     );
-    // 2.2 (s3-soil) is active -> interactive button.
-    const node = screen.getByTestId('seq-node-2.2');
+    // 3.2 (s3-soil) is active -> interactive button.
+    const node = screen.getByTestId('seq-node-3.2');
     expect(node.tagName).toBe('BUTTON');
     fireEvent.click(node);
     expect(onSelectObjective).toHaveBeenCalledTimes(1);
@@ -258,8 +258,8 @@ describe('ReceptionCenter -- interactivity', () => {
         onSelectObjective={onSelectObjective}
       />,
     );
-    // 2.4 (rf-s3-pest-pressure) is locked -> static span.
-    const node = screen.getByTestId('seq-node-2.4');
+    // 3.4 (rf-s3-pest-pressure) is locked -> static span.
+    const node = screen.getByTestId('seq-node-3.4');
     expect(node.tagName).toBe('SPAN');
     fireEvent.click(node);
     expect(onSelectObjective).not.toHaveBeenCalled();
@@ -273,7 +273,7 @@ describe('ReceptionCenter -- interactivity', () => {
         progress={PROGRESS_PARTIAL}
       />,
     );
-    expect(screen.getByTestId('seq-node-2.2').tagName).toBe('SPAN');
+    expect(screen.getByTestId('seq-node-3.2').tagName).toBe('SPAN');
   });
 });
 
@@ -295,7 +295,7 @@ describe('ReceptionCenter -- tier1 (Land Reading) parameterization', () => {
     'rf-s2-landscape-context': 'locked',
   };
 
-  it('renders the Tier-1 framing, the six 1.x surveys, and a "Tier 2" terminal', () => {
+  it('renders the Tier-1 framing, the six 2.x surveys, and a "Stratum 3" terminal', () => {
     render(
       <ReceptionCenter
         objectives={SIX}
@@ -306,7 +306,7 @@ describe('ReceptionCenter -- tier1 (Land Reading) parameterization', () => {
     );
     const center = screen.getByTestId('reception-center');
     expect(center.textContent).toMatch(/Mode 2 -- Reception/);
-    expect(center.textContent).toMatch(/Tier 1/);
+    expect(center.textContent).toMatch(/Stratum 2/);
     expect(center.textContent).toMatch(/actually here/);
     // Tier-1 rule lead ("Reception rule:"), NOT the Tier-2 "continues" variant.
     expect(screen.getByTestId('reception-rule').textContent).toMatch(
@@ -316,13 +316,13 @@ describe('ReceptionCenter -- tier1 (Land Reading) parameterization', () => {
       /Reception rule continues/,
     );
 
-    // Six Land-Reading surveys 1.1..1.6; no 2.x nodes on a Tier-1 strip.
-    expect(screen.getByTestId('seq-node-1.1')).toBeTruthy();
-    expect(screen.getByTestId('seq-node-1.6')).toBeTruthy();
-    expect(screen.queryByTestId('seq-node-2.1')).toBeNull();
+    // Six Land-Reading surveys 2.1..2.6; no 3.x nodes on a Tier-1 strip.
+    expect(screen.getByTestId('seq-node-2.1')).toBeTruthy();
+    expect(screen.getByTestId('seq-node-2.6')).toBeTruthy();
+    expect(screen.queryByTestId('seq-node-3.1')).toBeNull();
 
-    // Terminal node is the Tier-2 unlock, not the covenant Threshold-1.
-    expect(screen.getByTestId('seq-node-threshold').textContent).toBe('Tier 2');
+    // Terminal node is the Stratum 3 unlock, not the covenant Threshold-1.
+    expect(screen.getByTestId('seq-node-threshold').textContent).toBe('Stratum 3');
 
     // First gate tracks Tier-1 completion (4 / 6 from PROGRESS_PARTIAL.tierOne).
     expect(screen.getByTestId('reception-tier-gate').textContent).toMatch(
@@ -340,7 +340,7 @@ describe('ReceptionCenter -- tier1 (Land Reading) parameterization', () => {
       />,
     );
     expect(screen.getByTestId('reception-center').textContent).not.toMatch(
-      /benefits from 2\.1/,
+      /benefits from 3\.1/,
     );
   });
 });

@@ -125,7 +125,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ]),
     ],
     completionGate:
-      'A bounded, evidence-grounded vision is approved with clear success criteria and constraints documented. This declaration becomes the lens for all land reading in Tiers 1-2.',
+      'A bounded, evidence-grounded vision is approved with clear success criteria and constraints documented. This declaration becomes the lens for all land reading in Strata 2-3.',
     actHandoff: 'Vision & Intent Brief',
   }),
   // 0.2 - The canonical Steward/Team Object (Tier-0 restructure 2026-06-16).
@@ -164,9 +164,16 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         ),
         optional: true,
       },
+      // People & roles (Phase-4 consolidation 2026-06-28): the free-text "team
+      // role" input was replaced by the standardized operational-role pills (each
+      // member's default domain focus across Plan / Act / Observe) plus on-site
+      // presence, absorbing the retired standalone c9 item. The pills write to
+      // the *membership* (project_members.operational_roles), so this item stays
+      // always-recordable (residency / presence satisfy it) and never gates the
+      // objective -- preserving the ADR 2026-06-24 "never gates" guarantee.
       ck(
         's1-steward-c2',
-        'Define the role of each person - what they are responsible for on this land',
+        'Assign each person an operational role - the default domain focus carried across Plan, Act, and Observe - plus on-site presence',
         { feeds: ['s4-direction'] },
       ),
       ck(
@@ -206,26 +213,16 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Note the governance principles and decision-making framework that will govern the team',
         { feeds: ['s4-direction'] },
       ),
-      // Operational roles (ADR 2026-06-24): each member's default domain focus
-      // across Plan / Act / Observe. View-scoping only - it never grants or
-      // removes capability (that stays with PROJECT_ROLE_CAPABILITIES) and feeds
-      // no downstream objective. `optional` so it is excluded from the steward
-      // objective's required-progress denominator (stratumObjectiveStatus filters
-      // !optional) - adding it never drags or gates completion.
-      {
-        ...ck(
-          's1-steward-c9',
-          'Assign operational roles - set the default domain focus for each member across Plan, Act, and Observe',
-        ),
-        optional: true,
-      },
+      // (The standalone operational-roles item c9 from ADR 2026-06-24 was retired
+      // on 2026-06-28: its pills were folded into the People & roles capture c2
+      // above, so the duplicate item is gone. Operational roles remain
+      // non-gating -- they live on the membership, not this checklist.)
     ],
     decisionGroups: [
       dg('s1-steward-dg1', 'People & roles', [
         's1-steward-c1',
         's1-steward-c2',
         's1-steward-c3',
-        's1-steward-c9',
       ]),
       dg('s1-steward-dg2', 'Capability & resources', [
         's1-steward-c4',
@@ -279,13 +276,13 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         feeds: ['s4-direction', 's7-risk-register'],
         feedHint: 'Feeds Plan: Risk / Compliance overlay',
         feedNote:
-          'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Tier 0.',
+          'Zoning status feeds Plan: Risk / Compliance overlay. Permitted uses inform enterprise mix decisions in Stratum 1.',
       }),
       ck('s1-boundaries-c5', 'Identify water rights and entitlements', {
         feeds: ['s4-water-strategy', 's5-water-infrastructure'],
-        feedHint: 'Feeds Tier 2: Water strategy',
+        feedHint: 'Feeds Stratum 3: Water strategy',
         feedNote:
-          'Water entitlements feed Tier 2: Water strategy and constrain all water harvesting and storage design.',
+          'Water entitlements feed Stratum 3: Water strategy and constrain all water harvesting and storage design.',
       }),
       ck(
         's1-boundaries-c6',
@@ -302,7 +299,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         {
           feeds: ['s7-phase1', 's7-risk-register'],
           feedNote:
-            'Permit requirements become prerequisites on Act handoff packages in Tiers 3-6.',
+            'Permit requirements become prerequisites on Act handoff packages in Strata 4-7.',
         },
       ),
     ],
@@ -647,7 +644,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Hydrology Survey Package',
     observeOutput: 'Hydrology Survey Record',
     buildsOnDisplay:
-      'Tier 1.1 Terrain & topography (terrain map guides water flow interpretation); Tier 1.5 Land health (degradation zones indicate altered water movement)',
+      'Stratum 2.1 Terrain & topography (terrain map guides water flow interpretation); Stratum 2.5 Land health (degradation zones indicate altered water movement)',
     intentLens: [
       {
         typeId: 'regenerative_farm',
@@ -711,7 +708,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Soil Survey Package',
     observeOutput: 'Soil Survey Record',
     buildsOnDisplay:
-      'Tier 1.5 Land health & degradation (degradation zones identify where soil profiling is most critical); Tier 1.1 Terrain (slope and drainage class inform soil type distribution)',
+      'Stratum 2.5 Land health & degradation (degradation zones identify where soil profiling is most critical); Stratum 2.1 Terrain (slope and drainage class inform soil type distribution)',
     intentLens: [
       {
         typeId: 'regenerative_farm',
@@ -1039,7 +1036,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     buildsOnDisplay:
       'Builds on 3.1 -- Water strategy (source, storage approach, and distribution strategy are pre-decided).',
     planningDirectionMandate:
-      'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 2.5 Livestock Water Availability demand assessment, the conditional requirement raised at Tier 3 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
+      'This water infrastructure design CLOSES the Threshold 1 Silvopasture water conditional: once the stock-water distribution network is designed to every paddock trough and confirmed against the 3.5 Livestock Water Availability demand assessment, the conditional requirement raised at Stratum 4 against silvopasture is formally resolved (display-only -- it records closure, it never gates).',
     monitoringProtocol: {
       indicators: [
         {

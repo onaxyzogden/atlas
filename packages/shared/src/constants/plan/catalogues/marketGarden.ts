@@ -93,7 +93,7 @@ export const MARKET_GARDEN_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] =
       ck('mgd-s1-growing-system-philosophy-c2', 'Define certification intent - certified organic, uncertified organic, conventional'),
       ck('mgd-s1-growing-system-philosophy-c3', 'Define external input policy - what inputs are acceptable and what are prohibited', { feeds: ['mgd-s4-fertility-strategy', 'mgd-s4-ipm-strategy'] }),
       ck('mgd-s1-growing-system-philosophy-c4', 'Define soil health priority - how soil biology guides all production decisions', { feeds: ['s5-soil-improvement', 'mgd-s4-fertility-strategy'] }),
-      ck('mgd-s1-growing-system-philosophy-c5', 'Document philosophy as design constraint - all Tier 3-4 decisions evaluated against it', { feeds: ['mgd-s4-fertility-strategy', 'mgd-s4-ipm-strategy', 'mgd-s4-irrigation-strategy'] }),
+      ck('mgd-s1-growing-system-philosophy-c5', 'Document philosophy as design constraint - all Stratum 4-5 decisions evaluated against it', { feeds: ['mgd-s4-fertility-strategy', 'mgd-s4-ipm-strategy', 'mgd-s4-irrigation-strategy'] }),
     ],
     decisionGroups: [
       dg('mgd-s1-growing-system-philosophy-dg1', 'Growing system & certification', ['mgd-s1-growing-system-philosophy-c1', 'mgd-s1-growing-system-philosophy-c2']),

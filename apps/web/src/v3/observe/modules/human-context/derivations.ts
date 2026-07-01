@@ -17,15 +17,23 @@ import type {
 /* --------------------------- steward ---------------------------------- */
 
 /**
- * The twelve profile-overlay fields counted toward per-steward completeness.
+ * The eleven profile-overlay fields counted toward per-steward completeness.
  * Identity (name) lives on the member record, not the profile, so it is not
  * counted here. `needs` joined the set 2026-06-14 (steward data audit Option 3).
- * The three team-role fields (`teamRole`, `residentStatus`, `roleAllocation`)
- * joined 2026-06-16 with the Tier-0 Steward/Team Object restructure -- they are
- * captured on the Plan Declaration surface (StewardTeamCapture), not the Observe
- * survey, so the completeness ring now spans both surfaces by design (one
- * canonical StewardProfile referenced everywhere). All three are string-valued,
- * so `isFilled` treats them correctly without change.
+ * The residency fields (`residentStatus`, `roleAllocation`) joined 2026-06-16
+ * with the Tier-0 Steward/Team Object restructure -- captured on the Plan
+ * Declaration surface (StewardTeamCapture), not the Observe survey, so the
+ * completeness ring spans both surfaces by design (one canonical StewardProfile
+ * referenced everywhere). Both are string-valued, so `isFilled` treats them
+ * correctly without change.
+ *
+ * The free-text `teamRole` field was DROPPED here on 2026-06-28 (Phase-4
+ * team-role consolidation): the "what they do" concept was folded into the
+ * standardized operational-role pills, which live on the *membership*
+ * (`project_members.operational_roles`), not on this profile overlay -- and
+ * operational roles are intentionally non-gating (ADR 2026-06-24), so they are
+ * NOT added here in their place. The `teamRole` field stays on `StewardProfile`
+ * for legacy display only; it simply no longer counts toward completeness.
  */
 const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'relationship',
@@ -37,7 +45,6 @@ const STEWARD_FIELDS: Array<keyof StewardProfile> = [
   'budget',
   'skills',
   'needs',
-  'teamRole',
   'residentStatus',
   'roleAllocation',
 ];

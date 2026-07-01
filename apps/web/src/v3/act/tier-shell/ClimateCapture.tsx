@@ -773,7 +773,7 @@ export function ClimateCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Rainfall data feeds <strong>Tier 3: Water strategy</strong> and all
+            Rainfall data feeds <strong>Stratum 4: Water strategy</strong> and all
             design decisions for water harvesting, storage sizing, and irrigation
             infrastructure.
           </div>
@@ -830,8 +830,8 @@ export function ClimateCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Wind sectors feed <strong>Tier 3: Spatial framework</strong> and{' '}
-            <strong>Tier 4: Windbreak &amp; shelter design</strong>. The
+            Wind sectors feed <strong>Stratum 4: Spatial framework</strong> and{' '}
+            <strong>Stratum 5: Windbreak &amp; shelter design</strong>. The
             hot/desiccating direction is the primary windbreak orientation.
           </div>
         </div>
@@ -1034,7 +1034,7 @@ function TemperatureBody({
         <div className={css.feedsTxt}>
           Frost dates feed <strong>species selection</strong> and{' '}
           <strong>propagation timing</strong>. Heat event frequency feeds shade
-          structure requirements in Tier 4.
+          structure requirements in Stratum 5.
         </div>
       </div>
     </div>
@@ -1182,8 +1182,8 @@ function SolarBody({
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
-          Sun sectors feed <strong>Tier 3: Spatial framework</strong>,{' '}
-          <strong>Tier 4: Building placement</strong>, and all growing zone
+          Sun sectors feed <strong>Stratum 4: Spatial framework</strong>,{' '}
+          <strong>Stratum 5: Building placement</strong>, and all growing zone
           orientation decisions.
         </div>
       </div>
@@ -1324,8 +1324,8 @@ function FireBody({
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
-          Fire risk feeds <strong>Tier 3: Spatial framework</strong> (building
-          placement exclusion zones), <strong>Tier 4: Access design</strong>{' '}
+          Fire risk feeds <strong>Stratum 4: Spatial framework</strong> (building
+          placement exclusion zones), <strong>Stratum 5: Access design</strong>{' '}
           (emergency egress), and all fuel load management protocols.
         </div>
       </div>
@@ -1403,7 +1403,7 @@ function MicroclimateBody({
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
           Microclimate features feed{' '}
-          <strong>Tier 3: Spatial framework &amp; zone allocation</strong>.
+          <strong>Stratum 4: Spatial framework &amp; zone allocation</strong>.
           Frost hollows, shelter pockets, and heat traps are primary zone
           placement inputs.
         </div>

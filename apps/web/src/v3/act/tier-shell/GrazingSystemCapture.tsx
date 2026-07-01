@@ -819,7 +819,7 @@ export function GrazingSystemCapture({
       <div className={css.root} data-grazing-mode="grazeRest">
         <InterpretationBlock tone="info">
           <ArrowLeft size={10} aria-hidden="true" /> Feed gap months (Jan-Mar)
-          from: forage carrying capacity survey (Tier 2)
+          from: forage carrying capacity survey (Stratum 3)
         </InterpretationBlock>
         <div>
           <SectionEyebrow>Seasonal graze/rest targets</SectionEyebrow>
@@ -1016,7 +1016,7 @@ export function GrazingSystemCapture({
     <div className={css.root} data-grazing-mode="stockingDensity">
       <div className={css.densityRef}>
         <ArrowLeft size={10} aria-hidden="true" /> Survey data from forage
-        carrying capacity assessment (Tier 2)
+        carrying capacity assessment (Stratum 3)
       </div>
       <div>
         <SectionEyebrow>Designed flock breakdown</SectionEyebrow>
@@ -1070,12 +1070,12 @@ export function GrazingSystemCapture({
       <InterpretationBlock tone="info">
         The on-screen designed-DSE total is a conservative working aid. OLOS
         computes the authoritative stocking-density check from the surveyed
-        paddocks (Tier 2 forage survey) independently.
+        paddocks (Stratum 3 forage survey) independently.
       </InterpretationBlock>
       <FeedsNote>
         This designed breakdown is an advisory working aid. The capacity gate is
         confirmed by the <strong>paddock stocking-density check</strong>, which
-        runs against the surveyed Tier 2 figures.
+        runs against the surveyed Stratum 3 figures.
       </FeedsNote>
     </div>
   );

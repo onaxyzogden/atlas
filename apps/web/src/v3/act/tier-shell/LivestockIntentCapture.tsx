@@ -243,7 +243,7 @@ export const RATIONALE_OPTIONS: readonly RationaleSpec[] = [
     description:
       'Both objectives are explicitly co-designed to reinforce each other. Neither is sacrificed. This is the design brief.',
     consequence:
-      'Enterprise integration matrix requires a confirmed waste-to-input loop between livestock and at least one other enterprise before Tier 5 gates.',
+      'Enterprise integration matrix requires a confirmed waste-to-input loop between livestock and at least one other enterprise before Stratum 6 gates.',
   },
 ];
 
@@ -261,7 +261,7 @@ export const RELATIONSHIP_OPTIONS: readonly RelationshipSpec[] = [
     description:
       'Livestock actively enhance the primary enterprise. Hens in orchard lanes for pest control, cattle following harvest for residue management, grazing cover crops between tree rows.',
     consequence:
-      'Enterprise integration matrix maps specific waste-to-input loops. Sequencing is co-designed. At least one confirmed loop required before Tier 5 gates.',
+      'Enterprise integration matrix maps specific waste-to-input loops. Sequencing is co-designed. At least one confirmed loop required before Stratum 6 gates.',
   },
   {
     id: 'supplementary',
@@ -277,7 +277,7 @@ export const RELATIONSHIP_OPTIONS: readonly RelationshipSpec[] = [
     description:
       'Livestock directly compete for land, water, or labour. Not a disqualification - but it must be explicitly designed around before both can proceed.',
     consequence:
-      'Tier 3 Spatial Framework must resolve the competition. Resource allocation must be formally decided before design begins.',
+      'Stratum 4 Spatial Framework must resolve the competition. Resource allocation must be formally decided before design begins.',
   },
 ];
 
@@ -786,7 +786,7 @@ export function LivestockIntentCapture({
         <FeedsNote>
           The relationship drives the{' '}
           <strong>enterprise integration matrix</strong>: complementary loops are
-          co-designed, competing demands are resolved at Tier 3 before design
+          co-designed, competing demands are resolved at Stratum 4 before design
           begins.
         </FeedsNote>
       </div>
@@ -1016,7 +1016,7 @@ export function LivestockIntentCapture({
             labour before both proceed.
           </InterpretationBlock>
           <InterpretationBlock tone="info">
-            Site-specific safety and welfare constraints become Tier 4
+            Site-specific safety and welfare constraints become Stratum 5
             paddock-design outputs - they are not decided here.
           </InterpretationBlock>
         </div>

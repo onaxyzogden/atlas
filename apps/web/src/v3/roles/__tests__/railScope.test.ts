@@ -17,7 +17,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   scopeForRoles,
+  resolveOperationalRoleDomains,
   OPERATIONAL_ROLE_DEFS,
+  type OperationalRole,
   type PlanStratumObjective,
   type UniversalDomain,
 } from '@ogden/shared';
@@ -119,5 +121,64 @@ describe('composeScopedRail -- scoped partition', () => {
       's5-water-strategy',
     ]);
     expect(rail.outsideList).toEqual([]);
+  });
+});
+
+// The Option-C override path (a stored project re-scope / rename driving the
+// rail) had no consumer test before the pre-push review -- composeScopedRail
+// accepted opts.domainsMap / opts.labelFor but nothing exercised them end-to-end
+// from a stored override. These pin both halves.
+describe('composeScopedRail -- stored override (Option C re-scope / rename)', () => {
+  it('a re-scope override flips an out-of-focus card into the main list', () => {
+    // Project re-scopes food_production to ALSO own hydrology. Resolve the same
+    // way the hook does, then derive the viewer scope from that override.
+    const domainsMap = resolveOperationalRoleDomains([
+      { slug: 'food_production', domains: ['plants-food', 'hydrology'] },
+    ]);
+    const reScoped = scopeForRoles(['food_production'], domainsMap);
+
+    // Built-in FOOD ({plants-food}) leaves s5-water-strategy OUT (existing test);
+    // under the override its hydrology domain is now in focus -> it leads the main
+    // list instead of dropping to the outside list.
+    const builtin = composeScopedRail([IN, OUT_WATER], FOOD, NO_SURFACE);
+    expect(builtin.outsideList.map((e) => e.objective.id)).toEqual([
+      's5-water-strategy',
+    ]);
+
+    const rail = composeScopedRail([IN, OUT_WATER], reScoped, NO_SURFACE, {
+      domainsMap,
+    });
+    expect(rail.mainList.map((e) => e.objective.id)).toEqual([
+      's6-yield-flows',
+      's5-water-strategy',
+    ]);
+    expect(rail.mainList.every((e) => e.scopeState === 'in')).toBe(true);
+    expect(rail.outsideList).toEqual([]);
+  });
+
+  it('a rename override flows the project-natural label into the role badges', () => {
+    const surfaceMap = new Map<string, SurfaceReason[]>([
+      ['s1-stewardship', ['open-review-flag']],
+    ]);
+    // Project renamed community_governance -> "Village Council".
+    const labelFor = (slug: OperationalRole): string =>
+      slug === 'community_governance'
+        ? 'Village Council'
+        : OPERATIONAL_ROLE_DEFS[slug].label;
+
+    const rail = composeScopedRail([IN, OUT_STEWARD], FOOD, surfaceMap, {
+      labelFor,
+    });
+    const promoted = rail.mainList.find((e) => e.objective.id === 's1-stewardship')!;
+    expect(promoted.roleBadges).toEqual(['Village Council']);
+
+    // Contrast: with no override the same card carries the built-in label.
+    const builtin = composeScopedRail([IN, OUT_STEWARD], FOOD, surfaceMap);
+    const builtinPromoted = builtin.mainList.find(
+      (e) => e.objective.id === 's1-stewardship',
+    )!;
+    expect(builtinPromoted.roleBadges).toEqual([
+      OPERATIONAL_ROLE_DEFS.community_governance.label,
+    ]);
   });
 });

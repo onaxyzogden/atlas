@@ -69,7 +69,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s1-resilience-philosophy-c2', 'Define acceptable backup or grid connection where full independence is not the target', { feeds: ['ofg-s4-energy-system-redundancy'] }),
       ck('ofg-s1-resilience-philosophy-c3', 'Define worst-case scenario resilience requirement - how long must all systems operate without resupply', { feeds: ['ofg-s7-resourcing-supply-chain', 's7-risk-register'] }),
       ck('ofg-s1-resilience-philosophy-c4', 'Confirm independence targets are achievable against site potential'),
-      ck('ofg-s1-resilience-philosophy-c5', 'Document targets as design constraints - all Tier 3-4 systems sized against them', { feeds: ['ofg-s4-water-system-redundancy', 'ofg-s4-energy-system-redundancy', 'ofg-s4-shelter-thermal-performance'] }),
+      ck('ofg-s1-resilience-philosophy-c5', 'Document targets as design constraints - all Stratum 4-5 systems sized against them', { feeds: ['ofg-s4-water-system-redundancy', 'ofg-s4-energy-system-redundancy', 'ofg-s4-shelter-thermal-performance'] }),
     ],
     decisionGroups: [
       dg('ofg-s1-resilience-philosophy-dg1', 'Independence targets & backup', ['ofg-s1-resilience-philosophy-c1', 'ofg-s1-resilience-philosophy-c2']),
@@ -80,7 +80,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Resilience philosophy approved. Independence targets defined per system and documented as design constraints.',
     actHandoff: 'Resilience Philosophy & Independence Targets Brief',
     scopeNotes:
-      'Independence targets are design gates. Every Tier 3 and Tier 4 systems decision (S4-S5) is sized and evaluated against these targets. A system that cannot meet the defined independence target requires a target revision or a design change - not an unmitigated shortfall.',
+      'Independence targets are design gates. Every Stratum 4 and Stratum 5 systems decision (S4-S5) is sized and evaluated against these targets. A system that cannot meet the defined independence target requires a target revision or a design change - not an unmitigated shortfall.',
   }),
   obj({
     id: 'ofg-s1-critical-systems-redundancy',
@@ -342,7 +342,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s3-food-production-storage-conditions-c3', 'Assess natural cold storage potential - cool rooms, root cellar conditions', { feeds: ['ofg-s5-food-production-infrastructure'] }),
       ck('ofg-s3-food-production-storage-conditions-c4', 'Assess food preservation requirements - drying, fermentation, canning capacity needed', { feeds: ['ofg-s4-food-security-storage', 'ofg-s5-food-production-infrastructure'] }),
       ck('ofg-s3-food-production-storage-conditions-c5', 'Define minimum food reserve requirement - weeks of supply as resilience target', { feeds: ['ofg-s4-food-security-storage'] }),
-      ck('ofg-s3-food-production-storage-conditions-c6', 'Confirm production potential can meet independence target defined in Tier 0', { feeds: ['ofg-s4-food-security-storage'] }),
+      ck('ofg-s3-food-production-storage-conditions-c6', 'Confirm production potential can meet independence target defined in Stratum 1', { feeds: ['ofg-s4-food-security-storage'] }),
     ],
     decisionGroups: [
       dg('ofg-s3-food-production-storage-conditions-dg1', 'Growing season & production potential', ['ofg-s3-food-production-storage-conditions-c1', 'ofg-s3-food-production-storage-conditions-c2']),
@@ -370,7 +370,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s4-water-system-redundancy-c3', 'Define minimum storage capacity - days of reserve per person', { feeds: ['ofg-s5-water-system-infrastructure', 'ofg-s6-systems-performance-monitoring'] }),
       ck('ofg-s4-water-system-redundancy-c4', 'Define treatment system - type, maintenance requirements, failure response', { feeds: ['ofg-s5-water-system-infrastructure'] }),
       ck('ofg-s4-water-system-redundancy-c5', 'Define manual backup water delivery if powered system fails', { feeds: ['ofg-s5-water-system-infrastructure'] }),
-      ck('ofg-s4-water-system-redundancy-c6', 'Confirm dual-source redundancy meets critical systems requirement from Tier 0', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
+      ck('ofg-s4-water-system-redundancy-c6', 'Confirm dual-source redundancy meets critical systems requirement from Stratum 1', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
     ],
     decisionGroups: [
       dg('ofg-s4-water-system-redundancy-dg1', 'Primary & backup source', ['ofg-s4-water-system-redundancy-c1', 'ofg-s4-water-system-redundancy-c2']),
@@ -410,7 +410,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s4-energy-system-redundancy-c3', 'Define backup generator - fuel type, capacity, fuel storage duration', { feeds: ['ofg-s5-energy-system-infrastructure', 'ofg-s7-resourcing-supply-chain'] }),
       ck('ofg-s4-energy-system-redundancy-c4', 'Define load management protocol - critical loads protected, non-critical loads shed in shortage', { feeds: ['ofg-s5-energy-system-infrastructure'] }),
       ck('ofg-s4-energy-system-redundancy-c5', 'Define manual alternatives for critical functions if all power fails', { feeds: ['ofg-s5-energy-system-infrastructure'] }),
-      ck('ofg-s4-energy-system-redundancy-c6', 'Confirm system meets worst-case month energy balance from Tier 2', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
+      ck('ofg-s4-energy-system-redundancy-c6', 'Confirm system meets worst-case month energy balance from Stratum 3', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
     ],
     decisionGroups: [
       dg('ofg-s4-energy-system-redundancy-dg1', 'Generation & battery storage', ['ofg-s4-energy-system-redundancy-c1', 'ofg-s4-energy-system-redundancy-c2']),
@@ -449,7 +449,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s4-food-security-storage-c2', 'Define food production targets by enterprise - annual garden, perennial, animals', { feeds: ['ofg-s5-food-production-infrastructure'] }),
       ck('ofg-s4-food-security-storage-c3', 'Define food preservation and storage approach - cold storage, drying, fermentation, canning', { feeds: ['ofg-s5-food-production-infrastructure'] }),
       ck('ofg-s4-food-security-storage-c4', 'Define emergency resupply protocol - when reserve falls below minimum threshold', { feeds: ['ofg-s7-resourcing-supply-chain'] }),
-      ck('ofg-s4-food-security-storage-c5', 'Confirm production and storage strategy meets independence target from Tier 0', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
+      ck('ofg-s4-food-security-storage-c5', 'Confirm production and storage strategy meets independence target from Stratum 1', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
     ],
     decisionGroups: [
       dg('ofg-s4-food-security-storage-dg1', 'Reserve target & production', ['ofg-s4-food-security-storage-c1', 'ofg-s4-food-security-storage-c2']),
@@ -583,7 +583,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Water system design approved. Primary and backup confirmed. All components locally repairable.',
     actHandoff: 'Water System Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 water system strategy and redundancy decision.',
+      'Builds on the Stratum 4 water system strategy and redundancy decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Stored water level in days-of-reserve per person across the tank array', frequency: 'weekly, daily in dry season' },
@@ -624,7 +624,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Energy system design approved. Worst-case month performance confirmed. All components locally serviceable.',
     actHandoff: 'Energy System Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 energy system strategy and redundancy decision.',
+      'Builds on the Stratum 4 energy system strategy and redundancy decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Battery bank state of charge and days-of-critical-load remaining', frequency: 'daily' },
@@ -665,7 +665,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Shelter and thermal performance design approved. Primary and backup heating confirmed. Fuel reserve specified.',
     actHandoff: 'Shelter & Thermal Performance Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 shelter resilience and thermal performance decision.',
+      'Builds on the Stratum 4 shelter resilience and thermal performance decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Indoor temperature vs. the thermal performance standard through the coldest period', frequency: 'daily in winter' },
@@ -705,7 +705,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Food production and storage infrastructure design approved. Reserve target achievable with designed capacity.',
     actHandoff: 'Food Production & Storage Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 food security and storage strategy decision.',
+      'Builds on the Stratum 4 food security and storage strategy decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Food reserve on hand in weeks-of-supply for all residents', frequency: 'monthly' },
@@ -746,7 +746,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Communications and emergency infrastructure design approved. All systems tested before habitation.',
     actHandoff: 'Communications & Emergency Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 emergency communications and response strategy decision.',
+      'Builds on the Stratum 4 emergency communications and response strategy decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Satellite and backup radio check-in success rate plus device power status', frequency: 'weekly' },
@@ -828,7 +828,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('ofg-s6-adaptive-management-c2', 'Define decision triggers - what system performance outcome requires a design or capacity change', { feeds: ['ofg-s7-resourcing-supply-chain'] }),
       ck('ofg-s6-adaptive-management-c3', 'Define failure response protocol - what immediate actions follow a system failure', { feeds: ['ofg-s7-systems-establishment-sequence'] }),
       ck('ofg-s6-adaptive-management-c4', 'Document all system changes with date, cause, and outcome'),
-      ck('ofg-s6-adaptive-management-c5', 'Define 3-year comprehensive review against Tier 0 independence targets'),
+      ck('ofg-s6-adaptive-management-c5', 'Define 3-year comprehensive review against Stratum 1 independence targets'),
     ],
     decisionGroups: [
       dg('ofg-s6-adaptive-management-dg1', 'Seasonal review & triggers', ['ofg-s6-adaptive-management-c1', 'ofg-s6-adaptive-management-c2']),
@@ -839,7 +839,7 @@ export const OFF_GRID_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Adaptive management protocol approved. Seasonal review, failure response, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
     scopeNotes:
-      'Principle 9 exception: adaptive management is placed in Tier 5 (this stratum) for Off-Grid because for life-safety systems monitoring and adaptation are operationally inseparable. The review cycle is tied to seasons, not the annual calendar.',
+      'Principle 9 exception: adaptive management is placed in Stratum 6 (this stratum) for Off-Grid because for life-safety systems monitoring and adaptation are operationally inseparable. The review cycle is tied to seasons, not the annual calendar.',
   }),
   // ---------------------------------------------------------------- Stratum 7
   obj({

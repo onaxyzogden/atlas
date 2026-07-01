@@ -137,7 +137,7 @@ const CULTURAL_STATUSES: readonly CulturalStatus[] = [
     title: 'Not yet investigated',
     desc: 'An enquiry has not yet been made with relevant cultural heritage authorities or traditional owners.',
     consequence:
-      'A verification reminder will be generated in Act before any Tier 1 survey work begins.',
+      'A verification reminder will be generated in Act before any Stratum 2 survey work begins.',
     tone: 'amber',
   },
   {

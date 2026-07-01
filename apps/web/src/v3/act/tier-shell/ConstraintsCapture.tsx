@@ -664,7 +664,7 @@ export default function ConstraintsCapture({
             <div className={css.feedsTxt}>
               This register feeds{' '}
               <strong>all Act handoff packages</strong>. Non-negotiables are
-              checked at every Plan approval gate in Tiers 3-6.
+              checked at every Plan approval gate in Strata 4-7.
             </div>
           </div>
 

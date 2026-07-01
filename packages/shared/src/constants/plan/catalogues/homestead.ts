@@ -304,7 +304,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Water quality assessment complete for all sources. Potability status defined. Contamination risks from landscape vectors addressed.',
     actHandoff: 'Household Water Quality Report',
     scopeNotes:
-      'Planning question explicitly connects to Tier 1 landscape vector findings. Contamination identified in the surrounding landscape survey must be tested for specifically here - do not run a generic water test without cross-referencing vector risks.',
+      'Planning question explicitly connects to Stratum 2 landscape vector findings. Contamination identified in the surrounding landscape survey must be tested for specifically here - do not run a generic water test without cross-referencing vector risks.',
   }),
   // ---------------------------------------------------------------- Stratum 4
   obj({
@@ -320,7 +320,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     checklist: [
       ck(
         'hms-s4-food-production-strategy-c1',
-        'Map household food needs from Tier 0 against what the site can produce',
+        'Map household food needs from Stratum 1 against what the site can produce',
       ),
       ck(
         'hms-s4-food-production-strategy-c2',
@@ -546,7 +546,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Food production zone layout designed and approved. All productive areas specified with dimensions and species plan.',
     actHandoff: 'Food Production Zone Design Package',
     buildsOnDisplay:
-      'Builds on the household food production strategy set in Tier 3 (hms-s4-food-production-strategy).',
+      'Builds on the household food production strategy set in Stratum 4 (hms-s4-food-production-strategy).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Actual yield per production zone vs. the zone area and targets it was designed to deliver', frequency: 'each season' },
@@ -607,7 +607,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Energy and shelter system design approved. All components specified and sequenced.',
     actHandoff: 'Energy & Shelter Systems Design Package',
     buildsOnDisplay:
-      'Builds on the energy and shelter resilience strategy set in Tier 3 (hms-s4-energy-shelter-resilience).',
+      'Builds on the energy and shelter resilience strategy set in Stratum 4 (hms-s4-energy-shelter-resilience).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Indoor temperature held by the designed heating system vs. the resilience-threshold standard', frequency: 'through cold and hot seasons' },
@@ -668,7 +668,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Animal husbandry infrastructure design approved. All housing, movement, and management areas specified.',
     actHandoff: 'Animal Husbandry Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the animal integration role defined in the Tier 3 fertility and soil building strategy (hms-s4-fertility-strategy).',
+      'Builds on the animal integration role defined in the Stratum 4 fertility and soil building strategy (hms-s4-fertility-strategy).',
     monitoringProtocol: {
       indicators: [
         { metric: 'Animal housing and run condition vs. species shelter and space standard', frequency: 'monthly walk-through' },
@@ -682,7 +682,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       feeds: 'animals-livestock',
     },
     scopeNotes:
-      'Conditional objective - loads only if animals are confirmed in the Tier 0 household needs survey. If no animals are planned, this objective does not appear in the project.',
+      'Conditional objective - loads only if animals are confirmed in the Stratum 1 household needs survey. If no animals are planned, this objective does not appear in the project.',
   }),
   // ---------------------------------------------------------------- Stratum 6
   obj({
@@ -708,7 +708,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'hms-s6-self-sufficiency-feedback-c3',
-        'Connect tracking system to Tier 0 self-sufficiency targets - measure progress against original baseline',
+        'Connect tracking system to Stratum 1 self-sufficiency targets - measure progress against original baseline',
       ),
       ck(
         'hms-s6-self-sufficiency-feedback-c4',
@@ -726,10 +726,10 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       dg('hms-s6-self-sufficiency-feedback-dg3', 'Review rhythm & format', ['hms-s6-self-sufficiency-feedback-c4', 'hms-s6-self-sufficiency-feedback-c5']),
     ],
     completionGate:
-      'Self-sufficiency feedback loop designed. Provision tracking, gap tracking, and review rhythm approved. System connects to Tier 0 targets.',
+      'Self-sufficiency feedback loop designed. Provision tracking, gap tracking, and review rhythm approved. System connects to Stratum 1 targets.',
     actHandoff: 'Household Self-Sufficiency Feedback System',
     scopeNotes:
-      'This feedback loop closes against the Tier 0 household needs objective. The loop is only meaningful if the Tier 0 baseline was honestly recorded - confirm that connection before gating.',
+      'This feedback loop closes against the Stratum 1 household needs objective. The loop is only meaningful if the Stratum 1 baseline was honestly recorded - confirm that connection before gating.',
   }),
   // ---------------------------------------------------------------- Stratum 7
   obj({
@@ -865,7 +865,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'hms-s7-adaptive-management-c4',
-        'Define 3-year comprehensive review against Tier 0 self-sufficiency targets',
+        'Define 3-year comprehensive review against Stratum 1 self-sufficiency targets',
       ),
       // c5 added 2026-06-02 to meet Authoring Standards v1.4 (5-item floor); the
       // v1.1 source authored only 4. Mirrors the failure-response/escalation item
@@ -890,7 +890,7 @@ export const HOMESTEAD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
           cadence: 'annual',
         },
         {
-          metric: '3-year comprehensive review against Tier 0 self-sufficiency targets',
+          metric: '3-year comprehensive review against Stratum 1 self-sufficiency targets',
           cadence: 'every 3 years',
         },
       ],

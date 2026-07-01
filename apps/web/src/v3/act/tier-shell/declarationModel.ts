@@ -40,8 +40,9 @@ import type {
 // Canonical-object membership for the Stratum-1 Declaration set. Membership in
 // this record IS the definition of the Declaration set (the six curated
 // objectives); the `canonical` field drives the Intent/Team cards. The `display`
-// field is LEGACY -- the live sequencing number is now derived from the stratum
-// ordinal (see deriveStratumSequencing), not read from here.
+// field holds the Stratum-1 badge number ("1.1".."1.6") rendered by the
+// TeamRegistryPanel; the sequencing stepper derives the same number from the
+// stratum ordinal (see deriveStratumSequencing).
 // ---------------------------------------------------------------------------
 
 /** Canonical never-re-asked objects constituted in the Declaration phase. */
@@ -49,9 +50,11 @@ export type CanonicalKind = 'intent' | 'team';
 
 export interface TierZeroDisplayEntry {
   /**
-   * LEGACY presentation number (e.g. "0.1"). No longer rendered -- the live
-   * stepper numbers objectives "{ordinal}.{n}" from deriveStratumSequencing.
-   * Retained for back-compat with tierZeroDisplayFor + its tests.
+   * Stratum-1 presentation number (e.g. "1.2"), rendered as the
+   * TeamRegistryPanel eyebrow badge. The objective-sequencing stepper derives
+   * the same "{ordinal}.{n}" number independently from the stratum ordinal (see
+   * deriveStratumSequencing); this field is the badge source for the
+   * Declaration reference panel.
    */
   display: string;
   /** Set when this objective constitutes a canonical object. */
@@ -61,12 +64,12 @@ export interface TierZeroDisplayEntry {
 }
 
 export const TIER_ZERO_DISPLAY: Readonly<Record<string, TierZeroDisplayEntry>> = {
-  's1-vision': { display: '0.1', canonical: 'intent' },
-  's1-steward': { display: '0.2', canonical: 'team', isNew: true },
-  's1-boundaries': { display: '0.3' },
-  's1-stakeholders': { display: '0.4' },
-  'rf-s1-enterprise-mix': { display: '0.5' },
-  'res-s1-household-needs': { display: '0.6', isNew: true },
+  's1-vision': { display: '1.1', canonical: 'intent' },
+  's1-steward': { display: '1.2', canonical: 'team', isNew: true },
+  's1-boundaries': { display: '1.3' },
+  's1-stakeholders': { display: '1.4' },
+  'rf-s1-enterprise-mix': { display: '1.5' },
+  'res-s1-household-needs': { display: '1.6', isNew: true },
 };
 
 /** The display entry for an objective id, or undefined when it is not in the set. */

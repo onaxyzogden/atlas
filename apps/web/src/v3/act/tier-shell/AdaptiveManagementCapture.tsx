@@ -403,7 +403,7 @@ export const SCOPE_ITEMS: readonly ToggleItemDef[] = [
   },
   {
     name: "Ecological outcome targets -- actual vs. projected",
-    desc: "Soil health, water quality, biodiversity, food production -- 5-year trend against Tier 2 baseline",
+    desc: "Soil health, water quality, biodiversity, food production -- 5-year trend against Stratum 3 baseline",
   },
   {
     name: "Community health -- has communal living delivered what was expected?",

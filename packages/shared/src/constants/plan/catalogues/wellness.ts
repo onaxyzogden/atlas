@@ -102,7 +102,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'well-s1-healing-philosophy-c6',
-        'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it',
+        'Document philosophy as a design constraint - all Stratum 4-5 decisions evaluated against it',
       ),
     ],
     decisionGroups: [
@@ -121,7 +121,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Healing philosophy approved. Design constraint document signed by all practitioners.',
     actHandoff: 'Healing Philosophy & Therapeutic Intent Brief',
     scopeNotes:
-      'This philosophy is not a preference - it is a design gate. Every Tier 3 and Tier 4 decision must be evaluated against it before proceeding. A design that violates the philosophy requires a philosophy revision, not a design exception.',
+      'This philosophy is not a preference - it is a design gate. Every Stratum 4 and Stratum 5 decision must be evaluated against it before proceeding. A design that violates the philosophy requires a philosophy revision, not a design exception.',
   }),
   obj({
     id: 'well-s1-guest-intake',
@@ -704,7 +704,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'well-s4-sensory-design-standards-c7',
-        'Document standards as design gate - all Tier 4 decisions evaluated against them',
+        'Document standards as design gate - all Stratum 5 decisions evaluated against them',
         { feeds: ['well-s5-dining-nourishment', 'well-s6-sensory-monitoring'] },
       ),
     ],
@@ -724,7 +724,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ]),
     ],
     completionGate:
-      'Sensory design standards approved and documented. All Tier 4 designs must meet these thresholds.',
+      'Sensory design standards approved and documented. All Stratum 5 designs must meet these thresholds.',
     actHandoff: 'Sensory Design Philosophy & Low-Stimulation Standards',
     monitoringProtocol: {
       indicators: [
@@ -740,7 +740,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       feeds: 'built-infrastructure',
     },
     scopeNotes:
-      'These standards are design gates, not aspirational targets. Any Tier 4 design element that cannot meet a defined threshold must be redesigned or removed.',
+      'These standards are design gates, not aspirational targets. Any Stratum 5 design element that cannot meet a defined threshold must be redesigned or removed.',
   }),
   obj({
     id: 'well-s4-therapeutic-program',
@@ -755,7 +755,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     checklist: [
       ck(
         'well-s4-therapeutic-program-c1',
-        'Confirm modalities offered against regulatory framework confirmed in Tier 0',
+        'Confirm modalities offered against regulatory framework confirmed in Stratum 1',
       ),
       ck(
         'well-s4-therapeutic-program-c2',
@@ -1076,7 +1076,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Treatment, therapy, and meditation space designs approved. All sensory thresholds confirmed.',
     actHandoff: 'Treatment, Therapy & Meditation Spaces Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+      'Builds on the Stratum 4 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Measured noise level in treatment and meditation rooms against the defined decibel threshold', frequency: 'monthly' },
@@ -1146,7 +1146,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Healing garden and sensory landscape design approved. All elements consistent with sensory standards.',
     actHandoff: 'Healing Garden & Sensory Landscape Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 healing garden and therapeutic landscape strategy.',
+      'Builds on the Stratum 4 healing garden and therapeutic landscape strategy.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Condition of therapeutic planting zones - species establishment and seasonal succession against the planting plan', frequency: 'seasonal' },
@@ -1216,7 +1216,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Guest accommodation design approved. Acoustic performance and sensory standards confirmed.',
     actHandoff: 'Guest Accommodation & Private Retreat Spaces Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+      'Builds on the Stratum 4 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Measured noise level inside accommodation units against the defined accommodation threshold', frequency: 'monthly' },
@@ -1281,7 +1281,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Privacy screening and acoustic buffering design approved. All zone boundaries meet defined standards.',
     actHandoff: 'Privacy Screening & Acoustic Buffering Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 privacy gradient and zone hierarchy.',
+      'Builds on the Stratum 4 privacy gradient and zone hierarchy.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Establishment and density of boundary and internal screening planting against the screening plan', frequency: 'seasonal' },
@@ -1351,7 +1351,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Dining and nourishment infrastructure design approved. Sensory and nourishment standards confirmed.',
     actHandoff: 'Dining & Nourishment Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier-3 sensory design philosophy and low-stimulation standards.',
+      'Builds on the Stratum 4 sensory design philosophy and low-stimulation standards.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Measured kitchen and dining noise level against the sensory comfort threshold', frequency: 'during service' },
@@ -1671,7 +1671,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'well-s7-adaptive-management-c5',
-        'Define 3-year comprehensive review against Tier 0 healing philosophy and vision',
+        'Define 3-year comprehensive review against Stratum 1 healing philosophy and vision',
       ),
     ],
     decisionGroups: [
@@ -1697,7 +1697,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
           cadence: 'annual',
         },
         {
-          metric: '3-year comprehensive review against Tier 0 healing philosophy + vision',
+          metric: '3-year comprehensive review against Stratum 1 healing philosophy + vision',
           cadence: 'every 3 years',
         },
       ],

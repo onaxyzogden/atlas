@@ -163,8 +163,8 @@ describe('ActTierZeroWorkbench -- panes', () => {
     expect(screen.queryByText(/working on/i)).toBeNull();
     // Objectives rail is NOT rendered by this component (moved to ActTierShell)
     expect(screen.queryByText('Objectives')).toBeNull();
-    // "Completes Tier 0" next-box is NOT rendered by this component
-    expect(screen.queryByText('Completes Tier 0')).toBeNull();
+    // "Completes Stratum 1" next-box is NOT rendered by this component
+    expect(screen.queryByText('Completes Stratum 1')).toBeNull();
     // Selecting a decision collapses the list and reveals its workspace.
     selectDecision('s1-vision-c1');
     expect(screen.getByText(/working on/i)).toBeTruthy();

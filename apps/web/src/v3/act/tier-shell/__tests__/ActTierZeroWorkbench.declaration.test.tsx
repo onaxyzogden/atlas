@@ -50,6 +50,22 @@ vi.mock('lucide-react', async (importOriginal) => {
   return stubbed;
 });
 
+// Selecting the team decision surfaces the consolidated c2 "People & roles"
+// body, whose operational-role pills resolve via useResolvedOperationalRoles
+// (React Query). This suite is store-direct (no QueryClientProvider), so -- as
+// in StewardTeamCapture.test.tsx -- stub the resolver to the real built-ins;
+// pills + ScopePreview stay byte-identical and no QueryClient is required.
+vi.mock('../../../roles/useResolvedOperationalRoles.js', async () => {
+  const shared =
+    await vi.importActual<typeof import('@ogden/shared')>('@ogden/shared');
+  return {
+    useResolvedOperationalRoles: () => ({
+      defs: shared.resolveOperationalRoleDefs(),
+      domainsMap: shared.resolveOperationalRoleDomains(),
+    }),
+  };
+});
+
 import ActTierZeroWorkbench, {
   type ActTierZeroWorkbenchProps,
 } from '../ActTierZeroWorkbench.js';
@@ -58,7 +74,7 @@ import { useMemberStore } from '../../../../store/memberStore.js';
 
 const PROJECT_ID = 'proj-decl';
 
-// The team objective (0.2 / s1-steward): mounting it active in declaration mode
+// The team objective (1.2 / s1-steward): mounting it active in declaration mode
 // is what surfaces TeamRegistryPanel; its actHandoff feeds the handoff chip.
 const STEWARD_OBJECTIVE: PlanStratumObjective = {
   id: 's1-steward',
