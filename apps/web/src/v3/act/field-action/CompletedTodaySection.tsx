@@ -13,9 +13,11 @@ import css from './SectionGroup.module.css';
 interface Props {
   projectId: string;
   tasks: FieldAction[];
+  /** Optional tap-target override forwarded to each card (e.g. open the hub walkthrough). */
+  onOpen?: (action: FieldAction) => void;
 }
 
-export default function CompletedTodaySection({ projectId, tasks }: Props) {
+export default function CompletedTodaySection({ projectId, tasks, onOpen }: Props) {
   return (
     <CollapsibleSection
       title="Completed today"
@@ -28,7 +30,12 @@ export default function CompletedTodaySection({ projectId, tasks }: Props) {
       ) : (
         <div className={css.cardList}>
           {tasks.map((t) => (
-            <FieldActionCard key={t.id} projectId={projectId} action={t} />
+            <FieldActionCard
+              key={t.id}
+              projectId={projectId}
+              action={t}
+              {...(onOpen ? { onOpen } : {})}
+            />
           ))}
         </div>
       )}

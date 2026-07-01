@@ -20,9 +20,11 @@ describe('shell-mode defaults — new shells are main for all projects', () => {
     expect(getPlanShellMode({ isBuiltin: false })).toBe('tier-shell');
   });
 
-  it('Act: builtin and non-builtin both default to tier-shell', () => {
-    expect(getActShellMode({ isBuiltin: true })).toBe('tier-shell');
-    expect(getActShellMode({ isBuiltin: false })).toBe('tier-shell');
+  it('Act: builtin and non-builtin both default to ops-hub', () => {
+    // ops-hub (the Operations Hub) is the promoted Act default; the previous
+    // tier-shell default is preserved as a selectable fallback via the toggle.
+    expect(getActShellMode({ isBuiltin: true })).toBe('ops-hub');
+    expect(getActShellMode({ isBuiltin: false })).toBe('ops-hub');
   });
 
   it('Observe: builtin and non-builtin both default to dashboard', () => {

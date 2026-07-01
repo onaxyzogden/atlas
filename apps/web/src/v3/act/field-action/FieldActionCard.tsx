@@ -20,6 +20,11 @@ interface Props {
   action: FieldAction;
   /** Hide the parent-objective sub-line when the parent section already groups by it. */
   hideObjectiveLine?: boolean;
+  /** Override the tap target. When supplied, the card calls this instead of
+   *  navigating to the field-action execution route — lets the Operations Hub
+   *  open its own guided walkthrough drawer while ViewBDashboard keeps the
+   *  default navigation. */
+  onOpen?: (action: FieldAction) => void;
 }
 
 const STATUS_LABEL: Record<FieldActionStatus, string> = {
@@ -31,7 +36,7 @@ const STATUS_LABEL: Record<FieldActionStatus, string> = {
   blocked: 'Blocked',
 };
 
-export default function FieldActionCard({ projectId, action, hideObjectiveLine }: Props) {
+export default function FieldActionCard({ projectId, action, hideObjectiveLine, onOpen }: Props) {
   const navigate = useNavigate();
   const required = requiredSlotsFor(action.proofSchemaId);
   const filled = action.proofItems.filter(
@@ -41,6 +46,10 @@ export default function FieldActionCard({ projectId, action, hideObjectiveLine }
   const assigneeCount = action.assignedTo?.length ?? 0;
 
   const handleOpen = () => {
+    if (onOpen) {
+      onOpen(action);
+      return;
+    }
     navigate({
       to: '/v3/project/$projectId/act/field-action/$objectiveId',
       params: { projectId, objectiveId: action.planObjectiveId },
