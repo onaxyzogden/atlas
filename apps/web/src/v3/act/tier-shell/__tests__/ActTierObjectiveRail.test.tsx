@@ -72,6 +72,7 @@ vi.mock('../../../roles/useResolvedOperationalRoles.js', async () => {
 import { useProtocolStore } from '../../../../store/protocolStore.js';
 import ActTierObjectiveRail from '../ActTierObjectiveRail.js';
 import type { ObjectiveProgress } from '../objectiveProgress.js';
+import { expectNoA11yViolations } from '../../../../test/a11y.js';
 
 const STRATUM = findPlanStratum('s6-integration-design')!;
 const OBJECTIVE = findPlanStratumObjective('s6-yield-flows')!;
@@ -156,6 +157,18 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.queryByText('Decision progress')).toBeNull();
   });
 
+});
+
+describe('ActTierObjectiveRail (a11y)', () => {
+  it('objectives mode has no axe violations (allowlisted rules)', async () => {
+    const { container } = renderRail('objectives');
+    await expectNoA11yViolations(container);
+  });
+
+  it('protocols mode has no axe violations (allowlisted rules)', async () => {
+    const { container } = renderRail('protocols');
+    await expectNoA11yViolations(container);
+  });
 });
 
 describe('ActTierObjectiveRail (protocols mode threads stratum scope + selection)', () => {
@@ -374,5 +387,10 @@ describe('ActTierObjectiveRail (operational role scope)', () => {
     expect(screen.queryByTestId('rail-outside-focus-toggle')).toBeNull();
     // The toggle stays so a steward can switch back to My focus.
     expect(screen.getByTestId('view-focus-toggle')).toBeTruthy();
+  });
+
+  it('role-focus view has no axe violations (allowlisted rules)', async () => {
+    const { container } = renderScoped('role');
+    await expectNoA11yViolations(container);
   });
 });

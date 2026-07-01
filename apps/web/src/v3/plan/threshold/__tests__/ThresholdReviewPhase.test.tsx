@@ -20,6 +20,7 @@ import {
 import type { StrandSurveyEvidence } from '../realityCheckModel.js';
 import type { IntentElement } from '../intentElements.js';
 import ThresholdReviewPhase from '../ThresholdReviewPhase.js';
+import { expectNoA11yViolations } from '../../../../test/a11y.js';
 
 const PID = 'project-1';
 
@@ -142,5 +143,17 @@ describe('ThresholdReviewPhase -- proceed', () => {
     expect(
       useRealityCheckStore.getState().byProject[PID]?.phase1Ready,
     ).toBe(true);
+  });
+});
+
+describe('ThresholdReviewPhase (a11y)', () => {
+  it('has no axe violations with declared intent (allowlisted rules)', async () => {
+    const { container } = render(<Harness />);
+    await expectNoA11yViolations(container);
+  });
+
+  it('has no axe violations in the empty-intent state', async () => {
+    const { container } = render(<Harness elements={[]} />);
+    await expectNoA11yViolations(container);
   });
 });
