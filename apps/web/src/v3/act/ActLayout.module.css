@@ -25,3 +25,32 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/*
+ * Shell host — a positioned, full-size wrapper around whichever Act shell
+ * ActLayout renders (ops-hub / tier-shell / field-action / command-centre),
+ * so the single floating shell-switcher anchors to the Act viewport rather
+ * than to whatever ancestor the route happens to provide. The shells are all
+ * height:100%, so wrapping is visually transparent.
+ */
+.shellHost {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/*
+ * Pointer-transparent overlay carrying the shell-switcher pill. inset:0 spans
+ * the host so the pill (ActShellToggle .wrap, top:12/right:12) lands top-right
+ * of the Act viewport on every shell. pointer-events:none lets clicks fall
+ * through to the shell beneath; the pill re-enables pointer-events on itself.
+ * z-index:10 clears each shell's chrome (<=5) but stays below their drawers
+ * and modals (walkthrough 40, WorkspacePopup 400), so those still cover it.
+ */
+.shellToggle {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}

@@ -1,0 +1,71 @@
+/* ActOpsHub — Operations Hub shell.
+   Canvas-only host: a full-height dark surface with the shell toggle floating
+   top-right and a scrollable centered content column. A full-width top band
+   (header + quick-find + metric strip) sits above a two-column body — a primary
+   work surface (category grid + map) beside a 360px task rail (the dashboard +
+   CTAs). The body collapses to a single column at ≤960px. */
+
+.hub {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--color-canvas, #0b0d10);
+  overflow: hidden;
+}
+
+.scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  /* Top padding clears the floating ActShellToggle (top:12px + its height). */
+  padding: 60px 24px 32px;
+}
+
+/* Two-column body: primary work surface + task rail. minmax(0,1fr) lets the
+   left column shrink (so the map/grid never force horizontal overflow); the
+   360px rail is the dashboard cards' native width. align-items:start keeps the
+   columns top-aligned rather than stretching the shorter one. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.primaryCol,
+.railCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .inner {
+    padding: 60px 14px 24px;
+    gap: 12px;
+  }
+  .body {
+    gap: 12px;
+  }
+  .primaryCol,
+  .railCol {
+    gap: 12px;
+  }
+}

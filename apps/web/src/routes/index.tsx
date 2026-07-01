@@ -942,6 +942,33 @@ const v3ActTierShellStratumRoute = createRoute({
     }
   },
 });
+// Operations Hub objective deep-link — the ops-hub (new default Act shell)
+// opens a per-objective walkthrough drawer keyed off this param. The static
+// `act/ops/...` prefix resolves BEFORE `act/$module` (same reason as the
+// tier-shell prefixes above), so an objective id here never collides with a
+// module slug. Mounts ActLayout, which branches into ActOpsHub. The lock guard
+// mirrors v3ActTierShellObjectiveRoute exactly, but a locked deep-link
+// redirects to the bare `act` (the hub landing) rather than the tier shell.
+const v3ActOpsObjectiveRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/ops/$objectiveId',
+  component: ActLayout,
+  validateSearch: (search: Record<string, unknown>): { taskId?: string } => ({
+    taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
+  }),
+  beforeLoad: ({ params }) => {
+    const ctx = buildActLockContext(params.projectId);
+    if (!ctx) return;
+    // Unknown objective id — let the component handle gracefully (e.g. 404).
+    if (!ctx.objectives.some((o) => o.id === params.objectiveId)) return;
+    if ((ctx.statuses[params.objectiveId] ?? 'locked') === 'locked') {
+      throw redirect({
+        to: '/v3/project/$projectId/act',
+        params: { projectId: params.projectId },
+      });
+    }
+  },
+});
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.
 const v3ActCommandCentreRoute = createRoute({
@@ -1328,6 +1355,7 @@ const routeTree = rootRoute.addChildren([
       v3ActTierShellStratumRoute,
       v3ActFieldActionRoute,
       v3ActFieldActionObjectiveRoute,
+      v3ActOpsObjectiveRoute,
       v3ActRoute,
       v3ActModuleRoute,
       v3ProtocolsRoute,

@@ -1,0 +1,102 @@
+/* ActOpsHubMetricStrip — "Today on the Land" metric tiles.
+   Responsive auto-fit row; collapses to 2-up then 1-up on narrow viewports. */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  /* button reset (the tile is a <button> when interactive) */
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  appearance: none;
+}
+
+.tile[data-interactive] {
+  cursor: pointer;
+}
+
+.tile[data-interactive]:hover,
+.tile[data-interactive]:focus-visible {
+  border-color: color-mix(in srgb, var(--tone-color, #c4a265) 55%, var(--color-border));
+  outline: none;
+}
+
+.tile:disabled {
+  cursor: default;
+}
+
+/* Selected tile — the bucket currently filtering the work surface. Tinted
+   border + faint fill from the tile's own tone so the selection reads at a
+   glance without a layout shift. */
+.tile[data-selected] {
+  border-color: var(--tone-color, #c4a265);
+  background: color-mix(in srgb, var(--tone-color, #c4a265) 12%, var(--color-bg));
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone-color, #c4a265) 14%, var(--color-bg));
+  color: var(--tone-color, #c4a265);
+  margin-bottom: 2px;
+}
+
+.value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile[data-tone='todo'] {
+  --tone-color: #c4a265;
+}
+.tile[data-tone='active'] {
+  --tone-color: #5fc7d4;
+}
+.tile[data-tone='alert'] {
+  --tone-color: #e0a458;
+}
+.tile[data-tone='done'] {
+  --tone-color: #7bbf6a;
+}
+
+@media (max-width: 720px) {
+  .strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .strip {
+    grid-template-columns: 1fr;
+  }
+}

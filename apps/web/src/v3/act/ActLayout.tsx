@@ -23,6 +23,7 @@ import {
   useProjectStore,
   MTC_SEED,
   getActShellMode,
+  type ActShellMode,
 } from '../../store/projectStore.js';
 import {
   parcelAcres,
@@ -63,8 +64,14 @@ import ActReadyCue from './components/ActReadyCue.js';
 // preserved on disk as a reversible fallback (swap the import below to
 // restore it) per the no-deletion-in-revamps rule.
 import ActMapFirstLayout from './field-action/ActMapFirstLayout.js';
-// tier-shell: the promoted map-centric 4-rail Act shell (default mode).
+// tier-shell: the promoted map-centric 4-rail Act shell (preserved fallback).
 import ActTierShell from './tier-shell/ActTierShell.js';
+// ops-hub: the Operations Hub — the new default Act shell (scannable
+// "what needs doing today" dashboard + guided per-task walkthrough).
+import ActOpsHub from './ops-hub/ActOpsHub.js';
+// The shell-switcher pill. ActLayout owns the single instance and floats it
+// over whichever shell renders (see shellToggle below).
+import ActShellToggle from './field-action/ActShellToggle.js';
 import css from './ActLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -184,15 +191,52 @@ export default function ActLayout() {
     />
   );
 
+  const handleShellModeChange = (mode: ActShellMode) => {
+    updateProject(project.id, { actShellMode: mode });
+  };
+
+  // One shell-switcher for every Act view. ActLayout branches into four
+  // self-contained shells (ops-hub / tier-shell / field-action / command-
+  // centre) and only ops-hub ever wired a toggle of its own. Rather than wire
+  // one into each shell, float a single owner over whichever shell renders.
+  // The overlay is pointer-transparent except the pill itself and sits at
+  // z-index 10 — above each shell's chrome (<=5) but below their drawers and
+  // modals (40 / 400), so an open walkthrough or dialog still covers it.
+  const shellToggle = (
+    <div className={css.shellToggle}>
+      <ActShellToggle mode={actShellMode} onChange={handleShellModeChange} />
+    </div>
+  );
+
+  if (actShellMode === 'ops-hub') {
+    return (
+      <div className={css.shellHost}>
+        <ActOpsHub />
+        {shellToggle}
+      </div>
+    );
+  }
+
   if (actShellMode === 'tier-shell') {
-    return <ActTierShell />;
+    return (
+      <div className={css.shellHost}>
+        <ActTierShell />
+        {shellToggle}
+      </div>
+    );
   }
 
   if (actShellMode === 'field-action') {
-    return <ActMapFirstLayout />;
+    return (
+      <div className={css.shellHost}>
+        <ActMapFirstLayout />
+        {shellToggle}
+      </div>
+    );
   }
 
   return (
+    <div className={css.shellHost}>
     <StageShell
       canvasLabel="Act canvas"
       leftRailLabel="Act tools"
@@ -292,5 +336,7 @@ export default function ActLayout() {
         />
       }
     />
+    {shellToggle}
+    </div>
   );
 }

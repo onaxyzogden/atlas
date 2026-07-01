@@ -5,6 +5,7 @@
  * the dashboard reads tier-foundation-first.
  */
 
+import type { FieldAction } from '@ogden/shared';
 import type { FieldActionsByObjective } from './useFieldActions.js';
 import CollapsibleSection from './CollapsibleSection.js';
 import FieldActionCard from './FieldActionCard.js';
@@ -14,9 +15,11 @@ import css from './SectionGroup.module.css';
 interface Props {
   projectId: string;
   groups: FieldActionsByObjective[];
+  /** Optional tap-target override forwarded to each card (e.g. open the hub walkthrough). */
+  onOpen?: (action: FieldAction) => void;
 }
 
-export default function ActiveTasksSection({ projectId, groups }: Props) {
+export default function ActiveTasksSection({ projectId, groups, onOpen }: Props) {
   const count = groups.reduce((n, g) => n + g.tasks.length, 0);
   return (
     <CollapsibleSection title="Active tasks" count={count} defaultOpen>
@@ -40,6 +43,7 @@ export default function ActiveTasksSection({ projectId, groups }: Props) {
                   projectId={projectId}
                   action={t}
                   hideObjectiveLine
+                  {...(onOpen ? { onOpen } : {})}
                 />
               ))}
             </div>

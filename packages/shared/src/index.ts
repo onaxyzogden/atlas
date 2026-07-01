@@ -219,6 +219,30 @@ export * from './constants/protocol/observationLogRetention.js';
 export * from './constants/livestockWork/protocolCadences.js';
 export * from './constants/communityWork/protocolCadences.js';
 
+// Recipe Layer (OLOS Act Operations-Hub Walkthrough — per-task how-to model;
+// mirrors the protocol layer: schema -> catalogues -> seeded maps -> resolver)
+export * from './schemas/recipe/recipe.schema.js';
+export {
+  getPrimaryRecipeCatalogue,
+  getSecondaryRecipeCatalogue,
+  UNIVERSAL_RECIPES,
+  type PrimaryRecipeCatalogue,
+  type SecondaryRecipeCatalogue,
+} from './constants/recipe/catalogues/index.js';
+export {
+  resolveSeededRecipeId,
+  PRIMARY_RECIPE_MAPS,
+  SECONDARY_RECIPE_MAPS,
+  type SeededRecipeMap,
+} from './relationships/seededRecipes/index.js';
+export {
+  resolveTaskRecipe,
+  type RecipeTaskInput,
+  type ResolveTaskRecipeContext,
+  type ResolvedTaskRecipe,
+  type RecipeMatchedBy,
+} from './relationships/resolveTaskRecipe.js';
+
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';
 export * from './schemas/fieldAction/proofSchema.schema.js';
