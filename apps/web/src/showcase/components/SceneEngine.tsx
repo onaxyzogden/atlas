@@ -6,10 +6,17 @@ export function SceneEngine({ tier, children }: { tier: Tier; children: ReactNod
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     let scroller: any;
+    // Guard the async scrollama import against teardown: if this effect is
+    // cleaned up before the dynamic import resolves, bail out so scrollama's
+    // setup() never touches `document` after the component (or the test
+    // environment) has been torn down. Without this, the post-await path can
+    // fire against a missing `document` and surface as an unhandled error.
+    let disposed = false;
     // Dedupe scene_viewed: fire once per scene per mount, not on every re-entry.
     const seen = new Set<string>();
     (async () => {
       const mod = await import('scrollama');
+      if (disposed) return;
       scroller = mod.default();
       scroller.setup({ step: '[data-scene-id]', offset: 0.55, debug: false })
         .onStepEnter((resp: any) => {
@@ -22,7 +29,10 @@ export function SceneEngine({ tier, children }: { tier: Tier; children: ReactNod
         })
         .onStepExit((resp: any) => { resp.element.classList.remove('scene-active'); });
     })();
-    return () => { scroller?.destroy?.(); };
+    return () => {
+      disposed = true;
+      scroller?.destroy?.();
+    };
   }, [tier]);
   return <div ref={ref} data-showcase-tier={tier}>{children}</div>;
 }
