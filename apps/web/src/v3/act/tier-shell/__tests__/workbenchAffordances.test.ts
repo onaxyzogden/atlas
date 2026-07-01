@@ -212,13 +212,14 @@ describe('workbenchAffordancesFor -- s1-steward (Tier-0 restructure 2026-06-16)'
     expect(aff.modeFor!('s1-steward-c4')).toBe('sw-capability');
     expect(aff.modeFor!('s1-steward-c7')).toBe('sw-gaps');
     expect(aff.modeFor!('s1-steward-c8')).toBe('sw-governance');
-    // c9 is the optional operational-roles item (ADR 2026-06-24).
-    expect(aff.modeFor!('s1-steward-c9')).toBe('sw-operational');
   });
 
   it('returns null for an unmapped steward id (no stray badge)', () => {
     expect(aff.modeFor!('s1-steward')).toBeNull();
     expect(aff.modeFor!('s1-steward-cX')).toBeNull();
+    // c9 (the standalone operational-roles item) was retired 2026-06-28 -- its
+    // pills folded into c2's sw-roles capture -- so it no longer badges.
+    expect(aff.modeFor!('s1-steward-c9')).toBeNull();
   });
 });
 

@@ -154,7 +154,7 @@ export default function VegetationSurveySummary({
       <div className={styles.feedsBlock}>
         <ArrowRight size={13} className={styles.feedsIcon} aria-hidden="true" />
         <div className={styles.feedsTxt}>
-          Vegetation communities feed <strong>Tier 3: Zone allocation</strong>{' '}
+          Vegetation communities feed <strong>Stratum 4: Zone allocation</strong>{' '}
           -- identifying where native vegetation should be retained, enhanced,
           or restored as a design priority.
         </div>

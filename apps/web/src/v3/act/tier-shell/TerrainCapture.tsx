@@ -854,7 +854,7 @@ export function TerrainCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Slope distribution feeds <strong>Tier 3: Zone allocation</strong>.
+            Slope distribution feeds <strong>Stratum 4: Zone allocation</strong>.
             Areas over 20% slope are typically excluded from vehicle access and
             intensive production without earthworks assessment.
           </div>
@@ -986,7 +986,7 @@ export function TerrainCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Elevation range and drainage direction feed{' '}
-            <strong>Tier 2: Water movement survey</strong> and determine where
+            <strong>Stratum 3: Water movement survey</strong> and determine where
             water enters and leaves the site.
           </div>
         </div>
@@ -1216,7 +1216,7 @@ function LandformBody({
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
           Named landform features become the{' '}
-          <strong>spatial vocabulary for all design decisions</strong> in Tier 3
+          <strong>spatial vocabulary for all design decisions</strong> in Stratum 4
           and beyond. Zone allocation is anchored to these named areas.
         </div>
       </div>
@@ -1354,8 +1354,8 @@ function ErosionBody({
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
-          Erosion risk feeds <strong>Tier 4: Earthworks design</strong> and{' '}
-          <strong>Tier 5: Revegetation priority</strong>. Risk areas are flagged
+          Erosion risk feeds <strong>Stratum 5: Earthworks design</strong> and{' '}
+          <strong>Stratum 6: Revegetation priority</strong>. Risk areas are flagged
           in every Act task that involves soil disturbance.
         </div>
       </div>

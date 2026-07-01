@@ -304,3 +304,81 @@ describe('ActMandateSurface', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Key-document brief popups -- each card is a button opening its full brief.
+// ---------------------------------------------------------------------------
+
+const PD = ACT_MANDATE_COPY.documents.planningDirection;
+const CR = ACT_MANDATE_COPY.documents.coherenceRecord;
+const ID = ACT_MANDATE_COPY.documents.integratedDesign;
+
+/** Open the brief popup for a key-document card by its name. */
+function openDoc(name: string | RegExp) {
+  const docs = screen.getByLabelText('Key documents');
+  const trigger = within(docs).getByRole('button', { name });
+  act(() => {
+    fireEvent.click(trigger);
+  });
+  return screen.getByRole('dialog');
+}
+
+describe('ActMandateSurface -- key-document brief popups', () => {
+  it('renders each key document as a dialog-opening button', () => {
+    renderSurface();
+    const docs = screen.getByLabelText('Key documents');
+    for (const name of [PD.name, CR.name, ID.name]) {
+      const btn = within(docs).getByRole('button', { name: new RegExp(name) });
+      expect(btn.getAttribute('aria-haspopup')).toBe('dialog');
+    }
+  });
+
+  it('opens the Planning Direction brief with its pending note before approval', () => {
+    renderSurface();
+    const dialog = openDoc(new RegExp(PD.name));
+    expect(within(dialog).getByText(PD.name)).toBeTruthy();
+    expect(within(dialog).getByText(PD.brief.pendingNote)).toBeTruthy();
+  });
+
+  it('opens the Planning Direction brief with the approved direction text', () => {
+    approveRealityCheck();
+    renderSurface(allComplete);
+    const dialog = openDoc(new RegExp(PD.name));
+    expect(
+      within(dialog).getByText('Build a resilient mixed farm.'),
+    ).toBeTruthy();
+  });
+
+  it('opens the Coherence Record brief with its clean note once sealed', () => {
+    sealCoherenceCheck();
+    renderSurface();
+    const dialog = openDoc(new RegExp(CR.name));
+    expect(within(dialog).getByText(CR.brief.cleanNote)).toBeTruthy();
+  });
+
+  it('opens the Integrated Design brief listing ALL resolved objectives by stratum', () => {
+    renderSurface();
+    const dialog = openDoc(new RegExp(ID.name));
+    expect(within(dialog).getByText(ID.brief.objectivesHeading)).toBeTruthy();
+    // The handoff-less s3 objective still appears (proves the full design, not
+    // only the handoff inventory).
+    expect(within(dialog).getByText('Systems read')).toBeTruthy();
+    // And a handoff-bearing objective surfaces too.
+    expect(within(dialog).getByText('Vision set')).toBeTruthy();
+  });
+
+  it('closes the brief popup via the close button (deferred to animationend)', () => {
+    renderSurface();
+    const dialog = openDoc(new RegExp(ID.name));
+    act(() => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: /close workspace/i }),
+      );
+    });
+    expect(dialog.getAttribute('data-state')).toBe('closing');
+    act(() => {
+      fireEvent.animationEnd(dialog);
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});

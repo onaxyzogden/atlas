@@ -4,18 +4,26 @@
  *
  * Architecture note (mirrors StakeholderCapture):
  *   - The Steward/Team Object is the canonical "who does the work, with what
- *     capacity" record. Per-person fields (team role, resident status, decision
- *     rights by domain, capability by domain) live on each `StewardProfile`
- *     keyed by member userId; team-level fields (governance framework, identified
- *     skill gaps, permitted capital funding sources) live on the project-level
- *     `StewardTeam`. This component writes BOTH directly via the visionStore
- *     setters and reads them back via `useStewardRoster` + a stewardTeam selector.
+ *     capacity" record. Per-person presence + capability (resident status,
+ *     allocation, decision rights by domain, capability by domain) live on each
+ *     `StewardProfile` keyed by member userId; the per-member OPERATIONAL ROLE
+ *     (the standardized "what they do" / default domain focus) lives on the
+ *     membership row via `memberStore`, not the profile; team-level fields
+ *     (governance framework, identified skill gaps, permitted capital funding
+ *     sources) live on the project-level `StewardTeam`. This component writes all
+ *     three and reads them back via `useStewardRoster` + a stewardTeam selector.
  *   - It does NOT lift state to the panel. The panel passes no marker; the data
  *     IS the store. The recorded FormValue is therefore empty -- completion is
  *     marked by the panel, the human-readable record comes from summarise*.
  *   - Pure helpers (`stewardTeamModeFor`, `isStewardTeamValid`,
  *     `summariseStewardTeam`) operate on SNAPSHOTS (roster + team passed as args)
  *     so they remain unit-testable without store wiring.
+ *
+ * Phase-4 consolidation (2026-06-28): the c2 "People & roles" capture absorbed
+ * the standalone operational-roles item (formerly c9). The legacy free-text
+ * `teamRole` input retired in favour of the standardized operational-role pills;
+ * the `teamRole` field stays on `StewardProfile` for legacy display only (the c1
+ * roster falls back to it when present). See [[project_operational_role_layer]].
  *
  * Seasonal labour (s1-steward-c5) is NOT handled here -- it routes to
  * LabourInventoryCapture via the panel's isLabourInventory arm, the single
@@ -38,8 +46,6 @@ import {
 import {
   STEWARD_DOMAINS,
   STEWARD_DOMAIN_LABELS,
-  OPERATIONAL_ROLES,
-  OPERATIONAL_ROLE_DEFS,
   operationalRolesApplyTo,
 } from '@ogden/shared';
 import type { FormValue } from './actToolCatalog.js';
@@ -58,6 +64,7 @@ import {
   CAPITAL_SCOPE_NOTES,
 } from './EcovillageCapitalPlanCapture.js';
 import ScopePreview from '../../../features/collaboration/ScopePreview.js';
+import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import css from './StewardTeamCapture.module.css';
 
 // --------------------------------------------------------------------------
@@ -71,12 +78,15 @@ export type StewardTeamMode =
   | 'capability'
   | 'capital'
   | 'gaps'
-  | 'governance'
-  | 'operational';
+  | 'governance';
 
 /**
  * Returns the capture mode for an s1-steward item, or null when the item is not
  * handled here (c5 labour -> LabourInventoryCapture; any non-steward id).
+ *
+ * c9 (standalone operational roles) was retired 2026-06-28: its pills folded
+ * into the c2 'roles' capture, so c9 now resolves to null like any other
+ * unhandled id.
  */
 export function stewardTeamModeFor(itemId: string): StewardTeamMode | null {
   switch (itemId) {
@@ -94,8 +104,6 @@ export function stewardTeamModeFor(itemId: string): StewardTeamMode | null {
       return 'gaps';
     case 's1-steward-c8':
       return 'governance';
-    case 's1-steward-c9':
-      return 'operational';
     default:
       return null;
   }
@@ -205,10 +213,20 @@ export function summariseStewardTeam(
       return `${n} steward${n === 1 ? '' : 's'} on the team`;
     }
     case 's1-steward-c2': {
-      const n = roster.filter(
-        (e) => asString(e.profile.teamRole).trim() !== '',
+      // People & roles (Phase-4 consolidation 2026-06-28): c2 absorbed the
+      // operational-role pills (the free-text team-role input retired), so its
+      // summary now counts members the layer applies to that carry a role.
+      // Members the layer does not apply to always keep the full view and are
+      // never "assigned".
+      const assignable = roster.filter((e) =>
+        operationalRolesApplyTo(e.member.role),
+      );
+      const n = assignable.filter(
+        (e) => (e.member.operationalRoles ?? []).length > 0,
       ).length;
-      return `${n} role${n === 1 ? '' : 's'} defined`;
+      return n === 0
+        ? 'No operational roles assigned'
+        : `Operational focus set for ${n} member${n === 1 ? '' : 's'}`;
     }
     case 's1-steward-c3': {
       const n = roster.filter(
@@ -236,19 +254,6 @@ export function summariseStewardTeam(
       return asString(team.governance).trim() !== ''
         ? 'Governance framework noted'
         : 'No governance framework recorded';
-    case 's1-steward-c9': {
-      // Count only members the layer applies to (steward / team_member); the
-      // others always keep the full view and are never "assigned".
-      const assignable = roster.filter((e) =>
-        operationalRolesApplyTo(e.member.role),
-      );
-      const n = assignable.filter(
-        (e) => (e.member.operationalRoles ?? []).length > 0,
-      ).length;
-      return n === 0
-        ? 'No operational roles assigned'
-        : `Operational focus set for ${n} member${n === 1 ? '' : 's'}`;
-    }
     default:
       return '';
   }
@@ -337,8 +342,6 @@ export default function StewardTeamCapture(
           updateStewardTeam={updateStewardTeam}
         />
       );
-    case 'operational':
-      return <OperationalRolesBody roster={roster} projectId={projectId} />;
     default:
       return (
         <div className={css.emptyNote}>
@@ -399,7 +402,7 @@ function RosterBody({
         </span>
         <div className={css.guidanceTxt}>
           This is the canonical steward team. Everyone here is referenced across
-          every later tier and is never re-asked. Manage who belongs in the
+          every later stratum and is never re-asked. Manage who belongs in the
           project members roster; record each role and capacity in the items
           below.
         </div>
@@ -436,8 +439,23 @@ function RosterBody({
 }
 
 // --------------------------------------------------------------------------
-// c2 -- roles (per-person team role, resident status, allocation)
+// c2 -- people & roles (per-person operational role + presence)
 // --------------------------------------------------------------------------
+//
+// Phase-4 consolidation (2026-06-28): this body absorbed the standalone
+// operational-roles item (formerly c9). The free-text "team role" input retired
+// in favour of the standardized operational-role pills -- the single, project-
+// natural answer to "what does this person do". Per assignable member it now
+// renders: operational-role pills (project-labeled, written to the membership
+// via memberStore) + a live ScopePreview + resident-status + allocation.
+//
+// Operational roles are orthogonal to the system role (which governs surfaces)
+// and to decision rights (c3). They set each member's DEFAULT domain focus
+// across Plan/Act/Observe and never grant, remove, or gate anything; out-of-
+// scope signals are de-emphasized, never hidden. The layer applies only to
+// stewards / team members (operationalRolesApplyTo); everyone else keeps the
+// full view and is listed read-only under "Not role-scoped". Presence fields
+// (resident status, allocation) are edited on the assignable cards.
 
 function RolesBody({
   roster,
@@ -448,62 +466,123 @@ function RolesBody({
   projectId: string;
   updateStewardProfile: UpdateProfileFn;
 }): JSX.Element {
+  const setOperationalRoles = useMemberStore((s) => s.setOperationalRoles);
+  // Option C: project-resolved defs (label/description) + domain map so each
+  // member's pills carry this project's natural role names and the ScopePreview
+  // reflects any re-scope. No override => the six built-ins => byte-identical.
+  const { defs, domainsMap } = useResolvedOperationalRoles(projectId);
+  const assignable = roster.filter((e) =>
+    operationalRolesApplyTo(e.member.role),
+  );
+  const blocked = roster.filter((e) => !operationalRolesApplyTo(e.member.role));
+
   return (
     <div className={css.root}>
-      <FeedsBlock text="Roles feed Tier 1 direction-setting." />
+      <FeedsBlock text="Operational roles set each member's default domain focus across Plan, Act, and Observe, and feed Stratum 4 direction-setting. View-scoping only -- they never grant or remove a capability, and out-of-scope signals are de-emphasized, never hidden." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
-        roster.map((e) => (
-          <div key={e.member.userId} className={css.personCard}>
-            <PersonHead entry={e} />
-            <div className={css.personBody}>
-              <label className={css.fieldLbl}>Team role</label>
-              <input
-                className={css.textInput}
-                type="text"
-                value={asString(e.profile.teamRole)}
-                placeholder="e.g. Land manager, Grower, Coordinator"
-                onChange={(ev) =>
-                  updateStewardProfile(projectId, e.member.userId, {
-                    teamRole: ev.target.value,
-                  })
-                }
-              />
-              <label className={css.fieldLbl}>Resident status</label>
-              <div className={css.chips}>
-                {RESIDENT_STATUS.map((rs) => (
-                  <button
-                    key={rs.id}
-                    type="button"
-                    className={css.chip}
-                    data-active={e.profile.residentStatus === rs.id}
-                    onClick={() =>
+        <>
+          {assignable.map((e) => {
+            const current = e.member.operationalRoles ?? [];
+            return (
+              <div key={e.member.userId} className={css.personCard}>
+                <PersonHead entry={e} />
+                <div className={css.personBody}>
+                  <label className={css.fieldLbl}>Operational roles</label>
+                  <div className={css.chips}>
+                    {defs.map((def) => {
+                      const active = current.includes(def.slug);
+                      return (
+                        <button
+                          key={def.slug}
+                          type="button"
+                          className={css.chip}
+                          data-active={active}
+                          title={def.description}
+                          onClick={() => {
+                            const next = active
+                              ? current.filter((r) => r !== def.slug)
+                              : [...current, def.slug];
+                            void setOperationalRoles(
+                              projectId,
+                              e.member.userId,
+                              next,
+                            );
+                          }}
+                        >
+                          {def.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <ScopePreview
+                    roles={current}
+                    emptyMeans="full"
+                    domainsMap={domainsMap}
+                  />
+                  <label className={css.fieldLbl}>Resident status</label>
+                  <div className={css.chips}>
+                    {RESIDENT_STATUS.map((rs) => (
+                      <button
+                        key={rs.id}
+                        type="button"
+                        className={css.chip}
+                        data-active={e.profile.residentStatus === rs.id}
+                        onClick={() =>
+                          updateStewardProfile(projectId, e.member.userId, {
+                            residentStatus:
+                              e.profile.residentStatus === rs.id
+                                ? undefined
+                                : rs.id,
+                          })
+                        }
+                      >
+                        {rs.label}
+                      </button>
+                    ))}
+                  </div>
+                  <label className={css.fieldLbl}>Allocation</label>
+                  <input
+                    className={css.textInput}
+                    type="text"
+                    value={asString(e.profile.roleAllocation)}
+                    placeholder="e.g. full-time, 3 days/week, 40%"
+                    onChange={(ev) =>
                       updateStewardProfile(projectId, e.member.userId, {
-                        residentStatus:
-                          e.profile.residentStatus === rs.id ? undefined : rs.id,
+                        roleAllocation: ev.target.value,
                       })
                     }
-                  >
-                    {rs.label}
-                  </button>
+                  />
+                </div>
+              </div>
+            );
+          })}
+          {blocked.length > 0 ? (
+            <div className={css.section}>
+              <div className={css.secLbl}>
+                <Info size={13} /> Not role-scoped
+              </div>
+              <p className={css.modeHint}>
+                Contractors, landowners, reviewers and viewers keep the full
+                view -- the operational-role layer does not apply to them.
+              </p>
+              <div className={css.rowList}>
+                {blocked.map((e) => (
+                  <div key={e.member.userId} className={css.contactRow}>
+                    <span className={css.av}>{initialsOf(memberName(e))}</span>
+                    <div className={css.crInfo}>
+                      <span className={css.crName}>{memberName(e)}</span>
+                      <span className={css.crRole}>
+                        {roleLabel(e.member.role)}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <label className={css.fieldLbl}>Allocation</label>
-              <input
-                className={css.textInput}
-                type="text"
-                value={asString(e.profile.roleAllocation)}
-                placeholder="e.g. full-time, 3 days/week, 40%"
-                onChange={(ev) =>
-                  updateStewardProfile(projectId, e.member.userId, {
-                    roleAllocation: ev.target.value,
-                  })
-                }
-              />
             </div>
-          </div>
-        ))
+          ) : null}
+        </>
       )}
     </div>
   );
@@ -524,7 +603,7 @@ function RightsBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Decision rights feed Tier 1 direction-setting." />
+      <FeedsBlock text="Decision rights feed Stratum 4 direction-setting." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
@@ -588,7 +667,7 @@ function CapabilityBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Capabilities feed Tier 1 direction-setting and Tier 6 resource planning." />
+      <FeedsBlock text="Capabilities feed Stratum 4 direction-setting and Stratum 7 resource planning." />
       {roster.length === 0 ? (
         <EmptyRoster />
       ) : (
@@ -710,7 +789,7 @@ function GapsBody({
   };
   return (
     <div className={css.root}>
-      <FeedsBlock text="Skill gaps feed Tier 6 resource planning and the risk register." />
+      <FeedsBlock text="Skill gaps feed Stratum 7 resource planning and the risk register." />
       <div className={css.section}>
         <div className={css.secLbl}>
           <AlertTriangle size={13} /> Identified skill gaps
@@ -776,7 +855,7 @@ function GovernanceBody({
 }): JSX.Element {
   return (
     <div className={css.root}>
-      <FeedsBlock text="Governance principles feed Tier 1 direction-setting." />
+      <FeedsBlock text="Governance principles feed Stratum 4 direction-setting." />
       <div className={css.section}>
         <div className={css.secLbl}>
           <Landmark size={13} /> Governance framework
@@ -799,102 +878,3 @@ function GovernanceBody({
   );
 }
 
-// --------------------------------------------------------------------------
-// c9 -- operational roles (per-member default domain focus, ADR 2026-06-24)
-// --------------------------------------------------------------------------
-//
-// Orthogonal to the system role (which governs surfaces) and to decision rights
-// (c3). Writes the membership-level operationalRoles via memberStore -- NOT the
-// visionStore -- so it survives the same per-project member roster the rest of
-// the app reads. View-scoping only: it sets each member's DEFAULT focus and
-// never grants, removes, or gates anything. The layer applies only to stewards
-// and team members; everyone else keeps the full view and is listed read-only.
-
-function OperationalRolesBody({
-  roster,
-  projectId,
-}: {
-  roster: readonly StewardRosterEntry[];
-  projectId: string;
-}): JSX.Element {
-  const setOperationalRoles = useMemberStore((s) => s.setOperationalRoles);
-  const assignable = roster.filter((e) =>
-    operationalRolesApplyTo(e.member.role),
-  );
-  const blocked = roster.filter((e) => !operationalRolesApplyTo(e.member.role));
-
-  return (
-    <div className={css.root}>
-      <FeedsBlock text="Operational roles set each member's default domain focus across Plan, Act, and Observe. View-scoping only -- they never grant or remove a capability, and out-of-scope signals are de-emphasized, never hidden." />
-      {roster.length === 0 ? (
-        <EmptyRoster />
-      ) : (
-        <>
-          {assignable.map((e) => {
-            const current = e.member.operationalRoles ?? [];
-            return (
-              <div key={e.member.userId} className={css.personCard}>
-                <PersonHead entry={e} />
-                <div className={css.personBody}>
-                  <label className={css.fieldLbl}>Operational roles</label>
-                  <div className={css.chips}>
-                    {OPERATIONAL_ROLES.map((slug) => {
-                      const def = OPERATIONAL_ROLE_DEFS[slug];
-                      const active = current.includes(slug);
-                      return (
-                        <button
-                          key={slug}
-                          type="button"
-                          className={css.chip}
-                          data-active={active}
-                          title={def.description}
-                          onClick={() => {
-                            const next = active
-                              ? current.filter((r) => r !== slug)
-                              : [...current, slug];
-                            void setOperationalRoles(
-                              projectId,
-                              e.member.userId,
-                              next,
-                            );
-                          }}
-                        >
-                          {def.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <ScopePreview roles={current} emptyMeans="full" />
-                </div>
-              </div>
-            );
-          })}
-          {blocked.length > 0 ? (
-            <div className={css.section}>
-              <div className={css.secLbl}>
-                <Info size={13} /> Not role-scoped
-              </div>
-              <p className={css.modeHint}>
-                Contractors, landowners, reviewers and viewers keep the full
-                view -- the operational-role layer does not apply to them.
-              </p>
-              <div className={css.rowList}>
-                {blocked.map((e) => (
-                  <div key={e.member.userId} className={css.contactRow}>
-                    <span className={css.av}>{initialsOf(memberName(e))}</span>
-                    <div className={css.crInfo}>
-                      <span className={css.crName}>{memberName(e)}</span>
-                      <span className={css.crRole}>
-                        {roleLabel(e.member.role)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </>
-      )}
-    </div>
-  );
-}

@@ -315,6 +315,13 @@ import {
   type DemandMode,
 } from './DemandCapture.js';
 import {
+  CapacityBandCapture,
+  decodeCapacityBand,
+  isCapacityBandValid,
+  summariseCapacityBand,
+  type CapacityBandModel,
+} from './CapacityBandCapture.js';
+import {
   useStakeholderRegisterStore,
   EMPTY_STAKEHOLDERS_BY_ID,
 } from '../../../store/stakeholderRegisterStore.js';
@@ -413,6 +420,8 @@ export interface DecisionPanelTarget {
   isCapitalPlan?: boolean;
   /** true => render DemandCapture (self-routing on itemId via demandModeFor; c1 labour / c4 capital). */
   isDemandCapture?: boolean;
+  /** true => render CapacityBandCapture (two sliders: stewardship time + annual budget). */
+  isCapacityBand?: boolean;
   /** false => hide the defer button (e.g. mandatory non-deferrable c3). undefined/true => deferrable. */
   deferrable?: boolean;
   /** custom resting defer-button label (e.g. steward "Add team members later in settings"). undefined => legacy strings. */
@@ -955,6 +964,12 @@ export default function DecisionWorkingPanel({
     ? demandModeFor(decision.itemId)
     : null;
 
+  // Capacity-band (s1-vision-c3): two sliders (time + budget). Advisory only --
+  // validates / summarises off the FormValue, writes no external store.
+  const capacityBandModel: CapacityBandModel | null = decision.isCapacityBand
+    ? decodeCapacityBand(draft)
+    : null;
+
   // Decode the draft into the legal-governance model once -- reused by validity,
   // the gate note, the record summary, and the body renderer (mirrors the
   // boundary pattern above). EvLegalGovernanceCapture self-routes on itemId.
@@ -1051,6 +1066,8 @@ export default function DecisionWorkingPanel({
     // (the supply/demand join is display-only in the Plan Capacity Bridge), so
     // validity does not depend on siblingValues.
     valid = isDemandValid(demandMode, draft);
+  } else if (capacityBandModel) {
+    valid = isCapacityBandValid(capacityBandModel);
   } else if (decision.isSuccessCriteria || hasFields) {
     valid = isFormValueValid(fields ?? [], draft);
   } else {
@@ -1289,6 +1306,12 @@ export default function DecisionWorkingPanel({
           ? 'Add at least one labour line with a task and weekly hours (or headcount) to record'
           : 'Add at least one capital line with a category, amount, and permitted funding channel to record';
       gateNote = <div className={css.gateNote}>{note}</div>;
+    } else if (decision.isCapacityBand) {
+      gateNote = (
+        <div className={css.gateNote}>
+          Set both sliders to record your capacity bands
+        </div>
+      );
     } else {
       gateNote = (
         <div className={css.gateNote}>
@@ -1392,6 +1415,8 @@ export default function DecisionWorkingPanel({
       summary = summariseCapitalPlan(capitalPlanMode, draft, siblingValues);
     } else if (demandMode) {
       summary = summariseDemand(demandMode, draft);
+    } else if (capacityBandModel) {
+      summary = summariseCapacityBand(capacityBandModel);
     } else if (fields) {
       summary = summariseFormValue(fields, draft);
     } else {
@@ -1814,6 +1839,13 @@ export default function DecisionWorkingPanel({
             value={draft}
             onChange={setDraft}
             itemId={decision.itemId}
+          />
+        ) : decision.isCapacityBand ? (
+          <CapacityBandCapture
+            key={decision.itemId}
+            value={draft}
+            onChange={setDraft}
+            readOnly={readOnly}
           />
         ) : hasFields ? (
           <VisionFormFields

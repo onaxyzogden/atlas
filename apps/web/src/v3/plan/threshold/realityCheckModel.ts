@@ -108,7 +108,7 @@ export const INTENT_TYPE_META: Readonly<
   'non-negotiable': {
     label: 'Non-negotiable',
     description:
-      'Declared as a hard constraint in Tier 0. Can only be Feasible or Released -- if it cannot be met, the project itself must be reconsidered.',
+      'Declared as a hard constraint in Stratum 1. Can only be Feasible or Released -- if it cannot be met, the project itself must be reconsidered.',
   },
   committed: {
     label: 'Committed',

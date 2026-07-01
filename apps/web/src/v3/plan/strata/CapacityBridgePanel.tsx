@@ -1,7 +1,7 @@
 /**
- * CapacityBridgePanel -- the Plan-only "Tier 0 Capacity Bridge" on the
+ * CapacityBridgePanel -- the Plan-only "Stratum 1 Capacity Bridge" on the
  * `s7-resource-plan` objective. It puts the steward team's declared SUPPLY
- * (rolled up from Tier 0 / Objective 0.2 via `stewardSupplyBaseline` +
+ * (rolled up from Stratum 1 / Objective 1.2 via `stewardSupplyBaseline` +
  * `useStewardRoster`) side-by-side with the Phase-1 DEMAND the resource plan now
  * captures (the structured c1 labour + c4 capital captures, rolled up via
  * `phase1DemandBaseline`). It reads existing data only -- it never re-asks the
@@ -84,7 +84,7 @@ export default function CapacityBridgePanel({ objective, projectId }: CapacityBr
         <span>Capacity Bridge</span>
       </div>
       <p className={css.lede}>
-        Steward supply declared in Tier 0 (Objective 0.2), read against the Phase-1
+        Steward supply declared in Stratum 1 (Objective 1.2), read against the Phase-1
         demand captured in this resource plan. Display-only -- never a gate.
       </p>
 
@@ -92,7 +92,7 @@ export default function CapacityBridgePanel({ objective, projectId }: CapacityBr
         <div className={`${css.col} ${css.colSupply}`}>
           <div className={css.colHead}>
             <Users size={13} aria-hidden="true" className={css.colIcon} />
-            <span>Supply -- Tier 0</span>
+            <span>Supply -- Stratum 1</span>
           </div>
           <dl className={css.stats}>
             <div className={css.stat}>

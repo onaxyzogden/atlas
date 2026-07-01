@@ -27,7 +27,20 @@
 import type { SharedVision } from '../../../store/visionStore.js';
 import type { StewardRosterEntry } from '../../observe/modules/human-context/roster.js';
 import { totalHoursPerWeek } from '../../observe/modules/human-context/derivations.js';
-import { OPERATIONAL_ROLE_DEFS } from '@ogden/shared';
+import {
+  OPERATIONAL_ROLE_DEFS,
+  operationalRolesApplyTo,
+  type OperationalRole,
+} from '@ogden/shared';
+
+/**
+ * Optional per-project label override (ADR 2026-06-24 Option C, rename + re-scope).
+ * The calling component populates it from `useResolvedOperationalRoles(projectId)`
+ * so the roster label + chips read the project's renamed roles; absent entries
+ * fall back to the built-in `OPERATIONAL_ROLE_DEFS` label. Pure default `{}` keeps
+ * every plain-fixture test byte-identical.
+ */
+export type OperationalRoleLabelMap = Partial<Record<OperationalRole, string>>;
 
 // ---------------------------------------------------------------------------
 // Read-model
@@ -120,7 +133,17 @@ function humanizeToken(token: string): string {
     .join(' ');
 }
 
-function roleLabelOf(entry: StewardRosterEntry): string {
+/**
+ * The roster label, in precedence order (Phase-4 consolidation 2026-06-28):
+ *   1. operational-role labels (joined) -- the standardized "what they do" that
+ *      replaced the free-text team role,
+ *   2. legacy `teamRole` free-text -- kept as a display fallback for old data,
+ *   3. humanized domain `relationship`,
+ *   4. humanized app role.
+ * `opLabels` is the already-resolved (project-renamed) label list for this member.
+ */
+function roleLabelOf(entry: StewardRosterEntry, opLabels: readonly string[]): string {
+  if (opLabels.length > 0) return opLabels.join(', ');
   const teamRole = entry.profile.teamRole?.trim();
   if (teamRole) return teamRole;
   const relationship = entry.profile.relationship;
@@ -155,20 +178,36 @@ const INTENT_LABEL: Readonly<Record<IntentReferenceKind, string>> = {
 export function selectTeamRoster(
   entries: readonly StewardRosterEntry[],
   sharedVision: SharedVision,
+  roleLabelMap: OperationalRoleLabelMap = {},
 ): TeamRosterModel {
+  // Resolve a single operational-role slug to its display label: project
+  // override first (Option C rename), then the built-in label. Unknown / stale
+  // slugs resolve to undefined and are dropped.
+  const labelFor = (slug: OperationalRole): string | undefined =>
+    roleLabelMap[slug] ?? OPERATIONAL_ROLE_DEFS[slug]?.label;
+
   // ---- member rows ----
   const members: TeamMemberRow[] = entries.map((entry) => {
     const name = memberName(entry);
-    const teamRole = entry.profile.teamRole?.trim();
+    const operationalRoleLabels = (entry.member.operationalRoles ?? [])
+      .map((slug) => labelFor(slug as OperationalRole))
+      .filter((label): label is string => Boolean(label));
+    // "Constituted" (Phase-4 consolidation 2026-06-28): an assignable member is
+    // constituted once they carry at least one operational role -- the legacy
+    // free-text teamRole still counts for old data. The operational layer does
+    // not apply to non-assignable roles (reviewer/guest), so those are
+    // constituted simply by being on the roster.
+    const assignable = operationalRolesApplyTo(entry.member.role);
+    const hasOperationalRole = (entry.member.operationalRoles ?? []).length > 0;
+    const hasTeamRole = Boolean(entry.profile.teamRole?.trim());
+    const complete = assignable ? hasOperationalRole || hasTeamRole : true;
     return {
       userId: entry.member.userId,
       name,
       initials: initialsOf(name),
-      roleLabel: roleLabelOf(entry),
-      complete: Boolean(teamRole && teamRole.length > 0),
-      operationalRoleLabels: (entry.member.operationalRoles ?? [])
-        .map((slug) => OPERATIONAL_ROLE_DEFS[slug]?.label)
-        .filter((label): label is string => Boolean(label)),
+      roleLabel: roleLabelOf(entry, operationalRoleLabels),
+      complete,
+      operationalRoleLabels,
     };
   });
   const constitutedCount = members.filter((m) => m.complete).length;

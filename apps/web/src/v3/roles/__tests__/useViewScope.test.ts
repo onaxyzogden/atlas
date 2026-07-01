@@ -8,13 +8,23 @@
  * layer; an explicit Full-view choice un-scopes without losing the scope Set.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ProjectMemberRecord, ProjectRole } from '@ogden/shared';
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { useViewScope } from '../useViewScope.js';
+
+// useViewScope now reads the project's Option-C domain map via
+// useResolvedOperationalRoles (which uses React Query). This suite is
+// store-direct (no QueryClientProvider) and exercises built-in scoping, so we
+// stub the resolver to `domainsMap: undefined` -- scopeForRoles then falls back
+// to the built-in OPERATIONAL_ROLE_DOMAINS, keeping every assertion below
+// byte-identical to the pre-Option-C behavior.
+vi.mock('../useResolvedOperationalRoles.js', () => ({
+  useResolvedOperationalRoles: () => ({ domainsMap: undefined }),
+}));
 
 const PROJECT_ID = 'proj-test';
 const ME = '11111111-1111-1111-1111-111111111111';

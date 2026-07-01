@@ -178,7 +178,7 @@ export default function ThresholdDirectionPhase({
           </>
         ) : elements.length === 0 ? (
           <p className={styles.notYet} data-testid="direction-empty">
-            No intent elements were declared in Tier 0, so there is nothing to
+            No intent elements were declared in Stratum 1, so there is nothing to
             measure against the evidence here. Return to the declaration to
             record the project's intent, then revisit the Reality Check.
           </p>

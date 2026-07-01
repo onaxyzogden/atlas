@@ -1,15 +1,15 @@
 /**
  * @vitest-environment happy-dom
  *
- * ReceptionReferencePanel -- the Plan-stage Tier-2 RIGHT rail for a selected
+ * ReceptionReferencePanel -- the Plan-stage Stratum-3 RIGHT rail for a selected
  * systems-reading survey. Pure display over the objective + reception progress
  * model; these tests pin the rendered DOM:
- *   1. header -- "Objective 2.x - <status>" eyebrow + title + mode subtitle.
+ *   1. header -- "Objective 3.x - <status>" eyebrow + title + mode subtitle.
  *   2. the "Still listening" reception callout.
  *   3. expanded intent-lens rows (one per type).
  *   4. dual outputs -- Observe Output (teal) + Act handoff (amber).
  *   5. builds-on dependency line.
- *   6. both-tier progress fractions + records caption.
+ *   6. both-stratum progress fractions + records caption.
  *   7. graceful omission when the optional sections have no data.
  */
 
@@ -63,7 +63,7 @@ function makeObjective(
     ],
     observeOutput: 'Hydrology Survey Record',
     actHandoff: 'Water Infrastructure Brief',
-    buildsOnDisplay: 'Tier 1.1 Terrain & topography',
+    buildsOnDisplay: 'Stratum 2.1 Terrain & topography',
     ...overrides,
   } as PlanStratumObjective;
 }
@@ -86,11 +86,11 @@ describe('ReceptionReferencePanel -- header', () => {
       />,
     );
     const ref = screen.getByTestId('reception-reference');
-    // 2.1 derived from the display map; status "active" -> "In Progress".
-    expect(ref.textContent).toMatch(/Objective 2\.1/);
+    // 3.1 derived from the display map; status "active" -> "In Progress".
+    expect(ref.textContent).toMatch(/Objective 3\.1/);
     expect(ref.textContent).toMatch(/In Progress/);
     expect(ref.textContent).toMatch(/Water movement & hydrology/);
-    expect(ref.textContent).toMatch(/Mode 2 -- Reception - Tier 2/);
+    expect(ref.textContent).toMatch(/Mode 2 -- Reception - Stratum 3/);
   });
 });
 
@@ -149,7 +149,7 @@ describe('ReceptionReferencePanel -- sections', () => {
       />,
     );
     expect(screen.getByTestId('reference-builds-on').textContent).toMatch(
-      /Tier 1\.1 Terrain & topography/,
+      /Stratum 2\.1 Terrain & topography/,
     );
   });
 
@@ -186,12 +186,12 @@ describe('ReceptionReferencePanel -- tier1 (Land Reading) parameterization', () 
       ],
       observeOutput: 'Terrain & Topography Survey Record',
       actHandoff: 'Earthworks & Access Brief',
-      // Tier 1 has no prior reception tier -- buildsOnDisplay is omitted.
+      // Stratum 2 has no prior reception stratum -- buildsOnDisplay is omitted.
       buildsOnDisplay: undefined,
     });
   }
 
-  it('renders the 1.x eyebrow, the Tier-1 subtitle, and the Tier-1 callout', () => {
+  it('renders the 2.x eyebrow, the Tier-1 subtitle, and the Tier-1 callout', () => {
     render(
       <ReceptionReferencePanel
         objective={makeTierOneObjective()}
@@ -201,13 +201,13 @@ describe('ReceptionReferencePanel -- tier1 (Land Reading) parameterization', () 
       />,
     );
     const ref = screen.getByTestId('reception-reference');
-    expect(ref.textContent).toMatch(/Objective 1\.1/);
-    expect(ref.textContent).toMatch(/Mode 2 -- Reception - Tier 1/);
+    expect(ref.textContent).toMatch(/Objective 2\.1/);
+    expect(ref.textContent).toMatch(/Mode 2 -- Reception - Stratum 2/);
 
     const callout = screen.getByTestId('reception-still-listening');
     expect(callout.textContent).toMatch(/Listening, not deciding/);
     expect(callout.textContent).toMatch(/Reality Check/);
-    // The Tier-2 "Mode 4 Design" deferral wording is NOT used on Tier 1.
+    // The Tier-2 "Mode 4 Design" deferral wording is NOT used on Stratum 2.
     expect(callout.textContent).not.toMatch(/Mode 4 Design/);
   });
 

@@ -110,7 +110,10 @@ export const OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE: Readonly<
 
   // ---------- S4 ----------
   // Zones + sectors depend on landform, climate sectors, water flow.
-  's4-zones-sectors': ['topography', 'climate', 'hydrology'],
+  // Keyed by the canonical objective id `s4-zones` (universal.ts + skeleton),
+  // matching the Act-tool override so the curated domains resolve for both
+  // catalogue-resolved and null-type / MTC (skeleton) projects.
+  's4-zones': ['topography', 'climate', 'hydrology'],
 
   // ---------- S5 ----------
   // Water strategy is hydrology-led, with soil + risk-compliance

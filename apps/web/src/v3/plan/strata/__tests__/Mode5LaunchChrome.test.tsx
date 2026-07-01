@@ -12,7 +12,7 @@
  *  - LaunchProgressPanel renders each `{ metric, cadence }` milestone as a metric
  *    line + a cadence pill.
  *  - CapacityBridgePanel arms ONLY on `s7-resource-plan`; it joins real steward
- *    supply (from Tier 0 / Obj 0.2) against the captured Phase-1 demand, shows an
+ *    supply (from Stratum 1 / Obj 1.2) against the captured Phase-1 demand, shows an
  *    honest "not yet captured" reading when demand is absent, and renders only the
  *    permitted (Amanah-clean) funding-channel labels the capture stored.
  *
@@ -139,7 +139,7 @@ describe('LaunchProgressPanel', () => {
 });
 
 // --------------------------------------------------------------------------
-// Capacity Bridge -- supply (Tier 0) joined against captured Phase-1 demand
+// Capacity Bridge -- supply (Stratum 1) joined against captured Phase-1 demand
 // --------------------------------------------------------------------------
 
 const PROJECT_ID = 'proj-bridge-1';
@@ -238,10 +238,10 @@ describe('CapacityBridgePanel', () => {
     );
 
     const bridge = screen.getByTestId('capacity-bridge');
-    expect(bridge.textContent).toContain('Supply -- Tier 0');
+    expect(bridge.textContent).toContain('Supply -- Stratum 1');
     expect(bridge.textContent).toContain('Demand -- Phase 1');
 
-    // Supply rolled up from Obj 0.2: 2 stewards, (10+5)+(0+8)=23 weekly hours.
+    // Supply rolled up from Obj 1.2: 2 stewards, (10+5)+(0+8)=23 weekly hours.
     expect(screen.getByText('23')).toBeTruthy();
     // Demand rolled up from the captured c1/c4: capital total 5000.
     expect(screen.getAllByText('5000').length).toBeGreaterThanOrEqual(1);

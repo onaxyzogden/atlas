@@ -243,7 +243,7 @@ describe('VisionClassifyCapture -- show more', () => {
 });
 
 // --------------------------------------------------------------------------
-// fidelity re-skin: column sub-labels, tier-3 note, inline hint, corrected copy
+// fidelity re-skin: column sub-labels, Stratum 4 note, inline hint, corrected copy
 // --------------------------------------------------------------------------
 
 describe('VisionClassifyCapture -- column sub-labels', () => {
@@ -262,17 +262,17 @@ describe('VisionClassifyCapture -- column sub-labels', () => {
   });
 });
 
-describe('VisionClassifyCapture -- tier 3 note', () => {
-  it('renders the Tier 3 reclassification note verbatim', () => {
+describe('VisionClassifyCapture -- Stratum 4 note', () => {
+  it('renders the Stratum 4 reclassification note verbatim', () => {
     renderCapture();
-    // "Tier 3" sits inside a <strong>, so match on the paragraph's full
+    // "Stratum 4" sits inside a <strong>, so match on the paragraph's full
     // textContent (whitespace-collapsed) rather than a single text node.
     const note = screen.getByText((_content, el) => {
       if (!el || el.tagName !== 'P') return false;
       const t = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
       return (
         t ===
-        'At Tier 3, each element gets reclassified against observed land conditions -- feasible, conditional, deferred, or rejected. This is your intent. The land has its own answer.'
+        'At Stratum 4, each element gets reclassified against observed land conditions -- feasible, conditional, deferred, or rejected. This is your intent. The land has its own answer.'
       );
     });
     expect(note).toBeTruthy();

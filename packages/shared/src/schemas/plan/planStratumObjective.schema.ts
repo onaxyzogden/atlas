@@ -497,7 +497,7 @@ export const PlanStratumObjectiveSchema = z.object({
    */
   observeOutput: z.string().min(1).optional(),
   /**
-   * Optional DISPLAY-ONLY "builds on" dependency line (e.g. "Tier 2.1 Water
+   * Optional DISPLAY-ONLY "builds on" dependency line (e.g. "Stratum 3.1 Water
    * movement & hydrology"). NEVER a prerequisite -- gating prereqs are
    * `prerequisiteObjectiveIds` (universal-id-only, per the cross-config lock
    * invariant). Pure reading copy for the reception workbench header. Absent on

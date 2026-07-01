@@ -80,20 +80,9 @@
   min-height: 0;
 }
 
-/* ── Workspace (capture form for the selected decision) ──────────────────────
- * Carries the cream working-surface look from the old .right pane. A top
- * border + margin separate it from the chosen tile above. flex-shrink:0 so the
- * form keeps its intrinsic height and the stack -- not the form -- scrolls. */
-.workspace {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  margin-top: 4px;
-  padding: 16px;
-  border-radius: var(--radius-md, 8px);
-  border: 1px solid var(--color-border, rgba(84, 92, 100, 0.20));
-  background: var(--color-surface-raised, #f3efe6);
-}
+/* The capture form for the selected decision now renders in a centered-modal
+ * popup (WorkspacePopup.tsx) rather than inline below the list, so the old
+ * inline .workspace rule has been retired. */
 
 /* ── Left pane: decision list ────────────────────────────────────────────── */
 

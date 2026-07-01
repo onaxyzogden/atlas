@@ -9,12 +9,27 @@
  * toggle synchronously.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ProjectMemberRecord } from '@ogden/shared';
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import MyOperationalRoleCard from '../MyOperationalRoleCard.js';
+
+// The card resolves its pills via useResolvedOperationalRoles (React Query).
+// This suite is store-direct (no QueryClientProvider) and asserts the built-in
+// labels, so we stub the resolver to the real built-in defs/domains -- the
+// pills and ScopePreview stay byte-identical to the pre-Option-C card.
+vi.mock('../../../v3/roles/useResolvedOperationalRoles.js', async () => {
+  const shared =
+    await vi.importActual<typeof import('@ogden/shared')>('@ogden/shared');
+  return {
+    useResolvedOperationalRoles: () => ({
+      defs: shared.resolveOperationalRoleDefs(),
+      domainsMap: shared.resolveOperationalRoleDomains(),
+    }),
+  };
+});
 
 const PROJECT_ID = 'proj-test';
 const USER_ID = '11111111-1111-1111-1111-111111111111';

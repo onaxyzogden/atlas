@@ -3,13 +3,13 @@
  * (Tier 1 / Stratum-2 Land Reading + Tier 2 / Stratum-3 Systems Reading). No DOM;
  * this pins the model contract the ReceptionCenter / ReceptionReferencePanel
  * render:
- *   1. the "1.x" + "2.x" presentation numbering + the union membership set (six
- *      resolved S2 surveys + five resolved S3 surveys; 2.5 flagged new).
+ *   1. the "2.x" + "3.x" presentation numbering + the union membership set (six
+ *      resolved S2 surveys + five resolved S3 surveys; 3.5 flagged new).
  *   2. survey-sequencing strip -- order, live status overlay, and the terminal
- *      node per tier (Tier 1 -> "Tier 2" unlock; Tier 2 -> covenant Threshold-1
+ *      node per stratum (Stratum 2 -> "Stratum 3" unlock; Stratum 3 -> covenant Threshold-1
  *      Reality Check), unlocking only when every present survey is complete, plus
- *      the 2.5-benefits-from-2.1 note gated on 2.5's presence (Tier-2-only).
- *   3. cross-tier progress -- Tier 1 (Land Reading) + Tier 2 (Systems Reading)
+ *      the 3.5-benefits-from-3.1 note gated on 3.5's presence (Tier-2-only).
+ *   3. cross-stratum progress -- Stratum 2 (Land Reading) + Stratum 3 (Systems Reading)
  *      fractions, the record total, and the threshold-open flag.
  *   4. the tier-keyed copy accessors (default 'tier2' keeps the S3 consumers
  *      byte-identical) + the new-field adapters (set + omitted).
@@ -99,21 +99,21 @@ const SIX_ALL_COMPLETE: Record<string, PlanStratumObjectiveStatus> = {
 };
 
 describe('receptionModel -- TIER_TWO_DISPLAY numbering', () => {
-  it('numbers the five surveys 2.1..2.5 in resolution order', () => {
-    expect(TIER_TWO_DISPLAY['s3-hydrology']?.display).toBe('2.1');
-    expect(TIER_TWO_DISPLAY['s3-soil']?.display).toBe('2.2');
-    expect(TIER_TWO_DISPLAY['rf-s3-nutrient-cycling']?.display).toBe('2.3');
-    expect(TIER_TWO_DISPLAY['rf-s3-pest-pressure']?.display).toBe('2.4');
-    expect(TIER_TWO_DISPLAY['silv-sec-s3-stock-water']?.display).toBe('2.5');
+  it('numbers the five surveys 3.1..3.5 in resolution order', () => {
+    expect(TIER_TWO_DISPLAY['s3-hydrology']?.display).toBe('3.1');
+    expect(TIER_TWO_DISPLAY['s3-soil']?.display).toBe('3.2');
+    expect(TIER_TWO_DISPLAY['rf-s3-nutrient-cycling']?.display).toBe('3.3');
+    expect(TIER_TWO_DISPLAY['rf-s3-pest-pressure']?.display).toBe('3.4');
+    expect(TIER_TWO_DISPLAY['silv-sec-s3-stock-water']?.display).toBe('3.5');
   });
 
-  it('flags only the new livestock-water survey (2.5) as isNew', () => {
+  it('flags only the new livestock-water survey (3.5) as isNew', () => {
     expect(TIER_TWO_DISPLAY['silv-sec-s3-stock-water']?.isNew).toBe(true);
     expect(TIER_TWO_DISPLAY['s3-hydrology']?.isNew).toBeUndefined();
   });
 
   it('tierTwoDisplayFor returns the entry for a member, undefined otherwise', () => {
-    expect(tierTwoDisplayFor('s3-soil')?.display).toBe('2.2');
+    expect(tierTwoDisplayFor('s3-soil')?.display).toBe('3.2');
     expect(tierTwoDisplayFor('s1-vision')).toBeUndefined();
   });
 });
@@ -122,14 +122,14 @@ describe('receptionModel -- membership', () => {
   it('RECEPTION_OBJECTIVE_IDS is the union of both tier display maps (11 ids)', () => {
     expect([...RECEPTION_OBJECTIVE_IDS].sort()).toEqual(
       [
-        // Tier 1 -- Land Reading (the six s2 surveys)
+        // Stratum 2 -- Land Reading (the six s2 surveys)
         's2-terrain',
         's2-climate',
         's2-ecology',
         's2-infrastructure',
         'rf-s2-land-health',
         'rf-s2-landscape-context',
-        // Tier 2 -- Systems Reading (the five s3 surveys)
+        // Stratum 3 -- Systems Reading (the five s3 surveys)
         's3-hydrology',
         's3-soil',
         'rf-s3-nutrient-cycling',
@@ -160,13 +160,13 @@ describe('receptionModel -- membership', () => {
 });
 
 describe('receptionModel -- TIER_ONE_DISPLAY numbering', () => {
-  it('numbers the six Land-Reading surveys 1.1..1.6 in spec order', () => {
-    expect(TIER_ONE_DISPLAY['s2-terrain']?.display).toBe('1.1');
-    expect(TIER_ONE_DISPLAY['s2-climate']?.display).toBe('1.2');
-    expect(TIER_ONE_DISPLAY['s2-ecology']?.display).toBe('1.3');
-    expect(TIER_ONE_DISPLAY['s2-infrastructure']?.display).toBe('1.4');
-    expect(TIER_ONE_DISPLAY['rf-s2-land-health']?.display).toBe('1.5');
-    expect(TIER_ONE_DISPLAY['rf-s2-landscape-context']?.display).toBe('1.6');
+  it('numbers the six Land-Reading surveys 2.1..2.6 in spec order', () => {
+    expect(TIER_ONE_DISPLAY['s2-terrain']?.display).toBe('2.1');
+    expect(TIER_ONE_DISPLAY['s2-climate']?.display).toBe('2.2');
+    expect(TIER_ONE_DISPLAY['s2-ecology']?.display).toBe('2.3');
+    expect(TIER_ONE_DISPLAY['s2-infrastructure']?.display).toBe('2.4');
+    expect(TIER_ONE_DISPLAY['rf-s2-land-health']?.display).toBe('2.5');
+    expect(TIER_ONE_DISPLAY['rf-s2-landscape-context']?.display).toBe('2.6');
   });
 
   it('flags no Tier-1 survey isNew (the restructure reframes, never adds)', () => {
@@ -187,14 +187,14 @@ describe('receptionModel -- TIER_ONE_DISPLAY numbering', () => {
   });
 
   it('receptionDisplayFor resolves an entry in EITHER tier map', () => {
-    expect(receptionDisplayFor('s2-ecology')?.display).toBe('1.3');
-    expect(receptionDisplayFor('s3-soil')?.display).toBe('2.2');
+    expect(receptionDisplayFor('s2-ecology')?.display).toBe('2.3');
+    expect(receptionDisplayFor('s3-soil')?.display).toBe('3.2');
     expect(receptionDisplayFor('s1-vision')).toBeUndefined();
   });
 });
 
 describe('receptionModel -- tier-1 sequencing strip', () => {
-  it('lays out the six surveys 1.1..1.6 with live status', () => {
+  it('lays out the six surveys 2.1..2.6 with live status', () => {
     const seq = deriveReceptionSequencing(
       SIX,
       {
@@ -208,30 +208,30 @@ describe('receptionModel -- tier-1 sequencing strip', () => {
       'tier1',
     );
     expect(seq.nodes.map((n) => n.display)).toEqual([
-      '1.1',
-      '1.2',
-      '1.3',
-      '1.4',
-      '1.5',
-      '1.6',
+      '2.1',
+      '2.2',
+      '2.3',
+      '2.4',
+      '2.5',
+      '2.6',
     ]);
     expect(seq.nodes[0]?.status).toBe('complete');
     expect(seq.nodes[1]?.status).toBe('active');
   });
 
-  it('terminal node is the Tier-2 unlock, available iff all six complete', () => {
+  it('terminal node is the Stratum 3 unlock, available iff all six complete', () => {
     const partial = deriveReceptionSequencing(
       SIX,
       { ...SIX_ALL_COMPLETE, 'rf-s2-landscape-context': 'active' },
       'tier1',
     );
-    expect(partial.threshold.label).toBe('Tier 2');
-    expect(partial.threshold.name).toBe('Tier 2 -- Systems Reading');
+    expect(partial.threshold.label).toBe('Stratum 3');
+    expect(partial.threshold.name).toBe('Stratum 3 -- Systems Reading');
     expect(partial.threshold.status).toBe('locked');
 
     const all = deriveReceptionSequencing(SIX, SIX_ALL_COMPLETE, 'tier1');
     expect(all.threshold.status).toBe('available');
-    expect(all.threshold.label).toBe('Tier 2');
+    expect(all.threshold.label).toBe('Stratum 3');
   });
 
   it('never surfaces the Tier-2-only stock-water note on a Tier-1 strip', () => {
@@ -272,30 +272,30 @@ describe('receptionModel -- tier-keyed copy accessors', () => {
 
   it('tier-1 mode header carries the Land-Reading framing', () => {
     const mode = receptionModeCopy('tier1');
-    expect(mode.tier).toBe('Tier 1');
+    expect(mode.tier).toBe('Stratum 2');
     expect(mode.pill).toBe('Mode 2 -- Reception');
     expect(mode.titleEm).toBe('actually here');
-    expect(mode.sequencingLabel).toMatch(/Tier 1/);
+    expect(mode.sequencingLabel).toMatch(/Stratum 2/);
   });
 
   it('reference subtitle is tier-suffixed', () => {
-    expect(receptionReferenceSubtitle()).toBe('Mode 2 -- Reception - Tier 2');
+    expect(receptionReferenceSubtitle()).toBe('Mode 2 -- Reception - Stratum 3');
     expect(receptionReferenceSubtitle('tier1')).toBe(
-      'Mode 2 -- Reception - Tier 1',
+      'Mode 2 -- Reception - Stratum 2',
     );
   });
 
-  it('tier-1 second gate reframes as the Tier-2 unlock (six surveys)', () => {
+  it('tier-1 second gate reframes as the Stratum 3 unlock (six surveys)', () => {
     const gates = receptionGatesCopy('tier1');
-    expect(gates.tierTwo.title).toBe('Tier 2 -- Systems Reading');
-    expect(gates.tierTwo.desc).toMatch(/all six Tier 1 objectives/);
+    expect(gates.tierTwo.title).toBe('Stratum 3 -- Systems Reading');
+    expect(gates.tierTwo.desc).toMatch(/all six Stratum 2 objectives/);
     // The covenant Threshold-1 copy is shared, unchanged across tiers.
     expect(gates.thresholdOne).toBe(RECEPTION_GATES.thresholdOne);
   });
 });
 
 describe('receptionModel -- sequencing strip', () => {
-  it('lays out present surveys in 2.1..2.5 order with live status', () => {
+  it('lays out present surveys in 3.1..3.5 order with live status', () => {
     const seq = deriveReceptionSequencing(FIVE, {
       's3-hydrology': 'complete',
       's3-soil': 'active',
@@ -304,11 +304,11 @@ describe('receptionModel -- sequencing strip', () => {
       'silv-sec-s3-stock-water': 'locked',
     });
     expect(seq.nodes.map((n) => n.display)).toEqual([
-      '2.1',
-      '2.2',
-      '2.3',
-      '2.4',
-      '2.5',
+      '3.1',
+      '3.2',
+      '3.3',
+      '3.4',
+      '3.5',
     ]);
     expect(seq.nodes[0]?.status).toBe('complete');
     expect(seq.nodes[1]?.status).toBe('active');
@@ -335,9 +335,9 @@ describe('receptionModel -- sequencing strip', () => {
     expect(all.threshold.name).toBe(THRESHOLDS[0]?.name);
   });
 
-  it('surfaces the 2.5-benefits-from-2.1 note only when 2.5 is present', () => {
+  it('surfaces the 3.5-benefits-from-3.1 note only when 3.5 is present', () => {
     const withStock = deriveReceptionSequencing(FIVE, ALL_COMPLETE);
-    expect(withStock.note).toMatch(/2\.5 Livestock Water benefits from 2\.1/);
+    expect(withStock.note).toMatch(/3\.5 Livestock Water benefits from 3\.1/);
     const withoutStock = deriveReceptionSequencing(
       [obj('s3-hydrology'), obj('s3-soil')],
       { 's3-hydrology': 'complete', 's3-soil': 'complete' },
@@ -400,8 +400,8 @@ describe('receptionModel -- labels + captions', () => {
 
   it('derives the threshold description from both tier totals', () => {
     const desc = receptionThresholdDesc(6, 5);
-    expect(desc).toMatch(/Tier 1 \(6\/6\)/);
-    expect(desc).toMatch(/Tier 2 \(5\/5\)/);
+    expect(desc).toMatch(/Stratum 2 \(6\/6\)/);
+    expect(desc).toMatch(/Stratum 3 \(5\/5\)/);
     expect(desc).toMatch(/11 survey objectives/);
   });
 });
@@ -412,11 +412,11 @@ describe('receptionModel -- new-field adapters', () => {
       id: 's3-hydrology',
       intentLens: [{ typeId: 'regenerative_farm', text: 'Look for swale lines' }],
       observeOutput: 'Hydrology Survey Record',
-      buildsOnDisplay: 'Tier 1.1 Terrain & topography',
+      buildsOnDisplay: 'Stratum 2.1 Terrain & topography',
     } as unknown as PlanStratumObjective;
     expect(readIntentLens(survey)).toHaveLength(1);
     expect(readObserveOutput(survey)).toBe('Hydrology Survey Record');
-    expect(readBuildsOn(survey)).toBe('Tier 1.1 Terrain & topography');
+    expect(readBuildsOn(survey)).toBe('Stratum 2.1 Terrain & topography');
   });
 
   it('returns empty/undefined when the fields are omitted (Act objectives)', () => {
@@ -432,7 +432,7 @@ describe('receptionModel -- Amanah wording-pin', () => {
   const BANNED =
     /subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share/;
 
-  it('carries no advance-sale / subscription / CSA / yield-share framing (Tier 2)', () => {
+  it('carries no advance-sale / subscription / CSA / yield-share framing (Stratum 3)', () => {
     const corpus = [
       ...Object.values(RECEPTION_MODE),
       ...Object.values(RECEPTION_RULE),

@@ -663,7 +663,7 @@ export function SettlementCapture({
         <FeedsNote>
           Cohort composition feeds <strong>habitability threshold sizing</strong> (item 2),{' '}
           <strong>water demand calculations</strong> (item 5), and{' '}
-          <strong>infrastructure design</strong> in Tier 4.
+          <strong>infrastructure design</strong> in Stratum 5.
         </FeedsNote>
         <NotesField
           id="st-cohort-notes"

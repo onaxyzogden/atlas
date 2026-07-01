@@ -550,7 +550,7 @@ export const DOMAIN_DETAIL: Partial<Record<ObserveLensId, DomainDetail>> = {
             cycle: 'Cycle 1', confidence: 'low',
             isSuperseded: false, supersededBy: null, supersedesId: null,
             sourceTask: 'Stakeholder mapping', planObjective: 'Map stakeholders & community relationships',
-            notes: 'OLOS protocol requires Indigenous community consultation before design work. Relevant land council identified but contact not yet made. Blocks advancement to Tier 3.',
+            notes: 'OLOS protocol requires Indigenous community consultation before design work. Relevant land council identified but contact not yet made. Blocks advancement to Stratum 4.',
             photos: 0, measurements: null, gpsPoints: 0,
             tags: ['indigenous', 'consultation', 'outstanding', 'protocol'],
           },

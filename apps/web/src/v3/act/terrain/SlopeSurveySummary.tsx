@@ -213,7 +213,7 @@ export default function SlopeSurveySummary({
       <div className={styles.feedsBlock}>
         <ArrowRight size={13} className={styles.feedsIcon} aria-hidden="true" />
         <div className={styles.feedsTxt}>
-          Slope distribution feeds <strong>Tier 3: Zone allocation</strong>.
+          Slope distribution feeds <strong>Stratum 4: Zone allocation</strong>.
           Areas over 20% slope are typically excluded from vehicle access and
           intensive production without earthworks assessment.
         </div>

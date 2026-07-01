@@ -33,7 +33,7 @@ vi.mock('lucide-react', () => {
     // planToolCatalog
     Compass: n, Sun: n, Droplets: n, Sprout: n, Leaf: n, Trees: n,
     Beef: n, Building2: n, Route: n, Wallet: n, ShieldCheck: n,
-    Map: n, Mountain: n, Zap: n, Users: n, ClipboardList: n,
+    Map: n, Mountain: n, Zap: n, Users: n, ClipboardList: n, Square: n,
     // actToolCatalog (transitive via resolvePlanTools)
     Waves: n, FlaskConical: n, AlertTriangle: n, Droplet: n,
     DoorOpen: n, Car: n, Fence: n, Warehouse: n, Home: n, Box: n,

@@ -1,0 +1,238 @@
+/* -------------------------------------------------------------------------- */
+/*  KeyDocumentBriefPopup -- the full-brief body rendered inside WorkspacePopup. */
+/*  The popup portals to <body>, OUTSIDE the .surface subtree, so the green     */
+/*  Act-Mandate (--am-*) tokens are redeclared here from the same global        */
+/*  --color-act-mandate-* tokens (literal fallbacks match ACT_MANDATE_PALETTE). */
+/* -------------------------------------------------------------------------- */
+
+.root {
+  --am-accent: var(--color-act-mandate-accent, #4f9d69);
+  --am-accent-strong: var(--color-act-mandate-accent-strong, #3c7e52);
+  --am-accent-light: var(--color-act-mandate-accent-light, #7fbf95);
+  --am-soft: var(--color-act-mandate-soft, rgba(79, 157, 105, 0.12));
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--color-text, #2b2620);
+}
+
+/* --- Header --------------------------------------------------------------- */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px;
+  padding-right: 28px; /* clear the popup's absolute close button */
+  border-bottom: 1px solid var(--color-border, #e2ddd2);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text, #2b2620);
+}
+
+.stateLine {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--am-accent-strong);
+}
+
+.intro {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* --- Presence pill (mirrors the card register) --------------------------- */
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border, #e2ddd2);
+  background: var(--color-bg, #faf8f3);
+  color: var(--color-text-muted, #6f675b);
+}
+
+.presence[data-present] {
+  border-color: var(--am-accent);
+  color: var(--am-accent-strong);
+  background: var(--am-soft);
+}
+
+/* --- Body ----------------------------------------------------------------- */
+
+.bodyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The full direction text. */
+.prose {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text, #2b2620);
+  white-space: pre-line;
+}
+
+/* A state note shown when there is no full content yet. */
+.note {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #faf8f3);
+  font-size: 13px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--am-accent-strong);
+}
+
+/* --- Amendments ----------------------------------------------------------- */
+
+.amendmentList,
+.objList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.amendmentItem {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-left: 3px solid var(--am-accent-light);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 12px 14px;
+}
+
+.amendmentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.amendmentTitle {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.amendmentDate {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.amendmentText {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6f675b);
+}
+
+/* --- Integrated design groups -------------------------------------------- */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border, #e2ddd2);
+}
+
+.groupLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--am-accent-strong);
+}
+
+.groupTally {
+  flex: 0 0 auto;
+  min-width: 1.5rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--am-soft);
+  color: var(--am-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.objItem {
+  border: 1px solid var(--color-border, #e2ddd2);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  padding: 10px 12px;
+}
+
+.objHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.objRef {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--am-accent-strong);
+}
+
+.objTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text, #2b2620);
+}
+
+.objHandoff {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6f675b);
+}
+
+.handoffLabel {
+  font-weight: 700;
+  color: var(--am-accent-strong);
+}

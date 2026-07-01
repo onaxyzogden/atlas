@@ -163,8 +163,8 @@ describe('ActTierZeroWorkbench -- panes', () => {
     expect(screen.queryByText(/working on/i)).toBeNull();
     // Objectives rail is NOT rendered by this component (moved to ActTierShell)
     expect(screen.queryByText('Objectives')).toBeNull();
-    // "Completes Tier 0" next-box is NOT rendered by this component
-    expect(screen.queryByText('Completes Tier 0')).toBeNull();
+    // "Completes Stratum 1" next-box is NOT rendered by this component
+    expect(screen.queryByText('Completes Stratum 1')).toBeNull();
     // Selecting a decision collapses the list and reveals its workspace.
     selectDecision('s1-vision-c1');
     expect(screen.getByText(/working on/i)).toBeTruthy();
@@ -226,20 +226,25 @@ describe('ActTierZeroWorkbench -- success criteria', () => {
   });
 });
 
-describe('ActTierZeroWorkbench -- rationale flush on return to list', () => {
-  it('flushes the typed rationale to the selected item id when returning to the list', () => {
+describe('ActTierZeroWorkbench -- rationale flush when the popup closes', () => {
+  it('flushes the typed rationale to the selected item id when the popup closes', () => {
     const { onSaveRationale } = renderWorkbench();
-    // List-first: open the first decision (s1-vision-c1).
+    // List-first: open the first decision (s1-vision-c1) -> its working panel
+    // mounts inside the WorkspacePopup portal.
     selectDecision('s1-vision-c1');
     const ta = screen.getByLabelText(/rationale/i);
     fireEvent.change(ta, {
       target: { value: 'Reasoning bound to the first decision.' },
     });
     expect(onSaveRationale).not.toHaveBeenCalled();
-    // Return to the list via the back button WITHOUT blurring the textarea. The
-    // working panel unmounts and its cleanup flushes the draft to the OUTGOING
-    // item id (s1-vision-c1).
-    fireEvent.click(screen.getByTestId('decision-back'));
+    // Close the popup via its close button WITHOUT blurring the textarea. The
+    // popup defers the close until its exit animation ends, so the working panel
+    // stays mounted (no flush yet) until we fire the panel's animationend.
+    fireEvent.click(screen.getByRole('button', { name: /close workspace/i }));
+    expect(onSaveRationale).not.toHaveBeenCalled();
+    // Finishing the exit animation unmounts the popup (and the working panel),
+    // whose cleanup flushes the draft to the OUTGOING item id (s1-vision-c1).
+    fireEvent.animationEnd(screen.getByRole('dialog'));
     expect(onSaveRationale).toHaveBeenCalledTimes(1);
     expect(onSaveRationale).toHaveBeenCalledWith(
       's1-vision-c1',

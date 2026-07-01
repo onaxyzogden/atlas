@@ -502,15 +502,17 @@
 .objCard {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   padding: 12px;
   background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(24, 27, 30, 0.08));
   color: var(--color-text, #f2ede3);
   text-align: left;
   cursor: pointer;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition: border-color 120ms ease, background 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .objCard:hover {
@@ -535,12 +537,25 @@
   );
 }
 
-.objCard[data-status='complete'] {
-  border-left: 3px solid #5dd39e;
+/* Status-tinted card background (mirrors the MILOS dashboard task card: green
+   wash on done, amber wash on in-progress). Guarded with :not([data-active])
+   so a SELECTED card keeps its gold selection tint (that rule appears earlier
+   in source order and would otherwise be overridden), and placed BEFORE the
+   data-scope rules below so a surfaced out-of-focus card's amber still wins. */
+.objCard[data-status='complete']:not([data-active='true']) {
+  background: color-mix(
+    in srgb,
+    var(--color-success, #5dd39e) 8%,
+    var(--color-bg, #14191f)
+  );
 }
 
-.objCard[data-status='active'] {
-  border-left: 3px solid var(--color-gold-brand, #c4a265);
+.objCard[data-status='active']:not([data-active='true']) {
+  background: color-mix(
+    in srgb,
+    var(--color-warning, #c4a265) 8%,
+    var(--color-bg, #14191f)
+  );
 }
 
 .objEyebrow {
@@ -647,6 +662,123 @@
 .objProgress[data-state='active'] {
   background: rgba(196, 162, 101, 0.18);
   color: #c4a265;
+}
+
+/* ---- Numbered badge + head row (MILOS dashboard-card parity) ------------- */
+/* Head row: the gold numbered badge (01, 02, ...) on the left, then a column
+   holding the eyebrow (if any), title, and status chip. */
+.objHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.objHeadMain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.objNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 14%,
+    transparent
+  );
+  color: var(--color-gold-brand, #c4a265);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Status chip — Done / In progress / To do, keyed by progress state. Reuses the
+   tint pattern of .objProgress above, ported to semantic tokens. */
+.objStatusChip {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: color-mix(
+    in srgb,
+    var(--color-text-subtle, #7a808a) 16%,
+    transparent
+  );
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.objStatusChip[data-state='complete'] {
+  background: color-mix(in srgb, var(--color-success, #5dd39e) 18%, transparent);
+  color: var(--color-success, #5dd39e);
+}
+
+.objStatusChip[data-state='active'] {
+  background: color-mix(in srgb, var(--color-warning, #c4a265) 18%, transparent);
+  color: var(--color-warning, #c4a265);
+}
+
+/* Mini progress bar — "{verified}/{total} ████░ {pct}%". Mirrors the MILOS
+   subtask bar and the Atlas ScoreBar track/fill pattern. Fill is gold by
+   default; complete switches it to success-green. */
+.objBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.objBarLabel {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.objBarTrack {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-border, rgba(242, 237, 227, 0.12));
+  overflow: hidden;
+}
+
+.objBarFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-gold-brand, #c4a265);
+  transition: width 200ms ease;
+}
+
+.objBarFill[data-state='complete'] {
+  background: var(--color-success, #5dd39e);
+}
+
+.objBarPct {
+  flex: none;
+  min-width: 30px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
 /* ---- Operational Role Layer: view scope (additive) ---------------------- */

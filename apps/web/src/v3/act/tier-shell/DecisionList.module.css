@@ -76,6 +76,49 @@
   padding: 2px 8px;
 }
 
+/* ---------- Header progress bar ---------- */
+/* Mini bar mirroring the MILOS dashboard card's subtask bar. Pulled up under
+   the count row (negative margin offsets the .root 16px gap). Fill is the Act
+   accent until everything is recorded, then flips to success-green. */
+.decBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -8px;
+}
+
+.decBarTrack {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  overflow: hidden;
+}
+
+.decBarFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-stage-act, #d9a036);
+  transition: width 200ms ease;
+}
+
+.decBarFill[data-complete='true'] {
+  background: var(--color-success, #6b8f6b);
+}
+
+.decBarPct {
+  flex: none;
+  min-width: 30px;
+  text-align: right;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, #565c63);
+}
+
 /* ---------- Back affordance (stacked workbench, collapsed state) ---------- */
 
 /* Slim, left-aligned text button shown above the single collapsed tile. Muted
@@ -149,34 +192,22 @@
   align-items: flex-start;
   gap: 10px;
   padding: 11px 12px;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-lg, 12px);
   border: 1px solid var(--color-border, rgba(84, 92, 100, 0.16));
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface-raised, #faf7ef);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(24, 27, 30, 0.05));
   cursor: pointer;
   text-align: left;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-/* Left accent bar (hover/selected/done states drive its colour). */
-.ditem::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  border-top-left-radius: var(--radius-md, 8px);
-  border-bottom-left-radius: var(--radius-md, 8px);
-  background: transparent;
-  transition: background 120ms ease;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .ditem:hover {
-  background: var(--color-surface-raised, #faf7ef);
-}
-
-.ditem:hover::before {
-  background: var(--color-border, rgba(84, 92, 100, 0.16));
+  background: color-mix(
+    in srgb,
+    var(--color-text, #181b1e) 7%,
+    var(--color-surface-raised, #faf7ef)
+  );
 }
 
 .ditem:focus-visible {
@@ -184,7 +215,7 @@
   outline-offset: 1px;
 }
 
-/* Selected: amber left bar + raised bg + amber title. */
+/* Selected: raised amber bg + amber border + amber title. */
 .ditem[data-selected='true'] {
   background: var(--color-stage-act-glow-bg, rgba(217, 160, 54, 0.15));
   border-color: color-mix(
@@ -194,21 +225,23 @@
   );
 }
 
-.ditem[data-selected='true']::before {
-  background: var(--color-stage-act, #d9a036);
-}
-
 .ditem[data-selected='true'] .dTxt {
   color: var(--color-stage-act, #d9a036);
 }
 
-/* Done: dimmed + green left bar + strikethrough label. */
+/* Done: dimmed + strikethrough label + faint green wash.
+   The wash is scoped :not([data-selected]) so a selected-and-done row keeps its
+   amber selection bg (that rule appears earlier in source order). */
 .ditem[data-complete='true'] {
   opacity: 0.6;
 }
 
-.ditem[data-complete='true']::before {
-  background: var(--color-success, #6b8f6b);
+.ditem[data-complete='true']:not([data-selected='true']) {
+  background: color-mix(
+    in srgb,
+    var(--color-success, #6b8f6b) 8%,
+    var(--color-surface-raised, #faf7ef)
+  );
 }
 
 .ditem[data-complete='true'] .dTxt {
@@ -216,16 +249,36 @@
   color: var(--color-text-muted, #565c63);
 }
 
-/* On hold: clock-marked circle + muted (not struck-through) italic title +
-   slate left bar. No opacity dim -- that stays unique to the recorded state so
-   the two never read the same. Scoped so a selected row keeps its amber bar. */
-.ditem[data-deferred='true']:not([data-selected='true'])::before {
-  background: var(--color-text-subtle, #7a808a);
-}
-
+/* On hold: clock-marked circle + muted (not struck-through) italic title.
+   No opacity dim -- that stays unique to the recorded state so the two never
+   read the same. */
 .ditem[data-deferred='true'] .dTxt {
   color: var(--color-text-muted, #565c63);
   font-style: italic;
+}
+
+/* Numbered badge (01, 02, ...) — gold/Act-accent square at the row head,
+   mirroring the objective rail's .objNum. Scaled down for the compact row. */
+.dNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -1px;
+  border-radius: 6px;
+  background: color-mix(
+    in srgb,
+    var(--color-stage-act, #d9a036) 14%,
+    transparent
+  );
+  color: var(--color-gold-active, #9a771f);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 .dCirc {
@@ -358,6 +411,43 @@
 .dModeBadgeIcon {
   margin-right: 3px;
   vertical-align: -1px;
+}
+
+/* Per-row status chip (Done / On hold / To do), mirroring the MILOS dashboard
+   card's status chip. data-state keys the palette: complete -> success-green,
+   on-hold -> Act amber (parked, revisit), to-do -> neutral grey. text-decoration
+   reset keeps the pill legible inside a struck-through (completed) .dTxt. */
+.dStatusChip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  text-decoration: none;
+  background: color-mix(
+    in srgb,
+    var(--color-text-subtle, #7a808a) 14%,
+    transparent
+  );
+  color: var(--color-text-subtle, #7a808a);
+}
+
+.dStatusChip[data-state='complete'] {
+  background: color-mix(in srgb, var(--color-success, #6b8f6b) 16%, transparent);
+  color: var(--color-success, #6b8f6b);
+}
+
+.dStatusChip[data-state='on-hold'] {
+  background: color-mix(
+    in srgb,
+    var(--color-stage-act, #d9a036) 16%,
+    transparent
+  );
+  color: var(--color-gold-active, #9a771f);
 }
 
 .dFeed {

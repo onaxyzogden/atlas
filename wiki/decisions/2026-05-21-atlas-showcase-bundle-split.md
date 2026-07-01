@@ -1,7 +1,7 @@
 # Atlas Showcase Bundle Split — Phase 3.5
 
 **Date.** 2026-05-21
-**Status.** Ratified — Prong A landed in commit `26228a53` (`feat(web): Phase 3.5 Prong A — route-gate authed-app bootstrap`); Prong B landed in this session on `feat/atlas-permaculture`.
+**Status.** Ratified — Prong A landed in commit `26228a53` (`feat(web): Phase 3.5 Prong A — route-gate authed-app bootstrap`); Prong B landed in this session on `feat/atlas-permaculture`. **Open Followup #1 resolved 2026-06-26** (see § Update — 2026-06-26).
 **Spec source.** Phase 3.5 section of the in-session plan file (`flickering-thacker`); follows Open Followup #1 from
 [[decisions/2026-05-21-three-streams-showcase-design]] and [[entities/showcase-portal]] § Open Followups.
 
@@ -99,12 +99,55 @@ router uses inferred local typing from `createRouter()`'s return.
    `@ogden/shared` re-exports. Tuning the `manualChunks` rules or
    splitting the `@ogden/shared` barrel into deeper subpath exports
    would drop the showcase entry below the 600 KB gzip target the
-   Phase 3 spec set. Tracked, not blocking — Cesium absence is the
-   primary win.
+   Phase 3 spec set. **RESOLVED 2026-06-26** (§ Update below): the actual
+   bridge was `src/lib/tokens.ts` being Rollup-co-located into
+   `panel-sections` — not the `@ogden/shared` barrel — plus a static
+   `ShowcaseMap` import pinning maplibre; both severed. First paint
+   ~697 KB → ~109 KB gzip, now guarded
+   ([[decisions/2026-06-26-atlas-bundle-budget-guard]]).
 2. **Lighthouse not yet re-measured.** Bundle inspection confirms the
    architectural fix; a live Lighthouse run (production build,
    throttled 4G) is the verification gate the spec called for. Deferred
    to a session with the preview server bootable.
+
+## Update — 2026-06-26 (Prong B follow-through: heavy-chunk eviction + budget guard)
+
+Open Followup #1 is **resolved**, and the win is now guarded. Full narrative
+in [[log/2026-06-26-atlas-showcase-bundle-budget-guard]]; guard rationale in
+[[decisions/2026-06-26-atlas-bundle-budget-guard]].
+
+**Root cause (the residue was not the barrel).** Two static bridges, not the
+`@ogden/shared` re-exports, kept the heavy graph eager:
+1. `src/lib/tokens.ts` (a shared design-tokens leaf) was unassigned by
+   `manualChunks`, so Rollup co-located it into the lazy `panel-sections`
+   chunk. `showcase-app` statically imports `tokens.ts`, so that fold created
+   a static edge `showcase-app → panel-sections → panel-compute → @turf/turf
+   + ecocrop-db`.
+2. `ShowcaseMap.tsx` (wrapping `maplibre-gl`) was statically imported by
+   `MapThumbnail.tsx` and `showcase._capture.tsx`, pinning maplibre's ~234 KB
+   into first paint though the map only hydrates on click-to-explore.
+
+**Fix (commit `04cd3489`).** `vite.config.ts` `manualChunks` pins
+`src/lib/tokens.ts → foundation` and `ShowcaseMap.tsx → showcase-map`; the
+three showcase routes in `src/routes/index.tsx` became `React.lazy`; and
+`<ShowcaseMap>` became a dynamic `import()` at both call sites. Rollup
+invariant on record: a module *assigned* to a chunk by `manualChunks` cannot
+be split out by a dynamic import, and an *unassigned* shared leaf is folded
+into whichever chunk imports it — so each edge needed an explicit chunk rule,
+not only a dynamic call site.
+
+**Result.** `dist/showcase.html` first paint is now `framework` 83.9 +
+`showcase-app.js` 12.7 + `showcase-app.css` 10.6 + `foundation` 1.1 +
+`modulepreload-polyfill` 0.4 = **108.7 kB gz** (Node-gzip; ~100 kB JS-only).
+`maplibre`, `turf`, `ecocrop-db`, `panel-compute`, `panel-sections` all
+**absent**. **~697 KB → ~109 KB gz** — well past the 600 KB target.
+
+**Guarded.** `apps/web/scripts/check-bundle-budget.mjs` + `bundle-budget.json`
+(`showcase-initial`, ceiling 115.0 kB) + npm `bundlesize` / `bundlesize:update`
++ `BUNDLE_BUDGET.md` fail CI if any heavy chunk re-leaks (≥53 kB > the ~6 kB
+headroom). See [[decisions/2026-06-26-atlas-bundle-budget-guard]].
+
+**Still open:** Followup #2 (live Lighthouse re-measure) — unchanged.
 
 ## Covenant & Branch Discipline
 

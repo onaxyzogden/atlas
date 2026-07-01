@@ -18,7 +18,7 @@
  * mandate. Its own green register CSS; reuses only the pure ACT_MANDATE_COPY.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   findPlanStratum,
   type PlanStratumObjective,
@@ -40,9 +40,12 @@ import {
 import {
   ACT_MANDATE_COPY,
   assembleActMandate,
+  buildKeyDocumentBriefs,
   type HandoffPackage,
-  type KeyDocument,
+  type KeyDocumentKind,
 } from '../../plan/threshold/actMandateModel.js';
+import KeyDocumentCard from '../../plan/threshold/KeyDocumentCard.js';
+import KeyDocumentBriefPopup from '../../plan/threshold/KeyDocumentBriefPopup.js';
 import styles from './ActMandateBriefingCard.module.css';
 
 /**
@@ -63,34 +66,6 @@ export interface ActMandateBriefingCardProps {
   projectId: string;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
-}
-
-function PresenceBadge({ present }: { present: boolean }) {
-  return (
-    <span className={styles.presence} data-present={present || undefined}>
-      {present ? (
-        <CheckCircle2 size={12} aria-hidden="true" />
-      ) : (
-        <Circle size={12} aria-hidden="true" />
-      )}
-      {present ? 'In hand' : 'Pending'}
-    </span>
-  );
-}
-
-function DocumentCard({ doc }: { doc: KeyDocument }) {
-  return (
-    <li className={styles.docCard} data-present={doc.present || undefined}>
-      <div className={styles.docHead}>
-        <PresenceBadge present={doc.present} />
-        <div className={styles.docTitleWrap}>
-          <span className={styles.docName}>{doc.name}</span>
-        </div>
-      </div>
-      <p className={styles.docDesc}>{doc.desc}</p>
-      <p className={styles.docState}>{doc.stateLine}</p>
-    </li>
-  );
 }
 
 function HandoffCard({ pkg }: { pkg: HandoffPackage }) {
@@ -134,6 +109,9 @@ export default function ActMandateBriefingCard({
     (s) => s.byProject[projectId] ?? EMPTY_COHERENCE_CHECK,
   );
 
+  // The key-document card whose full brief is open in the popup (null = closed).
+  const [selectedDoc, setSelectedDoc] = useState<KeyDocumentKind | null>(null);
+
   const model = useMemo(
     () =>
       assembleActMandate({
@@ -145,6 +123,20 @@ export default function ActMandateBriefingCard({
           findPlanStratum(stratumId)?.title ?? stratumId,
       }),
     [objectives, objectiveStatuses, realityRecord, coherenceRecord],
+  );
+
+  const briefs = useMemo(
+    () =>
+      buildKeyDocumentBriefs({
+        objectives,
+        planningDirection: realityRecord,
+        coherenceRecord,
+        stratumTitleFor: (stratumId) =>
+          findPlanStratum(stratumId)?.title ?? stratumId,
+        objectiveTitleFor: (id) =>
+          objectives.find((o) => o.id === id)?.title ?? id,
+      }),
+    [objectives, realityRecord, coherenceRecord],
   );
 
   // Self-gate: only a project that has crossed into Act carries a mandate.
@@ -214,7 +206,12 @@ export default function ActMandateBriefingCard({
         <p className={styles.sectionBlurb}>{ACT_MANDATE_COPY.documents.blurb}</p>
         <ul className={styles.docList}>
           {keyDocuments.map((doc) => (
-            <DocumentCard key={doc.kind} doc={doc} />
+            <KeyDocumentCard
+              key={doc.kind}
+              doc={doc}
+              styles={styles}
+              onOpen={() => setSelectedDoc(doc.kind)}
+            />
           ))}
         </ul>
       </section>
@@ -304,6 +301,12 @@ export default function ActMandateBriefingCard({
           ))}
         </ul>
       </section>
+
+      <KeyDocumentBriefPopup
+        open={selectedDoc != null}
+        brief={selectedDoc ? briefs[selectedDoc] : null}
+        onClose={() => setSelectedDoc(null)}
+      />
     </section>
   );
 }

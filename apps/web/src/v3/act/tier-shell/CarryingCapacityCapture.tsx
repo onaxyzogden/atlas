@@ -782,7 +782,7 @@ export function CarryingCapacityCapture({
           />
         </div>
         <div>
-          <div className={css.secLbl}>Available water supply (Tier 1 survey)</div>
+          <div className={css.secLbl}>Available water supply (Stratum 2 survey)</div>
           <AmountRow
             label="Combined bore + harvest yield"
             value={model.wSupply}

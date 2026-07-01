@@ -3337,14 +3337,14 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     arm: {
       kind: 'form',
       formId: 'ofg-s1-resilience-philosophy-c5',
-      prompt: 'Document targets as design constraints - all Tier 3-4 systems sized against them',
+      prompt: 'Document targets as design constraints - all Strata 4-5 systems sized against them',
       fields: [
         {
           kind: 'text',
           key: 'designConstraints',
           label: 'Targets as design constraints',
           multiline: true,
-          placeholder: 'How these targets bind Tier 3-4 system sizing.',
+          placeholder: 'How these targets bind Strata 4-5 system sizing.',
         },
       ],
     },
@@ -4321,14 +4321,14 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     arm: {
       kind: 'form',
       formId: 'well-s1-healing-philosophy-c6',
-      prompt: 'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it',
+      prompt: 'Document philosophy as a design constraint - all Strata 4-5 decisions evaluated against it',
       fields: [
         {
           kind: 'text',
           key: 'designConstraint',
           label: 'Philosophy as a design constraint',
           multiline: true,
-          placeholder: 'The documented philosophy that all Tier 3-4 decisions are evaluated against.',
+          placeholder: 'The documented philosophy that all Strata 4-5 decisions are evaluated against.',
         },
       ],
     },

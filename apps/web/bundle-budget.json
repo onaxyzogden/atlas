@@ -1,0 +1,11 @@
+{
+  "_comment": "Gzipped first-paint budgets enforced by scripts/check-bundle-budget.mjs (npm scripts: bundlesize / bundlesize:update). See BUNDLE_BUDGET.md. Ceilings are locked via `bundlesize:update`; raising one is a deliberate, reviewable ratchet. maxGzipBytes is set by --update — do not hand-edit.",
+  "budgets": [
+    {
+      "name": "showcase-initial",
+      "description": "Eager first-paint payload of the public /showcase/three-streams portal: every <script type=module> + <link rel=stylesheet> in the built showcase.html, gzipped. Prong B (ADR 2026-05-21-atlas-showcase-bundle-split) keeps the authed heavy graph — maplibre-gl, @turf/turf, the FAO EcoCrop dataset, and the SiteIntelligencePanel compute/section chunks — DYNAMIC, so none of them may appear here. A re-leak adds at least 53 kB gz and trips this ceiling.",
+      "html": "dist/showcase.html",
+      "maxGzipBytes": 117760
+    }
+  ]
+}

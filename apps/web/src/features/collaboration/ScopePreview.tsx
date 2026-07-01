@@ -36,13 +36,19 @@ export interface ScopePreviewProps {
   roles: readonly OperationalRole[];
   /** What an empty role set means on this surface. */
   emptyMeans: 'none' | 'full';
+  /**
+   * Per-project domain map (Option C re-scope, from useResolvedOperationalRoles).
+   * Omit for the built-in scope -- the preview then mirrors today's behavior.
+   */
+  domainsMap?: Record<OperationalRole, ReadonlySet<UniversalDomain>>;
 }
 
 export default function ScopePreview({
   roles,
   emptyMeans,
+  domainsMap,
 }: ScopePreviewProps): JSX.Element {
-  const scope = scopeForRoles(roles);
+  const scope = scopeForRoles(roles, domainsMap);
   const inFocus: UniversalDomain[] = UNIVERSAL_DOMAINS.filter((d) =>
     scope.has(d),
   );

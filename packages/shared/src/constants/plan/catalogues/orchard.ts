@@ -93,7 +93,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck(
         'orch-s1-species-philosophy-c5',
-        'Document species philosophy as design constraint - all Tier 3 species decisions evaluated against it',
+        'Document species philosophy as design constraint - all Stratum 4 species decisions evaluated against it',
         { feeds: ['orch-s4-species-mix'] },
       ),
     ],
@@ -832,7 +832,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Tree planting layout approved. Planting map produced.',
     actHandoff: 'Tree Planting Layout & Species Placement Design',
     buildsOnDisplay:
-      'Builds on the species mix and planting plan settled in the Tier-3 species-mix decision.',
+      'Builds on the species mix and planting plan settled in the Stratum 4 species-mix decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Tree survival rate per species against the planting map', frequency: 'at the end of each establishment season' },
@@ -888,7 +888,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate: 'Guild planting plan approved. All species sourced.',
     actHandoff: 'Guild Planting Plan',
     buildsOnDisplay:
-      'Builds on the guild planting and companion species strategy set in the Tier-3 guild-planting decision.',
+      'Builds on the guild planting and companion species strategy set in the Stratum 4 guild-planting decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Establishment rate of companion and ground-cover species within each guild radius', frequency: 'per season' },
@@ -953,7 +953,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Establishment irrigation design approved. Coverage of all planted trees confirmed.',
     actHandoff: 'Establishment Irrigation Design Package',
     buildsOnDisplay:
-      'Builds on the water strategy for establishment and maturity settled in the Tier-3 water-strategy decision.',
+      'Builds on the water strategy for establishment and maturity settled in the Stratum 4 water-strategy decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Emitter output rate per tree against the design specification', frequency: 'during each watering cycle' },
@@ -1066,7 +1066,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Tree protection infrastructure design approved. All planting sites assigned protection type.',
     actHandoff: 'Tree Protection Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the pest and disease management strategy set in the Tier-3 pest-disease-management decision.',
+      'Builds on the pest and disease management strategy set in the Stratum 4 pest-disease-management decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Browse and gnaw damage incidents per planting zone', frequency: 'since the last inspection' },
@@ -1553,7 +1553,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Spaced multilayer guild layout drawn and integrated with the host design. Light competition resolved at maturity.',
     actHandoff: 'Guild Layout & Spacing Design Package',
     buildsOnDisplay:
-      'Builds on the cultivar, rootstock, and pollination decisions whose rootstock vigor drives spacing and density in the Tier-3 cultivars-rootstocks-pollination decision.',
+      'Builds on the cultivar, rootstock, and pollination decisions whose rootstock vigor drives spacing and density in the Stratum 4 cultivars-rootstocks-pollination decision.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Tree spacing and density as planted against the rootstock-driven design per zone', frequency: 'at planting' },

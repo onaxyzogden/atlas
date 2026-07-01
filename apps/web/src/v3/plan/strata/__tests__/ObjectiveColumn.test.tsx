@@ -50,6 +50,23 @@ vi.mock('lucide-react', async (importOriginal) => {
   return stubbed;
 });
 
+// ObjectiveColumn resolves per-project role labels/domains via
+// useResolvedOperationalRoles (React Query). This suite renders store-direct (no
+// QueryClientProvider) and exercises built-in scoping/badges, so we stub the
+// resolver to the real built-ins -- composeScopedRail stays byte-identical.
+vi.mock('../../../roles/useResolvedOperationalRoles.js', async () => {
+  const shared =
+    await vi.importActual<typeof import('@ogden/shared')>('@ogden/shared');
+  return {
+    useResolvedOperationalRoles: () => ({
+      defs: shared.resolveOperationalRoleDefs(),
+      domainsMap: shared.resolveOperationalRoleDomains(),
+      labelFor: (slug: keyof typeof shared.OPERATIONAL_ROLE_DEFS) =>
+        shared.OPERATIONAL_ROLE_DEFS[slug].label,
+    }),
+  };
+});
+
 const PROJECT_ID = 'test-objcol-reviewflags';
 
 // Use s6-yield-flows as a real objective belonging to s6-integration-design.

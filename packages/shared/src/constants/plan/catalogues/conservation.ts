@@ -750,7 +750,7 @@ export const CONSERVATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     title: 'Design ecological monitoring & baseline tracking protocol',
     shortTitle: 'Ecological monitoring & baseline tracking',
     focusedQuestion:
-      'How will restoration progress be measured against the Tier 0 ecological outcome targets - and what methods ensure consistency over time?',
+      'How will restoration progress be measured against the Stratum 1 ecological outcome targets - and what methods ensure consistency over time?',
     checklist: [
       ck('con-s6-ecological-monitoring-c1', 'Define vegetation monitoring methodology - transects, quadrats, photo points', { feeds: ['s7-resource-plan'] }),
       ck('con-s6-ecological-monitoring-c2', 'Define fauna monitoring methodology - species-specific survey methods', { feeds: ['s7-resource-plan'] }),

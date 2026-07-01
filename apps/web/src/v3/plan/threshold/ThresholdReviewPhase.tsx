@@ -183,8 +183,8 @@ function IntentRecap({ elements }: { elements: readonly IntentElement[] }) {
       </p>
       {elements.length === 0 ? (
         <p className={styles.emptyIntent}>
-          No declared intent elements were found in your Tier 0 captures. Go back
-          to the Tier 0 declaration and state your intent before continuing — the
+          No declared intent elements were found in your Stratum 1 captures. Go back
+          to the Stratum 1 declaration and state your intent before continuing — the
           Direction phase has nothing to classify until you do. You may still
           proceed; it will simply start empty.
         </p>

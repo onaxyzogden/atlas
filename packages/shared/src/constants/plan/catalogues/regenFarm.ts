@@ -331,7 +331,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Nutrient Cycling Baseline Report',
     observeOutput: 'Nutrient Cycling Baseline Report',
     buildsOnDisplay:
-      'Tier 1.3 Ecology (decomposer community survey informs nutrient cycling capacity); Tier 2.2 Soil (soil biology and organic matter assessments feed directly here)',
+      'Stratum 2.3 Ecology (decomposer community survey informs nutrient cycling capacity); Stratum 3.2 Soil (soil biology and organic matter assessments feed directly here)',
     intentLens: [
       {
         typeId: 'regenerative_farm',
@@ -410,7 +410,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Pest, Disease & Weed Pressure Baseline Report',
     observeOutput: 'Pest, Disease & Weed Pressure Baseline Report',
     buildsOnDisplay:
-      'Tier 1.3 Ecology (habitat survey reveals beneficial species and problem species distribution); Tier 1.5 Land health (degradation zones correlate with weed and pest pressure); Tier 1.6 Landscape context (off-farm pressure sources identified)',
+      'Stratum 2.3 Ecology (habitat survey reveals beneficial species and problem species distribution); Stratum 2.5 Land health (degradation zones correlate with weed and pest pressure); Stratum 2.6 Landscape context (off-farm pressure sources identified)',
     intentLens: [
       {
         typeId: 'regenerative_farm',

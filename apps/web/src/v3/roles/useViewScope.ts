@@ -28,6 +28,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { useMemberStore } from '../../store/memberStore.js';
 import { useUIStore, type ViewFocusMode } from '../../store/uiStore.js';
 import { useIsSoloProject } from '../../features/collaboration/useIsSoloProject.js';
+import { useResolvedOperationalRoles } from './useResolvedOperationalRoles.js';
 
 /** Referentially-stable empty roles -- avoids a fresh `[]` re-keying the memo. */
 const EMPTY_ROLES: OperationalRole[] = [];
@@ -49,6 +50,10 @@ export function useViewScope(projectId: string): ViewScope {
   const solo = useIsSoloProject(projectId);
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const members = useMemberStore((s) => s.members);
+  // Option C: the viewer's scope is built from THIS project's domain map, which
+  // may re-scope the six roles. `domainsMap` is memoized in the hook (stable
+  // while the cached project is unchanged), so it is a safe memo key below.
+  const { domainsMap } = useResolvedOperationalRoles(projectId);
 
   // Stable raw role array: the viewer's own row's operationalRoles, or the
   // shared EMPTY_ROLES constant. Recomputed only when the roster or viewer
@@ -59,10 +64,10 @@ export function useViewScope(projectId: string): ViewScope {
     return me?.operationalRoles ?? EMPTY_ROLES;
   }, [members, userId]);
 
-  // Build the Set ONLY when the raw role array reference changes.
+  // Build the Set ONLY when the raw role array OR the project domain map changes.
   const scope = useMemo<ReadonlySet<UniversalDomain>>(
-    () => scopeForRoles(roles),
-    [roles],
+    () => scopeForRoles(roles, domainsMap),
+    [roles, domainsMap],
   );
 
   const storedMode = useUIStore((s) => s.viewFocusMode[projectId]);

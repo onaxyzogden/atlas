@@ -283,7 +283,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s4-teaching-zone-allocation-c4', 'Define interpretive trail route connecting key teaching features', { feeds: ['edu-s5-demo-plots-signage'] }),
       ck('edu-s4-teaching-zone-allocation-c5', 'Define learner journey sequence - arrival, orientation, program flow, departure', { feeds: ['edu-s5-learner-amenity', 'edu-s7-program-launch'] }),
       ck('edu-s4-teaching-zone-allocation-c6', 'Confirm all teaching zones are accessible and safe for target audience'),
-      ck('edu-s4-teaching-zone-allocation-c7', 'Ground teaching zone placement in the Tier 1 site learning potential and teaching infrastructure surveys'),
+      ck('edu-s4-teaching-zone-allocation-c7', 'Ground teaching zone placement in the Stratum 2 site learning potential and teaching infrastructure surveys'),
     ],
     decisionGroups: [
       dg('edu-s4-teaching-zone-allocation-dg1', 'Indoor & outdoor teaching locations', ['edu-s4-teaching-zone-allocation-c1', 'edu-s4-teaching-zone-allocation-c2', 'edu-s4-teaching-zone-allocation-c7']),
@@ -323,7 +323,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s4-safety-risk-framework-c4', 'Define hazardous area exclusion - fencing, signage, supervision requirements'),
       ck('edu-s4-safety-risk-framework-c5', 'Define child safety protocol if programs include minors'),
       ck('edu-s4-safety-risk-framework-c6', 'Confirm all safety requirements are met before first group arrival', { feeds: ['edu-s7-program-launch'] }),
-      ck('edu-s4-safety-risk-framework-c7', 'Ground the risk assessment in the Tier 2 learner access and safety conditions survey'),
+      ck('edu-s4-safety-risk-framework-c7', 'Ground the risk assessment in the Stratum 3 learner access and safety conditions survey'),
     ],
     decisionGroups: [
       dg('edu-s4-safety-risk-framework-dg1', 'Risk assessment & evacuation', ['edu-s4-safety-risk-framework-c1', 'edu-s4-safety-risk-framework-c2', 'edu-s4-safety-risk-framework-c7']),
@@ -365,7 +365,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s4-program-delivery-c3', 'Define program structure - arrival, orientation, activities, reflection, departure'),
       ck('edu-s4-program-delivery-c4', 'Define quality standards - what defines a successful program delivery', { feeds: ['edu-s6-program-evaluation', 'edu-s7-instructor-onboarding'] }),
       ck('edu-s4-program-delivery-c5', 'Define program development and review cycle', { feeds: ['edu-s6-program-evaluation'] }),
-      ck('edu-s4-program-delivery-c6', 'Confirm formats and ratios against the Tier 0 program types and maximum group sizes'),
+      ck('edu-s4-program-delivery-c6', 'Confirm formats and ratios against the Stratum 1 program types and maximum group sizes'),
     ],
     decisionGroups: [
       dg('edu-s4-program-delivery-dg1', 'Format & instructor requirements', ['edu-s4-program-delivery-c1', 'edu-s4-program-delivery-c2', 'edu-s4-program-delivery-c6']),
@@ -404,7 +404,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s4-food-hospitality-c2', 'Define food sourcing - from site, local farms, or catered'),
       ck('edu-s4-food-hospitality-c3', 'Define food preparation infrastructure required - kitchen, outdoor cooking, cold storage', { feeds: ['edu-s5-food-kitchen'] }),
       ck('edu-s4-food-hospitality-c4', 'Define food safety compliance requirements for group service', { feeds: ['edu-s5-food-kitchen'] }),
-      ck('edu-s4-food-hospitality-c5', 'Confirm food provision is consistent with regulatory framework from Tier 0'),
+      ck('edu-s4-food-hospitality-c5', 'Confirm food provision is consistent with regulatory framework from Stratum 1'),
     ],
     decisionGroups: [
       dg('edu-s4-food-hospitality-dg1', 'Provision scope & sourcing', ['edu-s4-food-hospitality-c1', 'edu-s4-food-hospitality-c2']),
@@ -445,7 +445,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s5-teaching-spaces-c3', 'Design demonstration staging areas - sight lines for group observation of demonstrations'),
       ck('edu-s5-teaching-spaces-c4', 'Specify materials - natural, durable, consistent with educational aesthetic', { feeds: ['s7-resource-plan'] }),
       ck('edu-s5-teaching-spaces-c5', 'Confirm capacity meets maximum group size per program type'),
-      ck('edu-s5-teaching-spaces-c6', 'Confirm space designs against the Tier 1 teaching infrastructure survey capacity and acoustics findings'),
+      ck('edu-s5-teaching-spaces-c6', 'Confirm space designs against the Stratum 2 teaching infrastructure survey capacity and acoustics findings'),
     ],
     decisionGroups: [
       dg('edu-s5-teaching-spaces-dg1', 'Indoor & outdoor spaces', ['edu-s5-teaching-spaces-c1', 'edu-s5-teaching-spaces-c2', 'edu-s5-teaching-spaces-c6']),
@@ -455,7 +455,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate: 'Teaching spaces design approved. Capacity and acoustic quality confirmed.',
     actHandoff: 'Teaching Spaces & Outdoor Classroom Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
+      'Builds on the Stratum 4 teaching zone allocation and infrastructure placement strategy.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Teaching space utilisation against maximum group size per program type', frequency: 'each session' },
@@ -485,7 +485,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s5-demo-plots-signage-c3', 'Specify signage materials and legibility standard', { feeds: ['s7-resource-plan'] }),
       ck('edu-s5-demo-plots-signage-c4', 'Design observation infrastructure - sight lines, platforms, access for group viewing'),
       ck('edu-s5-demo-plots-signage-c5', 'Design seasonal rotation of demonstrations to match curriculum calendar'),
-      ck('edu-s5-demo-plots-signage-c6', 'Site demonstration plots against the Tier 2 demonstration site baseline'),
+      ck('edu-s5-demo-plots-signage-c6', 'Site demonstration plots against the Stratum 3 demonstration site baseline'),
     ],
     decisionGroups: [
       dg('edu-s5-demo-plots-signage-dg1', 'Plot layout & trail waypoints', ['edu-s5-demo-plots-signage-c1', 'edu-s5-demo-plots-signage-c2', 'edu-s5-demo-plots-signage-c6']),
@@ -495,7 +495,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate: 'Demonstration plots and interpretive infrastructure design approved.',
     actHandoff: 'Demonstration Plots & Interpretive Signage Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 teaching zone allocation and infrastructure placement strategy.',
+      'Builds on the Stratum 4 teaching zone allocation and infrastructure placement strategy.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Demonstration plot condition and label legibility per curriculum theme', frequency: 'inspected each season' },
@@ -525,7 +525,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s5-learner-amenity-c3', 'Design group seating and shade areas at key rest points'),
       ck('edu-s5-learner-amenity-c4', 'Design first aid station - location, equipment'),
       ck('edu-s5-learner-amenity-c5', 'Design emergency assembly point - clearly marked, accessible from all teaching zones', { feeds: ['s7-risk-register'] }),
-      ck('edu-s5-learner-amenity-c6', 'Size toilets and first aid provision against the Tier 2 learner access and safety findings'),
+      ck('edu-s5-learner-amenity-c6', 'Size toilets and first aid provision against the Stratum 3 learner access and safety findings'),
     ],
     decisionGroups: [
       dg('edu-s5-learner-amenity-dg1', 'Toilets & handwashing', ['edu-s5-learner-amenity-c1', 'edu-s5-learner-amenity-c2', 'edu-s5-learner-amenity-c6']),
@@ -535,7 +535,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate: 'Learner amenity infrastructure design approved. Emergency assembly confirmed.',
     actHandoff: 'Learner Amenity Infrastructure Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 safety and risk management framework.',
+      'Builds on the Stratum 4 safety and risk management framework.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Toilet and handwashing capacity against maximum group size in use', frequency: 'each program day' },
@@ -565,7 +565,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s5-food-kitchen-c3', 'Design group dining area - capacity, shade, accessibility'),
       ck('edu-s5-food-kitchen-c4', 'Design food storage - cold chain, dry storage'),
       ck('edu-s5-food-kitchen-c5', 'Confirm design meets food safety compliance requirements'),
-      ck('edu-s5-food-kitchen-c6', 'Confirm kitchen design meets the Tier 0 food handling permit requirements'),
+      ck('edu-s5-food-kitchen-c6', 'Confirm kitchen design meets the Stratum 1 food handling permit requirements'),
     ],
     decisionGroups: [
       dg('edu-s5-food-kitchen-dg1', 'Kitchen layout & equipment', ['edu-s5-food-kitchen-c1', 'edu-s5-food-kitchen-c2']),
@@ -575,7 +575,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate: 'Teaching kitchen and dining design approved. Food safety compliance confirmed.',
     actHandoff: 'Food Preparation & Teaching Kitchen Design Package',
     buildsOnDisplay:
-      'Builds on the Tier 3 food and hospitality provision strategy.',
+      'Builds on the Stratum 4 food and hospitality provision strategy.',
     monitoringProtocol: {
       indicators: [
         { metric: 'Cold-chain and dry-storage conditions in the teaching kitchen', frequency: 'logged each service day' },
@@ -607,7 +607,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s6-program-evaluation-c3', 'Define facilitator performance review process'),
       ck('edu-s6-program-evaluation-c4', 'Define curriculum improvement protocol - how feedback triggers program changes'),
       ck('edu-s6-program-evaluation-c5', 'Define annual program quality review'),
-      ck('edu-s6-program-evaluation-c6', 'Derive evaluation indicators from the Tier 0 mission and learning outcomes'),
+      ck('edu-s6-program-evaluation-c6', 'Derive evaluation indicators from the Stratum 1 mission and learning outcomes'),
     ],
     decisionGroups: [
       dg('edu-s6-program-evaluation-dg1', 'Feedback collection & outcomes', ['edu-s6-program-evaluation-c1', 'edu-s6-program-evaluation-c2', 'edu-s6-program-evaluation-c6']),
@@ -633,7 +633,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s6-external-relations-compliance-c3', 'Design complaint response process'),
       ck('edu-s6-external-relations-compliance-c4', 'Define annual external relations review'),
       ck('edu-s6-external-relations-compliance-c5', 'Define accreditation maintenance requirements if applicable', { feeds: ['edu-s7-instructor-onboarding'] }),
-      ck('edu-s6-external-relations-compliance-c6', 'Build the compliance calendar from the Tier 0 regulatory framework obligations'),
+      ck('edu-s6-external-relations-compliance-c6', 'Build the compliance calendar from the Stratum 1 regulatory framework obligations'),
     ],
     decisionGroups: [
       dg('edu-s6-external-relations-compliance-dg1', 'Compliance calendar', ['edu-s6-external-relations-compliance-c1', 'edu-s6-external-relations-compliance-c6']),
@@ -663,7 +663,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       // item every sibling adaptive-management objective carries (offGrid c5,
       // conservation c5). FLAGGED for operator review.
       ck('edu-s6-adaptive-management-c5', 'Define 3-year comprehensive review against founding educational goals and capacity targets'),
-      ck('edu-s6-adaptive-management-c6', 'Baseline site health monitoring against the Tier 2 demonstration site baseline'),
+      ck('edu-s6-adaptive-management-c6', 'Baseline site health monitoring against the Stratum 3 demonstration site baseline'),
     ],
     decisionGroups: [
       dg('edu-s6-adaptive-management-dg1', 'Annual review & triggers', ['edu-s6-adaptive-management-c1', 'edu-s6-adaptive-management-c2', 'edu-s6-adaptive-management-c5', 'edu-s6-adaptive-management-c6']),
@@ -694,7 +694,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       // sibling sequencing objectives (offGrid systems-establishment c6). FLAGGED
       // for operator review.
       ck('edu-s7-program-launch-c5', 'Define pause and remediation protocol if soft launch review criteria are not met - what halts progression to full launch'),
-      ck('edu-s7-program-launch-c6', 'Confirm the launch sequence covers the Tier 0 program types and annual calendar'),
+      ck('edu-s7-program-launch-c6', 'Confirm the launch sequence covers the Stratum 1 program types and annual calendar'),
     ],
     decisionGroups: [
       dg('edu-s7-program-launch-dg1', 'Soft launch scope & criteria', ['edu-s7-program-launch-c1', 'edu-s7-program-launch-c2', 'edu-s7-program-launch-c5']),
@@ -734,7 +734,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s7-instructor-onboarding-c3', 'Define working with children check requirements if applicable'),
       ck('edu-s7-instructor-onboarding-c4', 'Define delivery quality standard - what a successful session looks and feels like'),
       ck('edu-s7-instructor-onboarding-c5', 'Confirm all instructors are inducted before first public group'),
-      ck('edu-s7-instructor-onboarding-c6', 'Confirm children check requirements satisfy the Tier 0 regulatory framework'),
+      ck('edu-s7-instructor-onboarding-c6', 'Confirm children check requirements satisfy the Stratum 1 regulatory framework'),
     ],
     decisionGroups: [
       dg('edu-s7-instructor-onboarding-dg1', 'Qualifications & orientation', ['edu-s7-instructor-onboarding-c1', 'edu-s7-instructor-onboarding-c2']),
@@ -774,7 +774,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s7-financial-viability-c4', 'Estimate operating costs - instructor, materials, administration, maintenance'),
       ck('edu-s7-financial-viability-c5', 'Define minimum viable program scale'),
       ck('edu-s7-financial-viability-c6', 'Define financial review trigger'),
-      ck('edu-s7-financial-viability-c7', 'Confirm break-even assumptions respect the Tier 0 maximum group sizes and program calendar'),
+      ck('edu-s7-financial-viability-c7', 'Confirm break-even assumptions respect the Stratum 1 maximum group sizes and program calendar'),
     ],
     decisionGroups: [
       dg('edu-s7-financial-viability-dg1', 'Pricing & break-even', ['edu-s7-financial-viability-c1', 'edu-s7-financial-viability-c2', 'edu-s7-financial-viability-c7']),

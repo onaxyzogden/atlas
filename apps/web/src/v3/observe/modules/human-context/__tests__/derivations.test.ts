@@ -18,7 +18,7 @@ import {
 describe('stewardCompleteness', () => {
   it('returns 0% for undefined steward', () => {
     const c = stewardCompleteness(undefined);
-    expect(c).toEqual({ filled: 0, total: 12, pct: 0 });
+    expect(c).toEqual({ filled: 0, total: 11, pct: 0 });
   });
 
   it('counts only non-empty fields', () => {
@@ -32,27 +32,31 @@ describe('stewardCompleteness', () => {
     });
     // relationship, age, lifestyle, maintenanceHrsInitial=0 (0 is filled per isFilled)
     expect(c.filled).toBe(4);
-    expect(c.total).toBe(12);
-    expect(c.pct).toBe(33); // round(4/12 * 100)
+    expect(c.total).toBe(11);
+    expect(c.pct).toBe(36); // round(4/11 * 100)
   });
 
   it('counts needs toward completeness (Option 3)', () => {
     const c = stewardCompleteness({ needs: ['wheelchair-accessible paths'] });
     expect(c.filled).toBe(1);
-    expect(c.total).toBe(12);
+    expect(c.total).toBe(11);
   });
 
-  it('counts team-role fields toward completeness (Tier-0 restructure)', () => {
+  it('no longer counts the retired teamRole free-text; residency + allocation still count (Phase-4 consolidation 2026-06-28)', () => {
+    // teamRole was folded into the standardized operational-role pills (which
+    // live on the membership, outside this profile-overlay completeness count),
+    // so it is dropped from STEWARD_FIELDS. residentStatus + roleAllocation
+    // remain profile fields and still count.
     const c = stewardCompleteness({
       teamRole: 'Land manager',
       residentStatus: 'live-in',
       roleAllocation: 'full-time',
     });
-    expect(c.filled).toBe(3);
-    expect(c.total).toBe(12);
+    expect(c.filled).toBe(2);
+    expect(c.total).toBe(11);
   });
 
-  it('reaches 100% with all 12 fields', () => {
+  it('reaches 100% with all 11 fields', () => {
     const c = stewardCompleteness({
       relationship: 'lead',
       age: 30,
@@ -63,7 +67,6 @@ describe('stewardCompleteness', () => {
       budget: '$10k',
       skills: ['carpentry'],
       needs: ['wheelchair-accessible paths'],
-      teamRole: 'Land manager',
       residentStatus: 'live-in',
       roleAllocation: 'full-time',
     });
@@ -124,7 +127,7 @@ describe('roster rollups', () => {
   });
 
   it('rosterCompleteness averages per-steward completeness', () => {
-    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 12, pct: 0 });
+    expect(rosterCompleteness([])).toEqual({ filled: 0, total: 11, pct: 0 });
     const c = rosterCompleteness([
       {
         relationship: 'lead',
@@ -136,15 +139,14 @@ describe('roster rollups', () => {
         budget: '$10k',
         skills: ['carpentry'],
         needs: ['wheelchair-accessible paths'],
-        teamRole: 'Land manager',
         residentStatus: 'live-in',
         roleAllocation: 'full-time',
-      }, // 100%
+      }, // 100% (11 of 11)
       {}, // 0%
     ]);
     expect(c.pct).toBe(50);
-    expect(c.total).toBe(24);
-    expect(c.filled).toBe(12);
+    expect(c.total).toBe(22);
+    expect(c.filled).toBe(11);
   });
 });
 

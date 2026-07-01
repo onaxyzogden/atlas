@@ -60,7 +60,7 @@ import type { ReceptionProgressModel } from '../receptionModel.js';
 
 const PROJECT_ID = 'proj-recep';
 
-// 2.1 Water movement & hydrology -- the active reception survey. It carries the
+// 3.1 Water movement & hydrology -- the active reception survey. It carries the
 // three new authoring fields (intentLens / observeOutput / buildsOnDisplay) that
 // the reception chrome reads.
 const HYDROLOGY_OBJECTIVE: PlanStratumObjective = {
@@ -83,7 +83,7 @@ const HYDROLOGY_OBJECTIVE: PlanStratumObjective = {
   ],
   observeOutput: 'Hydrology Survey Record',
   actHandoff: 'Water Infrastructure Brief',
-  buildsOnDisplay: 'Tier 1.1 Terrain & topography',
+  buildsOnDisplay: 'Stratum 2.1 Terrain & topography',
 } as PlanStratumObjective;
 
 const SOIL_OBJECTIVE: PlanStratumObjective = {

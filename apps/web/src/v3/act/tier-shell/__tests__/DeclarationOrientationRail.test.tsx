@@ -1,13 +1,13 @@
 /**
  * @vitest-environment happy-dom
  *
- * DeclarationOrientationRail -- the right-rail Tier-0 orientation surface
+ * DeclarationOrientationRail -- the right-rail Stratum-1 orientation surface
  * (canonical-object cards + objective-sequencing diagram), relocated from the
  * DeclarationCenter header band (2026-06-22). Pure presentation over
  * declarationModel; these tests pin the rendered DOM (ported from the former
  * DeclarationCenter cases since the data-testids are unchanged):
  *   1. canonical cards with status-driven tags.
- *   2. sequencing nodes carry their "0.x" + status; the terminal node tracks.
+ *   2. sequencing nodes carry their "1.x" + status; the terminal node tracks.
  *   3. interactivity -- a non-locked node selects its objective; locked is static.
  *   4. Amanah -- the rendered copy carries no advance-sale / CSA framing.
  */
@@ -50,8 +50,8 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 import DeclarationOrientationRail from '../DeclarationOrientationRail.js';
 
-// deriveSequencing / deriveCanonicalObjects only read `o.id`, so a minimal stub
-// suffices (mirrors declarationModel.test.ts).
+// deriveStratumSequencing / deriveCanonicalObjects only read `o.id`, so a minimal
+// stub suffices (mirrors declarationModel.test.ts).
 function obj(id: string): PlanStratumObjective {
   return { id } as PlanStratumObjective;
 }
@@ -92,22 +92,22 @@ describe('DeclarationOrientationRail -- canonical cards', () => {
 });
 
 describe('DeclarationOrientationRail -- sequencing diagram', () => {
-  it('renders one node per present objective with its 0.x + status', () => {
+  it('renders one node per present objective with its 1.x + status', () => {
     render(
       <DeclarationOrientationRail objectives={SIX} objectiveStatuses={STATUSES} />,
     );
-    expect(screen.getByTestId('seq-node-0.1').getAttribute('data-status')).toBe(
+    expect(screen.getByTestId('seq-node-1.1').getAttribute('data-status')).toBe(
       'complete',
     );
-    expect(screen.getByTestId('seq-node-0.2').getAttribute('data-status')).toBe(
+    expect(screen.getByTestId('seq-node-1.2').getAttribute('data-status')).toBe(
       'active',
     );
-    expect(screen.getByTestId('seq-node-0.5').getAttribute('data-status')).toBe(
+    expect(screen.getByTestId('seq-node-1.5').getAttribute('data-status')).toBe(
       'locked',
     );
-    // Terminal "Tier 1" node locked until all six complete.
+    // Terminal node = next stratum ("Land Reading"), locked until all six complete.
     const next = screen.getByTestId('seq-node-next');
-    expect(next.textContent).toBe('Tier 1');
+    expect(next.textContent).toBe('Land Reading');
     expect(next.getAttribute('data-status')).toBe('locked');
   });
 
@@ -120,8 +120,8 @@ describe('DeclarationOrientationRail -- sequencing diagram', () => {
         onSelectObjective={onSelectObjective}
       />,
     );
-    // 0.2 (s1-steward) is active -> interactive button.
-    const node = screen.getByTestId('seq-node-0.2');
+    // 1.2 (s1-steward) is active -> interactive button.
+    const node = screen.getByTestId('seq-node-1.2');
     expect(node.tagName).toBe('BUTTON');
     fireEvent.click(node);
     expect(onSelectObjective).toHaveBeenCalledTimes(1);
@@ -137,8 +137,8 @@ describe('DeclarationOrientationRail -- sequencing diagram', () => {
         onSelectObjective={onSelectObjective}
       />,
     );
-    // 0.5 (rf-s1-enterprise-mix) is locked -> static span, not a button.
-    const node = screen.getByTestId('seq-node-0.5');
+    // 1.5 (rf-s1-enterprise-mix) is locked -> static span, not a button.
+    const node = screen.getByTestId('seq-node-1.5');
     expect(node.tagName).toBe('SPAN');
     fireEvent.click(node);
     expect(onSelectObjective).not.toHaveBeenCalled();
@@ -148,7 +148,7 @@ describe('DeclarationOrientationRail -- sequencing diagram', () => {
     render(
       <DeclarationOrientationRail objectives={SIX} objectiveStatuses={STATUSES} />,
     );
-    expect(screen.getByTestId('seq-node-0.2').tagName).toBe('SPAN');
+    expect(screen.getByTestId('seq-node-1.2').tagName).toBe('SPAN');
   });
 });
 

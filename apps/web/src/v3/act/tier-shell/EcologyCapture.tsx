@@ -1009,7 +1009,7 @@ export function EcologyCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Vegetation communities feed <strong>Tier 3: Zone allocation</strong>{' '}
+            Vegetation communities feed <strong>Stratum 4: Zone allocation</strong>{' '}
             -- identifying where native vegetation should be retained, enhanced,
             or restored as a design priority.
           </div>
@@ -1093,8 +1093,8 @@ export function EcologyCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Corridors and nesting sites are protected zones in{' '}
-            <strong>Tier 3: Spatial framework</strong>. They constrain
-            earthworks and planting design in Tier 4.
+            <strong>Stratum 4: Spatial framework</strong>. They constrain
+            earthworks and planting design in Stratum 5.
           </div>
         </div>
       </div>
@@ -1175,7 +1175,7 @@ export function EcologyCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Connectivity classification feeds{' '}
-            <strong>Tier 3: Revegetation strategy</strong> and determines how
+            <strong>Stratum 4: Revegetation strategy</strong> and determines how
             ambitiously ecological targets can be set.
           </div>
         </div>
@@ -1255,8 +1255,8 @@ export function EcologyCapture({
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
             Water-dependent habitat areas are flagged as{' '}
-            <strong>design-sensitive zones</strong> in Tier 3. They become
-            exclusion zones for earthworks and intensive land use in Tier 4.
+            <strong>design-sensitive zones</strong> in Stratum 4. They become
+            exclusion zones for earthworks and intensive land use in Stratum 5.
           </div>
         </div>
       </div>
@@ -1344,7 +1344,7 @@ export function EcologyCapture({
         <div className={css.feedsBlock}>
           <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
           <div className={css.feedsTxt}>
-            Pollinator baseline feeds <strong>Tier 4: Guild design</strong> --
+            Pollinator baseline feeds <strong>Stratum 5: Guild design</strong> --
             low provision flags a need for dedicated insectary and forage
             plantings in the orchard understory.
           </div>
@@ -1434,7 +1434,7 @@ export function EcologyCapture({
       <div className={css.feedsBlock}>
         <ArrowRight size={13} className={css.feedsIcon} aria-hidden="true" />
         <div className={css.feedsTxt}>
-          The insectary plan feeds <strong>Tier 4: Understory planting</strong>
+          The insectary plan feeds <strong>Stratum 5: Understory planting</strong>
           {' '}-- bloom-window gaps become explicit planting prescriptions to
           carry beneficial insects through the season.
         </div>
@@ -1661,7 +1661,7 @@ function SpeciesBody({
         <div className={css.feedsTxt}>
           Each High-priority invasive generates a{' '}
           <strong>weed control Act task</strong>. Native indicator groups inform{' '}
-          <strong>revegetation species selection</strong> in Tier 4.
+          <strong>revegetation species selection</strong> in Stratum 5.
         </div>
       </div>
     </div>

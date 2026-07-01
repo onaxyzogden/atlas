@@ -368,7 +368,7 @@ const BASELINE_ROWS: readonly BaselineRow[] = [
   { indicator: 'Target ground cover', isTarget: true, z1: '-', z3: '-', z4n: '>80%' },
 ];
 
-const BASELINE_REF = 'Year 0 data from: soil profile survey (Tier 2)';
+const BASELINE_REF = 'Year 0 data from: soil profile survey (Stratum 3)';
 const BASELINE_METHOD =
   'Annual monitoring method: spot soil test (3 composite samples per zone) + visual ground cover assessment + worm count per zone (5 x 30cm cube, count per cube). Record in Observe layer at same time each year (April - post-summer rest, pre-winter growth).';
 
@@ -651,7 +651,7 @@ export function SoilImprovementCapture({
           </div>
         </div>
         <FeedsNote>
-          Equipment requirements feed <strong>Tier 4 infrastructure procurement</strong> -
+          Equipment requirements feed <strong>Stratum 5 infrastructure procurement</strong> -
           subsoiler hire and seeder purchase are the two items requiring advance planning.
           Subsoiler must be booked before Zone 3 tree planting commences.
         </FeedsNote>
