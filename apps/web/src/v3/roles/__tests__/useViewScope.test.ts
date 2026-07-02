@@ -65,7 +65,7 @@ function seed(
 beforeEach(() => {
   useMemberStore.setState({ members: [], myRole: null, myRoles: {}, isLoading: false });
   useAuthStore.setState({ user: null });
-  useUIStore.setState({ viewFocusMode: {} });
+  useUIStore.setState({ viewFocusMode: {}, viewFocusRole: {} });
   localStorage.clear();
 });
 
@@ -126,5 +126,132 @@ describe('useViewScope -- focus override', () => {
     expect(useUIStore.getState().viewFocusMode[PROJECT_ID]).toBe('full');
     expect(result.current.focusMode).toBe('full');
     expect(result.current.isScoped).toBe(false);
+  });
+});
+
+describe('useViewScope -- "view as" override (opt-in)', () => {
+  it('IGNORES a stored override when the shell did not opt in (Plan/Observe byte-identical)', () => {
+    seed(
+      [member(ME, { operationalRoles: ['food_production'] }), member(OTHER)],
+      'team_member',
+    );
+    // An override was picked in Act for this project; a non-opted-in shell must
+    // not read it -- it never leaks across stages.
+    useUIStore.setState({ viewFocusRole: { [PROJECT_ID]: 'livestock' } });
+    const { result } = renderHook(() => useViewScope(PROJECT_ID));
+    expect(result.current.focusRole).toBeNull();
+    expect(result.current.canPickRole).toBe(false);
+    // Scope is the viewer's OWN role, not the override's.
+    expect(result.current.scope.has('plants-food')).toBe(true);
+    expect(result.current.scope.has('animals-livestock')).toBe(false);
+    expect(result.current.scope.size).toBe(1);
+    expect(result.current.isScoped).toBe(true);
+  });
+
+  it('exposes canPickRole only on a team project when opted in', () => {
+    // Solo + opt-in ⇒ still no picker. Unmount before re-seeding so the store
+    // update does not re-render a live hook outside act().
+    seed(
+      [member(ME, { role: 'primary_steward', operationalRoles: ['food_production'] })],
+      'primary_steward',
+    );
+    const solo = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    expect(solo.result.current.canPickRole).toBe(false);
+    solo.unmount();
+
+    // Team + opt-in ⇒ picker available.
+    seed(
+      [member(ME, { operationalRoles: ['food_production'] }), member(OTHER)],
+      'team_member',
+    );
+    const optedIn = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    expect(optedIn.result.current.canPickRole).toBe(true);
+    // Same seed, NOT opted in ⇒ no picker.
+    const notOptedIn = renderHook(() => useViewScope(PROJECT_ID));
+    expect(notOptedIn.result.current.canPickRole).toBe(false);
+  });
+
+  it('re-scopes to the picked role\'s domains when opted in', () => {
+    seed(
+      [member(ME, { operationalRoles: ['food_production'] }), member(OTHER)],
+      'team_member',
+    );
+    useUIStore.setState({ viewFocusRole: { [PROJECT_ID]: 'livestock' } });
+    const { result } = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    expect(result.current.focusRole).toBe('livestock');
+    // Scope is the OVERRIDE role's domain, not the viewer's own.
+    expect(result.current.scope.has('animals-livestock')).toBe(true);
+    expect(result.current.scope.has('plants-food')).toBe(false);
+    expect(result.current.scope.size).toBe(1);
+    expect(result.current.isScoped).toBe(true);
+  });
+
+  it('lets a no-role coordinator scope via the override (layerActive stays false)', () => {
+    seed(
+      [member(ME, { operationalRoles: [] }), member(OTHER, { operationalRoles: ['livestock'] })],
+      'team_member',
+    );
+    const { result, rerender } = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    // No own roles: the own-role toggle stays suppressed, but the picker is live.
+    expect(result.current.layerActive).toBe(false);
+    expect(result.current.canPickRole).toBe(true);
+    expect(result.current.isScoped).toBe(false); // no override yet ⇒ full view
+
+    act(() => result.current.setFocusRole('ecology_soils'));
+    rerender();
+    expect(result.current.layerActive).toBe(false); // still no OWN roles
+    expect(result.current.isScoped).toBe(true); // override scope applies
+    expect(result.current.scope.has('soil')).toBe(true);
+    expect(result.current.scope.size).toBe(7);
+  });
+
+  it('setFocusRole persists to uiStore and clearing (null) returns to own roles', () => {
+    seed(
+      [member(ME, { operationalRoles: ['food_production'] }), member(OTHER)],
+      'team_member',
+    );
+    const { result, rerender } = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    act(() => result.current.setFocusRole('finance_legal'));
+    rerender();
+    expect(useUIStore.getState().viewFocusRole[PROJECT_ID]).toBe('finance_legal');
+    expect(result.current.scope.has('economics-capacity')).toBe(true);
+    expect(result.current.scope.size).toBe(2);
+
+    act(() => result.current.setFocusRole(null));
+    rerender();
+    expect(useUIStore.getState().viewFocusRole[PROJECT_ID]).toBeNull();
+    expect(result.current.focusRole).toBeNull();
+    // Back to the viewer's own role scope.
+    expect(result.current.scope.has('plants-food')).toBe(true);
+    expect(result.current.scope.size).toBe(1);
+  });
+
+  it('Full view still un-scopes even with an override picked (mode gates application)', () => {
+    seed(
+      [member(ME, { operationalRoles: ['food_production'] }), member(OTHER)],
+      'team_member',
+    );
+    useUIStore.setState({
+      viewFocusMode: { [PROJECT_ID]: 'full' },
+      viewFocusRole: { [PROJECT_ID]: 'livestock' },
+    });
+    const { result } = renderHook(() =>
+      useViewScope(PROJECT_ID, { allowRoleOverride: true }),
+    );
+    expect(result.current.focusMode).toBe('full');
+    expect(result.current.isScoped).toBe(false); // full view ⇒ nothing scoped
+    // Scope still reflects the override, just not applied.
+    expect(result.current.scope.has('animals-livestock')).toBe(true);
+    expect(result.current.scope.size).toBe(1);
   });
 });

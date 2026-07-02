@@ -1,0 +1,70 @@
+/* RoleFocusControl -- composes ViewFocusToggle + a "Viewing as" role picker for
+   the Act role-based view filter (2026-07-01). Parchment palette matches the
+   sibling ViewFocusToggle / collaboration surfaces. */
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pickerWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pickerLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--color-text-subtle);
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.03);
+  padding: 5px 26px 5px 10px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
+  /* Chevron drawn in the padding gutter so the select needs no extra markup. */
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--color-text-subtle) 50%
+    ),
+    linear-gradient(135deg, var(--color-text-subtle) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 52%,
+    calc(100% - 9px) 52%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.select:hover {
+  border-color: rgba(232, 220, 200, 0.2);
+  background-color: rgba(232, 220, 200, 0.06);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-gold-active, rgba(212, 175, 110, 0.6));
+  outline-offset: 1px;
+}
+
+/* Native option list follows the page surface, not the parchment overlay. */
+.select option {
+  color: var(--color-text);
+  background: var(--color-surface, #1c1a17);
+}

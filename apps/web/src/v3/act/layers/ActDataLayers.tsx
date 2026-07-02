@@ -23,6 +23,9 @@ import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useMaintenanceLogStore } from '../../../store/maintenanceLogStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import type { ActModule } from '../types.js';
+// ActModule IS UniversalDomain (see act/types.ts); imported by its domain name
+// here to read as the Operational Role Layer scope the field-action shell passes.
+import type { UniversalDomain } from '@ogden/shared';
 
 interface Props {
   map: MaplibreMap;
@@ -39,6 +42,16 @@ interface Props {
    * under focus, leaving only the ambient substrate.
    */
   activeModule?: ActModule | null;
+  /**
+   * Operational Role Layer scope (additive; passed only by the field-action
+   * map-first shell). When present + non-empty, execution-event markers whose
+   * source domain is OUT of scope render de-emphasized (reduced opacity) rather
+   * than removed -- the covenant "never hide, only de-emphasize + always-surface".
+   * Absent / empty => every marker at full opacity (byte-identical prior
+   * behaviour; the command-centre shell never passes it). Orthogonal to
+   * `activeModule`: role scope dims, module focus filters.
+   */
+  scopedDomains?: ReadonlySet<UniversalDomain>;
 }
 
 const SOURCE_PREFIX = 'act-data-';
@@ -63,7 +76,35 @@ const SOURCEKIND_MODULE: Record<string, ActModule> = {
   structure: 'built-infrastructure',
 };
 
-export default function ActDataLayers({ map, projectId, activeModule = null }: Props) {
+// Opacity for in-/out-of-role-scope markers. In-scope keeps the prior 0.95;
+// out-of-scope fades but stays visible + clickable (never hidden).
+const IN_SCOPE_OPACITY = 0.95;
+const OUT_SCOPE_OPACITY = 0.22;
+
+/**
+ * Whether an execution-event feature falls inside the current role scope.
+ * Reuses SOURCEKIND_MODULE (Act module ids ARE UniversalDomains) as the single
+ * sourceKind->domain source of truth. Empty/absent scope => always in-scope
+ * (full opacity). An absent or unmapped `sourceKind` => in-scope too: we never
+ * dim what we cannot classify (the always-surface half of the covenant).
+ */
+export function inRoleScope(
+  sourceKind: string | undefined,
+  scope: ReadonlySet<UniversalDomain> | undefined,
+): boolean {
+  if (!scope || scope.size === 0) return true;
+  if (!sourceKind) return true;
+  const domain: UniversalDomain | undefined = SOURCEKIND_MODULE[sourceKind];
+  if (!domain) return true;
+  return scope.has(domain);
+}
+
+export default function ActDataLayers({
+  map,
+  projectId,
+  activeModule = null,
+  scopedDomains,
+}: Props) {
   const entries = useHarvestLogStore((s) => s.entries);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);
@@ -128,13 +169,14 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
           label: `${e.quantity} ${e.unit}`,
           sourceKind: e.sourceKind,
           sourceName,
+          inScope: inRoleScope(e.sourceKind, scopedDomains),
         },
         geometry: { type: 'Point', coordinates: center },
       });
     }
 
     return { type: 'FeatureCollection', features: focus(features) };
-  }, [entries, cropAreas, paddocks, projectId, activeModule]);
+  }, [entries, cropAreas, paddocks, projectId, activeModule, scopedDomains]);
 
   const maintenanceFC = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -177,13 +219,14 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
           label: ev.action,
           sourceKind: ev.sourceKind,
           sourceName,
+          inScope: inRoleScope(ev.sourceKind, scopedDomains),
         },
         geometry: { type: 'Point', coordinates: center },
       });
     }
 
     return { type: 'FeatureCollection', features: focus(features) };
-  }, [maintEvents, earthworks, storageInfra, projectId, activeModule]);
+  }, [maintEvents, earthworks, storageInfra, projectId, activeModule, scopedDomains]);
 
   useEffect(() => {
     if (!map) return;
@@ -208,7 +251,9 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
             'circle-color': ['get', 'color'],
             'circle-stroke-color': '#1f1d1a',
             'circle-stroke-width': 1.5,
-            'circle-opacity': 0.95,
+            // Operational Role Layer: dim (never remove) out-of-scope markers.
+            'circle-opacity': ['case', ['get', 'inScope'], IN_SCOPE_OPACITY, OUT_SCOPE_OPACITY],
+            'circle-stroke-opacity': ['case', ['get', 'inScope'], 1, OUT_SCOPE_OPACITY],
           },
         });
       }
@@ -229,6 +274,8 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
             'text-color': '#f2ede3',
             'text-halo-color': 'rgba(31, 29, 26, 0.85)',
             'text-halo-width': 1.2,
+            // Operational Role Layer: dim out-of-scope labels in lockstep.
+            'text-opacity': ['case', ['get', 'inScope'], 1, OUT_SCOPE_OPACITY],
           },
         });
       }
@@ -251,7 +298,9 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
             'circle-color': ['get', 'color'],
             'circle-stroke-color': '#1f1d1a',
             'circle-stroke-width': 2,
-            'circle-opacity': 0.95,
+            // Operational Role Layer: dim (never remove) out-of-scope markers.
+            'circle-opacity': ['case', ['get', 'inScope'], IN_SCOPE_OPACITY, OUT_SCOPE_OPACITY],
+            'circle-stroke-opacity': ['case', ['get', 'inScope'], 1, OUT_SCOPE_OPACITY],
             // Diamond-ish look via larger stroke + inner color, but
             // staying with 'circle' to keep paint expressions trivial.
           },
@@ -274,6 +323,8 @@ export default function ActDataLayers({ map, projectId, activeModule = null }: P
             'text-color': '#f2ede3',
             'text-halo-color': 'rgba(31, 29, 26, 0.85)',
             'text-halo-width': 1.2,
+            // Operational Role Layer: dim out-of-scope labels in lockstep.
+            'text-opacity': ['case', ['get', 'inScope'], 1, OUT_SCOPE_OPACITY],
           },
         });
       }

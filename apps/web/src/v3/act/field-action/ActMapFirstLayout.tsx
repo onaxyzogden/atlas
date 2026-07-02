@@ -36,6 +36,8 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActOpsDashboard from './ActOpsDashboard.js';
 import ViewAObjectiveExecution from './ViewAObjectiveExecution.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import RoleFocusControl from '../../roles/RoleFocusControl.js';
 import css from './ActMapFirstLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -64,6 +66,18 @@ export default function ActMapFirstLayout() {
   const v3Project = useV3Project(params.projectId);
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
+  // Operational Role Layer (additive; never hides). Auto-scopes the act map to
+  // the viewer's own operational-role domains and -- via RoleFocusControl in the
+  // panel header -- lets a coordinator view as any role. Out-of-scope execution
+  // markers dim (ActDataLayers `scopedDomains`) but stay on the map + clickable.
+  // The header renders only when the layer is live or a role can be picked, so
+  // solo projects show no role UI at all.
+  const { isScoped, scope, layerActive, canPickRole } = useViewScope(id, {
+    allowRoleOverride: true,
+  });
+  const scopedDomains = isScoped ? scope : undefined;
+  const showRoleControl = layerActive || canPickRole;
+
   return (
     <div className={css.shell}>
       <div className={css.body}>
@@ -75,7 +89,12 @@ export default function ActMapFirstLayout() {
                 <ObserveAnnotationLayers map={map} projectId={id} />
                 <PlanDataLayers map={map} projectId={id} editable={false} />
                 <ActStructureClickHandler map={map} projectId={id} />
-                <ActDataLayers map={map} projectId={id} activeModule={null} />
+                <ActDataLayers
+                  map={map}
+                  projectId={id}
+                  activeModule={null}
+                  {...(scopedDomains ? { scopedDomains } : {})}
+                />
                 <SectorCompassOverlay projectId={id} map={map} />
                 <ActStructurePopover map={map} projectId={id} />
               </>
@@ -83,6 +102,11 @@ export default function ActMapFirstLayout() {
           </DiagnoseMap>
         </div>
         <aside className={css.panel} aria-label="Field actions">
+          {showRoleControl && (
+            <div className={css.panelHeader}>
+              <RoleFocusControl projectId={id} />
+            </div>
+          )}
           <div className={css.panelBody}>
             {objectiveId ? (
               <ViewAObjectiveExecution projectId={id} objectiveId={objectiveId} />

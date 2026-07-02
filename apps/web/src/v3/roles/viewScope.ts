@@ -91,3 +91,40 @@ export function partitionByScope<T>(
   }
   return { inScope, outScope };
 }
+
+/**
+ * Bundled inputs for de-emphasizing an objective-keyed list (the field-action
+ * task sections) by the viewer's operational-role scope. `scope` is the union
+ * of the viewer's roles' domains, or the "view as" override's domains;
+ * `domainsByObjective` maps each objective id to its observe domains so a
+ * task/group can be classified without re-deriving the map per section.
+ * Present ⇒ the section de-emphasizes out-of-scope work; absent ⇒ the section
+ * renders untouched (byte-identical to the pre-role-layer list).
+ */
+export interface SectionRoleScope {
+  scope: ReadonlySet<UniversalDomain>;
+  domainsByObjective: ReadonlyMap<string, readonly UniversalDomain[]>;
+}
+
+/**
+ * Order a list of objective-keyed items (field-action groups or flat tasks) by
+ * the viewer's scope: in-scope first, out-of-scope after (original order within
+ * each bucket). `dim` is true ONLY on a genuine in/out split -- when every item
+ * is in scope, or every item is out of scope, de-emphasis carries no signal, so
+ * `dim` is false and the caller renders the list plainly (no reorder, no
+ * dimming). Reuses `partitionByScope`, so an objective absent from the map
+ * (unclassifiable) resolves to `[]` domains and stays in scope. Never hides.
+ */
+export function orderByObjectiveScope<T>(
+  items: readonly T[],
+  getObjectiveId: (item: T) => string,
+  roleScope: SectionRoleScope,
+): { inScope: T[]; outScope: T[]; dim: boolean } {
+  const { scope, domainsByObjective } = roleScope;
+  const { inScope, outScope } = partitionByScope(
+    items,
+    (item) => domainsByObjective.get(getObjectiveId(item)) ?? [],
+    scope,
+  );
+  return { inScope, outScope, dim: inScope.length > 0 && outScope.length > 0 };
+}

@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
+import { getObjectiveObserveDomains, type UniversalDomain } from '@ogden/shared';
 import {
   selectFieldActionsForProject,
   useFieldActionStore,
@@ -27,6 +28,10 @@ import ActiveTasksSection from './ActiveTasksSection.js';
 import ReadyToStartSection from './ReadyToStartSection.js';
 import BlockedDivergedSection from './BlockedDivergedSection.js';
 import CompletedTodaySection from './CompletedTodaySection.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import RoleFocusControl from '../../roles/RoleFocusControl.js';
+import type { SectionRoleScope } from '../../roles/viewScope.js';
+import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
 import css from './ViewBDashboard.module.css';
 
 interface Props {
@@ -82,10 +87,49 @@ export default function ViewBDashboard({ projectId }: Props) {
     [active, readyToStart, blockedDiverged, completedToday],
   );
 
+  // Operational Role Layer (additive; never hides). Auto-scopes the dashboard to
+  // the viewer's own operational-role domains, and -- via RoleFocusControl --
+  // lets a coordinator view as any role. `isScoped`/`scope` drive the sections'
+  // de-emphasis; `domainsByObjective` classifies each objective group. This is
+  // orthogonal to the FieldActionFilter chips, which stay an explicit hard filter.
+  const { isScoped, scope } = useViewScope(projectId, { allowRoleOverride: true });
+  const { objectives } = useProjectObjectives(projectId);
+
+  const domainsByObjective = useMemo(() => {
+    const m = new Map<string, readonly UniversalDomain[]>();
+    for (const o of objectives) m.set(o.id, getObjectiveObserveDomains(o));
+    return m;
+  }, [objectives]);
+
+  // "My focus (N / M)" hint for the toggle: present domains in the current scope.
+  const { presentCount, inFocusCount } = useMemo(() => {
+    const present = new Set<UniversalDomain>();
+    for (const domains of domainsByObjective.values()) {
+      for (const d of domains) present.add(d);
+    }
+    let inFocus = 0;
+    for (const d of present) if (scope.size === 0 || scope.has(d)) inFocus += 1;
+    return { presentCount: present.size, inFocusCount: inFocus };
+  }, [domainsByObjective, scope]);
+
+  const roleScope = useMemo<SectionRoleScope | undefined>(
+    () => (isScoped ? { scope, domainsByObjective } : undefined),
+    [isScoped, scope, domainsByObjective],
+  );
+
+  // Forward the role scope only when active so each section keeps its exact prior
+  // rendering under the layer-off path (exactOptionalPropertyTypes).
+  const scopeProp = roleScope ? { roleScope } : {};
+
   return (
     <div className={css.scroll}>
       <div className={css.column}>
         <NextUpCard projectId={projectId} action={nextUp} />
+        <RoleFocusControl
+          projectId={projectId}
+          inFocusCount={inFocusCount}
+          totalCount={presentCount}
+        />
         <FieldActionFilter
           allTasks={allTasks}
           filter={filter}
@@ -98,10 +142,10 @@ export default function ViewBDashboard({ projectId }: Props) {
             No field actions match this filter. <button type="button" onClick={clearFilter} className={css.inlineClear}>Clear filters</button>
           </div>
         )}
-        <ActiveTasksSection projectId={projectId} groups={active} />
-        <ReadyToStartSection projectId={projectId} groups={readyToStart} />
-        <BlockedDivergedSection projectId={projectId} tasks={blockedDiverged} />
-        <CompletedTodaySection projectId={projectId} tasks={completedToday} />
+        <ActiveTasksSection projectId={projectId} groups={active} {...scopeProp} />
+        <ReadyToStartSection projectId={projectId} groups={readyToStart} {...scopeProp} />
+        <BlockedDivergedSection projectId={projectId} tasks={blockedDiverged} {...scopeProp} />
+        <CompletedTodaySection projectId={projectId} tasks={completedToday} {...scopeProp} />
       </div>
     </div>
   );

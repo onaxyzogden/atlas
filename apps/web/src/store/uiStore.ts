@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
+import type { OperationalRole } from '@ogden/shared';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
 export type SidebarGrouping = 'stage3' | 'stage' | 'phase' | 'domain';
@@ -78,6 +79,15 @@ interface UIState {
   // ViewFocusMode + useViewScope). Persisted so a chosen focus sticks.
   viewFocusMode: Record<string, ViewFocusMode>;
   setViewFocusMode: (projectId: string, mode: ViewFocusMode) => void;
+
+  // Operational-role "view as" override — per-project role slug the viewer has
+  // chosen to scope the Act view TO (a coordinator inspecting any role's slice),
+  // instead of their own roles. `null`/absent ⇒ the viewer's own roles (the
+  // default). Orthogonal to viewFocusMode: the mode chooses whether role scope
+  // applies at all, this chooses WHOSE scope. Persisted so a picked lens sticks.
+  // See useViewScope.
+  viewFocusRole: Record<string, OperationalRole | null>;
+  setViewFocusRole: (projectId: string, role: OperationalRole | null) => void;
 
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
   // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
@@ -148,6 +158,11 @@ export function migrateUIPersistedState(
   // here would be redundant AND would break migrate's idempotent same-reference
   // contract (return the input unchanged when nothing needs coercing — pinned by
   // uiStoreMigrate.test.ts). The version bump alone re-stamps the payload shape.
+  //
+  // v5 (2026-07-01, Act role-based view filter) adds a per-project
+  // `viewFocusRole` "view as" map. Same reasoning as v4: an absent key is
+  // supplied as `{}` by the initial state through the shallow merge, so no
+  // coercion is needed and the same-reference contract holds for v5 payloads.
   return persistedState;
 }
 
@@ -197,6 +212,13 @@ export const useUIStore = create<UIState>()(
       viewFocusMode: {} as Record<string, ViewFocusMode>,
       setViewFocusMode: (projectId, mode) =>
         set((s) => ({ viewFocusMode: { ...s.viewFocusMode, [projectId]: mode } })),
+
+      // Operational-role "view as" override — per-project map, default empty
+      // (every project falls back to the viewer's own roles until they pick a
+      // lens). Setting `null` explicitly also means "my roles".
+      viewFocusRole: {} as Record<string, OperationalRole | null>,
+      setViewFocusRole: (projectId, role) =>
+        set((s) => ({ viewFocusRole: { ...s.viewFocusRole, [projectId]: role } })),
 
       // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
       // per 2026-04-29 IA restructure). Existing users keep their persisted
@@ -255,7 +277,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ogden-ui',
-      version: 4,
+      version: 5,
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
@@ -264,6 +286,7 @@ export const useUIStore = create<UIState>()(
         planToolDockCollapsed: state.planToolDockCollapsed,
         spineCollapsed: state.spineCollapsed,
         viewFocusMode: state.viewFocusMode,
+        viewFocusRole: state.viewFocusRole,
       }),
       migrate: migrateUIPersistedState,
     },

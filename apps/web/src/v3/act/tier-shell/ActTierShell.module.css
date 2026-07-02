@@ -843,8 +843,15 @@
 }
 
 /* "My focus / Full view" toggle row — sits between the rail header and the
-   source-filter / objective list. */
+   source-filter / objective list. On the Act shell it also holds the "Viewing
+   as" role picker below the toggle; the column layout stacks them with a small
+   gap. Plan renders only the toggle (a single child), so this is a visual no-op
+   there. */
 .focusToggleBar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   padding: 8px 10px 0;
 }
 

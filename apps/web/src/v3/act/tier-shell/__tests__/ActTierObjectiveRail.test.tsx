@@ -14,6 +14,7 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   findPlanStratum,
   findPlanStratumObjective,
+  resolveOperationalRoleDefs,
   scopeForRoles,
   type PlanStratumObjective,
 } from '@ogden/shared';
@@ -374,5 +375,52 @@ describe('ActTierObjectiveRail (operational role scope)', () => {
     expect(screen.queryByTestId('rail-outside-focus-toggle')).toBeNull();
     // The toggle stays so a steward can switch back to My focus.
     expect(screen.getByTestId('view-focus-toggle')).toBeTruthy();
+  });
+
+  it('renders the "Viewing as" picker only on Act opt-in (canPickRole)', () => {
+    // Plan reuses this rail WITHOUT the override props -> no picker at all, so
+    // its focus bar stays byte-identical.
+    const { unmount } = renderScoped('role');
+    expect(screen.queryByTestId('role-view-as-select')).toBeNull();
+    unmount();
+
+    // Act opts in -> the picker lists "My roles" + every resolved role and
+    // forwards the raw slug (the shell maps '' -> null and flips focus mode).
+    const onFocusRoleChange = vi.fn();
+    render(
+      <ActTierObjectiveRail
+        stratum={STRATUM}
+        objectives={SCOPE_OBJECTIVES}
+        progressByObjective={SCOPE_PROGRESS}
+        activeObjectiveId={null}
+        onSelectObjective={vi.fn()}
+        mode="objectives"
+        onModeChange={vi.fn()}
+        triggeredCount={0}
+        projectId="proj-1"
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        activeStratumId="s6-integration-design"
+        selectedProtocolId={null}
+        onSelectProtocol={vi.fn()}
+        scopedDomains={FOOD_SCOPE}
+        surfaceMap={SURFACE_MAP}
+        showFocusToggle
+        focusMode="role"
+        onFocusModeChange={vi.fn()}
+        canPickRole
+        focusRole={null}
+        onFocusRoleChange={onFocusRoleChange}
+      />,
+    );
+    const select = screen.getByTestId('role-view-as-select') as HTMLSelectElement;
+    // "My roles" default + the six resolved operational roles.
+    expect(select.querySelectorAll('option')).toHaveLength(
+      resolveOperationalRoleDefs().length + 1,
+    );
+    fireEvent.change(select, { target: { value: 'finance_legal' } });
+    expect(onFocusRoleChange).toHaveBeenCalledWith('finance_legal');
+    fireEvent.change(select, { target: { value: '' } });
+    expect(onFocusRoleChange).toHaveBeenCalledWith(null);
   });
 });
