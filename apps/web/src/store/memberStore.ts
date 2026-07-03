@@ -20,6 +20,15 @@ interface MemberState {
   members: ProjectMemberRecord[];
   myRole: ProjectRole | null;
   myRoles: Record<string, ProjectRole>;
+  /**
+   * The serverId of the project the current `members` roster belongs to, or
+   * `null` for an unfetched / locally-seeded roster. `members` is a single
+   * global slot shared across projects (H1, deep-audit 2026-07-03), so
+   * `fetchMembers` claims this BEFORE its await: consumers (useViewScope's
+   * roster bootstrap) key on it to fetch exactly once per project switch, and
+   * a foreign project's roster is dropped the moment a new claim is made.
+   */
+  rosterProjectId: string | null;
   isLoading: boolean;
 
   fetchMembers: (projectId: string) => Promise<void>;
@@ -47,22 +56,44 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
   members: [],
   myRole: null,
   myRoles: {},
+  rosterProjectId: null,
   isLoading: false,
 
   fetchMembers: async (projectId: string) => {
     // Offline demo: no backend to read from — the sample seeds its roster via
     // seedLocalMembers, so a server fetch would only 401 and clobber nothing.
     if (DEMO_OFFLINE_ENABLED) return;
-    set({ isLoading: true });
+    const { rosterProjectId, isLoading } = get();
+    // A fetch for this same roster is already in flight — don't double-hit the
+    // endpoint (several shells/controls bootstrap through useViewScope in one
+    // commit; ActTierShell keeps its own effect too).
+    if (isLoading && rosterProjectId === projectId) return;
+    // Claim the slot BEFORE the await. On a project switch also drop the
+    // foreign roster immediately, so no consumer scopes against the wrong
+    // project's members while the fetch is in flight; a locally-seeded roster
+    // (rosterProjectId null) is replaced too — the server roster is
+    // authoritative for a synced project. On failure the claim stands: one
+    // attempt per switch (no retry storm), and the honest empty roster
+    // degrades to the full, unscoped view. Same-project re-fetches (the
+    // optimistic-revert paths below) keep the current roster until data lands.
+    set(
+      rosterProjectId === projectId
+        ? { isLoading: true }
+        : { isLoading: true, rosterProjectId: projectId, members: [] },
+    );
     try {
       const { data } = await api.members.list(projectId);
-      if (data) {
+      // Land the response only if this fetch still owns the slot — a newer
+      // claim for another project may have superseded us mid-flight.
+      if (data && get().rosterProjectId === projectId) {
         set({ members: data });
       }
     } catch (err) {
       console.warn('[OGDEN] Failed to fetch project members:', err);
     } finally {
-      set({ isLoading: false });
+      if (get().rosterProjectId === projectId) {
+        set({ isLoading: false });
+      }
     }
   },
 
@@ -161,7 +192,8 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
-  reset: () => set({ members: [], myRole: null, myRoles: {}, isLoading: false }),
+  reset: () =>
+    set({ members: [], myRole: null, myRoles: {}, rosterProjectId: null, isLoading: false }),
 }));
 
 // ─── Operational-role selectors ──────────────────────────────────────────
