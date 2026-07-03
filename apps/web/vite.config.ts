@@ -168,6 +168,11 @@ export default defineConfig({
     'process.env.FEATURE_PUBLIC_PORTAL': JSON.stringify(process.env.FEATURE_PUBLIC_PORTAL ?? 'false'),
     'process.env.FEATURE_RELATIONSHIPS': JSON.stringify(process.env.FEATURE_RELATIONSHIPS ?? 'false'),
     'process.env.FEATURE_SYNC_STATE_BLOBS': JSON.stringify(process.env.FEATURE_SYNC_STATE_BLOBS ?? 'false'),
+    // Clean-slate sample pipeline. Both default 'false' so "My Projects" starts
+    // empty; each must be listed here explicitly or the browser build leaves a
+    // bare `process.env.FEATURE_*` that throws at boot. See constants/flags.ts.
+    'process.env.FEATURE_SEED_SAMPLES': JSON.stringify(process.env.FEATURE_SEED_SAMPLES ?? 'false'),
+    'process.env.FEATURE_SEED_AUTHORED_SAMPLE': JSON.stringify(process.env.FEATURE_SEED_AUTHORED_SAMPLE ?? 'false'),
     // Demo mode: auto-register a throwaway guest session on boot so the live
     // test site is explorable without the (broken) login. Off by default;
     // enabled only on the live deployment build. See src/app/demoSession.ts.

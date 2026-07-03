@@ -40,3 +40,12 @@ export const APRICOT_LANE_PROJECT_ID = '00000000-0000-0000-0000-000000a91c01';
 // `f00d5ead` tail ("food-stead") keeps it mnemonic and distinct from the four
 // ids above. Pinned because the seeders compare against it.
 export const HOMESTEAD_SAMPLE_PROJECT_ID = '00000000-0000-0000-0000-0000f00d5ead';
+
+// User-authored replacement sample (clean-slate sample pipeline, 2026-07). After
+// the legacy builtins are retired (FLAGS.SEED_SAMPLES off), the user authors ONE
+// new sample in-app; the capture tool (apps/web/src/dev/captureSampleSeed.ts)
+// snapshots it and rewrites its project id to this fixed id so the seed is
+// deterministic and the demo-clone / seeder can pin against it. The `5eed` tail
+// ("seed") keeps it mnemonic and distinct from the sample ids above. Dormant
+// until FLAGS.SEED_AUTHORED_SAMPLE is flipped on at handoff.
+export const SAMPLE_SEED_PROJECT_ID = '00000000-0000-0000-0000-000000005eed';

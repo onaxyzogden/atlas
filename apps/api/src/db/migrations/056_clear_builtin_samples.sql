@@ -1,0 +1,26 @@
+-- 056_clear_builtin_samples.sql
+--
+-- Clean slate: remove every builtin sample project so "My Projects" starts
+-- empty for all users. The legacy builtins — 351 House / Atlas Sample (017),
+-- Moontrance Creek (022), Three Streams Farm (029), Apricot Lane Citrus (032) —
+-- are retired in favour of a single user-authored replacement sample, which is
+-- (re)introduced later by 057_builtin_authored_sample.sql.
+--
+-- Ordering matters and is deliberate: this runs exactly once (tracked in
+-- schema_migrations), AFTER every builtin-seed migration and BEFORE 057. On a
+-- fresh database the seeds insert first and this nets them back out, leaving
+-- only whatever 057 adds; on an existing database it removes the builtins that
+-- are already there. Because the runner never re-applies an applied migration,
+-- this never deletes the 057 sample on a later `pnpm migrate`.
+--
+-- The old seed migrations are left intact (history preserved) — the "gate /
+-- clear, don't delete" principle. Nothing re-seeds afterward: no builtin-insert
+-- migration runs after this one, and the client mirror is off by default
+-- (FLAGS.SEED_SAMPLES — see packages/shared/src/constants/flags.ts).
+--
+-- Safe cascade: every foreign key that references projects is ON DELETE CASCADE
+-- or ON DELETE SET NULL (verified across migrations 001–050) — there are no
+-- blocking (RESTRICT / NO ACTION) references, so this DELETE cannot fail on an
+-- FK violation. DELETE is naturally idempotent (a re-run removes nothing).
+
+DELETE FROM projects WHERE is_builtin = true;
