@@ -8,6 +8,9 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(32),
   // Comma-separated list of allowed origins. Set exactly in production; defaults cover both local dev apps.
   CORS_ORIGIN: z.string().default('http://localhost:5200,http://localhost:5300'),
+  // The four rate-limit defaults below (RATE_LIMIT_MAX/WINDOW, PORTAL_*_MAX)
+  // are mirrored as explicit envVars in render.yaml — change them in BOTH
+  // places or the deployed values silently drift from these defaults.
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
   // ── Reverse-proxy awareness ──────────────────────────────────────────────

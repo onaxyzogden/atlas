@@ -48,4 +48,7 @@ export const HOMESTEAD_SAMPLE_PROJECT_ID = '00000000-0000-0000-0000-0000f00d5ead
 // deterministic and the demo-clone / seeder can pin against it. The `5eed` tail
 // ("seed") keeps it mnemonic and distinct from the sample ids above. Dormant
 // until FLAGS.SEED_AUTHORED_SAMPLE is flipped on at handoff.
+// IMMUTABLE once a sample is captured: the captured snapshot (content/
+// authoredSampleSeed.ts) and migration 057 both bake this id in — changing it
+// afterwards orphans the snapshot and breaks seed replay.
 export const SAMPLE_SEED_PROJECT_ID = '00000000-0000-0000-0000-000000005eed';
