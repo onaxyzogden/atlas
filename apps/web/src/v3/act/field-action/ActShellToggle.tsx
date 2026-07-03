@@ -7,7 +7,12 @@
  * `LocalProject.actShellMode` via `updateProject`.
  */
 
-import { ClipboardCheck, LayoutGrid, LayoutPanelTop } from 'lucide-react';
+import {
+  ClipboardCheck,
+  LayoutDashboard,
+  LayoutGrid,
+  LayoutPanelTop,
+} from 'lucide-react';
 import type { ActShellMode } from '../../../store/projectStore.js';
 import css from './ActShellToggle.module.css';
 
@@ -21,6 +26,7 @@ const OPTIONS: ReadonlyArray<{
   label: string;
   Icon: typeof ClipboardCheck;
 }> = [
+  { mode: 'ops-hub', label: 'Operations', Icon: LayoutDashboard },
   { mode: 'tier-shell', label: 'Tier shell', Icon: LayoutPanelTop },
   { mode: 'field-action', label: 'Field actions', Icon: ClipboardCheck },
   { mode: 'command-centre', label: 'Command centre', Icon: LayoutGrid },

@@ -13,6 +13,8 @@ import css from './SectionGroup.module.css';
 interface Props {
   projectId: string;
   tasks: FieldAction[];
+  /** Optional tap-target override forwarded to each card (e.g. open the hub walkthrough). */
+  onOpen?: (action: FieldAction) => void;
   /**
    * Operational Role Layer scope (additive). Present ⇒ tasks outside the
    * viewer's role focus sort last and render de-emphasized (never hidden);
@@ -24,6 +26,7 @@ interface Props {
 export default function BlockedDivergedSection({
   projectId,
   tasks,
+  onOpen,
   roleScope,
 }: Props) {
   const { inScope, outScope, dim } = roleScope
@@ -35,6 +38,7 @@ export default function BlockedDivergedSection({
       key={t.id}
       projectId={projectId}
       action={t}
+      {...(onOpen ? { onOpen } : {})}
     />
   );
 

@@ -1,0 +1,297 @@
+/* ActRecipeWalkthrough — guided recipe stepper inside the walkthrough drawer.
+   Dark OLOS tokens; surface-1 cards, gold accents, amber Amanah cautions. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-accent, #c4a265);
+}
+
+.badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--color-border, #232a31);
+  background: var(--color-surface-1, rgba(20, 25, 31, 0.72));
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.badge[data-bespoke='true'] {
+  border-color: rgba(196, 162, 101, 0.55);
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 14%, transparent);
+  color: var(--color-text, #e7ecf0);
+}
+
+.why {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text, #e7ecf0);
+}
+
+/* ---- Amanah scope banner (recipe-level + upstream verbatim) ---- */
+
+.scopeBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(214, 158, 46, 0.4);
+  background: rgba(214, 158, 46, 0.1);
+}
+
+.scopeBannerHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #e0b252;
+}
+
+.gate {
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  border: 1px solid rgba(224, 178, 82, 0.6);
+  color: #f0cd86;
+}
+
+.scopeBannerText {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #f0d9a8;
+}
+
+/* ---- Stepper ---- */
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border, #232a31);
+  background: var(--color-surface-1, rgba(20, 25, 31, 0.72));
+}
+
+.stepHead {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stepCount {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text, #e7ecf0);
+}
+
+.progress {
+  display: flex;
+  gap: 4px;
+}
+
+.progressSeg {
+  flex: 1 1 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-border, #232a31);
+  transition: background 160ms ease;
+}
+
+.progressSeg[data-on='true'] {
+  background: var(--color-gold-brand, #c4a265);
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.instruction {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text, #e7ecf0);
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.noteLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.noteText {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(231, 236, 240, 0.82);
+}
+
+.scope {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(214, 158, 46, 0.4);
+  background: rgba(214, 158, 46, 0.1);
+  color: #e0b252;
+}
+
+.scopeText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #f0d9a8;
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.toolChip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--color-border, #232a31);
+  background: var(--color-bg, #14181d);
+  color: var(--color-text, #e7ecf0);
+}
+
+.affordance {
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(196, 162, 101, 0.4);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-accent, #c4a265);
+}
+
+.citation {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.kindTag {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--color-border, #232a31);
+  color: var(--color-text-muted, #8a96a0);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--color-border, #232a31);
+  background: var(--color-bg, #14181d);
+  color: var(--color-text, #e7ecf0);
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    opacity 120ms ease;
+}
+
+.navBtn:hover:not(:disabled) {
+  border-color: rgba(196, 162, 101, 0.55);
+}
+
+.navBtn[data-primary='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+}
+
+.navBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.navBtn:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.recipePitfall {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #232a31);
+  background: var(--color-bg, #14181d);
+}

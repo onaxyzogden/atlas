@@ -15,6 +15,7 @@ import {
   resolveProjectObjectives,
   computeAllObjectiveStatuses,
   findProjectType,
+  FLAGS,
   HOMESTEAD_SAMPLE_PROJECT_ID,
   type CreateProjectInput,
   type ProjectMetadata,
@@ -171,28 +172,36 @@ export function getPlanShellMode(
 }
 
 /**
- * Which Act-stage navigation shell a project renders. `tier-shell` is the
- * map-centric 4-rail default (stratum spine + left objectives + center map
- * + bottom tools + right execution panel); `field-action` is the 2-column
- * map-first layout; `command-centre` is the legacy module-driven shell.
- * All three are preserved behind `ActShellToggle` (no deletion). The legacy
- * shells are removed in Phase 7 once every legacy module card has retired.
+ * Which Act-stage navigation shell a project renders. `ops-hub` is the
+ * scannable Operations-Hub default (a "what needs doing today" dashboard with
+ * the map demoted to one embedded panel + a guided per-task walkthrough);
+ * `tier-shell` is the map-centric 4-rail layout (stratum spine + left
+ * objectives + center map + bottom tools + right execution panel);
+ * `field-action` is the 2-column map-first layout; `command-centre` is the
+ * legacy module-driven shell. All four are preserved behind `ActShellToggle`
+ * (no deletion). The legacy shells are removed in Phase 7 once every legacy
+ * module card has retired.
  */
-export type ActShellMode = 'tier-shell' | 'field-action' | 'command-centre';
+export type ActShellMode =
+  | 'ops-hub'
+  | 'tier-shell'
+  | 'field-action'
+  | 'command-centre';
 
 /**
  * Canonical accessor for a project's Act shell mode. Explicit per-
  * project values win; everything else — including builtin samples (MTC,
- * "351 House") — now defaults to `tier-shell`, the promoted 4-rail tier
- * shell. Projects that previously persisted `field-action` or
- * `command-centre` keep that choice (no persist migration). Every mode
- * stays reachable per project via `ActShellToggle`.
+ * "351 House") — now defaults to `ops-hub`, the promoted Operations Hub
+ * (mirrors the tier-shell promotion that preceded it). Projects that
+ * previously persisted `tier-shell` / `field-action` / `command-centre` keep
+ * that choice (no persist migration). Every mode stays reachable per project
+ * via `ActShellToggle`.
  */
 export function getActShellMode(
   project: Pick<LocalProject, 'actShellMode' | 'isBuiltin'>,
 ): ActShellMode {
   if (project.actShellMode) return project.actShellMode;
-  return 'tier-shell';
+  return 'ops-hub';
 }
 
 /**
@@ -1266,16 +1275,32 @@ export const useProjectStore = create<ProjectState>()(
 // On hydration, fetch the public builtin sample(s) from the API and merge
 // into the local store. This runs for every visitor — authenticated or not
 // — so the home page always shows the canonical "351 House — Atlas Sample"
-// even before sign-in. The legacy hard-coded local seed has been removed in
-// favour of this single source of truth.
+// even before sign-in. NOTE: these seeds are now gated behind FLAGS.SEED_SAMPLES
+// (default OFF) — see the gated block below. "My Projects" starts as a genuine
+// clean slate (offline demo, local browser, and hosted); the legacy fixtures are
+// preserved, not deleted (feedback_no_deletion), and only seed when the flag is
+// flipped on. The user-authored replacement sample seeds separately behind
+// FLAGS.SEED_AUTHORED_SAMPLE (see apps/web/src/dev/seedAuthoredSample.ts).
 //
 // Boundary FCs ride along the rehydrated `projects[]` from localStorage
 // directly (see partialize). The previous IDB-restore sequencing (ADDENDA
 // 3) is no longer needed — see ADDENDUM 6.
 useProjectStore.persist.onFinishHydration(() => {
-  seedMtcDemo();
-  seedHomesteadSampleProject();
-  void hydrateBuiltins();
+  if (FLAGS.SEED_SAMPLES) {
+    seedMtcDemo();
+    seedHomesteadSampleProject();
+    void hydrateBuiltins();
+  }
+  // User-authored replacement sample (SAMPLE_SEED_PROJECT_ID). Lazy import so the
+  // dev seeder — and its heavy syncManifest dependency — never enters the
+  // projectStore chunk while the flag is off (the default); the module is only
+  // fetched once FLAGS.SEED_AUTHORED_SAMPLE is flipped on at handoff. Even then it
+  // stays dormant until content/authoredSampleSeed.ts is transcribed (it no-ops on
+  // the null placeholder). onFinishHydration is the correct hook: IDB rehydration
+  // is async, so the projects[] must be restored before we insert/merge the sample.
+  if (FLAGS.SEED_AUTHORED_SAMPLE) {
+    void import('../dev/seedAuthoredSample.js').then((m) => m.seedAuthoredSampleProject());
+  }
 });
 
 // Moontrance Creek demo project. The Plan and Act stages expose a

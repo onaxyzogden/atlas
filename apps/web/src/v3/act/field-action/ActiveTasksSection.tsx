@@ -5,6 +5,7 @@
  * the dashboard reads tier-foundation-first.
  */
 
+import type { FieldAction } from '@ogden/shared';
 import type { FieldActionsByObjective } from './useFieldActions.js';
 import CollapsibleSection from './CollapsibleSection.js';
 import FieldActionCard from './FieldActionCard.js';
@@ -15,6 +16,8 @@ import css from './SectionGroup.module.css';
 interface Props {
   projectId: string;
   groups: FieldActionsByObjective[];
+  /** Optional tap-target override forwarded to each card (e.g. open the hub walkthrough). */
+  onOpen?: (action: FieldAction) => void;
   /**
    * Operational Role Layer scope (additive). Present ⇒ objective groups outside
    * the viewer's role focus sort last and render de-emphasized (never hidden);
@@ -26,6 +29,7 @@ interface Props {
 export default function ActiveTasksSection({
   projectId,
   groups,
+  onOpen,
   roleScope,
 }: Props) {
   // Count is always the full total -- de-emphasis never changes the tally.
@@ -56,6 +60,7 @@ export default function ActiveTasksSection({
             projectId={projectId}
             action={t}
             hideObjectiveLine
+            {...(onOpen ? { onOpen } : {})}
           />
         ))}
       </div>
