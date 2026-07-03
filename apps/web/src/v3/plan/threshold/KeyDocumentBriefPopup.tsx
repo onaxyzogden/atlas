@@ -109,8 +109,11 @@ function BriefBody({ brief }: { brief: KeyDocumentBrief }) {
       {brief.groups.map((group) => (
         <section key={group.stratumId} className={css.group}>
           <div className={css.groupHead}>
-            <span className={css.groupLabel}>{group.label}</span>
-            <span className={css.groupTally}>{group.objectives.length}</span>
+            <h4 className={css.groupLabel}>{group.label}</h4>
+            <span className={css.groupTally}>
+              {group.objectives.length}
+              <span className="sr-only"> objectives</span>
+            </span>
           </div>
           <ul className={css.objList}>
             {group.objectives.map((o) => (

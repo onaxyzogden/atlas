@@ -27,7 +27,7 @@ const OPTIONS: ReadonlyArray<{
   Icon: typeof ClipboardCheck;
 }> = [
   { mode: 'ops-hub', label: 'Operations', Icon: LayoutDashboard },
-  { mode: 'tier-shell', label: 'Tier shell', Icon: LayoutPanelTop },
+  { mode: 'tier-shell', label: 'Stratum shell', Icon: LayoutPanelTop },
   { mode: 'field-action', label: 'Field actions', Icon: ClipboardCheck },
   { mode: 'command-centre', label: 'Command centre', Icon: LayoutGrid },
 ];

@@ -93,6 +93,57 @@ describe('POST /api/v1/projects/:id/members', () => {
   });
 });
 
+describe('PATCH /api/v1/projects/:id/members/:userId/operational-roles', () => {
+  it('returns 403 when a non-manager member targets ANOTHER member', async () => {
+    // resolveProjectRole: owner shortcut misses (foreign owner_id), falls
+    // through to the project_members lookup — caller is a designer, which
+    // has edit but NOT manage_members (projectRoleCapabilities.ts), and the
+    // target is another user, so the self-service branch does not apply.
+    enqueue(projectRow({ owner_id: TEST_USER_ID_2 }));
+    enqueue({ role: 'designer' });
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/members/${TEST_USER_ID_2}/operational-roles`,
+      headers: { authorization: `Bearer ${ownerToken}` },
+      payload: { operationalRoles: ['food_production'] },
+    });
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('lets a member set their OWN operational roles (self-service path)', async () => {
+    // resolveProjectRole: foreign owner, then the caller's member row.
+    enqueue(projectRow({ owner_id: TEST_USER_ID_2 }));
+    enqueue({ role: 'team_member' });
+    // Handler: SELECT owner_id, metadata FROM projects (target ≠ owner ⇒ member path)
+    enqueue({ owner_id: TEST_USER_ID_2, metadata: {} });
+    // Member path: SELECT role FROM project_members (operationalRolesApplyTo gate)
+    enqueue({ role: 'team_member' });
+    // UPDATE project_members SET operational_roles
+    enqueue();
+    // Re-select member for the response envelope
+    enqueue(memberRow({
+      user_id: TEST_USER_ID,
+      role: 'team_member',
+      operational_roles: ['food_production'],
+    }));
+    // logActivity INSERT
+    enqueue();
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/members/${TEST_USER_ID}/operational-roles`,
+      headers: { authorization: `Bearer ${ownerToken}` },
+      payload: { operationalRoles: ['food_production'] },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.operationalRoles).toEqual(['food_production']);
+  });
+});
+
 describe('DELETE /api/v1/projects/:id/members/:userId', () => {
   it('removes a member', async () => {
     // resolveProjectRole (owner shortcut)
