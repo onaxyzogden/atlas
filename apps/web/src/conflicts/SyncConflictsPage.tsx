@@ -16,11 +16,11 @@ import css from './SyncConflictsPage.module.css';
  *   - Keep mine   → reinstate the local copy as a new authoritative rev
  *   - Keep server → accept the server copy; the local edit is discarded
  *
- * `syncService.resolveRecordConflict` converges local state and reconciles the
- * Connectivity badge, so resolving the last open conflict clears the badge.
- * The active project is resolved inside syncService — this page takes no
- * params. Reached from the OfflineBanner conflict badge's "Review & resolve"
- * link.
+ * `syncService.resolveRecordConflict` converges local state. The active
+ * project is resolved inside syncService — this page takes no params.
+ * Reached from sync conflict toasts and the Act work panel's
+ * WorkConflictSection footer link (the OfflineBanner that used to badge
+ * conflicts was unmounted from AppShell in 4895b07d).
  */
 
 function formatWhen(iso: string | null): string {

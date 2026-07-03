@@ -1,3 +1,11 @@
+/**
+ * NOT CURRENTLY MOUNTED (audit 2026-07-03): despite carrying the canonical
+ * name, this re-decomposed 5-mode version is imported only by its own test.
+ * Every runtime consumer (DecisionWorkingPanel, workbenchAffordances) imports
+ * BoundaryCaptureLegacy.tsx, whose "Open map" buttons ARE wired (5e35e8ef) —
+ * the disabled "coming soon" MapStrip below is therefore unreachable in live
+ * UI. Preserved per the no-deletion rule; wire or reconcile before mounting.
+ */
 import * as React from 'react';
 import css from './BoundaryCapture.module.css';
 import { Plus, Trash2, Flag, MapPin } from 'lucide-react';

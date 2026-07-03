@@ -1,8 +1,8 @@
 /*
  * ADR 7 Phase 4 — Sync Conflicts surface. Mirrors the PlanConflictsPage bento
  * shell (centered single-column document) and Atlas design tokens. The danger
- * accent (var(--color-danger)) keys the page to the same red as the
- * OfflineBanner conflict badge that links here.
+ * accent (var(--color-danger)) keys the page to the same red the sync
+ * conflict toasts use.
  */
 .page {
   max-width: 960px;

@@ -1293,7 +1293,9 @@ const notFoundRoute = createRoute({
 
 // ADR 7 Phase 4 — app-wide Sync Conflicts surface. Top-level under the authed
 // app shell (not project-scoped); the page resolves the active project
-// internally. The OfflineBanner conflict badge links here (/conflicts).
+// internally. Sync conflict toasts and the Act WorkConflictSection footer
+// link here (/conflicts); the OfflineBanner badge that also linked here was
+// unmounted in 4895b07d, so those two are the only remaining entry points.
 const conflictsRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/conflicts',

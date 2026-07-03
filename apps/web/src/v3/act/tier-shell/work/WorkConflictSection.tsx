@@ -5,11 +5,12 @@
  * not only on the app-wide /conflicts page).
  *
  * Fetches `listRecordConflicts()` (active-project scoped inside syncService)
- * and shows ONLY `ogden-work-items` rows — other stores stay on the
- * OfflineBanner badge → SyncConflictsPage path. Each row shows the work item's
+ * and shows ONLY `ogden-work-items` rows — other stores surface via toasts →
+ * the SyncConflictsPage (/conflicts); the OfflineBanner that used to badge
+ * them was unmounted from AppShell in 4895b07d. Each row shows the work item's
  * title and a yours-vs-server summary (due date + status), with Keep mine /
  * Keep server resolving through the same `resolveRecordConflict` seam as the
- * full page (which re-hydrates the store and reconciles the badge). A footer
+ * full page (which re-hydrates the store). A footer
  * link reaches the full side-by-side diff for anything the summary can't
  * settle. Renders nothing when there are no work-item conflicts.
  */
@@ -122,8 +123,8 @@ export default function WorkConflictSection() {
           setConflicts(list.filter((c) => c.storeKey === WORK_STORE_KEY));
         }
       } catch (err) {
-        // Quiet here — the OfflineBanner badge + /conflicts page still cover
-        // the failure path; an unreachable API shouldn't break the schedule.
+        // Quiet here — sync toasts + the /conflicts page still cover the
+        // failure path; an unreachable API shouldn't break the schedule.
         console.warn('[WORK] conflict list failed:', err);
       }
     })();

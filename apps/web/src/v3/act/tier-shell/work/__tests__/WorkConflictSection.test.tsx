@@ -7,7 +7,7 @@
  * Pins:
  *   - Renders NOTHING when there are no `ogden-work-items` conflicts —
  *     including when other stores have conflicts (those stay on the
- *     OfflineBanner → /conflicts path).
+ *     toasts → /conflicts path).
  *   - A work-item conflict row shows the item title and a yours-vs-server
  *     summary (due date + status) — the operator decides in-panel, where the
  *     schedule lives, without decoding raw payloads.
