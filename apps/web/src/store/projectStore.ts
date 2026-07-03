@@ -15,7 +15,6 @@ import {
   resolveProjectObjectives,
   computeAllObjectiveStatuses,
   findProjectType,
-  FLAGS,
   HOMESTEAD_SAMPLE_PROJECT_ID,
   type CreateProjectInput,
   type ProjectMetadata,
@@ -1275,32 +1274,16 @@ export const useProjectStore = create<ProjectState>()(
 // On hydration, fetch the public builtin sample(s) from the API and merge
 // into the local store. This runs for every visitor — authenticated or not
 // — so the home page always shows the canonical "351 House — Atlas Sample"
-// even before sign-in. NOTE: these seeds are now gated behind FLAGS.SEED_SAMPLES
-// (default OFF) — see the gated block below. "My Projects" starts as a genuine
-// clean slate (offline demo, local browser, and hosted); the legacy fixtures are
-// preserved, not deleted (feedback_no_deletion), and only seed when the flag is
-// flipped on. The user-authored replacement sample seeds separately behind
-// FLAGS.SEED_AUTHORED_SAMPLE (see apps/web/src/dev/seedAuthoredSample.ts).
+// even before sign-in. The legacy hard-coded local seed has been removed in
+// favour of this single source of truth.
 //
 // Boundary FCs ride along the rehydrated `projects[]` from localStorage
 // directly (see partialize). The previous IDB-restore sequencing (ADDENDA
 // 3) is no longer needed — see ADDENDUM 6.
 useProjectStore.persist.onFinishHydration(() => {
-  if (FLAGS.SEED_SAMPLES) {
-    seedMtcDemo();
-    seedHomesteadSampleProject();
-    void hydrateBuiltins();
-  }
-  // User-authored replacement sample (SAMPLE_SEED_PROJECT_ID). Lazy import so the
-  // dev seeder — and its heavy syncManifest dependency — never enters the
-  // projectStore chunk while the flag is off (the default); the module is only
-  // fetched once FLAGS.SEED_AUTHORED_SAMPLE is flipped on at handoff. Even then it
-  // stays dormant until content/authoredSampleSeed.ts is transcribed (it no-ops on
-  // the null placeholder). onFinishHydration is the correct hook: IDB rehydration
-  // is async, so the projects[] must be restored before we insert/merge the sample.
-  if (FLAGS.SEED_AUTHORED_SAMPLE) {
-    void import('../dev/seedAuthoredSample.js').then((m) => m.seedAuthoredSampleProject());
-  }
+  seedMtcDemo();
+  seedHomesteadSampleProject();
+  void hydrateBuiltins();
 });
 
 // Moontrance Creek demo project. The Plan and Act stages expose a
