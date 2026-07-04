@@ -24,6 +24,9 @@ const webRoot = resolve(scriptDir, '..', 'apps', 'web');
 
 // MUST precede build() — see header. The `define` block bakes this in as a literal.
 process.env.FEATURE_DEMO_OFFLINE = 'true';
+// Belt-and-braces for H3: the guest tour needs the builtin seeds; flags.ts also
+// ORs FEATURE_DEMO_OFFLINE into SEED_SAMPLES, this makes the intent explicit.
+process.env.FEATURE_SEED_SAMPLES = 'true';
 
 await build({
   root: webRoot,

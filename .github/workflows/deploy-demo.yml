@@ -83,6 +83,9 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=7168
           FEATURE_DEMO_OFFLINE: "true"
+          # H3 (deep-audit 2026-07-03): the guest tour depends on the builtin
+          # seeds — keep them on explicitly (flags.ts also ORs DEMO_OFFLINE in).
+          FEATURE_SEED_SAMPLES: "true"
           FEATURE_MULTI_USER: "false"
           FEATURE_AI: "false"
           FEATURE_PUBLIC_PORTAL: "false"

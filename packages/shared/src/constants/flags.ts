@@ -22,7 +22,13 @@ export const FLAGS = {
   // Lane). Default OFF so "My Projects" starts empty — a genuine clean slate. The
   // old seed code is preserved, not deleted, so it stays available as a reference
   // (feedback_no_deletion); flip this on to restore the legacy fixtures.
-  SEED_SAMPLES: process.env['FEATURE_SEED_SAMPLES'] === 'true',
+  // H3 (deep-audit 2026-07-03): the offline demo's guest tour opens against a
+  // clone of the builtin homestead sample, so a FEATURE_DEMO_OFFLINE build must
+  // never evaluate this OFF — otherwise the first demo refresh after a
+  // SEED_SAMPLES gate lands ships an empty portfolio and a hollow tour.
+  SEED_SAMPLES:
+    process.env['FEATURE_SEED_SAMPLES'] === 'true' ||
+    process.env['FEATURE_DEMO_OFFLINE'] === 'true',
   // Gates the single user-authored replacement sample (SAMPLE_SEED_PROJECT_ID).
   // Dormant until the user authors + captures it; flipped on at handoff. Kept
   // independent from SEED_SAMPLES so "legacy retired" and "authored sample on"
