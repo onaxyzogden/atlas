@@ -14,6 +14,10 @@ import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { api } from '../../lib/apiClient.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../hooks/useServerProjectId.js';
 import { formatKRange } from '../../lib/formatRange.js';
 import { selectEcosystemValuationFromLayers } from '../../lib/ecosystemValuation.js';
 import {
@@ -38,6 +42,9 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
   const model = useFinancialModel(project.id);
   const siteData = useSiteDataStore((s) => s.dataByProject[project.id]);
   const visionData = useVisionStore((s) => s.getVisionData(project.id));
+  // Server APIs (exports, SOM trajectory) address the SERVER project UUID;
+  // project.id is the local store id (H4, deep-audit 2026-07-03).
+  const serverProjectId = useServerProjectId(project.id);
 
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle');
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -50,10 +57,11 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
   // project has no recompute yet. Independent from the PDF generation
   // path's fetch so the disclosure stays useful before clicking Generate.
   useEffect(() => {
+    if (serverProjectId === null) return; // local-only — no server trajectory
     let cancelled = false;
     void (async () => {
       try {
-        const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(project.id);
+        const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(serverProjectId);
         if (cancelled) return;
         if (trajectory && trajectory.length > 0) {
           setSomHorizonYears(trajectory[trajectory.length - 1]!.year);
@@ -65,7 +73,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
     return () => {
       cancelled = true;
     };
-  }, [project.id]);
+  }, [serverProjectId]);
 
   // Phase E.6 — Tier-2 Evidence inputs for the modal-level disclosure.
   // Phase F.7.5 — emit audit.
@@ -128,7 +136,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
     : 'N/A';
 
   const handleGenerate = async () => {
-    if (!model) return;
+    if (!model || serverProjectId === null) return;
     setStatus('generating');
     setError(null);
     try {
@@ -147,7 +155,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
       let natCapAppreciationByYear: Record<number, number> | undefined;
       try {
         if (project.acreage != null) {
-          const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(project.id);
+          const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(serverProjectId);
           if (trajectory && trajectory.length > 0) {
             natCapAppreciationByYear = naturalCapitalAppreciationByYear({
               trajectory,
@@ -178,7 +186,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
               breakevenYear: trough.breakevenYear,
             }
           : undefined;
-      const { data } = await api.exports.generate(project.id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'capital_partner_summary',
         payload: {
           financial: {
@@ -242,12 +250,13 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
             {status === 'idle' && (
               <button
                 onClick={handleGenerate}
-                disabled={!model}
+                disabled={!model || serverProjectId === null}
+                title={serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
                 style={{
                   padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6,
-                  background: model ? group.reporting : '#d1d5db',
-                  color: model ? semantic.surface : '#9ca3af',
-                  cursor: model ? 'pointer' : 'not-allowed', fontWeight: 500,
+                  background: model && serverProjectId !== null ? group.reporting : '#d1d5db',
+                  color: model && serverProjectId !== null ? semantic.surface : '#9ca3af',
+                  cursor: model && serverProjectId !== null ? 'pointer' : 'not-allowed', fontWeight: 500,
                 }}
               >
                 Generate PDF

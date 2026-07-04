@@ -20,6 +20,10 @@ import type { StewardProfile } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../../../hooks/useServerProjectId.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
@@ -44,6 +48,9 @@ import { useStewardRoster, type StewardRosterEntry } from './roster.js';
 export default function HumanContextDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
+  // The exports API addresses the SERVER project UUID; `id` is the local
+  // store id (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(id);
 
   const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
   const vision = useVisionStore((s) => s.getVisionData(id));
@@ -55,7 +62,7 @@ export default function HumanContextDashboard() {
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || serverProjectId === null) return;
     setExporting(true);
     try {
       const sharedVision = vision?.sharedVision;
@@ -154,7 +161,7 @@ export default function HumanContextDashboard() {
           }
         : {};
 
-      const { data } = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'human_context_report',
         payload: {
           humanContext: {
@@ -200,6 +207,7 @@ export default function HumanContextDashboard() {
       <HumanHero
         vision={vision}
         profiles={profiles}
+        canExport={serverProjectId !== null}
         onExport={handleExport}
         exporting={exporting}
       />
@@ -242,9 +250,12 @@ interface HumanHeroProps extends VisionProps {
   profiles: StewardProfile[];
   onExport: () => void;
   exporting: boolean;
+  /** False while the project is local-only — the exports API wants the
+   *  SERVER UUID (H4), so the export button disables with honest copy. */
+  canExport: boolean;
 }
 
-function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
+function HumanHero({ vision, profiles, onExport, exporting, canExport }: HumanHeroProps) {
   const overall = moduleCompleteness(vision, profiles);
   const phases = phaseNotesCaptured(vision);
   const milestones = vision?.milestones?.length ?? 0;
@@ -261,7 +272,8 @@ function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
           type="button"
           className={card.btn}
           onClick={onExport}
-          disabled={exporting || DEMO_OFFLINE_ENABLED}
+          disabled={exporting || DEMO_OFFLINE_ENABLED || !canExport}
+          title={!DEMO_OFFLINE_ENABLED && !canExport ? NOT_SYNCED_EXPORT_TITLE : undefined}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export human-context report'}

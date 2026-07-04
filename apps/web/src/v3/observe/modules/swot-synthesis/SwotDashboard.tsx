@@ -17,6 +17,10 @@ import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
 import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../../../hooks/useServerProjectId.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
@@ -39,6 +43,9 @@ const BUCKET_PILL: Record<SwotEntry['bucket'], string> = {
 export default function SwotDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
+  // The exports API addresses the SERVER project UUID; `id` is the local
+  // store id (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(id);
 
   const allEntries = useSwotStore((s) => s.swot);
   const entries = useMemo(() => allEntries.filter((e) => e.projectId === id), [allEntries, id]);
@@ -54,10 +61,10 @@ export default function SwotDashboard() {
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || serverProjectId === null) return;
     setExporting(true);
     try {
-      const { data } = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'swot_synthesis',
         payload: { swot: { entries } },
       });
@@ -118,7 +125,8 @@ export default function SwotDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting || DEMO_OFFLINE_ENABLED}
+          disabled={exporting || DEMO_OFFLINE_ENABLED || serverProjectId === null}
+          title={!DEMO_OFFLINE_ENABLED && serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export synthesis summary'}

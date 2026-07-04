@@ -25,6 +25,10 @@ import { pickTruthy } from '@ogden/shared';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { api } from '../../../../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../../../hooks/useServerProjectId.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
 import {
   useBuildingsForProject,
@@ -72,6 +76,9 @@ const ICON_MAP: Record<BuiltKpiItem['iconKey'], LucideIcon> = {
 export default function BuiltEnvironmentDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
+  // The exports API addresses the SERVER project UUID; `id` is the local
+  // store id (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(id);
 
   // Phase 6.B: read built-environment slices direct from V2 via the typed
   // selector hooks. Each hook subscribes to V2 `entities`, applies the
@@ -123,7 +130,7 @@ export default function BuiltEnvironmentDashboard() {
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || serverProjectId === null) return;
     setExporting(true);
     try {
       const buildingAreaM2 = buildings.reduce((acc, b) => acc + (b.areaM2 ?? 0), 0);
@@ -133,7 +140,7 @@ export default function BuiltEnvironmentDashboard() {
         wellsWithDepth.length > 0
           ? wellsWithDepth.reduce((acc, w) => acc + (w.depthM ?? 0), 0) / wellsWithDepth.length
           : null;
-      const { data } = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'built_environment_report',
         payload: {
           builtEnvironment: {
@@ -337,7 +344,8 @@ export default function BuiltEnvironmentDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting || DEMO_OFFLINE_ENABLED}
+          disabled={exporting || DEMO_OFFLINE_ENABLED || serverProjectId === null}
+          title={!DEMO_OFFLINE_ENABLED && serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export built-environment report'}

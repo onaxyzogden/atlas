@@ -39,7 +39,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { scopeForRoles, type OperationalRole, type UniversalDomain } from '@ogden/shared';
 import { useAuthStore } from '../../store/authStore.js';
 import { useMemberStore } from '../../store/memberStore.js';
-import { useProjectStore } from '../../store/projectStore.js';
+import { useServerProjectId } from '../../hooks/useServerProjectId.js';
 import { useUIStore, type ViewFocusMode } from '../../store/uiStore.js';
 import { useIsSoloProject } from '../../features/collaboration/useIsSoloProject.js';
 import { useResolvedOperationalRoles } from './useResolvedOperationalRoles.js';
@@ -114,11 +114,7 @@ export function useViewScope(
   // fetch does not retry-storm, and not subscribing means two shells can
   // never tug-of-war over the claim. Both actions no-op under
   // DEMO_OFFLINE_ENABLED (the sample seeds its roster via seedLocalMembers).
-  const serverId = useProjectStore(
-    (s) =>
-      s.projects.find((p) => p.id === projectId || p.serverId === projectId)
-        ?.serverId ?? null,
-  );
+  const serverId = useServerProjectId(projectId);
   const fetchMembers = useMemberStore((s) => s.fetchMembers);
   const fetchMyRole = useMemberStore((s) => s.fetchMyRole);
   useEffect(() => {

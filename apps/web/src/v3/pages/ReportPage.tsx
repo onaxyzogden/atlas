@@ -21,6 +21,7 @@ import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { api } from "../../lib/apiClient.js";
+import { useServerProjectId } from "../../hooks/useServerProjectId.js";
 import { DEMO_OFFLINE_ENABLED } from "../../app/demoSession.js";
 import { downloadProjectReport } from "../data/generateProjectReport.js";
 import { formatLocationArea } from "../data/parcelIntegrity.js";
@@ -46,6 +47,9 @@ export default function ReportPage() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [sharePublished, setSharePublished] = useState(false);
+  // Portfolio navigates with the LOCAL project id; the exports/portal APIs
+  // address the SERVER UUID (H4, deep-audit 2026-07-03). Null → not synced.
+  const serverProjectId = useServerProjectId(params.projectId);
 
   if (!project) {
     return (
@@ -57,10 +61,10 @@ export default function ReportPage() {
   }
 
   const onServerPdf = async () => {
-    if (pdfBusy || !params.projectId) return;
+    if (pdfBusy || serverProjectId === null) return;
     setPdfBusy(true);
     try {
-      const { data } = await api.exports.generate(params.projectId, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: "capital_partner_summary",
       });
       window.open(data.storageUrl, "_blank");
@@ -82,10 +86,10 @@ export default function ReportPage() {
   // public /report-share/<token> link. No recipient login required;
   // the link only ever exposes the frozen capital-partner PDF.
   const onPublishShare = async () => {
-    if (shareBusy || !params.projectId) return;
+    if (shareBusy || serverProjectId === null) return;
     setShareBusy(true);
     try {
-      const { data } = await api.portal.publishReport(params.projectId);
+      const { data } = await api.portal.publishReport(serverProjectId);
       const url = `${window.location.origin}/report-share/${data.shareToken}`;
       setSharePublished(true);
       try {
@@ -107,10 +111,10 @@ export default function ReportPage() {
   };
 
   const onUnpublishShare = async () => {
-    if (shareBusy || !params.projectId) return;
+    if (shareBusy || serverProjectId === null) return;
     setShareBusy(true);
     try {
-      await api.portal.unpublishReport(params.projectId);
+      await api.portal.unpublishReport(serverProjectId);
       setSharePublished(false);
       flashToast("View-only link unpublished");
     } catch (err) {
@@ -151,11 +155,13 @@ export default function ReportPage() {
               type="button"
               className={css.btn}
               onClick={onServerPdf}
-              disabled={!generated || pdfBusy || DEMO_OFFLINE_ENABLED}
+              disabled={!generated || pdfBusy || DEMO_OFFLINE_ENABLED || serverProjectId === null}
               title={
                 DEMO_OFFLINE_ENABLED
                   ? "Server-rendered PDF isn't available in the offline demo — use Download Markdown or Print"
-                  : "Generate a server-rendered PDF (capital partner summary)"
+                  : serverProjectId === null
+                    ? "Save this project to the server to enable PDF export — use Download Markdown or Print meanwhile"
+                    : "Generate a server-rendered PDF (capital partner summary)"
               }
             >
               {pdfBusy ? "Generating PDF…" : "Download PDF"}
@@ -173,11 +179,13 @@ export default function ReportPage() {
               type="button"
               className={css.btn}
               onClick={onPublishShare}
-              disabled={!generated || shareBusy || DEMO_OFFLINE_ENABLED}
+              disabled={!generated || shareBusy || DEMO_OFFLINE_ENABLED || serverProjectId === null}
               title={
                 DEMO_OFFLINE_ENABLED
                   ? "Publishing a view-only link needs the OLOS backend — not available in the offline demo"
-                  : "Publish a tokenized, view-only link (no recipient login)"
+                  : serverProjectId === null
+                    ? "Save this project to the server to enable publishing a view-only link"
+                    : "Publish a tokenized, view-only link (no recipient login)"
               }
             >
               {shareBusy

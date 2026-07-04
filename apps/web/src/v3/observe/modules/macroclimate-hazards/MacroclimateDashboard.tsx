@@ -19,6 +19,10 @@ import { useHazardsStore } from '../../../../store/hazardsStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../../../hooks/useServerProjectId.js';
 import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
 import HazardRiskMatrix from './HazardRiskMatrix.js';
@@ -58,6 +62,9 @@ const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
 export default function MacroclimateDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
+  // The exports API addresses the SERVER project UUID; `id` is the local
+  // store id (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(id);
   const project = useV3Project(id);
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
   const ensureHazards = useHazardsStore((s) => s.ensureDefaults);
@@ -79,7 +86,7 @@ export default function MacroclimateDashboard() {
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || serverProjectId === null) return;
     setExporting(true);
     try {
       const climateSummary = getClimateLayer(layers)?.summary as
@@ -91,7 +98,7 @@ export default function MacroclimateDashboard() {
         ...(m.meanMaxC != null ? { meanMaxC: m.meanMaxC } : {}),
         ...(m.meanMinC != null ? { meanMinC: m.meanMinC } : {}),
       }));
-      const { data } = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'macroclimate_report',
         payload: {
           macroclimate: {
@@ -153,7 +160,8 @@ export default function MacroclimateDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting || DEMO_OFFLINE_ENABLED}
+          disabled={exporting || DEMO_OFFLINE_ENABLED || serverProjectId === null}
+          title={!DEMO_OFFLINE_ENABLED && serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export macroclimate report'}
