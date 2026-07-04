@@ -86,3 +86,28 @@ describe('selectMostRecentSync', () => {
     expect(selectMostRecentSync(state)).toBe('2026-03-01T00:00:00.000Z');
   });
 });
+
+describe('persist partialize -- dropped ops survive a reload (H2)', () => {
+  // A dropped op has already left the IDB queue; `droppedStores` is the ONLY
+  // remaining record of the lost write. If it is not persisted, a reload turns
+  // the header's unsaved-changes pill back into "All synced" — the exact
+  // silent loss H2 exists to prevent.
+  it('persists droppedStores (and the existing watermark + conflict set) but not runtime state', () => {
+    const partialize = useConnectivityStore.persist.getOptions().partialize!;
+    const out = partialize({
+      ...useConnectivityStore.getState(),
+      lastSyncedAt: { 'local-1': '2026-01-01T00:00:00.000Z' },
+      conflictedStores: ['ogden-zones'],
+      droppedStores: ['zone:create:z1'],
+      isOnline: false,
+      syncStatus: 'error',
+      pendingChanges: 7,
+    }) as Partial<ConnectivityState>;
+    expect(out.droppedStores).toEqual(['zone:create:z1']);
+    expect(out.conflictedStores).toEqual(['ogden-zones']);
+    expect(out.lastSyncedAt).toEqual({ 'local-1': '2026-01-01T00:00:00.000Z' });
+    expect(out).not.toHaveProperty('isOnline');
+    expect(out).not.toHaveProperty('syncStatus');
+    expect(out).not.toHaveProperty('pendingChanges');
+  });
+});

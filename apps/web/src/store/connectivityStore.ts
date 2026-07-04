@@ -48,7 +48,11 @@ export interface ConnectivityState {
    * Coalescing keys (`storeType:action:localId`) of ops the sync queue gave up
    * on after exhausting MAX_RETRIES. A dropped op is a change that could not be
    * saved to the server — surfaced so it is visible to the steward instead of
-   * vanishing silently (the sync circuit-breaker).
+   * vanishing silently (the sync circuit-breaker). Consumers (H2, deep-audit
+   * 2026-07-03): the header ProofSyncIndicator renders a persistent
+   * unsaved-changes pill while any exist, linking to the Sync Conflicts page's
+   * dropped-changes section (list + dismiss). Persisted — this set is the only
+   * record of the loss once the op leaves the IDB queue.
    */
   droppedStores: string[];
 
@@ -147,10 +151,14 @@ export const useConnectivityStore = create<ConnectivityState>()(
       version: 1,
       // Persist the per-project watermark map AND the conflict set, so a reload
       // keeps the conflict badge visible until the Phase 4 surface reconciles it
-      // from the server. Other runtime state (online / reachable / status) resets.
+      // from the server. `droppedStores` persists too (H2): a dropped op has
+      // already left the IDB queue, so this set is the ONLY remaining record of
+      // the lost write — without it a reload flips the header pill back to
+      // "All synced". Other runtime state (online / reachable / status) resets.
       partialize: (state) => ({
         lastSyncedAt: state.lastSyncedAt,
         conflictedStores: state.conflictedStores,
+        droppedStores: state.droppedStores,
       }),
       migrate: migrateConnectivity,
     },
