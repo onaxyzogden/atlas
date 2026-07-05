@@ -104,6 +104,8 @@ export * from './constants/flags.js';
 export * from './constants/system.js';
 export * from './constants/universalDomain.js';
 export * from './constants/collaboration/operationalRoles.js';
+// Covenant — the single banned-term source of truth (Amanah lint, deep-audit 2026-07-03)
+export * from './constants/covenant/bannedTerms.js';
 
 // Store mirrors / payload helpers
 export * from './store-mirrors/pickHelpers.js';

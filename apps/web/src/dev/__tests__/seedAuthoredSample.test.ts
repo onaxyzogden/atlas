@@ -184,17 +184,23 @@ describe('captureSampleSeed ↔ seedAuthoredSampleProject', () => {
     expect(() => captureSampleSeed(FIXTURE_PID, { allowUnsealed: true })).not.toThrow();
   });
 
-  it('refuses to promote a sample carrying advance-sale / CSA framing', () => {
-    useProjectStore.setState({
-      projects: [
-        makeProject(FIXTURE_PID, {
-          // "subscription" trips detectCsaLikeText (bay' ma laysa 'indak).
-          visionStatement: 'Fund the farm through a weekly harvest subscription box.',
-        }),
-      ],
-      activeProjectId: FIXTURE_PID,
-    });
-    sealCoherence(FIXTURE_PID); // clear the seal gate so we reach the covenant gate
-    expect(() => captureSampleSeed(FIXTURE_PID)).toThrow(/Amanah gate/i);
+  it('refuses to promote a sample carrying advance-sale / CSA / salam / advance-purchase framing', () => {
+    // The capture gate delegates to the shared covenant union via
+    // detectCsaLikeText, so each of these throws. salam and advance-purchase are
+    // the deep-audit 2026-07-03 (A4) widening: the old CSA_LIKE regex missed them.
+    const framings = [
+      'Fund the farm through a weekly harvest subscription box.',
+      'Offer members an advance-purchase of next season.',
+      'Raise capital via a salam contract with buyers.',
+      'Give capital partners a yield-share of the harvest.',
+    ];
+    for (const visionStatement of framings) {
+      useProjectStore.setState({
+        projects: [makeProject(FIXTURE_PID, { visionStatement })],
+        activeProjectId: FIXTURE_PID,
+      });
+      sealCoherence(FIXTURE_PID); // clear the seal gate so we reach the covenant gate
+      expect(() => captureSampleSeed(FIXTURE_PID), visionStatement).toThrow(/Amanah gate/i);
+    }
   });
 });

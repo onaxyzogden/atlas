@@ -38,6 +38,11 @@ import {
   type RecipeProcedure,
 } from '../../../schemas/recipe/recipe.schema.js';
 import { UNIVERSAL_DOMAINS } from '../../../constants/universalDomain.js';
+import {
+  COVENANT_HARD_BAN,
+  COVENANT_CONDITIONAL,
+  matchCovenantBannedTerms,
+} from '../../../constants/covenant/bannedTerms.js';
 import { WorkItemSource, type WorkItem } from '../../../schemas/workItem.schema.js';
 import {
   LivestockWorkKind,
@@ -260,18 +265,14 @@ describe('resolveTaskRecipe — bespoke + provenance + Amanah passthrough', () =
 });
 
 describe('Amanah string lint', () => {
-  // SET A — forbidden in ANY recipe text, regardless of tier (advance-purchase /
-  // CSA / riba family — bayʿ mā laysa ʿindak).
-  const FORBIDDEN = [
-    /community[- ]supported/i,
-    /\bCSRA\b/,
-    /advance[- ]purchase/i,
-    /\badvance sale\b/i,
-    /\bsalam\b/i,
-    /\briba\b/i,
-    /bay\S*\s*m[āa]\s*laysa/i,
-    /\binvestor/i,
-  ];
+  // SET A — the covenant banned terms, sourced from the single shared set
+  // (deep-audit 2026-07-03: four inline copies consolidated). TWO tiers, scanned
+  // at different depths:
+  //   • HARD-BAN over recipeText (recipe + step + scopeNotes) — the forbidden
+  //     financial model has no licit use, disclaimers included.
+  //   • CONDITIONAL over recipeStepText (active step language only) — a dual-use
+  //     term (CSA / subscription / yield-share) may appear in a forbidding
+  //     scopeNote, but never in what the steward is actively told to do.
 
   // SET B — fiqh-procedure markers. If present, the recipe MUST be non-`authored`,
   // scholar-gated, and carry scopeNotes. Arabic terms appear only in actual
@@ -279,15 +280,22 @@ describe('Amanah string lint', () => {
   // pathway"), so they do not false-positive the authored animal-husbandry recipe.
   const GATED_MARKERS = [/dhak[āa]h/i, /\budhiyah\b/i, /\bqurb[āa]n\b/i, /\bkhinzir\b/i, /\btasmiyah\b/i];
 
-  it('no recipe carries a forbidden advance-purchase / CSA / riba string', () => {
+  it('no recipe text carries a hard-ban term (recipe + step + scopeNotes)', () => {
     for (const recipe of allEncodedRecipes()) {
-      const text = recipeText(recipe);
-      for (const pattern of FORBIDDEN) {
-        expect(
-          pattern.test(text),
-          `recipe "${recipe.id}" matches forbidden pattern ${pattern}`,
-        ).toBe(false);
-      }
+      const hits = matchCovenantBannedTerms(recipeText(recipe), COVENANT_HARD_BAN);
+      expect(hits, `recipe "${recipe.id}" hard-ban hits: ${hits.join(', ')}`).toEqual([]);
+    }
+  });
+
+  it('no active recipe STEP uses a conditional term (CSA / subscription / yield-share)', () => {
+    // Active step language only: a forbidding scopeNote MAY name these to forbid
+    // them, but the steward is never actively instructed toward them.
+    for (const recipe of allEncodedRecipes()) {
+      const hits = matchCovenantBannedTerms(recipeStepText(recipe), COVENANT_CONDITIONAL);
+      expect(
+        hits,
+        `recipe "${recipe.id}" conditional-in-step hits: ${hits.join(', ')}`,
+      ).toEqual([]);
     }
   });
 

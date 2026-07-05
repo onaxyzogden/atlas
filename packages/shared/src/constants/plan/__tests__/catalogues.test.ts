@@ -36,6 +36,7 @@ import {
   findPlanStratumObjectiveIn,
 } from '../../../relationships/resolveProjectObjectives.js';
 import { UNIVERSAL_DOMAINS } from '../../universalDomain.js';
+import { detectCovenantBanned } from '../../covenant/bannedTerms.js';
 
 const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...UNIVERSAL_PLAN_OBJECTIVES,
@@ -248,8 +249,9 @@ describe('catalogue conformance - Mode-4 design fields (s4 / Tier 3)', () => {
     // Scan ONLY the two new Mode-4 fields -- NOT scopeNotes, which legitimately
     // DOCUMENTS the prohibition using banned words (e.g. ag-s4-revenue-model's
     // membership-benefit scope note names "advance sale" / "CSA" to forbid them).
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    // Full union (hard-ban + conditional) via the shared covenant source: active
+    // authored copy admits NEITHER tier -- only a forbidding scopeNote may name a
+    // term, and scopeNotes are deliberately excluded from this scan (see above).
     const s4Authored = ALL_AUTHORED.filter(
       (o) => o.stratumId === 's4-foundation-decisions',
     );
@@ -266,7 +268,7 @@ describe('catalogue conformance - Mode-4 design fields (s4 / Tier 3)', () => {
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });
@@ -348,8 +350,7 @@ describe('catalogue conformance - Mode-4 design fields (s5 / Tier 4)', () => {
   });
 
   it('Amanah: monitoringProtocol + buildsOnDisplay + planningDirectionMandate copy is covenant-clean across ALL authored s5 objectives', () => {
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    // Full union (hard-ban + conditional) via the shared covenant source.
     const s5Authored = ALL_AUTHORED.filter(
       (o) => o.stratumId === 's5-system-design',
     );
@@ -366,7 +367,7 @@ describe('catalogue conformance - Mode-4 design fields (s5 / Tier 4)', () => {
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });
@@ -423,8 +424,6 @@ describe('catalogue conformance - Mode-4 monitoringProtocol tightened shape (Thr
     // Section C nests authored copy inside indicators[].{metric,frequency}; the
     // banned-term scan must reach that new nesting (the s4/s5 scans above now do
     // too). Covers the whole migrated set, not just the resolved canonical config.
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
     const strings: string[] = [];
     for (const o of WITH_PROTOCOL) {
       for (const ind of o.monitoringProtocol!.indicators) {
@@ -433,7 +432,7 @@ describe('catalogue conformance - Mode-4 monitoringProtocol tightened shape (Thr
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });
@@ -495,8 +494,6 @@ describe('catalogue conformance - Mode-5 progressTracking sweep (Tier 6 / Launch
     // objectives -- ev-s7-financial-plan, ag-s7-booking-system, lvs-s7-marketing --
     // are deliberately framed with no advance-sale / subscription / yield-share
     // wording in their progress milestones).
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
     const strings: string[] = [];
     for (const o of S7) {
       for (const m of o.progressTracking!.milestones) {
@@ -505,7 +502,7 @@ describe('catalogue conformance - Mode-5 progressTracking sweep (Tier 6 / Launch
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });
@@ -566,8 +563,6 @@ describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fiel
     // Pin the resolved canonical triad's s2-land-reading objectives (base copy +
     // silvopasture/residential injected items, gate amendments, scope notes) and
     // the authored S2 patch strings against advance-sale / CSA / CSRA / salam.
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
     const r = resolveProjectObjectives({
       primaryTypeId: 'regenerative_farm',
       secondaryTypeIds: ['residential', 'silvopasture'],
@@ -595,7 +590,7 @@ describe('catalogue conformance - Tier-1 (Stratum-2) Land-Reading reception fiel
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });
@@ -936,9 +931,6 @@ describe('catalogue conformance - Tier-0 restructure (s1-steward + Amanah)', () 
     // resident-vs-commercial allocation is a possessed-production split ONLY -
     // never an advance sale, membership yield-share, or CSA/CSRA pre-sale.
     // Scans every authored string the operator's config surfaces in declaration.
-    const BANNED =
-      /\b(subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share)\b/i;
-
     const objectiveStrings = (o: PlanStratumObjective): string[] => [
       o.title,
       o.shortTitle ?? '',
@@ -986,7 +978,7 @@ describe('catalogue conformance - Tier-0 restructure (s1-steward + Amanah)', () 
       ...patchStrings,
     ];
     for (const s of haystack) {
-      expect(BANNED.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });

@@ -12,11 +12,14 @@
  *   1. Author the sample end-to-end through the normal Vision → Observe → Plan →
  *      Act → Thresholds flow, sealing the Coherence check.
  *   2. Run `await window.__ogdenCaptureSampleSeed()` — it downloads
- *      `ogden-sample-seed.json` (throwing on any CSA/advance-sale wording or a
- *      missing Coherence seal, so the promoted seed is covenant-clean).
+ *      `ogden-sample-seed.json`, throwing on any covenant-banned wording (the
+ *      shared `@ogden/shared` term union) or a missing Coherence seal, so the
+ *      promoted seed is covenant-clean at capture time.
  *   3. Paste the downloaded JSON here as the exported object, typed as
- *      `SampleSeedSnapshot` (TS, not raw .json, so it is type-checked,
- *      diff-reviewable, and visible to the Amanah lint).
+ *      `SampleSeedSnapshot` (TS, not raw .json, so it is type-checked and
+ *      diff-reviewable). The transcribed constant is then re-scanned by the
+ *      standing Amanah lint in `__tests__/authoredSampleSeed.amanah.test.ts`
+ *      against that same union — a hand-edit can never ship it dirty.
  *   4. Flip `FLAGS.SEED_AUTHORED_SAMPLE` on (FEATURE_SEED_AUTHORED_SAMPLE=true)
  *      and, for the hosted/authed path, add migration
  *      `057_builtin_authored_sample.sql`.

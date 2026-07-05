@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { detectCovenantBanned } from '@ogden/shared';
 import type { IntentElement } from '../intentElements';
 import {
   ALL_SURVEY_OBJECTIVE_IDS,
@@ -275,13 +276,17 @@ describe('composePlanningDirection', () => {
 // ---------------------------------------------------------------------------
 
 describe('detectCsaLikeText', () => {
-  it('flags advance-sale / subscription / CSA / yield-share framing', () => {
+  it('flags advance-sale / subscription / CSA / yield-share / salam / advance-purchase framing', () => {
     for (const t of [
       'CSA box subscription',
       'pre-sale of next season',
       'advance sale to members',
       'a yield-share for capital partners',
       'CSRA model',
+      // A4 (deep-audit 2026-07-03): the old CSA_LIKE regex missed these — the
+      // widened shared detector closes the gap.
+      'funded by a salam contract',
+      'an advance-purchase from members',
     ]) {
       expect(detectCsaLikeText(t)).toBe(true);
     }
@@ -304,9 +309,6 @@ describe('detectCsaLikeText', () => {
 });
 
 describe('Amanah wording pins', () => {
-  // Banned advance-sale / subscription / CSA vocabulary (covenant regex).
-  const BANNED = /(subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share)/i;
-
   // Flatten every string leaf out of an authored constant.
   const strings = (v: unknown): string[] => {
     if (typeof v === 'string') return [v];
@@ -326,7 +328,9 @@ describe('Amanah wording pins', () => {
       DEFAULT_CONFIGURATION_LABEL,
     ];
     for (const text of authored.flatMap(strings)) {
-      expect(text, `banned term in: "${text}"`).not.toMatch(BANNED);
+      // Full shared union (deep-audit 2026-07-03): a fourth inline copy of the
+      // covenant regex used to live here — it now defers to @ogden/shared.
+      expect(detectCovenantBanned(text), `banned term in: "${text}"`).toBe(false);
     }
   });
 
