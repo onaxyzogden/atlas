@@ -18,7 +18,6 @@ import { matchV3ProjectRoute } from './v3ProjectRoute.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
-import OfflineBanner from '../components/OfflineBanner.js';
 import DemoBanner from '../components/DemoBanner.js';
 import OnboardingTourController from '../v3/onboarding/OnboardingTourController.js';
 import TourReplayButton from '../v3/onboarding/TourReplayButton.js';
@@ -46,10 +45,6 @@ export default function AppShell({ children }: AppShellProps) {
       <a href="#main-content" className={styles.skipLink}>
         Skip to main content
       </a>
-
-      {/* Global offline / sync banner — visible only when there's something to
-          report (dropped > conflict > offline > syncing > pending). */}
-      <OfflineBanner />
 
       {/* Offline-demo honesty bar — "saved in this browser only" + Reset demo.
           Self-gates to FEATURE_DEMO_OFFLINE + the synthetic guest; null otherwise. */}

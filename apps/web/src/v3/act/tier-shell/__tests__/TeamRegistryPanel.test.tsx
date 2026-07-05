@@ -17,7 +17,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { ProjectMemberRecord } from '@ogden/shared';
 
 // The panel reads project-resolved operational-role labels via
@@ -72,6 +72,7 @@ import {
   type StewardProfile,
 } from '../../../../store/visionStore.js';
 import { useMemberStore } from '../../../../store/memberStore.js';
+import { useProjectStore, type LocalProject } from '../../../../store/projectStore.js';
 
 const PROJECT_ID = 'proj-team-panel';
 
@@ -95,6 +96,7 @@ beforeEach(() => {
     isLoading: false,
   });
   useVisionStore.setState({ visions: [] });
+  useProjectStore.setState({ projects: [] });
   localStorage.clear();
 });
 
@@ -119,6 +121,12 @@ function seedVision(
         : v,
     ),
   }));
+}
+
+function seedProjectTeam(team: NonNullable<LocalProject['metadata']>['team']): void {
+  useProjectStore.setState({
+    projects: [{ id: PROJECT_ID, metadata: { team } } as LocalProject],
+  });
 }
 
 describe('TeamRegistryPanel -- empty state', () => {
@@ -246,5 +254,71 @@ describe('TeamRegistryPanel -- Amanah wording-pin (rendered DOM)', () => {
     expect(text).not.toMatch(
       /subscription|presale|advance sale|csa|csra|yield[- ]share/,
     );
+  });
+});
+
+describe('TeamRegistryPanel -- provisional rows from the wizard team', () => {
+  it('renders named-at-setup people as muted "Awaiting role" rows and counts them', () => {
+    seedVision(); // empty roster + empty vision
+    seedProjectTeam({
+      primarySteward: { name: 'Ali Rahman', email: 'ali@example.nz' },
+      queuedInvites: [
+        { email: 'noor@example.nz', role: 'team_member', queuedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    });
+    render(<TeamRegistryPanel projectId={PROJECT_ID} />);
+
+    expect(screen.getByTestId('registry-count').textContent).toMatch(/0 of 2 constituted/);
+
+    const row = screen.getByTestId('member-row-provisional:ali@example.nz');
+    expect(row.textContent).toMatch(/Ali Rahman/);
+    expect(row.textContent).toMatch(/Awaiting role/);
+    expect(row.getAttribute('data-provisional')).toBe('true');
+    // Provisional rows are not "constituted" -> no check badge.
+    expect(row.getAttribute('data-complete')).toBeNull();
+  });
+});
+
+describe('TeamRegistryPanel -- self-describing empty-state jump links', () => {
+  it('invokes the nav callbacks with the right destinations', () => {
+    seedVision(); // everything empty, no team
+    const onNavigateObjective = vi.fn();
+    const onSelectItem = vi.fn();
+    render(
+      <TeamRegistryPanel
+        projectId={PROJECT_ID}
+        onNavigateObjective={onNavigateObjective}
+        onSelectItem={onSelectItem}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('jump-roster'));
+    expect(onSelectItem).toHaveBeenCalledWith('s1-steward-c1');
+
+    fireEvent.click(screen.getByTestId('jump-labour'));
+    expect(onSelectItem).toHaveBeenCalledWith('s1-steward-c5');
+
+    fireEvent.click(screen.getByTestId('jump-intent'));
+    expect(onNavigateObjective).toHaveBeenCalledWith('s1-vision');
+  });
+
+  it('offers an "assign roles" jump (c2) when provisional rows are present', () => {
+    seedVision();
+    seedProjectTeam({ primarySteward: { name: 'Ali Rahman', email: 'ali@example.nz' } });
+    const onSelectItem = vi.fn();
+    render(<TeamRegistryPanel projectId={PROJECT_ID} onSelectItem={onSelectItem} />);
+
+    fireEvent.click(screen.getByTestId('jump-roles'));
+    expect(onSelectItem).toHaveBeenCalledWith('s1-steward-c2');
+  });
+
+  it('renders no jump buttons when no nav callbacks are provided', () => {
+    seedVision();
+    render(<TeamRegistryPanel projectId={PROJECT_ID} />);
+    expect(screen.queryByTestId('jump-roster')).toBeNull();
+    expect(screen.queryByTestId('jump-labour')).toBeNull();
+    expect(screen.queryByTestId('jump-intent')).toBeNull();
+    // The existing descriptive empty copy still renders (unchanged).
+    expect(screen.getByText(/No stewards on the roster yet/)).toBeTruthy();
   });
 });

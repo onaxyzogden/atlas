@@ -4,12 +4,21 @@
  * does not compete with the LaunchActButton CTA at the panel's foot.
  */
 
+.root {
+  /* Query container: the banner reflows on THIS width, not the viewport. The
+     Plan detail panel is a fixed ~240px right rail, where the old viewport
+     @media below never fired -- so `.actions` (a non-shrinking ~480px button
+     cluster) starved `.body` to 0px and crushed the copy to one word per line.
+     The outer margin lives here so the container box equals the banner box. */
+  container-type: inline-size;
+  margin: 12px 16px 0;
+}
+
 .banner {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  margin: 12px 16px 0;
   border-radius: var(--radius-md, 8px);
   border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 35%, transparent);
   background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
@@ -112,7 +121,11 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 640px) {
+/* Stack vertically whenever the RAIL (not the viewport) is narrow. Both current
+   mounts -- the 240px Plan tier-shell rail and the stratum-shell detail column --
+   fall under this, so the button cluster drops below the copy instead of
+   crushing it. Wide future placements keep the horizontal row. */
+@container (max-width: 640px) {
   .banner {
     flex-direction: column;
     align-items: stretch;

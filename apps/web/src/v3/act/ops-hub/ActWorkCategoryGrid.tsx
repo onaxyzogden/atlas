@@ -19,7 +19,7 @@
  * hide-until-real markers may be empty), per the plan's risk note.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   UNIVERSAL_DOMAINS,
   UNIVERSAL_DOMAIN_LABELS,
@@ -31,6 +31,7 @@ import {
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
+import { partitionByScope } from '../../roles/viewScope.js';
 import { OBSERVE_MODULE_DOT } from '../../observe/moduleGuidance.js';
 import css from './ActWorkCategoryGrid.module.css';
 
@@ -41,6 +42,14 @@ interface Props {
   activeDomain: UniversalDomain | null;
   /** Toggle the domain filter; pass `null` to clear (or re-click active card). */
   onSelectDomain: (domain: UniversalDomain | null) => void;
+  /**
+   * Operational Role Layer scope (additive). When present + non-empty, in-scope
+   * domain cards lead and out-of-scope cards collapse behind a "+N more"
+   * expander -- never hidden, only de-emphasized (still one click away). Absent
+   * or empty ⇒ every present-domain card renders inline in canonical order,
+   * exactly as before the role filter. Mirrors ObserveModuleBar's partition.
+   */
+  scopedDomains?: ReadonlySet<UniversalDomain>;
 }
 
 interface DomainCell {
@@ -55,11 +64,14 @@ export default function ActWorkCategoryGrid({
   projectId,
   activeDomain,
   onSelectDomain,
+  scopedDomains,
 }: Props) {
   const { objectives } = useProjectObjectives(projectId);
   const actions = useFieldActionStore((s) =>
     selectFieldActionsForProject(s, projectId),
   );
+  // Out-of-focus cards start collapsed behind "+N more"; this reveals them.
+  const [outOpen, setOutOpen] = useState(false);
 
   const cells = useMemo<DomainCell[]>(() => {
     // objectiveId → its domains, computed once (an objective can touch several).
@@ -93,6 +105,43 @@ export default function ActWorkCategoryGrid({
 
   if (cells.length === 0) return null;
 
+  // Scope engaged only when a non-empty domain set is supplied. Full view /
+  // unscoped callers leave scopedDomains undefined ⇒ every card renders inline.
+  const scoped = scopedDomains !== undefined && scopedDomains.size > 0;
+  const { inScope, outScope } = scoped
+    ? partitionByScope(cells, (c) => [c.domain], scopedDomains)
+    : { inScope: cells, outScope: [] as DomainCell[] };
+
+  const renderCard = (cell: DomainCell, dimmed: boolean) => {
+    const isActive = activeDomain === cell.domain;
+    return (
+      <button
+        key={cell.domain}
+        type="button"
+        className={css.card}
+        data-active={isActive}
+        data-scope={dimmed ? 'out' : 'in'}
+        aria-pressed={isActive}
+        onClick={() => onSelectDomain(isActive ? null : cell.domain)}
+      >
+        <span className={css.cardHead}>
+          <span
+            className={css.dot}
+            style={{ background: cell.dot }}
+            aria-hidden="true"
+          />
+          <span className={css.label}>{cell.label}</span>
+        </span>
+        <span className={css.count}>
+          {cell.openCount}
+          <span className={css.countWord}>
+            {cell.openCount === 1 ? ' task' : ' tasks'}
+          </span>
+        </span>
+      </button>
+    );
+  };
+
   return (
     <section className={css.wrap} aria-label="Work categories">
       <div className={css.head}>
@@ -108,36 +157,19 @@ export default function ActWorkCategoryGrid({
         )}
       </div>
       <div className={css.grid} role="group">
-        {cells.map((cell) => {
-          const isActive = activeDomain === cell.domain;
-          return (
-            <button
-              key={cell.domain}
-              type="button"
-              className={css.card}
-              data-active={isActive}
-              aria-pressed={isActive}
-              onClick={() =>
-                onSelectDomain(isActive ? null : cell.domain)
-              }
-            >
-              <span className={css.cardHead}>
-                <span
-                  className={css.dot}
-                  style={{ background: cell.dot }}
-                  aria-hidden="true"
-                />
-                <span className={css.label}>{cell.label}</span>
-              </span>
-              <span className={css.count}>
-                {cell.openCount}
-                <span className={css.countWord}>
-                  {cell.openCount === 1 ? ' task' : ' tasks'}
-                </span>
-              </span>
-            </button>
-          );
-        })}
+        {inScope.map((cell) => renderCard(cell, false))}
+        {scoped && outScope.length > 0 && (
+          <button
+            type="button"
+            className={css.moreTile}
+            aria-expanded={outOpen}
+            onClick={() => setOutOpen((open) => !open)}
+            data-testid="work-category-outside-focus-toggle"
+          >
+            {outOpen ? `Hide ${outScope.length}` : `+${outScope.length} more`}
+          </button>
+        )}
+        {scoped && outOpen && outScope.map((cell) => renderCard(cell, true))}
       </div>
     </section>
   );

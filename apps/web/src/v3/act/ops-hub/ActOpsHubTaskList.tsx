@@ -19,6 +19,7 @@ import ReadyToStartSection from '../field-action/ReadyToStartSection.js';
 import ActiveTasksSection from '../field-action/ActiveTasksSection.js';
 import BlockedDivergedSection from '../field-action/BlockedDivergedSection.js';
 import CompletedTodaySection from '../field-action/CompletedTodaySection.js';
+import type { SectionRoleScope } from '../../roles/viewScope.js';
 import css from './ActOpsHubTaskList.module.css';
 
 /** The tile keys the metric strip emits. */
@@ -38,6 +39,12 @@ interface Props {
   onClear: () => void;
   /** Open the hub's guided walkthrough for the tapped task's objective. */
   onOpenObjective: (planObjectiveId: string) => void;
+  /**
+   * Operational Role Layer scope (additive). Present ⇒ each section orders
+   * out-of-role objective groups last and de-emphasizes them (never hidden);
+   * absent ⇒ the sections render exactly as before.
+   */
+  roleScope?: SectionRoleScope;
 }
 
 export default function ActOpsHubTaskList({
@@ -45,12 +52,17 @@ export default function ActOpsHubTaskList({
   statusKey,
   onClear,
   onOpenObjective,
+  roleScope,
 }: Props) {
   const { readyToStart, active, blockedDiverged, completedToday } =
     useFieldActions(projectId);
 
   const handleOpen = (action: { planObjectiveId: string }) =>
     onOpenObjective(action.planObjectiveId);
+
+  // Forward the role scope only when present so each section keeps its exact
+  // prior rendering under the layer-off path (exactOptionalPropertyTypes).
+  const scopeProp = roleScope ? { roleScope } : {};
 
   return (
     <section className={css.wrap} aria-label={`${HEADING[statusKey]} tasks`}>
@@ -61,16 +73,27 @@ export default function ActOpsHubTaskList({
         </button>
       </div>
       {statusKey === 'todo' && (
-        <ReadyToStartSection projectId={projectId} groups={readyToStart} onOpen={handleOpen} />
+        <ReadyToStartSection
+          projectId={projectId}
+          groups={readyToStart}
+          onOpen={handleOpen}
+          {...scopeProp}
+        />
       )}
       {statusKey === 'active' && (
-        <ActiveTasksSection projectId={projectId} groups={active} onOpen={handleOpen} />
+        <ActiveTasksSection
+          projectId={projectId}
+          groups={active}
+          onOpen={handleOpen}
+          {...scopeProp}
+        />
       )}
       {statusKey === 'blocked' && (
         <BlockedDivergedSection
           projectId={projectId}
           tasks={blockedDiverged}
           onOpen={handleOpen}
+          {...scopeProp}
         />
       )}
       {statusKey === 'done' && (
@@ -78,6 +101,7 @@ export default function ActOpsHubTaskList({
           projectId={projectId}
           tasks={completedToday}
           onOpen={handleOpen}
+          {...scopeProp}
         />
       )}
     </section>

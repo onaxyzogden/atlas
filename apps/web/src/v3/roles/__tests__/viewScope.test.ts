@@ -18,6 +18,8 @@ import {
   moduleInScope,
   objectiveInScope,
   partitionByScope,
+  orderByObjectiveScope,
+  type SectionRoleScope,
 } from '../viewScope.js';
 
 // getObjectiveObserveDomains only reads `id` + `stratumId`; a thin cast keeps
@@ -109,5 +111,72 @@ describe('partitionByScope', () => {
     );
     expect(inScope).toHaveLength(1);
     expect(outScope).toHaveLength(0);
+  });
+});
+
+describe('orderByObjectiveScope', () => {
+  interface Item {
+    planObjectiveId: string;
+  }
+  const items: Item[] = [
+    { planObjectiveId: 'a' },
+    { planObjectiveId: 'b' },
+    { planObjectiveId: 'c' },
+  ];
+  const getId = (i: Item) => i.planObjectiveId;
+  const map = new Map<string, readonly UniversalDomain[]>([
+    ['a', ['plants-food']],
+    ['b', ['economics-capacity']],
+    ['c', ['animals-livestock']],
+  ]);
+
+  it('does not de-emphasize under full view (empty scope)', () => {
+    const rs: SectionRoleScope = { scope: EMPTY, domainsByObjective: map };
+    const { inScope, outScope, dim } = orderByObjectiveScope(items, getId, rs);
+    expect(dim).toBe(false);
+    expect(inScope).toEqual(items);
+    expect(outScope).toEqual([]);
+  });
+
+  it('splits and dims on a genuine in/out mix, in-scope first', () => {
+    const rs: SectionRoleScope = {
+      scope: scopeForRoles(['food_production']), // { plants-food }
+      domainsByObjective: map,
+    };
+    const { inScope, outScope, dim } = orderByObjectiveScope(items, getId, rs);
+    expect(dim).toBe(true);
+    expect(inScope.map(getId)).toEqual(['a']);
+    expect(outScope.map(getId)).toEqual(['b', 'c']);
+  });
+
+  it('does not dim when every item is in scope', () => {
+    const rs: SectionRoleScope = {
+      scope: scopeForRoles(['food_production', 'finance_legal', 'livestock']),
+      domainsByObjective: map,
+    };
+    const { dim, inScope, outScope } = orderByObjectiveScope(items, getId, rs);
+    expect(dim).toBe(false);
+    expect(inScope).toHaveLength(3);
+    expect(outScope).toHaveLength(0);
+  });
+
+  it('does not dim when every item is out of scope (all preserved for plain render)', () => {
+    const rs: SectionRoleScope = {
+      scope: scopeForRoles(['infrastructure']), // no overlap with a/b/c
+      domainsByObjective: map,
+    };
+    const { dim, inScope, outScope } = orderByObjectiveScope(items, getId, rs);
+    expect(dim).toBe(false);
+    expect([...inScope, ...outScope].map(getId)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('keeps an objective absent from the map in scope (never dims the unclassifiable)', () => {
+    const withUnknown: Item[] = [...items, { planObjectiveId: 'zzz-not-in-map' }];
+    const rs: SectionRoleScope = {
+      scope: scopeForRoles(['food_production']),
+      domainsByObjective: map,
+    };
+    const { inScope } = orderByObjectiveScope(withUnknown, getId, rs);
+    expect(inScope.map(getId)).toContain('zzz-not-in-map');
   });
 });

@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type {
+  OperationalRole,
   PlanStratum,
   PlanStratumObjective,
   ProjectTypeId,
@@ -28,6 +29,10 @@ import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalR
 import type { SurfaceReason } from '../../roles/alwaysSurface.js';
 import type { ViewFocusMode } from '../../../store/uiStore.js';
 import styles from './ActTierShell.module.css';
+// The "Viewing as" picker reuses RoleFocusControl's parchment select styling so
+// the tier-shell picker is visually identical to the one in the Ops Hub /
+// field-action shells (single source of truth for the control's look).
+import roleCss from '../../roles/RoleFocusControl.module.css';
 
 // Source filter (All / Universal / Primary / Secondary) — parity with the Plan
 // ObjectiveColumn. Purely a view filter over the rendered list; it never
@@ -123,6 +128,18 @@ interface Props {
   focusMode?: ViewFocusMode;
   /** Persist a focus choice (`useViewScope().setFocusMode`). */
   onFocusModeChange?: (mode: ViewFocusMode) => void;
+  /**
+   * Act role-based view filter (additive). When true, a "Viewing as" role
+   * <select> renders beside the focus toggle so a coordinator can scope the rail
+   * to ANY operational role's domains, not just their own
+   * (`useViewScope(_, { allowRoleOverride: true }).canPickRole`). Plan/Observe
+   * never pass it ⇒ no picker, byte-identical. Requires `onFocusRoleChange`.
+   */
+  canPickRole?: boolean;
+  /** The active "view as" override role (`null` ⇒ the viewer's own roles). */
+  focusRole?: OperationalRole | null;
+  /** Persist a "view as" override (`null` ⇒ back to own roles). */
+  onFocusRoleChange?: (role: OperationalRole | null) => void;
 }
 
 export default function ActTierObjectiveRail({
@@ -150,6 +167,9 @@ export default function ActTierObjectiveRail({
   showFocusToggle = false,
   focusMode,
   onFocusModeChange,
+  canPickRole = false,
+  focusRole = null,
+  onFocusRoleChange,
 }: Props) {
   // When the toggle is hidden (Plan tier shell), the rail is always the
   // objectives list regardless of the incoming `mode`.
@@ -195,7 +215,7 @@ export default function ActTierObjectiveRail({
   // Option C: this project's resolved domain map + label resolver so the
   // out-of-focus role badges reflect any per-project re-scope/rename. No
   // override ⇒ built-in map + labels ⇒ byte-identical badges.
-  const { domainsMap: roleDomainsMap, labelFor: roleLabelFor } =
+  const { defs, domainsMap: roleDomainsMap, labelFor: roleLabelFor } =
     useResolvedOperationalRoles(projectId);
 
   // Operational Role Layer: when scoping is engaged, partition the (already
@@ -292,14 +312,45 @@ export default function ActTierObjectiveRail({
               )}
             </div>
           )}
-          {showFocusToggle && focusMode && onFocusModeChange && (
+          {((showFocusToggle && focusMode && onFocusModeChange) ||
+            (canPickRole && onFocusRoleChange)) && (
             <div className={styles.focusToggleBar}>
-              <ViewFocusToggle
-                focusMode={focusMode}
-                onChange={onFocusModeChange}
-                inFocusCount={scopedRail?.inFocusCount}
-                totalCount={scopedRail?.totalCount}
-              />
+              {showFocusToggle && focusMode && onFocusModeChange && (
+                <ViewFocusToggle
+                  focusMode={focusMode}
+                  onChange={onFocusModeChange}
+                  inFocusCount={scopedRail?.inFocusCount}
+                  totalCount={scopedRail?.totalCount}
+                />
+              )}
+              {/* "Viewing as" role picker (Act only). Prop-driven so the rail
+                  stays presentational and Plan — which passes none of these —
+                  is byte-identical. Mirrors RoleFocusControl's markup/testid so
+                  it reads identically to the Ops Hub / field-action picker. */}
+              {canPickRole && onFocusRoleChange && (
+                <label className={roleCss.pickerWrap}>
+                  <span className={roleCss.pickerLabel}>Viewing as</span>
+                  <select
+                    className={roleCss.select}
+                    value={focusRole ?? ''}
+                    onChange={(e) =>
+                      onFocusRoleChange(
+                        e.target.value === ''
+                          ? null
+                          : (e.target.value as OperationalRole),
+                      )
+                    }
+                    data-testid="role-view-as-select"
+                  >
+                    <option value="">My roles</option>
+                    {defs.map((def) => (
+                      <option key={def.slug} value={def.slug}>
+                        {def.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
           )}
           {sourceKinds.size > 1 && (

@@ -698,7 +698,19 @@ export default function ActTierZeroWorkbench({
                 registry sits ABOVE the working panel and only for the team
                 objective (1.2). Read-only -- the actual capture is below. */}
             {isDeclaration && activeObjective.id === TEAM_OBJECTIVE_ID ? (
-              <TeamRegistryPanel projectId={projectId} />
+              <TeamRegistryPanel
+                projectId={projectId}
+                onNavigateObjective={
+                  onSelectObjective
+                    ? (objectiveId) => {
+                        // Close this popup, then switch the active objective (1.1).
+                        setSelectedItemId(null);
+                        onSelectObjective(objectiveId);
+                      }
+                    : undefined
+                }
+                onSelectItem={setSelectedItemId}
+              />
             ) : null}
             <DecisionWorkingPanel
               decision={target}

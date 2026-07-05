@@ -24,10 +24,14 @@
 
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import type { UniversalDomain } from '@ogden/shared';
+import { getObjectiveObserveDomains, type UniversalDomain } from '@ogden/shared';
 import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
 import StageShell from '../../_shell/StageShell.js';
 import { useV3Project } from '../../data/useV3Project.js';
+import { useViewScope } from '../../roles/useViewScope.js';
+import RoleFocusControl from '../../roles/RoleFocusControl.js';
+import type { SectionRoleScope } from '../../roles/viewScope.js';
+import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import QuickActions from '../ops/QuickActions.js';
 import CreateFieldTaskDialog from '../../components/CreateFieldTaskDialog.js';
@@ -92,9 +96,57 @@ export default function ActOpsHub() {
   // Selecting one clears the other so the surface only ever shows one filter.
   const [activeDomain, setActiveDomain] = useState<UniversalDomain | null>(null);
   const [activeStatusKey, setActiveStatusKey] = useState<MetricKey | null>(null);
+
+  // Operational Role Layer (opt-in "view as" for the Act stage). `roleScope` is
+  // the never-hide de-emphasis source: the viewer's own operational-role
+  // domains, or -- when a coordinator picks one -- a "view as" role's domains.
+  // It drives the grid's "+N more" collapse and, when no manual "Work by area"
+  // card is drilled, the map pin dimming.
+  const { isScoped, scope, layerActive, canPickRole } = useViewScope(project.id, {
+    allowRoleOverride: true,
+  });
+  const roleScope = isScoped ? scope : undefined;
+  const showFocusBar = layerActive || canPickRole;
+
+  // Precedence for the MAP: a manual "Work by area" pick wins (drill to one
+  // domain); otherwise fall back to the role scope; otherwise no dimming.
   const scopedDomains = useMemo(
-    () => (activeDomain ? new Set<UniversalDomain>([activeDomain]) : undefined),
-    [activeDomain],
+    () => (activeDomain ? new Set<UniversalDomain>([activeDomain]) : roleScope),
+    [activeDomain, roleScope],
+  );
+
+  // Each objective's observe-domains, keyed by objective id. Identity is stable
+  // across scope changes (depends only on the objectives), so the task-list
+  // sections don't re-partition when the viewer merely flips My-focus/Full view.
+  const { objectives } = useProjectObjectives(project.id);
+  const domainsByObjective = useMemo(() => {
+    const m = new Map<string, readonly UniversalDomain[]>();
+    for (const o of objectives) m.set(o.id, getObjectiveObserveDomains(o));
+    return m;
+  }, [objectives]);
+
+  // "My focus (N / M)" hint for the focus toggle: how many work-areas (present
+  // domains) fall in the current scope. ViewFocusToggle shows it only in role
+  // mode. Empty scope (full view / no roles) ⇒ every present domain counts.
+  const { presentCount, inFocusCount } = useMemo(() => {
+    const present = new Set<UniversalDomain>();
+    for (const domains of domainsByObjective.values()) {
+      for (const d of domains) present.add(d);
+    }
+    let inFocus = 0;
+    for (const d of present) {
+      if (scope.size === 0 || scope.has(d)) inFocus += 1;
+    }
+    return { presentCount: present.size, inFocusCount: inFocus };
+  }, [domainsByObjective, scope]);
+
+  // The never-hide de-emphasis source for the status-filtered task list. Bundles
+  // the active scope with the objective→domains map so each section can order
+  // out-of-role objective groups last (visible + dimmed, never removed). Absent
+  // when the layer is off ⇒ the list renders byte-identical to before.
+  const sectionRoleScope = useMemo<SectionRoleScope | undefined>(
+    () => (isScoped ? { scope, domainsByObjective } : undefined),
+    [isScoped, scope, domainsByObjective],
   );
 
   const handleSelectDomain = (domain: UniversalDomain | null) => {
@@ -139,6 +191,15 @@ export default function ActOpsHub() {
                 onSelect={handleMetricSelect}
                 activeKey={activeStatusKey}
               />
+              {showFocusBar && (
+                <div className={css.focusBar}>
+                  <RoleFocusControl
+                    projectId={project.id}
+                    inFocusCount={inFocusCount}
+                    totalCount={presentCount}
+                  />
+                </div>
+              )}
 
               {/* Two-column body: primary work surface + the task rail.
                   Collapses to one column at ≤960px (CSS). */}
@@ -150,12 +211,14 @@ export default function ActOpsHub() {
                       statusKey={activeStatusKey}
                       onClear={() => setActiveStatusKey(null)}
                       onOpenObjective={handleSelectObjective}
+                      {...(sectionRoleScope ? { roleScope: sectionRoleScope } : {})}
                     />
                   ) : (
                     <ActWorkCategoryGrid
                       projectId={project.id}
                       activeDomain={activeDomain}
                       onSelectDomain={handleSelectDomain}
+                      scopedDomains={roleScope}
                     />
                   )}
                   <ActOpsHubMapPanel

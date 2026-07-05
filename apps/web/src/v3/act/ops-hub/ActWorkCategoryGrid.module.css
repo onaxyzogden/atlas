@@ -77,6 +77,47 @@
   background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 12%, transparent);
 }
 
+/* Out-of-focus (role-scope) card: de-emphasized, never hidden. Full opacity on
+   hover/focus so it is always one glance away. Selection (data-active) wins. */
+.card[data-scope='out']:not([data-active='true']) {
+  opacity: 0.5;
+}
+
+.card[data-scope='out']:hover,
+.card[data-scope='out']:focus-visible {
+  opacity: 1;
+}
+
+/* "+N more" expander that reveals the out-of-focus cards. Dashed to read as an
+   affordance distinct from the solid domain cards. */
+.moreTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 14px;
+  background: transparent;
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: 12px;
+  color: var(--color-text-muted, #8a96a0);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.moreTile:hover {
+  border-color: rgba(196, 162, 101, 0.55);
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.moreTile:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
 .cardHead {
   display: inline-flex;
   align-items: center;

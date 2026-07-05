@@ -37,52 +37,58 @@ export default function CyclicalReviewBanner({
   onDismiss,
 }: Props) {
   return (
-    <aside
-      className={css.banner}
-      role="status"
-      aria-label="Cyclical review prompt"
-      data-testid="plan-cyclical-review-banner"
-    >
-      <div className={css.iconWrap} aria-hidden>
-        <RefreshCw size={16} />
-      </div>
-      <div className={css.body}>
-        <p className={css.eyebrow}>{eyebrow ?? 'Reviewing your earlier decision'}</p>
-        <p className={css.copy}>
-          {reason ??
-            'It has been a while since you set this. Confirm it still holds, or revise it now.'}
-        </p>
-      </div>
-      <div className={css.actions}>
-        {onDismiss && (
+    // Query-container wrapper: the banner reflows on the width of THIS element
+    // (its rail), not the viewport. See `.root` / `@container` in the CSS — the
+    // Plan detail panel is a fixed ~240px right rail, so a viewport-keyed
+    // reflow never fired there and the row layout crushed the text column.
+    <div className={css.root}>
+      <aside
+        className={css.banner}
+        role="status"
+        aria-label="Cyclical review prompt"
+        data-testid="plan-cyclical-review-banner"
+      >
+        <div className={css.iconWrap} aria-hidden>
+          <RefreshCw size={16} />
+        </div>
+        <div className={css.body}>
+          <p className={css.eyebrow}>{eyebrow ?? 'Reviewing your earlier decision'}</p>
+          <p className={css.copy}>
+            {reason ??
+              'It has been a while since you set this. Confirm it still holds, or revise it now.'}
+          </p>
+        </div>
+        <div className={css.actions}>
+          {onDismiss && (
+            <button
+              type="button"
+              className={css.secondary}
+              onClick={onDismiss}
+              data-testid="plan-cyclical-review-dismiss"
+            >
+              <span>Dismiss for now</span>
+            </button>
+          )}
           <button
             type="button"
             className={css.secondary}
-            onClick={onDismiss}
-            data-testid="plan-cyclical-review-dismiss"
+            onClick={onRevise}
+            data-testid="plan-cyclical-review-revise"
           >
-            <span>Dismiss for now</span>
+            <PenSquare size={13} aria-hidden />
+            <span>Revise decision</span>
           </button>
-        )}
-        <button
-          type="button"
-          className={css.secondary}
-          onClick={onRevise}
-          data-testid="plan-cyclical-review-revise"
-        >
-          <PenSquare size={13} aria-hidden />
-          <span>Revise decision</span>
-        </button>
-        <button
-          type="button"
-          className={css.primary}
-          onClick={onConfirm}
-          data-testid="plan-cyclical-review-confirm"
-        >
-          <CheckCircle2 size={13} aria-hidden />
-          <span>Confirm decision</span>
-        </button>
-      </div>
-    </aside>
+          <button
+            type="button"
+            className={css.primary}
+            onClick={onConfirm}
+            data-testid="plan-cyclical-review-confirm"
+          >
+            <CheckCircle2 size={13} aria-hidden />
+            <span>Confirm decision</span>
+          </button>
+        </div>
+      </aside>
+    </div>
   );
 }

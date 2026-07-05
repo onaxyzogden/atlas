@@ -31,6 +31,15 @@
   padding: 60px 24px 32px;
 }
 
+/* Operational Role Layer control row (My focus / Full view + "Viewing as").
+   Right-aligned in the full-width top band so it governs both the work-area
+   grid and the map below. Only mounts when the layer or picker is active. */
+.focusBar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 /* Two-column body: primary work surface + task rail. minmax(0,1fr) lets the
    left column shrink (so the map/grid never force horizontal overflow); the
    360px rail is the dashboard cards' native width. align-items:start keeps the

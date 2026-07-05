@@ -35,6 +35,7 @@ import {
   computeAllStratumStates,
   findProjectType,
   getObjectiveActTools,
+  type OperationalRole,
   type PlanStratum,
   type PlanStratumObjective,
 } from '@ogden/shared';
@@ -579,7 +580,25 @@ export default function ActTierShell() {
   // so the rail renders byte-identically to today. When engaged it scopes the
   // objective rail to the viewer's operational domains — never hiding, only
   // de-emphasizing — with a "My focus / Full view" toggle.
-  const viewScope = useViewScope(id);
+  //
+  // `allowRoleOverride` (2026-07-01, Act role-based view filter) additionally
+  // arms the "Viewing as" picker so a coordinator can scope the shell to ANY
+  // role's domains. The override rides the SAME `viewScope.scope`, so it flows
+  // to the rail, the always-surface map, AND the map pins in one place.
+  const viewScope = useViewScope(id, { allowRoleOverride: true });
+
+  // "Viewing as <role>" from the rail picker. Persist the override and, when a
+  // concrete role is picked, ensure role mode is on so the scope visibly applies
+  // (an own-role viewer may have been in Full view). Clearing to "My roles"
+  // (null) leaves the mode untouched. Mirrors RoleFocusControl.handlePick.
+  const { setFocusRole, setFocusMode, focusMode: viewFocusMode } = viewScope;
+  const handlePickViewAsRole = useCallback(
+    (role: OperationalRole | null) => {
+      setFocusRole(role);
+      if (role && viewFocusMode !== 'role') setFocusMode('role');
+    },
+    [setFocusRole, setFocusMode, viewFocusMode],
+  );
   // Objective ids carrying >=1 OPEN review flag (the counts hook keys). These
   // always surface regardless of focus, so a live amber "Review" is never
   // buried by the role filter.
@@ -1185,6 +1204,12 @@ export default function ActTierShell() {
                 showFocusToggle={viewScope.layerActive}
                 focusMode={viewScope.focusMode}
                 onFocusModeChange={viewScope.setFocusMode}
+                // "Viewing as" picker (Act only): a coordinator scopes the rail
+                // to any role. Plan reuses this rail but passes none of these,
+                // so its picker never renders.
+                canPickRole={viewScope.canPickRole}
+                focusRole={viewScope.focusRole}
+                onFocusRoleChange={handlePickViewAsRole}
               />
             )
           }

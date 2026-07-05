@@ -62,6 +62,14 @@
   overflow: hidden;
 }
 
+/* Non-scrolling header slot above the scroll body. Holds the Operational Role
+   Layer control (RoleFocusControl); sits outside .panelBody so it is not
+   stretched by the `.panelBody > *` flex rule. */
+.panelHeader {
+  flex: 0 0 auto;
+  padding: 8px 8px 0;
+}
+
 .panelBody {
   flex: 1 1 auto;
   min-height: 0;
