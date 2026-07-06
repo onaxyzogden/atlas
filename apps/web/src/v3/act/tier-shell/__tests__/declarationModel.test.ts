@@ -9,6 +9,7 @@ import {
   canonicalTagFor,
   DECLARATION_MODE,
   deriveCanonicalObjects,
+  deriveObjectiveDisplayMap,
   deriveStratumSequencing,
   isThresholdReachable,
   REACHABLE_THRESHOLD_IDS,
@@ -297,6 +298,61 @@ describe('deriveStratumSequencing', () => {
       'Plan complete',
     );
     expect(seq.next.label).toBe('Plan complete');
+  });
+});
+
+describe('deriveObjectiveDisplayMap', () => {
+  const S1 = stratumRef('s1-project-foundation', 1);
+
+  it('maps the six S1 declaration objectives to 1.1..1.6, keyed by id', () => {
+    const map = deriveObjectiveDisplayMap(S1, SIX);
+    expect(map.get('s1-vision')).toBe('1.1');
+    expect(map.get('s1-steward')).toBe('1.2');
+    expect(map.get('s1-boundaries')).toBe('1.3');
+    expect(map.get('s1-stakeholders')).toBe('1.4');
+    expect(map.get('rf-s1-enterprise-mix')).toBe('1.5');
+    expect(map.get('res-s1-household-needs')).toBe('1.6');
+    // One entry per resolved objective; keys are the objective ids.
+    expect(map.size).toBe(6);
+  });
+
+  it('numbers a generic single-wave stratum N.1, N.2, N.3', () => {
+    const S2 = stratumRef('s2-land-reading', 2);
+    const map = deriveObjectiveDisplayMap(S2, [
+      obj('s2-terrain'),
+      obj('s2-water'),
+      obj('s2-access'),
+    ]);
+    expect(map.get('s2-terrain')).toBe('2.1');
+    expect(map.get('s2-water')).toBe('2.2');
+    expect(map.get('s2-access')).toBe('2.3');
+  });
+
+  it('returns exactly the sequencing rail node displays (single numbering source)', () => {
+    // The map is DERIVED from deriveStratumSequencing, so every id must map to
+    // that function's node.display -- a card badge can never drift from the
+    // stepper. Guarding this identity keeps the reuse honest.
+    const seq = deriveStratumSequencing(S1, SIX, {}, '');
+    const map = deriveObjectiveDisplayMap(S1, SIX);
+    const nodes = seq.groups.flatMap((g) => g.nodes);
+    for (const node of nodes) {
+      expect(map.get(node.id)).toBe(node.display);
+    }
+    // ...and no extra keys beyond the sequencer's nodes.
+    expect([...map.keys()].sort()).toEqual(nodes.map((n) => n.id).sort());
+  });
+
+  it('omits an objective absent from the resolved set (no entry -> no badge)', () => {
+    // A project without the residential secondary lacks res-s1-household-needs;
+    // its id is simply absent, and its card then renders no number.
+    const noResidential = SIX.filter((o) => o.id !== 'res-s1-household-needs');
+    const map = deriveObjectiveDisplayMap(S1, noResidential);
+    expect(map.has('res-s1-household-needs')).toBe(false);
+    expect(map.get('rf-s1-enterprise-mix')).toBe('1.5');
+  });
+
+  it('returns an empty map for an empty stratum', () => {
+    expect(deriveObjectiveDisplayMap(S1, []).size).toBe(0);
   });
 });
 

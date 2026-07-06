@@ -19,6 +19,7 @@ import type {
   UniversalDomain,
 } from '@ogden/shared';
 import ActTierObjectiveCard from './ActTierObjectiveCard.js';
+import { deriveObjectiveDisplayMap } from './declarationModel.js';
 import ActRailModeToggle, { type RailMode } from './ActRailModeToggle.js';
 import type { ObjectiveProgress } from './objectiveProgress.js';
 import { getSourceTag, type SourceTagKind } from '../../plan/strata/sourceTag.js';
@@ -176,6 +177,20 @@ export default function ActTierObjectiveRail({
   const effectiveMode: RailMode = hideModeToggle ? 'objectives' : mode;
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
 
+  // Objective presentation numbers ("{ordinal}.{n}") keyed by objective id,
+  // shared with the sequencing rail via deriveObjectiveDisplayMap so a card's
+  // badge always matches the stepper. Computed over the FULL stratum set (not the
+  // source-filtered / scoped view) so the number is intrinsic to the objective
+  // and never shifts when the rail filters or partitions. Empty map when no
+  // stratum -> cards render no badge (byte-identical to a bare objectives list).
+  const displayMap = useMemo(
+    () =>
+      stratum
+        ? deriveObjectiveDisplayMap(stratum, objectives)
+        : new Map<string, string>(),
+    [stratum, objectives],
+  );
+
   // Collapsible "Outside your focus" group. The open state is DERIVED (see
   // `outsideOpen` below the scopedRail memo): collapsed when the viewer has work
   // in focus, but auto-expanded when NOTHING is in focus so the rail lands on
@@ -246,13 +261,14 @@ export default function ActTierObjectiveRail({
 
   // Shared card renderer for the scoped path — threads the per-entry scope
   // state, promotion reasons, and owning-role badges into the pure card. The
-  // 1-based `index` (numbered badge) restarts per rendered sub-list: it is the
-  // map index of whichever list (in-focus or out-of-focus) this card belongs to.
-  const renderScopedCard = (entry: ScopedRailEntry, index: number) => (
+  // "{ordinal}.{n}" badge comes from the shared displayMap (keyed by objective
+  // id), so it is identical to the sequencing rail and stays stable across the
+  // in-focus / out-of-focus split rather than restarting per sub-list.
+  const renderScopedCard = (entry: ScopedRailEntry) => (
     <ActTierObjectiveCard
       key={entry.objective.id}
       objective={entry.objective}
-      index={index + 1}
+      displayNumber={displayMap.get(entry.objective.id)}
       progress={progressByObjective[entry.objective.id] ?? EMPTY_PROGRESS}
       isActive={entry.objective.id === activeObjectiveId}
       onSelect={() => onSelectObjective(entry.objective.id)}
@@ -425,11 +441,11 @@ export default function ActTierObjectiveRail({
             </>
           ) : (
             <div className={styles.railList}>
-              {visibleObjectives.map((objective, i) => (
+              {visibleObjectives.map((objective) => (
                 <ActTierObjectiveCard
                   key={objective.id}
                   objective={objective}
-                  index={i + 1}
+                  displayNumber={displayMap.get(objective.id)}
                   // No eyebrow here: every card in this list belongs to the
                   // selected stratum, which the rail header already names, so the
                   // per-card stratum title was redundant. (The search rail still

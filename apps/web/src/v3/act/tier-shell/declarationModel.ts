@@ -350,6 +350,27 @@ export function deriveStratumSequencing(
   };
 }
 
+/**
+ * objectiveId -> "{ordinal}.{n}" presentation number for a stratum, IDENTICAL to
+ * the numbers the sequencing rail renders. It reuses deriveStratumSequencing (the
+ * single numbering authority) with neutral status/next inputs and reads back each
+ * node's `display`, so the Act objective cards and the sequencing stepper can
+ * never diverge. Keyed by objective id, so filtering/reordering the rail never
+ * shifts a number; objectives absent from the resolved set are simply absent from
+ * the map (their card renders no badge).
+ */
+export function deriveObjectiveDisplayMap(
+  stratum: Pick<PlanStratum, 'id' | 'ordinal'>,
+  objectives: readonly PlanStratumObjective[],
+): Map<string, string> {
+  const model = deriveStratumSequencing(stratum, objectives, {}, '');
+  const map = new Map<string, string>();
+  for (const group of model.groups) {
+    for (const node of group.nodes) map.set(node.id, node.display);
+  }
+  return map;
+}
+
 // ---------------------------------------------------------------------------
 // Canonical-object cards.
 // ---------------------------------------------------------------------------
