@@ -10,6 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import type { PlanStratumObjective } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 import {
   SECTION_A_CHECKS,
   SECTION_B_LOOPS,
@@ -507,9 +508,6 @@ describe('coherenceCheckModel -- auditItemObjectiveIds / amendmentsForObjective'
 // ---------------------------------------------------------------------------
 
 describe('coherenceCheckModel -- Amanah', () => {
-  const BANNED =
-    /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
-
   const collectStrings = (value: unknown, sink: string[]): void => {
     if (typeof value === 'string') sink.push(value);
     else if (Array.isArray(value)) value.forEach((v) => collectStrings(v, sink));
@@ -527,7 +525,7 @@ describe('coherenceCheckModel -- Amanah', () => {
     collectStrings(COHERENCE_CONFIGURATION_LABEL, strings);
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(BANNED.test(s), `banned term in: ${s}`).toBe(false);
+      expect(detectCovenantBanned(s), `banned term in: ${s}`).toBe(false);
     }
   });
 

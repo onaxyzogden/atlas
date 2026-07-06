@@ -4,6 +4,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 import {
   canonicalTagFor,
   DECLARATION_MODE,
@@ -350,6 +351,6 @@ describe('DECLARATION_MODE copy (Amanah wording-pin)', () => {
     ]
       .join(' ')
       .toLowerCase();
-    expect(corpus).not.toMatch(/subscription|presale|advance sale|csa|csra|yield[- ]share/);
+    expect(detectCovenantBanned(corpus), corpus).toBe(false);
   });
 });

@@ -24,7 +24,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
 import { render, screen } from '@testing-library/react';
-import { UNIVERSAL_PLAN_OBJECTIVES } from '@ogden/shared';
+import { UNIVERSAL_PLAN_OBJECTIVES, detectCovenantBanned } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -75,9 +75,6 @@ import type { FormValue } from '../actToolCatalog.js';
 // A neutral, non-enum channel string -- proves the constraint without authoring a
 // covenant-banned term anywhere.
 const FOREIGN_CHANNEL = 'Foreign channel not in the permitted list';
-const BANNED_TERM =
-  /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
-
 function labourRow(over: Record<string, unknown> = {}): string {
   return JSON.stringify({
     id: 'r1',
@@ -328,7 +325,7 @@ describe('render -- mode bodies', () => {
     // the prohibited concepts in order to forbid them, which is compliant
     // prohibition language, not an authored channel.)
     optionTexts.forEach((label) => {
-      expect(BANNED_TERM.test(label)).toBe(false);
+      expect(detectCovenantBanned(label), label).toBe(false);
     });
   });
 });

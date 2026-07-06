@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { resolveProjectObjectives } from '@ogden/shared';
+import { resolveProjectObjectives, detectCovenantBanned } from '@ogden/shared';
 import type { PlanStratumObjective, PlanStratumObjectiveStatus } from '@ogden/shared';
 import {
   LAUNCH_PREP_STRATUM_ID,
@@ -326,9 +326,6 @@ describe('actMandateModel -- assembleActMandate', () => {
 // ---------------------------------------------------------------------------
 
 describe('actMandateModel -- Amanah', () => {
-  const BANNED =
-    /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
-
   const collectStrings = (value: unknown, sink: string[]): void => {
     if (typeof value === 'string') sink.push(value);
     else if (Array.isArray(value)) value.forEach((v) => collectStrings(v, sink));
@@ -343,7 +340,7 @@ describe('actMandateModel -- Amanah', () => {
     collectStrings(ACT_MANDATE_CONFIGURATION_LABEL, strings);
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(BANNED.test(s), `banned term in: ${s}`).toBe(false);
+      expect(detectCovenantBanned(s), `banned term in: ${s}`).toBe(false);
     }
   });
 });

@@ -12,6 +12,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ProjectMemberRecord } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 import type {
   SharedVision,
   StewardProfile,
@@ -312,15 +313,18 @@ describe('selectTeamRoster -- Amanah wording-pin', () => {
         coreFunctions: ['Grow food'],
       },
     );
+    // Exclude intent[].text: it is the steward's own recorded vision copy passed
+    // through verbatim (statement / constraints / core functions), which may
+    // licitly NAME a covenant term in order to forbid it -- this seed records a
+    // "No riba." constraint. We police the strings the adapter authors: member
+    // and role labels, labour names, and the intent LABELS.
     const corpus = [
       ...model.members.flatMap((m) => [m.name, m.roleLabel]),
       ...model.labour.map((b) => b.name),
-      ...model.intent.flatMap((i) => [i.label, i.text]),
+      ...model.intent.map((i) => i.label),
     ]
       .join(' ')
       .toLowerCase();
-    expect(corpus).not.toMatch(
-      /subscription|presale|advance sale|csa|csra|yield[- ]share/,
-    );
+    expect(detectCovenantBanned(corpus), corpus).toBe(false);
   });
 });

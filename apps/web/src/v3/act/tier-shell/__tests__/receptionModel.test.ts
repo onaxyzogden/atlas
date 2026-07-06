@@ -22,6 +22,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 import {
   TIER_TWO_DISPLAY,
   TIER_ONE_DISPLAY,
@@ -429,9 +430,6 @@ describe('receptionModel -- new-field adapters', () => {
 });
 
 describe('receptionModel -- Amanah wording-pin', () => {
-  const BANNED =
-    /subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share/;
-
   it('carries no advance-sale / subscription / CSA / yield-share framing (Stratum 3)', () => {
     const corpus = [
       ...Object.values(RECEPTION_MODE),
@@ -448,7 +446,7 @@ describe('receptionModel -- Amanah wording-pin', () => {
     ]
       .join(' ')
       .toLowerCase();
-    expect(corpus).not.toMatch(BANNED);
+    expect(detectCovenantBanned(corpus), corpus).toBe(false);
   });
 
   it('the new Tier-1 (Land Reading) copy carries no banned framing', () => {
@@ -463,6 +461,6 @@ describe('receptionModel -- Amanah wording-pin', () => {
     ]
       .join(' ')
       .toLowerCase();
-    expect(corpus).not.toMatch(BANNED);
+    expect(detectCovenantBanned(corpus), corpus).toBe(false);
   });
 });
