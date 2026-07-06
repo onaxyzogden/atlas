@@ -149,6 +149,62 @@ describe('DecisionList -- rows', () => {
   });
 });
 
+describe('DecisionList -- item badges (letters, not 01/02)', () => {
+  it('numbers the checklist rows a, b, c, d (lowercase letters)', () => {
+    renderList();
+    const badges = screen
+      .getAllByTestId('decision-num')
+      .map((b) => b.textContent);
+    expect(badges).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('keeps the letters running continuously across a group divider', () => {
+    // Two groups (g1: i-a, i-b; g2: i-c). With showGroups a divider renders
+    // before the first row of each group, but the badge counter does NOT reset
+    // -- the leaf outline runs a, b, c straight through, so a letter is never
+    // reused across sections (which is what would collide with a "1.3" above).
+    const onSelectItem = vi.fn();
+    render(
+      <DecisionList
+        objective={makeObjective({
+          checklist: [
+            { id: 'i-a', label: 'A', feedsInto: [], optional: false },
+            { id: 'i-b', label: 'B', feedsInto: [], optional: false },
+            { id: 'i-c', label: 'C', feedsInto: [], optional: false },
+          ],
+          decisionGroups: [
+            {
+              id: 'g1',
+              label: 'Title & boundary',
+              itemIds: ['i-a', 'i-b'],
+              observeFeeds: [],
+              sourceSecondaryId: null,
+            },
+            {
+              id: 'g2',
+              label: 'Legal & permit obligations',
+              itemIds: ['i-c'],
+              observeFeeds: [],
+              sourceSecondaryId: null,
+            },
+          ],
+        } as Partial<PlanStratumObjective>)}
+        completedItemIds={[]}
+        selectedItemId={null}
+        onSelectItem={onSelectItem}
+        showGroups
+      />,
+    );
+    // Grouping is active (one divider per group)...
+    expect(screen.getAllByTestId('decision-group')).toHaveLength(2);
+    // ...and the three item badges still read a, b, c in continuous order.
+    const badges = screen
+      .getAllByTestId('decision-num')
+      .map((b) => b.textContent);
+    expect(badges).toEqual(['a', 'b', 'c']);
+  });
+});
+
 describe('DecisionList -- count chip', () => {
   it('reads "{done} / {total} decisions made" with done from completedItemIds', () => {
     renderList({ completedItemIds: ['item-purpose'] });
