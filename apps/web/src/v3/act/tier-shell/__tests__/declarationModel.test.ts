@@ -200,6 +200,38 @@ describe('deriveStratumSequencing', () => {
     expect(seq.next).toEqual({ label: 'Land Reading', status: 'locked' });
   });
 
+  it('appends type-specific stratum-1 objectives not covered by the curated override', () => {
+    // An ecovillage resolves the 4 universal ids plus its OWN s1 ids, which the
+    // curated SEQUENCE_LAYOUT (rf-/res- only) never lists. They must still render
+    // -- appended after the curated waves, not silently dropped.
+    const ecovillage = [
+      obj('s1-vision'),
+      obj('s1-steward'),
+      obj('s1-boundaries'),
+      obj('s1-stakeholders'),
+      obj('ev-s1-legal-governance'),
+      obj('ev-s1-provision-balance'),
+    ];
+    const seq = deriveStratumSequencing(
+      S1,
+      ecovillage,
+      statuses({
+        'ev-s1-legal-governance': 'available',
+        'ev-s1-provision-balance': 'available',
+      }),
+      'Land Reading',
+    );
+
+    // Every resolved objective renders -- 6 nodes, none dropped.
+    const nodes = seq.groups.flatMap((g) => g.nodes);
+    expect(nodes).toHaveLength(6);
+
+    // The two ev-* ids appear, numbered 1.5 / 1.6 after the curated 1.1-1.4.
+    const byId = Object.fromEntries(nodes.map((n) => [n.id, n.display]));
+    expect(byId['ev-s1-legal-governance']).toBe('1.5');
+    expect(byId['ev-s1-provision-balance']).toBe('1.6');
+  });
+
   it('defaults a missing status to locked', () => {
     const seq = deriveStratumSequencing(
       S1,
