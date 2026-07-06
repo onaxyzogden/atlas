@@ -296,6 +296,80 @@ describe('selectTeamRoster -- intent reference', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Provisional rows from metadata.team (the wizard -> 1.2 bridge)
+// ---------------------------------------------------------------------------
+
+describe('selectTeamRoster -- provisional rows from metadata.team', () => {
+  const teamMeta = {
+    primarySteward: { name: 'Ali Rahman', email: 'ali@example.nz' },
+    coStewards: [{ name: 'Noor Said', email: 'noor@example.nz' }],
+    queuedInvites: [
+      {
+        email: 'sam@example.nz',
+        role: 'team_member' as const,
+        queuedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  };
+
+  it('synthesizes an "Awaiting role" provisional row per named person when the roster is empty', () => {
+    const model = selectTeamRoster([], {}, {}, teamMeta);
+    expect(model.rosterSize).toBe(3);
+    expect(model.constitutedCount).toBe(0);
+    expect(model.members.map((m) => m.name)).toEqual(['Ali Rahman', 'Noor Said', 'sam']);
+    expect(model.members.every((m) => m.provisional === true)).toBe(true);
+    expect(model.members.every((m) => m.roleLabel === 'Awaiting role')).toBe(true);
+    expect(model.members.every((m) => m.complete === false)).toBe(true);
+  });
+
+  it('counts provisional rows in rosterSize but never in constitutedCount', () => {
+    const model = selectTeamRoster(
+      [entry({}, { userId: 'u1', email: 'ali@example.nz', operationalRoles: ['food_production'] })],
+      {},
+      {},
+      teamMeta,
+    );
+    // Ali is now account-backed -> his provisional twin is dropped; Noor + sam remain provisional.
+    expect(model.rosterSize).toBe(3);
+    expect(model.constitutedCount).toBe(1);
+    expect(model.members.filter((m) => m.provisional).map((m) => m.name)).toEqual([
+      'Noor Said',
+      'sam',
+    ]);
+  });
+
+  it('de-dupes the same email appearing in both coStewards and queuedInvites', () => {
+    const model = selectTeamRoster([], {}, {}, {
+      coStewards: [{ name: 'Noor', email: 'noor@example.nz' }],
+      queuedInvites: [
+        { email: 'NOOR@example.nz', role: 'team_member' as const, queuedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    });
+    expect(model.rosterSize).toBe(1);
+  });
+
+  it('shows a name-only primary steward (no email to de-dupe on)', () => {
+    const model = selectTeamRoster([], {}, {}, { primarySteward: { name: 'Solo Steward' } });
+    expect(model.rosterSize).toBe(1);
+    expect(model.members[0]?.name).toBe('Solo Steward');
+    expect(model.members[0]?.provisional).toBe(true);
+    expect(model.members[0]?.initials).toBe('SS');
+  });
+
+  it('adds no provisional rows and stays byte-identical when no teamMeta is supplied', () => {
+    const model = selectTeamRoster([entry()], {});
+    expect(model.rosterSize).toBe(1);
+    expect(model.members.every((m) => !m.provisional)).toBe(true);
+  });
+
+  it('adds no labour bars for provisional people (labour comes from the roster join only)', () => {
+    const model = selectTeamRoster([], {}, {}, teamMeta);
+    expect(model.labour).toEqual([]);
+    expect(model.totalWeeklyHours).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Amanah wording-pin
 // ---------------------------------------------------------------------------
 

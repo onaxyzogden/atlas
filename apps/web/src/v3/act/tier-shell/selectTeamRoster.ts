@@ -31,6 +31,7 @@ import {
   OPERATIONAL_ROLE_DEFS,
   operationalRolesApplyTo,
   type OperationalRole,
+  type ProjectMetadata,
 } from '@ogden/shared';
 
 /**
@@ -62,6 +63,14 @@ export interface TeamMemberRow {
    * the full default view. Display-only -- the panel renders chips, never gates.
    */
   operationalRoleLabels: string[];
+  /**
+   * True for a row synthesized from `metadata.team` (the creation wizard's
+   * primary steward / co-stewards / queued invites) rather than an
+   * account-backed member. Provisional rows are counted in `rosterSize` but
+   * never in `constitutedCount`; the panel renders them muted with an
+   * "Awaiting role" label. Absent/false for real members.
+   */
+  provisional?: boolean;
 }
 
 export interface TeamLabourBar {
@@ -165,6 +174,58 @@ function firstNonEmpty(...candidates: Array<string | undefined>): string {
   return '';
 }
 
+/** The wizard-captured team block on the project (Wizard Step 3 / reconcileStewardInvites). */
+export type ProjectTeamMeta = NonNullable<ProjectMetadata['team']>;
+
+/** Lowercased, trimmed email for de-dupe keying (''-safe). */
+function normEmail(email: string | undefined): string {
+  return (email ?? '').trim().toLowerCase();
+}
+
+/**
+ * Synthesize provisional "Awaiting role" rows from the wizard-captured team,
+ * de-duped by normalized email against the account-backed roster (`takenEmails`)
+ * and against earlier provisional rows. A person with no email never de-dupes
+ * (always shown) and is keyed by source index to keep React keys unique.
+ */
+function provisionalRowsFrom(
+  teamMeta: ProjectTeamMeta | undefined,
+  takenEmails: ReadonlySet<string>,
+): TeamMemberRow[] {
+  if (!teamMeta) return [];
+  const sources: Array<{ name?: string; email?: string }> = [];
+  const primary = teamMeta.primarySteward;
+  if (primary && (primary.name || primary.email)) sources.push(primary);
+  for (const co of teamMeta.coStewards ?? []) {
+    if (co.name || co.email) sources.push(co);
+  }
+  for (const inv of teamMeta.queuedInvites ?? []) {
+    sources.push({ name: inv.name, email: inv.email });
+  }
+
+  const seen = new Set<string>(takenEmails);
+  const rows: TeamMemberRow[] = [];
+  sources.forEach((src, i) => {
+    const email = normEmail(src.email);
+    if (email) {
+      if (seen.has(email)) return;
+      seen.add(email);
+    }
+    const name =
+      firstNonEmpty(src.name, src.email ? emailLocalPart(src.email) : undefined) || 'Steward';
+    rows.push({
+      userId: email ? `provisional:${email}` : `provisional:${i}`,
+      name,
+      initials: initialsOf(name),
+      roleLabel: 'Awaiting role',
+      complete: false,
+      operationalRoleLabels: [],
+      provisional: true,
+    });
+  });
+  return rows;
+}
+
 // ---------------------------------------------------------------------------
 // Adapter
 // ---------------------------------------------------------------------------
@@ -179,6 +240,7 @@ export function selectTeamRoster(
   entries: readonly StewardRosterEntry[],
   sharedVision: SharedVision,
   roleLabelMap: OperationalRoleLabelMap = {},
+  teamMeta?: ProjectTeamMeta,
 ): TeamRosterModel {
   // Resolve a single operational-role slug to its display label: project
   // override first (Option C rename), then the built-in label. Unknown / stale
@@ -210,7 +272,14 @@ export function selectTeamRoster(
       operationalRoleLabels,
     };
   });
-  const constitutedCount = members.filter((m) => m.complete).length;
+  // Append provisional rows synthesized from the wizard-captured team, de-duped
+  // by email against the account-backed roster. Counted in rosterSize (below),
+  // never in constitutedCount (they carry complete:false).
+  const accountEmails = new Set(
+    entries.map((e) => normEmail(e.member.email)).filter((v) => v.length > 0),
+  );
+  const allMembers = [...members, ...provisionalRowsFrom(teamMeta, accountEmails)];
+  const constitutedCount = allMembers.filter((m) => m.complete).length;
 
   // ---- labour bars (only stewards who have pledged any weekly hours) ----
   const pledged = entries
@@ -249,8 +318,8 @@ export function selectTeamRoster(
     intent.push({ kind: 'committed', label: INTENT_LABEL.committed, text: committed });
 
   return {
-    members,
-    rosterSize: members.length,
+    members: allMembers,
+    rosterSize: allMembers.length,
     constitutedCount,
     labour,
     totalWeeklyHours,

@@ -329,3 +329,28 @@
   margin-top: 1px;
   color: #6f5598;
 }
+
+/* Provisional roster row -- synthesized from the wizard-captured team, not yet a
+   constituted member. Muted + dashed left rule to read as "pending". */
+.memberRowProvisional {
+  opacity: 0.72;
+  border-left: 2px dashed var(--color-border-subtle, rgba(84, 92, 100, 0.10));
+  padding-left: 6px;
+}
+
+/* Inline "jump to where this is captured" link inside an empty/hint block. Button
+   reset -> text link in the panel accent. */
+.jumpLink {
+  display: inline;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-gold-active, #9a771f);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.jumpLink:hover {
+  color: var(--color-text, #1b1e22);
+}

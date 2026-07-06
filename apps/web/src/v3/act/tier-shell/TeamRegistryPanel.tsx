@@ -31,6 +31,7 @@ import { useMemo } from 'react';
 import { Check, Compass, Database, Lock, Network, Sprout, Users } from 'lucide-react';
 import { useStewardRoster } from '../../observe/modules/human-context/roster.js';
 import { useVisionStore, type SharedVision } from '../../../store/visionStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
 import { useResolvedOperationalRoles } from '../../roles/useResolvedOperationalRoles.js';
 import { tierZeroDisplayFor } from './declarationModel.js';
 import {
@@ -45,6 +46,18 @@ export const TEAM_OBJECTIVE_ID = 's1-steward';
 
 export interface TeamRegistryPanelProps {
   projectId: string;
+  /**
+   * Live jump to another objective (wired to the workbench's onSelectObjective).
+   * Used by the Intent empty-state link to open objective 1.1. When omitted, the
+   * intent jump button is not rendered.
+   */
+  onNavigateObjective?: (objectiveId: string) => void;
+  /**
+   * Live jump to a checklist item within THIS objective (wired to the workbench's
+   * setSelectedItemId). Used by the roster / roles / labour empty-state links.
+   * When omitted, those jump buttons are not rendered.
+   */
+  onSelectItem?: (itemId: string) => void;
 }
 
 /** Stable empty fallback so the SharedVision selector never mints a fresh ref. */
@@ -65,10 +78,19 @@ const INTENT_ICON: Readonly<Record<IntentReferenceKind, typeof Compass>> = {
 
 export default function TeamRegistryPanel({
   projectId,
+  onNavigateObjective,
+  onSelectItem,
 }: TeamRegistryPanelProps): JSX.Element {
   const entries = useStewardRoster(projectId);
   const sharedVision = useVisionStore(
     (s) => s.getVisionData(projectId)?.sharedVision ?? EMPTY_SHARED_VISION,
+  );
+  // Wizard-captured team (primary steward + co-stewards + queued invites). Read
+  // from projectStore -- the same store the wizard/reconcileStewardInvites write
+  // -- so it works offline + authed and stays seedable in the store-direct test.
+  // The find(...) returns an existing nested ref (no fresh object) -> Zustand-safe.
+  const teamMeta = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.team,
   );
   // Project-resolved operational-role labels (Option C rename) so the roster
   // label + chips read this project's vocabulary. Built from the resolved defs,
@@ -80,8 +102,8 @@ export default function TeamRegistryPanel({
     return map;
   }, [defs]);
   const model = useMemo(
-    () => selectTeamRoster(entries, sharedVision, roleLabelMap),
-    [entries, sharedVision, roleLabelMap],
+    () => selectTeamRoster(entries, sharedVision, roleLabelMap, teamMeta),
+    [entries, sharedVision, roleLabelMap, teamMeta],
   );
 
   const display = tierZeroDisplayFor(TEAM_OBJECTIVE_ID)?.display ?? '1.2';
@@ -127,9 +149,14 @@ export default function TeamRegistryPanel({
             {model.members.map((m) => (
               <div
                 key={m.userId}
-                className={css.memberRow}
+                className={
+                  m.provisional
+                    ? `${css.memberRow} ${css.memberRowProvisional}`
+                    : css.memberRow
+                }
                 data-testid={`member-row-${m.userId}`}
                 data-complete={m.complete || undefined}
+                data-provisional={m.provisional || undefined}
               >
                 <span className={css.av} aria-hidden="true">
                   {m.initials}
@@ -157,9 +184,31 @@ export default function TeamRegistryPanel({
                 ) : null}
               </div>
             ))}
+            {onSelectItem && model.members.some((m) => m.provisional) ? (
+              <button
+                type="button"
+                className={css.jumpLink}
+                data-testid="jump-roles"
+                onClick={() => onSelectItem('s1-steward-c2')}
+              >
+                Named at setup -- assign roles below to constitute
+              </button>
+            ) : null}
           </div>
         ) : (
-          <div className={css.empty}>No stewards on the roster yet.</div>
+          <div className={css.empty}>
+            No stewards on the roster yet.
+            {onSelectItem ? (
+              <button
+                type="button"
+                className={css.jumpLink}
+                data-testid="jump-roster"
+                onClick={() => onSelectItem('s1-steward-c1')}
+              >
+                Add stewards below
+              </button>
+            ) : null}
+          </div>
         )}
       </section>
 
@@ -193,7 +242,19 @@ export default function TeamRegistryPanel({
             ))}
           </div>
         ) : (
-          <div className={css.empty}>No weekly hours declared yet.</div>
+          <div className={css.empty}>
+            No weekly hours declared yet.
+            {onSelectItem ? (
+              <button
+                type="button"
+                className={css.jumpLink}
+                data-testid="jump-labour"
+                onClick={() => onSelectItem('s1-steward-c5')}
+              >
+                Record weekly hours below
+              </button>
+            ) : null}
+          </div>
         )}
       </section>
 
@@ -220,7 +281,19 @@ export default function TeamRegistryPanel({
             })}
           </div>
         ) : (
-          <div className={css.empty}>Intent Object not yet declared.</div>
+          <div className={css.empty}>
+            Intent Object not yet declared.
+            {onNavigateObjective ? (
+              <button
+                type="button"
+                className={css.jumpLink}
+                data-testid="jump-intent"
+                onClick={() => onNavigateObjective('s1-vision')}
+              >
+                Declare in Objective 1.1
+              </button>
+            ) : null}
+          </div>
         )}
       </section>
 
