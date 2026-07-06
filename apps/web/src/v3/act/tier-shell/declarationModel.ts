@@ -312,12 +312,24 @@ export function deriveStratumSequencing(
 ): SequencingModel {
   const present = new Set(objectives.map((o) => o.id));
   const override = STRATUM_SEQUENCE_OVERRIDES[stratum.id];
-  const layout = override
-    ? override.map((w) => ({
-        kind: w.kind,
-        ids: w.ids.filter((id) => present.has(id)),
-      }))
-    : deriveWaves(objectives);
+  let layout: Array<{ kind: 'single' | 'parallel'; ids: string[] }>;
+  if (override) {
+    const curated = override.map((w) => ({
+      kind: w.kind,
+      ids: w.ids.filter((id) => present.has(id)),
+    }));
+    // The curated layout only names ids known when it was authored (the universal
+    // core + regen/residential). Any OTHER resolved objective -- e.g. a project
+    // type's own s1 objectives (ev-s1-*, hms-s1-*, ...) -- would otherwise be
+    // silently dropped from the rail. Append the uncovered remainder, sub-waved by
+    // prerequisites, so every resolved objective renders.
+    const placed = new Set(curated.flatMap((w) => w.ids));
+    const leftover = objectives.filter((o) => !placed.has(o.id));
+    layout =
+      leftover.length > 0 ? [...curated, ...deriveWaves(leftover)] : curated;
+  } else {
+    layout = deriveWaves(objectives);
+  }
 
   const groups: SequencingGroup[] = [];
   const presentNodes: SequencingNode[] = [];
