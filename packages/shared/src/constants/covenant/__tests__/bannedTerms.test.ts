@@ -31,6 +31,8 @@ import {
   COVENANT_HARD_BAN,
   COVENANT_CONDITIONAL,
   COVENANT_BANNED_ALL,
+  COVENANT_WORD_TOKENS,
+  COVENANT_SOURCE_GREP_RE,
   detectCovenantBanned,
   matchCovenantBannedTerms,
 } from '../bannedTerms.js';
@@ -165,5 +167,70 @@ describe('matchCovenantBannedTerms — returns the labels that matched', () => {
       expect.arrayContaining(['investor', 'CSA']),
     );
     expect(matchCovenantBannedTerms(text, COVENANT_HARD_BAN)).toEqual(['investor']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Harvested from the parallel "surface-model" covenant implementation and
+// operator-signed 2026-07-05 (three-way adjudication): `gharar` promoted into
+// the hard-ban tier (the module's own doc-comment already named it as a
+// forbidden model but no term matched it), plus two derived exports that let
+// the two remaining inline consumers — the S7 break-even token guard and the
+// showcase source-tree grep — stop maintaining their own drifting copies.
+// ---------------------------------------------------------------------------
+
+describe('gharar — promoted into the hard-ban tier', () => {
+  it('is flagged by the union and by the hard-ban tier', () => {
+    expect(detectCovenantBanned('a contract clouded by gharar')).toBe(true);
+    expect(detectCovenantBanned('a contract clouded by gharar', COVENANT_HARD_BAN)).toBe(true);
+  });
+
+  it('is named by matchCovenantBannedTerms', () => {
+    expect(matchCovenantBannedTerms('riba and gharar together')).toContain('gharar');
+  });
+
+  it('is a bounded whole word — the Sahara stays clean', () => {
+    expect(detectCovenantBanned('the Sahara at dawn')).toBe(false);
+  });
+});
+
+describe('COVENANT_WORD_TOKENS — bare lexemes for includes()-style guards', () => {
+  it('is exactly the unambiguous single-word set {csa, csra, investor, salam}', () => {
+    expect([...COVENANT_WORD_TOKENS].sort()).toEqual(['csa', 'csra', 'investor', 'salam']);
+  });
+
+  it('every token is a lowercase bare lexeme, safe as a raw substring', () => {
+    for (const tok of COVENANT_WORD_TOKENS) {
+      expect(tok).toBe(tok.toLowerCase());
+      expect(tok).toMatch(/^[a-z]+$/);
+    }
+  });
+});
+
+describe('COVENANT_SOURCE_GREP_RE — grep-safe subset for whole-source scans', () => {
+  it('is a case-insensitive, stateless RegExp', () => {
+    expect(COVENANT_SOURCE_GREP_RE).toBeInstanceOf(RegExp);
+    expect(COVENANT_SOURCE_GREP_RE.flags).toContain('i');
+    expect(COVENANT_SOURCE_GREP_RE.global).toBe(false);
+  });
+
+  it('matches the exotic covenant terms that will not collide with identifiers', () => {
+    for (const term of [
+      'CSRA',
+      'salam',
+      'riba',
+      'gharar',
+      'investor',
+      'advance-purchase',
+      'yield-share',
+    ]) {
+      expect(COVENANT_SOURCE_GREP_RE.test(term), term).toBe(true);
+    }
+  });
+
+  it('EXCLUDES common code words that would false-positive across a source tree', () => {
+    for (const word of ['subscription', 'presale', 'advance-sale', 'csa']) {
+      expect(COVENANT_SOURCE_GREP_RE.test(word), word).toBe(false);
+    }
   });
 });

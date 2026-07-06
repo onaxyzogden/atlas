@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { execSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { COVENANT_SOURCE_GREP_RE } from '@ogden/shared';
 
 // Resolve repo root from this test file location:
 // __tests__ -> showcase -> src -> web -> apps -> <repo root>
@@ -25,8 +26,12 @@ const REPO_ROOT_OK = existsSync(path.join(REPO_ROOT, 'apps', 'web'));
 // Instead we use `git ls-files` (cross-platform) for the file list and read +
 // regex-match in pure JS.
 
-const FORBIDDEN_PATTERN =
-  /CSRA|advance.purchase|yield.share|salam|riba|gharar|\binvestor\b|\bROI\b/i;
+// The exotic covenant terms come from the shared `COVENANT_SOURCE_GREP_RE`
+// source of truth (CSRA / salam / riba / gharar / investor / advance-purchase /
+// yield-share) so this scan never drifts from the canonical set. We append
+// `\bROI\b`, which the shared grep set omits as too identifier-collision-prone
+// for a general source scan but which is legitimately forbidden in showcase copy.
+const FORBIDDEN_PATTERN = new RegExp(`${COVENANT_SOURCE_GREP_RE.source}|\\bROI\\b`, 'i');
 
 describe('covenant: forbidden vocab is absent from showcase tree', () => {
   it('repo root resolves correctly', () => {

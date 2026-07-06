@@ -30,6 +30,14 @@
  * "shares" / "interest" / "dividend" / "equity", which carry licit meanings and
  * would false-positive.
  *
+ * 2026-07-05 (three-way adjudication of the parallel covenant implementations):
+ * `gharar` promoted into hard-ban — the header above already named it as a
+ * forbidden model, but no term actually matched it — and two derived exports
+ * added so the last two inline consumers stop maintaining drifting copies:
+ * `COVENANT_WORD_TOKENS` (bare lexemes for `includes()`-style guards, e.g. the
+ * S7 break-even test) and `COVENANT_SOURCE_GREP_RE` (the grep-safe subset for
+ * whole-source scans, e.g. the showcase guard). Operator-confirmed before merge.
+ *
  * Permitted capital channels (never banned, named here for the reviewer):
  * charitable donation, restricted donation, qard ḥasan (interest-free loan),
  * in-kind contribution, sponsorship.
@@ -44,6 +52,19 @@ export interface CovenantBannedTerm {
   readonly pattern: RegExp;
   /** One line on why it is forbidden — for the reviewer and the Scholar Council. */
   readonly rationale: string;
+  /**
+   * A bare lowercase lexeme, set only on short, unambiguous single words that
+   * are safe to test as a raw substring (`text.includes(token)`). Feeds
+   * `COVENANT_WORD_TOKENS`, the list the S7 break-even guard scans with.
+   */
+  readonly token?: string;
+  /**
+   * True when the term is "exotic" enough to appear in a whole-source-tree grep
+   * without matching ordinary identifiers. Feeds `COVENANT_SOURCE_GREP_RE`, the
+   * union the showcase source scan uses. Deliberately unset for common code
+   * words (csa / subscription / presale / advance-sale) that would false-positive.
+   */
+  readonly grepSafe?: boolean;
 }
 
 /**
@@ -59,16 +80,28 @@ export const COVENANT_HARD_BAN: readonly CovenantBannedTerm[] = [
     label: 'CSRA',
     pattern: /\bCSRA\b/i,
     rationale: 'the "Community-Supported Regenerative Agriculture" brand, erased on fiqh grounds 2026-05-04',
+    token: 'csra',
+    grepSafe: true,
   },
   {
     label: 'salam',
     pattern: /\bsalam\b/i,
     rationale: 'salam is an advance-purchase contract; not a permitted MTC capital channel',
+    token: 'salam',
+    grepSafe: true,
   },
   {
     label: 'riba',
     pattern: /\briba\b/i,
     rationale: 'interest — categorically forbidden',
+    grepSafe: true,
+  },
+  {
+    label: 'gharar',
+    pattern: /\bgharar\b/i,
+    rationale:
+      'excessive contractual uncertainty — categorically forbidden (harvested from the parallel surface-model impl, operator-signed 2026-07-05)',
+    grepSafe: true,
   },
   {
     label: 'usury',
@@ -84,6 +117,8 @@ export const COVENANT_HARD_BAN: readonly CovenantBannedTerm[] = [
     label: 'investor',
     pattern: /\binvestor/i,
     rationale: 'forbidden public label; capital contributors are "capital partners & allies"',
+    token: 'investor',
+    grepSafe: true,
   },
   {
     label: 'equity-stake',
@@ -109,6 +144,7 @@ export const COVENANT_HARD_BAN: readonly CovenantBannedTerm[] = [
     label: 'advance-purchase',
     pattern: /advance[- ]purchase/i,
     rationale: 'purchase of what the seller does not yet possess (bayʿ mā laysa ʿindak)',
+    grepSafe: true,
   },
   {
     label: 'presale',
@@ -131,6 +167,7 @@ export const COVENANT_CONDITIONAL: readonly CovenantBannedTerm[] = [
     label: 'CSA',
     pattern: /\bcsa\b/i,
     rationale: 'community-supported-agriculture abbreviation; may be named in a scopeNote to forbid it',
+    token: 'csa',
   },
   {
     label: 'subscription',
@@ -141,6 +178,7 @@ export const COVENANT_CONDITIONAL: readonly CovenantBannedTerm[] = [
     label: 'yield-share',
     pattern: /yield[- ]share/i,
     rationale: 'contemplated only as a future membership benefit under Scholar-Council review',
+    grepSafe: true,
   },
 ];
 
@@ -149,6 +187,33 @@ export const COVENANT_BANNED_ALL: readonly CovenantBannedTerm[] = [
   ...COVENANT_HARD_BAN,
   ...COVENANT_CONDITIONAL,
 ];
+
+/**
+ * Bare single-word lexemes — the `token` of every term that carries one — for
+ * consumers that scan with `text.includes(token)` rather than a RegExp (the S7
+ * break-even covenant guard). Only short, unambiguous words safe as a raw
+ * substring appear here: `csra`, `salam`, `investor`, `csa`.
+ */
+export const COVENANT_WORD_TOKENS: readonly string[] = COVENANT_BANNED_ALL
+  .map((t) => t.token)
+  .filter((tok): tok is string => tok != null);
+
+/**
+ * One case-insensitive, stateless RegExp unioning every `grepSafe` term, for
+ * whole-source-tree scans (the showcase covenant guard) where matching an
+ * ordinary identifier would be a false positive. The common code words
+ * (csa / subscription / presale / advance-sale) are deliberately excluded; the
+ * "exotic" terms (CSRA, salam, riba, gharar, investor, advance-purchase,
+ * yield-share) are kept. Consumers may append their own extra alternatives onto
+ * `.source` (e.g. the showcase guard adds `\bROI\b`).
+ */
+export const COVENANT_SOURCE_GREP_RE: RegExp = new RegExp(
+  COVENANT_BANNED_ALL
+    .filter((t) => t.grepSafe)
+    .map((t) => t.pattern.source)
+    .join('|'),
+  'i',
+);
 
 /**
  * The labels of every banned term appearing in `text` (empty array = clean).

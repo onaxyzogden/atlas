@@ -11,6 +11,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
+import { COVENANT_WORD_TOKENS } from '@ogden/shared';
 
 import type { FinancialModel } from '../../../../features/financial/engine/types.js';
 import type { ProjectBreakEven } from '../../../../features/financial/engine/computeProjectBreakEven.js';
@@ -32,17 +33,19 @@ vi.mock('../../../../features/financial/engine/assembleFinancialInputs.js', () =
 import BreakEvenWidget from '../formula-widgets/BreakEvenWidget.js';
 import { FORMULA_CATALOG } from '../formulaCatalog.js';
 
-/** Tokens that would betray advance-sale / riba-adjacent / ROI framing. */
+/**
+ * Tokens that would betray advance-sale / riba-adjacent / ROI framing. The
+ * covenant lexemes (csra / salam / investor / csa) come from the shared
+ * `COVENANT_WORD_TOKENS` source of truth so this guard never drifts from the
+ * canonical set; the rest are surface-specific break-even tokens.
+ */
 const FORBIDDEN = [
+  ...COVENANT_WORD_TOKENS,
   'tenyearroi',
   'roi',
-  'investor',
-  'yield',
   'offer',
+  'yield',
   'advance',
-  'salam',
-  'csra',
-  'csa',
 ];
 
 function assertClean(text: string): void {
