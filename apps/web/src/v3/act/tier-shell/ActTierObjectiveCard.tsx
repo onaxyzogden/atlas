@@ -40,10 +40,11 @@ interface Props {
   // renders only when a caller supplies it — e.g. the search rail, where results
   // span strata and the eyebrow ("S2 · ...") disambiguates each match.
   eyebrow?: string;
-  // 1-based position in the rendered list — drives the numbered badge
-  // (01, 02, ...). The scoped rail numbers its in-focus and out-of-focus groups
-  // independently, so this restarts per rendered sub-list. Omitted ⇒ no badge.
-  index?: number;
+  // Presentation number for the objective badge, e.g. "1.3" (stratum ordinal
+  // "." position). Sourced from deriveObjectiveDisplayMap so it matches the
+  // sequencing rail exactly and is stable per objective id (not per render
+  // position). Omitted -> no badge.
+  displayNumber?: string;
   progress: ObjectiveProgress;
   isActive: boolean;
   onSelect: () => void;
@@ -60,7 +61,7 @@ interface Props {
 export default function ActTierObjectiveCard({
   objective,
   eyebrow,
-  index,
+  displayNumber,
   progress,
   isActive,
   onSelect,
@@ -132,9 +133,13 @@ export default function ActTierObjectiveCard({
         </span>
       )}
       <div className={styles.objHead}>
-        {typeof index === 'number' ? (
-          <span className={styles.objNum} aria-hidden="true">
-            {String(index).padStart(2, '0')}
+        {displayNumber != null ? (
+          <span
+            className={styles.objNum}
+            data-testid="objective-num"
+            aria-hidden="true"
+          >
+            {displayNumber}
           </span>
         ) : null}
         <div className={styles.objHeadMain}>

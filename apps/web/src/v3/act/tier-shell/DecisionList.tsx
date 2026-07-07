@@ -577,8 +577,12 @@ export default function DecisionList({
                     }
                   }}
                 >
-                  <span className={css.dNum} aria-hidden="true">
-                    {String(i + 1).padStart(2, '0')}
+                  <span
+                    className={css.dNum}
+                    data-testid="decision-num"
+                    aria-hidden="true"
+                  >
+                    {i < 26 ? String.fromCharCode(97 + i) : String(i + 1)}
                   </span>
                   <span
                     className={css.dCirc}
