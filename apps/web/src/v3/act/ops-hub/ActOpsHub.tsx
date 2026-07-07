@@ -24,7 +24,11 @@
 
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { getObjectiveObserveDomains, type UniversalDomain } from '@ogden/shared';
+import {
+  computeAllObjectiveStatuses,
+  getObjectiveObserveDomains,
+  type UniversalDomain,
+} from '@ogden/shared';
 import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
 import StageShell from '../../_shell/StageShell.js';
 import { useV3Project } from '../../data/useV3Project.js';
@@ -32,6 +36,7 @@ import { useViewScope } from '../../roles/useViewScope.js';
 import RoleFocusControl from '../../roles/RoleFocusControl.js';
 import type { SectionRoleScope } from '../../roles/viewScope.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
+import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import QuickActions from '../ops/QuickActions.js';
 import CreateFieldTaskDialog from '../../components/CreateFieldTaskDialog.js';
@@ -43,6 +48,8 @@ import ActWorkCategoryGrid from './ActWorkCategoryGrid.js';
 import ActOpsHubTaskList, { type MetricKey } from './ActOpsHubTaskList.js';
 import ActOpsHubMapPanel from './ActOpsHubMapPanel.js';
 import ActTaskWalkthrough from './ActTaskWalkthrough.js';
+import { selectObjective } from './objectiveSelection.js';
+import { toast } from '../../../components/Toast.js';
 import css from './ActOpsHub.module.css';
 
 const FALLBACK_CENTER: [number, number] = [-78.2, 44.5];
@@ -64,14 +71,21 @@ export default function ActOpsHub() {
     [projects, params.projectId],
   );
 
-  // Pin / category click selects an objective by routing to act/ops/$objectiveId
-  // (deep-link parity; the walkthrough drawer that reads this param lands in
-  // Phase 3). The route's beforeLoad redirects locked objectives back here.
+  // Pin / category / search click selects an objective. H6 (deep-audit
+  // 2026-07-03): a locked objective is blocked here with feedback rather than
+  // routed into act/ops/$objectiveId, whose beforeLoad would bounce it straight
+  // back to the bare hub — a silent dead-click. Openable objectives deep-link as
+  // before (the walkthrough drawer that reads this param lands in Phase 3).
+  // `objectiveStatuses` is computed below; this handler only runs on click, well
+  // after render, so the forward reference is resolved by the time it fires.
   const handleSelectObjective = (objectiveId: string) => {
-    if (!params.projectId) return;
-    navigate({
-      to: '/v3/project/$projectId/act/ops/$objectiveId',
-      params: { projectId: params.projectId, objectiveId },
+    selectObjective(objectiveId, params.projectId, objectiveStatuses, {
+      open: (projectId, id) =>
+        navigate({
+          to: '/v3/project/$projectId/act/ops/$objectiveId',
+          params: { projectId, objectiveId: id },
+        }),
+      locked: () => toast.warning('Locked until its prerequisites are complete.'),
     });
   };
 
@@ -119,6 +133,18 @@ export default function ActOpsHub() {
   // across scope changes (depends only on the objectives), so the task-list
   // sections don't re-partition when the viewer merely flips My-focus/Full view.
   const { objectives } = useProjectObjectives(project.id);
+
+  // H6 (deep-audit 2026-07-03): prereq-aware status for every objective, derived
+  // the SAME way the walkthrough route, the hub search, and the tier-shell rail
+  // derive it (effective checklist progress -> computeAllObjectiveStatuses), so
+  // every surface agrees on what is openable. handleSelectObjective consults this
+  // before navigating.
+  const effectiveProgress = useEffectiveChecklistProgress(project.id, objectives);
+  const objectiveStatuses = useMemo(
+    () => computeAllObjectiveStatuses(objectives, effectiveProgress.flatMap),
+    [objectives, effectiveProgress],
+  );
+
   const domainsByObjective = useMemo(() => {
     const m = new Map<string, readonly UniversalDomain[]>();
     for (const o of objectives) m.set(o.id, getObjectiveObserveDomains(o));

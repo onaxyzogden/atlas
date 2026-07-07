@@ -33,3 +33,14 @@
   color: #d97757;
   border-color: rgba(217, 119, 87, 0.4);
 }
+
+/* Dropped-op state (H2): the pill becomes a link to /conflicts — keep the
+   pill look (error palette above), add link affordance only. */
+a.syncIndicator {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.syncIndicator[data-dropped='true']:hover {
+  background: rgba(217, 119, 87, 0.3);
+}

@@ -19,6 +19,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -357,8 +358,6 @@ describe('ReceptionCenter -- Amanah wording-pin (rendered DOM)', () => {
     const text = (
       screen.getByTestId('reception-center').textContent ?? ''
     ).toLowerCase();
-    expect(text).not.toMatch(
-      /subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[- ]share/,
-    );
+    expect(detectCovenantBanned(text), text).toBe(false);
   });
 });

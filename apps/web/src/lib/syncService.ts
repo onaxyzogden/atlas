@@ -656,7 +656,8 @@ async function syncProjectDelete(project: LocalProject) {
  * deterministic: retrying the identical geometry can never succeed, so the op
  * must NOT be re-queued (it would spin to MAX_RETRIES for nothing). Instead
  * the record is kept locally and the rejection is surfaced through the same
- * dropped-op Connectivity badge + toast the circuit-breaker uses, naming the
+ * dropped-op pill (header ProofSyncIndicator → Sync Conflicts page) + toast
+ * the circuit-breaker uses, naming the
  * violated rules. Returns true when the error was consumed — the handler
  * returns without enqueueing or rethrowing, so a queued op is dequeued.
  */
@@ -686,7 +687,7 @@ function handlePlacementViolation(
     toast.error(
       `The server placement guard rejected this ${storeType}` +
         (messages ? ` — ${messages}.` : '.') +
-        ` It is kept on this device — see Connectivity.`,
+        ` It is kept on this device — see Sync Conflicts.`,
     );
   }
   return true;
@@ -1365,7 +1366,7 @@ export interface StateBlobOpPayload {
 }
 
 /**
- * Surface a store-level sync conflict: badge it in the Connectivity panel and
+ * Surface a store-level sync conflict: record it in `conflictedStores` and
  * warn the user at most once per newly-conflicted store. The local copy is
  * NEVER clobbered back — the reconcile is the user's (Phase 4 owns the
  * Keep-mine/Keep-server resolution UI). Shared by the blob and typed-record
@@ -1378,7 +1379,7 @@ function surfaceStoreConflict(storeKey: string): void {
     conn.addConflictedStore(storeKey);
     toast.warning(
       `A change to "${storeKey}" conflicts with a newer version on ` +
-        `the server. Your local copy is kept — review it in Connectivity.`,
+        `the server. Your local copy is kept — review it under Sync Conflicts.`,
     );
   }
 }
@@ -2613,9 +2614,10 @@ function subscribeTypedRecords(): () => void {
 /**
  * Called when the queue gives up on an op after MAX_RETRIES. The op is already
  * dropped from the queue by this point; this surfaces the give-up so a
- * permanently-failing write is visible to the steward (Connectivity badge +
- * one toast per distinct op) rather than vanishing silently. This is the
- * circuit-breaker's payoff: failures now count, back off, and surface.
+ * permanently-failing write is visible to the steward (persistent header pill
+ * → Sync Conflicts dropped-changes section + one toast per distinct op)
+ * rather than vanishing silently. This is the circuit-breaker's payoff:
+ * failures now count, back off, and surface (H2, deep-audit 2026-07-03).
  */
 export function handleExhaustedOp(op: QueuedOperation): void {
   console.error(
@@ -2628,7 +2630,7 @@ export function handleExhaustedOp(op: QueuedOperation): void {
     toast.error(
       `A change (${op.storeType} ${op.action}) could not be saved to the ` +
         `server after several retries. It is kept on this device — see ` +
-        `Connectivity.`,
+        `Sync Conflicts.`,
     );
   }
 }

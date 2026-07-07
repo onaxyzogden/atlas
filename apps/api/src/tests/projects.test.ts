@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { mockDb, enqueue, clearQueue } from './helpers/testApp.js';
-import { TEST_USER_ID, TEST_EMAIL, TEST_PROJ_ID, FAKE_ID, projectRow } from './helpers/fixtures.js';
+import { TEST_USER_ID, TEST_USER_ID_2, TEST_EMAIL, TEST_PROJ_ID, FAKE_ID, projectRow } from './helpers/fixtures.js';
 
 // ─── Module mocks ───
 vi.mock('../plugins/database.js', async () => {
@@ -212,6 +212,26 @@ describe('PATCH /api/v1/projects/:id/operational-role-defs', () => {
     // handler maps to 422 VALIDATION_ERROR (app.ts:191-192) — the same contract
     // as any other malformed body on this API.
     expect(res.statusCode).toBe(422);
+  });
+
+  it('returns 403 for a team_member (role gate is owner-only)', async () => {
+    // resolveProjectRole: owner shortcut misses (foreign owner_id), falls
+    // through to the project_members lookup which grants team_member —
+    // an edit-capable role that does NOT satisfy requireRole('owner')
+    // (team_member aliases to designer, projectRoleCapabilities.ts).
+    enqueue(projectRow({ owner_id: TEST_USER_ID_2 }));
+    enqueue({ role: 'team_member' });
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/operational-role-defs`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        operationalRoleDefs: [{ slug: 'food_production', label: 'Grower' }],
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
   });
 
   it('returns 401 without auth', async () => {

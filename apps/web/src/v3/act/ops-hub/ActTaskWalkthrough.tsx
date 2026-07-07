@@ -19,7 +19,7 @@
  * objectives away, so anything that reaches here is openable.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { X } from 'lucide-react';
 import {
   PLAN_STRATA,
@@ -27,6 +27,7 @@ import {
   type PlanStratum,
   type PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { useFocusTrap } from '../../../components/ui/useFocusTrap.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import ActTierExecutionPanel from '../tier-shell/ActTierExecutionPanel.js';
@@ -50,6 +51,12 @@ export default function ActTaskWalkthrough({
     () => objectives.find((o) => o.id === objectiveId) ?? null,
     [objectives, objectiveId],
   );
+
+  // aria-modal without a trap strands keyboard/screen-reader users behind the
+  // scrim. Same primitive as Modal/SlideUpPanel: initial focus, Tab wrap,
+  // Escape closes, focus restored to the opener on close.
+  const drawerRef = useRef<HTMLElement | null>(null);
+  useFocusTrap(drawerRef, objective !== null, { onEscape: onClose });
 
   const tier = useMemo<PlanStratum | undefined>(
     () =>
@@ -83,7 +90,7 @@ export default function ActTaskWalkthrough({
         aria-label="Close walkthrough"
         onClick={onClose}
       />
-      <aside className={css.drawer}>
+      <aside ref={drawerRef} className={css.drawer}>
         <header className={css.head}>
           <div className={css.headText}>
             <span className={css.eyebrow}>Walkthrough</span>

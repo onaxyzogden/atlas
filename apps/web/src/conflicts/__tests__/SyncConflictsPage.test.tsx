@@ -26,6 +26,7 @@ vi.mock('../../lib/syncService.js', () => ({
 
 import SyncConflictsPage from '../SyncConflictsPage.js';
 import { listRecordConflicts, resolveRecordConflict } from '../../lib/syncService.js';
+import { useConnectivityStore } from '../../store/connectivityStore.js';
 
 const mockList = vi.mocked(listRecordConflicts);
 const mockResolve = vi.mocked(resolveRecordConflict);
@@ -146,5 +147,50 @@ describe('SyncConflictsPage', () => {
     render(<SyncConflictsPage />);
     expect(await screen.findByText(/network down/i)).toBeTruthy();
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy();
+  });
+});
+
+describe('SyncConflictsPage -- dropped changes (H2, deep-audit 2026-07-03)', () => {
+  // A dropped op left the sync queue for good (MAX_RETRIES exhausted, or a
+  // deterministic server rejection). The only remaining record is
+  // connectivityStore.droppedStores — this page is the surface the header
+  // pill links to, so it must list them with honest copy and a dismiss.
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockList.mockResolvedValue([]);
+    useConnectivityStore.setState({ droppedStores: [] });
+  });
+  afterEach(() => {
+    cleanup();
+    useConnectivityStore.setState({ droppedStores: [] });
+  });
+
+  it('renders no dropped-changes section when nothing was dropped', async () => {
+    render(<SyncConflictsPage />);
+    await screen.findByText(/No open conflicts/i);
+    expect(screen.queryByText(/Dropped changes/i)).toBeNull();
+  });
+
+  it('lists each dropped op parsed from its storeType:action:localId key', async () => {
+    useConnectivityStore.setState({
+      droppedStores: ['zone:create:z1', 'action:update:a-2:b'],
+    });
+    render(<SyncConflictsPage />);
+    expect(await screen.findByText(/Dropped changes/i)).toBeTruthy();
+    expect(screen.getByText(/zone/)).toBeTruthy();
+    expect(screen.getByText(/z1/)).toBeTruthy();
+    // localId may itself contain ':' — everything after the second colon.
+    expect(screen.getByText(/a-2:b/)).toBeTruthy();
+    // Honest copy: kept on this device, will not retry by itself. Appears in
+    // the section lede and again on each row — assert at least one.
+    expect(screen.getAllByText(/kept on this device/i).length).toBeGreaterThan(0);
+  });
+
+  it('dismisses a dropped op via clearDroppedStore and removes its row', async () => {
+    useConnectivityStore.setState({ droppedStores: ['zone:create:z1'] });
+    render(<SyncConflictsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: /dismiss/i }));
+    expect(useConnectivityStore.getState().droppedStores).toEqual([]);
+    await waitFor(() => expect(screen.queryByText(/z1/)).toBeNull());
   });
 });

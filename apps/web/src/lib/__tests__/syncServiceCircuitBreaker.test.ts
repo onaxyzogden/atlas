@@ -177,5 +177,10 @@ describe('handleExhaustedOp: surface the give-up once', () => {
     handleExhaustedOp(dropped); // dedupe
     expect(useConnectivityStore.getState().droppedStores).toEqual(['zone:create:z1']);
     expect(toastError).toHaveBeenCalledTimes(1);
+    // H2 copy fix: the toast must point at a surface that actually exists
+    // (the Sync Conflicts page the header pill links to), not the unmounted
+    // "Connectivity" panel.
+    expect(toastError).toHaveBeenCalledWith(expect.stringContaining('Sync Conflicts'));
+    expect(toastError).not.toHaveBeenCalledWith(expect.stringMatching(/see Connectivity/));
   });
 });

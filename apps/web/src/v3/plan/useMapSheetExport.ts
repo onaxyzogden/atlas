@@ -10,6 +10,10 @@
 import { useCallback, useState } from "react";
 import type { maplibregl } from "../../lib/maplibre.js";
 import { api } from "../../lib/apiClient.js";
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from "../../hooks/useServerProjectId.js";
 import { useZoneStore } from "../../store/zoneStore.js";
 import { usePolycultureStore } from "../../store/polycultureStore.js";
 import { useCropStore } from "../../store/cropStore.js";
@@ -26,12 +30,18 @@ export interface UseMapSheetExport {
   error: string | null;
   downloadUrl: string | null;
   handleExport: (type: SheetExportType) => Promise<void>;
+  /** False while the project is local-only (no serverId yet) — the exports
+   *  API addresses the SERVER UUID, so consumers disable their trigger. */
+  canExport: boolean;
 }
 
 export function useMapSheetExport(
   map: maplibregl.Map,
   projectId: string,
 ): UseMapSheetExport {
+  // The rail passes the LOCAL project id; the exports API wants the SERVER
+  // UUID (H4, deep-audit 2026-07-03). Null → not yet synced → cannot export.
+  const serverProjectId = useServerProjectId(projectId);
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === projectId);
   const guilds = usePolycultureStore((s) => s.guilds).filter((g) => g.projectId === projectId);
   const cropAreas = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === projectId);
@@ -42,6 +52,10 @@ export function useMapSheetExport(
 
   const handleExport = useCallback(
     async (type: SheetExportType) => {
+      if (serverProjectId === null) {
+        setError(NOT_SYNCED_EXPORT_TITLE);
+        return;
+      }
       setGeneratingType(type);
       setError(null);
       setDownloadUrl(null);
@@ -55,7 +69,7 @@ export function useMapSheetExport(
                 buildPlantingSchedule(guilds, cropAreas),
               )
             : buildMapSheetPayload(type, captured, zones);
-        const { data } = await api.exports.generate(projectId, {
+        const { data } = await api.exports.generate(serverProjectId, {
           exportType: type,
           payload,
         });
@@ -66,8 +80,14 @@ export function useMapSheetExport(
         setGeneratingType(null);
       }
     },
-    [map, projectId, zones, guilds, cropAreas],
+    [map, serverProjectId, zones, guilds, cropAreas],
   );
 
-  return { generatingType, error, downloadUrl, handleExport };
+  return {
+    generatingType,
+    error,
+    downloadUrl,
+    handleExport,
+    canExport: serverProjectId !== null,
+  };
 }

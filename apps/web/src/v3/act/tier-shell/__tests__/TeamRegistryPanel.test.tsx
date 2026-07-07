@@ -19,6 +19,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ProjectMemberRecord } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 
 // The panel reads project-resolved operational-role labels via
 // useResolvedOperationalRoles, which wraps the React-Query `useProject` hook.
@@ -248,12 +249,19 @@ describe('TeamRegistryPanel -- Amanah wording-pin (rendered DOM)', () => {
       },
     );
     render(<TeamRegistryPanel projectId={PROJECT_ID} />);
-    const text = (
-      screen.getByTestId('team-registry-panel').textContent ?? ''
-    ).toLowerCase();
-    expect(text).not.toMatch(
-      /subscription|presale|advance sale|csa|csra|yield[- ]share/,
-    );
+    // The steward's recorded vision reaches the intent-* reference rows verbatim
+    // (this seed records a "No riba." constraint -- forbidding copy that licitly
+    // names the term). Exclude those rows and scan the panel chrome against the
+    // shared covenant union, policing what the panel authors, not the steward's
+    // own words. (The empty-state "jump-intent" button starts with "jump-", so
+    // the intent-* prefix selector leaves panel chrome intact.)
+    const panel = screen.getByTestId('team-registry-panel');
+    const chrome = panel.cloneNode(true) as HTMLElement;
+    chrome
+      .querySelectorAll('[data-testid^="intent-"]')
+      .forEach((node) => node.remove());
+    const text = (chrome.textContent ?? '').toLowerCase();
+    expect(detectCovenantBanned(text), text).toBe(false);
   });
 });
 

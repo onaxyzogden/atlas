@@ -39,6 +39,7 @@ import type { DesignElement } from '../../../store/designElementsStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useMapSheetExport } from '../useMapSheetExport.js';
+import { NOT_SYNCED_EXPORT_TITLE } from '../../../hooks/useServerProjectId.js';
 import { SHEET_EXPORTS, SHEET_LABEL } from '../MapSheetExportControl.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../app/demoSession.js';
 import css from './DesignToolRail.module.css';
@@ -122,7 +123,7 @@ export default function DesignToolRail({
   // Captured-map PDF export — shares the orchestration with the legacy
   // floating MapSheetExportControl via this hook. Open/close lives here so the
   // export popover coordinates with the Layers popover (mutually exclusive).
-  const { generatingType, error: exportError, downloadUrl, handleExport } =
+  const { generatingType, error: exportError, downloadUrl, handleExport, canExport } =
     useMapSheetExport(map, projectId);
 
   const zoomIn = () => map.zoomIn();
@@ -364,7 +365,10 @@ export default function DesignToolRail({
       {!DEMO_OFFLINE_ENABLED && (
         <>
           <div className={css.divider} aria-hidden="true" />
-          <DelayedTooltip label="Export sheet" position="left">
+          <DelayedTooltip
+            label={canExport ? "Export sheet" : NOT_SYNCED_EXPORT_TITLE}
+            position="left"
+          >
             <button
               type="button"
               className={css.btn}
@@ -373,7 +377,7 @@ export default function DesignToolRail({
                 setExportOpen((o) => !o);
                 setLayersOpen(false);
               }}
-              disabled={generatingType !== null}
+              disabled={generatingType !== null || !canExport}
               aria-label="Export sheet"
               aria-haspopup="menu"
               aria-expanded={exportOpen}

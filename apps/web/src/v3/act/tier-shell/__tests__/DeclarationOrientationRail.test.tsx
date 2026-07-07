@@ -19,6 +19,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { detectCovenantBanned } from '@ogden/shared';
 
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -160,8 +161,6 @@ describe('DeclarationOrientationRail -- Amanah wording-pin (rendered DOM)', () =
     const text = (
       screen.getByTestId('declaration-orientation-rail').textContent ?? ''
     ).toLowerCase();
-    expect(text).not.toMatch(
-      /subscription|presale|advance sale|csa|csra|yield[- ]share/,
-    );
+    expect(detectCovenantBanned(text), text).toBe(false);
   });
 });

@@ -16,6 +16,10 @@ import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import { api } from '../../../../lib/apiClient.js';
 import { DEMO_OFFLINE_ENABLED } from '../../../../app/demoSession.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../../../hooks/useServerProjectId.js';
 import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
@@ -48,6 +52,9 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
 export default function SectorsDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
+  // The exports API addresses the SERVER project UUID; `id` is the local
+  // store id (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(id);
   const project = useV3Project(id);
 
   const allSectors = useExternalForcesStore((s) => s.sectors);
@@ -76,11 +83,11 @@ export default function SectorsDashboard() {
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || serverProjectId === null) return;
     setExporting(true);
     try {
       const totalAreaM2 = zones.reduce((acc, z) => acc + (z.areaM2 || 0), 0);
-      const { data } = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'sectors_zones_report',
         payload: {
           sectorsZones: {
@@ -188,7 +195,8 @@ export default function SectorsDashboard() {
           type="button"
           className={card.btn}
           onClick={handleExport}
-          disabled={exporting || DEMO_OFFLINE_ENABLED}
+          disabled={exporting || DEMO_OFFLINE_ENABLED || serverProjectId === null}
+          title={!DEMO_OFFLINE_ENABLED && serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {exporting ? 'Generating…' : 'Export sectors report'}

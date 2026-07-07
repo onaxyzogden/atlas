@@ -6,6 +6,10 @@
 import { useEffect, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { api } from '../../lib/apiClient.js';
+import {
+  useServerProjectId,
+  NOT_SYNCED_EXPORT_TITLE,
+} from '../../hooks/useServerProjectId.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -50,12 +54,16 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle');
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The exports API addresses the SERVER project UUID; the local store id
+  // 404s (H4, deep-audit 2026-07-03). Null → not yet synced → disable.
+  const serverProjectId = useServerProjectId(project.id);
 
   const handleGenerate = async () => {
+    if (serverProjectId === null) return;
     setStatus('generating');
     setError(null);
     try {
-      const { data } = await api.exports.generate(project.id, {
+      const { data } = await api.exports.generate(serverProjectId, {
         exportType: 'educational_booklet',
       });
       setDownloadUrl(data.storageUrl);
@@ -84,7 +92,9 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             {status === 'idle' && (
               <button
                 onClick={handleGenerate}
-                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: group.reporting, color: semantic.surface, cursor: 'pointer', fontWeight: 500 }}
+                disabled={serverProjectId === null}
+                title={serverProjectId === null ? NOT_SYNCED_EXPORT_TITLE : undefined}
+                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: group.reporting, color: semantic.surface, cursor: serverProjectId === null ? 'not-allowed' : 'pointer', opacity: serverProjectId === null ? 0.5 : 1, fontWeight: 500 }}
               >
                 Generate PDF
               </button>

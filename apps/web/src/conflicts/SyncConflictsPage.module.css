@@ -1,8 +1,8 @@
 /*
  * ADR 7 Phase 4 — Sync Conflicts surface. Mirrors the PlanConflictsPage bento
  * shell (centered single-column document) and Atlas design tokens. The danger
- * accent (var(--color-danger)) keys the page to the same red as the
- * OfflineBanner conflict badge that links here.
+ * accent (var(--color-danger)) keys the page to the same red the sync
+ * conflict toasts use.
  */
 .page {
   max-width: 960px;
@@ -103,6 +103,15 @@
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   color: var(--color-text);
+}
+
+/* Dropped-changes section lede (H2) -- same voice as .lede, section-scale. */
+.droppedLede {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 72ch;
 }
 
 .cardList {

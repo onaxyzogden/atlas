@@ -1,13 +1,13 @@
 {
   "generatedBy": "scripts/audit-checklist-completion-paths.ts",
   "totals": {
-    "items": 2029,
+    "items": 2042,
     "countsByClassification": {
-      "auto-answer": 4,
-      "auto-formula": 13,
+      "auto-answer": 5,
+      "auto-formula": 14,
       "form-capture": 215,
-      "workbench-capture": 682,
-      "objective-map": 1103,
+      "workbench-capture": 687,
+      "objective-map": 1109,
       "objective-log": 6,
       "objective-flow": 6,
       "no-path": 0
@@ -587,6 +587,14 @@
       "silv-s3-stock-water-availability-c4",
       "silv-s3-stock-water-availability-c5",
       "silv-s3-stock-water-availability-c6"
+    ],
+    "silv-sec-s3-stock-water": [
+      "silv-sec-s3-stock-water-c2",
+      "silv-sec-s3-stock-water-c3",
+      "silv-sec-s3-stock-water-c4",
+      "silv-sec-s3-stock-water-c5",
+      "silv-sec-s3-stock-water-c6",
+      "silv-sec-s3-stock-water-c7"
     ],
     "well-s3-acoustic-conditions": [
       "well-s3-acoustic-conditions-c1",
@@ -2279,6 +2287,60 @@
       "viaToolId": "ev-s1-provision-balance-c6"
     },
     {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c1",
+      "itemLabel": "Map existing relationships between founding members - duration, depth, shared history",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c2",
+      "itemLabel": "Identify prior community or cooperative living experience in the founding group",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c3",
+      "itemLabel": "Record any prior attempts at intentional community on this land or by this group",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c4",
+      "itemLabel": "Assess founding group cohesion - areas of strong alignment and known tension",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c5",
+      "itemLabel": "Identify skills gaps in the founding group - facilitation, building, farming, legal, financial",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "ev-s2-social-fabric",
+      "objectiveRef": "EV-S1.7",
+      "stratumId": "s1-project-foundation",
+      "itemId": "ev-s2-social-fabric-c6",
+      "itemLabel": "Record external community relationships that could support establishment - networks, mentors, advisors",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
       "objectiveId": "hms-s1-household-needs",
       "objectiveRef": "HMS-S1.4",
       "stratumId": "s1-project-foundation",
@@ -3163,7 +3225,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c1",
-      "itemLabel": "Define who will be living on the land - household members, dependents, seasonal residents",
+      "itemLabel": "Identify all residents and their relationship to the project - family, colleagues, long-term, short-term",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3172,7 +3234,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c2",
-      "itemLabel": "List daily domestic needs - drinking water, cooking, sanitation, heating, power, communications",
+      "itemLabel": "Define the private living zone - what areas are reserved for residential use and off-limits to farm operations",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3181,7 +3243,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c3",
-      "itemLabel": "Define food provision intent - what proportion of household food will come from the land",
+      "itemLabel": "Define household food provision goals - what the kitchen garden and resident livestock allocation must reliably supply",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3190,7 +3252,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c4",
-      "itemLabel": "Identify domestic infrastructure required before the land is habitable - dwelling condition, utilities",
+      "itemLabel": "Establish domestic infrastructure requirements - water, energy, waste management, shelter, domestic storage",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3199,7 +3261,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c5",
-      "itemLabel": "Define minimum habitability threshold - what must be in place before the household moves on-site",
+      "itemLabel": "Define the operational boundary between residential life and farm enterprise - where they overlap and where they are separated",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3208,7 +3270,7 @@
       "objectiveRef": "RES-S1.1",
       "stratumId": "s1-project-foundation",
       "itemId": "res-s1-household-needs-c6",
-      "itemLabel": "Record domestic needs that will always be sourced externally",
+      "itemLabel": "Establish household decision-making scope - what decisions belong to the household vs. the farm enterprise governance structure",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -3277,7 +3339,7 @@
       "objectiveRef": "RF-S1.4",
       "stratumId": "s1-project-foundation",
       "itemId": "rf-s1-enterprise-mix-c7",
-      "itemLabel": "Confirm enterprise mix is achievable within Stratum 1 capacity constraints",
+      "itemLabel": "Confirm enterprise mix is achievable within the steward-team capacity constituted in Stratum 1",
       "optional": false,
       "classification": "form-capture",
       "viaToolId": "rf-s1-enterprise-mix-c7"
@@ -3410,6 +3472,79 @@
       "classification": "workbench-capture"
     },
     {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c1",
+      "itemLabel": "List all people contributing to this project - resident and non-resident, primary and supporting",
+      "optional": true,
+      "classification": "auto-answer"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c2",
+      "itemLabel": "Define the role of each person - what they are responsible for on this land",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c3",
+      "itemLabel": "Assign decision rights by domain - who has authority over what",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c4",
+      "itemLabel": "Inventory capabilities by domain for each contributor - what skills each person brings",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c5",
+      "itemLabel": "Record available labour by person - hours per week and seasonal variation across the year",
+      "optional": false,
+      "classification": "form-capture",
+      "viaToolId": "labour-inventory"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c6",
+      "itemLabel": "Record available capital - initial budget, annual operating budget, and funding sources",
+      "optional": false,
+      "classification": "auto-answer"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c7",
+      "itemLabel": "Identify skill gaps and resolution priorities - training, hire, or contract",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "s1-steward",
+      "objectiveRef": "U-S1.4",
+      "stratumId": "s1-project-foundation",
+      "itemId": "s1-steward-c8",
+      "itemLabel": "Note the governance principles and decision-making framework that will govern the team",
+      "optional": false,
+      "classification": "workbench-capture"
+    },
+    {
       "objectiveId": "s1-vision",
       "objectiveRef": "U-S1.1",
       "stratumId": "s1-project-foundation",
@@ -3434,25 +3569,6 @@
       "itemId": "s1-vision-steward",
       "itemLabel": "Confirm the primary steward and any co-stewards for this project",
       "optional": true,
-      "classification": "auto-answer"
-    },
-    {
-      "objectiveId": "s1-vision",
-      "objectiveRef": "U-S1.1",
-      "stratumId": "s1-project-foundation",
-      "itemId": "s1-vision-labour",
-      "itemLabel": "Inventory available labour - hours per week, seasonal variation, skill level",
-      "optional": false,
-      "classification": "form-capture",
-      "viaToolId": "labour-inventory"
-    },
-    {
-      "objectiveId": "s1-vision",
-      "objectiveRef": "U-S1.1",
-      "stratumId": "s1-project-foundation",
-      "itemId": "s1-vision-c3",
-      "itemLabel": "Inventory available capital - initial budget and estimated annual operating budget",
-      "optional": false,
       "classification": "auto-answer"
     },
     {
@@ -4754,60 +4870,6 @@
       "stratumId": "s2-land-reading",
       "itemId": "ev-s2-landscape-vectors-c6",
       "itemLabel": "Assess drinking water catchment contamination risk from surrounding landscape vectors",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c1",
-      "itemLabel": "Map existing relationships between founding members - duration, depth, shared history",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c2",
-      "itemLabel": "Identify prior community or cooperative living experience in the founding group",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c3",
-      "itemLabel": "Record any prior attempts at intentional community on this land or by this group",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c4",
-      "itemLabel": "Assess founding group cohesion - areas of strong alignment and known tension",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c5",
-      "itemLabel": "Identify skills gaps in the founding group - facilitation, building, farming, legal, financial",
-      "optional": false,
-      "classification": "workbench-capture"
-    },
-    {
-      "objectiveId": "ev-s2-social-fabric",
-      "objectiveRef": "EV-S2.8",
-      "stratumId": "s2-land-reading",
-      "itemId": "ev-s2-social-fabric-c6",
-      "itemLabel": "Record external community relationships that could support establishment - networks, mentors, advisors",
       "optional": false,
       "classification": "workbench-capture"
     },
@@ -8870,6 +8932,75 @@
       "itemLabel": "Assess weed and toxic-plant presence relevant to the candidate stock species",
       "optional": false,
       "classification": "workbench-capture"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c1",
+      "itemLabel": "Calculate estimated stock water demand by species, intended numbers, and season - peak summer demand is the constraint",
+      "optional": false,
+      "classification": "auto-formula"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c2",
+      "itemLabel": "Assess existing water source yield through the dry season - dam storage, bore/well yield, creek/spring flow at seasonal minimum",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c3",
+      "itemLabel": "Map distance from water sources to proposed paddock locations - maximum travel distance per paddock",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c4",
+      "itemLabel": "Identify seasonal gaps between supply and demand - when and by how much supply falls short",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c5",
+      "itemLabel": "Assess infrastructure required to deliver water to all paddock locations - pipes, pumps, troughs, header tanks",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c6",
+      "itemLabel": "Conduct water quality assessment for livestock suitability - pH, blue-green algae risk, contamination sources",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
+    },
+    {
+      "objectiveId": "silv-sec-s3-stock-water",
+      "objectiveRef": "SILV-S3.21",
+      "stratumId": "s3-systems-reading",
+      "itemId": "silv-sec-s3-stock-water-c7",
+      "itemLabel": "Assess shared-source combined demand where domestic and stock water draw from the same bore, dam, creek, or rainwater source",
+      "optional": false,
+      "classification": "objective-map",
+      "viaToolId": "adopt-water"
     },
     {
       "objectiveId": "well-s3-acoustic-conditions",
@@ -17292,7 +17423,7 @@
       "objectiveRef": "EV-S6.2",
       "stratumId": "s6-integration-design",
       "itemId": "ev-s6-social-monitoring-c7",
-      "itemLabel": "Baseline social health indicators against the Stratum 2 founding group cohesion and relationship findings",
+      "itemLabel": "Baseline social health indicators against the Stratum 1 founding group cohesion and relationship findings",
       "optional": false,
       "classification": "workbench-capture"
     },

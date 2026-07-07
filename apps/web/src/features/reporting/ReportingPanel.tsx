@@ -25,6 +25,7 @@ import DesignBriefFeatureSchedulePreviewCard from './DesignBriefFeatureScheduleP
 import GisExportReadinessCard from './GisExportReadinessCard.js';
 import ImageExportReadinessCard from './ImageExportReadinessCard.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
+import { useServerProjectId } from '../../hooks/useServerProjectId.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { group, warning, sage, error as errorToken, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
@@ -241,6 +242,9 @@ interface ReportingPanelProps {
 
 export default function ReportingPanel({ project, onOpenExport }: ReportingPanelProps) {
   const { isOffline, requireOnline } = useOfflineGate();
+  // The exports API addresses the SERVER project UUID; project.id is the
+  // local store id (H4, deep-audit 2026-07-03). Null → not yet synced.
+  const serverProjectId = useServerProjectId(project.id);
   // ── Local UI state ──
   const [generating, setGenerating] = useState<Record<string, boolean>>({});
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
@@ -389,12 +393,20 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
   // ── Generate a single export ──
   const handleGenerate = useCallback(async (exportType: ExportTypeId) => {
+    if (serverProjectId === null) {
+      setErrors((prev) => ({
+        ...prev,
+        [exportType]:
+          "This project hasn't synced to the server yet — save it online to enable PDF export.",
+      }));
+      return;
+    }
     setGenerating((prev) => ({ ...prev, [exportType]: true }));
     setErrors((prev) => { const n = { ...prev }; delete n[exportType]; return n; });
 
     try {
       const body = { exportType, ...buildPayload(exportType) };
-      const { data } = await api.exports.generate(project.id, body);
+      const { data } = await api.exports.generate(serverProjectId, body);
       setDownloadUrls((prev) => ({ ...prev, [exportType]: data.storageUrl }));
       // Refresh history
       loadHistory();
@@ -404,7 +416,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
     } finally {
       setGenerating((prev) => ({ ...prev, [exportType]: false }));
     }
-  }, [project.id, buildPayload]);
+  }, [serverProjectId, buildPayload]);
 
   // ── Bulk generate ──
   const handleBulkGenerate = useCallback(async () => {
@@ -421,16 +433,17 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
   // ── Load export history ──
   const loadHistory = useCallback(async () => {
+    if (serverProjectId === null) return; // local-only project — no server history
     setHistoryLoading(true);
     try {
-      const { data } = await api.exports.list(project.id);
+      const { data } = await api.exports.list(serverProjectId);
       setHistory(data);
     } catch {
       // Silent — history is supplementary
     } finally {
       setHistoryLoading(false);
     }
-  }, [project.id]);
+  }, [serverProjectId]);
 
   useEffect(() => {
     loadHistory();

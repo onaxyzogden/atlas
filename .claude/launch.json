@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "web-cleanslate-wt",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set FEATURE_DEMO_OFFLINE=true&& set FEATURE_MULTI_USER=false&& cd .claude\\worktrees\\clean-slate-sample\\apps\\web&& node ..\\..\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5215 --strictPort"],
+      "port": 5215
+    },
+    {
       "name": "web-silv-wt",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd .claude\\worktrees\\silvopasture-act\\apps\\web && node ..\\..\\..\\..\\..\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5260 --strictPort"],
@@ -27,10 +33,17 @@
       "autoPort": true
     },
     {
+      "name": "web-5200",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js --port 5200 --strictPort"],
+      "port": 5200
+    },
+    {
       "name": "api",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd apps\\api && npm run dev"],
-      "port": 3001
+      "port": 3001,
+      "autoPort": true
     },
     {
       "name": "web-wt",
@@ -77,8 +90,22 @@
     {
       "name": "web-demo",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "set FEATURE_DEMO_MODE=true&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js --port 5206 --strictPort"],
-      "port": 5206
+      "runtimeArgs": ["/c", "set FEATURE_DEMO_MODE=true&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js"],
+      "port": 5206,
+      "autoPort": true
+    },
+    {
+      "name": "web-demo-offline",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set FEATURE_DEMO_OFFLINE=true&& set FEATURE_MULTI_USER=false&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js"],
+      "port": 5207,
+      "autoPort": true
+    },
+    {
+      "name": "web-demo-offline-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps\\web&& node ../../node_modules/vite/bin/vite.js preview --port 4174 --strictPort"],
+      "port": 4174
     },
     {
       "name": "downloads-preview",

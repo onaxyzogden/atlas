@@ -35,10 +35,11 @@
  * fresh Set from a Zustand selector. (Mirror of the reviewFlagStore note.)
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { scopeForRoles, type OperationalRole, type UniversalDomain } from '@ogden/shared';
 import { useAuthStore } from '../../store/authStore.js';
 import { useMemberStore } from '../../store/memberStore.js';
+import { useServerProjectId } from '../../hooks/useServerProjectId.js';
 import { useUIStore, type ViewFocusMode } from '../../store/uiStore.js';
 import { useIsSoloProject } from '../../features/collaboration/useIsSoloProject.js';
 import { useResolvedOperationalRoles } from './useResolvedOperationalRoles.js';
@@ -96,6 +97,33 @@ export function useViewScope(
   const solo = useIsSoloProject(projectId);
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const members = useMemberStore((s) => s.members);
+
+  // ROSTER BOOTSTRAP (H1, deep-audit 2026-07-03): this hook is the layer's
+  // single per-shell seam, so it must FETCH the roster it reads — memberStore
+  // is not persisted and starts empty, and before this effect only the legacy
+  // ActTierShell fetched, leaving the layer silently inert on ActOpsHub,
+  // ActMapFirstLayout and ViewBDashboard. `serverId` resolves through the
+  // id-or-serverId lookup convention the Act shells use (the route param is
+  // usually the LOCAL id — sending it to the members API would 404, cf. H4);
+  // local-only projects have no server roster and skip. Both fetches feed the
+  // solo gate: memberCount from the roster, the viewer's system role from
+  // fetchMyRole. Keyed on the store's `rosterProjectId` claim — set
+  // synchronously by fetchMembers — read LIVE (getState, deliberately not a
+  // reactive subscription): the `serverId` dep drives project switches, the
+  // live read dedupes sibling consumers mounted in the same commit, a failed
+  // fetch does not retry-storm, and not subscribing means two shells can
+  // never tug-of-war over the claim. Both actions no-op under
+  // DEMO_OFFLINE_ENABLED (the sample seeds its roster via seedLocalMembers).
+  const serverId = useServerProjectId(projectId);
+  const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const fetchMyRole = useMemberStore((s) => s.fetchMyRole);
+  useEffect(() => {
+    if (!serverId) return;
+    if (useMemberStore.getState().rosterProjectId === serverId) return;
+    void fetchMembers(serverId);
+    void fetchMyRole(serverId);
+  }, [serverId, fetchMembers, fetchMyRole]);
+
   // Option C: the viewer's scope is built from THIS project's domain map, which
   // may re-scope the six roles. `domainsMap` is memoized in the hook (stable
   // while the cached project is unchanged), so it is a safe memo key below.

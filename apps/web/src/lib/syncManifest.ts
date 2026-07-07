@@ -1282,4 +1282,10 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   // project bundle. Parked here as device-local until that transport exists;
   // promote to SYNCED_STORES (with a transport) when it is.
   'ogden-atlas-zone-ring-config',
+  // Offline-demo onboarding tour (onboardingStore). Purely per-browser UI
+  // chrome — "have I seen the welcome / completed the tour" — never project
+  // data, so it is device-local by definition. The feature is gated entirely
+  // behind FEATURE_DEMO_OFFLINE; this classification keeps the coverage guard
+  // green regardless of build flag.
+  'ogden-onboarding',
 ]);

@@ -11,7 +11,7 @@
  * fieldAction records (so re-mounting View B never duplicates).
  */
 
-import type { FieldAction } from '@ogden/shared';
+import { FLAGS, type FieldAction } from '@ogden/shared';
 import { useFieldActionStore } from '../../../store/fieldActionStore.js';
 import { seedCuratedMtcActionsIfEmpty } from './seedCuratedMtcActions.js';
 
@@ -65,10 +65,12 @@ const DEMOS: ReadonlyArray<{
     stratumId: 's2-land-reading',
     title: 'Record vehicle access points and turning radius',
     taskType: 'field_survey',
-    status: 'verified',
+    // H5 (deep-audit 2026-07-03): generic demo content never attests completed
+    // work — a fabricated `verified` in a real project is false testimony of
+    // work done. Authored verified records live only in the curated MTC seed.
+    status: 'in_progress',
     proofSchemaId: 'generic-fallback',
     verificationMode: 'self',
-    doneOffsetMs: -4 * 60 * 60 * 1000, // 4h ago — today
   },
   {
     suffix: 'frost-pocket',
@@ -91,6 +93,13 @@ const DEMOS: ReadonlyArray<{
  * (name/id discrimination), since both builtins carry `isBuiltin`.
  */
 export function seedActionsIfEmpty(projectId: string, isMtc: boolean): void {
+  // H5 (deep-audit 2026-07-03): only author demo/sample field actions when the
+  // sample pipeline is enabled. Off (the production default) a real project
+  // with zero field actions stays empty instead of accreting five fabricated
+  // tasks that then persist and sync-transport. The demo-offline build turns
+  // FLAGS.SEED_SAMPLES on (via FEATURE_DEMO_OFFLINE, H3), so the homestead
+  // clone and MTC still land on a populated View B.
+  if (!FLAGS.SEED_SAMPLES) return;
   if (isMtc) {
     seedCuratedMtcActionsIfEmpty(projectId);
     return;

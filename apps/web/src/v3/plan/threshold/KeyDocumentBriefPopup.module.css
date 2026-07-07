@@ -180,6 +180,7 @@
 }
 
 .groupLabel {
+  margin: 0; /* it's an <h4> for SR navigation; the pill row does the layout */
   font-size: 13px;
   font-weight: 700;
   color: var(--am-accent-strong);

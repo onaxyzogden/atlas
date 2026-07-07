@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import type { ConflictListItem, ConflictResolutionChoice } from '@ogden/shared';
 import { listRecordConflicts, resolveRecordConflict } from '../lib/syncService.js';
 import { toast } from '../components/Toast.js';
+import { useConnectivityStore } from '../store/connectivityStore.js';
 import css from './SyncConflictsPage.module.css';
 
 /**
@@ -16,12 +17,27 @@ import css from './SyncConflictsPage.module.css';
  *   - Keep mine   → reinstate the local copy as a new authoritative rev
  *   - Keep server → accept the server copy; the local edit is discarded
  *
- * `syncService.resolveRecordConflict` converges local state and reconciles the
- * Connectivity badge, so resolving the last open conflict clears the badge.
- * The active project is resolved inside syncService — this page takes no
- * params. Reached from the OfflineBanner conflict badge's "Review & resolve"
- * link.
+ * `syncService.resolveRecordConflict` converges local state. The active
+ * project is resolved inside syncService — this page takes no params.
+ * Reached from sync conflict toasts and the Act work panel's
+ * WorkConflictSection footer link (the OfflineBanner that used to badge
+ * conflicts was unmounted from AppShell in 4895b07d).
+ *
+ * DROPPED CHANGES (H2, deep-audit 2026-07-03): this page also lists
+ * `connectivityStore.droppedStores` — ops the sync queue gave up on (MAX_RETRIES
+ * exhausted, or a deterministic server rejection). A dropped op has already
+ * left the IDB queue, so this set is the only remaining record of the lost
+ * write; the header ProofSyncIndicator pill links here while any exist. There
+ * is nothing to "resolve" server-side — the steward re-edits the record to
+ * queue a fresh save, and dismisses the notice once handled.
  */
+
+/** A `storeType:action:localId` coalescing key, split for display. The localId
+ *  may itself contain ':' — everything past the second colon belongs to it. */
+function parseOpKey(key: string): { storeType: string; action: string; localId: string } {
+  const [storeType = '', action = '', ...rest] = key.split(':');
+  return { storeType, action, localId: rest.join(':') };
+}
 
 function formatWhen(iso: string | null): string {
   if (!iso) return '—';
@@ -50,6 +66,8 @@ export default function SyncConflictsPage() {
   const [items, setItems] = useState<ConflictListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const droppedKeys = useConnectivityStore((s) => s.droppedStores);
+  const clearDroppedStore = useConnectivityStore((s) => s.clearDroppedStore);
 
   const load = useCallback(async () => {
     setError(null);
@@ -102,6 +120,49 @@ export default function SyncConflictsPage() {
         </p>
       </header>
 
+      {droppedKeys.length > 0 && (
+        <section className={css.section}>
+          <h2 className={css.sectionTitle}>
+            Dropped changes <span className={css.count}>{droppedKeys.length}</span>
+          </h2>
+          <p className={css.droppedLede}>
+            These changes could not be saved to the server — either repeated attempts failed or
+            the server rejected them. Each is kept on this device only and will not retry on its
+            own. Re-edit the record to queue a fresh save, then dismiss the notice.
+          </p>
+          <ul className={css.cardList}>
+            {droppedKeys.map((key) => {
+              const { storeType, action, localId } = parseOpKey(key);
+              return (
+                <li key={key} className={css.card}>
+                  <div className={css.cardHead}>
+                    <span className={css.storeTag}>
+                      <span className={css.storeDot} />
+                      {storeType}
+                    </span>
+                    <span className={css.recordId} title={key}>
+                      {localId}
+                    </span>
+                  </div>
+                  <p className={css.detectedAt}>
+                    Unsaved <strong>{action}</strong> — kept on this device only.
+                  </p>
+                  <div className={css.actions}>
+                    <button
+                      type="button"
+                      className={`${css.resolveBtn} ${css.keepServer}`}
+                      onClick={() => clearDroppedStore(key)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       {loading ? (
         <p className={css.empty}>Loading conflicts…</p>
       ) : error ? (
@@ -113,7 +174,9 @@ export default function SyncConflictsPage() {
         </p>
       ) : n === 0 ? (
         <p className={css.empty}>
-          No open conflicts. Everything on this device is in sync with the server.{' '}
+          {droppedKeys.length > 0
+            ? 'No open conflicts.' // dropped changes above mean we are NOT fully in sync
+            : 'No open conflicts. Everything on this device is in sync with the server.'}{' '}
           <Link to="/home" className={css.homeLink}>
             Back to projects
           </Link>

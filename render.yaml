@@ -66,6 +66,30 @@ services:
         value: https://atlas.ogden.ag
       - key: APP_PUBLIC_URL
         value: https://atlas.ogden.ag   # base for verify/reset email links
+      # ── Reverse-proxy hop count (makes per-IP portal rate limits real) ──────
+      # The proxy chain in front of Fastify is: client → Render edge →
+      # atlas-web (nginx) → atlas-api. nginx appends its own address to
+      # X-Forwarded-For (infrastructure/nginx/conf.d/default.conf), so the api
+      # trusts 2 hops to recover the client IP. If unset, every public visitor
+      # shares ONE rate-limit bucket (ineffective + self-DoS). VERIFY post-deploy:
+      # hit the portal from two client IPs and confirm two independent buckets;
+      # if the real client IP is still masked, bump to "1" or "3" — no code change.
+      - key: TRUST_PROXY
+        value: "2"
+      # ── Rate limits (surfaced at code defaults for dashboard tuning) ────────
+      # Global per-IP cap (all routes) + the tighter unauthenticated-portal caps.
+      # All four only bite once TRUST_PROXY (above) recovers the real client IP;
+      # otherwise every visitor shares the proxy's single bucket. Defaults live in
+      # apps/api/src/lib/config.ts — mirrored here so they're visible and tunable
+      # from the dashboard without a code change.
+      - key: RATE_LIMIT_MAX
+        value: "200"           # global requests per IP per window
+      - key: RATE_LIMIT_WINDOW
+        value: "1 minute"
+      - key: PORTAL_PUBLIC_RATE_LIMIT_MAX
+        value: "60"            # unauthenticated portal GETs per IP / minute
+      - key: PORTAL_PDF_RATE_LIMIT_MAX
+        value: "10"            # portal PDF streams per IP / minute (heavier)
       # ── Email (verification + password reset) ──────────────────────────────
       - key: EMAIL_TRANSPORT
         value: resend
@@ -109,8 +133,14 @@ services:
       - key: VITE_CESIUM_ION_TOKEN
         sync: false
       # Demo mode — auto-registers a throwaway guest session on boot so the live
-      # test site is explorable without the (currently broken) login wall. Read
-      # from process.env in vite.config.ts and inlined into the bundle. Set to
-      # "false" (or remove) once real login is restored.
+      # test deployment is explorable WITHOUT logging in. The real LoginPage
+      # works; this is a deliberate explorable-without-login test-launch
+      # convenience, not a broken-login workaround. Read from process.env in
+      # vite.config.ts and inlined into the bundle.
+      #   DEFERRED: throwaway guest accounts accumulate in the DB — there is no
+      #     cleanup job yet. Acceptable for the test launch; revisit with real use.
+      #   REVISIT BEFORE REAL LAUNCH: set to "false" (or remove) to restore the
+      #     login wall at production cutover. The auth-bypass posture (anyone can
+      #     boot a guest session) MUST be reconsidered before a real launch.
       - key: FEATURE_DEMO_MODE
         value: "true"

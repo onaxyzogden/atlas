@@ -25,6 +25,7 @@
  */
 
 import type { IntentElement, IntentElementType } from './intentElements';
+import { detectCovenantBanned } from '@ogden/shared';
 
 // ---------------------------------------------------------------------------
 // Classification vocabulary (PIN EXACTLY -- spec + mockup)
@@ -374,13 +375,18 @@ export function composePlanningDirection(input: PlanningDirectionInput): string 
 // Amanah: non-blocking advisory on advance-sale / subscription / CSA framing
 // ---------------------------------------------------------------------------
 
-// Verbatim covenant banned-term set. Reused wherever steward free-text is
-// entered at the threshold (intent text, conditions, notes).
-const CSA_LIKE = /(subscription|presale|pre-sale|advance[ -]sale|csa|csra|yield[ -]share)/i;
-
-/** True when text resembles advance-sale / subscription / CSA framing. */
+/**
+ * True when steward free-text resembles the forbidden financial framing --
+ * advance-sale / subscription / CSA / yield-share, and (since the 2026-07-03
+ * deep audit) salam / advance-purchase / the riba family. Delegates to the
+ * single shared covenant set (`@ogden/shared`) so this threshold advisory can
+ * never drift from the seed-time capture gate and the catalogue / recipe guards.
+ * Reused wherever steward free-text is entered at the threshold (intent text,
+ * conditions, notes). Non-blocking: callers show `CSA_ADVISORY_COPY` beside the
+ * input, never instead of it, and never censor the steward's text.
+ */
 export function detectCsaLikeText(text: string | null | undefined): boolean {
-  return typeof text === 'string' && CSA_LIKE.test(text);
+  return detectCovenantBanned(text);
 }
 
 /**
@@ -390,7 +396,7 @@ export function detectCsaLikeText(text: string | null | undefined): boolean {
 export const CSA_ADVISORY_COPY = {
   title: 'A note on capital framing',
   body:
-    'This wording resembles advance-sale or subscription financing, which this system does not use. Capital here flows through permitted channels -- charitable donation, restricted donation, qard hasan (interest-free loan), in-kind contribution, and sponsorship. This is an advisory only; your entry is saved exactly as written.',
+    'This wording resembles advance-sale, subscription, or investment financing, which this system does not use. Capital here flows through permitted channels -- charitable donation, restricted donation, qard hasan (interest-free loan), in-kind contribution, and sponsorship. This is an advisory only; your entry is saved exactly as written.',
 } as const;
 
 // ---------------------------------------------------------------------------

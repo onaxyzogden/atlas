@@ -10,6 +10,7 @@ import {
   type SecondaryCatalogue,
 } from '../../constants/plan/catalogues/index.js';
 import { ck, obj, patch } from '../../constants/plan/catalogues/authoring.js';
+import { detectCovenantBanned } from '../../constants/covenant/bannedTerms.js';
 
 describe('resolveProjectObjectives - regenerative_farm (primary only)', () => {
   const r = resolveProjectObjectives({ primaryTypeId: 'regenerative_farm' });
@@ -286,8 +287,9 @@ describe('resolveProjectObjectives - canonical declaration config (regen + resid
   });
 
   it('Amanah: no advance-sale / subscription / yield-share wording in the resolved Stratum-3 set', () => {
-    const banned =
-      /(subscription|presale|pre-sale|advance[ -]sale|\bcsa\b|csra|yield[ -]share|salam)/i;
+    // Scan the resolved Stratum-3 active copy against the shared covenant union
+    // (hard-ban + conditional). These are land-reading survey fields -- no scopeNote
+    // is scanned here, so the full union is admitted with no forbidding-copy carve-out.
     const strings: string[] = [];
     for (const o of r.objectives.filter(
       (x) => x.stratumId === 's3-systems-reading',
@@ -302,7 +304,7 @@ describe('resolveProjectObjectives - canonical declaration config (regen + resid
     }
     expect(strings.length).toBeGreaterThan(0);
     for (const s of strings) {
-      expect(banned.test(s), s).toBe(false);
+      expect(detectCovenantBanned(s), s).toBe(false);
     }
   });
 });

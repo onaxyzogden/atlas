@@ -31,6 +31,11 @@ import '../dev/seedApricotLane.js';
 import '../dev/seedMtcObserveBaseline.js';
 import '../dev/seedMtcRotationFixture.js';
 import '../dev/seedHomesteadSample.js';
+// Clean-slate wipe utility — registers window.__ogdenResetCleanSlate().
+import '../dev/resetCleanSlate.js';
+// Sample-seed capture tool — registers window.__ogdenCaptureSampleSeed() to
+// snapshot the user-authored project into the promotable sample seed.
+import '../dev/captureSampleSeed.js';
 
 import { useAuthStore } from '../store/authStore.js';
 import {
