@@ -176,6 +176,11 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             units: data.units,
             metadata: metadataWithTemplate,
             orgId: data.orgId,
+            // Idempotency key -- the same stable local id the store
+            // subscription's create sends. Without it, a wizard-direct POST and
+            // a subscription POST carry different keys and the server cannot
+            // collapse them onto one (owner_id, client_local_id) row.
+            clientLocalId: project.id,
           });
           updateProjectFn(project.id, { serverId: serverProject.id });
           const geo = data.parcelBoundaryGeojson;

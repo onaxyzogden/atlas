@@ -102,6 +102,43 @@ describe('POST /api/v1/projects', () => {
     expect(JSON.parse(res.body).data.name).toBe('Test Farm');
   });
 
+  it('is idempotent for a repeated clientLocalId — second POST returns the same row with 200', async () => {
+    const clientLocalId = 'a1a1a1a1-a1a1-41a1-81a1-a1a1a1a1a1a1';
+
+    // POST #1 — fresh insert: SELECT default org, INSERT … RETURNING the row,
+    // INSERT data_pipeline_jobs (the one and only pipeline enqueue).
+    enqueue({ org_id: 'd0000000-0000-0000-0000-000000000001' });
+    enqueue(projectRow());
+    enqueue();
+    const res1 = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { name: 'My Test Farm', country: 'US', units: 'metric', clientLocalId },
+    });
+
+    // POST #2 — same clientLocalId: SELECT default org, INSERT hits the partial
+    // unique index so ON CONFLICT DO NOTHING returns no row, then SELECT the
+    // existing row. The handler returns 200 BEFORE the data_pipeline_jobs insert,
+    // so no second pipeline job is enqueued — exactly one across both calls.
+    enqueue({ org_id: 'd0000000-0000-0000-0000-000000000001' });
+    enqueue(); // ON CONFLICT DO NOTHING → empty row-set
+    enqueue(projectRow()); // SELECT existing by (owner_id, client_local_id)
+    const res2 = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { name: 'My Test Farm', country: 'US', units: 'metric', clientLocalId },
+    });
+
+    expect(res1.statusCode).toBe(201);
+    expect(res2.statusCode).toBe(200); // idempotent replay, not a fresh create
+    const id1 = JSON.parse(res1.body).data.id;
+    const id2 = JSON.parse(res2.body).data.id;
+    expect(id2).toBe(id1); // same row returned both times
+    expect(id1).toBe(TEST_PROJ_ID);
+  });
+
   it('returns 401 without auth', async () => {
     const res = await app.inject({
       method: 'POST',

@@ -27,6 +27,7 @@ import {
 } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
+import { dedupeProjectsByIdentity } from './dedupeProjects.js';
 import { geodataCache } from '../lib/geodataCache.js';
 import { api } from '../lib/apiClient.js';
 import { ARCHETYPE_TO_PROJECT_TYPE } from '../v3/true-north/trueNorthConfig.js';
@@ -1654,6 +1655,35 @@ export function asFeatureCollection(
   };
 }
 
+/**
+ * Merge freshly-fetched builtin/sample rows into the current project list.
+ *
+ * Pure and exported so it unit-tests without standing up the store. Drops:
+ *   (a) any previous local copy keyed by a serverId the incoming set also
+ *       carries -- the server row is authoritative and `incoming` already holds
+ *       its refreshed copy; and
+ *   (b) the legacy hard-coded "351 House" seed that earliest builds wrote on
+ *       first run (no serverId, no isBuiltin) -- it would otherwise shadow the
+ *       real builtin sample.
+ * It then collapses any surviving same-identity duplicates via
+ * `dedupeProjectsByIdentity`. Builtins and non-builtin demo clones are keyed
+ * apart, so a sample and its clone both survive; only genuine twins merge.
+ */
+export function mergeBuiltins(
+  currentProjects: LocalProject[],
+  incoming: LocalProject[],
+): LocalProject[] {
+  const incomingServerIds = new Set(
+    incoming.map((i) => i.serverId).filter((id): id is string => Boolean(id)),
+  );
+  const filtered = currentProjects.filter((p) => {
+    if (p.serverId && incomingServerIds.has(p.serverId)) return false;
+    if (!p.serverId && !p.isBuiltin && p.name === '351 House') return false;
+    return true;
+  });
+  return dedupeProjectsByIdentity([...filtered, ...incoming]);
+}
+
 function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
   const now = new Date().toISOString();
   // Snapshot the current store BEFORE we filter/replace so we can preserve
@@ -1723,18 +1753,9 @@ function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
   };
   });
 
-  useProjectStore.setState((state) => {
-    // Drop (a) any previous local copy keyed by serverId so server is
-    // authoritative, and (b) the legacy hard-coded "351 House" seed that
-    // earlier builds wrote on first run — it had no serverId and no
-    // isBuiltin flag and would otherwise duplicate the builtin sample.
-    const filtered = state.projects.filter((p) => {
-      if (builtins.some((sp) => sp.id === p.serverId)) return false;
-      if (!p.serverId && !p.isBuiltin && p.name === '351 House') return false;
-      return true;
-    });
-    return { projects: [...filtered, ...incoming] };
-  });
+  useProjectStore.setState((state) => ({
+    projects: mergeBuiltins(state.projects, incoming),
+  }));
 
   // Hydrate the per-project observe stores (vision, hazards, sectors,
   // transects, soil samples, ecology, SWOT) so Stage 1 modules render

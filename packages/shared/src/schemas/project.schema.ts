@@ -223,6 +223,11 @@ export const CreateProjectInput = z.object({
   // back to the caller's default org (set at register-time by Prong 1).
   // Membership-checked server-side: caller must be a member of the org.
   orgId: z.string().uuid().optional(),
+  // Client-supplied idempotency key: the web client sends its stable local
+  // project id (crypto.randomUUID) so a retried or raced create upserts on
+  // (owner_id, client_local_id) instead of minting a duplicate row. Optional
+  // so legacy callers and server-side creates without a local row still parse.
+  clientLocalId: z.string().uuid().optional(),
 });
 export type CreateProjectInput = z.infer<typeof CreateProjectInput>;
 
