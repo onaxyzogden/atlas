@@ -30,6 +30,7 @@ import {
   type SyncedRecordMeta,
 } from './syncManifest.js';
 import { useProjectStore, asFeatureCollection, type LocalProject } from '../store/projectStore.js';
+import { dedupeProjectsByIdentity } from '../store/dedupeProjects.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../store/utilityStore.js';
@@ -458,12 +459,17 @@ export async function hydrateProjectBoundaries(): Promise<number> {
 }
 
 async function syncProjectCreate(project: LocalProject, rethrow = false) {
-  // Idempotent at entry: a project that already carries a serverId is synced —
+  // Re-read the live row before the guard: a queued op carries a stale snapshot
+  // whose serverId may have been stamped since it was enqueued, so trust the
+  // store over the passed object. Fall back to the passed obj only when the row
+  // is gone locally (nothing live to read).
+  const live = useProjectStore.getState().projects.find((p) => p.id === project.id) ?? project;
+  // Idempotent at entry: a project that already carries a serverId is synced --
   // never POST a second row for it.
-  if (project.serverId) return;
+  if (live.serverId) return;
   // Dedup concurrent creates for the same local project. If one is already in
   // flight, await it instead of starting a second POST.
-  const inFlight = inFlightProjectSync.get(project.id);
+  const inFlight = inFlightProjectSync.get(live.id);
   if (inFlight) {
     if (rethrow) {
       await inFlight; // surface any rejection to the explicit caller
@@ -472,12 +478,12 @@ async function syncProjectCreate(project: LocalProject, rethrow = false) {
     }
     return;
   }
-  const run = syncProjectCreateInner(project, rethrow);
-  inFlightProjectSync.set(project.id, run);
+  const run = syncProjectCreateInner(live, rethrow);
+  inFlightProjectSync.set(live.id, run);
   try {
     await run;
   } finally {
-    inFlightProjectSync.delete(project.id);
+    inFlightProjectSync.delete(live.id);
   }
 }
 
@@ -533,13 +539,23 @@ async function syncProjectCreateInner(project: LocalProject, rethrow: boolean) {
       address: project.address ?? undefined,
       parcelId: project.parcelId ?? undefined,
       units: project.units,
+      // Idempotency key: the local row's own id. A retried or raced create then
+      // upserts on (owner_id, client_local_id) server-side instead of minting a
+      // duplicate row. Stable across snapshot staleness, so even a queued op's
+      // payload carries the right key.
+      clientLocalId: project.id,
       ...(orgId ? { orgId } : {}),
     });
 
-    // Write serverId back (guarded)
+    // Write serverId back. Re-entrant guard: callers normally enter with
+    // isSyncing=false, but initialSync drives creates while holding
+    // isSyncing=true to fence its step-4 versioned-blob write. Save and restore
+    // rather than hard-clearing so a create nested inside initialSync does not
+    // drop that fence mid-run.
+    const wasSyncing = isSyncing;
     isSyncing = true;
     useProjectStore.getState().updateProject(project.id, { serverId: data.id });
-    isSyncing = false;
+    isSyncing = wasSyncing;
 
     // If project has a boundary, also sync it
     if (project.parcelBoundaryGeojson) {
@@ -1183,25 +1199,34 @@ async function initialSync(): Promise<void> {
       }
     }
 
-    // 3. Push unsynced local projects to server
-    const unsyncedProjects = useProjectStore.getState().projects.filter((p) => !p.serverId);
+    // 3. Push unsynced local projects to server. Route through syncProjectNow
+    // (not a direct api.projects.create) so this shares the inFlightProjectSync
+    // lock with any subscription-driven create already in flight for the same
+    // row -- step 3 then AWAITS that create instead of racing it into a second
+    // POST (the observed duplicate's root cause). syncProjectNow also
+    // short-circuits already-synced rows and sends the clientLocalId idempotency
+    // key. The !isBuiltin filter keeps a locally-seeded builtin (which has no
+    // serverId) out of the push entirely -- a sample must never be POSTed.
+    const unsyncedProjects = useProjectStore
+      .getState()
+      .projects.filter((p) => !p.serverId && !p.isBuiltin);
     for (const lp of unsyncedProjects) {
-      try {
-        const { data } = await api.projects.create({
-          name: lp.name,
-          description: lp.description ?? undefined,
-          projectType: lp.projectType as Parameters<typeof api.projects.create>[0]['projectType'],
-          country: lp.country as 'US' | 'CA' | 'INTL',
-          provinceState: lp.provinceState ?? undefined,
-          address: lp.address ?? undefined,
-          parcelId: lp.parcelId ?? undefined,
-          units: lp.units,
-        });
-        useProjectStore.getState().updateProject(lp.id, { serverId: data.id });
-      } catch (err) {
-        console.warn(`[SYNC] Failed to push local project "${lp.name}" to server:`, err);
+      const res = await syncProjectNow(lp.id);
+      if (!res.ok && res.error !== 'builtin') {
+        console.warn(`[SYNC] Failed to push local project "${lp.name}" to server:`, res.error);
       }
     }
+
+    // 3b. Collapse same-identity duplicates now that both the server pull (step
+    // 2) and the local push (step 3) have run. Two rows for the same project --
+    // a demo double-clone with distinct local ids, or a pre-existing bad state --
+    // carry distinct serverIds the server key cannot merge, so heal them here on
+    // name + type + country. Runs before step 4 so its per-project design sync
+    // never does redundant work on a row about to be hidden. Nothing is deleted
+    // server-side; each dropped row's orphan serverId is warned.
+    useProjectStore.setState((state) => ({
+      projects: dedupeProjectsByIdentity(state.projects),
+    }));
 
     // 4. Sync zones and structures for each project with a serverId
     const allProjects = useProjectStore.getState().projects;
@@ -2641,8 +2666,15 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
   switch (op.storeType) {
     case 'project': {
       if (op.action === 'create') {
-        const project = payload as unknown as LocalProject;
-        await syncProjectCreate(project, true);
+        // Re-resolve the live row by localId rather than trusting the queued
+        // snapshot: it may have gained a serverId (already synced) or been
+        // deleted since enqueue. Skip a row that is gone locally so a replay
+        // never resurrects a deleted project. syncProjectCreate also re-reads
+        // and short-circuits on serverId, so with the server upsert this is
+        // belt-and-suspenders -- but it avoids a wasted POST.
+        const live = useProjectStore.getState().projects.find((p) => p.id === op.localId);
+        if (!live) break;
+        await syncProjectCreate(live, true);
       } else if (op.action === 'update') {
         const project = payload as unknown as LocalProject;
         await syncProjectUpdate(project, true);

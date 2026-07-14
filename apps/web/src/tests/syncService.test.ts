@@ -68,7 +68,7 @@ vi.mock('../store/builtEnvironmentStoreV2.js', () => ({
   useBuiltEnvironmentStoreV2: mockBuiltEnvV2Store,
 }));
 
-import { syncService, applyServerAcreage } from '../lib/syncService.js';
+import { syncService, applyServerAcreage, syncProjectNow, executeQueuedOp } from '../lib/syncService.js';
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
@@ -183,5 +183,66 @@ describe('applyServerAcreage guard', () => {
   it('applies a valid positive server acreage', () => {
     applyServerAcreage('local-1', { acreage: 12.3 });
     expect(updateProject).toHaveBeenCalledWith('local-1', { acreage: 12.3 });
+  });
+});
+
+describe('project create idempotency', () => {
+  // A bare unsynced project: no boundary, no notes, so syncProjectCreateInner
+  // touches only api.projects.create + getState().updateProject.
+  const P1 = {
+    id: 'p1',
+    name: 'Test',
+    projectType: 'homestead',
+    country: 'US',
+    units: 'metric',
+    isBuiltin: false,
+  };
+
+  function setProjects(projects: unknown[]) {
+    mockProjectStore.getState.mockReturnValue({
+      projects,
+      zones: [],
+      entities: [],
+      updateProject: vi.fn(),
+    } as unknown as ReturnType<typeof mockProjectStore.getState>);
+  }
+
+  it('short-circuits an already-synced project without POSTing', async () => {
+    setProjects([{ ...P1, serverId: 'srv-existing' }]);
+
+    const res = await syncProjectNow('p1');
+
+    expect(res).toEqual({ ok: true, serverId: 'srv-existing' });
+    expect(mockApi.projects.create).not.toHaveBeenCalled();
+  });
+
+  it('POSTs exactly once for concurrent syncProjectNow calls, carrying clientLocalId', async () => {
+    setProjects([{ ...P1, serverId: undefined }]);
+
+    // Both calls share the inFlightProjectSync lock: the second awaits the
+    // first's create instead of firing a second POST (root-cause #1).
+    await Promise.all([syncProjectNow('p1'), syncProjectNow('p1')]);
+
+    expect(mockApi.projects.create).toHaveBeenCalledTimes(1);
+    expect(mockApi.projects.create).toHaveBeenCalledWith(
+      expect.objectContaining({ clientLocalId: 'p1' }),
+    );
+  });
+
+  it('does not POST from the queue executor when the live row already has a serverId', async () => {
+    // Stale queued snapshot (no serverId) but the live row has since synced —
+    // the executor re-reads live and short-circuits before any POST.
+    setProjects([{ ...P1, serverId: 'srv-existing' }]);
+    const op = {
+      id: 'op-1',
+      storeType: 'project',
+      action: 'create',
+      localId: 'p1',
+      payload: { ...P1, serverId: undefined },
+    };
+
+    await executeQueuedOp(op as unknown as Parameters<typeof executeQueuedOp>[0]);
+
+    expect(mockApi.projects.create).not.toHaveBeenCalled();
   });
 });

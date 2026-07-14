@@ -264,15 +264,24 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       orgId = defaultOrg.org_id;
     }
 
-    const [project] = await db`
+    // Idempotent create (migration 058). The web client sends its stable local
+    // row id as client_local_id; a retried or raced create then upserts on
+    // (owner_id, client_local_id) via the partial unique index instead of
+    // minting a duplicate. The ON CONFLICT WHERE predicate MUST match the
+    // index predicate exactly or PG rejects the statement. Legacy/pull callers
+    // send no key -> NULL, which the partial index excludes, so DO NOTHING
+    // never fires and the INSERT always returns its row (unchanged behavior).
+    const [created] = await db`
       INSERT INTO projects (
         owner_id, org_id, name, description, project_type,
-        country, province_state, units, metadata
+        country, province_state, units, metadata, client_local_id
       ) VALUES (
         ${req.userId}, ${orgId}, ${body.name}, ${body.description ?? null},
         ${body.projectType ?? null}, ${body.country}, ${body.provinceState ?? null},
-        ${body.units}, ${db.json((body.metadata ?? {}) as never)}
+        ${body.units}, ${db.json((body.metadata ?? {}) as never)}, ${body.clientLocalId ?? null}
       )
+      ON CONFLICT (owner_id, client_local_id) WHERE client_local_id IS NOT NULL
+        DO NOTHING
       RETURNING id, name, description, status, project_type, country, province_state,
                 conservation_auth_id, address, parcel_id,
                 acreage::float8 AS acreage,
@@ -281,17 +290,36 @@ export default async function projectRoutes(fastify: FastifyInstance) {
                 metadata, created_at, updated_at
     `;
 
+    if (!created) {
+      // Idempotent replay: a project with this (owner_id, client_local_id)
+      // already exists. Return it unchanged with 200 (not 201) and do NOT
+      // enqueue a second Tier 1 pipeline job. clientLocalId is guaranteed
+      // non-null here — a NULL key can never conflict against the partial index.
+      const [existing] = await db`
+        SELECT id, name, description, status, project_type, country, province_state,
+               conservation_auth_id, address, parcel_id,
+               acreage::float8 AS acreage,
+               data_completeness_score::float8 AS data_completeness_score,
+               parcel_boundary IS NOT NULL AS has_parcel_boundary,
+               metadata, created_at, updated_at
+        FROM projects
+        WHERE owner_id = ${req.userId} AND client_local_id = ${body.clientLocalId ?? null}
+      `;
+      reply.code(200);
+      return { data: ProjectSummary.parse(toCamelCase(existing)), meta: undefined, error: null };
+    }
+
     // Enqueue Tier 1 data pipeline job (will run once boundary is set)
     await db`
       INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-      VALUES (${project!.id}, 'fetch_tier1', 'queued')
+      VALUES (${created.id}, 'fetch_tier1', 'queued')
     `;
     if (fastify.pipeline) {
-      await fastify.pipeline.enqueueTier1Fetch(project!.id);
+      await fastify.pipeline.enqueueTier1Fetch(created.id);
     }
 
     reply.code(201);
-    return { data: ProjectSummary.parse(toCamelCase(project)), meta: undefined, error: null };
+    return { data: ProjectSummary.parse(toCamelCase(created)), meta: undefined, error: null };
   });
 
   // GET /projects/:id — fetch single project (any role)
